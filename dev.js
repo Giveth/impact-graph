@@ -1,2 +1,2 @@
-require("ts-node/register/transpile-only");
-require("./index.ts");
+require('ts-node/register/transpile-only')
+require('./index.ts')
