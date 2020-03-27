@@ -13,16 +13,10 @@ export async function seedDatabase () {
   const organisationProjectRepository = getRepository(OrganisationProject)
   const userRepository = getRepository(User)
 
-  const adminOrganisationUser = organisationUserRepository.create({
-    role: 'admin'
-  })
-  await organisationUserRepository.save(adminOrganisationUser)
-
   const superAdminUser = userRepository.create({
     email: 'jamespfarrell@gmail.com',
     name: 'James',
-    password: 's3cr3tp4ssw0rd',
-    organisationUsers: [adminOrganisationUser]
+    password: 's3cr3tp4ssw0rd'
   })
   const icrcAdmin = userRepository.create({
     email: 'icrcAdmin@icrcAdmin.om',
@@ -75,6 +69,13 @@ export async function seedDatabase () {
     project: covidProject
   })
   await organisationProjectRepository.save(organisationProject)
+
+  const adminOrganisationUser = organisationUserRepository.create({
+    role: 'admin',
+    organisation: icrcOrg,
+    user: icrcAdmin
+  })
+  await organisationUserRepository.save(adminOrganisationUser)
 
   // const icrcProjects = projectRepository.create([
   //   {

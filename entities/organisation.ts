@@ -11,6 +11,7 @@ import {
 
 import { OrganisationUser } from './organisationUser'
 import { OrganisationProject } from './organisationProject'
+import { User } from './user'
 import { Project } from './project'
 // import { RelationColumn } from '../helpers'
 function RelationColumn (options?: ColumnOptions) {
@@ -45,9 +46,13 @@ export class Organisation {
   // @RelationColumn()
   // projectOrganisationsOrganisationId: number
 
-  // @Field(type => User)
-  // @ManyToOne(type => User)
-  // author: User
+  @Field(type => User)
+  @ManyToMany(
+    type => User,
+    user => user.organisations
+  )
+  @JoinTable()
+  users: User[]
   // @RelationColumn()
   // authorId: number
 }

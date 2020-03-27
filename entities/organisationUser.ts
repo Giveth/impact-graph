@@ -1,9 +1,17 @@
 import { Field, ID, ObjectType } from 'type-graphql'
-import { PrimaryGeneratedColumn, Column, Entity, ManyToOne } from 'typeorm'
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  ManyToOne,
+  ColumnOptions
+} from 'typeorm'
 import { Organisation } from './organisation'
 import { User } from './user'
-import { RelationColumn } from '../helpers'
-
+// import { RelationColumn } from '../helpers'
+function RelationColumn (options?: ColumnOptions) {
+  return Column({ nullable: true, ...options })
+}
 @ObjectType()
 @Entity()
 export class OrganisationUser {
@@ -23,5 +31,5 @@ export class OrganisationUser {
 
   @Field(type => User)
   @ManyToOne(type => User)
-  author: User
+  user: User
 }

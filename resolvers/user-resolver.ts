@@ -12,22 +12,22 @@ import { Repository, In } from 'typeorm'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 
 import { Recipe } from '../entities/recipe'
-import { Rate } from '../entities/rate'
+import { OrganisationUser } from '../entities/organisationUser'
 import { User } from '../entities/user'
 import { RecipeInput } from './types/recipe-input'
 import { Context } from '../index'
 import { RateInput } from './types/rate-input'
-import { OrganisationUser } from '../entities/organisationUser'
+// import { OrganisationUser } from '../entities/organisationUser'
 import { Organisation } from '../entities/organisation'
 
 @Resolver(of => User)
 export class UserResolver {
   constructor (
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(Organisation)
-    private readonly organisationRepository: Repository<Organisation>,
     @InjectRepository(OrganisationUser)
-    private readonly organisationUserRepository: Repository<OrganisationUser>
+    private readonly organisationUserRepository: Repository<OrganisationUser>,
+    @InjectRepository(Organisation)
+    private readonly organisationRepository: Repository<Organisation> // , // @InjectRepository(OrganisationUser) // private readonly organisationUserRepository: Repository<OrganisationUser>
   ) {}
 
   @Query(returns => User, { nullable: true })
@@ -47,6 +47,16 @@ export class UserResolver {
       where: { authorId: user.id }
     })
   }
+
+  // @FieldResolver()
+  // async organisations (@Root() user: User) {
+  //   const orgs = await this.userRepository.find({
+  //     relations: ['organisations']
+  //   })
+  //   console.log(`orgs : ${JSON.stringify(orgs, null, 2)}`)
+
+  //   process.exit()
+  // }
 
   @FieldResolver()
   async organisations (@Root() user: User) {
