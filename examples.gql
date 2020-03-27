@@ -18,13 +18,13 @@ query GetRecipe {
     ratings {
       value
       user {
-        nickname
+        name
       }
       date
     }
     author {
       id
-      nickname
+      name
       email
     }
   }
@@ -39,7 +39,7 @@ mutation AddRecipe {
       value
     }
     author {
-      nickname
+      name
     }
   }
 }

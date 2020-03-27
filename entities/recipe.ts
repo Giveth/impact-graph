@@ -1,32 +1,42 @@
-import { Field, ID, ObjectType } from "type-graphql";
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from "typeorm";
+import { Field, ID, ObjectType } from 'type-graphql'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne
+} from 'typeorm'
 
-import { Rate } from "./rate";
-import { User } from "./user";
-import { RelationColumn } from "../helpers";
+import { Rate } from './rate'
+import { User } from './user'
+import { RelationColumn } from '../helpers'
 
 @Entity()
 @ObjectType()
 export class Recipe {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
-  readonly id: number;
+  readonly id: number
 
   @Field()
   @Column()
-  title: string;
+  title: string
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  description?: string;
+  description?: string
 
   @Field(type => [Rate])
-  @OneToMany(type => Rate, rate => rate.recipe, { cascade: ["insert"] })
-  ratings: Rate[];
+  @OneToMany(
+    type => Rate,
+    rate => rate.recipe,
+    { cascade: ['insert'] }
+  )
+  ratings: Rate[]
 
   @Field(type => User)
   @ManyToOne(type => User)
-  author: User;
+  author: User
   @RelationColumn()
-  authorId: number;
+  authorId: number
 }
