@@ -4,25 +4,30 @@ import {
   Column,
   Entity,
   OneToMany,
-  ManyToMany
+  ManyToMany,
+  BaseEntity
 } from 'typeorm'
 import { OrganisationUser } from './organisationUser'
 import { Organisation } from './organisation'
 
 @ObjectType()
 @Entity()
-export class User {
+export class User extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number
 
   @Field()
-  @Column()
+  @Column('text', { unique: true })
   email: string
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  name?: string
+  firstName?: string
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  lastName?: string
 
   @Column()
   password: string

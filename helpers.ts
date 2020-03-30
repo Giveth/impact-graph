@@ -15,18 +15,18 @@ export async function seedDatabase () {
 
   const superAdminUser = userRepository.create({
     email: 'jamespfarrell@gmail.com',
-    name: 'James',
+    firstName: 'James',
     password: 's3cr3tp4ssw0rd'
   })
   const icrcAdmin = userRepository.create({
     email: 'icrcAdmin@icrcAdmin.om',
-    name: 'icrcAdmin',
+    firstName: 'icrcAdmin',
     password: 's3cr3tp4ssw0rd'
   })
 
   const ifrcAdmin = userRepository.create({
-    email: 'icrcAdmin@icrcAdmin.om',
-    name: 'icrcAdmin',
+    email: 'ifrcAdmin@icrcAdmin.om',
+    firstName: 'ifrcAdmin',
     password: 's3cr3tp4ssw0rd'
   })
   await userRepository.save([superAdminUser, icrcAdmin, ifrcAdmin])
