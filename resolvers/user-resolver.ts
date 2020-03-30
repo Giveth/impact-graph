@@ -13,7 +13,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions'
 
 import { Recipe } from '../entities/recipe'
 import { OrganisationUser } from '../entities/organisationUser'
-import { User } from '../entities/User'
+import { User } from '../entities/user'
 import { RecipeInput } from './types/recipe-input'
 import { Context } from '../index'
 import { RateInput } from './types/rate-input'
@@ -31,7 +31,7 @@ export class UserResolver {
   ) {}
 
   @Query(returns => User, { nullable: true })
-  user (@Arg('userId', type => Int) userId: number) {
+  graphUser (@Arg('userId', type => Int) userId: number) {
     return this.userRepository.findOne(userId)
   }
 
