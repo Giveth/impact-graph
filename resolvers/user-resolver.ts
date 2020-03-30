@@ -13,7 +13,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions'
 
 import { Recipe } from '../entities/recipe'
 import { OrganisationUser } from '../entities/organisationUser'
-import { User } from '../entities/user'
+import { User } from '../entities/User'
 import { RecipeInput } from './types/recipe-input'
 import { Context } from '../index'
 import { RateInput } from './types/rate-input'
@@ -36,7 +36,7 @@ export class UserResolver {
   }
 
   @Query(returns => [User])
-  users (): Promise<User[]> {
+  graphUsers (): Promise<User[]> {
     return this.userRepository.find()
   }
 
