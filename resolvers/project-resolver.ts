@@ -43,7 +43,7 @@ export class ProjectResolver {
   // }
 
   @Query(returns => [Project])
-  projects (): Promise<Project[]> {
+  graphProjects (): Promise<Project[]> {
     return this.projectRepository.find()
   }
 

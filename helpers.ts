@@ -19,13 +19,13 @@ export async function seedDatabase () {
     password: 's3cr3tp4ssw0rd'
   })
   const icrcAdmin = userRepository.create({
-    email: 'icrcAdmin@icrcAdmin.om',
+    email: 'icrcAdmin@icrcAdmin.com',
     firstName: 'icrcAdmin',
     password: 's3cr3tp4ssw0rd'
   })
 
   const ifrcAdmin = userRepository.create({
-    email: 'ifrcAdmin@icrcAdmin.om',
+    email: 'ifrcAdmin@icrcAdmin.com',
     firstName: 'ifrcAdmin',
     password: 's3cr3tp4ssw0rd'
   })

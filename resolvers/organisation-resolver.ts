@@ -57,7 +57,7 @@ export class OrganisationResolver {
   }
 
   @Query(returns => [Organisation])
-  organisations (): Promise<Organisation[]> {
+  graphOrganisations (): Promise<Organisation[]> {
     return this.organisationRepository.find()
   }
 }
