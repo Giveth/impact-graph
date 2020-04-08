@@ -1,4 +1,6 @@
+import { PubSubEngine } from 'graphql-subscriptions'
 import { InjectRepository } from 'typeorm-typedi-extensions'
+import NotificationPayload from '../entities/notificationPayload'
 
 import {
   Resolver,
@@ -8,7 +10,8 @@ import {
   Query,
   Arg,
   Mutation,
-  Args
+  Args,
+  PubSub
 } from 'type-graphql'
 
 import { Project } from '../entities/project'
@@ -50,14 +53,53 @@ export class ProjectResolver {
   @Mutation(returns => Project)
   async addProject (
     @Arg('project') projectInput: ProjectInput,
-    @Ctx() { user }: Context
+    @Ctx() { user }: Context,
+    @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
     const project = this.projectRepository.create({
       ...projectInput
       // ...projectInput,
       // authorId: user.id
     })
-    return await this.projectRepository.save(project)
+    const newProject = await this.projectRepository.save(project)
+
+    const payload: NotificationPayload = {
+      id: 1,
+      message: 'A new project was created'
+    }
+    console.log(`payload : ${JSON.stringify(payload, null, 2)}`)
+
+    await pubSub.publish('NOTIFICATIONS', payload)
+
+    return newProject
+  }
+
+  @Mutation(returns => Project)
+  async addProjectSimple (
+    @Arg('title') title: string,
+    @Arg('description') description: string,
+    @Ctx() { user }: Context,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<Project> {
+    const projectInput = new ProjectInput()
+    projectInput.title = title
+    projectInput.description = description
+    const project = this.projectRepository.create({
+      ...projectInput
+      //   // ...projectInput,
+      //   // authorId: user.id
+    })
+    const newProject = await this.projectRepository.save(project)
+    //await AuthorBook.create({ authorId, bookId }).save();
+    const payload: NotificationPayload = {
+      id: 1,
+      message: 'A new project was created'
+    }
+    console.log(`payload : ${JSON.stringify(payload, null, 2)}`)
+
+    await pubSub.publish('NOTIFICATIONS', payload)
+
+    return newProject
   }
   // @Mutation(returns => Project)
   // async addProject(@Arg("input") projectInput: ProjectInput): Promise<Project> {

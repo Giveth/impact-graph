@@ -25,9 +25,13 @@ export class OrganisationResolver {
   constructor (
     @InjectRepository(Organisation)
     private readonly organisationRepository: Repository<Organisation>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+
     @InjectRepository(OrganisationProject)
     private readonly organisationProjectRepository: Repository<
       OrganisationProject

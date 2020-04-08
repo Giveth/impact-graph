@@ -6,15 +6,15 @@ import * as TypeGraphQL from 'type-graphql'
 
 import { UserResolver } from './resolvers/user-resolver'
 import { ProjectResolver } from './resolvers/project-resolver'
-import { Recipe } from './entities/recipe'
-import { Rate } from './entities/rate'
 import { User } from './entities/user'
 import { Project } from './entities/project'
 import { seedDatabase } from './helpers'
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
+import Notification from './entities/notification'
 import { OrganisationProject } from './entities/organisationProject'
 import { OrganisationResolver } from './resolvers/organisation-resolver'
+import { NotificationResolver } from './resolvers/notification-resolver'
 
 export interface Context {
   user: User
@@ -38,7 +38,8 @@ async function bootstrap () {
         OrganisationUser,
         OrganisationProject,
         User,
-        Project
+        Project,
+        Notification
       ],
       synchronize: true,
       logger: 'advanced-console',
@@ -52,7 +53,12 @@ async function bootstrap () {
 
     // build TypeGraphQL executable schema
     const schema = await TypeGraphQL.buildSchema({
-      resolvers: [UserResolver, ProjectResolver, OrganisationResolver],
+      resolvers: [
+        UserResolver,
+        ProjectResolver,
+        OrganisationResolver,
+        NotificationResolver
+      ],
       container: Container
     })
 

@@ -9,6 +9,7 @@
     "graphql": "^14.6.0",
     "pg": "^7.18.2",
     "reflect-metadata": "^0.1.13",
+    "ts-node-dev": "^1.0.0-pre.44",
     "tslint": "^6.1.0",
     "type-graphql": "^0.17.6",
     "typedi": "^0.8.0",
@@ -30,7 +31,7 @@
   },
   "scripts": {
     "test": "standard && echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon ./dev.js"
+    "start": "ts-node-dev --respawn ./index.ts"
   },
   "author": "James Farrell",
   "license": "ISC"

@@ -32,6 +32,9 @@ export class User extends BaseEntity {
   @Column()
   password: string
 
+  @Column('bool', { default: false })
+  confirmed: boolean
+
   @Field(type => [OrganisationUser], { nullable: true })
   @OneToMany(
     type => OrganisationUser,
