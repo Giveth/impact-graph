@@ -12,6 +12,7 @@ import { createConfirmationUrl } from '../../utils/createConfirmationUrl'
 export class RegisterResolver {
   @UseMiddleware(isAuth, logger)
   @Query(() => String)
+  //"request.credentials": "include",
   async hello () {
     return 'Hello World!'
   }

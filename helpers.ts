@@ -1,4 +1,5 @@
 import { getRepository, Column, ColumnOptions } from 'typeorm'
+import bcrypt from 'bcryptjs'
 
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
@@ -13,21 +14,25 @@ export async function seedDatabase () {
   const organisationProjectRepository = getRepository(OrganisationProject)
   const userRepository = getRepository(User)
 
+  const seedPassword = 's3cr3tp4ssw0rd'
   const superAdminUser = userRepository.create({
     email: 'jamespfarrell@gmail.com',
     firstName: 'James',
-    password: 's3cr3tp4ssw0rd'
+    password: bcrypt.hashSync(seedPassword, 12),
+    confirmed: true
   })
   const icrcAdmin = userRepository.create({
     email: 'icrcAdmin@icrcAdmin.com',
     firstName: 'icrcAdmin',
-    password: 's3cr3tp4ssw0rd'
+    password: bcrypt.hashSync(seedPassword, 12),
+    confirmed: true
   })
 
   const ifrcAdmin = userRepository.create({
     email: 'ifrcAdmin@icrcAdmin.com',
     firstName: 'ifrcAdmin',
-    password: 's3cr3tp4ssw0rd'
+    password: bcrypt.hashSync(seedPassword, 12),
+    confirmed: true
   })
   await userRepository.save([superAdminUser, icrcAdmin, ifrcAdmin])
 

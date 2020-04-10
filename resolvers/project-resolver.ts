@@ -19,7 +19,7 @@ import { User } from '../entities/user'
 import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
-// import { Context } from '../index'
+import { Context } from '../index'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
 
@@ -46,7 +46,7 @@ export class ProjectResolver {
   // }
 
   @Query(returns => [Project])
-  graphProjects (): Promise<Project[]> {
+  async projects (): Promise<Project[]> {
     return this.projectRepository.find()
   }
 

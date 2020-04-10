@@ -13,12 +13,12 @@ import {
 
 import { Organisation } from '../entities/organisation'
 import { OrganisationProject } from '../entities/organisationProject'
+import { OrganisationUser } from '../entities/organisationUser'
 import { User } from '../entities/user'
 import { Project } from '../entities/project'
 import { Repository, In } from 'typeorm'
 
-// import { Context } from '../index'
-import { OrganisationUser } from '../entities/organisationUser'
+import { Context } from '../index'
 
 @Resolver(of => Organisation)
 export class OrganisationResolver {
@@ -31,6 +31,9 @@ export class OrganisationResolver {
 
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+
+    @InjectRepository(OrganisationUser)
+    private readonly organisationUserRepository: Repository<OrganisationUser>,
 
     @InjectRepository(OrganisationProject)
     private readonly organisationProjectRepository: Repository<
@@ -61,7 +64,24 @@ export class OrganisationResolver {
   }
 
   @Query(returns => [Organisation])
-  graphOrganisations (): Promise<Organisation[]> {
+  async organisationsFromUserId (
+    @Arg('userId') userId: number
+  ): Promise<Organisation[]> {
+    const organisationUsers = await this.organisationUserRepository.find({
+      cache: 1000,
+      where: { userId: userId }
+    })
+
+    const organisationUserIds = organisationUsers.map(o => o.id)
+    return await this.organisationRepository.find({
+      cache: 1000,
+      where: { organisationUserId: In(organisationUserIds) }
+    })
+    return this.organisationRepository.find()
+  }
+
+  @Query(returns => [Organisation])
+  organisations (): Promise<Organisation[]> {
     return this.organisationRepository.find()
   }
 }

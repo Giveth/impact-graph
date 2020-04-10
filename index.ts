@@ -23,6 +23,11 @@ import { OrganisationProject } from './entities/organisationProject'
 import { OrganisationResolver } from './resolvers/organisation-resolver'
 import { NotificationResolver } from './resolvers/notification-resolver'
 import { RegisterResolver } from './user/register/RegisterResolver'
+import { LoginResolver } from './user/LoginResolver'
+import { ConfirmUserResolver } from './user/ConfirmUserResolver'
+import { MeResolver } from './user/MeResolver'
+
+import { createSchema } from './schema/create'
 
 export interface Context {
   user: User
@@ -66,24 +71,34 @@ async function main () {
         ProjectResolver,
         OrganisationResolver,
         NotificationResolver,
-        RegisterResolver
+        RegisterResolver,
+        LoginResolver,
+        ConfirmUserResolver,
+        MeResolver
       ],
       container: Container
     })
-
+    // const schema = await createSchema()
     // create mocked context
     const context: Context = { user: defaultUser }
 
     // Create GraphQL server
-    const apolloServer = new ApolloServer({ schema, context })
+    const apolloServer = new ApolloServer({
+      schema,
+      context: ({ req, res }: any) => ({
+        req,
+        res
+        // authorsLoader: createAuthorsLoader()
+      })
+    })
 
-    const app = connect()
+    const app = express()
     let RedisStore = connectRedis(session)
 
     app.use(
       cors({
         credentials: true,
-        origin: 'http://localhost:4000'
+        origin: 'http://localhost:3000'
       })
     )
 

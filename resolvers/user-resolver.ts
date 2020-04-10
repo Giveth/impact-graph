@@ -33,12 +33,12 @@ export class UserResolver {
   }
 
   @Query(returns => User, { nullable: true })
-  graphUser (@Arg('userId', type => Int) userId: number) {
+  user (@Arg('userId', type => Int) userId: number) {
     return this.userRepository.findOne(userId)
   }
 
   @Query(returns => [User])
-  graphUsers (): Promise<User[]> {
+  users (): Promise<User[]> {
     return this.userRepository.find()
   }
 
