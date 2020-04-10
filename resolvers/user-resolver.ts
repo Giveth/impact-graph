@@ -11,12 +11,10 @@ import {
 import { Repository, In } from 'typeorm'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 
-import { Recipe } from '../entities/recipe'
 import { OrganisationUser } from '../entities/organisationUser'
 import { User } from '../entities/user'
-import { RecipeInput } from './types/recipe-input'
-import { Context } from '../index'
-import { RateInput } from './types/rate-input'
+// import { Context } from '../index'
+import { RegisterInput } from '../user/register/RegisterInput'
 // import { OrganisationUser } from '../entities/organisationUser'
 import { Organisation } from '../entities/organisation'
 
@@ -29,6 +27,10 @@ export class UserResolver {
     @InjectRepository(Organisation)
     private readonly organisationRepository: Repository<Organisation> // , // @InjectRepository(OrganisationUser) // private readonly organisationUserRepository: Repository<OrganisationUser>
   ) {}
+
+  async create (@Arg('data', () => RegisterInput) data: any) {
+    // return User.create(data).save();
+  }
 
   @Query(returns => User, { nullable: true })
   graphUser (@Arg('userId', type => Int) userId: number) {

@@ -17,7 +17,7 @@ import { User } from '../entities/user'
 import { Project } from '../entities/project'
 import { Repository, In } from 'typeorm'
 
-import { Context } from '../index'
+// import { Context } from '../index'
 import { OrganisationUser } from '../entities/organisationUser'
 
 @Resolver(of => Organisation)

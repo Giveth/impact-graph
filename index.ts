@@ -1,8 +1,15 @@
 import 'reflect-metadata'
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
 import { Container } from 'typedi'
 import * as TypeORM from 'typeorm'
 import * as TypeGraphQL from 'type-graphql'
+
+import express from 'express'
+import connectRedis from 'connect-redis'
+import session from 'express-session'
+import cors from 'cors'
+import { redis } from './redis'
+import connect from 'connect'
 
 import { UserResolver } from './resolvers/user-resolver'
 import { ProjectResolver } from './resolvers/project-resolver'
@@ -15,6 +22,7 @@ import Notification from './entities/notification'
 import { OrganisationProject } from './entities/organisationProject'
 import { OrganisationResolver } from './resolvers/organisation-resolver'
 import { NotificationResolver } from './resolvers/notification-resolver'
+import { RegisterResolver } from './user/register/RegisterResolver'
 
 export interface Context {
   user: User
@@ -23,7 +31,7 @@ export interface Context {
 // register 3rd party IOC container
 TypeORM.useContainer(Container)
 
-async function bootstrap () {
+async function main () {
   try {
     // create TypeORM connection
     await TypeORM.createConnection({
@@ -57,7 +65,8 @@ async function bootstrap () {
         UserResolver,
         ProjectResolver,
         OrganisationResolver,
-        NotificationResolver
+        NotificationResolver,
+        RegisterResolver
       ],
       container: Container
     })
@@ -66,14 +75,46 @@ async function bootstrap () {
     const context: Context = { user: defaultUser }
 
     // Create GraphQL server
-    const server = new ApolloServer({ schema, context })
+    const apolloServer = new ApolloServer({ schema, context })
 
-    // Start the server
-    const { url } = await server.listen(4000)
-    console.log(`Server is running, GraphQL Playground available at ${url}`)
+    const app = connect()
+    let RedisStore = connectRedis(session)
+
+    app.use(
+      cors({
+        credentials: true,
+        origin: 'http://localhost:4000'
+      })
+    )
+
+    app.use(
+      session({
+        store: new RedisStore({
+          client: redis as any
+        }),
+        name: 'qid',
+        secret: 'aslkdfjoiq12312',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          httpOnly: true,
+          domain: 'localhost',
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 1000 * 60 * 60 * 24 * 7 * 365 // 7 years
+        }
+      })
+    )
+
+    apolloServer.applyMiddleware({ app, cors: false })
+
+    app.listen({ port: 4000 }, () =>
+      console.log(
+        `🚀 Server ready at http://localhost:4000${apolloServer.graphqlPath}`
+      )
+    )
   } catch (err) {
     console.error(err)
   }
 }
 
-bootstrap()
+main()
