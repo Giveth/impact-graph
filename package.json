@@ -20,6 +20,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "graphql": "^14.6.0",
+    "graphql-server-express": "^1.4.1",
     "ioredis": "^4.16.1",
     "nodemailer": "^6.4.6",
     "pg": "^7.18.2",

@@ -14,7 +14,7 @@ export async function seedDatabase () {
   const organisationProjectRepository = getRepository(OrganisationProject)
   const userRepository = getRepository(User)
 
-  const seedPassword = 's3cr3tp4ssw0rd'
+  const seedPassword = 'qweqweqwe'
   const superAdminUser = userRepository.create({
     email: 'jamespfarrell@gmail.com',
     firstName: 'James',

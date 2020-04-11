@@ -1,9 +1,16 @@
 import 'reflect-metadata'
-import { ApolloServer } from 'apollo-server'
-// import { ApolloServer } from 'apollo-server-express'
+import { ApolloServer } from 'apollo-server-express'
+import { graphiqlExpress } from 'graphql-server-express'
 import { Container } from 'typedi'
 import * as TypeORM from 'typeorm'
 import * as TypeGraphQL from 'type-graphql'
+
+import express from 'express'
+import connectRedis from 'connect-redis'
+import session from 'express-session'
+import cors from 'cors'
+import { redis } from './redis'
+import connect from 'connect'
 
 import { User } from './entities/user'
 import { Project } from './entities/project'
@@ -22,6 +29,11 @@ import { NotificationResolver } from './resolvers/notification-resolver'
 import { ConfirmUserResolver } from './user/ConfirmUserResolver'
 import { MeResolver } from './user/MeResolver'
 
+import { createServer } from 'http'
+import { createSchema } from './schema/create'
+import { SubscriptionServer } from 'subscriptions-transport-ws'
+import { execute, subscribe } from 'graphql'
+
 export interface Context {
   user: User
 }
@@ -29,7 +41,7 @@ export interface Context {
 // register 3rd party IOC container
 TypeORM.useContainer(Container)
 
-async function bootstrap () {
+async function main () {
   try {
     // create TypeORM connection
     await TypeORM.createConnection({
@@ -45,11 +57,7 @@ async function bootstrap () {
         OrganisationProject,
         User,
         Project,
-        Notification,
-        RegisterResolver,
-        LoginResolver,
-        ConfirmUserResolver,
-        MeResolver
+        Notification
       ],
       synchronize: true,
       logger: 'advanced-console',
@@ -68,18 +76,28 @@ async function bootstrap () {
         ProjectResolver,
         OrganisationResolver,
         NotificationResolver,
-        RegisterResolver
+        RegisterResolver,
+        LoginResolver,
+        ConfirmUserResolver,
+        MeResolver
       ],
       container: Container
     })
-
+    // const schema = await createSchema()
     // create mocked context
     const context: Context = { user: defaultUser }
 
     // Create GraphQL server
     const apolloServer = new ApolloServer({
+      subscriptions: {
+        onConnect: (connectionParams, webSocket, context) => {
+          console.log(`subscriptions onConnect`)
+        },
+        onDisconnect: (webSocket, context) => {
+          console.log('onDisconnect')
+        }
+      },
       schema,
-      context,
       context: ({ req, res }: any) => ({
         req,
         res
@@ -87,12 +105,62 @@ async function bootstrap () {
       })
     })
 
-    // Start the server
-    const { url } = await apolloServer.listen(4000)
-    console.log(`Server is running, GraphQL Playground available at ${url}`)
+    const app = express()
+    let RedisStore = connectRedis(session)
+
+    app.use(
+      cors({
+        credentials: true,
+        origin: 'http://localhost:3000'
+      })
+    )
+
+    app.use(
+      session({
+        store: new RedisStore({
+          client: redis as any
+        }),
+        name: 'qid',
+        secret: 'aslkdfjoiq12312',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          httpOnly: true,
+          domain: 'localhost',
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 1000 * 60 * 60 * 24 * 7 * 365 // 7 years
+        }
+      })
+    )
+    // app.use(
+    //   '/graphiqla',
+    //   graphiqlExpress({
+    //     endpointURL: '/graphql',
+    //     subscriptionsEndpoint: `ws://localhost:4000/subscriptions`
+    //   })
+    // )
+
+    apolloServer.applyMiddleware({ app, cors: false })
+    const ws = createServer(app)
+    ws.listen({ port: 4000 }, () => {
+      console.log(
+        `🚀 Server ready at http://localhost:4000${apolloServer.graphqlPath}`
+      )
+      new SubscriptionServer(
+        {
+          execute,
+          subscribe,
+          schema
+        },
+        {
+          server: ws,
+          path: '/subscriptions'
+        }
+      )
+    })
   } catch (err) {
     console.error(err)
   }
 }
 
-bootstrap()
+main()
