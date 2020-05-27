@@ -1,6 +1,5 @@
 import 'reflect-metadata'
 import { ApolloServer } from 'apollo-server'
-// import { ApolloServer } from 'apollo-server-express'
 import { Container } from 'typedi'
 import * as TypeORM from 'typeorm'
 import * as TypeGraphQL from 'type-graphql'
@@ -79,17 +78,12 @@ async function bootstrap () {
     // Create GraphQL server
     const apolloServer = new ApolloServer({
       schema,
-      context,
-      context: ({ req, res }: any) => ({
-        req,
-        res
-        // authorsLoader: createAuthorsLoader()
-      })
+      context
     })
 
     // Start the server
     const { url } = await apolloServer.listen(4000)
-    console.log(`Server is running, GraphQL Playground available at ${url}`)
+    console.log(`🚀 Server is running, GraphQL Playground available at ${url}`)
   } catch (err) {
     console.error(err)
   }
