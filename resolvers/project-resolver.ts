@@ -56,6 +56,8 @@ export class ProjectResolver {
     @Ctx() { user }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
+    console.log('Add project mutation')
+
     const project = this.projectRepository.create({
       ...projectInput
       // ...projectInput,

@@ -20,11 +20,26 @@ import { OrganisationResolver } from './resolvers/organisation-resolver'
 import { NotificationResolver } from './resolvers/notification-resolver'
 import { ConfirmUserResolver } from './user/ConfirmUserResolver'
 import { MeResolver } from './user/MeResolver'
+import { Context } from './Context'
+import { userCheck } from './auth/userCheck'
+import jwt from 'jsonwebtoken'
+require('dotenv').config()
 
-export interface Context {
-  user: User
+JSON.safeStringify = (obj, indent = 2) => {
+  let cache = []
+  const retVal = JSON.stringify(
+    obj,
+    (key, value) =>
+      typeof value === 'object' && value !== null
+        ? cache.includes(value)
+          ? undefined // Duplicate reference found, discard key
+          : cache.push(value) && value // Store value in our collection
+        : value,
+    indent
+  )
+  cache = null
+  return retVal
 }
-
 // register 3rd party IOC container
 TypeORM.useContainer(Container)
 
@@ -69,7 +84,8 @@ async function bootstrap () {
         NotificationResolver,
         RegisterResolver
       ],
-      container: Container
+      container: Container,
+      authChecker: userCheck
     })
 
     // create mocked context
@@ -78,7 +94,33 @@ async function bootstrap () {
     // Create GraphQL server
     const apolloServer = new ApolloServer({
       schema,
-      context
+      context: ({ req, res }: any) => {
+        //console.log(`req ---> : ${JSON.safeStringify(req)}`)
+        if (!req) {
+          console.log('no request object')
+
+          return
+        }
+        if (req.headers.authorization) {
+          console.log('Authed request ')
+
+          const token = req.headers.authorization.split(' ')[1].toString()
+          const secret = process.env.JWT_SECRET.toString()
+
+          const decodedJwt = jwt.verify(token, secret)
+          const user = {
+            email: decodedJwt.nextauth.user.email,
+            name: decodedJwt.nextauth.user.name
+          }
+          req.user = user
+          // console.log(`req.user : ${JSON.stringify(req.user, null, 2)}`)
+        }
+
+        return {
+          req,
+          res
+        }
+      }
     })
 
     // Start the server

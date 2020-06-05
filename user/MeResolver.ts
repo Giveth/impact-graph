@@ -1,4 +1,4 @@
-import { Resolver, Query, Ctx } from 'type-graphql'
+import { Resolver, Query, Ctx, Authorized } from 'type-graphql'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 
 import { User } from '../entities/user'
@@ -9,7 +9,21 @@ import { OrganisationUser } from '../entities/organisationUser'
 import { MyContext } from '../types/MyContext'
 
 import { Repository, In } from 'typeorm'
-
+JSON.safeStringify = (obj, indent = 2) => {
+  let cache = []
+  const retVal = JSON.stringify(
+    obj,
+    (key, value) =>
+      typeof value === 'object' && value !== null
+        ? cache.includes(value)
+          ? undefined // Duplicate reference found, discard key
+          : cache.push(value) && value // Store value in our collection
+        : value,
+    indent
+  )
+  cache = null
+  return retVal
+}
 @Resolver()
 export class MeResolver {
   constructor (
@@ -28,13 +42,15 @@ export class MeResolver {
     >
   ) {}
 
+  @Authorized()
   @Query(() => User, { nullable: true, complexity: 5 })
   async me (@Ctx() ctx: MyContext): Promise<User | undefined> {
-    if (!ctx.req.session!.userId) {
-      return undefined
-    }
+    console.log(`ctx ---> : ${ctx}`)
+    // if (!ctx.req.session!.userId) {
+    //   return undefined
+    // }
 
-    return User.findOne(ctx.req.session!.userId)
+    return User.findOne(1)
   }
 
   @Query(() => [Organisation], { nullable: true, complexity: 5 })
@@ -61,26 +77,46 @@ export class MeResolver {
     })
   }
 
+  // @Authorized()
   @Query(() => [Project], { nullable: true, complexity: 5 })
   async myProjects (@Ctx() ctx: MyContext): Promise<[Project] | undefined> {
-    console.log(`myProjects ---> : ${ctx.req.session!.userId}`)
-    if (!ctx.req.session!.userId) {
+    console.log('-------------- ME RESOLVER  --------------')
+
+    if (!ctx.req.user) {
+      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+
       return undefined
     }
-    console.log(`userId1 ---> : ${ctx.req.session!.userId}`)
-    const userId = await User.findOne(ctx.req.session!.userId)
 
-    console.log(`userId1 ---> : ${userId}`)
+    console.log(`ctx.req.user.email : ${ctx.req.user.email}`)
+
+    const user = await User.findOne({
+      email: ctx.req.user.email
+    })
+
+    console.log(`user : ${JSON.stringify(user, null, 2)}`)
+
     const organisationProjects = await this.organisationProjectRepository.find({
       cache: 1000,
-      where: { userId: userId }
+      where: { userId: 1 }
     })
 
     const organisationProjectsIds = organisationProjects.map(o => o.id)
 
-    return await this.projectRepository.find({
+    console.log(
+      `organisationProjectsIds : ${JSON.stringify(
+        organisationProjectsIds,
+        null,
+        2
+      )}`
+    )
+
+    const projects = await this.projectRepository.find({
       cache: 1000,
       where: { organisationProjectsId: In(organisationProjectsIds) }
     })
+    console.log(`projects : ${JSON.stringify(projects, null, 2)}`)
+
+    return projects
   }
 }

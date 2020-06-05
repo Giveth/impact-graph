@@ -8,6 +8,8 @@ import { LoginResolver } from '../user/LoginResolver'
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver'
 import { MeResolver } from '../user/MeResolver'
 
+//only called from ben version
+
 export const createSchema = () =>
   buildSchema({
     resolvers: [
@@ -21,6 +23,8 @@ export const createSchema = () =>
       MeResolver
     ],
     authChecker: ({ context: { req } }) => {
+      console.log(`req : ${JSON.stringify(req, null, 2)}`)
+
       return !!req.session.userId
     }
   })
