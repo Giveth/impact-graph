@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs')
 import { Resolver, Query, Mutation, Arg, UseMiddleware } from 'type-graphql'
 
 import { User } from '../../entities/user'
+import { RegisterWalletInput } from './RegisterWalletInput'
 import { RegisterInput } from './RegisterInput'
 import { isAuth } from '../../middleware/isAuth'
 import { logger } from '../../middleware/logger'
@@ -31,10 +32,32 @@ export class RegisterResolver {
       firstName,
       lastName,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      loginType: 'password'
     }).save()
 
     await sendEmail(email, await createConfirmationUrl(user.id))
+
+    return user
+  }
+
+  @Mutation(() => User)
+  async registerWallet (
+    @Arg('data')
+    { email, name, firstName, lastName, walletAddress }: RegisterWalletInput
+  ): Promise<User> {
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      name,
+      walletAddress,
+      loginType: 'wallet'
+    }).save()
+
+    if (email) {
+      await sendEmail(email, await createConfirmationUrl(user.id))
+    }
 
     return user
   }

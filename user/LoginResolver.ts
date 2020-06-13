@@ -4,7 +4,10 @@ import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
 import { User } from '../entities/user'
 import { MyContext } from '../types/MyContext'
 import jwt from 'jsonwebtoken'
-import { Field, ID, ObjectType } from 'type-graphql'
+import { registerEnumType, Field, ID, ObjectType } from 'type-graphql'
+import Web3 from 'web3'
+
+let web3 = new Web3(process.env.ETHEREUM_NODE_URL)
 
 @ObjectType()
 class LoginResponse {
@@ -15,20 +18,48 @@ class LoginResponse {
   token: string
 }
 
+enum LoginType {
+  Password = 'password',
+  SignedMessage = 'message'
+}
+registerEnumType(LoginType, {
+  name: 'Direction', // this one is mandatory
+  description: 'Is the login request with a password or a signed message' // this one is optional
+})
 @Resolver()
 export class LoginResolver {
   @Mutation(() => LoginResponse, { nullable: true })
   async login (
     @Arg('email') email: string,
     @Arg('password') password: string,
+    @Arg('loginType', { nullable: true }) loginType: LoginType,
     @Ctx() ctx: MyContext
   ): Promise<LoginResponse | null> {
+    if (typeof loginType === 'undefined') {
+      loginType = LoginType.Password
+    } else {
+      console.log(`typeof  loginType ---> : ${typeof loginType}`)
+      console.log('message login')
+    }
+    switch (loginType) {
+      case LoginType.SignedMessage:
+        console.log('MESSAGE')
+        loginType = LoginType.SignedMessage
+        break
+      case LoginType.Password:
+        console.log('PASS')
+        loginType = LoginType.Password
+        break
+      default:
+        throw Error('Invalid login type')
+    }
+
     console.log('Finding user with email ' + email)
 
-    const user = await User.findOne({ where: { email } })
+    const user = await User.findOne({ where: { email, loginType: 'password' } })
 
     if (!user) {
-      console.log('no user')
+      console.log(`No user with email address ${email}`)
 
       return null
     }
@@ -38,7 +69,7 @@ export class LoginResolver {
     if (!valid) {
       console.log('Not valid')
 
-      return null
+      //return null
     }
 
     // if (!user.confirmed) {
@@ -61,6 +92,56 @@ export class LoginResolver {
 
     response.user = user
     response.token = accessToken
+    return response
+  }
+
+  createToken (user) {
+    console.log(`user : ${JSON.stringify(user, null, 2)}`)
+
+    return jwt.sign(user, process.env.JWT_SECRET, {
+      expiresIn: '30d'
+    })
+  }
+
+  @Mutation(() => LoginResponse, { nullable: true })
+  async loginWallet (
+    @Arg('walletAddress') walletAddress: string,
+    @Arg('signature') signature: string,
+    @Arg('email') email: string,
+    @Arg('name', { nullable: true }) name: string,
+    @Ctx() ctx: MyContext
+  ): Promise<LoginResponse | null> {
+    console.log('Login waller')
+    console.log(`walletAddress ---> : ${walletAddress}`)
+    console.log(`signature ---> : ${signature}`)
+    const publicAddress = await web3.eth.accounts.recover(
+      'our_secret',
+      signature
+    )
+    console.log(`publicAddress : ${JSON.stringify(publicAddress, null, 2)}`)
+    let user = await User.findOne({ where: { email } })
+
+    if (!user) {
+      console.log(`No user with email address ${email}`)
+
+      user = await User.create({
+        email,
+        name,
+        walletAddress,
+        loginType: 'wallet'
+      }).save()
+
+      console.log(`user saved : ${JSON.stringify(user, null, 2)}`)
+    } else {
+      console.log('user exists already')
+    }
+    const response = new LoginResponse()
+
+    response.token = this.createToken({ userId: user.id, firstName: user.name })
+    response.user = user
+
+    console.log(`response : ${JSON.stringify(response, null, 2)}`)
+
     return response
   }
 }

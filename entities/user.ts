@@ -29,8 +29,20 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   lastName?: string
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  name?: string
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  walletAddress?: string
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  password?: string
+
   @Column()
-  password: string
+  loginType: string
 
   @Column('bool', { default: false })
   confirmed: boolean

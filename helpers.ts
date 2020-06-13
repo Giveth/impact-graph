@@ -19,20 +19,23 @@ export async function seedDatabase () {
     email: 'jamespfarrell@gmail.com',
     firstName: 'James',
     password: bcrypt.hashSync(seedPassword, 12),
-    confirmed: true
+    confirmed: true,
+    loginType: 'password'
   })
   const icrcAdmin = userRepository.create({
     email: 'icrcAdmin@icrcAdmin.com',
     firstName: 'icrcAdmin',
     password: bcrypt.hashSync(seedPassword, 12),
-    confirmed: true
+    confirmed: true,
+    loginType: 'password'
   })
 
   const ifrcAdmin = userRepository.create({
     email: 'ifrcAdmin@icrcAdmin.com',
     firstName: 'ifrcAdmin',
     password: bcrypt.hashSync(seedPassword, 12),
-    confirmed: true
+    confirmed: true,
+    loginType: 'password'
   })
   await userRepository.save([superAdminUser, icrcAdmin, ifrcAdmin])
 
