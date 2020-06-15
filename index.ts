@@ -95,25 +95,28 @@ async function bootstrap () {
     const apolloServer = new ApolloServer({
       schema,
       context: ({ req, res }: any) => {
-        //console.log(`req ---> : ${JSON.safeStringify(req)}`)
-        if (!req) {
-          console.log('no request object')
-
-          return
-        }
-        if (req.headers.authorization) {
-          console.log('Authed request ')
-
-          const token = req.headers.authorization.split(' ')[1].toString()
-          const secret = process.env.JWT_SECRET.toString()
-
-          const decodedJwt = jwt.verify(token, secret)
-          const user = {
-            email: decodedJwt.nextauth.user.email,
-            name: decodedJwt.nextauth.user.name
+        try {
+          if (!req) {
+            console.log('no request object')
+            console.log(`req ---> : ${JSON.safeStringify(req)}`)
+            return null
           }
-          req.user = user
-          // console.log(`req.user : ${JSON.stringify(req.user, null, 2)}`)
+          if (req.headers.authorization) {
+            console.log('Authed request ')
+
+            const token = req.headers.authorization.split(' ')[1].toString()
+            const secret = process.env.JWT_SECRET.toString()
+
+            const decodedJwt = jwt.verify(token, secret)
+            const user = {
+              email: decodedJwt.nextauth.user.email,
+              name: decodedJwt.nextauth.user.name
+            }
+            req.user = user
+            // console.log(`req.user : ${JSON.stringify(req.user, null, 2)}`)
+          }
+        } catch (error) {
+          console.log(`Apollo Server error : ${JSON.stringify(error, null, 2)}`)
         }
 
         return {

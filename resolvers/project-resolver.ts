@@ -19,7 +19,7 @@ import { User } from '../entities/user'
 import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
-import { Context } from '../index'
+import { Context } from '../Context'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
 
@@ -83,6 +83,9 @@ export class ProjectResolver {
     @Ctx() { user }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
+    console.log(`user : ${JSON.stringify(user, null, 2)}`)
+
+    console.log(`title ---> : ${title}`)
     const projectInput = new ProjectInput()
     projectInput.title = title
     projectInput.description = description
