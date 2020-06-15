@@ -37,17 +37,8 @@
     "typescript": "^3.8.3",
     "web3": "^1.2.9"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
-    "*.ts": [
-      "tslint --fix",
-      "standard --fix",
-      "git add"
-    ]
+    "*.ts": ["tslint --fix", "standard --fix", "git add"]
   },
   "devDependencies": {
     "husky": "^4.2.5",
