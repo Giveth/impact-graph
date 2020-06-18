@@ -1,3 +1,7 @@
+# Impact Graph
+
+![Impact Graph architecture](/docs/img/impact-graph.png)
+
 ### Logging:
 
 Default loggin is done by [Apollo Graph Manager](https://www.apollographql.com/docs/graph-manager/)
