@@ -85,7 +85,7 @@ async function bootstrap () {
             return null
           }
           if (req.headers.authorization) {
-            console.log('Authed request ')
+            console.log('Authorized request ')
 
             const token = req.headers.authorization.split(' ')[1].toString()
             const secret = process.env.JWT_SECRET.toString()
