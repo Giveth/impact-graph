@@ -25,21 +25,6 @@ import { userCheck } from './auth/userCheck'
 import jwt from 'jsonwebtoken'
 require('dotenv').config()
 
-JSON.safeStringify = (obj, indent = 2) => {
-  let cache = []
-  const retVal = JSON.stringify(
-    obj,
-    (key, value) =>
-      typeof value === 'object' && value !== null
-        ? cache.includes(value)
-          ? undefined // Duplicate reference found, discard key
-          : cache.push(value) && value // Store value in our collection
-        : value,
-    indent
-  )
-  cache = null
-  return retVal
-}
 // register 3rd party IOC container
 TypeORM.useContainer(Container)
 
@@ -48,11 +33,11 @@ async function bootstrap () {
     // create TypeORM connection
     await TypeORM.createConnection({
       type: 'postgres',
-      database: 'topia_ql',
-      username: 'topia_ql_user', // fill this with your username
-      password: 'mypass', // and password
-      port: 5432,
-      host: 'localhost',
+      database: process.env.TYPEORM_DATABASE_NAME,
+      username: process.env.TYPEORM_DATABASE_USER,
+      password: process.env.TYPEORM_DATABASE_PASSWORD,
+      port: Number(process.env.PORT),
+      host: process.env.TYPEORM_DATABASE_HOST,
       entities: [
         Organisation,
         OrganisationUser,
