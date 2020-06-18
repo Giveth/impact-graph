@@ -15,4 +15,3 @@ coverage
 .cache
 
 .env
-.env.*
