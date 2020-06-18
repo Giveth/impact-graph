@@ -29,13 +29,13 @@ That's it
 
 ### Start fast
 
-We allow impact projects to use our installation securely and privately for free, reach out for more details
+We enable impact projects to use our installation securely and privately for free, reach out for more details
 
 ### Own your own data
 
 If this is more important you and your have the resources, deploy your own version of this
 
-- An open source solution that allows you to keep control of your data
+- An open source solution that enables you to keep control of your data
 - Supports Bring Your Own Database (BYOD) and can be used with any database
 - Built-in support for MySQL, MariaDB, Postgres, MongoDB and SQLite
 - Works great with databases from popular hosting providers
