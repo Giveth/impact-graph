@@ -82,8 +82,6 @@ async function bootstrap () {
       context: ({ req, res }: any) => {
         try {
           if (!req) {
-            console.log('no request object')
-            console.log(`req ---> : ${JSON.safeStringify(req)}`)
             return null
           }
           if (req.headers.authorization) {
@@ -108,6 +106,9 @@ async function bootstrap () {
           req,
           res
         }
+      },
+      engine: {
+        reportSchema: true
       }
     })
 
