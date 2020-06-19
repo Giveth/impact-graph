@@ -17,7 +17,7 @@ npm i
 cp .env.example .env
 ```
 
-Create a database ([we recommend Postgres](https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e) on your computer or server, we currently support for for MySQL, MariaDB, Postgres, MongoDB and SQLite.
+[Create a database](https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e) (we recommend Postgres) on your computer or server, we currently support for for MySQL, MariaDB, Postgres, MongoDB and SQLite).
 
 Edit the .env file in your favorite code editor and the environmental variables
 
