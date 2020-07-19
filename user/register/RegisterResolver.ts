@@ -4,26 +4,26 @@ import { Resolver, Query, Mutation, Arg, UseMiddleware } from 'type-graphql'
 import { User } from '../../entities/user'
 import { RegisterWalletInput } from './RegisterWalletInput'
 import { RegisterInput } from './RegisterInput'
-import { isAuth } from '../../middleware/isAuth'
-import { logger } from '../../middleware/logger'
+// import { isAuth } from '../../middleware/isAuth'
+// import { logger } from '../../middleware/logger'
 import { sendEmail } from '../../utils/sendEmail'
 import { createConfirmationUrl } from '../../utils/createConfirmationUrl'
 
 @Resolver()
 export class RegisterResolver {
-  @UseMiddleware(isAuth, logger)
-  @Query(() => String)
-  //"request.credentials": "include",
-  async hello () {
-    return 'Hello World!'
-  }
+  // @UseMiddleware(isAuth, logger)
+  // @Query(() => String)
+  // //"request.credentials": "include",
+  // async hello () {
+  //   return 'Hello World!'
+  // }
 
   @Mutation(() => User)
   async register (
     @Arg('data')
     { email, firstName, lastName, password }: RegisterInput
   ): Promise<User> {
-    console.log(`bcrypt 1 is : ${JSON.stringify(bcrypt, null, 2)}`)
+    console.log(`In Register Resolver : ${JSON.stringify(bcrypt, null, 2)}`)
 
     // const hashedPassword = await bcrypt.hash(password, 12)
     var hashedPassword = bcrypt.hashSync(password, 12)

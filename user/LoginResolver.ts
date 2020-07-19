@@ -1,13 +1,16 @@
 require('dotenv').config()
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
 import { User } from '../entities/user'
 import { MyContext } from '../types/MyContext'
-import jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken'
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql'
 import Web3 from 'web3'
+import Config from '../config'
 
-let web3 = new Web3(process.env.ETHEREUM_NODE_URL)
+const config = new Config(process.env)
+
+let web3 = new Web3(config.get('ETHEREUM_NODE_URL'))
 
 @ObjectType()
 class LoginResponse {
@@ -56,7 +59,9 @@ export class LoginResolver {
 
     console.log('Finding user with email ' + email)
 
-    const user = await User.findOne({ where: { email, loginType: 'password' } })
+    const user: any = await User.findOne({
+      where: { email, loginType: 'password' }
+    })
 
     if (!user) {
       console.log(`No user with email address ${email}`)
@@ -82,7 +87,7 @@ export class LoginResolver {
     // Not using sessions anymore - ctx.req.session!.userId = user.id
     const accessToken = jwt.sign(
       { userId: user.id, firstName: user.firstName },
-      process.env.JWT_SECRET,
+      config.get('JWT_SECRET'),
       { expiresIn: '30d' }
     )
 
@@ -95,10 +100,10 @@ export class LoginResolver {
     return response
   }
 
-  createToken (user) {
+  createToken (user: any) {
     console.log(`user : ${JSON.stringify(user, null, 2)}`)
 
-    return jwt.sign(user, process.env.JWT_SECRET, {
+    return jwt.sign(user, config.get('JWT_SECRET'), {
       expiresIn: '30d'
     })
   }

@@ -9,21 +9,7 @@ import { OrganisationUser } from '../entities/organisationUser'
 import { MyContext } from '../types/MyContext'
 
 import { Repository, In } from 'typeorm'
-JSON.safeStringify = (obj, indent = 2) => {
-  let cache = []
-  const retVal = JSON.stringify(
-    obj,
-    (key, value) =>
-      typeof value === 'object' && value !== null
-        ? cache.includes(value)
-          ? undefined // Duplicate reference found, discard key
-          : cache.push(value) && value // Store value in our collection
-        : value,
-    indent
-  )
-  cache = null
-  return retVal
-}
+
 @Resolver()
 export class MeResolver {
   constructor (
@@ -57,12 +43,7 @@ export class MeResolver {
   async myOrganisations (
     @Ctx() ctx: MyContext
   ): Promise<[Organisation] | undefined> {
-    console.log(`myOrganisations ---> : ${ctx.req.session!.userId}`)
-    if (!ctx.req.session!.userId) {
-      return undefined
-    }
-
-    const userId = await User.findOne(ctx.req.session!.userId)
+    const userId = await User.findOne(ctx.req.user.x)
 
     const organisationUsers = await this.organisationUserRepository.find({
       cache: 1000,
@@ -71,10 +52,11 @@ export class MeResolver {
 
     const organisationUserIds = organisationUsers.map(o => o.id)
 
-    return await this.organisationRepository.find({
-      cache: 1000,
-      where: { organisationUserId: In(organisationUserIds) }
-    })
+    return undefined
+    // return await this.organisationRepository.find({
+    //   cache: 1000,
+    //   where: { organisationUserId: In(organisationUserIds) }
+    // })
   }
 
   // @Authorized()
@@ -111,12 +93,14 @@ export class MeResolver {
       )}`
     )
 
-    const projects = await this.projectRepository.find({
-      cache: 1000,
-      where: { organisationProjectsId: In(organisationProjectsIds) }
-    })
-    console.log(`projects : ${JSON.stringify(projects, null, 2)}`)
+    return undefined
 
-    return projects
+    // return await this.projectRepository.find({
+    //   cache: 1000,
+    //   where: { organisationProjectsId: In(organisationProjectsIds) }
+    // })
+    // console.log(`projects : ${JSON.stringify(projects, null, 2)}`)
+
+    // return projects
   }
 }

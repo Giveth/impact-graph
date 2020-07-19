@@ -18,8 +18,6 @@ import { User } from '../entities/user'
 import { Project } from '../entities/project'
 import { Repository, In } from 'typeorm'
 
-import { Context } from '../index'
-
 @Resolver(of => Organisation)
 export class OrganisationResolver {
   constructor (

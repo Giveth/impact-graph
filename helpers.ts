@@ -1,5 +1,5 @@
 import { getRepository, Column, ColumnOptions } from 'typeorm'
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
 
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'

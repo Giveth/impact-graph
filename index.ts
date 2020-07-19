@@ -20,13 +20,44 @@ import { OrganisationResolver } from './resolvers/organisation-resolver'
 import { NotificationResolver } from './resolvers/notification-resolver'
 import { ConfirmUserResolver } from './user/ConfirmUserResolver'
 import { MeResolver } from './user/MeResolver'
-import { Context } from './Context'
 import { userCheck } from './auth/userCheck'
-import jwt from 'jsonwebtoken'
-require('dotenv').config()
+import * as jwt from 'jsonwebtoken'
+import * as dotenv from 'dotenv'
+import Config from './config'
+
+dotenv.config()
+const config = new Config(process.env)
 
 // register 3rd party IOC container
 TypeORM.useContainer(Container)
+let entities: any = [
+  Organisation,
+  OrganisationUser,
+  OrganisationProject,
+  User,
+  Project,
+  Notification,
+  MeResolver
+]
+let resolvers: any = [
+  UserResolver,
+  ProjectResolver,
+  OrganisationResolver,
+  NotificationResolver,
+  LoginResolver
+]
+console.log(`resolvers.length ---> : ${resolvers.length}`)
+if (process.env.REGISTER_USERNAME_PASSWORD === 'true') {
+  console.log(
+    `process.env.REGISTER_USERNAME_PASSWORD ---> : ${process.env.REGISTER_USERNAME_PASSWORD}`
+  )
+  console.log('RegisterResolver')
+
+  resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver])
+}
+console.log(`resolvers.length ---> : ${resolvers.length}`)
+
+console.log(`resolvers : ${JSON.stringify(resolvers, null, 2)}`)
 
 async function bootstrap () {
   try {
@@ -38,18 +69,7 @@ async function bootstrap () {
       password: process.env.TYPEORM_DATABASE_PASSWORD,
       port: Number(process.env.PORT),
       host: process.env.TYPEORM_DATABASE_HOST,
-      entities: [
-        Organisation,
-        OrganisationUser,
-        OrganisationProject,
-        User,
-        Project,
-        Notification,
-        RegisterResolver,
-        LoginResolver,
-        ConfirmUserResolver,
-        MeResolver
-      ],
+      entities,
       synchronize: true,
       logger: 'advanced-console',
       logging: 'all',
@@ -62,19 +82,10 @@ async function bootstrap () {
 
     // build TypeGraphQL executable schema
     const schema = await TypeGraphQL.buildSchema({
-      resolvers: [
-        UserResolver,
-        ProjectResolver,
-        OrganisationResolver,
-        NotificationResolver,
-        RegisterResolver
-      ],
+      resolvers,
       container: Container,
       authChecker: userCheck
     })
-
-    // create mocked context
-    const context: Context = { user: defaultUser }
 
     // Create GraphQL server
     const apolloServer = new ApolloServer({
@@ -88,12 +99,12 @@ async function bootstrap () {
             console.log('Authorized request ')
 
             const token = req.headers.authorization.split(' ')[1].toString()
-            const secret = process.env.JWT_SECRET.toString()
+            const secret = config.get('JWT_SECRET')
 
-            const decodedJwt = jwt.verify(token, secret)
+            const decodedJwt: any = jwt.verify(token, secret)
             const user = {
-              email: decodedJwt.nextauth.user.email,
-              name: decodedJwt.nextauth.user.name
+              email: decodedJwt?.nextauth?.user?.email,
+              name: decodedJwt?.nextauth?.user?.name
             }
             req.user = user
             // console.log(`req.user : ${JSON.stringify(req.user, null, 2)}`)
