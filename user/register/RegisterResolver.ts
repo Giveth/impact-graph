@@ -1,3 +1,4 @@
+// tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcryptjs')
 import { Resolver, Query, Mutation, Arg, UseMiddleware } from 'type-graphql'
 
@@ -13,7 +14,7 @@ import { createConfirmationUrl } from '../../utils/createConfirmationUrl'
 export class RegisterResolver {
   @UseMiddleware(isAuth, logger)
   @Query(() => String)
-  //"request.credentials": "include",
+  // "request.credentials": "include",
   async hello () {
     return 'Hello World!'
   }
@@ -26,7 +27,7 @@ export class RegisterResolver {
     console.log(`bcrypt 1 is : ${JSON.stringify(bcrypt, null, 2)}`)
 
     // const hashedPassword = await bcrypt.hash(password, 12)
-    var hashedPassword = bcrypt.hashSync(password, 12)
+    const hashedPassword = bcrypt.hashSync(password, 12)
     console.log(`hashedPassword ---> : ${hashedPassword}`)
     const user = await User.create({
       firstName,

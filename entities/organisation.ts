@@ -35,7 +35,7 @@ export class Organisation {
   @Field(type => [Project])
   projects?: Project[]
 
-  //Manually get the join table
+  // Manually get the join table
   @Field(type => [OrganisationProject], { nullable: true })
   @OneToMany(
     type => OrganisationProject,

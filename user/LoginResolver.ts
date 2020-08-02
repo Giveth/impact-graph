@@ -1,3 +1,4 @@
+// tslint:disable-next-line:no-var-requires
 require('dotenv').config()
 import bcrypt from 'bcryptjs'
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
@@ -7,7 +8,7 @@ import jwt from 'jsonwebtoken'
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql'
 import Web3 from 'web3'
 
-let web3 = new Web3(process.env.ETHEREUM_NODE_URL)
+const web3 = new Web3(process.env.ETHEREUM_NODE_URL)
 
 @ObjectType()
 class LoginResponse {
@@ -69,7 +70,7 @@ export class LoginResolver {
     if (!valid) {
       console.log('Not valid')
 
-      //return null
+      // return null
     }
 
     // if (!user.confirmed) {

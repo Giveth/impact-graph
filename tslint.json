@@ -3,6 +3,7 @@
   "extends": ["tslint:recommended", "tslint-eslint-rules", "tslint-config-prettier"],
   "rules": {
     "adjacent-overload-signatures": true,
+    "quotemark": [ true, "single"],
     "ban-types": false,
     "no-console": [false],
     "no-namespace": false,
