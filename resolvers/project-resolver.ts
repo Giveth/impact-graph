@@ -11,8 +11,12 @@ import {
   Arg,
   Mutation,
   Args,
-  PubSub
+  PubSub,
+  ArgsType,
+  Field,
+  Int
 } from 'type-graphql'
+import { Min, Max } from "class-validator";
 
 import { Project } from '../entities/project'
 import { User } from '../entities/user'
@@ -22,6 +26,18 @@ import { ProjectInput } from './types/project-input'
 import { Context } from '../Context'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
+
+@ArgsType()
+class GetProjectsArgs {
+  @Field(type => Int, { defaultValue: 0 })
+  @Min(0)
+  skip: number;
+
+  @Field(type => Int, { defaultValue: 25 })
+  @Min(1)
+  @Max(50)
+  take: number;
+}
 
 @Resolver(of => Project)
 export class ProjectResolver {
@@ -46,8 +62,8 @@ export class ProjectResolver {
   // }
 
   @Query(returns => [Project])
-  async projects (): Promise<Project[]> {
-    return this.projectRepository.find()
+  async projects (@Args() { take, skip }: GetProjectsArgs): Promise<Project[]> {
+    return this.projectRepository.find({ take, skip})
   }
 
   @Mutation(returns => Project)
