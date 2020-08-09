@@ -44,7 +44,8 @@ let resolvers: any = [
   ProjectResolver,
   OrganisationResolver,
   NotificationResolver,
-  LoginResolver
+  LoginResolver,
+  RegisterResolver
 ]
 console.log(`resolvers.length ---> : ${resolvers.length}`)
 if (process.env.REGISTER_USERNAME_PASSWORD === 'true') {

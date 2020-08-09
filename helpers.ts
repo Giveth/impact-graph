@@ -50,37 +50,34 @@ export async function seedDatabase () {
   await projectRepository.save(covidProject)
   console.log(`aProject2 : ${JSON.stringify(covidProject, null, 2)}`)
 
-  const icrcOrg = organisationRepository.create(
+  const icrcOrg = organisationRepository.create([
     {
       title: 'International Committee of the Red Cross (ICRC)',
       description:
         'Established in 1863, the ICRC operates worldwide, helping people affected by conflict and armed violence and promoting the laws that protect victims of war. An independent and neutral organization, its mandate stems essentially from the Geneva Conventions of 1949. We are based in Geneva, Switzerland, and employ some 16,000 people in more than 80 countries. The ICRC is funded mainly by voluntary donations from governments and from National Red Cross and Red Crescent Societies.'
+    },
+    {
+      title: 'Giveth',
+      description: 'Giveth is the future of giving.'
+    },
+    {
+      title: 'Gaia Protection',
+      description:
+        'The Madre Tierra Verde Foundation aims to contribute to the transition of Costa Rican society towards a paradigm of a green and intelligent society, following the guidelines of the National Strategy for Decarbonizing the Economy, through guidance and advice to organizations, communities and governments.'
     }
-    // },
-    // {
-    //   title:
-    //     'International Federation of Red Cross and Red Crescent Societies (IFRC)',
-    //   description: `The International Federation of Red Cross and Red Crescent Societies (IFRC) is the world's largest humanitarian network that reaches 150 million people in 192 National Societies through the work of over 13,7 million volunteers.
-
-    //       Together, we act before, during and after disasters and health emergencies to meet the needs and improve the lives of vulnerable people. We do so without discrimination as to nationality, race, religious beliefs, class or political opinions.
-
-    //       Guided by Strategy 2020 – our collective plan of action to tackle the major humanitarian and development challenges of this decade – we are committed, in this fast-changing world, to ‘saving lives and changing minds’.
-
-    //       Our strength is in our volunteer network, our community-based expertise and our ability to give a global voice to vulnerable people. By improving humanitarian standards, working as partners in development, responding to disasters, supporting healthier and safer communities, we help reduce vulnerabilities, strengthen resilience and foster a culture of peace around the world.`
-    // }
-  )
+  ])
 
   await organisationRepository.save(icrcOrg)
   //Seed join table
   const organisationProject = organisationProjectRepository.create({
-    organisation: icrcOrg,
+    organisation: icrcOrg[0],
     project: covidProject
   })
   await organisationProjectRepository.save(organisationProject)
 
   const adminOrganisationUser = organisationUserRepository.create({
     role: 'admin',
-    organisation: icrcOrg,
+    organisation: icrcOrg[0],
     user: icrcAdmin
   })
   await organisationUserRepository.save(adminOrganisationUser)

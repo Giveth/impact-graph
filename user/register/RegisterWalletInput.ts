@@ -25,4 +25,7 @@ export class RegisterWalletInput {
   @IsEmail()
   @IsEmailAlreadyExist({ message: 'email already in use' })
   email: string
+
+  @Field()
+  organisationId?: number
 }
