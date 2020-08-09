@@ -14,12 +14,12 @@ export class OrganisationProject {
   @Field(type => Organisation)
   @ManyToOne(type => Organisation)
   organisation: Organisation
-  // @RelationColumn()
-  // organisationId: number
+  @RelationColumn()
+  organisationId: number
 
   @Field(type => Project)
   @ManyToOne(type => Project)
   project: Project
-  // @RelationColumn()
-  // projectId: number
+  @RelationColumn()
+  projectId: number
 }

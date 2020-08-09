@@ -24,6 +24,7 @@ import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
 import { Context } from '../Context'
+import { OrganisationProject } from '../entities/organisationProject'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
 
@@ -44,7 +45,9 @@ export class ProjectResolver {
   constructor (
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(OrganisationProject)
+    private readonly organisationProject: Repository<OrganisationProject>
   ) {}
 
   // @FieldResolver()
@@ -79,9 +82,15 @@ export class ProjectResolver {
       // ...projectInput,
       // authorId: user.id
     })
-    console.log('project created')
-
     const newProject = await this.projectRepository.save(project)
+
+    const organisationProject = this.organisationProject.create({
+      organisationId: projectInput.organisationId,
+      projectId: newProject.id
+    })
+    const newOrganisationProject = await this.organisationProject.save(
+      organisationProject
+    )
 
     const payload: NotificationPayload = {
       id: 1,

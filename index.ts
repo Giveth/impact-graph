@@ -13,7 +13,7 @@ import Notification from './entities/notification'
 import { OrganisationProject } from './entities/organisationProject'
 
 import { UserResolver } from './resolvers/user-resolver'
-import { ProjectResolver } from './resolvers/project-resolver'
+import { ProjectResolver } from './resolvers/projectResolver'
 import { RegisterResolver } from './user/register/RegisterResolver'
 import { LoginResolver } from './user/LoginResolver'
 import { OrganisationResolver } from './resolvers/organisation-resolver'

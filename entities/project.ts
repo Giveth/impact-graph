@@ -32,6 +32,10 @@ export class Project {
   @Column({ nullable: true })
   description?: string
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  organisationId?: number
+
   @Field()
   @Column({ nullable: true })
   creationDate: Date
