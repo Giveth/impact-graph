@@ -47,22 +47,15 @@ let resolvers: any = [
   LoginResolver,
   RegisterResolver
 ]
-console.log(`resolvers.length ---> : ${resolvers.length}`)
-if (process.env.REGISTER_USERNAME_PASSWORD === 'true') {
-  console.log(
-    `process.env.REGISTER_USERNAME_PASSWORD ---> : ${process.env.REGISTER_USERNAME_PASSWORD}`
-  )
-  console.log('RegisterResolver')
 
+if (process.env.REGISTER_USERNAME_PASSWORD === 'true') {
   resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver])
 }
-console.log(`resolvers.length ---> : ${resolvers.length}`)
-
-console.log(`resolvers : ${JSON.stringify(resolvers, null, 2)}`)
 
 async function bootstrap () {
   try {
     // create TypeORM connection
+    const dropSeed = config.get('DB_DROP_SEED') == 'true'
     await TypeORM.createConnection({
       type: 'postgres',
       database: process.env.TYPEORM_DATABASE_NAME,
@@ -74,12 +67,14 @@ async function bootstrap () {
       synchronize: true,
       logger: 'advanced-console',
       logging: 'all',
-      dropSchema: true,
+      dropSchema: dropSeed,
       cache: true
     })
 
-    // seed database with some data
-    const { defaultUser } = await seedDatabase()
+    if (dropSeed) {
+      // seed database with some data
+      const { defaultUser } = await seedDatabase()
+    }
 
     // build TypeGraphQL executable schema
     const schema = await TypeGraphQL.buildSchema({
@@ -97,8 +92,6 @@ async function bootstrap () {
             return null
           }
           if (req.headers.authorization) {
-            console.log('Authorized request ')
-
             const token = req.headers.authorization.split(' ')[1].toString()
             const secret = config.get('JWT_SECRET')
 
@@ -108,10 +101,11 @@ async function bootstrap () {
               name: decodedJwt?.nextauth?.user?.name
             }
             req.user = user
-            // console.log(`req.user : ${JSON.stringify(req.user, null, 2)}`)
           }
         } catch (error) {
-          console.log(`Apollo Server error : ${JSON.stringify(error, null, 2)}`)
+          console.error(
+            `Apollo Server error : ${JSON.stringify(error, null, 2)}`
+          )
         }
 
         return {

@@ -31,6 +31,7 @@ export default class Config {
   TYPEORM_DROP_SCHEMA: string
   APOLLO_KEY: string
   REGISTER_USERNAME_PASSWORD: string
+  DB_DROP_SEED: boolean
 
   get (envVar: string): string {
     return this[envVar]
@@ -40,7 +41,7 @@ export default class Config {
     envVars.forEach(envVar => {
       if (envFile[envVar]) {
         this[envVar] = envFile[envVar]
-        console.log(`envVar ---> : ${this[envVar]}`)
+        // console.log(`envVar ---> : ${this[envVar]}`)
       } else {
         throw new Error(`Need to provide a ${envVar} in the .env`)
       }

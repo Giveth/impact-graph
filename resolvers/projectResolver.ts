@@ -75,8 +75,6 @@ export class ProjectResolver {
     @Ctx() { user }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
-    console.log('Adding project mutation > projectResolver')
-
     const project = this.projectRepository.create({
       ...projectInput
       // ...projectInput,
@@ -96,7 +94,6 @@ export class ProjectResolver {
       id: 1,
       message: 'A new project was created'
     }
-    console.log(`payload : ${JSON.stringify(payload, null, 2)}`)
 
     await pubSub.publish('NOTIFICATIONS', payload)
 
@@ -110,9 +107,6 @@ export class ProjectResolver {
     @Ctx() { user }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
-    console.log(`user : ${JSON.stringify(user, null, 2)}`)
-
-    console.log(`title ---> : ${title}`)
     const projectInput = new ProjectInput()
     projectInput.title = title
     projectInput.description = description
@@ -127,7 +121,6 @@ export class ProjectResolver {
       id: 1,
       message: 'A new project was created'
     }
-    console.log(`payload : ${JSON.stringify(payload, null, 2)}`)
 
     await pubSub.publish('NOTIFICATIONS', payload)
 

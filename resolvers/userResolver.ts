@@ -13,9 +13,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions'
 
 import { OrganisationUser } from '../entities/organisationUser'
 import { User } from '../entities/user'
-// import { Context } from '../index'
 import { RegisterInput } from '../user/register/RegisterInput'
-// import { OrganisationUser } from '../entities/organisationUser'
 import { Organisation } from '../entities/organisation'
 
 @Resolver(of => User)
