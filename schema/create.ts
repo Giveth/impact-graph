@@ -8,7 +8,7 @@ import { LoginResolver } from '../user/LoginResolver'
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver'
 import { MeResolver } from '../user/MeResolver'
 
-//only called from ben version
+// only called from ben version
 
 export const createSchema = () =>
   buildSchema({

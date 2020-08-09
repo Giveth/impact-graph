@@ -23,6 +23,7 @@ import { MeResolver } from './user/MeResolver'
 import { Context } from './Context'
 import { userCheck } from './auth/userCheck'
 import jwt from 'jsonwebtoken'
+// tslint:disable-next-line:no-var-requires
 require('dotenv').config()
 
 // register 3rd party IOC container

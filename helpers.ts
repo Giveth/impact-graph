@@ -71,7 +71,7 @@ export async function seedDatabase () {
   )
 
   await organisationRepository.save(icrcOrg)
-  //Seed join table
+  // Seed join table
   const organisationProject = organisationProjectRepository.create({
     organisation: icrcOrg,
     project: covidProject

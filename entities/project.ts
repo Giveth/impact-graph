@@ -11,8 +11,8 @@ import {
 
 import { Organisation } from './organisation'
 import { OrganisationProject } from './organisationProject'
-//NO idea why the below import doesn't work!!!
-//import { RelationColumn } from "../helpers";
+// NO idea why the below import doesn't work!!!
+// import { RelationColumn } from "../helpers";
 function RelationColumn (options?: ColumnOptions) {
   return Column({ nullable: true, ...options })
 }

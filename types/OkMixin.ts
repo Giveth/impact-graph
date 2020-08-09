@@ -1,4 +1,4 @@
-import { ClassType, Field, InputType } from "type-graphql";
+import { ClassType, Field, InputType } from 'type-graphql';
 
 export const OkMixin = <T extends ClassType>(BaseClass: T) => {
   @InputType()

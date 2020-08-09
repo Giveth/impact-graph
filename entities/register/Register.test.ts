@@ -1,8 +1,8 @@
-import faker from "./node_modules/faker";
-import { Connection } from "typeorm";
-import { User } from "../../../entities/user";
-import { gCall } from "../../../test-utils/gCall";
-import { testConn } from "../../../test-utils/testConn";
+import faker from './node_modules/faker';
+import { Connection } from 'typeorm';
+import { User } from '../../../entities/user';
+import { gCall } from '../../../test-utils/gCall';
+import { testConn } from '../../../test-utils/testConn';
 
 let conn: Connection;
 beforeAll(async () => {
@@ -26,8 +26,8 @@ mutation Register($data: RegisterInput!) {
 }
 `;
 
-describe("Register", () => {
-  it.only("create user", async () => {
+describe('Register', () => {
+  it.only('create user', async () => {
     const user = {
       firstName: faker.name.firstName(),
       lastName: faker.name.lastName(),

@@ -66,7 +66,7 @@ export class MeResolver {
 
     const organisationUsers = await this.organisationUserRepository.find({
       cache: 1000,
-      where: { userId: userId }
+      where: { userId }
     })
 
     const organisationUserIds = organisationUsers.map(o => o.id)
