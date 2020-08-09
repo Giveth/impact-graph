@@ -12,4 +12,7 @@ export class ProjectInput implements Partial<Project> {
   @Field({ nullable: true })
   @Length(30, 255)
   description?: string
+
+  @Field()
+  organisationId?: number
 }

@@ -16,7 +16,7 @@ import {
   Field,
   Int
 } from 'type-graphql'
-import { Min, Max } from "class-validator";
+import { Min, Max } from 'class-validator'
 
 import { Project } from '../entities/project'
 import { User } from '../entities/user'
@@ -31,12 +31,12 @@ import { Context } from '../Context'
 class GetProjectsArgs {
   @Field(type => Int, { defaultValue: 0 })
   @Min(0)
-  skip: number;
+  skip: number
 
   @Field(type => Int, { defaultValue: 25 })
   @Min(1)
   @Max(50)
-  take: number;
+  take: number
 }
 
 @Resolver(of => Project)
@@ -63,7 +63,7 @@ export class ProjectResolver {
 
   @Query(returns => [Project])
   async projects (@Args() { take, skip }: GetProjectsArgs): Promise<Project[]> {
-    return this.projectRepository.find({ take, skip})
+    return this.projectRepository.find({ take, skip })
   }
 
   @Mutation(returns => Project)
@@ -72,13 +72,15 @@ export class ProjectResolver {
     @Ctx() { user }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
-    console.log('Add project mutation')
+    console.log('Adding project mutation > projectResolver')
 
     const project = this.projectRepository.create({
       ...projectInput
       // ...projectInput,
       // authorId: user.id
     })
+    console.log('project created')
+
     const newProject = await this.projectRepository.save(project)
 
     const payload: NotificationPayload = {
