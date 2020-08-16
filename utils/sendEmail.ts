@@ -1,4 +1,5 @@
-//import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer";
+// tslint:disable-next-line:no-var-requires
 const nodemailer = require('nodemailer')
 
 export async function sendEmail (email: string, url: string) {

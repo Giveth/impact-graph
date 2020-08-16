@@ -1,3 +1,4 @@
+// tslint:disable-next-line:no-var-requires
 require('dotenv').config()
 import * as bcrypt from 'bcryptjs'
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
@@ -74,7 +75,7 @@ export class LoginResolver {
     if (!valid) {
       console.log('Not valid')
 
-      //return null
+      // return null
     }
 
     // if (!user.confirmed) {

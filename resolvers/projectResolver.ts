@@ -141,7 +141,7 @@ export class ProjectResolver {
       //   // authorId: user.id
     })
     const newProject = await this.projectRepository.save(project)
-    //await AuthorBook.create({ authorId, bookId }).save();
+    // await AuthorBook.create({ authorId, bookId }).save();
     const payload: NotificationPayload = {
       id: 1,
       message: 'A new project was created'
