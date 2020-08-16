@@ -1,6 +1,9 @@
 import { PubSubEngine } from 'graphql-subscriptions'
+import { Service } from 'typedi'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 import NotificationPayload from '../entities/notificationPayload'
+import { MyContext } from '../types/MyContext'
+import { UserPermissions } from '../permissions'
 
 import {
   Resolver,
@@ -24,10 +27,11 @@ import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
 import { Context } from '../Context'
-import { OrganisationProject } from '../entities/organisationProject'
+//import { OrganisationProject } from '../entities/organisationProject'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
 
+@Service()
 @ArgsType()
 class GetProjectsArgs {
   @Field(type => Int, { defaultValue: 0 })
@@ -46,8 +50,7 @@ export class ProjectResolver {
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(OrganisationProject)
-    private readonly organisationProject: Repository<OrganisationProject>
+    private userPermissions: UserPermissions
   ) {}
 
   // @FieldResolver()
@@ -72,32 +75,54 @@ export class ProjectResolver {
   @Mutation(returns => Project)
   async addProject (
     @Arg('project') projectInput: ProjectInput,
-    @Ctx() { user }: Context,
+    @Ctx() ctx: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
-    const project = this.projectRepository.create({
-      ...projectInput
-      // ...projectInput,
-      // authorId: user.id
-    })
-    const newProject = await this.projectRepository.save(project)
-
-    const organisationProject = this.organisationProject.create({
-      organisationId: projectInput.organisationId,
-      projectId: newProject.id
-    })
-    const newOrganisationProject = await this.organisationProject.save(
-      organisationProject
-    )
-
-    const payload: NotificationPayload = {
-      id: 1,
-      message: 'A new project was created'
+    if (!ctx.req.user) {
+      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+      throw new Error('Access denied')
+      // return undefined
     }
+    console.log(`Add project user email: ${ctx.req.user.email}`)
+    if (!ctx.req.user) {
+      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+      throw new Error('Access denied')
+      // return undefined
+    }
+    if (
+      await this.userPermissions.mayAddProjectToOrganisation(
+        ctx.req.user.email,
+        projectInput.organisationId
+      )
+    ) {
+      const project = this.projectRepository.create({
+        ...projectInput
+        // ...projectInput,
+        // authorId: user.id
+      })
+      const newProject = await this.projectRepository.save(project)
 
-    await pubSub.publish('NOTIFICATIONS', payload)
+      // const organisationProject = this.organisationProject.create({
+      //   organisationId: projectInput.organisationId,
+      //   projectId: newProject.id
+      // })
+      // const newOrganisationProject = await this.organisationProject.save(
+      //   organisationProject
+      // )
 
-    return newProject
+      const payload: NotificationPayload = {
+        id: 1,
+        message: 'A new project was created'
+      }
+
+      await pubSub.publish('NOTIFICATIONS', payload)
+
+      return newProject
+    } else {
+      throw new Error(
+        'User does not have the right to create a project for this organisation'
+      )
+    }
   }
 
   @Mutation(returns => Project)

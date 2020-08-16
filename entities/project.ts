@@ -10,7 +10,7 @@ import {
 } from 'typeorm'
 
 import { Organisation } from './organisation'
-import { OrganisationProject } from './organisationProject'
+//import { OrganisationProject } from './organisationProject'
 //NO idea why the below import doesn't work!!!
 //import { RelationColumn } from "../helpers";
 function RelationColumn (options?: ColumnOptions) {
@@ -49,12 +49,12 @@ export class Project {
   @JoinTable()
   organisations: Organisation[]
 
-  @Field(type => [OrganisationProject], { nullable: true })
-  @OneToMany(
-    type => OrganisationProject,
-    organisationProject => organisationProject.organisation
-  )
-  organisationProjects?: OrganisationProject[]
+  // @Field(type => [OrganisationProject], { nullable: true })
+  // @OneToMany(
+  //   type => OrganisationProject,
+  //   organisationProject => organisationProject.organisation
+  // )
+  // organisationProjects?: OrganisationProject[]
   // @JoinTable({
   //   name: 'organisation_project',
   //   joinColumn: {

@@ -10,7 +10,7 @@ import { seedDatabase } from './helpers'
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
 import Notification from './entities/notification'
-import { OrganisationProject } from './entities/organisationProject'
+//import { OrganisationProject } from './entities/organisationProject'
 
 import { UserResolver } from './resolvers/userResolver'
 import { ProjectResolver } from './resolvers/projectResolver'
@@ -33,11 +33,9 @@ TypeORM.useContainer(Container)
 let entities: any = [
   Organisation,
   OrganisationUser,
-  OrganisationProject,
   User,
   Project,
-  Notification,
-  MeResolver
+  Notification
 ]
 let resolvers: any = [
   UserResolver,
@@ -45,7 +43,8 @@ let resolvers: any = [
   OrganisationResolver,
   NotificationResolver,
   LoginResolver,
-  RegisterResolver
+  RegisterResolver,
+  MeResolver
 ]
 
 if (process.env.REGISTER_USERNAME_PASSWORD === 'true') {

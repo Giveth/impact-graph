@@ -4,7 +4,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions'
 import { User } from '../entities/user'
 import { Organisation } from '../entities/organisation'
 import { Project } from '../entities/project'
-import { OrganisationProject } from '../entities/organisationProject'
+//import { OrganisationProject } from '../entities/organisationProject'
 import { OrganisationUser } from '../entities/organisationUser'
 import { MyContext } from '../types/MyContext'
 
@@ -20,13 +20,11 @@ export class MeResolver {
     private readonly organisationRepository: Repository<Organisation>,
 
     @InjectRepository(Project)
-    private readonly projectRepository: Repository<Project>,
-
-    @InjectRepository(OrganisationProject)
-    private readonly organisationProjectRepository: Repository<
-      OrganisationProject
-    >
-  ) {}
+    private readonly projectRepository: Repository<Project> // @InjectRepository(OrganisationProject)
+  ) // private readonly organisationProjectRepository: Repository<
+  //   OrganisationProject
+  // >
+  {}
 
   @Authorized()
   @Query(() => User, { nullable: true, complexity: 5 })
@@ -78,20 +76,20 @@ export class MeResolver {
 
     console.log(`user : ${JSON.stringify(user, null, 2)}`)
 
-    const organisationProjects = await this.organisationProjectRepository.find({
-      cache: 1000,
-      where: { userId: 1 }
-    })
+    // const organisationProjects = await this.organisationProjectRepository.find({
+    //   cache: 1000,
+    //   where: { userId: 1 }
+    // })
 
-    const organisationProjectsIds = organisationProjects.map(o => o.id)
+    // const organisationProjectsIds = organisationProjects.map(o => o.id)
 
-    console.log(
-      `organisationProjectsIds : ${JSON.stringify(
-        organisationProjectsIds,
-        null,
-        2
-      )}`
-    )
+    // console.log(
+    //   `organisationProjectsIds : ${JSON.stringify(
+    //     organisationProjectsIds,
+    //     null,
+    //     2
+    //   )}`
+    // )
 
     return undefined
 
