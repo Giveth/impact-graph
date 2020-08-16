@@ -49,13 +49,13 @@ export class Project {
   @Column({ nullable: true })
   categoryId?: number
 
-  @Field()
-  @Column()
-  coOrdinates: string
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  coOrdinates?: string
 
-  @Field()
-  @Column()
-  imageUrl: string
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  imageUrl?: string
 
   // @Field(type => [OrganisationProject], { nullable: true })
   // @OneToMany(

@@ -15,4 +15,13 @@ export class ProjectInput implements Partial<Project> {
 
   @Field()
   organisationId?: number
+
+  @Field({ nullable: true })
+  categoryId?: number
+
+  @Field({ nullable: true })
+  imageUrl?: string
+
+  @Field({ nullable: true })
+  coOrdinates?: string
 }

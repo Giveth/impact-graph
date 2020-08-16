@@ -84,7 +84,6 @@ export class LoginResolver {
     //   return null
     // }
 
-    console.log(`successfully logged in`)
     // Not using sessions anymore - ctx.req.session!.userId = user.id
     const accessToken = jwt.sign(
       { userId: user.id, firstName: user.firstName },

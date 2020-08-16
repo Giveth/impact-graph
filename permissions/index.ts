@@ -21,11 +21,8 @@ export class UserPermissions {
     })
 
     if (user) {
-      console.log(`user !!!: ${JSON.stringify(user, null, 2)}`)
       if (user.organisations.length) {
         if (user.organisations.filter(o => o.id === organisationId).length) {
-          console.log('Success')
-
           return true
         } else {
           throw new Error('User is not a member of that organisations')

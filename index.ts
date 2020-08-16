@@ -96,8 +96,6 @@ async function bootstrap () {
 
             const decodedJwt: any = jwt.verify(token, secret)
 
-            console.log(`decodedJwt : ${JSON.stringify(decodedJwt, null, 2)}`)
-
             let user
             if (decodedJwt.nextAuth) {
               user = {
