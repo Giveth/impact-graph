@@ -40,13 +40,13 @@ export class UserResolver {
     return this.userRepository.find()
   }
 
-  @FieldResolver()
-  organisationUsers (@Root() user: User) {
-    return this.organisationUserRepository.find({
-      cache: 1000,
-      where: { authorId: user.id }
-    })
-  }
+  // @FieldResolver()
+  // organisationUsers (@Root() user: User) {
+  //   return this.organisationUserRepository.find({
+  //     cache: 1000,
+  //     where: { authorId: user.id }
+  //   })
+  // }
 
   // @FieldResolver()
   // async organisations (@Root() user: User) {
@@ -58,17 +58,17 @@ export class UserResolver {
   //   process.exit()
   // }
 
-  @FieldResolver()
-  async organisations (@Root() user: User) {
-    const organisationUsers = await this.organisationUserRepository.find({
-      cache: 1000,
-      where: { userId: user.id }
-    })
+  // @FieldResolver()
+  // async organisations (@Root() user: User) {
+  //   const organisationUsers = await this.organisationUserRepository.find({
+  //     cache: 1000,
+  //     where: { userId: user.id }
+  //   })
 
-    const organisationUserIds = organisationUsers.map(o => o.id)
-    return await this.organisationRepository.find({
-      cache: 1000,
-      where: { organisationUserId: In(organisationUserIds) }
-    })
-  }
+  //   const organisationUserIds = organisationUsers.map(o => o.id)
+  //   return await this.organisationRepository.find({
+  //     cache: 1000,
+  //     where: { organisationUserId: In(organisationUserIds) }
+  //   })
+  // }
 }

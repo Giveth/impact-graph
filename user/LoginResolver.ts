@@ -142,7 +142,11 @@ export class LoginResolver {
     }
     const response = new LoginResponse()
 
-    response.token = this.createToken({ userId: user.id, firstName: user.name })
+    response.token = this.createToken({
+      userId: user.id,
+      firstName: user.name,
+      email: user.email
+    })
     response.user = user
 
     console.log(`response : ${JSON.stringify(response, null, 2)}`)

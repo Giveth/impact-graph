@@ -59,22 +59,22 @@ export class OrganisationResolver {
     // })
   }
 
-  @Query(returns => [Organisation])
-  async organisationsFromUserId (
-    @Arg('userId') userId: number
-  ): Promise<Organisation[]> {
-    const organisationUsers = await this.organisationUserRepository.find({
-      cache: 1000,
-      where: { userId: userId }
-    })
+  // @Query(returns => [Organisation])
+  // async organisationsFromUserId (
+  //   @Arg('userId') userId: number
+  // ): Promise<Organisation[]> {
+  //   // const organisationUsers = await this.organisationUserRepository.find({
+  //   //   cache: 1000,
+  //   //   where: { userId: userId }
+  //   // })
 
-    const organisationUserIds = organisationUsers.map(o => o.id)
-    return await this.organisationRepository.find({
-      cache: 1000,
-      where: { organisationUserId: In(organisationUserIds) }
-    })
-    return this.organisationRepository.find()
-  }
+  //   // const organisationUserIds = organisationUsers.map(o => o.id)
+  //   // return await this.organisationRepository.find({
+  //   //   cache: 1000,
+  //   //   where: { organisationUserId: In(organisationUserIds) }
+  //   // })
+  //   // return this.organisationRepository.find()
+  // }
 
   @Query(returns => [Project])
   async organisationProjects (

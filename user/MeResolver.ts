@@ -20,9 +20,8 @@ export class MeResolver {
     private readonly organisationRepository: Repository<Organisation>,
 
     @InjectRepository(Project)
-    private readonly projectRepository: Repository<Project> // @InjectRepository(OrganisationProject)
-  ) // private readonly organisationProjectRepository: Repository<
-  //   OrganisationProject
+    private readonly projectRepository: Repository<Project> // @InjectRepository(OrganisationProject) // private readonly organisationProjectRepository: Repository<
+  ) //   OrganisationProject
   // >
   {}
 
@@ -37,25 +36,25 @@ export class MeResolver {
     return User.findOne(1)
   }
 
-  @Query(() => [Organisation], { nullable: true, complexity: 5 })
-  async myOrganisations (
-    @Ctx() ctx: MyContext
-  ): Promise<[Organisation] | undefined> {
-    const userId = await User.findOne(ctx.req.user.x)
+  // @Query(() => [Organisation], { nullable: true, complexity: 5 })
+  // async myOrganisations (
+  //   @Ctx() ctx: MyContext
+  // ): Promise<[Organisation] | undefined> {
+  //   const userId = await User.findOne(ctx.req.user.x)
 
-    const organisationUsers = await this.organisationUserRepository.find({
-      cache: 1000,
-      where: { userId: userId }
-    })
+  //   const organisationUsers = await this.organisationUserRepository.find({
+  //     cache: 1000,
+  //     where: { userId: userId }
+  //   })
 
-    const organisationUserIds = organisationUsers.map(o => o.id)
+  //   const organisationUserIds = organisationUsers.map(o => o.id)
 
-    return undefined
-    // return await this.organisationRepository.find({
-    //   cache: 1000,
-    //   where: { organisationUserId: In(organisationUserIds) }
-    // })
-  }
+  //   return undefined
+  //   // return await this.organisationRepository.find({
+  //   //   cache: 1000,
+  //   //   where: { organisationUserId: In(organisationUserIds) }
+  //   // })
+  // }
 
   // @Authorized()
   @Query(() => [Project], { nullable: true, complexity: 5 })

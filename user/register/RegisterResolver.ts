@@ -65,32 +65,26 @@ export class RegisterResolver {
       name,
       walletAddress,
       loginType: 'wallet'
-    }).save()
+    })
 
-    console.log(`organisationId ---> : ${organisationId}`)
     if (organisationId) {
       const organisation = await this.organisationRepository.find({
         where: { id: organisationId }
       })
 
       if (organisation) {
-        //const organisationUserRepository = getRepository(OrganisationUser)
-        console.log('organisationorganisation')
+        user.organisations = [organisation[0]]
+        const organisationUser = new OrganisationUser()
+        organisationUser.role = 'donor'
+        user.organisationUsers = [organisationUser]
+        //TODO: The above isn't saving the role, but we don't need it right now #8 https://github.com/topiahq/impact-graph/issues/8
 
-        const organisationUser = this.organisationUserRepository.create({
-          role: 'donor',
-          organisation: organisation[0],
-          user: user
-        })
-
-        const savedOrganisationUser = this.organisationUserRepository.save(
-          organisationUser
-        )
-
-        console.log(`savedOrganisationUser! ---> : ${savedOrganisationUser}`)
+        user.save()
       } else {
         throw new Error('Organisation doesnt exist')
       }
+    } else {
+      throw new Error('User must be associated with an Organisation!')
     }
 
     if (email) {

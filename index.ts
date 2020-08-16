@@ -95,10 +95,23 @@ async function bootstrap () {
             const secret = config.get('JWT_SECRET')
 
             const decodedJwt: any = jwt.verify(token, secret)
-            const user = {
-              email: decodedJwt?.nextauth?.user?.email,
-              name: decodedJwt?.nextauth?.user?.name
+
+            console.log(`decodedJwt : ${JSON.stringify(decodedJwt, null, 2)}`)
+
+            let user
+            if (decodedJwt.nextAuth) {
+              user = {
+                email: decodedJwt?.nextauth?.user?.email,
+                name: decodedJwt?.nextauth?.user?.name
+              }
+            } else {
+              user = {
+                email: decodedJwt?.email,
+                name: decodedJwt?.firstName,
+                userId: decodedJwt?.userId
+              }
             }
+
             req.user = user
           }
         } catch (error) {
