@@ -40,14 +40,22 @@ export class Project {
   @Column({ nullable: true })
   creationDate: Date
 
-  // @Field()
-  // @Column({ nullable: true })
-  // organisation_project_id?: number
-
   @Field(type => [Organisation])
   @ManyToMany(type => Organisation)
   @JoinTable()
   organisations: Organisation[]
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  categoryId?: number
+
+  @Field()
+  @Column()
+  coOrdinates: string
+
+  @Field()
+  @Column()
+  imageUrl: string
 
   // @Field(type => [OrganisationProject], { nullable: true })
   // @OneToMany(
@@ -63,9 +71,7 @@ export class Project {
   //   }
   // })
 
-  // @RelationColumn()
-  // organisation_project_id?: number
-
+  // TODO: add the user back in, after model is clean
   // @Field(type => User)
   // @ManyToOne(type => User)
   // author: User
