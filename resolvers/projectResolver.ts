@@ -17,7 +17,7 @@ import {
   PubSub,
   ArgsType,
   Field,
-  Int
+  Int,
 } from 'type-graphql'
 import { Min, Max } from 'class-validator'
 
@@ -42,6 +42,13 @@ class GetProjectsArgs {
   @Min(1)
   @Max(50)
   take: number
+}
+
+@Service()
+@ArgsType()
+class GetProjectArgs {
+  @Field(type => String!, { defaultValue: "" })
+  title: string
 }
 
 @Resolver(of => Project)
@@ -70,6 +77,11 @@ export class ProjectResolver {
   @Query(returns => [Project])
   async projects (@Args() { take, skip }: GetProjectsArgs): Promise<Project[]> {
     return this.projectRepository.find({ take, skip })
+  }
+
+  @Query(returns => [Project])
+  async project (@Args() { title }: GetProjectArgs): Promise<Project[]> {
+    return this.projectRepository.find({ title })
   }
 
   @Mutation(returns => Project)
