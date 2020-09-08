@@ -3,7 +3,7 @@ import * as bcrypt from 'bcryptjs'
 
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
-//import { OrganisationProject } from './entities/organisationProject'
+// import { OrganisationProject } from './entities/organisationProject'
 import { Project } from './entities/project'
 import { User } from './entities/user'
 
@@ -11,7 +11,7 @@ export async function seedDatabase () {
   const projectRepository = getRepository(Project)
   const organisationRepository = getRepository(Organisation)
   const organisationUserRepository = getRepository(OrganisationUser)
-  //const organisationProjectRepository = getRepository(OrganisationProject)
+  // const organisationProjectRepository = getRepository(OrganisationProject)
   const userRepository = getRepository(User)
 
   const seedPassword = 'qweqweqwe'
@@ -68,7 +68,7 @@ export async function seedDatabase () {
   ])
 
   await organisationRepository.save(icrcOrg)
-  //Seed join table
+  // Seed join table
   // const organisationProject = organisationProjectRepository.create({
   //   organisation: icrcOrg[0],
   //   project: covidProject

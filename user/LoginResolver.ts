@@ -11,7 +11,7 @@ import Config from '../config'
 
 const config = new Config(process.env)
 
-let web3 = new Web3(config.get('ETHEREUM_NODE_URL'))
+const web3 = new Web3(config.get('ETHEREUM_NODE_URL'))
 
 @ObjectType()
 class LoginResponse {

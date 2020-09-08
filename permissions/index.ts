@@ -13,10 +13,10 @@ export class UserPermissions {
   async mayAddProjectToOrganisation (email, organisationId) {
     console.log(`organisationId ---> : ${organisationId}`)
     console.log(`email ---> : ${email}`)
-    let user = await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       relations: ['organisations'],
       where: {
-        email: email
+        email
       }
     })
 

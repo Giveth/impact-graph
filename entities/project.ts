@@ -58,7 +58,7 @@ export class Project {
   imageUrl?: string
 
   @Field(type=> Float, { nullable: true })
-  @Column({ nullable: true })
+  @Column('float', { nullable: true })
   balance: number = 0
   // @Field(type => [OrganisationProject], { nullable: true })
   // @OneToMany(

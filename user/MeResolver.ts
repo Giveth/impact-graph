@@ -4,7 +4,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions'
 import { User } from '../entities/user'
 import { Organisation } from '../entities/organisation'
 import { Project } from '../entities/project'
-//import { OrganisationProject } from '../entities/organisationProject'
+// import { OrganisationProject } from '../entities/organisationProject'
 import { OrganisationUser } from '../entities/organisationUser'
 import { MyContext } from '../types/MyContext'
 

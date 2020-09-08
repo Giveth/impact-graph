@@ -10,7 +10,7 @@ import {
 } from 'typeorm'
 
 import { OrganisationUser } from './organisationUser'
-//import { OrganisationProject } from './organisationProject'
+// import { OrganisationProject } from './organisationProject'
 import { User } from './user'
 import { Project } from './project'
 // import { RelationColumn } from '../helpers'

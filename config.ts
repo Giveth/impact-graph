@@ -33,10 +33,6 @@ export default class Config {
   REGISTER_USERNAME_PASSWORD: string
   DB_DROP_SEED: boolean
 
-  get (envVar: string): string {
-    return this[envVar]
-  }
-
   constructor (envFile: object) {
     envVars.forEach(envVar => {
       if (envFile[envVar]) {
@@ -46,5 +42,9 @@ export default class Config {
         throw new Error(`Need to provide a ${envVar} in the .env`)
       }
     })
+  }
+
+  get (envVar: string): string {
+    return this[envVar]
   }
 }
