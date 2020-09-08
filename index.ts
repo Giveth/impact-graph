@@ -10,7 +10,7 @@ import { seedDatabase } from './helpers'
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
 import Notification from './entities/notification'
-//import { OrganisationProject } from './entities/organisationProject'
+// import { OrganisationProject } from './entities/organisationProject'
 
 import { UserResolver } from './resolvers/userResolver'
 import { ProjectResolver } from './resolvers/projectResolver'
@@ -30,14 +30,14 @@ const config = new Config(process.env)
 
 // register 3rd party IOC container
 TypeORM.useContainer(Container)
-let entities: any = [
+const entities: any = [
   Organisation,
   OrganisationUser,
   User,
   Project,
   Notification
 ]
-let resolvers: any = [
+const resolvers: any = [
   UserResolver,
   ProjectResolver,
   OrganisationResolver,

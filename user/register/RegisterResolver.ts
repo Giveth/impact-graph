@@ -78,7 +78,7 @@ export class RegisterResolver {
         const organisationUser = new OrganisationUser()
         organisationUser.role = 'donor'
         user.organisationUsers = [organisationUser]
-        //TODO: The above isn't saving the role, but we don't need it right now #8 https://github.com/topiahq/impact-graph/issues/8
+        // TODO: The above isn't saving the role, but we don't need it right now #8 https://github.com/topiahq/impact-graph/issues/8
 
         user.save()
       } else {

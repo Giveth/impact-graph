@@ -13,7 +13,7 @@ import {
 
 import { Organisation } from '../entities/organisation'
 import { OrganisationX } from '../entities/organisationX'
-//import { OrganisationProject } from '../entities/organisationProject'
+// import { OrganisationProject } from '../entities/organisationProject'
 import { OrganisationUser } from '../entities/organisationUser'
 import { User } from '../entities/user'
 import { Project } from '../entities/project'
@@ -95,7 +95,7 @@ export class OrganisationResolver {
     //   .leftJoinAndSelect('organisation.projects', 'projects')
     //   .where({ id: organisationId })
     //   .getMany()
-    let organisations = await this.organisationRepository.find({
+    const organisations = await this.organisationRepository.find({
       relations: ['projects'],
       where: { id: organisationId }
     })
@@ -121,15 +121,15 @@ export class OrganisationResolver {
     //   .leftJoinAndSelect('organisation.projects', 'projects')
     //   .where({ id: organisationId })
     //   .getMany()
-    let organisations = await this.organisationRepository.find({
+    const organisations = await this.organisationRepository.find({
       relations: ['projects'],
       where: { id: organisationId }
     })
     console.log(`organisations ---> : ${organisations[0].projects}`)
     console.log(`organisations : ${JSON.stringify(organisations, null, 2)}`)
 
-    let OrganisationXs: any = organisations.map(o => {
-      let x = new OrganisationX()
+    const OrganisationXs: any = organisations.map(o => {
+      const x = new OrganisationX()
       x.title = o.title
       x.description = o.description
       x.projects = ['1', '2', '3']

@@ -10,7 +10,7 @@ import {
 } from 'typeorm'
 
 import { OrganisationUser } from './organisationUser'
-//import { OrganisationProject } from './organisationProject'
+// import { OrganisationProject } from './organisationProject'
 import { User } from './user'
 import { Project } from './project'
 // import { RelationColumn } from '../helpers'
@@ -33,7 +33,7 @@ export class Organisation {
   @Column({ nullable: true })
   description?: string
 
-  //Manually get the join table
+  // Manually get the join table
   // @Field(type => [OrganisationProject], { nullable: true })
   // @OneToMany(
   //   type => OrganisationProject,

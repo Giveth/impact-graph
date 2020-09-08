@@ -7,8 +7,6 @@ import { UserPermissions } from '../permissions'
 
 import {
   Resolver,
-  FieldResolver,
-  Root,
   Ctx,
   Query,
   Arg,
@@ -19,6 +17,8 @@ import {
   Field,
   Int,
   ID,
+  ObjectType,
+  registerEnumType, InputType,
 } from 'type-graphql'
 import { Min, Max } from 'class-validator'
 
@@ -28,21 +28,62 @@ import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
 import { Context } from '../Context'
-//import { OrganisationProject } from '../entities/organisationProject'
+// import { OrganisationProject } from '../entities/organisationProject'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
+
+@ObjectType()
+class TopProjects {
+  @Field(type => [Project])
+  projects: Project[]
+
+  @Field(type => Int)
+  totalCount: number
+}
+
+enum OrderField {
+  CreationDate = 'creationDate',
+  Balance = 'balance',
+}
+
+enum OrderDirection {
+  ASC = 'ASC',
+  DESC = 'DESC'
+}
+
+registerEnumType(OrderField, {
+  name: 'OrderField',
+  description: 'Order by field'
+})
+
+registerEnumType(OrderDirection, {
+  name: 'OrderDirection',
+  description: 'Order direction'
+})
+
+@InputType()
+class OrderBy {
+  @Field(type => OrderField)
+  field: OrderField
+
+  @Field(type => OrderDirection)
+  direction: OrderDirection
+}
 
 @Service()
 @ArgsType()
 class GetProjectsArgs {
   @Field(type => Int, { defaultValue: 0 })
   @Min(0)
-  skip: number
+   skip: number
 
-  @Field(type => Int, { defaultValue: 25 })
-  @Min(1)
+  @Field(type => Int, { defaultValue: 0 })
+  @Min(0)
   @Max(50)
   take: number
+
+  @Field(type => OrderBy, {defaultValue: {field: OrderField.Balance, direction: OrderDirection.DESC}})
+  orderBy: OrderBy
 }
 
 @Service()
@@ -78,6 +119,15 @@ export class ProjectResolver {
   @Query(returns => [Project])
   async projects (@Args() { take, skip }: GetProjectsArgs): Promise<Project[]> {
     return this.projectRepository.find({ take, skip })
+  }
+
+  @Query(returns => TopProjects)
+  async topProjects (@Args() { take, skip, orderBy }: GetProjectsArgs): Promise<TopProjects> {
+    const { field, direction} = orderBy
+    const order = {};
+    order[field] = direction;
+    const [projects, count] = await this.projectRepository.findAndCount({ take, skip, order })
+    return {projects, totalCount: count};
   }
 
   @Query(returns => [Project])

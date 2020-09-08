@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, Authorized } from 'type-graphql'
+import { Field, ID, Float, ObjectType, Authorized } from 'type-graphql'
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -10,9 +10,9 @@ import {
 } from 'typeorm'
 
 import { Organisation } from './organisation'
-//import { OrganisationProject } from './organisationProject'
-//NO idea why the below import doesn't work!!!
-//import { RelationColumn } from "../helpers";
+// import { OrganisationProject } from './organisationProject'
+// NO idea why the below import doesn't work!!!
+// import { RelationColumn } from "../helpers";
 function RelationColumn (options?: ColumnOptions) {
   return Column({ nullable: true, ...options })
 }
@@ -57,6 +57,9 @@ export class Project {
   @Column({ nullable: true })
   imageUrl?: string
 
+  @Field(type=> Float, { nullable: true })
+  @Column('float', { nullable: true })
+  balance: number = 0
   // @Field(type => [OrganisationProject], { nullable: true })
   // @OneToMany(
   //   type => OrganisationProject,
