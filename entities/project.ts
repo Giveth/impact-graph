@@ -36,7 +36,7 @@ export class Project {
   @Column({ nullable: true })
   organisationId?: number
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   creationDate: Date
 
