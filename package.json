@@ -30,6 +30,7 @@
     "pg": "^7.18.2",
     "reflect-metadata": "^0.1.13",
     "standard": "^14.3.4",
+    "stripe": "^8.102.0",
     "ts-node-dev": "^1.0.0-pre.49",
     "tslint": "^6.1.2",
     "type-graphql": "^1.0.0-rc.3",

@@ -6,7 +6,7 @@ import {
   ManyToMany,
   OneToMany,
   ColumnOptions,
-  JoinTable
+  JoinTable, BaseEntity
 } from 'typeorm'
 
 import { Organisation } from './organisation'
@@ -19,7 +19,7 @@ function RelationColumn (options?: ColumnOptions) {
 
 @Entity()
 @ObjectType()
-export class Project {
+export class Project extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number
@@ -60,6 +60,10 @@ export class Project {
   @Field(type=> Float, { nullable: true })
   @Column('float', { nullable: true })
   balance: number = 0
+  
+  @Field()
+  @Column({ nullable: true })
+  stripeAccountId?: string
   // @Field(type => [OrganisationProject], { nullable: true })
   // @OneToMany(
   //   type => OrganisationProject,

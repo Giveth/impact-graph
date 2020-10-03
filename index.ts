@@ -5,6 +5,7 @@ import * as TypeORM from 'typeorm'
 import * as TypeGraphQL from 'type-graphql'
 
 import { User } from './entities/user'
+import { BankAccount } from './entities/bankAccount'
 import { Project } from './entities/project'
 import { seedDatabase } from './helpers'
 import { Organisation } from './entities/organisation'
@@ -14,6 +15,7 @@ import Notification from './entities/notification'
 
 import { UserResolver } from './resolvers/userResolver'
 import { ProjectResolver } from './resolvers/projectResolver'
+import { BankAccountResolver } from './resolvers/bankAccountResolver'
 import { RegisterResolver } from './user/register/RegisterResolver'
 import { LoginResolver } from './user/LoginResolver'
 import { OrganisationResolver } from './resolvers/organisationResolver'
@@ -35,7 +37,8 @@ const entities: any = [
   OrganisationUser,
   User,
   Project,
-  Notification
+  Notification,
+  BankAccount
 ]
 const resolvers: any = [
   UserResolver,
@@ -44,7 +47,8 @@ const resolvers: any = [
   NotificationResolver,
   LoginResolver,
   RegisterResolver,
-  MeResolver
+  MeResolver,
+  BankAccountResolver
 ]
 
 if (process.env.REGISTER_USERNAME_PASSWORD === 'true') {
@@ -90,6 +94,7 @@ async function bootstrap () {
           if (!req) {
             return null
           }
+          
           if (req.headers.authorization) {
             const token = req.headers.authorization.split(' ')[1].toString()
             const secret = config.get('JWT_SECRET')
