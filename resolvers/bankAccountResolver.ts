@@ -37,10 +37,10 @@ export class BankAccountResolver {
         @Arg('refreshUrl') refreshUrl: string,
         @Ctx() { req }: MyContext
     ): Promise<String> {
-        const user = req.user && await this.userRepository.findOne({ id: req.user.userId });
+        // const user = req.user && await this.userRepository.findOne({ id: req.user.userId });
         const project = await this.projectRepository.findOne({ id: projectId });
 
-        if (!user) throw new Error('Access denied')
+        // if (!user) throw new Error('Access denied')
         if (!project) throw new Error("Project not found");
 
         const accountId = await getStripeAccountId(project);
