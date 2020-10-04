@@ -5,7 +5,7 @@ import * as TypeORM from 'typeorm'
 import * as TypeGraphQL from 'type-graphql'
 
 import { User } from './entities/user'
-import { Project } from './entities/project'
+import { Project, Category } from './entities/project'
 import { seedDatabase } from './helpers'
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
@@ -35,6 +35,7 @@ const entities: any = [
   OrganisationUser,
   User,
   Project,
+  Category,
   Notification
 ]
 const resolvers: any = [
