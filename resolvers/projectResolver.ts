@@ -22,7 +22,7 @@ import {
 } from 'type-graphql'
 import { Min, Max } from 'class-validator'
 
-import { Project } from '../entities/project'
+import { Category, Project } from '../entities/project'
 import { User } from '../entities/user'
 import { Repository } from 'typeorm'
 
@@ -82,8 +82,11 @@ class GetProjectsArgs {
   @Max(50)
   take: number
 
-  @Field(type => OrderBy, {defaultValue: {field: OrderField.Balance, direction: OrderDirection.DESC}})
+  @Field(type => OrderBy, { defaultValue: { field: OrderField.Balance, direction: OrderDirection.DESC } })
   orderBy: OrderBy
+
+  @Field({ nullable: true })
+  category: string
 }
 
 @Service()
@@ -98,6 +101,8 @@ export class ProjectResolver {
   constructor (
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private userPermissions: UserPermissions
   ) {}
@@ -122,12 +127,27 @@ export class ProjectResolver {
   }
 
   @Query(returns => TopProjects)
-  async topProjects (@Args() { take, skip, orderBy }: GetProjectsArgs): Promise<TopProjects> {
-    const { field, direction} = orderBy
+  async topProjects (@Args() { take, skip, orderBy, category }: GetProjectsArgs): Promise<TopProjects> {
+    const { field, direction } = orderBy
     const order = {};
     order[field] = direction;
-    const [projects, count] = await this.projectRepository.findAndCount({ take, skip, order })
-    return {projects, totalCount: count};
+
+    let projects;
+    let totalCount;
+
+    if (!category) {
+      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order })
+    } else {
+      [projects, totalCount] = await this.projectRepository
+          .createQueryBuilder('project')
+          .innerJoin('project.categories', 'category', 'category.name = :category', { category })
+          .orderBy(`project.${field}`, direction)
+          .limit(skip)
+          .take(take)
+          .innerJoinAndSelect('project.categories', 'c')
+          .getManyAndCount()
+    }
+    return { projects, totalCount };
   }
 
   @Query(returns => [Project])
@@ -137,55 +157,89 @@ export class ProjectResolver {
 
   @Mutation(returns => Project)
   async addProject (
-    @Arg('project') projectInput: ProjectInput,
+    @Arg( 'project') projectInput: ProjectInput,
     @Ctx() ctx: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
-    if (!ctx.req.user) {
-      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-      throw new Error('Access denied')
-      // return undefined
+    // if (!ctx.req.user) {
+    //   console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+    //   throw new Error('Access denied')
+    //   // return undefined
+    // }
+    // console.log(`Add project user email: ${ctx.req.user.email}`)
+    // if (!ctx.req.user) {
+    //   console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+    //   throw new Error('Access denied')
+    //   // return undefined
+    // }
+
+    const categories = await Promise.all(projectInput.categories ?
+        projectInput.categories.map(async category => {
+          let [c] = await this.categoryRepository.find({ name: category });
+          if (c === undefined) {
+            c = new Category();
+            c.name = category;
+          }
+          return c;
+        }) : []);
+
+    const project = this.projectRepository.create({
+      ...projectInput,
+      categories,
+      creationDate: new Date()
+    })
+    const newProject = await this.projectRepository.save(project)
+
+    // const organisationProject = this.organisationProject.create({
+    //   organisationId: projectInput.organisationId,
+    //   projectId: newProject.id
+    // })
+    // const newOrganisationProject = await this.organisationProject.save(
+    //   organisationProject
+    // )
+
+    const payload: NotificationPayload = {
+      id: 1,
+      message: 'A new project was created'
     }
-    console.log(`Add project user email: ${ctx.req.user.email}`)
-    if (!ctx.req.user) {
-      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-      throw new Error('Access denied')
-      // return undefined
-    }
-    if (
-      await this.userPermissions.mayAddProjectToOrganisation(
-        ctx.req.user.email,
-        projectInput.organisationId
-      )
-    ) {
-      const project = this.projectRepository.create({
-        ...projectInput
-        // ...projectInput,
-        // authorId: user.id
-      })
-      const newProject = await this.projectRepository.save(project)
 
-      // const organisationProject = this.organisationProject.create({
-      //   organisationId: projectInput.organisationId,
-      //   projectId: newProject.id
-      // })
-      // const newOrganisationProject = await this.organisationProject.save(
-      //   organisationProject
-      // )
+    await pubSub.publish('NOTIFICATIONS', payload)
 
-      const payload: NotificationPayload = {
-        id: 1,
-        message: 'A new project was created'
-      }
-
-      await pubSub.publish('NOTIFICATIONS', payload)
-
-      return newProject
-    } else {
-      throw new Error(
-        'User does not have the right to create a project for this organisation'
-      )
-    }
+    return newProject
+    // if (
+    //     await this.userPermissions.mayAddProjectToOrganisation(
+    //     ctx.req.user.email,
+    //     projectInput.organisationId
+    //   )
+    // ) {
+    //   const project = this.projectRepository.create({
+    //     ...projectInput
+    //     // ...projectInput,
+    //     // authorId: user.id
+    //   })
+    //   const newProject = await this.projectRepository.save(project)
+    //
+    //   // const organisationProject = this.organisationProject.create({
+    //   //   organisationId: projectInput.organisationId,
+    //   //   projectId: newProject.id
+    //   // })
+    //   // const newOrganisationProject = await this.organisationProject.save(
+    //   //   organisationProject
+    //   // )
+    //
+    //   const payload: NotificationPayload = {
+    //     id: 1,
+    //     message: 'A new project was created'
+    //   }
+    //
+    //   await pubSub.publish('NOTIFICATIONS', payload)
+    //
+    //   return newProject
+    // } else {
+    //   throw new Error(
+    //     'User does not have the right to create a project for this organisation'
+    //   )
+    // }
   }
 
   @Mutation(returns => Project)
@@ -198,8 +252,10 @@ export class ProjectResolver {
     const projectInput = new ProjectInput()
     projectInput.title = title
     projectInput.description = description
+
     const project = this.projectRepository.create({
-      ...projectInput
+      ...projectInput,
+      categories: [],
       //   // ...projectInput,
       //   // authorId: user.id
     })
@@ -214,14 +270,4 @@ export class ProjectResolver {
 
     return newProject
   }
-  // @Mutation(returns => Project)
-  // async addProject(@Arg("input") projectInput: ProjectInput): Promise<Project> {
-  //   const project = new Project();
-  //   project.description = projectInput.description;
-  //   project.title = projectInput.title;
-  //   project.creationDate = new Date();
-
-  //   await this.items.push(project);
-  //   return project;
-  // }
 }
