@@ -1,7 +1,6 @@
 import { Field, ID, ObjectType } from "type-graphql";
 import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Organisation } from './organisation';
-
+7 
 @ObjectType()
 @Entity()
 export class BankAccount extends BaseEntity {
@@ -45,4 +44,40 @@ export class BankAccount extends BaseEntity {
     
     @Column()
     status: string
+}
+
+@ObjectType()
+@Entity()
+export class StripeTransaction extends BaseEntity {
+    @Field(type => ID)
+    @PrimaryGeneratedColumn()
+    readonly id: number
+
+    @Field()
+    @Column()
+    projectId: number
+
+    @Field()
+    @Column()
+    status: string
+
+    @Column({ nullable: true })
+    @Field()
+    sessionId?: string
+
+    @Column()
+    @Field()
+    createdAt: Date
+
+    @Column()
+    @Field()
+    amount: number
+
+    @Column()
+    @Field()
+    donor: string
+
+    @Column()
+    @Field()
+    currency: string
 }
