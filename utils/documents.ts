@@ -1,4 +1,4 @@
-import HTMLToPDF from "wkhtmltopdf";
+import HTMLToPDF from "html-pdf-node";
 
 const Handlebars = require("handlebars")
 const path = require("path")
@@ -15,20 +15,7 @@ export async function generateHTMLDocument (name: string, data: any) {
 
 export async function generatePDFDocument (name: string, data: any): Promise<String> {
     const html = await generateHTMLDocument(name, data);
-    
-    return new Promise(async (done, err) => {
-        const stream = HTMLToPDF(html);
-        const chunks: any[] = [];
+    const buf = await HTMLToPDF.generatePdf({ content: html }, { format: 'A4' });
 
-        stream
-          .on('data', d => {
-            chunks.push(d)
-          })
-          .on('end', async function () {
-            const buf = Buffer.concat(chunks);
-            return done(buf.toString("base64"));
-          })
-          .on('error', err);
-    });
-
+    return buf.toString('base64')
 }
