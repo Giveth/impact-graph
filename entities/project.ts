@@ -26,7 +26,11 @@ export class Project extends BaseEntity {
 
   @Field()
   @Column()
-  title: string
+  title: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  slug?: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })

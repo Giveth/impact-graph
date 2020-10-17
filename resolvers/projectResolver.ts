@@ -158,8 +158,14 @@ export class ProjectResolver {
         projectInput.organisationId
       )
     ) {
+
+
+      var slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "");
+      for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "") + "-" + i;
+
       const project = this.projectRepository.create({
-        ...projectInput
+        ...projectInput,
+        slug
         // ...projectInput,
         // authorId: user.id
       })
@@ -198,8 +204,13 @@ export class ProjectResolver {
     const projectInput = new ProjectInput()
     projectInput.title = title
     projectInput.description = description
+
+    var slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "");
+    for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "") + "-" + i;
+
     const project = this.projectRepository.create({
-      ...projectInput
+      ...projectInput,
+      slug
       //   // ...projectInput,
       //   // authorId: user.id
     })
