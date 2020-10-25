@@ -166,6 +166,7 @@ export class ProjectResolver {
     @Ctx() ctx: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
+    //check this
     if (!ctx.req.user) {
       console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
       throw new Error('Access denied')
