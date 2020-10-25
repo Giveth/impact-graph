@@ -1,15 +1,30 @@
 {
   "defaultSeverity": "error",
-  "extends": ["tslint:recommended", "tslint-eslint-rules", "tslint-config-prettier"],
+  "extends": [
+    "tslint:recommended",
+    "tslint-eslint-rules",
+    "tslint-config-prettier"
+  ],
   "rules": {
+    "prettier": [
+      true
+    ],
     "adjacent-overload-signatures": true,
-    "quotemark": [ true, "single"],
+    "quotemark": [
+      true,
+      "single"
+    ],
     "ban-types": false,
-    "no-console": [false],
+    "no-console": [
+      false
+    ],
     "no-namespace": false,
     "object-literal-sort-keys": false,
     "max-classes-per-file": false,
-    "member-access": [true, "no-public"],
+    "member-access": [
+      true,
+      "no-public"
+    ],
     "member-ordering": [
       true,
       {
@@ -17,19 +32,15 @@
           "public-static-field",
           "protected-static-field",
           "private-static-field",
-
           "public-instance-field",
           "protected-instance-field",
           "private-instance-field",
-
           "public-static-method",
           "protected-static-method",
           "private-static-method",
-
           "public-constructor",
           "protected-constructor",
           "private-constructor",
-
           "public-instance-method",
           "protected-instance-method",
           "private-instance-method"
@@ -37,7 +48,10 @@
       }
     ],
     "unified-signatures": false,
-    "interface-name": [true, "never-prefix"],
+    "interface-name": [
+      true,
+      "never-prefix"
+    ],
     "ordered-imports": false,
     "no-unused-expression": false,
     "callable-types": false,
@@ -47,6 +61,17 @@
       "check-format",
       "allow-leading-underscore",
       "allow-pascal-case"
+    ],
+    "whitespace": [
+      true,
+      "check-branch",
+      "check-module"
+    ],
+    "object-curly-spacing": true,
+    "indent": [
+      true,
+      "spaces",
+      2
     ]
   }
 }

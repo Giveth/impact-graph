@@ -4,12 +4,14 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToMany,
-  OneToMany,
   ColumnOptions,
-  JoinTable, BaseEntity
+  JoinTable, 
+  BaseEntity,
+  Index
 } from 'typeorm'
 
 import { Organisation } from './organisation'
+
 // import { OrganisationProject } from './organisationProject'
 // NO idea why the below import doesn't work!!!
 // import { RelationColumn } from "../helpers";
@@ -19,7 +21,22 @@ function RelationColumn (options?: ColumnOptions) {
 
 @Entity()
 @ObjectType()
-export class Project extends BaseEntity {
+class Category {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Index()
+  @Column()
+  @Field()
+  name: string;
+
+  @ManyToMany(type => Project, project => project.categories)
+  projects: Project[];
+}
+
+@Entity()
+@ObjectType()
+class Project extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number
@@ -31,6 +48,10 @@ export class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   slug?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  admin?: string
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -51,15 +72,20 @@ export class Project extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  categoryId?: number
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
   coOrdinates?: string
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  imageUrl?: string
+  image?: string
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  impactLocation?: string
+
+  @Field(type => [Category], { nullable: true })
+  @ManyToMany(type => Category,category => category.projects, { nullable: true, eager: true, cascade: true })
+  @JoinTable()
+  categories: Category[];
 
   @Field(type=> Float, { nullable: true })
   @Column('float', { nullable: true })
@@ -89,4 +115,9 @@ export class Project extends BaseEntity {
 
   // @RelationColumn()
   // authorId: number
+}
+
+export {
+  Project,
+  Category,
 }

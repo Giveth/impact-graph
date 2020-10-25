@@ -7,7 +7,7 @@ import * as TypeGraphQL from 'type-graphql'
 
 import { User } from './entities/user'
 import { BankAccount, StripeTransaction } from './entities/bankAccount'
-import { Project } from './entities/project'
+import { Project, Category } from './entities/project'
 import { seedDatabase } from './helpers'
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
@@ -44,7 +44,8 @@ const entities: any = [
   Project,
   Notification,
   BankAccount,
-  StripeTransaction
+  StripeTransaction,
+  Category,
 ]
 const resolvers: any = [
   UserResolver,
