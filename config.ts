@@ -14,11 +14,7 @@ const envVars = [
   'TYPEORM_LOGGING',
   'TYPEORM_DROP_SCHEMA',
   'APOLLO_KEY',
-  'REGISTER_USERNAME_PASSWORD',
-  'STRIPE_KEY',
-  'STRIPE_SECRET',
-  'STRIPE_APPLICATION_FEE',
-  'STRIPE_WEBHOOK_SECRET'
+  'REGISTER_USERNAME_PASSWORD'
 ]
 
 export default class Config {
@@ -36,11 +32,6 @@ export default class Config {
   APOLLO_KEY: string
   REGISTER_USERNAME_PASSWORD: string
   DB_DROP_SEED: boolean
-
-  STRIPE_KEY: string
-  STRIPE_SECRET: string
-  STRIPE_APPLICATION_FEE: number
-  STRIPE_WEBHOOK_SECRET: string
 
   constructor (envFile: object) {
     envVars.forEach(envVar => {

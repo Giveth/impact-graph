@@ -5,8 +5,7 @@ import {
   Column,
   ManyToMany,
   ColumnOptions,
-  JoinTable, 
-  BaseEntity,
+  JoinTable,
   Index
 } from 'typeorm'
 
@@ -36,18 +35,14 @@ class Category {
 
 @Entity()
 @ObjectType()
-class Project extends BaseEntity {
+class Project {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number
 
   @Field()
   @Column()
-  title: string;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  slug?: string;
+  title: string
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -90,10 +85,6 @@ class Project extends BaseEntity {
   @Field(type=> Float, { nullable: true })
   @Column('float', { nullable: true })
   balance: number = 0
-  
-  @Field()
-  @Column({ nullable: true })
-  stripeAccountId?: string
   // @Field(type => [OrganisationProject], { nullable: true })
   // @OneToMany(
   //   type => OrganisationProject,
