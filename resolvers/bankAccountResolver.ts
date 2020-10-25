@@ -1,16 +1,18 @@
-import { Max, Min } from 'class-validator';
+import Stripe from 'stripe';
 import { Arg, Args, ArgsType, Ctx, Field, InputType, Int, Mutation, ObjectType, PubSub, PubSubEngine, Query, Resolver } from "type-graphql";
-import { Service } from 'typedi';
+
+
 import { Repository } from 'typeorm';
+
 import { InjectRepository } from 'typeorm-typedi-extensions';
+
 import Config from '../config';
-import { Context } from '../Context';
 import { BankAccount, StripeTransaction } from '../entities/bankAccount';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { MyContext } from '../types/MyContext';
-import { createStripeAccountLink, createStripeCheckoutSession, getStripeAccountId } from "../utils/stripe";
 import { generatePDFDocument } from "../utils/documents";
+import { createStripeAccountLink, createStripeCheckoutSession, getStripeAccountId, getStripeCheckoutSession , getStripeCustomer} from "../utils/stripe";
 
 const config = new Config(process.env);
 
@@ -21,6 +23,54 @@ class StripeDonationSession {
 
     @Field()
     accountId: string;
+}
+
+@ObjectType()
+class StripeDonationInfo {
+    @Field(() => [StripeTransaction])
+    donations: StripeTransaction[];
+    
+    @Field()
+    totalDonors: number;
+}
+
+@ObjectType()
+class StripeDonationPDFData {
+    @Field()
+    id: string
+    @Field()
+    createdAt: string
+    @Field()
+    donor: string
+    @Field()
+    projectName: string
+    @Field()
+    status: string
+    @Field()
+    amount: number
+    @Field()
+    currency: string
+
+    @Field()
+    donorName: string
+    @Field()
+    donorEmail: string
+
+    @Field()
+    projectDonation: number
+    @Field()
+    givethDonation: number
+    @Field()
+    processingFee: number
+}
+
+@ObjectType()
+class StripeDonationPDF {
+    @Field()
+    pdf: string;
+
+    @Field(() => StripeDonationPDFData)
+    data: StripeDonationPDFData
 }
 
 @Resolver(of => BankAccount)
@@ -65,15 +115,16 @@ export class BankAccountResolver {
         if (!project) throw new Error("Project not found");
         if (!project.stripeAccountId) throw new Error("This project does not accept bank account donations right now.");
 
-        amount = amount * 100;
+        amount = Math.floor(amount * 100);
 
         const transaction = await this.stripeTransactionRepository.create({
-            amount: amount,
+            amount: amount/100,
             createdAt: new Date(),
-            donor: anonymous? "Anonymous" : "Not Anonymous",
+            anonymous,
             currency: "USD",
             projectId,
-            status: 'pending'
+            status: 'pending',
+            donateToGiveth
         }).save();
 
         const checkout = await createStripeCheckoutSession(project, {
@@ -90,7 +141,7 @@ export class BankAccountResolver {
         return { sessionId: checkout.id, accountId: project.stripeAccountId };
     }
 
-    @Query(returns => [StripeTransaction])
+    @Query(returns => StripeDonationInfo)
     async getStripeProjectDonations (
         @Arg('projectId') projectId: number
     ) {
@@ -99,10 +150,13 @@ export class BankAccountResolver {
         if (!project) throw new Error("Project not found");
         if (!project.stripeAccountId) throw new Error("This project does not accept bank account donations right now.");
 
-        return await (await this.stripeTransactionRepository.find({ projectId })).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        return {
+            donations: await (await this.stripeTransactionRepository.find({ projectId })).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
+            totalDonors: 0
+        }
     }
 
-    @Query(returns => String)
+    @Query(returns => StripeDonationPDF)
     async getStripeDonationPDF (
         @Arg('sessionId') sessionId: number
     ) {
@@ -112,15 +166,34 @@ export class BankAccountResolver {
         const project = await this.projectRepository.findOne({ id: session.projectId });
         if (!project) throw new Error("Project not found");
 
-        return await generatePDFDocument("stripe-checkout", {
-            id: session.id,
-            createdAt: session.createdAt,
-            donor: session.donor,
+
+        if (session.status !== "paid") throw new Error("Invoice is not available because the payment status is:" + session.status)
+        if (!session.donorCustomerId) throw new Error("The invoice could not be generated because the donor was not found in the transaction");
+
+        const customer = await getStripeCustomer(project.stripeAccountId || "", session.donorCustomerId) as Stripe.Customer;
+
+        const givethDonation = session.donateToGiveth? 5 : 0;
+        const processingFee = session.amount * 0.029 + 0.3;
+
+        const pdfData: StripeDonationPDFData = {
+            id: session.id.toString(),
+            createdAt: session.createdAt.toString(),
+            donor: session.anonymous? "Anonymous" : (customer.name || ""),
             projectName: project.title,
             status: session.status,
             amount: session.amount,
-            currency: session.currency
-        })
+            currency: session.currency,
+
+            donorName: session.donorName,
+            donorEmail: session.donorEmail,
+
+            projectDonation: (session.amount - givethDonation) - (0.3 + 0.029 * session.amount),
+            givethDonation,
+            processingFee
+        };
+        const pdf = await generatePDFDocument("stripe-checkout", pdfData);
+        
+        return { pdf, data: pdfData }
     }
 
 }

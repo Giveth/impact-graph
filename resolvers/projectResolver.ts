@@ -135,6 +135,11 @@ export class ProjectResolver {
     return this.projectRepository.find({ id })
   }
 
+  @Query(returns => Project)
+  async projectBySlug (@Arg("slug") slug: string) {
+    return this.projectRepository.findOne({ slug })
+  }
+
   @Mutation(returns => Project)
   async addProject (
     @Arg('project') projectInput: ProjectInput,

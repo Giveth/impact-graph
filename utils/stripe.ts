@@ -1,7 +1,9 @@
 import Stripe from "stripe";
+
 import { Repository } from 'typeorm';
+
 import Config from '../config';
-import { BankAccount } from '../entities/bankAccount';
+import { BankAccount, StripeTransaction } from '../entities/bankAccount';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 
@@ -43,7 +45,6 @@ export function createStripeAccountLink(accountId: string, refreshUrl: string, r
 }
 
 export async function createStripeCheckoutSession (project: Project, options: CreateStripeCheckoutSessionOptions) {
-    const accountId = await getStripeAccountId(project);
     const fee = options.applicationFee? { payment_intent_data: { application_fee_amount: options.applicationFee } } : {}
     return await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
@@ -58,5 +59,45 @@ export async function createStripeCheckoutSession (project: Project, options: Cr
         ...fee,
     }, {
         stripeAccount: project.stripeAccountId
+    })
+}
+
+export async function getStripeCheckoutSession (sessionId: string) {
+    return await stripe.checkout.sessions.retrieve(sessionId);
+}
+
+export async function handleStripeWebhook (rq, rs) {
+    const sig = rq.headers['stripe-signature'];
+    let event;
+
+    // Verify webhook signature and extract the event.
+    // See https://stripe.com/docs/webhooks/signatures for more information.
+    try {
+        event = stripe.webhooks.constructEvent(rq.body, sig, config.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        console.log("Webhook Error:", err)
+        return rs.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const connectedAccountId = event.account;
+        const customer = await getStripeCustomer(connectedAccountId, session.customer) as Stripe.Customer;
+        console.log(session)
+        
+        await StripeTransaction.update({ sessionId: session.id }, {
+            status: session.payment_status,
+            donorCustomerId: session.customer,
+            donorEmail: customer.email || "",
+            donorName: customer.name || "",
+        });
+    }
+
+    rs.json({received: true});
+}
+
+export async function getStripeCustomer (accountId: string, customerId: string) {
+    return await stripe.customers.retrieve(customerId, {
+        stripeAccount: accountId
     })
 }

@@ -17,5 +17,7 @@ export async function generatePDFDocument (name: string, data: any): Promise<Str
     const html = await generateHTMLDocument(name, data);
     const buf = await HTMLToPDF.generatePdf({ content: html }, { format: 'A4' });
 
+    // fs.writeFileSync("test.pdf", buf)
+
     return buf.toString('base64')
 }

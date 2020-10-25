@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from "type-graphql";
+import { Field, Float, ID, ObjectType } from "type-graphql";
 import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 7 
 @ObjectType()
@@ -62,20 +62,36 @@ export class StripeTransaction extends BaseEntity {
     status: string
 
     @Column({ nullable: true })
-    @Field()
+    @Field({ nullable: true })
     sessionId?: string
+
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    donorCustomerId: string
+    
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    donorName: string
+    
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    donorEmail: string
 
     @Column()
     @Field()
     createdAt: Date
 
-    @Column()
-    @Field()
+    @Column({ type: "float", nullable: true })
+    @Field(type => Float, { nullable: true })
     amount: number
 
-    @Column()
+    @Column({ nullable: true })
+    @Field({ nullable: true })
+    donateToGiveth: boolean
+
+    @Column({ default: false })
     @Field()
-    donor: string
+    anonymous: boolean
 
     @Column()
     @Field()
