@@ -1,10 +1,12 @@
 import 'reflect-metadata'
-import { ApolloServer } from 'apollo-server'
+// import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
 import { Container } from 'typedi'
 import * as TypeORM from 'typeorm'
 import * as TypeGraphQL from 'type-graphql'
 
 import { User } from './entities/user'
+import { BankAccount, StripeTransaction } from './entities/bankAccount'
 import { Project, Category } from './entities/project'
 import { seedDatabase } from './helpers'
 import { Organisation } from './entities/organisation'
@@ -14,6 +16,7 @@ import Notification from './entities/notification'
 
 import { UserResolver } from './resolvers/userResolver'
 import { ProjectResolver } from './resolvers/projectResolver'
+import { BankAccountResolver } from './resolvers/bankAccountResolver'
 import { RegisterResolver } from './user/register/RegisterResolver'
 import { LoginResolver } from './user/LoginResolver'
 import { OrganisationResolver } from './resolvers/organisationResolver'
@@ -24,9 +27,13 @@ import { userCheck } from './auth/userCheck'
 import * as jwt from 'jsonwebtoken'
 import * as dotenv from 'dotenv'
 import Config from './config'
+import { handleStripeWebhook } from './utils/stripe'
 
 dotenv.config()
 const config = new Config(process.env)
+const express = require("express")
+const bodyParser = require("body-parser")
+const cors = require('cors')
 
 // register 3rd party IOC container
 TypeORM.useContainer(Container)
@@ -35,8 +42,10 @@ const entities: any = [
   OrganisationUser,
   User,
   Project,
+  Notification,
+  BankAccount,
+  StripeTransaction,
   Category,
-  Notification
 ]
 const resolvers: any = [
   UserResolver,
@@ -45,7 +54,8 @@ const resolvers: any = [
   NotificationResolver,
   LoginResolver,
   RegisterResolver,
-  MeResolver
+  MeResolver,
+  BankAccountResolver
 ]
 
 if (process.env.REGISTER_USERNAME_PASSWORD === 'true') {
@@ -91,6 +101,7 @@ async function bootstrap () {
           if (!req) {
             return null
           }
+          
           if (req.headers.authorization) {
             const token = req.headers.authorization.split(' ')[1].toString()
             const secret = config.get('JWT_SECRET')
@@ -126,12 +137,20 @@ async function bootstrap () {
       },
       engine: {
         reportSchema: true
-      }
+      },
+      playground: true
     })
 
+    // Express Server
+    const app = express();
+    
+    app.use(cors())
+    apolloServer.applyMiddleware({ app });
+    app.post('/stripe-webhook', bodyParser.raw({ type: "application/json" }), handleStripeWebhook);
+
     // Start the server
-    const { url } = await apolloServer.listen(4000)
-    console.log(`🚀 Server is running, GraphQL Playground available at ${url}`)
+    app.listen({ port: 4000 })
+    console.log(`🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}`)
   } catch (err) {
     console.error(err)
   }
