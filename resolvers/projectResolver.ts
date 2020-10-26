@@ -166,24 +166,24 @@ export class ProjectResolver {
     @Ctx() ctx: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
-    //check this
-    if (!ctx.req.user) {
-      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-      throw new Error('Access denied')
-      // return undefined
-    }
-    console.log(`Add project user email: ${ctx.req.user.email}`)
-    if (!ctx.req.user) {
-      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-      throw new Error('Access denied')
-      // return undefined
-    }
-    if (
-      await this.userPermissions.mayAddProjectToOrganisation(
-        ctx.req.user.email,
-        projectInput.organisationId
-      )
-    ) {
+    // if (!ctx.req.user) {
+    //   console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+    //   throw new Error('Access denied')
+    //   // return undefined
+    // }
+    // console.log(`Add project user email: ${ctx.req.user.email}`)
+    // if (!ctx.req.user) {
+    //   console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+    //   throw new Error('Access denied')
+    //   // return undefined
+    // }
+
+    // if (
+    //   await this.userPermissions.mayAddProjectToOrganisation(
+    //     ctx.req.user.email,
+    //     projectInput.organisationId
+    //   )
+    // ) {
 
       const categories = await Promise.all(projectInput.categories ?
         projectInput.categories.map(async category => {
@@ -223,11 +223,11 @@ export class ProjectResolver {
       await pubSub.publish('NOTIFICATIONS', payload)
 
       return newProject
-    } else {
-      throw new Error(
-        'User does not have the right to create a project for this organisation'
-      )
-    }
+    // } else {
+    //   throw new Error(
+    //     'User does not have the right to create a project for this organisation'
+    //   )
+    // }
 
     // await pubSub.publish('NOTIFICATIONS', payload)
 
