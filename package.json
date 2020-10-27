@@ -63,7 +63,8 @@
   },
   "scripts": {
     "test": "standard",
-    "start": "ts-node-dev --project ./tsconfig.json --respawn ./index.ts"
+    "start": "ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
+    "serve": "pm2 startOrRestart ecosystem.config.js"
   },
   "author": "James Farrell",
   "license": "ISC"
