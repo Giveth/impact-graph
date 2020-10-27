@@ -4,6 +4,7 @@
 #
 version: 2
 jobs:
+  build:
     steps:
       - run: npm install
       - deploy:
