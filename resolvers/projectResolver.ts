@@ -155,6 +155,11 @@ export class ProjectResolver {
     return this.projectRepository.find({ id })
   }
 
+  @Query(returns => Project)
+  async projectBySlug (@Arg("slug") slug: string) {
+    return this.projectRepository.findOne({ slug })
+  }
+
   @Mutation(returns => Project)
   async addProject (
     @Arg( 'project') projectInput: ProjectInput,
@@ -173,7 +178,14 @@ export class ProjectResolver {
     //   // return undefined
     // }
 
-    const categories = await Promise.all(projectInput.categories ?
+    // if (
+    //   await this.userPermissions.mayAddProjectToOrganisation(
+    //     ctx.req.user.email,
+    //     projectInput.organisationId
+    //   )
+    // ) {
+
+      const categories = await Promise.all(projectInput.categories ?
         projectInput.categories.map(async category => {
           let [c] = await this.categoryRepository.find({ name: category });
           if (c === undefined) {
@@ -183,29 +195,43 @@ export class ProjectResolver {
           return c;
         }) : []);
 
-    const project = this.projectRepository.create({
-      ...projectInput,
-      categories,
-      creationDate: new Date()
-    })
-    const newProject = await this.projectRepository.save(project)
+      var slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "");
+      for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "") + "-" + i;
 
-    // const organisationProject = this.organisationProject.create({
-    //   organisationId: projectInput.organisationId,
-    //   projectId: newProject.id
-    // })
-    // const newOrganisationProject = await this.organisationProject.save(
-    //   organisationProject
-    // )
+      const project = this.projectRepository.create({
+        ...projectInput,
+        categories,
+        slug
+        // ...projectInput,
+        // authorId: user.id
+      })
+      const newProject = await this.projectRepository.save(project)
 
-    const payload: NotificationPayload = {
-      id: 1,
-      message: 'A new project was created'
-    }
+      // const organisationProject = this.organisationProject.create({
+      //   organisationId: projectInput.organisationId,
+      //   projectId: newProject.id
+      // })
+      // const newOrganisationProject = await this.organisationProject.save(
+      //   organisationProject
+      // )
 
-    await pubSub.publish('NOTIFICATIONS', payload)
+      const payload: NotificationPayload = {
+        id: 1,
+        message: 'A new project was created'
+      }
 
-    return newProject
+      await pubSub.publish('NOTIFICATIONS', payload)
+
+      return newProject
+    // } else {
+    //   throw new Error(
+    //     'User does not have the right to create a project for this organisation'
+    //   )
+    // }
+
+    // await pubSub.publish('NOTIFICATIONS', payload)
+
+    // return newProject
     // if (
     //     await this.userPermissions.mayAddProjectToOrganisation(
     //     ctx.req.user.email,
@@ -253,8 +279,12 @@ export class ProjectResolver {
     projectInput.title = title
     projectInput.description = description
 
+    var slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "");
+    for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "") + "-" + i;
+
     const project = this.projectRepository.create({
       ...projectInput,
+      slug,
       categories: [],
       //   // ...projectInput,
       //   // authorId: user.id
