@@ -1,0 +1,14 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+    steps:
+      - run: npm install
+      - deploy:
+          name: Production Deploy
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            ssh -o "StrictHostKeyChecking no" givethadmin@serve.giveth.io 'cd imapct-graph/ && git checkout master && git pull && npm ci && npm run serve;'
+            fi

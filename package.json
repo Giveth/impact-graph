@@ -55,7 +55,7 @@
     "tslint-eslint-rules": "^5.4.0"
   },
   "scripts": {
-    "test": "standard && echo \"Error: no test specified\" && exit 1",
+    "test": "standard",
     "start": "ts-node-dev --respawn ./index.ts"
   },
   "author": "James Farrell",
