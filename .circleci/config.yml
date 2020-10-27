@@ -5,6 +5,8 @@
 version: 2
 jobs:
   build:
+    machine:
+      image: 'ubuntu-2004:202010-01'
     steps:
       - run: npm install
       - deploy:
