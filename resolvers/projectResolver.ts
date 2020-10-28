@@ -156,7 +156,7 @@ export class ProjectResolver {
   }
 
   @Query(returns => Project)
-  async projectBySlug (@Arg("slug") slug: string) {
+  async projectBySlug (@Arg('slug') slug: string) {
     return this.projectRepository.findOne({ slug })
   }
 
@@ -195,12 +195,13 @@ export class ProjectResolver {
           return c;
         }) : []);
 
-      var slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "");
-      for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "") + "-" + i;
+      let slug = projectInput.title.toLowerCase().replace(/ /g, '-').replace(/[^a-zA-Z0-9]/g, '');
+      for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, '-').replace(/[^a-zA-Z0-9]/g, '') + '-' + i;
 
       const project = this.projectRepository.create({
         ...projectInput,
         categories,
+        creationDate: new Date(),
         slug
         // ...projectInput,
         // authorId: user.id
@@ -279,8 +280,8 @@ export class ProjectResolver {
     projectInput.title = title
     projectInput.description = description
 
-    var slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "");
-    for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, "-").replace(/[^a-zA-Z0-9]/g, "") + "-" + i;
+    let slug = projectInput.title.toLowerCase().replace(/ /g, '-').replace(/[^a-zA-Z0-9]/g, '');
+    for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, '-').replace(/[^a-zA-Z0-9]/g, '') + '-' + i;
 
     const project = this.projectRepository.create({
       ...projectInput,
