@@ -14,19 +14,15 @@ export class UploadResolver {
     async upload (
         @Arg('image', () => GraphQLUpload) image: FileUpload,
         @Ctx() ctx: MyContext
-    ): Promise<String | null> {
+    ): Promise<String> {
         const { filename, createReadStream, encoding } = image;
-
-        let result: string | null = null;
 
         try {
             const response = await pinFile(createReadStream(), filename, encoding);
-            result ='https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
+            return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
         } catch (e) {
             console.error(e);
             throw Error('Upload file failed')
         }
-
-        return result;
     }
 }

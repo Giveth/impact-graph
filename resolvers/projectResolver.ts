@@ -6,21 +6,22 @@ import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
 
 import {
-  Resolver,
-  Ctx,
-  Query,
   Arg,
-  Mutation,
   Args,
-  PubSub,
   ArgsType,
+  Ctx,
   Field,
-  Int,
   ID,
+  InputType,
+  Int,
+  Mutation,
   ObjectType,
-  registerEnumType, InputType,
+  PubSub,
+  Query,
+  registerEnumType,
+  Resolver,
 } from 'type-graphql'
-import { Min, Max } from 'class-validator'
+import { Max, Min } from 'class-validator'
 
 import { Category, Project } from '../entities/project'
 import { User } from '../entities/user'
@@ -28,6 +29,7 @@ import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
 import { Context } from '../Context'
+import { pinFile } from '../middleware/pinataUtils';
 // import { OrganisationProject } from '../entities/organisationProject'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
@@ -185,7 +187,7 @@ export class ProjectResolver {
     //   )
     // ) {
 
-      const categories = await Promise.all(projectInput.categories ?
+      const categoriesPromise = Promise.all(projectInput.categories ?
         projectInput.categories.map(async category => {
           let [c] = await this.categoryRepository.find({ name: category });
           if (c === undefined) {
@@ -195,12 +197,40 @@ export class ProjectResolver {
           return c;
         }) : []);
 
-      let slug = projectInput.title.toLowerCase().replace(/ /g, '-').replace(/[^a-zA-Z0-9]/g, '');
-      for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, '-').replace(/[^a-zA-Z0-9]/g, '') + '-' + i;
+      let imagePromise: Promise<string | undefined> = Promise.resolve(undefined);
+
+      const { imageUpload, imageStatic } = projectInput;
+      if (imageUpload) {
+        const { filename, createReadStream, encoding } = await imageUpload;
+        try {
+          imagePromise = pinFile(createReadStream(), filename, encoding).then(response => {
+            return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
+          });
+        } catch (e) {
+          console.error(e);
+          throw Error('Upload file failed')
+        }
+      } else if (imageStatic) {
+        imagePromise = Promise.resolve(imageStatic)
+      }
+
+      const [categories, image] = await Promise.all([categoriesPromise, imagePromise])
+
+      const slugBase = projectInput
+          .title
+          .toLowerCase()
+          .replace(/ /g, '-')
+          .replace(/[^a-zA-Z0-9]/g, '');
+
+      let slug = slugBase;
+      for (let i=1; await this.projectRepository.findOne({ slug }); i++) {
+        slug = slugBase + '-' + i;
+      }
 
       const project = this.projectRepository.create({
         ...projectInput,
         categories,
+        image,
         creationDate: new Date(),
         slug
         // ...projectInput,
@@ -280,8 +310,16 @@ export class ProjectResolver {
     projectInput.title = title
     projectInput.description = description
 
-    let slug = projectInput.title.toLowerCase().replace(/ /g, '-').replace(/[^a-zA-Z0-9]/g, '');
-    for (let i=1;await this.projectRepository.findOne({ slug });i++) slug = projectInput.title.toLowerCase().replace(/ /g, '-').replace(/[^a-zA-Z0-9]/g, '') + '-' + i;
+    const slugBase = projectInput
+        .title
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace(/[^a-zA-Z0-9]/g, '');
+
+    let slug = slugBase;
+    for (let i=1; await this.projectRepository.findOne({ slug }); i++) {
+      slug = slugBase + '-' + i;
+    }
 
     const project = this.projectRepository.create({
       ...projectInput,
