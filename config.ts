@@ -18,7 +18,10 @@ const envVars = [
   'STRIPE_KEY',
   'STRIPE_SECRET',
   'STRIPE_APPLICATION_FEE',
-  'STRIPE_WEBHOOK_SECRET'
+  'STRIPE_WEBHOOK_SECRET',
+  'PINATA_API_KEY',
+  'PINATA_SECRET_API_KEY',
+  'UPLOAD_MAX_FILE_SIZE'
 ]
 
 export default class Config {
@@ -42,6 +45,10 @@ export default class Config {
   STRIPE_APPLICATION_FEE: number
   STRIPE_WEBHOOK_SECRET: string
 
+  PINATA_API_KEY: string
+  PINATA_SECRET_API_KEY: string
+  UPLOAD_FILE_MAX_SIZE: string
+
   constructor (envFile: object) {
     envVars.forEach(envVar => {
       if (envFile[envVar]) {
@@ -53,7 +60,7 @@ export default class Config {
     })
   }
 
-  get (envVar: string): string {
+  get (envVar: string): string | boolean | number {
     return this[envVar]
   }
 }

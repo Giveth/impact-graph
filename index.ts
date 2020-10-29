@@ -1,5 +1,4 @@
 import 'reflect-metadata'
-// import { ApolloServer } from 'apollo-server'
 import { ApolloServer } from 'apollo-server-express'
 import { Container } from 'typedi'
 import * as TypeORM from 'typeorm'
@@ -21,6 +20,7 @@ import { RegisterResolver } from './user/register/RegisterResolver'
 import { LoginResolver } from './user/LoginResolver'
 import { OrganisationResolver } from './resolvers/organisationResolver'
 import { NotificationResolver } from './resolvers/notificationResolver'
+import { UploadResolver } from './resolvers/uploadResolver'
 import { ConfirmUserResolver } from './user/ConfirmUserResolver'
 import { MeResolver } from './user/MeResolver'
 import { userCheck } from './auth/userCheck'
@@ -31,8 +31,10 @@ import { handleStripeWebhook } from './utils/stripe'
 
 dotenv.config()
 const config = new Config(process.env)
-const express = require("express")
-const bodyParser = require("body-parser")
+
+// tslint:disable:no-var-requires
+const express = require('express')
+const bodyParser = require('body-parser')
 const cors = require('cors')
 
 // register 3rd party IOC container
@@ -55,7 +57,8 @@ const resolvers: any = [
   LoginResolver,
   RegisterResolver,
   MeResolver,
-  BankAccountResolver
+  BankAccountResolver,
+  UploadResolver
 ]
 
 if (process.env.REGISTER_USERNAME_PASSWORD === 'true') {
@@ -65,7 +68,7 @@ if (process.env.REGISTER_USERNAME_PASSWORD === 'true') {
 async function bootstrap () {
   try {
     // create TypeORM connection
-    const dropSeed = config.get('DB_DROP_SEED') == 'true'
+    const dropSeed = config.get('DB_DROP_SEED') as boolean
     await TypeORM.createConnection({
       type: 'postgres',
       database: process.env.TYPEORM_DATABASE_NAME,
@@ -104,7 +107,7 @@ async function bootstrap () {
           
           if (req.headers.authorization) {
             const token = req.headers.authorization.split(' ')[1].toString()
-            const secret = config.get('JWT_SECRET')
+            const secret = config.get('JWT_SECRET') as string
 
             const decodedJwt: any = jwt.verify(token, secret)
 
@@ -138,7 +141,10 @@ async function bootstrap () {
       engine: {
         reportSchema: true
       },
-      playground: true
+      playground: true,
+      uploads: {
+        maxFileSize: config.get('UPLOAD_FILE_MAX_SIZE') as number || 2000000
+      }
     })
 
     // Express Server
@@ -146,7 +152,7 @@ async function bootstrap () {
     
     app.use(cors())
     apolloServer.applyMiddleware({ app });
-    app.post('/stripe-webhook', bodyParser.raw({ type: "application/json" }), handleStripeWebhook);
+    app.post('/stripe-webhook', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);
 
     // Start the server
     app.listen({ port: 4000 })

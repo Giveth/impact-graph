@@ -1,5 +1,6 @@
 import { MaxLength, Length } from 'class-validator'
 import { InputType, Field  } from 'type-graphql'
+import { GraphQLUpload, FileUpload } from 'graphql-upload';
 
 @InputType()
 export class ProjectInput {
@@ -17,8 +18,13 @@ export class ProjectInput {
   @Field(type=>[String], { nullable: true, defaultValue: [] })
   categories?: string[]
 
+  // Client uploads image file
+  @Field(type => GraphQLUpload, { nullable: true })
+  imageUpload?: FileUpload
+
+  // One of static image of website is used as the picture
   @Field({ nullable: true })
-  image?: string
+  imageStatic?: string
 
   @Field({ nullable: true })
   impactLocation?: string

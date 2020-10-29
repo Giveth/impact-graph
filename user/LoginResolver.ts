@@ -11,7 +11,7 @@ import Config from '../config'
 
 const config = new Config(process.env)
 
-const web3 = new Web3(config.get('ETHEREUM_NODE_URL'))
+const web3 = new Web3(config.get('ETHEREUM_NODE_URL') as string)
 
 @ObjectType()
 class LoginResponse {
@@ -87,7 +87,7 @@ export class LoginResolver {
     // Not using sessions anymore - ctx.req.session!.userId = user.id
     const accessToken = jwt.sign(
       { userId: user.id, firstName: user.firstName },
-      config.get('JWT_SECRET'),
+      config.get('JWT_SECRET') as string,
       { expiresIn: '30d' }
     )
 
@@ -103,7 +103,7 @@ export class LoginResolver {
   createToken (user: any) {
     console.log(`user : ${JSON.stringify(user, null, 2)}`)
 
-    return jwt.sign(user, config.get('JWT_SECRET'), {
+    return jwt.sign(user, config.get('JWT_SECRET') as string, {
       expiresIn: '30d'
     })
   }
