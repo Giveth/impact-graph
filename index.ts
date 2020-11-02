@@ -141,7 +141,9 @@ async function bootstrap () {
       engine: {
         reportSchema: true
       },
-      playground: true,
+      playground: {
+        endpoint: '/'
+      },
       uploads: {
         maxFileSize: config.get('UPLOAD_FILE_MAX_SIZE') as number || 2000000
       }
