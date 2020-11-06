@@ -6,13 +6,11 @@ import * as TypeGraphQL from 'type-graphql'
 
 import { User } from './entities/user'
 import { BankAccount, StripeTransaction } from './entities/bankAccount'
-import { Project, Category } from './entities/project'
+import { Category, Project } from './entities/project'
 import { seedDatabase } from './helpers'
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
 import Notification from './entities/notification'
-// import { OrganisationProject } from './entities/organisationProject'
-
 import { UserResolver } from './resolvers/userResolver'
 import { ProjectResolver } from './resolvers/projectResolver'
 import { BankAccountResolver } from './resolvers/bankAccountResolver'
@@ -28,6 +26,7 @@ import * as jwt from 'jsonwebtoken'
 import * as dotenv from 'dotenv'
 import Config from './config'
 import { handleStripeWebhook } from './utils/stripe'
+// import { OrganisationProject } from './entities/organisationProject'
 
 dotenv.config()
 const config = new Config(process.env)
@@ -104,9 +103,10 @@ async function bootstrap () {
           if (!req) {
             return null
           }
-          
-          if (req.headers.authorization) {
-            const token = req.headers.authorization.split(' ')[1].toString()
+
+          const { headers } = req;
+          if (headers.authorization) {
+            const token = headers.authorization.split(' ')[1].toString()
             const secret = config.get('JWT_SECRET') as string
 
             const decodedJwt: any = jwt.verify(token, secret)
@@ -126,6 +126,11 @@ async function bootstrap () {
             }
 
             req.user = user
+          }
+
+          const userWalletAddress = headers['wallet-address']
+          if (userWalletAddress) {
+            req.userwalletAddress = userWalletAddress
           }
         } catch (error) {
           console.error(
