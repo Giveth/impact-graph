@@ -405,7 +405,7 @@ export class ProjectResolver {
   async getProjectUpdates (
     @Arg('projectId') projectId: number,
     @Arg('skip') skip: number,
-    @Arg('take') take: number
+    @Arg('take') take: number,
     @Ctx() { user }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<GetProjectUpdatesResult[]> {
