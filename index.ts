@@ -6,7 +6,7 @@ import * as TypeGraphQL from 'type-graphql'
 
 import { User } from './entities/user'
 import { BankAccount, StripeTransaction } from './entities/bankAccount'
-import { Category, Project } from './entities/project'
+import { Category, Project, ProjectUpdate, ProjectUpdateReactions } from './entities/project'
 import { seedDatabase } from './helpers'
 import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
@@ -47,6 +47,8 @@ const entities: any = [
   BankAccount,
   StripeTransaction,
   Category,
+  ProjectUpdate,
+  ProjectUpdateReactions
 ]
 const resolvers: any = [
   UserResolver,
@@ -147,7 +149,7 @@ async function bootstrap () {
         reportSchema: true
       },
       playground: {
-        endpoint: '/'
+        endpoint: '/graphql'
       },
       uploads: {
         maxFileSize: config.get('UPLOAD_FILE_MAX_SIZE') as number || 2000000
@@ -163,7 +165,7 @@ async function bootstrap () {
 
     // Start the server
     app.listen({ port: 4000 })
-    console.log(`🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}`)
+    console.log(`🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphqlz`)
   } catch (err) {
     console.error(err)
   }

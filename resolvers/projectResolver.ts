@@ -100,8 +100,7 @@ class GetProjectArgs {
   id: number
 }
 
-@Service()
-@ArgsType()
+@ObjectType()
 class GetProjectUpdatesResult {
   @Field(type => ProjectUpdate)
   projectUpdate: ProjectUpdate;
@@ -357,7 +356,7 @@ export class ProjectResolver {
     @Arg('projectId') projectId: number,
     @Arg('title') title: string,
     @Arg('content') content: string,
-    @Ctx() { user }: Context,
+    @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<ProjectUpdate> {
     if(!user) throw new Error("Authentication required.")
@@ -366,20 +365,22 @@ export class ProjectResolver {
     
     if(!project) throw new Error("Project not found.");
 
-    return await ProjectUpdate.create({
-      userId: user.id,
+    const update = await ProjectUpdate.create({
+      userId: user.userId,
       projectId: project.id,
       content,
       title,
       createdAt: new Date()
     })
+
+    return ProjectUpdate.save(update);
   }
 
   @Mutation(returns => Boolean)
   async toggleReaction (
     @Arg('updateId') updateId: number,
     @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = "heart",
-    @Ctx() { user }: Context,
+    @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<boolean> {
     if(!user) throw new Error("Authentication required.")
@@ -387,16 +388,19 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId });
     if(!update) throw new Error("Update not found.");
     
-    const currentReaction = await ProjectUpdateReactions.findOne({ userId: user.id });
+    const currentReaction = await ProjectUpdateReactions.findOne({ userId: user.userId });
     
-    await ProjectUpdateReactions.delete({ userId: user.id });
+    await ProjectUpdateReactions.delete({ userId: user.userId });
 
     if(currentReaction && currentReaction.reaction === reaction) return false;
 
-    await ProjectUpdateReactions.create({
-      userId: user.id,
+    const newReaction = await ProjectUpdateReactions.create({
+      userId: user.userId,
+      projectUpdateId: update.id,
       reaction
     })
+
+    await ProjectUpdateReactions.save(newReaction)
 
     return true;
   }
