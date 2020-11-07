@@ -4,6 +4,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions'
 import NotificationPayload from '../entities/notificationPayload'
 import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
+import slugify from "slugify";
 
 import {
   Arg,
@@ -227,11 +228,7 @@ export class ProjectResolver {
 
       const [categories, image] = await Promise.all([categoriesPromise, imagePromise])
 
-      const slugBase = projectInput
-          .title
-          .toLowerCase()
-          .replace(/ /g, '-')
-          .replace(/[^a-zA-Z0-9]/g, '');
+      const slugBase = slugify(projectInput.title);
 
       let slug = slugBase;
       for (let i=1; await this.projectRepository.findOne({ slug }); i++) {
@@ -321,11 +318,7 @@ export class ProjectResolver {
     projectInput.title = title
     projectInput.description = description
 
-    const slugBase = projectInput
-        .title
-        .toLowerCase()
-        .replace(/ /g, '-')
-        .replace(/[^a-zA-Z0-9]/g, '');
+    const slugBase = slugify(projectInput.title);
 
     let slug = slugBase;
     for (let i=1; await this.projectRepository.findOne({ slug }); i++) {

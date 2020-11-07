@@ -36,6 +36,7 @@
     "nodemailer": "^6.4.10",
     "pg": "^7.18.2",
     "reflect-metadata": "^0.1.13",
+    "slugify": "^1.4.6",
     "standard": "^14.3.4",
     "stripe": "^8.102.0",
     "ts-node-dev": "^1.0.0-pre.49",
