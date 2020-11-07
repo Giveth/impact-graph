@@ -23,13 +23,14 @@ import {
 } from 'type-graphql'
 import { Max, Min } from 'class-validator'
 
-import { Category, Project } from '../entities/project'
+import { Category, Project, ProjectUpdate, ProjectUpdateReactions, PROJECT_UPDATE_REACTIONS } from '../entities/project'
 import { User } from '../entities/user'
 import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
 import { Context } from '../Context'
 import { pinFile } from '../middleware/pinataUtils';
+import { query } from 'express'
 // import { OrganisationProject } from '../entities/organisationProject'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
@@ -42,6 +43,7 @@ class TopProjects {
   @Field(type => Int)
   totalCount: number
 }
+
 
 enum OrderField {
   CreationDate = 'creationDate',
@@ -96,6 +98,16 @@ class GetProjectsArgs {
 class GetProjectArgs {
   @Field(type => ID!, { defaultValue: 0 })
   id: number
+}
+
+@Service()
+@ArgsType()
+class GetProjectUpdatesResult {
+  @Field(type => ProjectUpdate)
+  projectUpdate: ProjectUpdate;
+
+  @Field(type => [ProjectUpdateReactions])
+  reactions: ProjectUpdateReactions[];
 }
 
 @Resolver(of => Project)
@@ -338,5 +350,78 @@ export class ProjectResolver {
     await pubSub.publish('NOTIFICATIONS', payload)
 
     return newProject
+  }
+
+  @Mutation(returns => ProjectUpdate)
+  async addProjectUpdate (
+    @Arg('projectId') projectId: number,
+    @Arg('title') title: string,
+    @Arg('content') content: string,
+    @Ctx() { user }: Context,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<ProjectUpdate> {
+    if(!user) throw new Error("Authentication required.")
+
+    const project = await Project.findOne({ id: projectId });
+    
+    if(!project) throw new Error("Project not found.");
+
+    return await ProjectUpdate.create({
+      userId: user.id,
+      projectId: project.id,
+      content,
+      title,
+      createdAt: new Date()
+    })
+  }
+
+  @Mutation(returns => Boolean)
+  async toggleReaction (
+    @Arg('updateId') updateId: number,
+    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = "heart",
+    @Ctx() { user }: Context,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<boolean> {
+    if(!user) throw new Error("Authentication required.")
+
+    const update = await ProjectUpdate.findOne({ id: updateId });
+    if(!update) throw new Error("Update not found.");
+    
+    const currentReaction = await ProjectUpdateReactions.findOne({ userId: user.id });
+    
+    await ProjectUpdateReactions.delete({ userId: user.id });
+
+    if(currentReaction && currentReaction.reaction === reaction) return false;
+
+    await ProjectUpdateReactions.create({
+      userId: user.id,
+      reaction
+    })
+
+    return true;
+  }
+
+  @Query(returns => [GetProjectUpdatesResult])
+  async getProjectUpdates (
+    @Arg('projectId') projectId: number,
+    @Arg('skip') skip: number,
+    @Arg('take') take: number
+    @Ctx() { user }: Context,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<GetProjectUpdatesResult[]> {
+    const updates = await ProjectUpdate.find({
+      where: { projectId },
+      skip,
+      take
+    });
+
+    const results: GetProjectUpdatesResult[] = [];
+
+    for (const update of updates) results.push({
+      projectUpdate: update,
+      reactions: await ProjectUpdateReactions.find({ where: { projectUpdateId: update.id } })
+    })
+
+    return results;
   }
 }
