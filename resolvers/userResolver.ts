@@ -35,6 +35,11 @@ export class UserResolver {
     return this.userRepository.findOne(userId)
   }
 
+  @Query(returns => User, { nullable: true })
+  userByAddress (@Arg('address', type => String) address: string) {
+    return this.userRepository.findOne({ walletAddress: address })
+  }
+
   @Query(returns => [User])
   users (): Promise<User[]> {
     return this.userRepository.find()
