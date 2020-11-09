@@ -175,22 +175,39 @@ export class ProjectResolver {
   }
 
   @Mutation(returns => Project)
+  async editProject (
+    @Arg('projectId') projectId: number,
+    @Arg('newProjectData') newProjectData: ProjectInput,
+    @Ctx() { req: { user }}: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ) {
+    if(!user) throw new Error("Authentication required.")
+
+    const project = await Project.findOne({ id: projectId });
+    
+    if(!project) throw new Error("Project not found.");
+    if(project.admin != user.userId) throw new Error("You are not the owner of this project.")
+
+    for (const field in newProjectData)
+      project[field] = newProjectData[field];
+
+    await project.save();
+
+    return project;
+  }
+
+  @Mutation(returns => Project)
   async addProject (
     @Arg( 'project') projectInput: ProjectInput,
     @Ctx() ctx: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
-    // if (!ctx.req.user) {
-    //   console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-    //   throw new Error('Access denied')
-    //   // return undefined
-    // }
-    // console.log(`Add project user email: ${ctx.req.user.email}`)
-    // if (!ctx.req.user) {
-    //   console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-    //   throw new Error('Access denied')
-    //   // return undefined
-    // }
+
+    if (!ctx.req.user) {
+      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+      throw new Error('Access denied')
+      // return undefined
+    }
 
     // if (
     //   await this.userPermissions.mayAddProjectToOrganisation(
@@ -240,7 +257,8 @@ export class ProjectResolver {
         categories,
         image,
         creationDate: new Date(),
-        slug
+        slug,
+        admin: ctx.req.user.userId
         // ...projectInput,
         // authorId: user.id
       })
@@ -357,6 +375,7 @@ export class ProjectResolver {
     const project = await Project.findOne({ id: projectId });
     
     if(!project) throw new Error("Project not found.");
+    if(project.admin != user.userId) throw new Error("You are not the owner of this project.")
 
     const update = await ProjectUpdate.create({
       userId: user.userId,
