@@ -34,4 +34,7 @@ export class ProjectInput {
 
   @Field({ nullable: true })
   coOrdinates?: string
+
+  @Field({ nullable: true })
+  walletAddress?: string
 }

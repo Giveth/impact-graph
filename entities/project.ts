@@ -94,6 +94,10 @@ class Project extends BaseEntity {
   @Field()
   @Column({ nullable: true })
   stripeAccountId?: string
+
+  @Field()
+  @Column({ nullable: true })
+  walletAddress?: string
   // @Field(type => [OrganisationProject], { nullable: true })
   // @OneToMany(
   //   type => OrganisationProject,
