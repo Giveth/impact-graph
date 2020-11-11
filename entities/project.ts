@@ -117,7 +117,59 @@ class Project extends BaseEntity {
   // authorId: number
 }
 
+@Entity()
+@ObjectType()
+class ProjectUpdate extends BaseEntity {
+  @Field(type => ID)
+  @PrimaryGeneratedColumn()
+  readonly id: number
+
+  @Field(type => String)
+  @Column()
+  title: string
+
+  @Field(type => ID)
+  @Column()
+  projectId: number
+
+  @Field(type => ID)
+  @Column()
+  userId: number
+
+  @Field(type => String)
+  @Column()
+  content: string
+
+  @Field(type => Date)
+  @Column()
+  createdAt: Date
+}
+
+@Entity()
+@ObjectType()
+class ProjectUpdateReactions extends BaseEntity {
+  @Field(type => ID)
+  @PrimaryGeneratedColumn()
+  readonly id: number
+
+  @Field(type => ID)
+  @Column()
+  projectUpdateId: number
+
+  @Field(type => ID)
+  @Column()
+  userId: number
+
+  @Field(type => String)
+  @Column()
+  reaction: string
+}
+
+export type PROJECT_UPDATE_REACTIONS = "heart";
+
 export {
   Project,
   Category,
+  ProjectUpdate,
+  ProjectUpdateReactions
 }

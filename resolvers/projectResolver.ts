@@ -4,6 +4,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions'
 import NotificationPayload from '../entities/notificationPayload'
 import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
+import slugify from "slugify";
 
 import {
   Arg,
@@ -23,13 +24,14 @@ import {
 } from 'type-graphql'
 import { Max, Min } from 'class-validator'
 
-import { Category, Project } from '../entities/project'
+import { Category, Project, ProjectUpdate, ProjectUpdateReactions, PROJECT_UPDATE_REACTIONS } from '../entities/project'
 import { User } from '../entities/user'
 import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
 import { Context } from '../Context'
 import { pinFile } from '../middleware/pinataUtils';
+import { query } from 'express'
 // import { OrganisationProject } from '../entities/organisationProject'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
@@ -42,6 +44,7 @@ class TopProjects {
   @Field(type => Int)
   totalCount: number
 }
+
 
 enum OrderField {
   CreationDate = 'creationDate',
@@ -96,6 +99,15 @@ class GetProjectsArgs {
 class GetProjectArgs {
   @Field(type => ID!, { defaultValue: 0 })
   id: number
+}
+
+@ObjectType()
+class GetProjectUpdatesResult {
+  @Field(type => ProjectUpdate)
+  projectUpdate: ProjectUpdate;
+
+  @Field(type => [ProjectUpdateReactions])
+  reactions: ProjectUpdateReactions[];
 }
 
 @Resolver(of => Project)
@@ -163,22 +175,39 @@ export class ProjectResolver {
   }
 
   @Mutation(returns => Project)
+  async editProject (
+    @Arg('projectId') projectId: number,
+    @Arg('newProjectData') newProjectData: ProjectInput,
+    @Ctx() { req: { user }}: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ) {
+    if(!user) throw new Error("Authentication required.")
+
+    const project = await Project.findOne({ id: projectId });
+    
+    if(!project) throw new Error("Project not found.");
+    if(project.admin != user.userId) throw new Error("You are not the owner of this project.")
+
+    for (const field in newProjectData)
+      project[field] = newProjectData[field];
+
+    await project.save();
+
+    return project;
+  }
+
+  @Mutation(returns => Project)
   async addProject (
     @Arg( 'project') projectInput: ProjectInput,
     @Ctx() ctx: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
-    // if (!ctx.req.user) {
-    //   console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-    //   throw new Error('Access denied')
-    //   // return undefined
-    // }
-    // console.log(`Add project user email: ${ctx.req.user.email}`)
-    // if (!ctx.req.user) {
-    //   console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-    //   throw new Error('Access denied')
-    //   // return undefined
-    // }
+
+    if (!ctx.req.user) {
+      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+      throw new Error('Access denied')
+      // return undefined
+    }
 
     // if (
     //   await this.userPermissions.mayAddProjectToOrganisation(
@@ -216,11 +245,7 @@ export class ProjectResolver {
 
       const [categories, image] = await Promise.all([categoriesPromise, imagePromise])
 
-      const slugBase = projectInput
-          .title
-          .toLowerCase()
-          .replace(/ /g, '-')
-          .replace(/[^a-zA-Z0-9]/g, '');
+      const slugBase = slugify(projectInput.title);
 
       let slug = slugBase;
       for (let i=1; await this.projectRepository.findOne({ slug }); i++) {
@@ -232,7 +257,8 @@ export class ProjectResolver {
         categories,
         image,
         creationDate: new Date(),
-        slug
+        slug,
+        admin: ctx.req.user.userId
         // ...projectInput,
         // authorId: user.id
       })
@@ -310,11 +336,7 @@ export class ProjectResolver {
     projectInput.title = title
     projectInput.description = description
 
-    const slugBase = projectInput
-        .title
-        .toLowerCase()
-        .replace(/ /g, '-')
-        .replace(/[^a-zA-Z0-9]/g, '');
+    const slugBase = slugify(projectInput.title);
 
     let slug = slugBase;
     for (let i=1; await this.projectRepository.findOne({ slug }); i++) {
@@ -338,5 +360,84 @@ export class ProjectResolver {
     await pubSub.publish('NOTIFICATIONS', payload)
 
     return newProject
+  }
+
+  @Mutation(returns => ProjectUpdate)
+  async addProjectUpdate (
+    @Arg('projectId') projectId: number,
+    @Arg('title') title: string,
+    @Arg('content') content: string,
+    @Ctx() { req: { user } }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<ProjectUpdate> {
+    if(!user) throw new Error("Authentication required.")
+
+    const project = await Project.findOne({ id: projectId });
+    
+    if(!project) throw new Error("Project not found.");
+    if(project.admin != user.userId) throw new Error("You are not the owner of this project.")
+
+    const update = await ProjectUpdate.create({
+      userId: user.userId,
+      projectId: project.id,
+      content,
+      title,
+      createdAt: new Date()
+    })
+
+    return ProjectUpdate.save(update);
+  }
+
+  @Mutation(returns => Boolean)
+  async toggleReaction (
+    @Arg('updateId') updateId: number,
+    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = "heart",
+    @Ctx() { req: { user } }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<boolean> {
+    if(!user) throw new Error("Authentication required.")
+
+    const update = await ProjectUpdate.findOne({ id: updateId });
+    if(!update) throw new Error("Update not found.");
+    
+    const currentReaction = await ProjectUpdateReactions.findOne({ userId: user.userId });
+    
+    await ProjectUpdateReactions.delete({ userId: user.userId });
+
+    if(currentReaction && currentReaction.reaction === reaction) return false;
+
+    const newReaction = await ProjectUpdateReactions.create({
+      userId: user.userId,
+      projectUpdateId: update.id,
+      reaction
+    })
+
+    await ProjectUpdateReactions.save(newReaction)
+
+    return true;
+  }
+
+  @Query(returns => [GetProjectUpdatesResult])
+  async getProjectUpdates (
+    @Arg('projectId') projectId: number,
+    @Arg('skip') skip: number,
+    @Arg('take') take: number,
+    @Ctx() { user }: Context,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<GetProjectUpdatesResult[]> {
+    const updates = await ProjectUpdate.find({
+      where: { projectId },
+      skip,
+      take
+    });
+
+    const results: GetProjectUpdatesResult[] = [];
+
+    for (const update of updates) results.push({
+      projectUpdate: update,
+      reactions: await ProjectUpdateReactions.find({ where: { projectUpdateId: update.id } })
+    })
+
+    return results;
   }
 }
