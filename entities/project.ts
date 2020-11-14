@@ -91,11 +91,11 @@ class Project extends BaseEntity {
   @Column('float', { nullable: true })
   balance: number = 0
   
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   stripeAccountId?: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   walletAddress?: string
   // @Field(type => [OrganisationProject], { nullable: true })
