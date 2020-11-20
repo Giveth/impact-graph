@@ -151,6 +151,34 @@ class ProjectUpdate extends BaseEntity {
 
 @Entity()
 @ObjectType()
+class ProjectDonation extends BaseEntity {
+  @Field(type => ID)
+  @PrimaryGeneratedColumn()
+  readonly id: number
+
+  @Field(type => ID)
+  @Column()
+  projectId: number
+
+  @Field()
+  @Column()
+  amount: number
+
+  @Field(type => ID)
+  @Column({ nullable: true })
+  userId?: number
+
+  @Field(type => String)
+  @Column()
+  txId: string
+
+  @Field(type => Date)
+  @Column()
+  createdAt: Date
+}
+
+@Entity()
+@ObjectType()
 class ProjectUpdateReactions extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -175,5 +203,6 @@ export {
   Project,
   Category,
   ProjectUpdate,
-  ProjectUpdateReactions
+  ProjectUpdateReactions,
+  ProjectDonation
 }

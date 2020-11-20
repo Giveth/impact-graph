@@ -6,12 +6,10 @@ import { User } from '../entities/user'
 import { MyContext } from '../types/MyContext'
 import * as jwt from 'jsonwebtoken'
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql'
-import Web3 from 'web3'
+import { web3 } from "../utils/web3";
 import Config from '../config'
 
 const config = new Config(process.env)
-
-const web3 = new Web3(config.get('ETHEREUM_NODE_URL') as string)
 
 @ObjectType()
 class LoginResponse {
