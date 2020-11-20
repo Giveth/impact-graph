@@ -40,11 +40,6 @@ export class UserResolver {
     return this.userRepository.findOne({ walletAddress: address })
   }
 
-  @Query(returns => [User])
-  users (): Promise<User[]> {
-    return this.userRepository.find()
-  }
-
   // @FieldResolver()
   // organisationUsers (@Root() user: User) {
   //   return this.organisationUserRepository.find({
