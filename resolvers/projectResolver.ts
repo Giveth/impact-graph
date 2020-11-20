@@ -209,6 +209,8 @@ export class ProjectResolver {
       // return undefined
     }
 
+    if(await this.projectRepository.findOne({ admin: ctx.req.user.userId })) throw new Error('Giveth projects are limited to 1 per user.');
+
     // if (
     //   await this.userPermissions.mayAddProjectToOrganisation(
     //     ctx.req.user.email,
