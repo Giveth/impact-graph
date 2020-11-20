@@ -442,4 +442,10 @@ export class ProjectResolver {
 
     return results;
   }
+
+  @Query(returns => User, { nullable: true })
+  projectByAddress (@Arg('address', type => String) address: string) {
+    return this.projectRepository.findOne({ walletAddress: address })
+  }
+  
 }
