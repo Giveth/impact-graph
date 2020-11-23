@@ -93,6 +93,9 @@ class GetProjectsArgs {
 
   @Field({ nullable: true })
   category: string
+
+  @Field({ nullable: true })
+  admin: number
 }
 
 @Service()
@@ -137,8 +140,11 @@ export class ProjectResolver {
   // }
 
   @Query(returns => [Project])
-  async projects (@Args() { take, skip }: GetProjectsArgs): Promise<Project[]> {
-    return this.projectRepository.find({ take, skip })
+  async projects (@Args() { take, skip, admin }: GetProjectsArgs): Promise<Project[]> {
+    return this.projectRepository.find({
+      where: { admin },
+      take, skip
+    })
   }
 
   @Query(returns => TopProjects)
@@ -463,8 +469,6 @@ export class ProjectResolver {
     const destinationProject = await Project.findOne({ walletAddress: txInfo.to?.toLowerCase() || "" });
     const value = +web3.utils.fromWei(txInfo.value);
     const date = new Date();
-
-    console.log(txInfo)
 
     if(!originUser) throw new Error("Transaction user was not found.");
     if(!originUser.id != ctx.req.user.userId) throw new Error("This transaction doesn't belong to you.");
