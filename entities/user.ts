@@ -42,6 +42,10 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   password?: string
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  avatar?: string
+
   @Column()
   loginType: string
 
