@@ -29,6 +29,7 @@
     "express-session": "^1.17.1",
     "form-data": "^3.0.0",
     "graphql": "^15.3.0",
+    "graphql-tag": "^2.11.0",
     "handlebars": "^4.7.6",
     "html-pdf-node": "^1.0.5",
     "ioredis": "^4.17.3",
@@ -58,16 +59,21 @@
     ]
   },
   "devDependencies": {
+    "@types/chai": "^4.2.14",
+    "@types/mocha": "^8.0.4",
     "apollo": "^2.28.3",
+    "apollo-server-testing": "^2.19.0",
+    "chai": "^4.2.0",
     "husky": "^4.2.5",
+    "mocha": "^8.2.1",
+    "node-fetch": ">=2.6.1",
+    "object-path": ">=0.11.5",
     "ts-node": "^8.10.2",
     "tslint-config-prettier": "^1.18.0",
-    "tslint-eslint-rules": "^5.4.0",
-    "object-path": ">=0.11.5",
-    "node-fetch": ">=2.6.1"
+    "tslint-eslint-rules": "^5.4.0"
   },
   "scripts": {
-    "test": "standard",
+    "test": "NODE_ENV=test mocha --exit -r ts-node/register resolvers/*.test.ts",
     "start": "ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js"
   },
