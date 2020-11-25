@@ -77,6 +77,12 @@
     "start": "ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm test",
+      "pre-push": "npm test"
+    }
+  },
   "author": "James Farrell",
   "license": "ISC"
 }
