@@ -2,13 +2,22 @@
 #
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
-version: 2
+version: 2.1
 jobs:
   build:
-    machine:
-      image: 'ubuntu-2004:202010-01'
+    docker:
+      - image: circleci/node:12
+      - image: circleci/postgres:12
+        auth:
+          username: giveth_user
+          password: mypass
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: giveth
+      - image: circleci/redis:6
     steps:
       - run: npm install
+      - run: npm test
       - deploy:
           name: Production Deploy
           command: |
