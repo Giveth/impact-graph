@@ -1,14 +1,14 @@
+// tslint:disable-next-line:no-var-requires
+require('dotenv').config()
 import * as bcrypt from 'bcryptjs'
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
 import { User } from '../entities/user'
 import { MyContext } from '../types/MyContext'
 import * as jwt from 'jsonwebtoken'
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql'
-import Web3 from 'web3'
+import { web3 } from "../utils/web3";
 import config from '../config'
 
-
-const web3 = new Web3(config.get('ETHEREUM_NODE_URL') as string)
 
 @ObjectType()
 class LoginResponse {
@@ -111,6 +111,7 @@ export class LoginResolver {
     @Arg('signature') signature: string,
     @Arg('email') email: string,
     @Arg('name', { nullable: true }) name: string,
+    @Arg('avatar', { nullable: true }) avatar: string,
     @Ctx() ctx: MyContext
   ): Promise<LoginResponse | null> {
     console.log('Login waller')
@@ -130,12 +131,16 @@ export class LoginResolver {
         email,
         name,
         walletAddress,
-        loginType: 'wallet'
+        loginType: 'wallet',
+        avatar
       }).save()
 
       console.log(`user saved : ${JSON.stringify(user, null, 2)}`)
     } else {
       console.log('user exists already')
+
+      user.avatar = avatar;
+      await user.save();
     }
     const response = new LoginResponse()
 
