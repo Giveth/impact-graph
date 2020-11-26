@@ -7,6 +7,10 @@ jobs:
   build:
     docker:
       - image: circleci/node:12.16.3
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+
       - image: circleci/postgres:12
         environment:
           POSTGRES_USER: giveth_user
