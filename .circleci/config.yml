@@ -6,16 +6,18 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:12.16.3
       - image: circleci/postgres:12
-        auth:
-          username: giveth_user
-          password: mypass
         environment:
-          POSTGRES_USER: root
+          POSTGRES_USER: giveth_user
+          POSTGRES_PASSWORD: mypass
           POSTGRES_DB: giveth
       - image: circleci/redis:6
+
+#    working_directory: ~/repo
+
     steps:
+      - checkout
       - run: npm install
       - run: npm test
       - deploy:
