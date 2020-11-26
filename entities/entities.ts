@@ -1,7 +1,7 @@
 import { Organisation } from './organisation';
 import { OrganisationUser } from './organisationUser';
 import { User } from './user';
-import { Category, Project, ProjectUpdate, ProjectUpdateReactions } from './project';
+import { Category, Project, ProjectUpdate, ProjectUpdateReactions, ProjectDonation } from './project';
 import Notification from './notification';
 import { BankAccount, StripeTransaction } from './bankAccount';
 
@@ -15,5 +15,6 @@ export const entities: any = [
     StripeTransaction,
     Category,
     ProjectUpdate,
-    ProjectUpdateReactions
+    ProjectUpdateReactions,
+    ProjectDonation
 ]
