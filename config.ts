@@ -1,6 +1,8 @@
 import * as dotenv from 'dotenv'
+import * as path from 'path';
 
-dotenv.config()
+dotenv.config({ path: path.resolve(__dirname, `./config/${process.env.NODE_ENV||''}.env`) });
+
 const envVars = [
   'JWT_SECRET',
   'JWT_MAX_AGE',
@@ -24,7 +26,7 @@ const envVars = [
   'UPLOAD_MAX_FILE_SIZE'
 ]
 
-export default class Config {
+class Config {
   JWT_SECRET: string
   JWT_MAX_AGE: string
   ETHEREUM_NODE_URL: string
@@ -49,7 +51,8 @@ export default class Config {
   PINATA_SECRET_API_KEY: string
   UPLOAD_FILE_MAX_SIZE: string
 
-  constructor (envFile: object) {
+  constructor () {
+    const envFile = process.env;
     envVars.forEach(envVar => {
       if (envFile[envVar]) {
         this[envVar] = envFile[envVar]
@@ -64,3 +67,7 @@ export default class Config {
     return this[envVar]
   }
 }
+
+const config = new Config();
+
+export default config

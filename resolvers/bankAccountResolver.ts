@@ -1,20 +1,19 @@
 import Stripe from 'stripe';
-import { Arg, Args, ArgsType, Ctx, Field, InputType, Int, Mutation, ObjectType, PubSub, PubSubEngine, Query, Resolver } from "type-graphql";
+import { Arg, Ctx, Field, ObjectType, Query, Resolver } from 'type-graphql';
 
 
 import { Repository } from 'typeorm';
 
 import { InjectRepository } from 'typeorm-typedi-extensions';
 
-import Config from '../config';
+import config from '../config';
 import { BankAccount, StripeTransaction } from '../entities/bankAccount';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { MyContext } from '../types/MyContext';
-import { generatePDFDocument } from "../utils/documents";
-import { createStripeAccountLink, createStripeCheckoutSession, getStripeAccountId, getStripeCheckoutSession , getStripeCustomer} from "../utils/stripe";
+import { generatePDFDocument } from '../utils/documents';
+import { createStripeAccountLink, createStripeCheckoutSession, getStripeAccountId, getStripeCheckoutSession , getStripeCustomer } from '../utils/stripe';
 
-const config = new Config(process.env);
 
 @ObjectType()
 class StripeDonationSession {
@@ -85,7 +84,7 @@ export class BankAccountResolver {
     @Query(returns => String)
     async setProjectBankAccount (
         @Arg('projectId') projectId: number,
-        @Arg("returnUrl") returnUrl: string,
+        @Arg('returnUrl') returnUrl: string,
         @Arg('refreshUrl') refreshUrl: string,
         @Ctx() { req }: MyContext
     ): Promise<String> {
@@ -93,7 +92,7 @@ export class BankAccountResolver {
         const project = await this.projectRepository.findOne({ id: projectId });
 
         // if (!user) throw new Error('Access denied')
-        if (!project) throw new Error("Project not found");
+        if (!project) throw new Error('Project not found');
 
         const accountId = await getStripeAccountId(project);
         const response = await createStripeAccountLink(accountId, returnUrl, refreshUrl);
@@ -107,13 +106,13 @@ export class BankAccountResolver {
         @Arg('amount') amount: number,
         @Arg('donateToGiveth') donateToGiveth: boolean,
         @Arg('anonymous') anonymous: boolean,
-        @Arg("cancelUrl") cancelUrl: string,
+        @Arg('cancelUrl') cancelUrl: string,
         @Arg('successUrl') successUrl: string,
     ) {
         const project = await this.projectRepository.findOne({ id: projectId });
         
-        if (!project) throw new Error("Project not found");
-        if (!project.stripeAccountId) throw new Error("This project does not accept bank account donations right now.");
+        if (!project) throw new Error('Project not found');
+        if (!project.stripeAccountId) throw new Error('This project does not accept bank account donations right now.');
 
         amount = Math.floor(amount * 100);
 
@@ -121,7 +120,7 @@ export class BankAccountResolver {
             amount: amount/100,
             createdAt: new Date(),
             anonymous,
-            currency: "USD",
+            currency: 'USD',
             projectId,
             status: 'pending',
             donateToGiveth
@@ -129,8 +128,8 @@ export class BankAccountResolver {
 
         const checkout = await createStripeCheckoutSession(project, {
             amount,
-            successUrl: successUrl + "&sessionId=" + transaction.id,
-            cancelUrl: cancelUrl + "&sessionId=" + transaction.id,
+            successUrl: successUrl + '&sessionId=' + transaction.id,
+            cancelUrl: cancelUrl + '&sessionId=' + transaction.id,
             applicationFee: donateToGiveth? config.STRIPE_APPLICATION_FEE * 100 : 0
         });
 
@@ -147,8 +146,8 @@ export class BankAccountResolver {
     ) {
         const project = await this.projectRepository.findOne({ id: projectId });
         
-        if (!project) throw new Error("Project not found");
-        if (!project.stripeAccountId) throw new Error("This project does not accept bank account donations right now.");
+        if (!project) throw new Error('Project not found');
+        if (!project.stripeAccountId) throw new Error('This project does not accept bank account donations right now.');
 
         return {
             donations: await (await this.stripeTransactionRepository.find({ projectId })).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
@@ -161,16 +160,16 @@ export class BankAccountResolver {
         @Arg('sessionId') sessionId: number
     ) {
         const session = await StripeTransaction.findOne({ id: sessionId })
-        if (!session) throw new Error("Session not found");
+        if (!session) throw new Error('Session not found');
 
         const project = await this.projectRepository.findOne({ id: session.projectId });
-        if (!project) throw new Error("Project not found");
+        if (!project) throw new Error('Project not found');
 
 
-        if (session.status !== "paid") throw new Error("Invoice is not available because the payment status is:" + session.status)
-        if (!session.donorCustomerId) throw new Error("The invoice could not be generated because the donor was not found in the transaction");
+        if (session.status !== 'paid') throw new Error('Invoice is not available because the payment status is:' + session.status)
+        if (!session.donorCustomerId) throw new Error('The invoice could not be generated because the donor was not found in the transaction');
 
-        const customer = await getStripeCustomer(project.stripeAccountId || "", session.donorCustomerId) as Stripe.Customer;
+        const customer = await getStripeCustomer(project.stripeAccountId || '', session.donorCustomerId) as Stripe.Customer;
 
         const givethDonation = session.donateToGiveth? 5 : 0;
         const processingFee = session.amount * 0.029 + 0.3;
@@ -178,7 +177,7 @@ export class BankAccountResolver {
         const pdfData: StripeDonationPDFData = {
             id: session.id.toString(),
             createdAt: session.createdAt.toString(),
-            donor: session.anonymous? "Anonymous" : (customer.name || ""),
+            donor: session.anonymous? 'Anonymous' : (customer.name || ''),
             projectName: project.title,
             status: session.status,
             amount: session.amount,
@@ -191,7 +190,7 @@ export class BankAccountResolver {
             givethDonation,
             processingFee
         };
-        const pdf = await generatePDFDocument("stripe-checkout", pdfData);
+        const pdf = await generatePDFDocument('stripe-checkout', pdfData);
         
         return { pdf, data: pdfData }
     }
