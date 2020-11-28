@@ -82,7 +82,7 @@ export async function bootstrap() {
         app.use(cors())
         apolloServer.applyMiddleware({ app });
         app.post('/stripe-webhook', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);
-
+        
         // Start the server
         app.listen({ port: 4000 })
         console.log(`🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`)
