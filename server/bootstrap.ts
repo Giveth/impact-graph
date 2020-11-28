@@ -85,7 +85,7 @@ export async function bootstrap() {
 
         // Start the server
         app.listen({ port: 4000 })
-        console.log(`🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphqlz`)
+        console.log(`🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`)
     } catch (err) {
         console.error(err)
     }
