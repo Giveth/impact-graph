@@ -6,10 +6,9 @@ import { User } from '../entities/user'
 import { MyContext } from '../types/MyContext'
 import * as jwt from 'jsonwebtoken'
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql'
-import { web3 } from "../utils/web3";
-import Config from '../config'
+import { web3 } from '../utils/web3';
+import config from '../config'
 
-const config = new Config(process.env)
 
 @ObjectType()
 class LoginResponse {

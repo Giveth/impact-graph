@@ -1,6 +1,3 @@
-// tslint:disable-next-line:no-var-requires
-require('dotenv').config()
-
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload';
 import { MyContext } from '../types/MyContext'

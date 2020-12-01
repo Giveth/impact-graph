@@ -4,7 +4,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions'
 import NotificationPayload from '../entities/notificationPayload'
 import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
-import slugify from "slugify";
+import slugify from 'slugify';
 
 import {
   Arg,
@@ -29,7 +29,7 @@ import { User } from '../entities/user'
 import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
-import { Context } from '../Context'
+import { Context } from '../context'
 import { pinFile } from '../middleware/pinataUtils';
 import { query } from 'express'
 import { web3 } from '../utils/web3'
@@ -185,15 +185,15 @@ export class ProjectResolver {
   async editProject (
     @Arg('projectId') projectId: number,
     @Arg('newProjectData') newProjectData: ProjectInput,
-    @Ctx() { req: { user }}: MyContext,
+    @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
   ) {
-    if(!user) throw new Error("Authentication required.")
+    if (!user) throw new Error('Authentication required.')
 
     const project = await Project.findOne({ id: projectId });
     
-    if(!project) throw new Error("Project not found.");
-    if(project.admin != user.userId) throw new Error("You are not the owner of this project.")
+    if (!project) throw new Error('Project not found.');
+    if (project.admin != user.userId) throw new Error('You are not the owner of this project.')
 
     for (const field in newProjectData)
       project[field] = newProjectData[field];
@@ -393,12 +393,12 @@ export class ProjectResolver {
     @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<ProjectUpdate> {
-    if(!user) throw new Error("Authentication required.")
+    if (!user) throw new Error('Authentication required.')
 
     const project = await Project.findOne({ id: projectId });
     
-    if(!project) throw new Error("Project not found.");
-    if(project.admin != user.userId) throw new Error("You are not the owner of this project.")
+    if (!project) throw new Error('Project not found.');
+    if (project.admin != user.userId) throw new Error('You are not the owner of this project.')
 
     const update = await ProjectUpdate.create({
       userId: user.userId,
@@ -414,20 +414,20 @@ export class ProjectResolver {
   @Mutation(returns => Boolean)
   async toggleReaction (
     @Arg('updateId') updateId: number,
-    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = "heart",
+    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = 'heart',
     @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<boolean> {
-    if(!user) throw new Error("Authentication required.")
+    if (!user) throw new Error('Authentication required.')
 
     const update = await ProjectUpdate.findOne({ id: updateId });
-    if(!update) throw new Error("Update not found.");
+    if (!update) throw new Error('Update not found.');
     
     const currentReaction = await ProjectUpdateReactions.findOne({ userId: user.userId });
     
     await ProjectUpdateReactions.delete({ userId: user.userId });
 
-    if(currentReaction && currentReaction.reaction === reaction) return false;
+    if (currentReaction && currentReaction.reaction === reaction) return false;
 
     const newReaction = await ProjectUpdateReactions.create({
       userId: user.userId,

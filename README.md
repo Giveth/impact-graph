@@ -14,12 +14,18 @@ ImpactQL is a GraphQL server, that enables rapid development of serverless impac
 git clone git@github.com:topiahq/impact-graph.git
 cd impact-graph
 npm i
-cp .env.example .env
+cp config/example.env config/development.env
 ```
+
+Edit the config/development.env file in your favorite code editor and the environmental variables
 
 [Create a database](https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e) (we recommend Postgres) on your computer or server, we currently support for for MySQL, MariaDB, Postgres, MongoDB and SQLite).
 
-Edit the .env file in your favorite code editor and the environmental variables
+If you don't have redis installed do so, and then start it with:
+
+```
+redis-server /usr/local/etc/redis.conf
+```
 
 That's it
 

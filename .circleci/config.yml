@@ -5,10 +5,25 @@
 version: 2
 jobs:
   build:
-    machine:
-      image: 'ubuntu-2004:202010-01'
+    docker:
+      - image: circleci/node:12.16.3
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+
+      - image: circleci/postgres:12
+        environment:
+          POSTGRES_USER: giveth_user
+          POSTGRES_PASSWORD: mypass
+          POSTGRES_DB: giveth
+      - image: circleci/redis:6
+
+    working_directory: ~/repo
+
     steps:
+      - checkout
       - run: npm install
+      - run: npm test
       - deploy:
           name: Production Deploy
           command: |
