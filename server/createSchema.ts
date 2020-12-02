@@ -35,7 +35,8 @@ const createSchema = async (): Promise<GraphQLSchema> => {
 
     if (dropSeed) {
         // seed database with some data
-        const { defaultUser } = await seedDatabase()
+        // Removed for go live, in future this can be used to init the db with data, such as seed projects or categories
+        // const { defaultUser } = await seedDatabase()
     }
 
     // build TypeGraphQL executable schema
