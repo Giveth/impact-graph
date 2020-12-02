@@ -82,7 +82,23 @@ export async function bootstrap() {
         app.use(cors())
         apolloServer.applyMiddleware({ app });
         app.post('/stripe-webhook', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);
-        
+        app.get('/project', (req, res) => { 
+            res.send({
+                balance: 0,
+                id: 24,
+                title: 'James test project',
+                slug: 'James-test-project',
+                admin: '17',
+                description: 'This is a super cool description!!!!',
+                organisationId: 1212121212,
+                coOrdinates: '0.342434, 0.3434343',
+                image: 'https://ipfs.giveth.io/ipfs/QmYx4eCHQFLJNEKWLjFQGR8hisEtdDbYqGKHSmCWuRvufa',
+                impactLocation: null,
+                stripeAccountId: null,
+                walletAddress: '0xD2CAc44B9d072A0D6bD39482147d894f13C5CF32',
+                categories: ['carbon', 'biodiversity']
+              }) 
+          }) 
         // Start the server
         app.listen({ port: 4000 })
         console.log(`🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`)

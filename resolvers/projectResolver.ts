@@ -141,10 +141,11 @@ export class ProjectResolver {
 
   @Query(returns => [Project])
   async projects (@Args() { take, skip, admin }: GetProjectsArgs): Promise<Project[]> {
-    return this.projectRepository.find({
+    const projects = await this.projectRepository.find({
       where: { admin },
       take, skip
     })
+    return projects
   }
 
   @Query(returns => TopProjects)
