@@ -17,7 +17,7 @@ const createSchema = async (): Promise<GraphQLSchema> => {
         resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver])
     }
 
-    const dropSeed = config.get('DB_DROP_SEED') as boolean
+    const dropSchema = config.get('TYPEORM_DROP_SCHEMA') === 'true'
     await TypeORM.createConnection({
         type: 'postgres',
         database: config.get('TYPEORM_DATABASE_NAME') as string,
@@ -29,15 +29,15 @@ const createSchema = async (): Promise<GraphQLSchema> => {
         synchronize: true,
         logger: 'advanced-console',
         logging: 'all',
-        dropSchema: dropSeed,
+        dropSchema,
         cache: true
     })
 
-    if (dropSeed) {
-        // seed database with some data
-        const { defaultUser } = await seedDatabase()
-    }
-
+    // if (dropSchema) {
+    //     // seed database with some data
+    //     const { defaultUser } = await seedDatabase()
+    // }
+    //
     // build TypeGraphQL executable schema
     const schema = await TypeGraphQL.buildSchema({
         resolvers,
