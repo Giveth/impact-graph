@@ -73,7 +73,8 @@ export async function bootstrap() {
             },
             uploads: {
                 maxFileSize: config.get('UPLOAD_FILE_MAX_SIZE') as number || 2000000
-            }
+            },
+            introspection: true
         })
 
         // Express Server

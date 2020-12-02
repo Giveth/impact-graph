@@ -95,7 +95,7 @@ class GetProjectsArgs {
   category: string
 
   @Field({ nullable: true })
-  admin: number
+  admin?: number
 }
 
 @Service()
@@ -141,11 +141,12 @@ export class ProjectResolver {
 
   @Query(returns => [Project])
   async projects (@Args() { take, skip, admin }: GetProjectsArgs): Promise<Project[]> {
-    const projects = await this.projectRepository.find({
+
+    return !admin? this.projectRepository.find({ take, skip }) : this.projectRepository.find({
       where: { admin },
       take, skip
     })
-    return projects
+    
   }
 
   @Query(returns => TopProjects)
@@ -198,6 +199,20 @@ export class ProjectResolver {
 
     for (const field in newProjectData)
       project[field] = newProjectData[field];
+
+    if (newProjectData.categories) {
+      const categoriesPromise = newProjectData.categories.map(async category => {
+        let [c] = await this.categoryRepository.find({ name: category });
+        if (c === undefined) {
+          c = new Category();
+          c.name = category;
+        }
+        return c;
+      })
+
+      const categories = await Promise.all(categoriesPromise)
+      project.categories = categories;
+    }
 
     await project.save();
 
