@@ -38,6 +38,7 @@ const createSchema = async (): Promise<GraphQLSchema> => {
     //     const { defaultUser } = await seedDatabase()
     // }
     //
+
     // build TypeGraphQL executable schema
     const schema = await TypeGraphQL.buildSchema({
         resolvers,
