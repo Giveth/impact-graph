@@ -39,17 +39,20 @@ export async function seedDatabase () {
   })
   await userRepository.save([superAdminUser, icrcAdmin, ifrcAdmin])
 
-  const covidProject = projectRepository.create({
-    title: 'COVID-19: ICRC global response to the coronavirus',
-    description: `Professionals with a background in health, disaster management, water, sanitation, food and economic security, and logistics attended the 4th edition of the Regional HELP (Health Emergencies in Large Populations) course held in Delhi from 24 February to 6 March 2020. The two-week programme prepared participants, who came from nine countries, for effectively leading an emergency health response.
-
-        In India, the HELP course is organized by the ICRC in partnership with International Institute of Health Management Research (IIHMR), National Institute of Disaster Management, World Health Organization (WHO) and the Indian Red Cross Society. It aims to enhance professionalism in health emergency response with an emphasis on decision-making. It uses the public health approach, fostering multidisciplinary responses and bringing out challenges, dilemmas, norms, standards and principles. This synergy between the field expertise of the ICRC and the academic expertise of IIHMR makes the course different from other HELP courses conducted around the world.`
+  const project1 = projectRepository.create({
+    title: 'Ecoera',
+    description: `Become Climate Positive
+    We enable the Carbon Transformation by making your organisation go climate positive using carbon removal from our sustainable biochar carbon sink.`,
+    organisationId: 1
   })
-  console.log(`aProject1 : ${JSON.stringify(covidProject, null, 2)}`)
-
-  await projectRepository.save(covidProject)
-  console.log(`aProject2 : ${JSON.stringify(covidProject, null, 2)}`)
-
+  const project2 = projectRepository.create({
+    title: 'REDD+ Papua New Guinea',
+    description: `Why only Offsett and Reduce your carbon footprint? Our Validated, Verified, and Registered Carbon Credits conserve endangered tropical rainforests in Papua New Guinea and generate historical economic growth and social transformation for its people.`,
+    organisationId: 1
+  })
+  
+  await projectRepository.save([project1, project2])
+  
   const icrcOrg = organisationRepository.create([
     {
       title: 'CO2ken',
