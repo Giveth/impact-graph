@@ -52,9 +52,9 @@ export async function seedDatabase () {
 
   const icrcOrg = organisationRepository.create([
     {
-      title: 'International Committee of the Red Cross (ICRC)',
+      title: 'CO2ken',
       description:
-        'Established in 1863, the ICRC operates worldwide, helping people affected by conflict and armed violence and promoting the laws that protect victims of war. An independent and neutral organization, its mandate stems essentially from the Geneva Conventions of 1949. We are based in Geneva, Switzerland, and employ some 16,000 people in more than 80 countries. The ICRC is funded mainly by voluntary donations from governments and from National Red Cross and Red Crescent Societies.'
+        'We tokenize carbon offsets to make them available for Ethereums web3 ecosystem.'
     },
     {
       title: 'Giveth',
