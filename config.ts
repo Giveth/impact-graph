@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv'
 import * as path from 'path';
 
+console.log(`process.env.NODE_ENV ---> : ${process.env.NODE_ENV}`)
 dotenv.config({ path: path.resolve(__dirname, `./config/${process.env.NODE_ENV||''}.env`) });
 
 const envVars = [
@@ -23,7 +24,8 @@ const envVars = [
   'STRIPE_WEBHOOK_SECRET',
   'PINATA_API_KEY',
   'PINATA_SECRET_API_KEY',
-  'UPLOAD_MAX_FILE_SIZE'
+  'UPLOAD_MAX_FILE_SIZE',
+  'DB_DROP_SEED'
 ]
 
 class Config {
