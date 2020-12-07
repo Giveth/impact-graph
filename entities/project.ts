@@ -51,7 +51,7 @@ class Project extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  admin?: string
+  admin?: number
 
   @Field({ nullable: true })
   @Column({ nullable: true })

@@ -9,7 +9,7 @@ export class ProjectInput {
   title: string
 
   @Field({ nullable: true })
-  admin?: string
+  admin?: number
 
   @Field({ nullable: true })
   @Length(0, 255)

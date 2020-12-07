@@ -192,9 +192,15 @@ export class ProjectResolver {
   ) {
     if (!user) throw new Error('Authentication required.')
 
+    console.log(`projectId ---> : ${projectId}`)
     const project = await Project.findOne({ id: projectId });
+
+    console.log(`project : ${JSON.stringify(project, null, 2)}`)
     
+
     if (!project) throw new Error('Project not found.');
+    console.log(`project.admin ---> : ${project.admin}`)
+    console.log('user.userId', user.userId)
     if (project.admin != user.userId) throw new Error('You are not the owner of this project.')
 
     for (const field in newProjectData)

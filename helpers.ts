@@ -22,38 +22,44 @@ export async function seedDatabase () {
     confirmed: true,
     loginType: 'password'
   })
-  const icrcAdmin = userRepository.create({
-    email: 'icrcAdmin@icrcAdmin.com',
-    firstName: 'icrcAdmin',
+  // Organisation 1
+  const co2kenAdmin = userRepository.create({
+    email: 'admin@co2ken.io',
+    firstName: 'CO2ken',
     password: bcrypt.hashSync(seedPassword, 12),
     confirmed: true,
     loginType: 'password'
   })
 
-  const ifrcAdmin = userRepository.create({
-    email: 'ifrcAdmin@icrcAdmin.com',
-    firstName: 'ifrcAdmin',
+  const givethAdmin = userRepository.create({
+    email: 'james@giveth.io',
+    firstName: 'givethAdmin',
     password: bcrypt.hashSync(seedPassword, 12),
     confirmed: true,
     loginType: 'password'
   })
-  await userRepository.save([superAdminUser, icrcAdmin, ifrcAdmin])
+  await userRepository.save([superAdminUser, co2kenAdmin, givethAdmin])
 
   const project1 = projectRepository.create({
     title: 'Ecoera',
     description: `Become Climate Positive
     We enable the Carbon Transformation by making your organisation go climate positive using carbon removal from our sustainable biochar carbon sink.`,
-    organisationId: 1
+    organisationId: 2,
+    admin: 2,
+    walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5'
   })
   const project2 = projectRepository.create({
     title: 'REDD+ Papua New Guinea',
     description: `Why only Offsett and Reduce your carbon footprint? Our Validated, Verified, and Registered Carbon Credits conserve endangered tropical rainforests in Papua New Guinea and generate historical economic growth and social transformation for its people.`,
-    organisationId: 1
+    organisationId: 2,
+    admin: 2,
+    walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5'
+
   })
   
   await projectRepository.save([project1, project2])
   
-  const icrcOrg = organisationRepository.create([
+  const testOrganizations = organisationRepository.create([
     {
       title: 'CO2ken',
       description:
@@ -70,18 +76,18 @@ export async function seedDatabase () {
     }
   ])
 
-  await organisationRepository.save(icrcOrg)
+  await organisationRepository.save(testOrganizations)
   // Seed join table
   // const organisationProject = organisationProjectRepository.create({
-  //   organisation: icrcOrg[0],
+  //   organisation: testOrganizations[0],
   //   project: covidProject
   // })
   // await organisationProjectRepository.save(organisationProject)
 
   const adminOrganisationUser = organisationUserRepository.create({
     role: 'admin',
-    organisation: icrcOrg[0],
-    user: icrcAdmin
+    organisation: testOrganizations[0],
+    user: co2kenAdmin
   })
   await organisationUserRepository.save(adminOrganisationUser)
 
