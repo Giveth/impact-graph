@@ -42,7 +42,6 @@ class Config {
   TYPEORM_DROP_SCHEMA: string
   APOLLO_KEY: string
   REGISTER_USERNAME_PASSWORD: string
-  DB_DROP_SEED: boolean
 
   STRIPE_KEY: string
   STRIPE_SECRET: string
@@ -65,7 +64,7 @@ class Config {
     })
   }
 
-  get (envVar: string): string | boolean | number {
+  get (envVar: string): string | number {
     return this[envVar]
   }
 }
