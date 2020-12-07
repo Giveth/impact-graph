@@ -30,6 +30,9 @@ export class ProjectInput {
   imageStatic?: string
 
   @Field({ nullable: true })
+  image?: string;
+  
+  @Field({ nullable: true })
   impactLocation?: string
 
   @Field({ nullable: true })

@@ -47,7 +47,8 @@ export async function seedDatabase () {
     organisationId: 2,
     admin: 2,
     walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5',
-    slug: 'ecoera'
+    slug: 'ecoera',
+    image: 'https://cdn.shopify.com/s/files/1/2556/2892/files/BiokolBigbag_3000x.JPG?v=1511514366'
   })
   const project2 = projectRepository.create({
     title: 'REDD+ Papua New Guinea',
@@ -55,7 +56,8 @@ export async function seedDatabase () {
     organisationId: 2,
     admin: 2,
     walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5',
-    slug: 'redd-papua-new-guinea'
+    slug: 'redd-papua-new-guinea',
+    image: 'https://offsetra.com/agrocortex_banner.jpg'
   })
   
   await projectRepository.save([project1, project2])
