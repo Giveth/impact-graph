@@ -9,6 +9,9 @@ export class ProjectInput {
   title: string
 
   @Field({ nullable: true })
+  slug?: string;
+  
+  @Field({ nullable: true })
   admin?: number
 
   @Field({ nullable: true })

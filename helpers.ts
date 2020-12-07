@@ -46,15 +46,16 @@ export async function seedDatabase () {
     We enable the Carbon Transformation by making your organisation go climate positive using carbon removal from our sustainable biochar carbon sink.`,
     organisationId: 2,
     admin: 2,
-    walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5'
+    walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5',
+    slug: 'ecoera'
   })
   const project2 = projectRepository.create({
     title: 'REDD+ Papua New Guinea',
     description: `Why only Offsett and Reduce your carbon footprint? Our Validated, Verified, and Registered Carbon Credits conserve endangered tropical rainforests in Papua New Guinea and generate historical economic growth and social transformation for its people.`,
     organisationId: 2,
     admin: 2,
-    walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5'
-
+    walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5',
+    slug: 'redd-papua-new-guinea'
   })
   
   await projectRepository.save([project1, project2])
