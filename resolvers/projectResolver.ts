@@ -212,6 +212,21 @@ export class ProjectResolver {
       project.categories = categories;
     }
 
+    const { imageUpload, imageStatic } = newProjectData;
+    if (imageUpload) {
+      const { filename, createReadStream, encoding } = await imageUpload;
+      try {
+        project.image = await pinFile(createReadStream(), filename, encoding).then(response => {
+          return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
+        });
+      } catch (e) {
+        console.error(e);
+        throw Error('Upload file failed')
+      }
+    } else if (imageStatic) {
+      project.image = imageStatic;
+    }
+
     await project.save();
 
     return project;
