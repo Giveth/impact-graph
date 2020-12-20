@@ -212,6 +212,22 @@ export class ProjectResolver {
       project.categories = categories;
     }
 
+    const { imageUpload, imageStatic } = newProjectData;
+    if (imageUpload) {
+      const { filename, createReadStream, encoding } = await imageUpload;
+
+      try {
+        project.image = await pinFile(createReadStream(), filename, encoding).then(response => {
+          return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
+        });
+      } catch (e) {
+        console.error(e);
+        throw Error('Upload file failed')
+      }
+    } else if (imageStatic) {
+      project.image = imageStatic;
+    }
+
     await project.save();
 
     return project;
@@ -423,7 +439,7 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId });
     if (!update) throw new Error('Update not found.');
     
-    const currentReaction = await ProjectUpdateReactions.findOne({ userId: user.userId });
+    const currentReaction = await ProjectUpdateReactions.findOne({ projectUpdateId: update.id, userId: user.userId });
     
     await ProjectUpdateReactions.delete({ userId: user.userId });
 
