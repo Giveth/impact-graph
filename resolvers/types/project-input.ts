@@ -12,7 +12,7 @@ export class ProjectInput {
   admin?: string
 
   @Field({ nullable: true })
-  @Length(0, 255)
+  @Length(0, 2000)
   description?: string
 
   @Field(type=>[String], { nullable: true, defaultValue: [] })
