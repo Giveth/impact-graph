@@ -215,6 +215,22 @@ export class ProjectResolver {
       project.categories = categories;
     }
 
+    const { imageUpload, imageStatic } = newProjectData;
+    if (imageUpload) {
+      const { filename, createReadStream, encoding } = await imageUpload;
+
+      try {
+        project.image = await pinFile(createReadStream(), filename, encoding).then(response => {
+          return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
+        });
+      } catch (e) {
+        console.error(e);
+        throw Error('Upload file failed')
+      }
+    } else if (imageStatic) {
+      project.image = imageStatic;
+    }
+
     await project.save();
 
     return project;
@@ -412,6 +428,35 @@ export class ProjectResolver {
     })
 
     return ProjectUpdate.save(update);
+  }
+
+  @Mutation(returns => Boolean)
+  async toggleReaction (
+    @Arg('updateId') updateId: number,
+    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = 'heart',
+    @Ctx() { req: { user } }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<boolean> {
+    if (!user) throw new Error('Authentication required.')
+
+    const update = await ProjectUpdate.findOne({ id: updateId });
+    if (!update) throw new Error('Update not found.');
+    
+    const currentReaction = await ProjectUpdateReactions.findOne({ projectUpdateId: update.id, userId: user.userId });
+    
+    await ProjectUpdateReactions.delete({ userId: user.userId });
+
+    if (currentReaction && currentReaction.reaction === reaction) return false;
+
+    const newReaction = await ProjectUpdateReactions.create({
+      userId: user.userId,
+      projectUpdateId: update.id,
+      reaction
+    })
+
+    await ProjectUpdateReactions.save(newReaction)
+
+    return true;
   }
 
   @Query(returns => [GetProjectUpdatesResult])
