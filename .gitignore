@@ -16,3 +16,4 @@ coverage
 
 config/*.env
 config/test.env
+.vscode/settings.json
