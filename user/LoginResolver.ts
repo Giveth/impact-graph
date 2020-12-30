@@ -135,10 +135,8 @@ export class LoginResolver {
         avatar
       }).save()
 
-      console.log(`user saved : ${JSON.stringify(user, null, 2)}`)
     } else {
-      console.log('user exists already')
-
+      
       user.avatar = avatar;
       if(name) user.name = name;
       await user.save();
