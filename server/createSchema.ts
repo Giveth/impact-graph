@@ -23,7 +23,7 @@ const createSchema = async (): Promise<GraphQLSchema> => {
         database: config.get('TYPEORM_DATABASE_NAME') as string,
         username: config.get('TYPEORM_DATABASE_USER') as string,
         password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-        port: config.get('PORT') as number,
+        port: config.get('TYPEORM_DATABASE_PORT') as number,
         host: config.get('TYPEORM_DATABASE_HOST') as string,
         entities,
         synchronize: true,
