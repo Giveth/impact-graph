@@ -16,7 +16,7 @@ export async function seedDatabase () {
   const userRepository = getRepository(User)
 
   const seedPassword = config.get('SEED_PASSWORD').toString()
-  const serverEmail = config.get('SERVER_ADMIN').toString()
+  const serverEmail = config.get('SERVER_ADMIN_EMAIL').toString()
   let users: User[] = []
   const superAdminUser = userRepository.create({
     email: serverEmail,
