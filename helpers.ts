@@ -21,34 +21,50 @@ export async function seedDatabase () {
   const serverEmail = config.get('SERVER_ADMIN_EMAIL').toString()
   let users: User[] = []
 
+  /** 
+   * { name: 'sdg-poverty', value: 'End Poverty', source: 'SDG' },
+    { name: 'sdg-hunger', value: 'Zero Hunger', source: 'SDG' },
+    { name: 'sdg-health', value: 'Good Health and Well-being', source: 'SDG' },
+    { name: 'sdg-education', value: 'Quality Education', source: 'SDG' },
+    { name: 'sdg-gender-equality', value: 'Gender Equality', source: 'SDG' },
+    { name: 'sdg-clean-water', value: 'Clean Water and Sanitation', source: 'SDG' },
+    { name: 'sdg-energy', value: 'Affordable and Clean Energy', source: 'SDG' },
+    { name: 'sdg-economic-growth', value: 'Decent Work and Economic Growth', source: 'SDG' },
+    { name: 'sdg-innovation-infrastructure', value: 'Industry, Innovation and Infrastructure', source: 'SDG' },
+    { name: 'sdg-reduce-inequality', value: 'Reduced Inequality', source: 'SDG' },
+    { name: 'sdg-sustainable-communities', value: 'Sustainable Cities and Communities', source: 'SDG' },
+    { name: 'sdg-responsible-production', value: 'Responsible Consumption and Production', source: 'SDG' },
+    { name: 'sdg-climate-action', value: 'Climate Action', source: 'SDG' },
+    { name: 'sdg-life-water', value: 'Life Below Water', source: 'SDG' },
+    { name: 'sdg-life-land', value: 'Life On Land', source: 'SDG' },
+    { name: 'sdg-justice', value: 'Peace and Justice Strong Institutions', source: 'SDG' },
+    { name: 'sdg-partnership  ', value: 'Partnerships to achieve the Goal', source: 'SDG' },
+   */
   const categorySeeds = categoryRepository.create([
-    { name: 'poverty', value: 'End Poverty' },
-    { name: 'hunger', value: 'Zero Hunger' },
-    { name: 'health', value: 'Good Health and Well-being' },
-    { name: 'education', value: 'Quality Education' },
-    { name: 'gender-equality', value: 'Gender Equality' },
-    { name: 'clean-water', value: 'Clean Water and Sanitation' },
-    { name: 'energy', value: 'Affordable and Clean Energy' },
-    { name: 'economic-growth', value: 'Decent Work and Economic Growth' },
-    {
-      name: 'innovation-infrastructure',
-      value: 'Industry, Innovation and Infrastructure'
-    },
-    { name: 'reduce-inequality', value: 'Reduced Inequality' },
-    {
-      name: 'sustainable-communities',
-      value: 'Sustainable Cities and Communities'
-    },
-    {
-      name: 'responsible-production',
-      value: 'Responsible Consumption and Production'
-    },
-    { name: 'climate-action', value: 'Climate Action' },
-    { name: 'life-water', value: 'Life Below Water' },
-    { name: 'life-land', value: 'Life On Land' },
-    { name: 'justice', value: 'Peace and Justice Strong Institutions' },
-    { name: 'partnership  ', value: 'Partnerships to achieve the Goal' },
-    { name: 'other', value: 'Other' }
+    { name: 'community', value: 'Community', source: 'adhoc' },
+    { name: 'food', value: 'Food', source: 'adhoc' },
+    { name: 'non-profit', value: 'Non-profit', source: 'adhoc' },
+    { name: 'housing', value: 'Housing', source: 'adhoc' },
+    { name: 'technology', value: 'Technology', source: 'adhoc' },
+    { name: 'agriculture', value: 'Agriculture', source: 'IRIS'},
+    { name: 'air', value: 'Air', source: 'IRIS'},
+    { name: 'biodiversity', value: 'Biodiversity', source: 'IRIS'},
+    { name: 'climate', value: 'Climate', source: 'IRIS'},
+    { name: 'inclusion', value: 'Inclusion', source: 'IRIS'},
+    { name: 'education', value: 'Education', source: 'IRIS'},
+    { name: 'employment', value: 'Employment', source: 'IRIS'},
+    { name: 'energy', value: 'Energy', source: 'IRIS'},
+    { name: 'finance', value: 'Finance', source: 'IRIS'},
+    { name: 'health', value: 'Health', source: 'IRIS'},
+    { name: 'infrastructure', value: 'Infrastructure', source: 'IRIS'},
+    { name: 'land', value: 'Land', source: 'IRIS'},
+    { name: 'oceans', value: 'Oceans', source: 'IRIS'},
+    { name: 'pollution', value: 'Pollution', source: 'IRIS'},
+    { name: 'real-estate', value: 'Real Estate', source: 'IRIS'},
+    { name: 'waste', value: 'Waste', source: 'IRIS'},
+    { name: 'water', value: 'Water', source: 'IRIS'},
+    { name: 'other', value: 'Other', source: 'adhoc' }
+    
   ])
 
   await categoryRepository.save(categorySeeds)

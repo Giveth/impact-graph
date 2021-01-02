@@ -24,6 +24,10 @@ export class Category extends BaseEntity{
   @Column()
   value: string
 
+  @Field()
+  @Column()
+  source: string
+
   @ManyToMany(type => Project, project => project.categories)
   projects: Project[];
 }
