@@ -23,7 +23,7 @@ const createSchema = async (): Promise<GraphQLSchema> => {
         database: config.get('TYPEORM_DATABASE_NAME') as string,
         username: config.get('TYPEORM_DATABASE_USER') as string,
         password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-        port: config.get('PORT') as number,
+        port: config.get('TYPEORM_DATABASE_PORT') as number,
         host: config.get('TYPEORM_DATABASE_HOST') as string,
         entities,
         synchronize: true,
@@ -32,12 +32,12 @@ const createSchema = async (): Promise<GraphQLSchema> => {
         dropSchema,
         cache: true
     })
-
-    // if (dropSchema) {
-    //     // seed database with some data
-    //     const { defaultUser } = await seedDatabase()
-    // }
-    //
+    const dropSeed = config.get('DB_DROP_SEED') ? config.get('DB_DROP_SEED') : false
+    if (dropSeed) {
+        // seed database with some data
+        // Removed for go live, in future this can be used to init the db with data, such as seed projects or categories
+        const { defaultUser } = await seedDatabase()
+    }
 
     // build TypeGraphQL executable schema
     const schema = await TypeGraphQL.buildSchema({

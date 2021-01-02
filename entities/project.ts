@@ -11,6 +11,7 @@ import {
 } from 'typeorm'
 
 import { Organisation } from './organisation'
+import { Category } from './category'
 
 // import { OrganisationProject } from './organisationProject'
 // NO idea why the below import doesn't work!!!
@@ -19,20 +20,7 @@ function RelationColumn (options?: ColumnOptions) {
   return Column({ nullable: true, ...options })
 }
 
-@Entity()
-@ObjectType()
-class Category {
-  @PrimaryGeneratedColumn()
-  id: number;
 
-  @Index()
-  @Column()
-  @Field()
-  name: string;
-
-  @ManyToMany(type => Project, project => project.categories)
-  projects: Project[];
-}
 
 @Entity()
 @ObjectType()
@@ -98,27 +86,7 @@ class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   walletAddress?: string
-  // @Field(type => [OrganisationProject], { nullable: true })
-  // @OneToMany(
-  //   type => OrganisationProject,
-  //   organisationProject => organisationProject.organisation
-  // )
-  // organisationProjects?: OrganisationProject[]
-  // @JoinTable({
-  //   name: 'organisation_project',
-  //   joinColumn: {
-  //     name: 'id',
-  //     referencedColumnName: 'organisation_project_id'
-  //   }
-  // })
-
-  // TODO: add the user back in, after model is clean
-  // @Field(type => User)
-  // @ManyToOne(type => User)
-  // author: User
-
-  // @RelationColumn()
-  // authorId: number
+  
 }
 
 @Entity()

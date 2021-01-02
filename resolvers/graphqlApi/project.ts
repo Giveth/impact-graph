@@ -57,16 +57,6 @@ const FETCH_PROJECT_BY_SLUG = gql`
   }
 `
 
-const ADD_PROJECT_SIMPLE = gql`
-  mutation($title: String!, $description: String!) {
-    addProjectSimple(title: $title, description: $description) {
-      id
-      title
-      description
-    }
-  }
-`
-
 const ADD_BANK_ACCOUNT = gql`
   mutation AddBankAccount($id: ID!) {
     addBankAccount(projectId: $id, source: "") {
