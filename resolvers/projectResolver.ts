@@ -23,8 +23,8 @@ import {
   Resolver,
 } from 'type-graphql'
 import { Max, Min } from 'class-validator'
-
-import { Category, Project, ProjectDonation, ProjectUpdate, ProjectUpdateReactions, PROJECT_UPDATE_REACTIONS } from '../entities/project'
+import { Category } from '../entities/category'
+import { Project, ProjectDonation, ProjectUpdate, ProjectUpdateReactions, PROJECT_UPDATE_REACTIONS } from '../entities/project'
 import { User } from '../entities/user'
 import { Repository } from 'typeorm'
 

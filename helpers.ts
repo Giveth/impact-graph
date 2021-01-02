@@ -6,9 +6,11 @@ import { Organisation } from './entities/organisation'
 import { OrganisationUser } from './entities/organisationUser'
 // import { OrganisationProject } from './entities/organisationProject'
 import { Project } from './entities/project'
+import { Category } from './entities/category'
 import { User } from './entities/user'
 
 export async function seedDatabase () {
+  const categoryRepository = getRepository(Category)
   const projectRepository = getRepository(Project)
   const organisationRepository = getRepository(Organisation)
   const organisationUserRepository = getRepository(OrganisationUser)
@@ -18,6 +20,39 @@ export async function seedDatabase () {
   const seedPassword = config.get('SEED_PASSWORD').toString()
   const serverEmail = config.get('SERVER_ADMIN_EMAIL').toString()
   let users: User[] = []
+
+  const categorySeeds = categoryRepository.create([
+    { name: 'poverty', value: 'End Poverty' },
+    { name: 'hunger', value: 'Zero Hunger' },
+    { name: 'health', value: 'Good Health and Well-being' },
+    { name: 'education', value: 'Quality Education' },
+    { name: 'gender-equality', value: 'Gender Equality' },
+    { name: 'clean-water', value: 'Clean Water and Sanitation' },
+    { name: 'energy', value: 'Affordable and Clean Energy' },
+    { name: 'economic-growth', value: 'Decent Work and Economic Growth' },
+    {
+      name: 'innovation-infrastructure',
+      value: 'Industry, Innovation and Infrastructure'
+    },
+    { name: 'reduce-inequality', value: 'Reduced Inequality' },
+    {
+      name: 'sustainable-communities',
+      value: 'Sustainable Cities and Communities'
+    },
+    {
+      name: 'responsible-production',
+      value: 'Responsible Consumption and Production'
+    },
+    { name: 'climate-action', value: 'Climate Action' },
+    { name: 'life-water', value: 'Life Below Water' },
+    { name: 'life-land', value: 'Life On Land' },
+    { name: 'justice', value: 'Peace and Justice Strong Institutions' },
+    { name: 'partnership  ', value: 'Partnerships to achieve the Goal' },
+    { name: 'other', value: 'Other' }
+  ])
+
+  await categoryRepository.save(categorySeeds)
+  
   const superAdminUser = userRepository.create({
     email: serverEmail,
     firstName: 'admin',
