@@ -147,6 +147,10 @@ class ProjectUpdate extends BaseEntity {
   @Field(type => Date)
   @Column()
   createdAt: Date
+
+  @Field(type => Boolean)
+  @Column()
+  isMain: boolean
 }
 
 @Entity()

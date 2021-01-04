@@ -282,6 +282,8 @@ export class ProjectResolver {
         imagePromise = Promise.resolve(imageStatic)
       }
 
+      
+
       const [categories, image] = await Promise.all([categoriesPromise, imagePromise])
 
       const slugBase = slugify(projectInput.title);
@@ -301,7 +303,18 @@ export class ProjectResolver {
         // ...projectInput,
         // authorId: user.id
       })
+      
       const newProject = await this.projectRepository.save(project)
+
+      const update = await ProjectUpdate.create({
+        userId: ctx.req.user.userId,
+        projectId: newProject.id,
+        content: "",
+        title: "",
+        createdAt: new Date(),
+        isMain: true
+      });
+      await ProjectUpdate.save(update);
 
       // const organisationProject = this.organisationProject.create({
       //   organisationId: projectInput.organisationId,
@@ -421,7 +434,8 @@ export class ProjectResolver {
       projectId: project.id,
       content,
       title,
-      createdAt: new Date()
+      createdAt: new Date(),
+      isMain: false
     })
 
     return ProjectUpdate.save(update);
@@ -456,6 +470,35 @@ export class ProjectResolver {
     return true;
   }
 
+  @Mutation(returns => Boolean)
+  async toggleProjectReaction (
+    @Arg('projectId') projectId: number,
+    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = 'heart',
+    @Ctx() { req: { user } }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<boolean> {
+    if (!user) throw new Error('Authentication required.')
+
+    const update = await ProjectUpdate.findOne({ projectId, isMain: true });
+    if (!update) throw new Error('Update not found.');
+    
+    const currentReaction = await ProjectUpdateReactions.findOne({ projectUpdateId: update.id, userId: user.userId });
+    
+    await ProjectUpdateReactions.delete({ userId: user.userId });
+
+    if (currentReaction && currentReaction.reaction === reaction) return false;
+
+    const newReaction = await ProjectUpdateReactions.create({
+      userId: user.userId,
+      projectUpdateId: update.id,
+      reaction
+    })
+
+    await ProjectUpdateReactions.save(newReaction)
+
+    return true;
+  }
+
   @Query(returns => [GetProjectUpdatesResult])
   async getProjectUpdates (
     @Arg('projectId') projectId: number,
@@ -465,7 +508,7 @@ export class ProjectResolver {
     @PubSub() pubSub: PubSubEngine
   ): Promise<GetProjectUpdatesResult[]> {
     const updates = await ProjectUpdate.find({
-      where: { projectId },
+      where: { projectId, isMain: false },
       skip,
       take
     });
@@ -478,6 +521,19 @@ export class ProjectResolver {
     })
 
     return results;
+  }
+
+  @Query(returns => [ProjectUpdateReactions])
+  async getProjectReactions (
+    @Arg('projectId') projectId: number,
+    @Ctx() { user }: Context,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<ProjectUpdateReactions[]> {
+    const update = await ProjectUpdate.findOne({
+      where: { projectId, isMain: true }
+    });
+
+    return await ProjectUpdateReactions.find({ where: { projectUpdateId: update?.id || -1 } });
   }
 
   @Query(returns => Project, { nullable: true })
