@@ -149,7 +149,7 @@ class ProjectUpdate extends BaseEntity {
   createdAt: Date
 
   @Field(type => Boolean)
-  @Column()
+  @Column({ nullable: true })
   isMain: boolean
 }
 
