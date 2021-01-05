@@ -477,7 +477,7 @@ export class ProjectResolver {
       if(!project) throw new Error("Project not found.");
 
       update = await ProjectUpdate.save(await ProjectUpdate.create({
-        userId: +project.admin || 0,
+        userId: +(project && project.admin) || 0,
         projectId: projectId,
         content: "",
         title: "",
