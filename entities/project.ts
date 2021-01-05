@@ -7,10 +7,12 @@ import {
   ColumnOptions,
   JoinTable, 
   BaseEntity,
-  Index
+  OneToMany
 } from 'typeorm'
 
 import { Organisation } from './organisation'
+import { Donation } from './donation'
+import { Category } from './category'
 
 // import { OrganisationProject } from './organisationProject'
 // NO idea why the below import doesn't work!!!
@@ -19,20 +21,7 @@ function RelationColumn (options?: ColumnOptions) {
   return Column({ nullable: true, ...options })
 }
 
-@Entity()
-@ObjectType()
-class Category {
-  @PrimaryGeneratedColumn()
-  id: number;
 
-  @Index()
-  @Column()
-  @Field()
-  name: string;
-
-  @ManyToMany(type => Project, project => project.categories)
-  projects: Project[];
-}
 
 @Entity()
 @ObjectType()
@@ -98,27 +87,7 @@ class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   walletAddress?: string
-  // @Field(type => [OrganisationProject], { nullable: true })
-  // @OneToMany(
-  //   type => OrganisationProject,
-  //   organisationProject => organisationProject.organisation
-  // )
-  // organisationProjects?: OrganisationProject[]
-  // @JoinTable({
-  //   name: 'organisation_project',
-  //   joinColumn: {
-  //     name: 'id',
-  //     referencedColumnName: 'organisation_project_id'
-  //   }
-  // })
-
-  // TODO: add the user back in, after model is clean
-  // @Field(type => User)
-  // @ManyToOne(type => User)
-  // author: User
-
-  // @RelationColumn()
-  // authorId: number
+  
 }
 
 @Entity()
@@ -155,34 +124,6 @@ class ProjectUpdate extends BaseEntity {
 
 @Entity()
 @ObjectType()
-class ProjectDonation extends BaseEntity {
-  @Field(type => ID)
-  @PrimaryGeneratedColumn()
-  readonly id: number
-
-  @Field(type => ID)
-  @Column()
-  projectId: number
-
-  @Field()
-  @Column()
-  amount: number
-
-  @Field(type => ID)
-  @Column({ nullable: true })
-  userId?: number
-
-  @Field(type => String)
-  @Column()
-  txId: string
-
-  @Field(type => Date)
-  @Column()
-  createdAt: Date
-}
-
-@Entity()
-@ObjectType()
 class ProjectUpdateReactions extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -207,6 +148,5 @@ export {
   Project,
   Category,
   ProjectUpdate,
-  ProjectUpdateReactions,
-  ProjectDonation
+  ProjectUpdateReactions
 }

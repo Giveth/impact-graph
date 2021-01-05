@@ -38,24 +38,18 @@ export class LoginResolver {
   ): Promise<LoginResponse | null> {
     if (typeof loginType === 'undefined') {
       loginType = LoginType.Password
-    } else {
-      console.log(`typeof  loginType ---> : ${typeof loginType}`)
-      console.log('message login')
-    }
+    } 
     switch (loginType) {
       case LoginType.SignedMessage:
         console.log('MESSAGE')
         loginType = LoginType.SignedMessage
         break
       case LoginType.Password:
-        console.log('PASS')
         loginType = LoginType.Password
         break
       default:
         throw Error('Invalid login type')
     }
-
-    console.log('Finding user with email ' + email)
 
     const user: any = await User.findOne({
       where: { email, loginType: 'password' }
@@ -88,8 +82,6 @@ export class LoginResolver {
       { expiresIn: '30d' }
     )
 
-    console.log(`accessToken ---> : ${accessToken}`)
-    console.log(`userId : ${JSON.stringify(user, null, 2)}`)
     const response = new LoginResponse()
 
     response.user = user
@@ -98,8 +90,7 @@ export class LoginResolver {
   }
 
   createToken (user: any) {
-    console.log(`user : ${JSON.stringify(user, null, 2)}`)
-
+   
     return jwt.sign(user, config.get('JWT_SECRET') as string, {
       expiresIn: '30d'
     })
@@ -114,19 +105,14 @@ export class LoginResolver {
     @Arg('avatar', { nullable: true }) avatar: string,
     @Ctx() ctx: MyContext
   ): Promise<LoginResponse | null> {
-    console.log('Login waller')
-    console.log(`walletAddress ---> : ${walletAddress}`)
-    console.log(`signature ---> : ${signature}`)
     const publicAddress = await web3.eth.accounts.recover(
       'our_secret',
       signature
     )
-    console.log(`publicAddress : ${JSON.stringify(publicAddress, null, 2)}`)
     let user = await User.findOne({ where: { email } })
 
     if (!user) {
-      console.log(`No user with email address ${email}`)
-
+     
       user = await User.create({
         email,
         name,
@@ -135,10 +121,8 @@ export class LoginResolver {
         avatar
       }).save()
 
-      console.log(`user saved : ${JSON.stringify(user, null, 2)}`)
     } else {
-      console.log('user exists already')
-
+   
       user.avatar = avatar;
       if(name) user.name = name;
       await user.save();
@@ -152,8 +136,7 @@ export class LoginResolver {
     })
     response.user = user
 
-    console.log(`response : ${JSON.stringify(response, null, 2)}`)
-
+    
     return response
   }
 }

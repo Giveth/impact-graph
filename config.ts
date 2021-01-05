@@ -23,7 +23,11 @@ const envVars = [
   'STRIPE_WEBHOOK_SECRET',
   'PINATA_API_KEY',
   'PINATA_SECRET_API_KEY',
-  'UPLOAD_MAX_FILE_SIZE'
+  'DB_DROP_SEED',
+  'SEED_PASSWORD',
+  'SERVER_ADMIN_EMAIL',
+  'DEFAULT_ORGANISATION',
+  'UPLOAD_FILE_MAX_SIZE'
 ]
 
 class Config {
@@ -63,6 +67,9 @@ class Config {
   }
 
   get (envVar: string): string | number {
+    if(!this[envVar]) {
+      throw new Error(`${envVar} is an invalid env variable`)
+    }
     return this[envVar]
   }
 }

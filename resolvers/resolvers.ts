@@ -7,6 +7,8 @@ import { RegisterResolver } from '../user/register/RegisterResolver';
 import { MeResolver } from '../user/MeResolver';
 import { BankAccountResolver } from './bankAccountResolver';
 import { UploadResolver } from './uploadResolver';
+import { CategoryResolver } from './categoryResolver';
+import { DonationResolver } from './donationResolver';
 
 export const resolvers: any = [
     UserResolver,
@@ -17,5 +19,7 @@ export const resolvers: any = [
     RegisterResolver,
     MeResolver,
     BankAccountResolver,
-    UploadResolver
+    UploadResolver,
+    CategoryResolver,
+    DonationResolver
 ]

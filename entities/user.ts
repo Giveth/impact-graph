@@ -5,8 +5,7 @@ import {
   Entity,
   OneToMany,
   ManyToMany,
-  BaseEntity,
-  JoinTable
+  BaseEntity
 } from 'typeorm'
 import { OrganisationUser } from './organisationUser'
 import { Organisation } from './organisation'
@@ -52,26 +51,18 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   confirmed: boolean
 
+
   @OneToMany(
     type => OrganisationUser,
     organisationUser => organisationUser.user
   )
   organisationUsers?: OrganisationUser[]
 
-  // @Field(type => [OrganisationUser], { nullable: true })
-  // @OneToMany(
-  //   type => OrganisationUser,
-  //   organisationUser => organisationUser.user
-  // )
-  // organisationUsers?: OrganisationUser[]
-
   @Field(type => Organisation)
-  // @JoinTable({ name: 'organisation_user' })
   @ManyToMany(
     type => Organisation,
     organisation => organisation.users
   )
   organisations: Organisation[]
-  // @Field(type => [Organisation])
-  // organisations: Organisation[]
+  
 }
