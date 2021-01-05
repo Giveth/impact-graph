@@ -9,6 +9,7 @@ import {
   RelationId
 } from 'typeorm'
 import { Project } from './project'
+import { User } from './user'
 
 @Entity()
 @ObjectType()
@@ -23,7 +24,11 @@ export class Donation extends BaseEntity {
   
   @Field()
   @Column()
-  walletAddress: string
+  toWalletAddress: string
+
+  @Field()
+  @Column()
+  fromWalletAddress: string
 
   @Field()
   @Column()
@@ -37,9 +42,9 @@ export class Donation extends BaseEntity {
   @Column({type: 'real'})
   amount: number
   
-  @Field(type => ID)
-  @Column({ nullable: true })
-  userId?: number
+  @Field()
+  @Column({type: 'real'})
+  valueUsd: number
   
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
@@ -47,6 +52,12 @@ export class Donation extends BaseEntity {
   @RelationId((donation: Donation) => donation.project)
   projectId: number
   
+  @Field(type => User,{ nullable: true })
+  @ManyToOne(type => User, { eager: true, nullable: true })
+  user: User
+  @RelationId((donation: Donation) => donation.user)
+  userId: number
+
   @Field(type => Date)
   @Column()
   createdAt: Date
