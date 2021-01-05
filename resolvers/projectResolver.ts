@@ -488,7 +488,7 @@ export class ProjectResolver {
     
     const currentReaction = await ProjectUpdateReactions.findOne({ projectUpdateId: update.id, userId: user.userId });
     
-    await ProjectUpdateReactions.delete({ userId: user.userId });
+    await ProjectUpdateReactions.delete({ projectUpdateId: update.id, userId: user.userId });
 
     if (currentReaction && currentReaction.reaction === reaction) return false;
 
