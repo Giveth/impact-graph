@@ -474,8 +474,10 @@ export class ProjectResolver {
     if (!update) {
       let project = await Project.findOne({ id: projectId });
       
+      if(!project) throw new Error("Project not found.");
+
       update = await ProjectUpdate.save(await ProjectUpdate.create({
-        userId: +project?.admin,
+        userId: +project.admin,
         projectId: projectId,
         content: "",
         title: "",
