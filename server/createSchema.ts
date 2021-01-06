@@ -32,8 +32,8 @@ const createSchema = async (): Promise<GraphQLSchema> => {
         dropSchema,
         cache: true
     })
-    const dropSeed = config.get('DB_DROP_SEED') ? config.get('DB_DROP_SEED') : false
-    if (dropSeed) {
+    const seedData = config.get('DB_DROP_SEED') ? config.get('DB_DROP_SEED') : false
+    if (seedData) {
         // seed database with some data
         // Removed for go live, in future this can be used to init the db with data, such as seed projects or categories
         const { defaultUser } = await seedDatabase()

@@ -10,6 +10,7 @@ import { Category } from './entities/category'
 import { User } from './entities/user'
 
 export async function seedDatabase () {
+  
   const categoryRepository = getRepository(Category)
   const projectRepository = getRepository(Project)
   const organisationRepository = getRepository(Organisation)
@@ -40,12 +41,17 @@ export async function seedDatabase () {
     { name: 'sdg-justice', value: 'Peace and Justice Strong Institutions', source: 'SDG' },
     { name: 'sdg-partnership  ', value: 'Partnerships to achieve the Goal', source: 'SDG' },
    */
+
   const categorySeeds = categoryRepository.create([
     { name: 'community', value: 'Community', source: 'adhoc' },
     { name: 'food', value: 'Food', source: 'adhoc' },
     { name: 'non-profit', value: 'Non-profit', source: 'adhoc' },
     { name: 'housing', value: 'Housing', source: 'adhoc' },
     { name: 'technology', value: 'Technology', source: 'adhoc' },
+    { name: 'research', value: 'Research', source: 'adhoc' },
+    { name: 'nutrition', value: 'Nutrition', source: 'adhoc' },
+    { name: 'art-culture', value: 'Art & Culture', source: 'adhoc' },
+
     { name: 'agriculture', value: 'Agriculture', source: 'IRIS'},
     { name: 'air', value: 'Air', source: 'IRIS'},
     { name: 'biodiversity', value: 'Biodiversity', source: 'IRIS'},
