@@ -21,7 +21,7 @@ export class Category extends BaseEntity{
   name: string
 
   @Field()
-  @Column()
+  @Column({ nullable: true })
   value: string
 
   @Field()
