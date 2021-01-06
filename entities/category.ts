@@ -17,7 +17,7 @@ export class Category extends BaseEntity{
   id: number;
 
   @Field()
-  @Column('text', { unique: true })
+  @Column('text', { unique: true, nullable: true })
   name: string
 
   @Field()
@@ -25,7 +25,7 @@ export class Category extends BaseEntity{
   value: string
 
   @Field()
-  @Column()
+  @Column({ nullable: true })
   source: string
 
   @ManyToMany(type => Project, project => project.categories)
