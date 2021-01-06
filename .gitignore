@@ -14,4 +14,6 @@ coverage
 # parcel cache
 .cache
 
-config/*.env
+config/development.env
+config/production.env
+.vscode/settings.json
