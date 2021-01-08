@@ -24,15 +24,15 @@ import {
 } from 'type-graphql'
 import { Max, Min } from 'class-validator'
 import { Category } from '../entities/category'
-import { Project, ProjectDonation, ProjectUpdate, ProjectUpdateReactions, PROJECT_UPDATE_REACTIONS } from '../entities/project'
+import { Project, ProjectUpdate, ProjectUpdateReactions, PROJECT_UPDATE_REACTIONS } from '../entities/project'
 import { User } from '../entities/user'
+import { Donation } from '../entities/donation'
 import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
 import { Context } from '../context'
 import { pinFile } from '../middleware/pinataUtils';
 import { query } from 'express'
-import { web3 } from '../utils/web3'
 // import { OrganisationProject } from '../entities/organisationProject'
 // import { ProjectsArguments } from "./types/projects-arguments";
 // import { generateProjects } from "../helpers";
@@ -532,33 +532,4 @@ export class ProjectResolver {
     return this.projectRepository.findOne({ walletAddress: address })
   }
   
-  @Mutation(returns => Boolean)
-  async registerProjectDonation (
-    @Arg('txId') txId: string,
-    @Arg('anonymous') anonymous: boolean,
-    @Ctx() ctx: MyContext
-  ): Promise<boolean> {
-    const txInfo = await web3.eth.getTransaction(txId);
-    if (!txInfo) throw new Error("Transaction ID not found.");
-    if (!ctx.req.user) throw new Error("You must be logged in in order to register project donations");
-
-    const originUser = await User.findOne({ walletAddress: txInfo.from.toLowerCase() });
-    const destinationProject = await Project.findOne({ walletAddress: txInfo.to?.toLowerCase() || "" });
-    const value = +web3.utils.fromWei(txInfo.value);
-    const date = new Date();
-
-    if(!originUser) throw new Error("Transaction user was not found.");
-    if(!originUser.id != ctx.req.user.userId) throw new Error("This transaction doesn't belong to you.");
-    if(!destinationProject) throw new Error("Transaction project was not found.");
-    
-    await ProjectDonation.create({
-      amount: value,
-      userId: originUser?.id,
-      projectId: destinationProject?.id,
-      createdAt: new Date(),
-      txId
-    }).save();
-
-    return true;
-  }
 }

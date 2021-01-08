@@ -1,6 +1,6 @@
 import { Field, Float, ID, ObjectType } from "type-graphql";
 import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-7 
+
 @ObjectType()
 @Entity()
 export class BankAccount extends BaseEntity {

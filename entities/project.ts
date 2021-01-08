@@ -7,10 +7,11 @@ import {
   ColumnOptions,
   JoinTable, 
   BaseEntity,
-  Index
+  OneToMany
 } from 'typeorm'
 
 import { Organisation } from './organisation'
+import { Donation } from './donation'
 import { Category } from './category'
 
 // import { OrganisationProject } from './organisationProject'
@@ -123,34 +124,6 @@ class ProjectUpdate extends BaseEntity {
 
 @Entity()
 @ObjectType()
-class ProjectDonation extends BaseEntity {
-  @Field(type => ID)
-  @PrimaryGeneratedColumn()
-  readonly id: number
-
-  @Field(type => ID)
-  @Column()
-  projectId: number
-
-  @Field()
-  @Column()
-  amount: number
-
-  @Field(type => ID)
-  @Column({ nullable: true })
-  userId?: number
-
-  @Field(type => String)
-  @Column()
-  txId: string
-
-  @Field(type => Date)
-  @Column()
-  createdAt: Date
-}
-
-@Entity()
-@ObjectType()
 class ProjectUpdateReactions extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -175,6 +148,5 @@ export {
   Project,
   Category,
   ProjectUpdate,
-  ProjectUpdateReactions,
-  ProjectDonation
+  ProjectUpdateReactions
 }
