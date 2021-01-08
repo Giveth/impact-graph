@@ -28,7 +28,7 @@ const createSchema = async (): Promise<GraphQLSchema> => {
         entities,
         synchronize: true,
         logger: 'advanced-console',
-        logging: 'all',
+        logging: ["error"],
         dropSchema,
         cache: true
     })
