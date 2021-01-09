@@ -51,7 +51,6 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   confirmed: boolean
 
-
   @OneToMany(
     type => OrganisationUser,
     organisationUser => organisationUser.user
