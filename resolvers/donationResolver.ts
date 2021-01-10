@@ -74,10 +74,11 @@ export class DonationResolver {
     
     let userId
     
+    let originUser;
     //Logged in
     if(ctx.req.user && ctx.req.user.userId) {    
       userId = ctx.req.user.userId
-      const originUser = await User.findOne({ id: userId })
+      originUser = await User.findOne({ id: userId })
       
       //Transaction not made with the users primary wallet
       if(originUser && originUser.walletAddress !== txInfo.from) {
@@ -86,10 +87,12 @@ export class DonationResolver {
           address: txInfo.from.toLowerCase()
         })
       }
+      
     } else {
-      const originUser = await User.findOne({ walletAddress: txInfo.from })
+      originUser = await User.findOne({ walletAddress: txInfo.from })
       
       userId = originUser ? originUser.id : null
+      
     }
     
     if(!destinationProject) throw new Error("Transaction project was not found.");
@@ -99,9 +102,10 @@ export class DonationResolver {
     const donation = await Donation.create({
       amount: Number(value),
       currency: 'ETH', 
-      userId: userId,
+      user: (userId ? originUser  : null),
       project: destinationProject,
       createdAt: new Date(),
+      valueUsd: 0.01,
       transactionId: transactionId,
       toWalletAddress: txInfo.to?.toString().toLowerCase(),
       fromWalletAddress: txInfo.from?.toString().toLowerCase(),
