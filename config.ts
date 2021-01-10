@@ -6,7 +6,6 @@ dotenv.config({ path: path.resolve(__dirname, `./config/${process.env.NODE_ENV||
 const envVars = [
   'JWT_SECRET',
   'JWT_MAX_AGE',
-  'ETHEREUM_NODE_URL',
   'TYPEORM_DATABASE_TYPE',
   'TYPEORM_DATABASE_NAME',
   'TYPEORM_DATABASE_USER',
@@ -27,13 +26,16 @@ const envVars = [
   'SEED_PASSWORD',
   'SERVER_ADMIN_EMAIL',
   'DEFAULT_ORGANISATION',
-  'UPLOAD_FILE_MAX_SIZE'
+  'UPLOAD_FILE_MAX_SIZE',
+  'ETHEREUM_NODE_ID',
+  'ETHEREUM_NETWORK'
 ]
 
 class Config {
   JWT_SECRET: string
   JWT_MAX_AGE: string
-  ETHEREUM_NODE_URL: string
+  ETHEREUM_NODE_ID: string
+  ETHEREUM_NETWORK: string
   TYPEORM_DATABASE_TYPE: string
   TYPEORM_DATABASE_NAME: string
   TYPEORM_DATABASE_USER: string
