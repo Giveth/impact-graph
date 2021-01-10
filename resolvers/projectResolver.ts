@@ -470,8 +470,21 @@ export class ProjectResolver {
   ): Promise<boolean> {
     if (!user) throw new Error('Authentication required.')
 
-    const update = await ProjectUpdate.findOne({ projectId, isMain: true });
-    if (!update) throw new Error('Update not found.');
+    let update = await ProjectUpdate.findOne({ projectId, isMain: true });
+    if (!update) {
+      let project = await Project.findOne({ id: projectId });
+      
+      if(!project) throw new Error("Project not found.");
+
+      update = await ProjectUpdate.save(await ProjectUpdate.create({
+        userId: project && project.admin && +project.admin? +project.admin : 0,
+        projectId: projectId,
+        content: "",
+        title: "",
+        createdAt: new Date(),
+        isMain: true
+      }));
+    }
     
     const currentReaction = await ProjectUpdateReactions.findOne({ projectUpdateId: update.id, userId: user.userId });
     
