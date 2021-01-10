@@ -88,6 +88,12 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   walletAddress?: string
   
+  @Field(type => [Donation], { nullable: true })
+  @OneToMany(
+    type => Donation,
+    donation => donation.project
+  )
+  donations?: Donation[]
 }
 
 @Entity()

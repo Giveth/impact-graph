@@ -42,6 +42,10 @@ export class Donation extends BaseEntity {
   @Column({type: 'real'})
   amount: number
   
+  @Field()
+  @Column({type: 'real'})
+  valueUsd: number
+  
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
   project: Project
