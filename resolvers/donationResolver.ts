@@ -17,7 +17,7 @@ import { User } from '../entities/user'
 import { Project } from '../entities/project'
 import { Donation } from '../entities/donation'
 import { web3 } from '../utils/web3'
-import { Wallet } from '../entities/wallets';
+import { Wallet } from '../entities/wallet';
 
 @Resolver(of => User)
 export class DonationResolver {

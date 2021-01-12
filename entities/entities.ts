@@ -4,6 +4,7 @@ import { User } from './user';
 import { Project, ProjectUpdate, ProjectUpdateReactions } from './project';
 import { Category } from './category';
 import { Donation } from './donation';
+import { Wallet } from './wallet';
 import Notification from './notification';
 import { BankAccount, StripeTransaction } from './bankAccount';
 
@@ -18,5 +19,6 @@ export const entities: any = [
     Category,
     ProjectUpdate,
     ProjectUpdateReactions,
-    Donation
+    Donation,
+    Wallet
 ]
