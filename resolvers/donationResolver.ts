@@ -5,6 +5,9 @@ import {
   Mutation,
   Ctx
 } from 'type-graphql'
+import config from '../config'
+
+import axios, { AxiosResponse } from 'axios'
 
 import { MyContext } from '../types/MyContext'
 import { Repository, In } from 'typeorm'
@@ -67,7 +70,6 @@ export class DonationResolver {
   ): Promise<Boolean> {
     
     const txInfo = await web3.eth.getTransaction(transactionId);
-    
     if (!txInfo) throw new Error("Transaction ID not found.");
     
     const destinationProject = await Project.findOne({ walletAddress: txInfo.to?.toString() || "" });
@@ -105,15 +107,31 @@ export class DonationResolver {
       user: (userId ? originUser  : null),
       project: destinationProject,
       createdAt: new Date(),
-      valueUsd: 0.01,
       transactionId: transactionId,
       toWalletAddress: txInfo.to?.toString().toLowerCase(),
       fromWalletAddress: txInfo.from?.toString().toLowerCase(),
       anonymous
     })
     
+    
+
+    //0xf1d564c9890cd8f80455d761ee4ea1e69829f777bd4b0f127fa7ada6d0e8df32
+    const feathersServer = (config.get('ETHEREUM_NETWORK') === 'ropsten') ? 'develop' : 'beta' // live is beta
+    const feathersUrl: string = `https://feathers.${feathersServer}.giveth.io/conversionRates?txHash=${transactionId}&from=ETH&isHome=true`
+    
+    let valueUsd = 0
+
+    try {
+      const response: any = await axios.get(feathersUrl)
+     
+      valueUsd = response.data.rate * Number(value) 
+       
+    } catch (e) {
+      throw new Error(`Error calling feathers for transaction - ${feathersUrl}`)
+    }
+    
+    donation.valueUsd = valueUsd
     donation.save()
-  
     return true
   }
 

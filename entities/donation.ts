@@ -42,8 +42,8 @@ export class Donation extends BaseEntity {
   @Column({type: 'real'})
   amount: number
   
-  @Field()
-  @Column({type: 'real'})
+  @Field({ nullable: true })
+  @Column({type: 'real', nullable: true})
   valueUsd: number
   
   @Field(type => Project)
