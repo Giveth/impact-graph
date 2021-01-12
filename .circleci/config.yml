@@ -29,4 +29,5 @@ jobs:
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
             ssh -o "StrictHostKeyChecking no" givethadmin@serve.giveth.io 'cd impact-graph/ && git checkout master && git pull && npm ci && npm run serve;'
+            ssh -o "StrictHostKeyChecking no" givethadmin@mainnet.serve.giveth.io 'cd impact-graph/ && git checkout master && git pull && npm ci && npm run serve;'
             fi
