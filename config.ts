@@ -28,7 +28,8 @@ const envVars = [
   'DEFAULT_ORGANISATION',
   'UPLOAD_FILE_MAX_SIZE',
   'ETHEREUM_NODE_ID',
-  'ETHEREUM_NETWORK'
+  'ETHEREUM_NETWORK',
+  'HOSTNAME_WHITELIST'
 ]
 
 class Config {
@@ -55,6 +56,7 @@ class Config {
   PINATA_API_KEY: string
   PINATA_SECRET_API_KEY: string
   UPLOAD_FILE_MAX_SIZE: string
+  HOSTNAME_WHITELIST: string // Comma separated
 
   constructor () {
     const envFile = process.env;
@@ -69,7 +71,7 @@ class Config {
   }
 
   get (envVar: string): string | number {
-    if(!this[envVar]) {
+    if (!this[envVar]) {
       throw new Error(`${envVar} is an invalid env variable`)
     }
     return this[envVar]
