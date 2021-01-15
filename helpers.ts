@@ -102,9 +102,8 @@ export async function seedDatabase () {
     users.push(givethAdmin)
     await userRepository.save(users)
     const project1 = projectRepository.create({
-      title: 'Giveth',
-      description: `The future of Giving
-      Unlike traditional charity, with Giveth every donation and pledge is transparent, so you always know exactly where your donation went and get a good sense of the impact it made in direct communication with your beneficiary.`,
+      title: 'Giveth - Support the future of giving',
+      description: `Join us in building the future of giving!\n\nIn addition to maintaining beta.giveth.io, we’re actively developing v2.giveth.io, the free, open-source, and decentralized application for peer-to-peer donations. Donations such as yours are our primary source of funding and are deeply appreciated! 💜\n\nProgress 🚀\n\n - Giveth now has 501c3 status!\n - The beta version of Giveth is live at beta.giveth.io with free donations for projects!\n - We’re building the next evolution of Giveth at v2.giveth.io and making incredible progress. Take it for a test drive and let us know what you think!\n - We are Hiring! We are looking for experienced devs and project managers to join the team!\n\nIn the next evolution of Giveth, we're building upon firsthand experience over the past 3+ years with the Giveth Dapp. The V2 is starting out with a simple purpose:\n\nEnable projects anywhere in the world to start accepting donations in a few minutes, with zero fees and zero censorship.\n\nOffer the best experience for anyone looking to donate to a cause, whether with crypto or a credit card.\n\nCheck out the in-progress v2, and please donate to help make this dream a reality!`,
       organisationId: 1,
       admin: 'giveth',
       walletAddress: '0x8f951903C9360345B4e1b536c7F5ae8f88A64e79',
