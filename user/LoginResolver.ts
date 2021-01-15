@@ -49,6 +49,7 @@ export class LoginResolver {
     const customPrefix = `\u0019${hostname} Signed Message:\n`
     const prefixWithLength = Buffer.from(`${customPrefix}${message.length.toString()}`, 'utf-8')
     const hashedMsg = keccak256(Buffer.concat([prefixWithLength, Buffer.from(message)]))
+    cache[hostname] = hashedMsg
     return hashedMsg
   }
 
