@@ -53,6 +53,28 @@ export class LoginResolver {
     return hashedMsg
   }
 
+  // James: We don't need this right now, maybe in the future
+  // @Mutation(() => Boolean, { nullable: true })
+  // async validateToken (
+  //   @Arg('token') token: string,
+  //   @Ctx() ctx: MyContext
+  // ): Promise<Boolean | null> {
+  //   const secret = config.get('JWT_SECRET') as string
+
+  //   console.log(`Authenticate token ---> : ${token}`)
+  //   try {
+  //     const decodedJwt: any = jwt.verify(token, secret)
+  //     console.log(`decodedJwt ---> : ${decodedJwt}`)
+  //     return true
+  //   } catch (error) {
+  //     console.error(
+  //         `Apollo Server error : ${JSON.stringify(error, null, 2)}`
+  //     )
+  //     console.error(`Error for token ${token}`)
+  //     return false
+  //   }
+  // }
+
   @Mutation(() => LoginResponse, { nullable: true })
   async login (
     @Arg('email') email: string,

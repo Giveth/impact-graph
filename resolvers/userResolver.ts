@@ -15,6 +15,7 @@ import { OrganisationUser } from '../entities/organisationUser'
 import { User } from '../entities/user'
 import { RegisterInput } from '../user/register/RegisterInput'
 import { Organisation } from '../entities/organisation'
+import { MyContext } from '../types/MyContext'
 
 @Resolver(of => User)
 export class UserResolver {
@@ -40,6 +41,17 @@ export class UserResolver {
     return this.userRepository.findOne({ walletAddress: address })
   }
 
+  @Mutation(returns => Boolean)
+  async updateUser (
+    @Arg('firstName') firstName: string,
+    @Arg('lastName') lastName: string,
+    @Arg('location') location: string,
+    @Arg('url') url: string,
+    @Ctx() { req: { user } }: MyContext
+  ): Promise<boolean> {
+    // if (!user) throw new Error('Authentication required.')
+    return true
+  }
   // @FieldResolver()
   // organisationUsers (@Root() user: User) {
   //   return this.organisationUserRepository.find({

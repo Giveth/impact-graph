@@ -21,6 +21,7 @@ export async function bootstrap() {
         const apolloServer = new ApolloServer({
             schema,
             context: ({ req, res }: any) => {
+                let token
                 try {
                     if (!req) {
                         return null
@@ -28,9 +29,10 @@ export async function bootstrap() {
 
                     const { headers } = req;
                     if (headers.authorization) {
-                        const token = headers.authorization.split(' ')[1].toString()
+                        token = headers.authorization.split(' ')[1].toString()
                         const secret = config.get('JWT_SECRET') as string
 
+                        console.log(`Authenticate token ---> : ${token}`)
                         const decodedJwt: any = jwt.verify(token, secret)
 
                         let user
@@ -58,6 +60,7 @@ export async function bootstrap() {
                     console.error(
                         `Apollo Server error : ${JSON.stringify(error, null, 2)}`
                     )
+                    console.error(`Error for token ${token}`)
                 }
 
                 return {
