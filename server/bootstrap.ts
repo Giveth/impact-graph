@@ -32,7 +32,6 @@ export async function bootstrap() {
                         token = headers.authorization.split(' ')[1].toString()
                         const secret = config.get('JWT_SECRET') as string
 
-                        console.log(`Authenticate token ---> : ${token}`)
                         const decodedJwt: any = jwt.verify(token, secret)
 
                         let user

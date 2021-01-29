@@ -17,9 +17,9 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number
 
-  @Field()
-  @Column('text', { unique: true })
-  email: string
+  @Field({ nullable: true })
+  @Column({ unique: true, nullable: true })
+  email?: string
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -34,7 +34,7 @@ export class User extends BaseEntity {
   name?: string
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ unique: true })
   walletAddress?: string
 
   @Field({ nullable: true })

@@ -110,9 +110,9 @@ export class LoginResolver {
     const valid = await bcrypt.compare(password, user.password)
 
     if (!valid) {
-      console.log('Not valid')
+      // console.log('Invalid password')
 
-      // return null
+      return null
     }
 
     // if (!user.confirmed) {
@@ -147,7 +147,7 @@ export class LoginResolver {
     @Arg('walletAddress') walletAddress: string,
     @Arg('signature') signature: string,
     @Arg('hostname') hostname: string,
-    @Arg('email') email: string,
+    @Arg('email', { nullable: true }) email: string,
     @Arg('name', { nullable: true }) name: string,
     @Arg('avatar', { nullable: true }) avatar: string,
     @Ctx() ctx: MyContext
@@ -164,10 +164,10 @@ export class LoginResolver {
 
     if (walletAddress.toLocaleLowerCase() !== publicAddressLowerCase) return null;
 
-    let user = await User.findOne({ where: { email } })
+    let user = await User.findOne({ where: { walletAddress: publicAddressLowerCase } })
 
     try {
-
+      
       if (!user) {
         user = await User.create({
           email,
@@ -178,7 +178,6 @@ export class LoginResolver {
         }).save()
 
       } else {
-
         let modified = false;
         const updateUserIfNeeded = (field, value) => {
           // @ts-ignore
