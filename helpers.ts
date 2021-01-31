@@ -82,7 +82,8 @@ export async function seedDatabase () {
     firstName: 'admin',
     password: bcrypt.hashSync(seedPassword, 12),
     confirmed: true,
-    loginType: 'password'
+    loginType: 'password',
+    walletAddress: "0x324bE1Bc256e97CF9a858a37d880bCE687671215"
   })
 
   users.push(superAdminUser)

@@ -17,7 +17,7 @@ const createSchema = async (): Promise<GraphQLSchema> => {
         resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver])
     }
 
-    const dropSchema = config.get('TYPEORM_DROP_SCHEMA') === 'true'
+    const dropSchema = config.get('DROP_DATABASE') === 'true'
     await TypeORM.createConnection({
         type: 'postgres',
         database: config.get('TYPEORM_DATABASE_NAME') as string,
@@ -32,7 +32,7 @@ const createSchema = async (): Promise<GraphQLSchema> => {
         dropSchema,
         cache: true
     })
-    const seedData = config.get('DB_DROP_SEED') ? config.get('DB_DROP_SEED') : false
+    const seedData = config.get('SEED_DATABASE') ? config.get('SEED_DATABASE') : false
     if (seedData) {
         // seed database with some data
         // Removed for go live, in future this can be used to init the db with data, such as seed projects or categories
