@@ -5,6 +5,7 @@ import NotificationPayload from '../entities/notificationPayload'
 import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
 import slugify from 'slugify';
+import Logger from '../logger'
 
 import {
   Arg,
@@ -246,7 +247,16 @@ export class ProjectResolver {
       // return undefined
     }
 
-      const categoriesPromise = Promise.all(projectInput.categories ?
+    const user = await User.findOne({ id: ctx.req.user.userId })
+    if(!user) {
+      const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`
+      const userMessage = 'Access denied'
+      Logger.captureMessage(errorMessage);
+      console.error(`Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`)
+      throw new Error(userMessage)
+    } 
+      
+    const categoriesPromise = Promise.all(projectInput.categories ?
         projectInput.categories.map(async category => {
           let [c] = await this.categoryRepository.find({ name: category });
           if (c === undefined) {

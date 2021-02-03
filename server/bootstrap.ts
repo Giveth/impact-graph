@@ -3,7 +3,7 @@ import { ApolloServer } from 'apollo-server-express';
 import * as jwt from 'jsonwebtoken';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
-
+import Logger from '../logger'
 
 // tslint:disable:no-var-requires
 const express = require('express')
@@ -38,13 +38,15 @@ export async function bootstrap() {
                         if (decodedJwt.nextAuth) {
                             user = {
                                 email: decodedJwt?.nextauth?.user?.email,
-                                name: decodedJwt?.nextauth?.user?.name
+                                name: decodedJwt?.nextauth?.user?.name,
+                                token
                             }
                         } else {
                             user = {
                                 email: decodedJwt?.email,
                                 name: decodedJwt?.firstName,
-                                userId: decodedJwt?.userId
+                                userId: decodedJwt?.userId,
+                                token
                             }
                         }
 
@@ -59,6 +61,7 @@ export async function bootstrap() {
                     console.error(
                         `Apollo Server error : ${JSON.stringify(error, null, 2)}`
                     )
+                    Logger.captureMessage(`Error with with token, check pm2 logs and search for - Error for token - to get the token`);
                     console.error(`Error for token ${token}`)
                 }
 

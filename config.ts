@@ -29,7 +29,8 @@ const envVars = [
   'UPLOAD_FILE_MAX_SIZE',
   'ETHEREUM_NODE_ID',
   'ETHEREUM_NETWORK',
-  'HOSTNAME_WHITELIST'
+  'HOSTNAME_WHITELIST',
+  'SENTRY_ID'
 ]
 
 class Config {
@@ -58,7 +59,8 @@ class Config {
   PINATA_SECRET_API_KEY: string
   UPLOAD_FILE_MAX_SIZE: string
   HOSTNAME_WHITELIST: string // Comma separated
-
+  SENTRY_ID: string
+  
   constructor () {
     const envFile = process.env;
     envVars.forEach(envVar => {

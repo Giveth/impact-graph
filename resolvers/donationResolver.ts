@@ -6,6 +6,8 @@ import {
   Ctx
 } from 'type-graphql'
 import config from '../config'
+import Logger from '../logger'
+import chalk = require('chalk')
 
 import axios, { AxiosResponse } from 'axios'
 
@@ -65,18 +67,17 @@ export class DonationResolver {
   @Mutation(returns => Boolean)
   async saveDonation (
     @Arg('transactionId') transactionId: string,
-    @Ctx() ctx: MyContext,
-    @Arg('anonymous') anonymous: boolean
+    @Ctx() ctx: MyContext
   ): Promise<Boolean> {
     
     const txInfo = await web3.eth.getTransaction(transactionId);
-    if (!txInfo) throw new Error("Transaction ID not found.");
-    
+    if (!txInfo) Logger.captureMessage(`Transaction ID ${transactionId} not found.`);
     const destinationProject = await Project.findOne({ walletAddress: txInfo.to?.toString() || "" });
     
     let userId
     
     let originUser;
+    
     //Logged in
     if(ctx.req.user && ctx.req.user.userId) {    
       userId = ctx.req.user.userId
@@ -88,15 +89,13 @@ export class DonationResolver {
           user: originUser,
           address: txInfo.from.toLowerCase()
         })
-      }
-      
+      }     
     } else {
       originUser = await User.findOne({ walletAddress: txInfo.from })
       
       userId = originUser ? originUser.id : null
-      
     }
-    
+  
     if(!destinationProject) throw new Error("Transaction project was not found.");
     
     const value = txInfo.value ? Number(web3.utils.fromWei(txInfo.value)) : 0 
@@ -110,7 +109,7 @@ export class DonationResolver {
       transactionId: transactionId,
       toWalletAddress: txInfo.to?.toString().toLowerCase(),
       fromWalletAddress: txInfo.from?.toString().toLowerCase(),
-      anonymous
+      anonymous: !!userId
     })
     
     
@@ -127,8 +126,13 @@ export class DonationResolver {
       valueUsd = response.data.rate * Number(value) 
        
     } catch (e) {
-      throw new Error(`Error calling feathers for transaction - ${feathersUrl}`)
+      //Log the error 
+      //Logger.captureException(e);
+      Logger.captureMessage(`Error calling feathers for transaction - ${feathersUrl}`);
+      //throw new Error(`Error calling feathers for transaction - ${feathersUrl}`)
     }
+    
+    console.log('donation saving!')
     
     donation.valueUsd = valueUsd
     donation.save()

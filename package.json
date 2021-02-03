@@ -4,6 +4,8 @@
   "description": "Backend GraphQL server for Topia and more",
   "main": "./dist/index.js",
   "dependencies": {
+    "@sentry/node": "^6.0.4",
+    "@sentry/tracing": "^6.0.4",
     "@types/bcryptjs": "^2.4.2",
     "@types/connect-redis": "0.0.13",
     "@types/cors": "^2.8.6",
