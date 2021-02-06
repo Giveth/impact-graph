@@ -10,6 +10,7 @@ import {
 } from 'typeorm'
 import { Project } from './project'
 import { User } from './user'
+import { Reaction } from './reaction'
 
 @Entity()
 @ObjectType()

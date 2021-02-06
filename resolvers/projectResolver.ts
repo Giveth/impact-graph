@@ -25,7 +25,8 @@ import {
 } from 'type-graphql'
 import { Max, Min } from 'class-validator'
 import { Category } from '../entities/category'
-import { Project, ProjectUpdate, ProjectUpdateReactions, PROJECT_UPDATE_REACTIONS } from '../entities/project'
+import { Project, ProjectUpdate } from '../entities/project'
+import { Reaction, REACTION_TYPE } from '../entities/reaction'
 import { User } from '../entities/user'
 import { Donation } from '../entities/donation'
 import { Repository } from 'typeorm'
@@ -111,8 +112,8 @@ class GetProjectUpdatesResult {
   @Field(type => ProjectUpdate)
   projectUpdate: ProjectUpdate;
 
-  @Field(type => [ProjectUpdateReactions])
-  reactions: ProjectUpdateReactions[];
+  @Field(type => [Reaction])
+  reactions: Reaction[];
 }
 
 @Resolver(of => Project)
@@ -158,11 +159,12 @@ export class ProjectResolver {
     let totalCount;
 
     if (!category) {
-      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order })
+      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order, relations: ["reactions"] })
     } else {
       [projects, totalCount] = await this.projectRepository
           .createQueryBuilder('project')
           .innerJoin('project.categories', 'category', 'category.name = :category', { category })
+          .innerJoin('project.reactions', 'reaction')
           .orderBy(`project.${field}`, direction)
           .limit(skip)
           .take(take)
@@ -242,7 +244,7 @@ export class ProjectResolver {
   ): Promise<Project> {
 
     if (!ctx.req.user) {
-      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+      console.error(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
       throw new Error('Access denied')
       // return undefined
     }
@@ -445,7 +447,7 @@ export class ProjectResolver {
   @Mutation(returns => Boolean)
   async toggleReaction (
     @Arg('updateId') updateId: number,
-    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = 'heart',
+    @Arg('reaction') reaction: REACTION_TYPE = 'heart',
     @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<boolean> {
@@ -454,19 +456,19 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId });
     if (!update) throw new Error('Update not found.');
     
-    const currentReaction = await ProjectUpdateReactions.findOne({ projectUpdateId: update.id, userId: user.userId });
+    const currentReaction = await Reaction.findOne({ projectUpdateId: update.id, userId: user.userId });
     
-    await ProjectUpdateReactions.delete({ projectUpdateId: update.id, userId: user.userId });
+    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId });
 
     if (currentReaction && currentReaction.reaction === reaction) return false;
 
-    const newReaction = await ProjectUpdateReactions.create({
+    const newReaction = await Reaction.create({
       userId: user.userId,
       projectUpdateId: update.id,
       reaction
     })
 
-    await ProjectUpdateReactions.save(newReaction)
+    await Reaction.save(newReaction)
 
     return true;
   }
@@ -474,21 +476,21 @@ export class ProjectResolver {
   @Mutation(returns => Boolean)
   async toggleProjectReaction (
     @Arg('projectId') projectId: number,
-    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = 'heart',
+    @Arg('reaction') reaction: REACTION_TYPE = 'heart',
     @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<boolean> {
     if (!user) throw new Error('Authentication required.')
 
+    let project = await Project.findOne({ id: projectId });
+      
+    if(!project) throw new Error("Project not found.") 
+
     let update = await ProjectUpdate.findOne({ projectId, isMain: true });
     if (!update) {
-      let project = await Project.findOne({ id: projectId });
-      
-      if(!project) throw new Error("Project not found.");
-
       update = await ProjectUpdate.save(await ProjectUpdate.create({
         userId: project && project.admin && +project.admin? +project.admin : 0,
-        projectId: projectId,
+        projectId,
         content: "",
         title: "",
         createdAt: new Date(),
@@ -496,19 +498,20 @@ export class ProjectResolver {
       }));
     }
     
-    const currentReaction = await ProjectUpdateReactions.findOne({ projectUpdateId: update.id, userId: user.userId });
+    const currentReaction = await Reaction.findOne({ projectUpdateId: update.id, userId: user.userId });
     
-    await ProjectUpdateReactions.delete({ projectUpdateId: update.id, userId: user.userId });
+    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId });
 
     if (currentReaction && currentReaction.reaction === reaction) return false;
 
-    const newReaction = await ProjectUpdateReactions.create({
+    const newReaction = await Reaction.create({
       userId: user.userId,
       projectUpdateId: update.id,
-      reaction
+      reaction,
+      project
     })
-
-    await ProjectUpdateReactions.save(newReaction)
+    
+    await Reaction.save(newReaction)
 
     return true;
   }
@@ -531,23 +534,23 @@ export class ProjectResolver {
 
     for (const update of updates) results.push({
       projectUpdate: update,
-      reactions: await ProjectUpdateReactions.find({ where: { projectUpdateId: update.id } })
+      reactions: await Reaction.find({ where: { projectUpdateId: update.id } })
     })
 
     return results;
   }
 
-  @Query(returns => [ProjectUpdateReactions])
+  @Query(returns => [Reaction])
   async getProjectReactions (
     @Arg('projectId') projectId: number,
     @Ctx() { user }: Context,
     @PubSub() pubSub: PubSubEngine
-  ): Promise<ProjectUpdateReactions[]> {
+  ): Promise<Reaction[]> {
     const update = await ProjectUpdate.findOne({
       where: { projectId, isMain: true }
     });
 
-    return await ProjectUpdateReactions.find({ where: { projectUpdateId: update?.id || -1 } });
+    return await Reaction.find({ where: { projectUpdateId: update?.id || -1 } });
   }
 
   @Query(returns => Project, { nullable: true })

@@ -12,6 +12,7 @@ import {
 
 import { Organisation } from './organisation'
 import { Donation } from './donation'
+import { Reaction } from './reaction'
 import { Category } from './category'
 
 // import { OrganisationProject } from './organisationProject'
@@ -94,6 +95,13 @@ class Project extends BaseEntity {
     donation => donation.project
   )
   donations?: Donation[]
+
+  @Field(type => [Reaction], { nullable: true })
+  @OneToMany(
+    type => Reaction,
+    reaction => reaction.project
+  )
+  reactions?: Reaction[]
 }
 
 @Entity()
@@ -128,31 +136,8 @@ class ProjectUpdate extends BaseEntity {
   isMain: boolean
 }
 
-@Entity()
-@ObjectType()
-class ProjectUpdateReactions extends BaseEntity {
-  @Field(type => ID)
-  @PrimaryGeneratedColumn()
-  readonly id: number
-
-  @Field(type => ID)
-  @Column()
-  projectUpdateId: number
-
-  @Field(type => ID)
-  @Column()
-  userId: number
-
-  @Field(type => String)
-  @Column()
-  reaction: string
-}
-
-export type PROJECT_UPDATE_REACTIONS = "heart";
-
 export {
   Project,
   Category,
-  ProjectUpdate,
-  ProjectUpdateReactions
+  ProjectUpdate
 }
