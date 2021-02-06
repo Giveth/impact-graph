@@ -116,6 +116,16 @@ class GetProjectUpdatesResult {
   reactions: Reaction[];
 }
 
+@ObjectType()
+class ToggleResponse {
+  @Field(type => Boolean)  
+  reaction: boolean
+
+  @Field(type => Number)
+  reactionCount: number
+}
+
+
 @Resolver(of => Project)
 export class ProjectResolver {
   constructor (
@@ -473,13 +483,14 @@ export class ProjectResolver {
     return true;
   }
 
-  @Mutation(returns => Boolean)
+  
+  @Mutation(returns => ToggleResponse)
   async toggleProjectReaction (
     @Arg('projectId') projectId: number,
     @Arg('reaction') reaction: REACTION_TYPE = 'heart',
     @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
-  ): Promise<boolean> {
+  ): Promise<object> {
     if (!user) throw new Error('Authentication required.')
 
     let project = await Project.findOne({ id: projectId });
@@ -498,22 +509,29 @@ export class ProjectResolver {
       }));
     }
     
-    const currentReaction = await Reaction.findOne({ projectUpdateId: update.id, userId: user.userId });
-    
+    const usersReaction = await Reaction.findOne({ projectUpdateId: update.id, userId: user.userId });
+    const [,reactionCount] = await Reaction.findAndCount({ projectUpdateId: update.id})
+
     await Reaction.delete({ projectUpdateId: update.id, userId: user.userId });
-
-    if (currentReaction && currentReaction.reaction === reaction) return false;
-
-    const newReaction = await Reaction.create({
-      userId: user.userId,
-      projectUpdateId: update.id,
-      reaction,
-      project
-    })
+    const response = new ToggleResponse()
+    response.reactionCount = reactionCount
     
-    await Reaction.save(newReaction)
-
-    return true;
+    if (usersReaction && usersReaction.reaction === reaction) { 
+      response.reaction = false
+      response.reactionCount = response.reactionCount - 1
+    } else {
+      const newReaction = await Reaction.create({
+        userId: user.userId,
+        projectUpdateId: update.id,
+        reaction,
+        project
+      })
+      
+      await Reaction.save(newReaction)
+      response.reactionCount = response.reactionCount + 1
+      response.reaction = true
+    }
+    return response
   }
 
   @Query(returns => [GetProjectUpdatesResult])
