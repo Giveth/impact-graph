@@ -80,7 +80,8 @@
   "scripts": {
     "test": "NODE_ENV=test mocha --exit -r ts-node/register resolvers/*.test.ts",
     "start": "ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
-    "serve": "pm2 startOrRestart ecosystem.config.js"
+    "serve": "pm2 startOrRestart ecosystem.config.js",
+    "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts"
   },
   "husky": {
     "hooks": {
