@@ -6,7 +6,7 @@ export class UpdateUserEmailUnique1612547269219 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`COMMENT ON COLUMN "user"."email" IS NULL`);
         //await queryRunner.query(`ALTER TABLE "user" DROP CONSTRAINT "UQ_e12875dfb3b1d92d7d7c5377e22"`);
-        await queryRunner.dropUniqueConstraint('user', new TableUnique({ columnNames: ['email'] }))
+        await queryRunner.dropUniqueConstraint('user', 'unique_email_address')
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
