@@ -23,7 +23,6 @@ jobs:
     steps:
       - checkout
       - run: npm install
-      - run: npm run typeorm:cli:live -- migration:run
       - run: npm test
       - deploy:
           name: Production Deploy

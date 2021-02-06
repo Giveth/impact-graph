@@ -5,9 +5,6 @@ import { ConnectionOptions } from 'typeorm';
 import { entities } from './entities/entities';
 dotenv.config({ path: path.resolve(__dirname, `./config/${process.env.NODE_ENV||''}.env`) });
 
-console.log(`env file ---> : ${path.resolve(__dirname)}/config/${process.env.NODE_ENV||''}.env`)
-console.log(`process.env.NODE_ENV ---> : ${process.env.NODE_ENV}`)
-console.log(`process.env.TYPEORM_DATABASE_USER ---> : ${process.env.TYPEORM_DATABASE_USER}`)
 const ormConfig: ConnectionOptions = {
   type: 'postgres',
   host: process.env.TYPEORM_DATABASE_HOST,
