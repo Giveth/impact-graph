@@ -6,7 +6,7 @@ import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
 import slugify from 'slugify';
 import Logger from '../logger'
-
+import { triggerBuild } from '../netlify/build'
 import {
   Arg,
   Args,
@@ -293,12 +293,9 @@ export class ProjectResolver {
         }
       } else if (imageStatic) {
         imagePromise = Promise.resolve(imageStatic)
-      }
-
-      
+      }      
 
       const [categories, image] = await Promise.all([categoriesPromise, imagePromise])
-
       const slugBase = slugify(projectInput.title);
 
       let slug = slugBase;
@@ -342,6 +339,7 @@ export class ProjectResolver {
         message: 'A new project was created'
       }
 
+      triggerBuild()
       await pubSub.publish('NOTIFICATIONS', payload)
 
       return newProject

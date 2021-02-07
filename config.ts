@@ -30,7 +30,9 @@ const envVars = [
   'ETHEREUM_NODE_ID',
   'ETHEREUM_NETWORK',
   'HOSTNAME_WHITELIST',
-  'SENTRY_ID'
+  'SENTRY_ID',
+  'NETLIFY_DEPLOY_HOOK',
+  'ENVIRONMENT'
 ]
 
 class Config {
@@ -60,7 +62,10 @@ class Config {
   UPLOAD_FILE_MAX_SIZE: string
   HOSTNAME_WHITELIST: string // Comma separated
   SENTRY_ID: string
-  
+  NETLIFY_DEPLOY_HOOK: string
+  DEFAULT_ORGANISATION: string
+  ENVIRONMENT: string
+
   constructor () {
     const envFile = process.env;
     envVars.forEach(envVar => {
