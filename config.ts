@@ -32,7 +32,9 @@ const envVars = [
   'HOSTNAME_WHITELIST',
   'SENTRY_ID',
   'NETLIFY_DEPLOY_HOOK',
-  'ENVIRONMENT'
+  'ENVIRONMENT',
+  'WEBSITE_URL',
+  'TRIGGER_BUILD_ON_NEW_PROJECT'
 ]
 
 class Config {
@@ -65,6 +67,8 @@ class Config {
   NETLIFY_DEPLOY_HOOK: string
   DEFAULT_ORGANISATION: string
   ENVIRONMENT: string
+  WEBSITE_URL: string
+  TRIGGER_BUILD_ON_NEW_PROJECT: string
 
   constructor () {
     const envFile = process.env;

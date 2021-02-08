@@ -2,6 +2,7 @@ import config from '../config';
 import { ApolloServer } from 'apollo-server-express';
 import * as jwt from 'jsonwebtoken';
 import { handleStripeWebhook } from '../utils/stripe';
+import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
 import Logger from '../logger'
 
@@ -88,6 +89,7 @@ export async function bootstrap() {
         app.use(cors())
         apolloServer.applyMiddleware({ app });
         app.post('/stripe-webhook', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);
+        app.post('/netlify-build', bodyParser.raw({ type: 'application/json' }), netlifyDeployed);
         
         // Start the server
         app.listen({ port: 4000 })
