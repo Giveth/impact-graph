@@ -5,7 +5,8 @@ import NotificationPayload from '../entities/notificationPayload'
 import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
 import slugify from 'slugify';
-
+import Logger from '../logger'
+import { triggerBuild } from '../netlify/build'
 import {
   Arg,
   Args,
@@ -24,7 +25,8 @@ import {
 } from 'type-graphql'
 import { Max, Min } from 'class-validator'
 import { Category } from '../entities/category'
-import { Project, ProjectUpdate, ProjectUpdateReactions, PROJECT_UPDATE_REACTIONS } from '../entities/project'
+import { Project, ProjectUpdate } from '../entities/project'
+import { Reaction, REACTION_TYPE } from '../entities/reaction'
 import { User } from '../entities/user'
 import { Donation } from '../entities/donation'
 import { Repository } from 'typeorm'
@@ -110,9 +112,19 @@ class GetProjectUpdatesResult {
   @Field(type => ProjectUpdate)
   projectUpdate: ProjectUpdate;
 
-  @Field(type => [ProjectUpdateReactions])
-  reactions: ProjectUpdateReactions[];
+  @Field(type => [Reaction])
+  reactions: Reaction[];
 }
+
+@ObjectType()
+class ToggleResponse {
+  @Field(type => Boolean)  
+  reaction: boolean
+
+  @Field(type => Number)
+  reactionCount: number
+}
+
 
 @Resolver(of => Project)
 export class ProjectResolver {
@@ -157,11 +169,12 @@ export class ProjectResolver {
     let totalCount;
 
     if (!category) {
-      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order })
+      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order, relations: ["reactions"] })
     } else {
       [projects, totalCount] = await this.projectRepository
           .createQueryBuilder('project')
           .innerJoin('project.categories', 'category', 'category.name = :category', { category })
+          .innerJoin('project.reactions', 'reaction')
           .orderBy(`project.${field}`, direction)
           .limit(skip)
           .take(take)
@@ -241,12 +254,21 @@ export class ProjectResolver {
   ): Promise<Project> {
 
     if (!ctx.req.user) {
-      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
+      console.error(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
       throw new Error('Access denied')
       // return undefined
     }
 
-      const categoriesPromise = Promise.all(projectInput.categories ?
+    const user = await User.findOne({ id: ctx.req.user.userId })
+    if(!user) {
+      const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`
+      const userMessage = 'Access denied'
+      Logger.captureMessage(errorMessage);
+      console.error(`Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`)
+      throw new Error(userMessage)
+    } 
+      
+    const categoriesPromise = Promise.all(projectInput.categories ?
         projectInput.categories.map(async category => {
           let [c] = await this.categoryRepository.find({ name: category });
           if (c === undefined) {
@@ -271,12 +293,9 @@ export class ProjectResolver {
         }
       } else if (imageStatic) {
         imagePromise = Promise.resolve(imageStatic)
-      }
-
-      
+      }      
 
       const [categories, image] = await Promise.all([categoriesPromise, imagePromise])
-
       const slugBase = slugify(projectInput.title);
 
       let slug = slugBase;
@@ -320,6 +339,7 @@ export class ProjectResolver {
         message: 'A new project was created'
       }
 
+      triggerBuild()
       await pubSub.publish('NOTIFICATIONS', payload)
 
       return newProject
@@ -435,7 +455,7 @@ export class ProjectResolver {
   @Mutation(returns => Boolean)
   async toggleReaction (
     @Arg('updateId') updateId: number,
-    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = 'heart',
+    @Arg('reaction') reaction: REACTION_TYPE = 'heart',
     @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<boolean> {
@@ -444,41 +464,42 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId });
     if (!update) throw new Error('Update not found.');
     
-    const currentReaction = await ProjectUpdateReactions.findOne({ projectUpdateId: update.id, userId: user.userId });
+    const currentReaction = await Reaction.findOne({ projectUpdateId: update.id, userId: user.userId });
     
-    await ProjectUpdateReactions.delete({ projectUpdateId: update.id, userId: user.userId });
+    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId });
 
     if (currentReaction && currentReaction.reaction === reaction) return false;
 
-    const newReaction = await ProjectUpdateReactions.create({
+    const newReaction = await Reaction.create({
       userId: user.userId,
       projectUpdateId: update.id,
       reaction
     })
 
-    await ProjectUpdateReactions.save(newReaction)
+    await Reaction.save(newReaction)
 
     return true;
   }
 
-  @Mutation(returns => Boolean)
+  
+  @Mutation(returns => ToggleResponse)
   async toggleProjectReaction (
     @Arg('projectId') projectId: number,
-    @Arg('reaction') reaction: PROJECT_UPDATE_REACTIONS = 'heart',
+    @Arg('reaction') reaction: REACTION_TYPE = 'heart',
     @Ctx() { req: { user } }: MyContext,
     @PubSub() pubSub: PubSubEngine
-  ): Promise<boolean> {
+  ): Promise<object> {
     if (!user) throw new Error('Authentication required.')
+
+    let project = await Project.findOne({ id: projectId });
+      
+    if(!project) throw new Error("Project not found.") 
 
     let update = await ProjectUpdate.findOne({ projectId, isMain: true });
     if (!update) {
-      let project = await Project.findOne({ id: projectId });
-      
-      if(!project) throw new Error("Project not found.");
-
       update = await ProjectUpdate.save(await ProjectUpdate.create({
         userId: project && project.admin && +project.admin? +project.admin : 0,
-        projectId: projectId,
+        projectId,
         content: "",
         title: "",
         createdAt: new Date(),
@@ -486,21 +507,29 @@ export class ProjectResolver {
       }));
     }
     
-    const currentReaction = await ProjectUpdateReactions.findOne({ projectUpdateId: update.id, userId: user.userId });
+    const usersReaction = await Reaction.findOne({ projectUpdateId: update.id, userId: user.userId });
+    const [,reactionCount] = await Reaction.findAndCount({ projectUpdateId: update.id})
+
+    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId });
+    const response = new ToggleResponse()
+    response.reactionCount = reactionCount
     
-    await ProjectUpdateReactions.delete({ projectUpdateId: update.id, userId: user.userId });
-
-    if (currentReaction && currentReaction.reaction === reaction) return false;
-
-    const newReaction = await ProjectUpdateReactions.create({
-      userId: user.userId,
-      projectUpdateId: update.id,
-      reaction
-    })
-
-    await ProjectUpdateReactions.save(newReaction)
-
-    return true;
+    if (usersReaction && usersReaction.reaction === reaction) { 
+      response.reaction = false
+      response.reactionCount = response.reactionCount - 1
+    } else {
+      const newReaction = await Reaction.create({
+        userId: user.userId,
+        projectUpdateId: update.id,
+        reaction,
+        project
+      })
+      
+      await Reaction.save(newReaction)
+      response.reactionCount = response.reactionCount + 1
+      response.reaction = true
+    }
+    return response
   }
 
   @Query(returns => [GetProjectUpdatesResult])
@@ -521,23 +550,23 @@ export class ProjectResolver {
 
     for (const update of updates) results.push({
       projectUpdate: update,
-      reactions: await ProjectUpdateReactions.find({ where: { projectUpdateId: update.id } })
+      reactions: await Reaction.find({ where: { projectUpdateId: update.id } })
     })
 
     return results;
   }
 
-  @Query(returns => [ProjectUpdateReactions])
+  @Query(returns => [Reaction])
   async getProjectReactions (
     @Arg('projectId') projectId: number,
     @Ctx() { user }: Context,
     @PubSub() pubSub: PubSubEngine
-  ): Promise<ProjectUpdateReactions[]> {
+  ): Promise<Reaction[]> {
     const update = await ProjectUpdate.findOne({
       where: { projectId, isMain: true }
     });
 
-    return await ProjectUpdateReactions.find({ where: { projectUpdateId: update?.id || -1 } });
+    return await Reaction.find({ where: { projectUpdateId: update?.id || -1 } });
   }
 
   @Query(returns => Project, { nullable: true })

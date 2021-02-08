@@ -9,7 +9,7 @@ import { MyContext } from '../types/MyContext'
 import * as jwt from 'jsonwebtoken'
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql'
 import config from '../config'
-
+import Logger from '../logger'
 
 @ObjectType()
 class LoginResponse {
@@ -54,26 +54,26 @@ export class LoginResolver {
   }
 
   // James: We don't need this right now, maybe in the future
-  // @Mutation(() => Boolean, { nullable: true })
-  // async validateToken (
-  //   @Arg('token') token: string,
-  //   @Ctx() ctx: MyContext
-  // ): Promise<Boolean | null> {
-  //   const secret = config.get('JWT_SECRET') as string
+  @Mutation(() => Boolean, { nullable: true })
+  async validateToken (
+    @Arg('token') token: string,
+    @Ctx() ctx: MyContext
+  ): Promise<Boolean | null> {
+    const secret = config.get('JWT_SECRET') as string
 
-  //   console.log(`Authenticate token ---> : ${token}`)
-  //   try {
-  //     const decodedJwt: any = jwt.verify(token, secret)
-  //     console.log(`decodedJwt ---> : ${decodedJwt}`)
-  //     return true
-  //   } catch (error) {
-  //     console.error(
-  //         `Apollo Server error : ${JSON.stringify(error, null, 2)}`
-  //     )
-  //     console.error(`Error for token ${token}`)
-  //     return false
-  //   }
-  // }
+    try {
+      const decodedJwt: any = jwt.verify(token, secret)
+      return true
+    } catch (error) {
+      Logger.captureMessage(error);
+      
+      console.error(
+          `Apollo Server error : ${JSON.stringify(error, null, 2)}`
+      )
+      console.error(`Error for token ${token}`)
+      return false
+    }
+  }
 
   @Mutation(() => LoginResponse, { nullable: true })
   async login (

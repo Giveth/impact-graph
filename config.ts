@@ -29,7 +29,10 @@ const envVars = [
   'UPLOAD_FILE_MAX_SIZE',
   'ETHEREUM_NODE_ID',
   'ETHEREUM_NETWORK',
-  'HOSTNAME_WHITELIST'
+  'HOSTNAME_WHITELIST',
+  'SENTRY_ID',
+  'NETLIFY_DEPLOY_HOOK',
+  'ENVIRONMENT'
 ]
 
 class Config {
@@ -58,6 +61,10 @@ class Config {
   PINATA_SECRET_API_KEY: string
   UPLOAD_FILE_MAX_SIZE: string
   HOSTNAME_WHITELIST: string // Comma separated
+  SENTRY_ID: string
+  NETLIFY_DEPLOY_HOOK: string
+  DEFAULT_ORGANISATION: string
+  ENVIRONMENT: string
 
   constructor () {
     const envFile = process.env;

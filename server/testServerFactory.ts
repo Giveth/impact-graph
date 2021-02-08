@@ -13,7 +13,7 @@ const createServerWithDummyUser = async () => {
             req.user = {
                 email: 'dummy@example.com',
                 name: 'dummy-user',
-                userId: '999999',
+                userId: 1,
             }
             req.userwalletAddress = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 

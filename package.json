@@ -4,6 +4,8 @@
   "description": "Backend GraphQL server for Topia and more",
   "main": "./dist/index.js",
   "dependencies": {
+    "@sentry/node": "^6.0.4",
+    "@sentry/tracing": "^6.0.4",
     "@types/bcryptjs": "^2.4.2",
     "@types/connect-redis": "0.0.13",
     "@types/cors": "^2.8.6",
@@ -78,7 +80,9 @@
   "scripts": {
     "test": "NODE_ENV=test mocha --exit -r ts-node/register resolvers/*.test.ts",
     "start": "ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
-    "serve": "pm2 startOrRestart ecosystem.config.js"
+    "serve": "pm2 startOrRestart ecosystem.config.js",
+    "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts",
+    "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts"
   },
   "husky": {
     "hooks": {

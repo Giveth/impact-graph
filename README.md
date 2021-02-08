@@ -180,3 +180,32 @@ mutation LoginWallet {
 
 Default loggin is done by [Apollo Graph Manager](https://www.apollographql.com/docs/graph-manager/)
 To make use of it you need to use register and provide a key in APOLLO_KEY in your .env file.
+
+
+### Changes to the database
+
+Dropping and seeding the database can be done like this during testing:
+```
+DROP_DATABASE=true
+SEED_DATABASE=true
+```
+
+After a site is live or if you want to keep your database you need to use database migrations.
+
+This can be done either by creating a new migration file with:
+
+```
+npm run typeorm:cli migration:create -- -n UpdateUserEmailUnique -d migration
+```
+
+Or by changing the entities and generating the migrations with:
+```
+npm run typeorm:cli migration:generate -- -n UpdateUserEmailUnique
+
+Then you need to run the migrations like so:
+
+```
+npm run typeorm:cli -- migration:run
+```
+
+You will need to add the above command to your build process so that all database migrations are run upon deployments.
