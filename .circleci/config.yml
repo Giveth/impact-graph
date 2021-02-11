@@ -28,11 +28,11 @@ jobs:
           name: Production Deploy
           command: |
             if [ "${CIRCLE_BRANCH}" == "develop" ]; then
-            ssh -o "StrictHostKeyChecking no" givethadmin@dev.serve.giveth.io 'cd impact-graph/ && git checkout develop && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;'
+            ssh -o "StrictHostKeyChecking no" givethadmin@dev.serve.giveth.io 'cd impact-graph/ && git checkout develop && git pull && npm ci `# && npm run typeorm:cli:live -- migration:run `&& npm run serve;'
             fi
             if [ "${CIRCLE_BRANCH}" == "staging" ]; then
-            ssh -o "StrictHostKeyChecking no" givethadmin@serve.giveth.io 'cd impact-graph/ && git checkout staging && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;'
+            ssh -o "StrictHostKeyChecking no" givethadmin@serve.giveth.io 'cd impact-graph/ && git checkout staging && git pull && npm ci `# && npm run typeorm:cli:live -- migration:run `&& npm run serve;'
             fi
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-            ssh -o "StrictHostKeyChecking no" givethadmin@mainnet.serve.giveth.io 'cd impact-graph/ && git checkout master && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;'
+            ssh -o "StrictHostKeyChecking no" givethadmin@mainnet.serve.giveth.io 'cd impact-graph/ && git checkout master && git pull && npm ci `# && npm run typeorm:cli:live -- migration:run `&& npm run serve;'
             fi
