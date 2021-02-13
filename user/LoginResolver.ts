@@ -3,13 +3,14 @@ require('dotenv').config()
 import * as bcrypt from 'bcryptjs'
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
 import { keccak256 } from 'ethers/lib/utils';
-import { ethers } from 'ethers';
 import { User } from '../entities/user'
 import { MyContext } from '../types/MyContext'
 import * as jwt from 'jsonwebtoken'
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql'
 import config from '../config'
 import Logger from '../logger'
+
+const sigUtil = require('eth-sig-util')
 
 @ObjectType()
 class LoginResponse {
@@ -154,9 +155,39 @@ export class LoginResolver {
   ): Promise<LoginResponse | null> {
     const hashedMsg = this.getHostnameSignMessageHash(hostname)
 
+    const msgParams = JSON.stringify({
+      primaryType: 'Login',
+      types: {
+        EIP712Domain: [
+          { name: 'name', type: 'string' },
+          { name: 'chainId', type: 'uint256' },
+          { name: 'version', type: 'string' }
+          // { name: 'verifyingContract', type: 'address' }
+        ],
+        Login: [{ name: 'user', type: 'User' }],
+        User: [
+          { name: 'wallets', type: 'address[]' }
+        ]
+      },
+      domain: {
+        name: 'Giveth Login',
+        chainId: process.env.ETHEREUM_NETWORK_ID,
+        version: '1'
+      },
+      message: {
+        contents: hashedMsg,
+        user: {
+          wallets: [walletAddress]
+        }
+      }
+    })
+
     if (hashedMsg === null) return null;
 
-    const publicAddress = ethers.utils.recoverAddress(hashedMsg, signature);
+    const publicAddress = sigUtil.recoverTypedSignature_v4({
+      data: JSON.parse(msgParams),
+      sig: signature
+    })
 
     if (!publicAddress) return null;
 
