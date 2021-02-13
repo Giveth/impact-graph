@@ -16,10 +16,7 @@ export async function triggerBuild (projectId) {
 
   try { 
     if(deployHook && (environment === 'staging' || environment === 'production')) {
-    // test local: if(deployHook) {
-      
-      // console.log(`response.data ---> : ${response.data}`)
-      // console.log(`response.status ---> : ${response.status}`)
+   
       const projectsToDeployRedis = await redis.get('impact-graph:netlifyDeploy:projects:toDeploy')
       const projectsToDeploy = projectsToDeployRedis? projectsToDeployRedis.split(',') : []
       
