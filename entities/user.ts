@@ -5,10 +5,12 @@ import {
   Entity,
   OneToMany,
   ManyToMany,
-  BaseEntity
+  BaseEntity,
+  JoinTable
 } from 'typeorm'
 import { OrganisationUser } from './organisationUser'
 import { Organisation } from './organisation'
+import { Project } from './project'
 
 @ObjectType()
 @Entity()
@@ -71,5 +73,13 @@ export class User extends BaseEntity {
     organisation => organisation.users
   )
   organisations: Organisation[]
+
+  @Field(type => Project)
+  @ManyToMany(
+    type => Project,
+    project => project.users
+  )
+  @JoinTable()
+  projects?: Project[]
   
 }

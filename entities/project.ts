@@ -14,14 +14,7 @@ import { Organisation } from './organisation'
 import { Donation } from './donation'
 import { Reaction } from './reaction'
 import { Category } from './category'
-
-// import { OrganisationProject } from './organisationProject'
-// NO idea why the below import doesn't work!!!
-// import { RelationColumn } from "../helpers";
-function RelationColumn (options?: ColumnOptions) {
-  return Column({ nullable: true, ...options })
-}
-
+import { User } from './user'
 
 
 @Entity()
@@ -46,6 +39,10 @@ class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   description?: string
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  statusId?: number
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -96,6 +93,11 @@ class Project extends BaseEntity {
   )
   donations?: Donation[]
 
+  @ManyToMany(type => User, user => user.projects, { eager: true })
+  @JoinTable()
+  @Field(type => [User], { nullable: true })
+  users: User[];
+  
   @Field(type => [Reaction], { nullable: true })
   @OneToMany(
     type => Reaction,
