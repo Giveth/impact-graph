@@ -31,6 +31,7 @@ const envVars = [
   'ETHEREUM_NETWORK',
   'HOSTNAME_WHITELIST',
   'SENTRY_ID',
+  'SENTRY_TOKEN',
   'NETLIFY_DEPLOY_HOOK',
   'ENVIRONMENT',
   'WEBSITE_URL',
@@ -64,6 +65,7 @@ class Config {
   UPLOAD_FILE_MAX_SIZE: string
   HOSTNAME_WHITELIST: string // Comma separated
   SENTRY_ID: string
+  SENTRY_TOKEN: string
   NETLIFY_DEPLOY_HOOK: string
   DEFAULT_ORGANISATION: string
   ENVIRONMENT: string

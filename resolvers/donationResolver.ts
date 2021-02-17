@@ -64,9 +64,60 @@ export class DonationResolver {
     return donations
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(returns => Number)
   async saveDonation (
+    @Arg('fromAddress') fromAddress: string,
+    @Arg('toAddress') toAddress: string,
+    @Arg('amount') amount: Number,
+    @Arg('token') token: string,
+    @Arg('projectId') projectId: Number,
+    @Ctx() ctx: MyContext
+  ): Promise<Number> {
+    try {
+      let userId
+      
+      let originUser;
+      
+      //Logged in
+      if(ctx.req.user && ctx.req.user.userId) {    
+        userId = ctx.req.user.userId
+        originUser = await User.findOne({ id: userId })
+        
+        if(!originUser) throw Error(`The logged in user doesn't exist - id ${userId}`)
+        //Transaction not made with the users primary wallet
+            
+      } 
+      const project = await Project.findOne({ id: Number(projectId) });
+      
+      if(!project) throw new Error("Transaction project was not found.");
+    
+      const donation = await Donation.create({
+        amount: Number(amount),
+        currency: 'ETH', 
+        user: (userId ? originUser  : null),
+        project: project,
+        createdAt: new Date(),
+        toWalletAddress: toAddress.toString().toLowerCase(),
+        fromWalletAddress: fromAddress.toString().toLowerCase(),
+        anonymous: !!userId
+      })
+      await donation.save()
+      
+      return donation.id
+
+    } catch (e) {
+      Logger.captureException(e);
+      console.error(e)
+      throw new Error(e)
+
+    }
+  
+  }
+
+  @Mutation(returns => Boolean)
+  async saveDonationTransaction (
     @Arg('transactionId') transactionId: string,
+    @Arg('donationId') donationId: Number,
     @Ctx() ctx: MyContext
   ): Promise<Boolean> {
 
@@ -103,39 +154,33 @@ export class DonationResolver {
       
       const value = txInfo.value ? Number(web3.utils.fromWei(txInfo.value)) : 0 
       
-      const donation = await Donation.create({
-        amount: Number(value),
-        currency: 'ETH', 
-        user: (userId ? originUser  : null),
-        project: destinationProject,
-        createdAt: new Date(),
-        transactionId: transactionId,
-        toWalletAddress: txInfo.to?.toString().toLowerCase(),
-        fromWalletAddress: txInfo.from?.toString().toLowerCase(),
-        anonymous: !!userId
-      })
+      const donation = await Donation.findOne({ id: Number(donationId) })
+      if(!donation) throw new Error(`Donation not found by Id ${donationId}`);
       
-      //0xf1d564c9890cd8f80455d761ee4ea1e69829f777bd4b0f127fa7ada6d0e8df32
+      donation.transactionId = transactionId
+      
       const feathersServer = (config.get('ETHEREUM_NETWORK') === 'ropsten') ? 'develop' : 'beta' // live is beta
       const feathersUrl: string = `https://feathers.${feathersServer}.giveth.io/conversionRates?txHash=${transactionId}&from=ETH&isHome=true`
       
       let valueUsd = 0
-      const response: any = await axios.get(feathersUrl)
-     
-      valueUsd = response.data.rate * Number(value) 
-       
-      donation.valueUsd = valueUsd
-      donation.save()
+      axios.get(feathersUrl).then(response => {
+        valueUsd = response.data.rate * Number(value)
+        donation.valueUsd = valueUsd
+        donation.save()
+        console.log('Saved Feathers response')
+      })
 
+      return true
     } catch (e) {
       //Log the error 
       Logger.captureException(e);
       // Logger.captureMessage(`Error calling feathers for transaction - ${feathersUrl}`);
       throw new Error(`Error saving donation`)
+      
     }
     
     
-    return true
+    
   }
 
 }
