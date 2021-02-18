@@ -19,8 +19,8 @@ export class Donation extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
-  @Column()
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   transactionId: string
   
   @Field()

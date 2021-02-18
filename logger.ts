@@ -3,9 +3,10 @@ import * as Tracing from "@sentry/tracing";
 import config from './config';
 
 const sentryId = config.get('SENTRY_ID').toString()
+const sentryToken = config.get('SENTRY_TOKEN').toString()
 
 Sentry.init({
-  dsn: `https://${sentryId}.ingest.sentry.io/5606310`,
+  dsn: `https://${sentryToken}.ingest.sentry.io/${sentryId}`,
 
   // We recommend adjusting this value in production, or using tracesSampler
   // for finer control
