@@ -35,6 +35,7 @@
     "form-data": "^3.0.0",
     "graphql": "^15.3.0",
     "graphql-tag": "^2.11.0",
+    "graphql-upload": "^11.0.0",
     "handlebars": "^4.7.6",
     "html-pdf-node": "^1.0.5",
     "ioredis": "^4.17.3",
