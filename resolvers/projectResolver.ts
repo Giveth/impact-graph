@@ -28,16 +28,12 @@ import { Category } from '../entities/category'
 import { Project, ProjectUpdate } from '../entities/project'
 import { Reaction, REACTION_TYPE } from '../entities/reaction'
 import { User } from '../entities/user'
-import { Donation } from '../entities/donation'
 import { Repository } from 'typeorm'
 
 import { ProjectInput } from './types/project-input'
 import { Context } from '../context'
 import { pinFile } from '../middleware/pinataUtils';
-import { query } from 'express'
-// import { OrganisationProject } from '../entities/organisationProject'
-// import { ProjectsArguments } from "./types/projects-arguments";
-// import { generateProjects } from "../helpers";
+import config from '../config';
 
 @ObjectType()
 class TopProjects {
@@ -153,7 +149,7 @@ export class ProjectResolver {
 
   @Query(returns => [Project])
   async projects (@Args() { take, skip, admin }: GetProjectsArgs): Promise<Project[]> {
-    return !admin? this.projectRepository.find({ take, skip }) : this.projectRepository.find({
+    return !admin? this.projectRepository.find({ take, skip, relations: ["donations"] }) : this.projectRepository.find({
       where: { admin },
       take, skip
     })
@@ -191,7 +187,7 @@ export class ProjectResolver {
 
   @Query(returns => Project)
   async projectBySlug (@Arg('slug') slug: string) {
-    return await this.projectRepository.findOne({  where: { slug }, relations: ["donations"]})   
+    return await this.projectRepository.findOne({  where: { slug }, relations: ["donations", "reactions"]})   
   }
 
   @Mutation(returns => Project)
@@ -260,6 +256,7 @@ export class ProjectResolver {
     }
 
     const user = await User.findOne({ id: ctx.req.user.userId })
+    
     if(!user) {
       const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`
       const userMessage = 'Access denied'
@@ -309,9 +306,9 @@ export class ProjectResolver {
         image,
         creationDate: new Date(),
         slug,
-        admin: ctx.req.user.userId
-        // ...projectInput,
-        // authorId: user.id
+        admin: ctx.req.user.userId,
+        users: [user],
+        statusId: 2
       })
       
       const newProject = await this.projectRepository.save(project)
@@ -326,66 +323,18 @@ export class ProjectResolver {
       });
       await ProjectUpdate.save(update);
 
-      // const organisationProject = this.organisationProject.create({
-      //   organisationId: projectInput.organisationId,
-      //   projectId: newProject.id
-      // })
-      // const newOrganisationProject = await this.organisationProject.save(
-      //   organisationProject
-      // )
-
       const payload: NotificationPayload = {
         id: 1,
         message: 'A new project was created'
       }
-
-      triggerBuild()
+      console.log('here', newProject.id)
+      
+      if(config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true') triggerBuild(newProject.id)
+      
       await pubSub.publish('NOTIFICATIONS', payload)
 
       return newProject
-    // } else {
-    //   throw new Error(
-    //     'User does not have the right to create a project for this organisation'
-    //   )
-    // }
-
-    // await pubSub.publish('NOTIFICATIONS', payload)
-
-    // return newProject
-    // if (
-    //     await this.userPermissions.mayAddProjectToOrganisation(
-    //     ctx.req.user.email,
-    //     projectInput.organisationId
-    //   )
-    // ) {
-    //   const project = this.projectRepository.create({
-    //     ...projectInput
-    //     // ...projectInput,
-    //     // authorId: user.id
-    //   })
-    //   const newProject = await this.projectRepository.save(project)
-    //
-    //   // const organisationProject = this.organisationProject.create({
-    //   //   organisationId: projectInput.organisationId,
-    //   //   projectId: newProject.id
-    //   // })
-    //   // const newOrganisationProject = await this.organisationProject.save(
-    //   //   organisationProject
-    //   // )
-    //
-    //   const payload: NotificationPayload = {
-    //     id: 1,
-    //     message: 'A new project was created'
-    //   }
-    //
-    //   await pubSub.publish('NOTIFICATIONS', payload)
-    //
-    //   return newProject
-    // } else {
-    //   throw new Error(
-    //     'User does not have the right to create a project for this organisation'
-    //   )
-    // }
+    
   }
 
   @Mutation(returns => Project)
