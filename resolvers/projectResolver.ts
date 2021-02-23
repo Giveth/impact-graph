@@ -2,6 +2,7 @@ import { PubSubEngine } from 'graphql-subscriptions'
 import { Service } from 'typedi'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 import NotificationPayload from '../entities/notificationPayload'
+import { ProjectStatus } from '../entities/projectStatus';
 import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
 import slugify from 'slugify';
@@ -29,11 +30,20 @@ import { Project, ProjectUpdate } from '../entities/project'
 import { Reaction, REACTION_TYPE } from '../entities/reaction'
 import { User } from '../entities/user'
 import { Repository } from 'typeorm'
-
 import { ProjectInput } from './types/project-input'
 import { Context } from '../context'
 import { pinFile } from '../middleware/pinataUtils';
 import config from '../config';
+
+enum ProjStatus {
+  rjt = 1,
+  pen = 2,
+  clr = 3,
+  ver = 4,
+  act = 5,
+  can = 6,
+  del = 7,
+}
 
 @ObjectType()
 class TopProjects {
@@ -186,7 +196,12 @@ export class ProjectResolver {
     let totalCount;
 
     if (!category) {
-      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order, relations: ["reactions"] })
+      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order, relations: ["reactions"], where: {
+        status: {
+          id: ProjStatus.act
+        }}} )
+      
+      
     } else {
       [projects, totalCount] = await this.projectRepository
           .createQueryBuilder('project')
@@ -197,6 +212,7 @@ export class ProjectResolver {
           .take(take)
           .innerJoinAndSelect('project.categories', 'c')
           .getManyAndCount()
+          
     }
     return { projects, totalCount };
   }
@@ -531,6 +547,27 @@ export class ProjectResolver {
     return this.projectRepository.findOne({ walletAddress: address })
   }
 
+  async updateProjectStatus(projectId: number, status: number, user: User): Promise<Boolean> {
+
+    const project = await Project.findOne({ id: projectId });
+    
+    if(project) {
+      if(project.mayUpdateStatus(user)) {
+        const projectStatus = await ProjectStatus.findOne({ id: status });
+        if(projectStatus) {
+          project.status = projectStatus
+          await project.save()
+          return true
+        } else {
+          throw new Error('No project status found, this should be impossible')
+        }
+      } else {
+        throw new Error('User does not have permission to update status on that project')
+      }
+    } else {
+      throw new Error('You tried to deactivate a non existant project')
+    }
+  }
   
   @Mutation(returns => Boolean)
   async deactivateProject (
@@ -538,15 +575,8 @@ export class ProjectResolver {
     @Ctx() ctx: MyContext
   ): Promise<Boolean> {
     try {
-      getLoggedInUser(ctx) 
-      const project = await Project.findOne({ id: projectId });
-      if(project) {
-        project.statusId = 6
-        project.save()
-      } else {
-        throw new Error('You tried to deactivate a non existant project')
-      }
-      return true
+      const user = await getLoggedInUser(ctx) 
+      return await this.updateProjectStatus(projectId, ProjStatus.can, user)
       
     } catch (error) {
       Logger.captureException(error);
@@ -554,5 +584,20 @@ export class ProjectResolver {
       return false
     }
     
+  }
+
+  @Mutation(returns => Boolean)
+  async activateProject (
+    @Arg('projectId') projectId: number,
+    @Ctx() ctx: MyContext
+  ): Promise<Boolean> {
+    try {
+      const user = await getLoggedInUser(ctx) 
+      return await this.updateProjectStatus(projectId, ProjStatus.act, user)
+      
+    } catch (error) {
+      Logger.captureException(error);
+      throw error
+    }
   }
 }

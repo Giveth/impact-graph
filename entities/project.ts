@@ -109,6 +109,13 @@ class Project extends BaseEntity {
   @RelationId((project: Project) => project.status)
   statusId: number
   
+  mayUpdateStatus(user: User) {
+    if(this.users.filter(o => o.id === user.id).length > 0) {
+      return true
+    } else {
+      return false
+    }  
+  }
 }
 
 @Entity()

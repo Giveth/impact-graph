@@ -33,7 +33,7 @@ export class SeedProjectStatus1614082100757 implements MigrationInterface {
           {
             symbol: 'can',
             name: 'cancelled',
-            description: 'Cancelled (by owner)'
+            description: 'Cancelled or deactivated (by owner)'
           },
           {
             symbol: 'del',
