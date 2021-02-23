@@ -2,6 +2,7 @@ import { PubSubEngine } from 'graphql-subscriptions'
 import { Service } from 'typedi'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 import NotificationPayload from '../entities/notificationPayload'
+import { ProjectStatus } from '../entities/projectStatus';
 import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
 import slugify from 'slugify';
@@ -29,11 +30,20 @@ import { Project, ProjectUpdate } from '../entities/project'
 import { Reaction, REACTION_TYPE } from '../entities/reaction'
 import { User } from '../entities/user'
 import { Repository } from 'typeorm'
-
 import { ProjectInput } from './types/project-input'
 import { Context } from '../context'
 import { pinFile } from '../middleware/pinataUtils';
 import config from '../config';
+
+enum ProjStatus {
+  rjt = 1,
+  pen = 2,
+  clr = 3,
+  ver = 4,
+  act = 5,
+  can = 6,
+  del = 7,
+}
 
 @ObjectType()
 class TopProjects {
@@ -64,6 +74,27 @@ registerEnumType(OrderDirection, {
   name: 'OrderDirection',
   description: 'Order direction'
 })
+function checkIfUserInRequest(ctx: MyContext) {
+    if (!ctx.req.user) {
+      throw new Error('Access denied')
+    }
+  }
+async function getLoggedInUser(ctx: MyContext){
+
+  checkIfUserInRequest(ctx) 
+
+  const user = await User.findOne({ id: ctx.req.user.userId })
+  
+  if(!user) {
+    const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`
+    const userMessage = 'Access denied'
+    Logger.captureMessage(errorMessage);
+    console.error(`Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`)
+    throw new Error(userMessage)
+  } 
+
+  return user
+}
 
 @InputType()
 class OrderBy {
@@ -165,7 +196,12 @@ export class ProjectResolver {
     let totalCount;
 
     if (!category) {
-      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order, relations: ["reactions"] })
+      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order, relations: ["reactions"], where: {
+        status: {
+          id: ProjStatus.act
+        }}} )
+      
+      
     } else {
       [projects, totalCount] = await this.projectRepository
           .createQueryBuilder('project')
@@ -176,6 +212,7 @@ export class ProjectResolver {
           .take(take)
           .innerJoinAndSelect('project.categories', 'c')
           .getManyAndCount()
+          
     }
     return { projects, totalCount };
   }
@@ -249,23 +286,10 @@ export class ProjectResolver {
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
 
-    if (!ctx.req.user) {
-      console.error(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-      throw new Error('Access denied')
-      // return undefined
-    }
-
-    const user = await User.findOne({ id: ctx.req.user.userId })
+    const user = await getLoggedInUser(ctx)
     
-    if(!user) {
-      const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`
-      const userMessage = 'Access denied'
-      Logger.captureMessage(errorMessage);
-      console.error(`Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`)
-      throw new Error(userMessage)
-    } 
-      
-    const categoriesPromise = Promise.all(projectInput.categories ?
+    
+      const categoriesPromise = Promise.all(projectInput.categories ?
         projectInput.categories.map(async category => {
           let [c] = await this.categoryRepository.find({ name: category });
           if (c === undefined) {
@@ -332,7 +356,7 @@ export class ProjectResolver {
       if(config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true') triggerBuild(newProject.id)
       
       await pubSub.publish('NOTIFICATIONS', payload)
-
+      
       return newProject
     
   }
@@ -522,5 +546,58 @@ export class ProjectResolver {
   projectByAddress (@Arg('address', type => String) address: string) {
     return this.projectRepository.findOne({ walletAddress: address })
   }
+
+  async updateProjectStatus(projectId: number, status: number, user: User): Promise<Boolean> {
+
+    const project = await Project.findOne({ id: projectId });
+    
+    if(project) {
+      if(project.mayUpdateStatus(user)) {
+        const projectStatus = await ProjectStatus.findOne({ id: status });
+        if(projectStatus) {
+          project.status = projectStatus
+          await project.save()
+          return true
+        } else {
+          throw new Error('No project status found, this should be impossible')
+        }
+      } else {
+        throw new Error('User does not have permission to update status on that project')
+      }
+    } else {
+      throw new Error('You tried to deactivate a non existant project')
+    }
+  }
   
+  @Mutation(returns => Boolean)
+  async deactivateProject (
+    @Arg('projectId') projectId: number,
+    @Ctx() ctx: MyContext
+  ): Promise<Boolean> {
+    try {
+      const user = await getLoggedInUser(ctx) 
+      return await this.updateProjectStatus(projectId, ProjStatus.can, user)
+      
+    } catch (error) {
+      Logger.captureException(error);
+      throw error
+      return false
+    }
+    
+  }
+
+  @Mutation(returns => Boolean)
+  async activateProject (
+    @Arg('projectId') projectId: number,
+    @Ctx() ctx: MyContext
+  ): Promise<Boolean> {
+    try {
+      const user = await getLoggedInUser(ctx) 
+      return await this.updateProjectStatus(projectId, ProjStatus.act, user)
+      
+    } catch (error) {
+      Logger.captureException(error);
+      throw error
+    }
+  }
 }
