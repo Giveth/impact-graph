@@ -64,6 +64,27 @@ registerEnumType(OrderDirection, {
   name: 'OrderDirection',
   description: 'Order direction'
 })
+function checkIfUserInRequest(ctx: MyContext) {
+    if (!ctx.req.user) {
+      throw new Error('Access denied')
+    }
+  }
+async function getLoggedInUser(ctx: MyContext){
+
+  checkIfUserInRequest(ctx) 
+
+  const user = await User.findOne({ id: ctx.req.user.userId })
+  
+  if(!user) {
+    const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`
+    const userMessage = 'Access denied'
+    Logger.captureMessage(errorMessage);
+    console.error(`Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`)
+    throw new Error(userMessage)
+  } 
+
+  return user
+}
 
 @InputType()
 class OrderBy {
@@ -249,23 +270,10 @@ export class ProjectResolver {
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
 
-    if (!ctx.req.user) {
-      console.error(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-      throw new Error('Access denied')
-      // return undefined
-    }
-
-    const user = await User.findOne({ id: ctx.req.user.userId })
+    const user = await getLoggedInUser(ctx)
     
-    if(!user) {
-      const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`
-      const userMessage = 'Access denied'
-      Logger.captureMessage(errorMessage);
-      console.error(`Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`)
-      throw new Error(userMessage)
-    } 
-      
-    const categoriesPromise = Promise.all(projectInput.categories ?
+    
+      const categoriesPromise = Promise.all(projectInput.categories ?
         projectInput.categories.map(async category => {
           let [c] = await this.categoryRepository.find({ name: category });
           if (c === undefined) {
@@ -332,7 +340,7 @@ export class ProjectResolver {
       if(config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true') triggerBuild(newProject.id)
       
       await pubSub.publish('NOTIFICATIONS', payload)
-
+      
       return newProject
     
   }
@@ -522,5 +530,29 @@ export class ProjectResolver {
   projectByAddress (@Arg('address', type => String) address: string) {
     return this.projectRepository.findOne({ walletAddress: address })
   }
+
   
+  @Mutation(returns => Boolean)
+  async deactivateProject (
+    @Arg('projectId') projectId: number,
+    @Ctx() ctx: MyContext
+  ): Promise<Boolean> {
+    try {
+      getLoggedInUser(ctx) 
+      const project = await Project.findOne({ id: projectId });
+      if(project) {
+        project.statusId = 6
+        project.save()
+      } else {
+        throw new Error('You tried to deactivate a non existant project')
+      }
+      return true
+      
+    } catch (error) {
+      Logger.captureException(error);
+      throw error
+      return false
+    }
+    
+  }
 }

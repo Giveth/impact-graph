@@ -6,6 +6,7 @@ import { Reaction } from './reaction';
 import { Category } from './category';
 import { Donation } from './donation';
 import { Wallet } from './wallet';
+import { ProjectStatus } from './projectStatus';
 import Notification from './notification';
 import { BankAccount, StripeTransaction } from './bankAccount';
 
@@ -21,5 +22,6 @@ export const entities: any = [
     ProjectUpdate,
     Reaction,
     Donation,
-    Wallet
+    Wallet,
+    ProjectStatus
 ]
