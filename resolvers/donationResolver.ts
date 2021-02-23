@@ -93,7 +93,7 @@ export class DonationResolver {
     
       const donation = await Donation.create({
         amount: Number(amount),
-        currency: 'ETH', 
+        currency: token, 
         user: (userId ? originUser  : null),
         project: project,
         createdAt: new Date(),
