@@ -75,12 +75,13 @@
     "node-fetch": ">=2.6.1",
     "object-path": ">=0.11.5",
     "ts-node": "^8.10.2",
+    "ts-node-dev": "^1.1.6",
     "tslint-config-prettier": "^1.18.0",
     "tslint-eslint-rules": "^5.4.0"
   },
   "scripts": {
     "test": "NODE_ENV=test mocha --exit -r ts-node/register resolvers/*.test.ts",
-    "start": "ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
+    "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js",
     "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts",
     "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts"
