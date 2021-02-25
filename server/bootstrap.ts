@@ -5,6 +5,7 @@ import { handleStripeWebhook } from '../utils/stripe';
 import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
 import Logger from '../logger'
+import { graphqlUploadExpress } from 'graphql-upload';
 
 // tslint:disable:no-var-requires
 const express = require('express')
@@ -77,9 +78,7 @@ export async function bootstrap() {
             playground: {
                 endpoint: '/graphql'
             },
-            uploads: {
-                maxFileSize: config.get('UPLOAD_FILE_MAX_SIZE') as number || 2000000
-            },
+            uploads: false,
             introspection: true
         })
 
@@ -87,6 +86,7 @@ export async function bootstrap() {
         const app = express();
 
         app.use(cors())
+        app.use(graphqlUploadExpress({ maxFileSize: config.get('UPLOAD_FILE_MAX_SIZE') as number || 2000000, maxFiles: 10 }))
         apolloServer.applyMiddleware({ app });
         app.post('/stripe-webhook', bodyParser.raw({ type: 'application/json' }), handleStripeWebhook);
         app.post('/netlify-build', bodyParser.raw({ type: 'application/json' }), netlifyDeployed);
