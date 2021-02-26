@@ -25,6 +25,10 @@ export class Donation extends BaseEntity {
   
   @Field()
   @Column()
+  transactionNetworkId: number
+  
+  @Field()
+  @Column()
   toWalletAddress: string
 
   @Field()

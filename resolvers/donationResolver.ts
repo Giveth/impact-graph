@@ -70,6 +70,7 @@ export class DonationResolver {
     @Arg('toAddress') toAddress: string,
     @Arg('amount') amount: Number,
     @Arg('transactionId') transactionId: string,
+    @Arg('transactionNetworkId') transactionNetworkId: Number,
     @Arg('token') token: string,
     @Arg('projectId') projectId: Number,
     @Ctx() ctx: MyContext
@@ -95,6 +96,7 @@ export class DonationResolver {
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId.toString().toLowerCase(),
+        transactionNetworkId: Number(transactionNetworkId),
         currency: token, 
         user: (userId ? originUser  : null),
         project: project,
