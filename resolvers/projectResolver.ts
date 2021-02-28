@@ -180,7 +180,7 @@ export class ProjectResolver {
 
   @Query(returns => [Project])
   async projects (@Args() { take, skip, admin }: GetProjectsArgs): Promise<Project[]> {
-    return !admin? this.projectRepository.find({ take, skip, relations: ["donations"] }) : this.projectRepository.find({
+    return !admin? this.projectRepository.find({ take, skip, relations: ["donations", "reactions"] }) : this.projectRepository.find({
       where: { admin },
       take, skip
     })

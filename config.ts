@@ -35,7 +35,9 @@ const envVars = [
   'NETLIFY_DEPLOY_HOOK',
   'ENVIRONMENT',
   'WEBSITE_URL',
-  'TRIGGER_BUILD_ON_NEW_PROJECT'
+  'TRIGGER_BUILD_ON_NEW_PROJECT',
+  'ETHEREUM_NETWORK_ID',
+  'OUR_SECRET'
 ]
 
 class Config {
@@ -71,6 +73,8 @@ class Config {
   ENVIRONMENT: string
   WEBSITE_URL: string
   TRIGGER_BUILD_ON_NEW_PROJECT: string
+  ETHEREUM_NETWORK_ID: string
+  OUR_SECRET: string
 
   constructor () {
     const envFile = process.env;

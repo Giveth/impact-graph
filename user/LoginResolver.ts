@@ -46,7 +46,7 @@ export class LoginResolver {
     if (!this.hostnameWhitelist.has(hostname))
       return null;
 
-    const message = 'our_secret';
+    const message = config.get('OUR_SECRET') as string;
     const customPrefix = `\u0019${hostname} Signed Message:\n`
     const prefixWithLength = Buffer.from(`${customPrefix}${message.length.toString()}`, 'utf-8')
     const hashedMsg = keccak256(Buffer.concat([prefixWithLength, Buffer.from(message)]))
