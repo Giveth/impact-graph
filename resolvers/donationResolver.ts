@@ -8,7 +8,7 @@ import {
 import config from '../config'
 import Logger from '../logger'
 import chalk = require('chalk')
-
+import { getEthPrice } from '../uniswap'
 import axios, { AxiosResponse } from 'axios'
 
 import { MyContext } from '../types/MyContext'
@@ -107,6 +107,13 @@ export class DonationResolver {
       })
       await donation.save()
       
+      getEthPrice().then(async price => {
+        donation.valueUsd = Number(price)
+        await donation.save()
+        console.log('Saved donation value')
+        
+      }).catch(e => console.error(e))
+
       return donation.id
 
     } catch (e) {
