@@ -9,6 +9,7 @@ export class ProjectStatusRelationship1614082287595 implements MigrationInterfac
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE "project" DROP CONSTRAINT "FK_a9fd7b30180395df453f1373c28"`);
     }
 
 }
