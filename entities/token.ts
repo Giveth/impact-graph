@@ -3,6 +3,9 @@ import { Field, ID, ObjectType } from 'type-graphql'
 @ObjectType()
 export class Token {
   @Field({ nullable: true })
+  chainId: number
+
+  @Field({ nullable: true })
   address: string
 
   @Field({ nullable: true })
