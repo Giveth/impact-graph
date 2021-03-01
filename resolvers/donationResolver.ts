@@ -8,7 +8,7 @@ import {
 import config from '../config'
 import Logger from '../logger'
 import chalk = require('chalk')
-import { getEthPrice } from '../uniswap'
+import { getTokenPrices, getOurTokenList } from '../uniswap'
 import axios, { AxiosResponse } from 'axios'
 
 import { MyContext } from '../types/MyContext'
@@ -18,6 +18,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions'
 import { User } from '../entities/user'
 import { Project } from '../entities/project'
 import { Donation } from '../entities/donation'
+import { Token } from '../entities/token'
 import { web3 } from '../utils/web3'
 import { Wallet } from '../entities/wallet';
 
@@ -48,6 +49,14 @@ export class DonationResolver {
       }
     })
     return donations
+  }
+
+  
+
+  @Query(returns => [Token], { nullable: true })
+  async tokens () {
+    
+    return getOurTokenList()
   }
 
   @Query(returns => [Donation], { nullable: true })
@@ -107,12 +116,20 @@ export class DonationResolver {
       })
       await donation.save()
       
-      getEthPrice().then(async price => {
-        donation.valueUsd = Number(price)
-        await donation.save()
-        console.log('Saved donation value')
+      getTokenPrices(token, ['USDT', 'ETH']).then(async (prices: number[]) => {
         
-      }).catch(e => console.error(e))
+        donation.valueUsd = Number(amount) * Number(prices[0])
+        donation.valueEth = Number(amount) * Number(prices[1])
+        
+        donation.priceUsd = Number(prices[0])
+        donation.priceEth = Number(prices[1])
+        
+        await donation.save()
+        
+      }).catch(e => {
+        throw new Error (e)
+      })
+
 
       return donation.id
 
