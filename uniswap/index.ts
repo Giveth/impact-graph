@@ -11,47 +11,98 @@ const chainId = 1
 const coinListUrl = 'https://wispy-bird-88a7.uniswap.workers.dev/?url=http://erc20.cmc.eth.link'
 
 const provider = new ethers.providers.InfuraProvider(network, INFURA_ID);
+const ropstenTokenList = [
+    {
+      chainId: 3,
+      address: '0x067eA48882E6D728A37acfd1535ec03f8E33794a',
+      symbol: 'YAY',
+      name: 'Giveth Ropsten Test',
+      decimals: 18
+    },
+    {
+      chainId: 3,
+      address: '0xad6d458402f60fd3bd25163575031acdce07538d',
+      symbol: 'DAI',
+      name: 'DAI Ropsten',
+      decimals: 18
+    }
+  ]
 
 const xDaiTokenList = [
   {
     chainId: 100,
-    address: "0x71850b7e9ee3f13ab46d67167341e4bdc905eef9",
-    symbol: "HNY",
-    name: "Honey",
-    decimals: 6
-    },
+    address: '0x71850b7E9Ee3f13Ab46d67167341E4bDc905Eef9',
+    symbol: 'HNY',
+    name: 'Honey',
+    decimals: 18
+  },
   {
     chainId: 100,
-    address: "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
-    symbol: "WXDAI",
-    name: "Wrapped XDAI",
-    decimals: 6
-    },
+    address: '0xb7D311E2Eb55F2f68a9440da38e7989210b9A05e',
+    symbol: 'STAKE',
+    name: 'STAKE on xDai'
+    // decimals: 18
+  },
   {
     chainId: 100,
-    address: "0x6a023ccd1ff6f2045c3309768ead9e68f978f6e1",
-    symbol: "WETH",
-    name: "Wrapper Ether",
-    decimals: 15
-    },
+    address: '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
+    symbol: 'USDC',
+    name: 'USDC on xDai'
+    // decimals: 18
+  },
   {
     chainId: 100,
-    address: "0x3a97704a1b25f08aa230ae53b352e2e72ef52843",
-    symbol: "AGVE",
-    name: "Agave",
-    decimals: 6
-    },
+    address: '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1',
+    symbol: 'WETH',
+    name: 'Wrapped Ether on xDai'
+    // decimals: 18
+  },
   {
     chainId: 100,
-    address: "0x71850b7e9ee3f13ab46d67167341e4bdc905eef9",
-    symbol: "STAKE",
-    name: "Stake on xDai",
-    decimals: 6
-    }
+    address: '0xE2e73A1c69ecF83F464EFCE6A5be353a37cA09b2',
+    symbol: 'LINK',
+    name: 'ChainLink Token on xDai'
+    // decimals: 18
+  },
+  {
+    chainId: 100,
+    address: '0x1e16aa4Df73d29C029d94CeDa3e3114EC191E25A',
+    symbol: 'xMOON',
+    name: 'Moons on xDai'
+    // decimals: 18
+  },
+  {
+    chainId: 100,
+    address: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
+    symbol: 'WXDAI',
+    name: 'Wrapped XDAI'
+    // decimals: 18
+  },
+  {
+    chainId: 100,
+    address: '0x4ECaBa5870353805a9F068101A40E0f32ed605C6',
+    symbol: 'USDT',
+    name: 'Tether USD on xDai'
+    // decimals: 18
+  },
+  {
+    chainId: 100,
+    address: '0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252',
+    symbol: 'WBTC',
+    name: 'Wrapped BTC on xDai'
+    // decimals: 18
+  },
+  {
+    chainId: 100,
+    address: '0x3a97704a1b25F08aa230ae53B352e2e72ef52843',
+    symbol: 'AGVE',
+    name: 'Agave Token'
+    // decimals: 18
+  }
 ]
 let tokenList
-getTokenList().then(list => {
-  tokenList = xDaiTokenList.concat(list)
+getTokenList().then(cmcList => {
+  tokenList = cmcList.concat(xDaiTokenList).concat(ropstenTokenList)
 })
 
 export function getOurTokenList() {
