@@ -82,11 +82,12 @@ export class DonationResolver {
     @Arg('transactionNetworkId') transactionNetworkId: Number,
     @Arg('token') token: string,
     @Arg('projectId') projectId: Number,
+    @Arg('chainId') chainId: Number,
     @Ctx() ctx: MyContext
   ): Promise<Number> {
     try {
       let userId
-      
+      if(!chainId) chainId = 1
       let originUser;
       
       //Logged in
@@ -116,7 +117,7 @@ export class DonationResolver {
       })
       await donation.save()
       
-      getTokenPrices(token, ['USDT', 'ETH']).then(async (prices: number[]) => {
+      getTokenPrices(token, ['USDT', 'ETH'], Number(chainId)).then(async (prices: number[]) => {
         
         donation.valueUsd = Number(amount) * Number(prices[0])
         donation.valueEth = Number(amount) * Number(prices[1])
