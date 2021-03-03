@@ -1,15 +1,18 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class AddEthUsdValueColumnDonationTable1614603242980 implements MigrationInterface {
+export class AddEthUsdValueColumnDonationTable1614603242980
+  implements MigrationInterface {
+  public async up (queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE "donation" ADD "priceEth" double precision NULL`
+    )
+    await queryRunner.query(
+      `ALTER TABLE "donation" ADD "priceUsd" double precision NULL`
+    )
+  }
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "donation" ADD "priceEth" double precision NULL`);
-        await queryRunner.query(`ALTER TABLE "donation" ADD "priceUsd" double precision NULL`);
-    }
-
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "donation" DROP COLUMN "priceEth"`);
-        await queryRunner.query(`ALTER TABLE "donation" DROP COLUMN "priceUsd"`);
-    }
-
+  public async down (queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`ALTER TABLE "donation" DROP COLUMN "priceEth"`)
+    await queryRunner.query(`ALTER TABLE "donation" DROP COLUMN "priceUsd"`)
+  }
 }
