@@ -25,6 +25,19 @@ const ropstenTokenList = [
       symbol: 'DAI',
       name: 'DAI Ropsten',
       decimals: 18
+    },
+    {
+      chainId: 3,
+      address: '0x516de3a7a567d81737e3a46ec4ff9cfd1fcb0136',
+      symbol: 'USDT',
+      name: 'USDT Ropsten',
+      decimals: 6
+    },
+    {
+      chainId: 3,
+      address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+      symbol: 'UNI',
+      name:'UNI Ropsten'
     }
   ]
 
