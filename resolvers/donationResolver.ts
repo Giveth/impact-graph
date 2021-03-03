@@ -47,6 +47,21 @@ export class DonationResolver {
     return donations
   }
 
+  @Query(returns => [Donation], { nullable: true })
+  async donationsToWallets (
+    @Ctx() ctx: MyContext,
+    @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[]) {
+    
+    const toWalletAddressesArray: string[] = toWalletAddresses.map(o => o.toLowerCase())
+    
+    const donations = await this.donationRepository.find({ 
+      where: {
+        toWalletAddress: In(toWalletAddressesArray )
+      }
+    })
+    return donations
+  }
+
   @Query(returns => [Token], { nullable: true })
   async tokens () {
     return getOurTokenList()
