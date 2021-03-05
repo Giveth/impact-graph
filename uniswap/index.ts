@@ -8,6 +8,11 @@ const network = 'mainnet'
 
 //const provider = new ethers.providers.InfuraProvider(network, INFURA_ID)
 function getProvider (network) {
+  if (network === 'xdaiChain') {
+    return new ethers.providers.JsonRpcProvider(
+      config.get('XDAI_NODE_HTTP_URL')
+    )
+  }
   return new ethers.providers.InfuraProvider(network, INFURA_ID)
 }
 
