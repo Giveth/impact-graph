@@ -1,5 +1,5 @@
 import * as UniSdk from '@uniswap/sdk'
-import * as HoneySdk from '../honeyswap-sdk'
+import * as HoneySdk from '@1hive/honeyswap-sdk'
 
 interface token {
   chainId: number
