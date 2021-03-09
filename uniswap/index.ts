@@ -80,7 +80,6 @@ export async function getTokenPrice (
 ) {
   try {
     const sdk = new Sdk(chainId)
-
     const token = await sdk.getSwapToken(getTokenFromList(symbol, chainId))
 
     if (!token) throw Error(`Symbol ${symbol} not found in our token list`)
@@ -99,7 +98,6 @@ export async function getTokenPrice (
       getProvider(getNetworkFromChainId(chainId)),
       chainId
     )
-
     return sdk.getPrice(pair, token, chainId)
   } catch (error) {
     console.error(error)
