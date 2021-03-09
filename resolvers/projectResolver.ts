@@ -2,10 +2,10 @@ import { PubSubEngine } from 'graphql-subscriptions'
 import { Service } from 'typedi'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 import NotificationPayload from '../entities/notificationPayload'
-import { ProjectStatus } from '../entities/projectStatus';
+import { ProjectStatus } from '../entities/projectStatus'
 import { MyContext } from '../types/MyContext'
 import { UserPermissions } from '../permissions'
-import slugify from 'slugify';
+import slugify from 'slugify'
 import Logger from '../logger'
 import { triggerBuild } from '../netlify/build'
 import {
@@ -22,7 +22,7 @@ import {
   PubSub,
   Query,
   registerEnumType,
-  Resolver,
+  Resolver
 } from 'type-graphql'
 import { Max, Min } from 'class-validator'
 import { Category } from '../entities/category'
@@ -32,8 +32,8 @@ import { User } from '../entities/user'
 import { Repository } from 'typeorm'
 import { ProjectInput } from './types/project-input'
 import { Context } from '../context'
-import { pinFile } from '../middleware/pinataUtils';
-import config from '../config';
+import { pinFile } from '../middleware/pinataUtils'
+import config from '../config'
 
 enum ProjStatus {
   rjt = 1,
@@ -42,7 +42,7 @@ enum ProjStatus {
   ver = 4,
   act = 5,
   can = 6,
-  del = 7,
+  del = 7
 }
 
 @ObjectType()
@@ -54,10 +54,9 @@ class TopProjects {
   totalCount: number
 }
 
-
 enum OrderField {
   CreationDate = 'creationDate',
-  Balance = 'balance',
+  Balance = 'balance'
 }
 
 enum OrderDirection {
@@ -74,24 +73,25 @@ registerEnumType(OrderDirection, {
   name: 'OrderDirection',
   description: 'Order direction'
 })
-function checkIfUserInRequest(ctx: MyContext) {
-    if (!ctx.req.user) {
-      throw new Error('Access denied')
-    }
+function checkIfUserInRequest (ctx: MyContext) {
+  if (!ctx.req.user) {
+    throw new Error('Access denied')
   }
-async function getLoggedInUser(ctx: MyContext){
-
-  checkIfUserInRequest(ctx) 
+}
+async function getLoggedInUser (ctx: MyContext) {
+  checkIfUserInRequest(ctx)
 
   const user = await User.findOne({ id: ctx.req.user.userId })
-  
-  if(!user) {
+
+  if (!user) {
     const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`
     const userMessage = 'Access denied'
-    Logger.captureMessage(errorMessage);
-    console.error(`Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`)
+    Logger.captureMessage(errorMessage)
+    console.error(
+      `Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`
+    )
     throw new Error(userMessage)
-  } 
+  }
 
   return user
 }
@@ -110,14 +110,16 @@ class OrderBy {
 class GetProjectsArgs {
   @Field(type => Int, { defaultValue: 0 })
   @Min(0)
-   skip: number
+  skip: number
 
   @Field(type => Int, { defaultValue: 0 })
   @Min(0)
   @Max(50)
   take: number
 
-  @Field(type => OrderBy, { defaultValue: { field: OrderField.Balance, direction: OrderDirection.DESC } })
+  @Field(type => OrderBy, {
+    defaultValue: { field: OrderField.Balance, direction: OrderDirection.DESC }
+  })
   orderBy: OrderBy
 
   @Field({ nullable: true })
@@ -137,21 +139,20 @@ class GetProjectArgs {
 @ObjectType()
 class GetProjectUpdatesResult {
   @Field(type => ProjectUpdate)
-  projectUpdate: ProjectUpdate;
+  projectUpdate: ProjectUpdate
 
   @Field(type => [Reaction])
-  reactions: Reaction[];
+  reactions: Reaction[]
 }
 
 @ObjectType()
 class ToggleResponse {
-  @Field(type => Boolean)  
+  @Field(type => Boolean)
   reaction: boolean
 
   @Field(type => Number)
   reactionCount: number
 }
-
 
 @Resolver(of => Project)
 export class ProjectResolver {
@@ -179,42 +180,62 @@ export class ProjectResolver {
   // }
 
   @Query(returns => [Project])
-  async projects (@Args() { take, skip, admin }: GetProjectsArgs): Promise<Project[]> {
-    return !admin? this.projectRepository.find({ take, skip, relations: ["donations", "reactions"] }) : this.projectRepository.find({
-      where: { admin },
-      take, skip
-    })
+  async projects (
+    @Args() { take, skip, admin }: GetProjectsArgs
+  ): Promise<Project[]> {
+    return !admin
+      ? this.projectRepository.find({
+          take,
+          skip,
+          relations: ['donations', 'reactions']
+        })
+      : this.projectRepository.find({
+          where: { admin },
+          take,
+          skip
+        })
   }
 
   @Query(returns => TopProjects)
-  async topProjects (@Args() { take, skip, orderBy, category }: GetProjectsArgs): Promise<TopProjects> {
+  async topProjects (
+    @Args() { take, skip, orderBy, category }: GetProjectsArgs
+  ): Promise<TopProjects> {
     const { field, direction } = orderBy
-    const order = {};
-    order[field] = direction;
+    const order = {}
+    order[field] = direction
 
-    let projects;
-    let totalCount;
+    let projects
+    let totalCount
 
     if (!category) {
-      [projects, totalCount] = await this.projectRepository.findAndCount({ take, skip, order, relations: ["reactions"], where: {
-        status: {
-          id: ProjStatus.act
-        }}} )
-      
-      
+      ;[projects, totalCount] = await this.projectRepository.findAndCount({
+        take,
+        skip,
+        order,
+        relations: ['reactions'],
+        where: {
+          status: {
+            id: ProjStatus.act
+          }
+        }
+      })
     } else {
-      [projects, totalCount] = await this.projectRepository
-          .createQueryBuilder('project')
-          .innerJoin('project.categories', 'category', 'category.name = :category', { category })
-          .innerJoin('project.reactions', 'reaction')
-          .orderBy(`project.${field}`, direction)
-          .limit(skip)
-          .take(take)
-          .innerJoinAndSelect('project.categories', 'c')
-          .getManyAndCount()
-          
+      ;[projects, totalCount] = await this.projectRepository
+        .createQueryBuilder('project')
+        .innerJoin(
+          'project.categories',
+          'category',
+          'category.name = :category',
+          { category }
+        )
+        .innerJoin('project.reactions', 'reaction')
+        .orderBy(`project.${field}`, direction)
+        .limit(skip)
+        .take(take)
+        .innerJoinAndSelect('project.categories', 'c')
+        .getManyAndCount()
     }
-    return { projects, totalCount };
+    return { projects, totalCount }
   }
 
   @Query(returns => [Project])
@@ -224,7 +245,10 @@ export class ProjectResolver {
 
   @Query(returns => Project)
   async projectBySlug (@Arg('slug') slug: string) {
-    return await this.projectRepository.findOne({  where: { slug }, relations: ["donations", "reactions"]})   
+    return await this.projectRepository.findOne({
+      where: { slug },
+      relations: ['donations', 'reactions']
+    })
   }
 
   @Mutation(returns => Project)
@@ -236,129 +260,141 @@ export class ProjectResolver {
   ) {
     if (!user) throw new Error('Authentication required.')
 
-    const project = await Project.findOne({ id: projectId });
-    
-    if (!project) throw new Error('Project not found.');
-    if (project.admin != user.userId) throw new Error('You are not the owner of this project.')
+    const project = await Project.findOne({ id: projectId })
 
-    for (const field in newProjectData)
-      project[field] = newProjectData[field];
+    if (!project) throw new Error('Project not found.')
+    if (project.admin != user.userId)
+      throw new Error('You are not the owner of this project.')
+
+    for (const field in newProjectData) project[field] = newProjectData[field]
 
     if (newProjectData.categories) {
-      const categoriesPromise = newProjectData.categories.map(async category => {
-        let [c] = await this.categoryRepository.find({ name: category });
-        if (c === undefined) {
-          c = new Category();
-          c.name = category;
+      const categoriesPromise = newProjectData.categories.map(
+        async category => {
+          let [c] = await this.categoryRepository.find({ name: category })
+          if (c === undefined) {
+            c = new Category()
+            c.name = category
+          }
+          return c
         }
-        return c;
-      })
+      )
 
       const categories = await Promise.all(categoriesPromise)
-      project.categories = categories;
+      project.categories = categories
     }
 
-    const { imageUpload, imageStatic } = newProjectData;
+    const { imageUpload, imageStatic } = newProjectData
     if (imageUpload) {
-      const { filename, createReadStream, encoding } = await imageUpload;
+      const { filename, createReadStream, encoding } = await imageUpload
 
       try {
-        project.image = await pinFile(createReadStream(), filename, encoding).then(response => {
-          return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
-        });
+        project.image = await pinFile(
+          createReadStream(),
+          filename,
+          encoding
+        ).then(response => {
+          return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash
+        })
       } catch (e) {
-        console.error(e);
+        console.error(e)
         throw Error('Upload file failed')
       }
     } else if (imageStatic) {
-      project.image = imageStatic;
+      project.image = imageStatic
     }
 
-    await project.save();
+    await project.save()
 
-    return project;
+    return project
   }
 
   @Mutation(returns => Project)
   async addProject (
-    @Arg( 'project') projectInput: ProjectInput,
+    @Arg('project') projectInput: ProjectInput,
     @Ctx() ctx: MyContext,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
-
     const user = await getLoggedInUser(ctx)
-    
-    
-      const categoriesPromise = Promise.all(projectInput.categories ?
-        projectInput.categories.map(async category => {
-          let [c] = await this.categoryRepository.find({ name: category });
-          if (c === undefined) {
-            c = new Category();
-            c.name = category;
+
+    const categoriesPromise = Promise.all(
+      projectInput.categories
+        ? projectInput.categories.map(async category => {
+            let [c] = await this.categoryRepository.find({ name: category })
+            if (c === undefined) {
+              c = new Category()
+              c.name = category
+            }
+            return c
+          })
+        : []
+    )
+
+    let imagePromise: Promise<string | undefined> = Promise.resolve(undefined)
+
+    const { imageUpload, imageStatic } = projectInput
+    if (imageUpload) {
+      const { filename, createReadStream, encoding } = await imageUpload
+      try {
+        imagePromise = pinFile(createReadStream(), filename, encoding).then(
+          response => {
+            return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash
           }
-          return c;
-        }) : []);
-
-      let imagePromise: Promise<string | undefined> = Promise.resolve(undefined);
-
-      const { imageUpload, imageStatic } = projectInput;
-      if (imageUpload) {
-        const { filename, createReadStream, encoding } = await imageUpload;
-        try {
-          imagePromise = pinFile(createReadStream(), filename, encoding).then(response => {
-            return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
-          });
-        } catch (e) {
-          console.error(e);
-          throw Error('Upload file failed')
-        }
-      } else if (imageStatic) {
-        imagePromise = Promise.resolve(imageStatic)
-      }      
-
-      const [categories, image] = await Promise.all([categoriesPromise, imagePromise])
-      const slugBase = slugify(projectInput.title);
-
-      let slug = slugBase;
-      for (let i=1; await this.projectRepository.findOne({ slug }); i++) {
-        slug = slugBase + '-' + i;
+        )
+      } catch (e) {
+        console.error(e)
+        throw Error('Upload file failed')
       }
+    } else if (imageStatic) {
+      imagePromise = Promise.resolve(imageStatic)
+    }
 
-      const project = this.projectRepository.create({
-        ...projectInput,
-        categories,
-        image,
-        creationDate: new Date(),
-        slug,
-        admin: ctx.req.user.userId,
-        users: [user],
-        statusId: 2
-      })
-      
-      const newProject = await this.projectRepository.save(project)
+    const [categories, image] = await Promise.all([
+      categoriesPromise,
+      imagePromise
+    ])
+    const slugBase = slugify(projectInput.title)
 
-      const update = await ProjectUpdate.create({
-        userId: ctx.req.user.userId,
-        projectId: newProject.id,
-        content: "",
-        title: "",
-        createdAt: new Date(),
-        isMain: true
-      });
-      await ProjectUpdate.save(update);
+    let slug = slugBase
+    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
+      slug = slugBase + '-' + i
+    }
 
-      const payload: NotificationPayload = {
-        id: 1,
-        message: 'A new project was created'
-      }
-      console.log('here', newProject.id)
-      
-      if(config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true') triggerBuild(newProject.id)
-      
-      await pubSub.publish('NOTIFICATIONS', payload)
-      
-      return newProject
-    
+    const project = this.projectRepository.create({
+      ...projectInput,
+      categories,
+      image,
+      creationDate: new Date(),
+      slug: slug.toLowerCase(),
+      admin: ctx.req.user.userId,
+      users: [user],
+      statusId: 2
+    })
+
+    const newProject = await this.projectRepository.save(project)
+
+    const update = await ProjectUpdate.create({
+      userId: ctx.req.user.userId,
+      projectId: newProject.id,
+      content: '',
+      title: '',
+      createdAt: new Date(),
+      isMain: true
+    })
+    await ProjectUpdate.save(update)
+
+    const payload: NotificationPayload = {
+      id: 1,
+      message: 'A new project was created'
+    }
+    console.log('here', newProject.id)
+
+    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
+      triggerBuild(newProject.id)
+
+    await pubSub.publish('NOTIFICATIONS', payload)
+
+    return newProject
   }
 
   @Mutation(returns => Project)
@@ -372,17 +408,17 @@ export class ProjectResolver {
     projectInput.title = title
     projectInput.description = description
 
-    const slugBase = slugify(projectInput.title);
+    const slugBase = slugify(projectInput.title)
 
-    let slug = slugBase;
-    for (let i=1; await this.projectRepository.findOne({ slug }); i++) {
-      slug = slugBase + '-' + i;
+    let slug = slugBase
+    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
+      slug = slugBase + '-' + i
     }
 
     const project = this.projectRepository.create({
       ...projectInput,
       slug,
-      categories: [],
+      categories: []
       //   // ...projectInput,
       //   // authorId: user.id
     })
@@ -408,10 +444,11 @@ export class ProjectResolver {
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error('Authentication required.')
 
-    const project = await Project.findOne({ id: projectId });
-    
-    if (!project) throw new Error('Project not found.');
-    if (project.admin != user.userId) throw new Error('You are not the owner of this project.')
+    const project = await Project.findOne({ id: projectId })
+
+    if (!project) throw new Error('Project not found.')
+    if (project.admin != user.userId)
+      throw new Error('You are not the owner of this project.')
 
     const update = await ProjectUpdate.create({
       userId: user.userId,
@@ -422,7 +459,7 @@ export class ProjectResolver {
       isMain: false
     })
 
-    return ProjectUpdate.save(update);
+    return ProjectUpdate.save(update)
   }
 
   @Mutation(returns => Boolean)
@@ -434,14 +471,17 @@ export class ProjectResolver {
   ): Promise<boolean> {
     if (!user) throw new Error('Authentication required.')
 
-    const update = await ProjectUpdate.findOne({ id: updateId });
-    if (!update) throw new Error('Update not found.');
-    
-    const currentReaction = await Reaction.findOne({ projectUpdateId: update.id, userId: user.userId });
-    
-    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId });
+    const update = await ProjectUpdate.findOne({ id: updateId })
+    if (!update) throw new Error('Update not found.')
 
-    if (currentReaction && currentReaction.reaction === reaction) return false;
+    const currentReaction = await Reaction.findOne({
+      projectUpdateId: update.id,
+      userId: user.userId
+    })
+
+    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId })
+
+    if (currentReaction && currentReaction.reaction === reaction) return false
 
     const newReaction = await Reaction.create({
       userId: user.userId,
@@ -451,10 +491,9 @@ export class ProjectResolver {
 
     await Reaction.save(newReaction)
 
-    return true;
+    return true
   }
 
-  
   @Mutation(returns => ToggleResponse)
   async toggleProjectReaction (
     @Arg('projectId') projectId: number,
@@ -464,30 +503,38 @@ export class ProjectResolver {
   ): Promise<object> {
     if (!user) throw new Error('Authentication required.')
 
-    let project = await Project.findOne({ id: projectId });
-      
-    if(!project) throw new Error("Project not found.") 
+    let project = await Project.findOne({ id: projectId })
 
-    let update = await ProjectUpdate.findOne({ projectId, isMain: true });
+    if (!project) throw new Error('Project not found.')
+
+    let update = await ProjectUpdate.findOne({ projectId, isMain: true })
     if (!update) {
-      update = await ProjectUpdate.save(await ProjectUpdate.create({
-        userId: project && project.admin && +project.admin? +project.admin : 0,
-        projectId,
-        content: "",
-        title: "",
-        createdAt: new Date(),
-        isMain: true
-      }));
+      update = await ProjectUpdate.save(
+        await ProjectUpdate.create({
+          userId:
+            project && project.admin && +project.admin ? +project.admin : 0,
+          projectId,
+          content: '',
+          title: '',
+          createdAt: new Date(),
+          isMain: true
+        })
+      )
     }
-    
-    const usersReaction = await Reaction.findOne({ projectUpdateId: update.id, userId: user.userId });
-    const [,reactionCount] = await Reaction.findAndCount({ projectUpdateId: update.id})
 
-    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId });
+    const usersReaction = await Reaction.findOne({
+      projectUpdateId: update.id,
+      userId: user.userId
+    })
+    const [, reactionCount] = await Reaction.findAndCount({
+      projectUpdateId: update.id
+    })
+
+    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId })
     const response = new ToggleResponse()
     response.reactionCount = reactionCount
-    
-    if (usersReaction && usersReaction.reaction === reaction) { 
+
+    if (usersReaction && usersReaction.reaction === reaction) {
       response.reaction = false
       response.reactionCount = response.reactionCount - 1
     } else {
@@ -497,7 +544,7 @@ export class ProjectResolver {
         reaction,
         project
       })
-      
+
       await Reaction.save(newReaction)
       response.reactionCount = response.reactionCount + 1
       response.reaction = true
@@ -517,16 +564,19 @@ export class ProjectResolver {
       where: { projectId, isMain: false },
       skip,
       take
-    });
-
-    const results: GetProjectUpdatesResult[] = [];
-
-    for (const update of updates) results.push({
-      projectUpdate: update,
-      reactions: await Reaction.find({ where: { projectUpdateId: update.id } })
     })
 
-    return results;
+    const results: GetProjectUpdatesResult[] = []
+
+    for (const update of updates)
+      results.push({
+        projectUpdate: update,
+        reactions: await Reaction.find({
+          where: { projectUpdateId: update.id }
+        })
+      })
+
+    return results
   }
 
   @Query(returns => [Reaction])
@@ -537,9 +587,9 @@ export class ProjectResolver {
   ): Promise<Reaction[]> {
     const update = await ProjectUpdate.findOne({
       where: { projectId, isMain: true }
-    });
+    })
 
-    return await Reaction.find({ where: { projectUpdateId: update?.id || -1 } });
+    return await Reaction.find({ where: { projectUpdateId: update?.id || -1 } })
   }
 
   @Query(returns => Project, { nullable: true })
@@ -547,14 +597,17 @@ export class ProjectResolver {
     return this.projectRepository.findOne({ walletAddress: address })
   }
 
-  async updateProjectStatus(projectId: number, status: number, user: User): Promise<Boolean> {
+  async updateProjectStatus (
+    projectId: number,
+    status: number,
+    user: User
+  ): Promise<Boolean> {
+    const project = await Project.findOne({ id: projectId })
 
-    const project = await Project.findOne({ id: projectId });
-    
-    if(project) {
-      if(project.mayUpdateStatus(user)) {
-        const projectStatus = await ProjectStatus.findOne({ id: status });
-        if(projectStatus) {
+    if (project) {
+      if (project.mayUpdateStatus(user)) {
+        const projectStatus = await ProjectStatus.findOne({ id: status })
+        if (projectStatus) {
           project.status = projectStatus
           await project.save()
           return true
@@ -562,28 +615,28 @@ export class ProjectResolver {
           throw new Error('No project status found, this should be impossible')
         }
       } else {
-        throw new Error('User does not have permission to update status on that project')
+        throw new Error(
+          'User does not have permission to update status on that project'
+        )
       }
     } else {
       throw new Error('You tried to deactivate a non existant project')
     }
   }
-  
+
   @Mutation(returns => Boolean)
   async deactivateProject (
     @Arg('projectId') projectId: number,
     @Ctx() ctx: MyContext
   ): Promise<Boolean> {
     try {
-      const user = await getLoggedInUser(ctx) 
+      const user = await getLoggedInUser(ctx)
       return await this.updateProjectStatus(projectId, ProjStatus.can, user)
-      
     } catch (error) {
-      Logger.captureException(error);
+      Logger.captureException(error)
       throw error
       return false
     }
-    
   }
 
   @Mutation(returns => Boolean)
@@ -592,11 +645,10 @@ export class ProjectResolver {
     @Ctx() ctx: MyContext
   ): Promise<Boolean> {
     try {
-      const user = await getLoggedInUser(ctx) 
+      const user = await getLoggedInUser(ctx)
       return await this.updateProjectStatus(projectId, ProjStatus.act, user)
-      
     } catch (error) {
-      Logger.captureException(error);
+      Logger.captureException(error)
       throw error
     }
   }

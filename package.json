@@ -4,7 +4,7 @@
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
-    "@1hive/honeyswap-sdk": "file:../uniswap-sdk",
+    "@1hive/honeyswap-sdk": "file:honeyswap-sdk",
     "@sentry/node": "^6.2.0",
     "@sentry/tracing": "^6.2.0",
     "@types/bcryptjs": "^2.4.2",
