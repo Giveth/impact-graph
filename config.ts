@@ -1,7 +1,9 @@
 import * as dotenv from 'dotenv'
-import * as path from 'path';
+import * as path from 'path'
 
-dotenv.config({ path: path.resolve(__dirname, `./config/${process.env.NODE_ENV||''}.env`) });
+dotenv.config({
+  path: path.resolve(__dirname, `./config/${process.env.NODE_ENV || ''}.env`)
+})
 
 const envVars = [
   'JWT_SECRET',
@@ -37,7 +39,8 @@ const envVars = [
   'WEBSITE_URL',
   'TRIGGER_BUILD_ON_NEW_PROJECT',
   'ETHEREUM_NETWORK_ID',
-  'OUR_SECRET'
+  'OUR_SECRET',
+  'XDAI_NODE_HTTP_URL'
 ]
 
 class Config {
@@ -75,9 +78,10 @@ class Config {
   TRIGGER_BUILD_ON_NEW_PROJECT: string
   ETHEREUM_NETWORK_ID: string
   OUR_SECRET: string
+  XDAI_NODE_HTTP_URL: string
 
   constructor () {
-    const envFile = process.env;
+    const envFile = process.env
     envVars.forEach(envVar => {
       if (envFile[envVar]) {
         this[envVar] = envFile[envVar]
@@ -96,6 +100,6 @@ class Config {
   }
 }
 
-const config = new Config();
+const config = new Config()
 
 export default config
