@@ -25,6 +25,10 @@ export class Donation extends BaseEntity {
   
   @Field()
   @Column()
+  transactionNetworkId: number
+  
+  @Field()
+  @Column()
   toWalletAddress: string
 
   @Field()
@@ -45,7 +49,19 @@ export class Donation extends BaseEntity {
   
   @Field({ nullable: true })
   @Column({type: 'real', nullable: true})
+  valueEth: number
+  
+  @Field({ nullable: true })
+  @Column({type: 'real', nullable: true})
   valueUsd: number
+  
+  @Field({ nullable: true })
+  @Column({type: 'real', nullable: true})
+  priceEth: number
+  
+  @Field({ nullable: true })
+  @Column({type: 'real', nullable: true})
+  priceUsd: number
   
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })

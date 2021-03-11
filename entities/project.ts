@@ -4,7 +4,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToMany,
-  ColumnOptions,
+  ManyToOne,
+  RelationId,
   JoinTable, 
   BaseEntity,
   OneToMany
@@ -15,6 +16,7 @@ import { Donation } from './donation'
 import { Reaction } from './reaction'
 import { Category } from './category'
 import { User } from './user'
+import { ProjectStatus } from './projectStatus'
 
 
 @Entity()
@@ -39,10 +41,6 @@ class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   description?: string
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  statusId?: number
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -104,6 +102,20 @@ class Project extends BaseEntity {
     reaction => reaction.project
   )
   reactions?: Reaction[]
+
+  @Field(type => ProjectStatus)
+  @ManyToOne(type => ProjectStatus, { eager: true })
+  status: ProjectStatus
+  @RelationId((project: Project) => project.status)
+  statusId: number
+  
+  mayUpdateStatus(user: User) {
+    if(this.users.filter(o => o.id === user.id).length > 0) {
+      return true
+    } else {
+      return false
+    }  
+  }
 }
 
 @Entity()
