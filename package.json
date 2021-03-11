@@ -87,7 +87,7 @@
   "scripts": {
     "test": "NODE_ENV=test mocha --exit -r ts-node/register resolvers/*.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
-    "serve": "pm2 startOrRestart ecosystem.config.js",
+    "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=4096'",
     "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts",
     "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts"
   },
