@@ -4,7 +4,6 @@ import * as path from 'path'
 dotenv.config({
   path: path.resolve(__dirname, `./config/${process.env.NODE_ENV || ''}.env`)
 })
-
 const envVars = [
   'JWT_SECRET',
   'JWT_MAX_AGE',
@@ -40,10 +39,10 @@ const envVars = [
   'TRIGGER_BUILD_ON_NEW_PROJECT',
   'ETHEREUM_NETWORK_ID',
   'OUR_SECRET',
-  'XDAI_NODE_HTTP_URL'
+  'XDAI_NODE_HTTP_URL',
+  'SEGMENT_API_KEY'
 ]
-
-class Config {
+interface requiredEnv {
   JWT_SECRET: string
   JWT_MAX_AGE: string
   ETHEREUM_NODE_ID: string
@@ -79,9 +78,19 @@ class Config {
   ETHEREUM_NETWORK_ID: string
   OUR_SECRET: string
   XDAI_NODE_HTTP_URL: string
+  SEGMENT_API_KEY: string
+}
 
-  constructor () {
-    const envFile = process.env
+class Config {
+  env: requiredEnv
+
+  constructor (envFile: any) {
+    this.env = envFile
+    this.validateEnv(envFile)
+  }
+
+  //Have this - replace it!
+  validateEnv (envFile) {
     envVars.forEach(envVar => {
       if (envFile[envVar]) {
         this[envVar] = envFile[envVar]
@@ -93,13 +102,13 @@ class Config {
   }
 
   get (envVar: string): string | number {
-    if (!this[envVar]) {
+    if (!this.env[envVar]) {
       throw new Error(`${envVar} is an invalid env variable`)
     }
-    return this[envVar]
+    return this.env[envVar]
   }
 }
 
-const config = new Config()
+const config = new Config(process.env)
 
 export default config

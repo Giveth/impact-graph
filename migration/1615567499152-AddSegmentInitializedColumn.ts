@@ -1,14 +1,16 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class AddEthPriceColumnDonationTable1614601491700
+export class AddSegmentInitializedColumn1615567499152
   implements MigrationInterface {
   public async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "donation" ADD "valueEth" double precision NULL`
+      `ALTER TABLE "user" ADD "segmentIdentified" boolean default false`
     )
   }
 
   public async down (queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "donation" DROP COLUMN "valueEth"`)
+    await queryRunner.query(
+      `ALTER TABLE "user" DROP COLUMN "segmentIdentified"`
+    )
   }
 }
