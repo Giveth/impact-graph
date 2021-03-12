@@ -1,13 +1,25 @@
-import { PubSubEngine } from 'graphql-subscriptions'
-import { Service } from 'typedi'
-import { InjectRepository } from 'typeorm-typedi-extensions'
 import NotificationPayload from '../entities/notificationPayload'
+import { Reaction, REACTION_TYPE } from '../entities/reaction'
+import { Project, ProjectUpdate } from '../entities/project'
+import { InjectRepository } from 'typeorm-typedi-extensions'
 import { ProjectStatus } from '../entities/projectStatus'
-import { MyContext } from '../types/MyContext'
+import { ProjectInput } from './types/project-input'
+import { PubSubEngine } from 'graphql-subscriptions'
+import { pinFile } from '../middleware/pinataUtils'
 import { UserPermissions } from '../permissions'
+import { Category } from '../entities/category'
+import { Donation } from '../entities/donation'
+import { triggerBuild } from '../netlify/build'
+import { MyContext } from '../types/MyContext'
+import { getAnalytics } from '../analytics'
+import { Max, Min } from 'class-validator'
+import { User } from '../entities/user'
+import { Context } from '../context'
+import { Repository } from 'typeorm'
+import { Service } from 'typedi'
+import config from '../config'
 import slugify from 'slugify'
 import Logger from '../logger'
-import { triggerBuild } from '../netlify/build'
 import {
   Arg,
   Args,
@@ -24,16 +36,8 @@ import {
   registerEnumType,
   Resolver
 } from 'type-graphql'
-import { Max, Min } from 'class-validator'
-import { Category } from '../entities/category'
-import { Project, ProjectUpdate } from '../entities/project'
-import { Reaction, REACTION_TYPE } from '../entities/reaction'
-import { User } from '../entities/user'
-import { Repository } from 'typeorm'
-import { ProjectInput } from './types/project-input'
-import { Context } from '../context'
-import { pinFile } from '../middleware/pinataUtils'
-import config from '../config'
+
+const analytics = getAnalytics()
 
 enum ProjStatus {
   rjt = 1,
@@ -162,7 +166,9 @@ export class ProjectResolver {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private userPermissions: UserPermissions
+    private userPermissions: UserPermissions,
+    @InjectRepository(Donation)
+    private readonly donationRepository: Repository<Donation>
   ) {}
 
   // @FieldResolver()
@@ -392,6 +398,15 @@ export class ProjectResolver {
     if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
       triggerBuild(newProject.id)
 
+    analytics.track(
+      'Project created',
+      `givethId-${ctx.req.user.userId}`,
+      project,
+      null
+    )
+
+    console.log(`project : ${JSON.stringify(project, null, 2)}`)
+
     await pubSub.publish('NOTIFICATIONS', payload)
 
     return newProject
@@ -444,7 +459,10 @@ export class ProjectResolver {
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error('Authentication required.')
 
+    console.log(`projectId ---> : ${projectId}`)
     const project = await Project.findOne({ id: projectId })
+
+    console.log(`project : ${JSON.stringify(project, null, 2)}`)
 
     if (!project) throw new Error('Project not found.')
     if (project.admin != user.userId)
@@ -459,6 +477,33 @@ export class ProjectResolver {
       isMain: false
     })
 
+    analytics.track(
+      'Project updated - owner',
+      `givethId-${user.userId}`,
+      {
+        project,
+        update
+      },
+      null
+    )
+
+    const donations = await this.donationRepository.find({
+      where: { project: { id: project.id } },
+      relations: ['user']
+    })
+
+    donations.forEach(donation => {
+      analytics.track(
+        'Project updated - donor',
+        `givethId-${donation.user.id}`,
+        {
+          project,
+          update,
+          donation
+        },
+        null
+      )
+    })
     return ProjectUpdate.save(update)
   }
 
