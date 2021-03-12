@@ -1,20 +1,21 @@
 import { Resolver, Query, Arg, Mutation, Ctx } from 'type-graphql'
+import { InjectRepository } from 'typeorm-typedi-extensions'
+import { getTokenPrices, getOurTokenList } from '../uniswap'
+import { Donation } from '../entities/donation'
+import { MyContext } from '../types/MyContext'
+import { Project } from '../entities/project'
+import axios, { AxiosResponse } from 'axios'
+import { getAnalytics } from '../analytics'
+import { Wallet } from '../entities/wallet'
+import { Token } from '../entities/token'
+import { Repository, In } from 'typeorm'
+import { User } from '../entities/user'
+import { web3 } from '../utils/web3'
 import config from '../config'
 import Logger from '../logger'
 import chalk = require('chalk')
-import { getTokenPrices, getOurTokenList } from '../uniswap'
-import axios, { AxiosResponse } from 'axios'
 
-import { MyContext } from '../types/MyContext'
-import { Repository, In } from 'typeorm'
-import { InjectRepository } from 'typeorm-typedi-extensions'
-
-import { User } from '../entities/user'
-import { Project } from '../entities/project'
-import { Donation } from '../entities/donation'
-import { Token } from '../entities/token'
-import { web3 } from '../utils/web3'
-import { Wallet } from '../entities/wallet'
+const analytics = getAnalytics()
 
 @Resolver(of => User)
 export class DonationResolver {
@@ -50,13 +51,15 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsToWallets (
     @Ctx() ctx: MyContext,
-    @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[]) {
-    
-    const toWalletAddressesArray: string[] = toWalletAddresses.map(o => o.toLowerCase())
-    
-    const donations = await this.donationRepository.find({ 
+    @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[]
+  ) {
+    const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
+      o.toLowerCase()
+    )
+
+    const donations = await this.donationRepository.find({
       where: {
-        toWalletAddress: In(toWalletAddressesArray )
+        toWalletAddress: In(toWalletAddressesArray)
       }
     })
     return donations
@@ -114,12 +117,13 @@ export class DonationResolver {
 
       if (!project) throw new Error('Transaction project was not found.')
 
+      const user = userId ? originUser : null
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId.toString().toLowerCase(),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
-        user: userId ? originUser : null,
+        user,
         project: project,
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
@@ -128,9 +132,17 @@ export class DonationResolver {
       })
       await donation.save()
 
-      const baseTokens =
-        Number(chainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
+      const analyticsUserId = userId ? originUser.segmentUserId() : null
+      const anonymousId = !analyticsUserId
+        ? fromAddress.toString().toLowerCase()
+        : null
 
+      const baseTokens =
+        Number(chainId) === 1 || Number(chainId) === 3
+          ? ['USDT', 'ETH']
+          : ['WXDAI', 'WETH']
+
+      analytics.track('Made donation', analyticsUserId, donation, anonymousId)
       getTokenPrices(token, baseTokens, Number(chainId))
         .then(async (prices: number[]) => {
           donation.valueUsd = Number(amount) * Number(prices[0])

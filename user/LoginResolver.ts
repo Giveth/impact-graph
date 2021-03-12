@@ -2,14 +2,16 @@
 require('dotenv').config()
 import * as bcrypt from 'bcryptjs'
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
-import { keccak256 } from 'ethers/lib/utils';
+import { keccak256 } from 'ethers/lib/utils'
 import { User } from '../entities/user'
 import { MyContext } from '../types/MyContext'
 import * as jwt from 'jsonwebtoken'
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql'
 import config from '../config'
 import Logger from '../logger'
+import { getAnalytics } from '../analytics'
 
+const analytics = getAnalytics()
 const sigUtil = require('eth-sig-util')
 
 @ObjectType()
@@ -33,23 +35,29 @@ registerEnumType(LoginType, {
 
 @Resolver()
 export class LoginResolver {
-  hostnameWhitelist = new Set((config.get('HOSTNAME_WHITELIST') as string).split(','))
+  hostnameWhitelist = new Set(
+    (config.get('HOSTNAME_WHITELIST') as string).split(',')
+  )
 
-  hostnameSignedMessageHashCache: {[id: string]:string} = {}
+  hostnameSignedMessageHashCache: { [id: string]: string } = {}
   // Return hash of message which should be signed by user
   // Null return means no hash message is available for hostname
   // Sign message differs based on application hostname (domain) in order to prevent sign-message popup in UI
-  getHostnameSignMessageHash(hostname: string): string | null {
-    const cache = this.hostnameSignedMessageHashCache;
-    if (cache[hostname]) return cache[hostname];
+  getHostnameSignMessageHash (hostname: string): string | null {
+    const cache = this.hostnameSignedMessageHashCache
+    if (cache[hostname]) return cache[hostname]
 
-    if (!this.hostnameWhitelist.has(hostname))
-      return null;
+    if (!this.hostnameWhitelist.has(hostname)) return null
 
-    const message = config.get('OUR_SECRET') as string;
+    const message = config.get('OUR_SECRET') as string
     const customPrefix = `\u0019${hostname} Signed Message:\n`
-    const prefixWithLength = Buffer.from(`${customPrefix}${message.length.toString()}`, 'utf-8')
-    const hashedMsg = keccak256(Buffer.concat([prefixWithLength, Buffer.from(message)]))
+    const prefixWithLength = Buffer.from(
+      `${customPrefix}${message.length.toString()}`,
+      'utf-8'
+    )
+    const hashedMsg = keccak256(
+      Buffer.concat([prefixWithLength, Buffer.from(message)])
+    )
     cache[hostname] = hashedMsg
     return hashedMsg
   }
@@ -66,11 +74,9 @@ export class LoginResolver {
       const decodedJwt: any = jwt.verify(token, secret)
       return true
     } catch (error) {
-      Logger.captureMessage(error);
-      
-      console.error(
-          `Apollo Server error : ${JSON.stringify(error, null, 2)}`
-      )
+      Logger.captureMessage(error)
+
+      console.error(`Apollo Server error : ${JSON.stringify(error, null, 2)}`)
       console.error(`Error for token ${token}`)
       return false
     }
@@ -137,7 +143,6 @@ export class LoginResolver {
   }
 
   createToken (user: any) {
-
     return jwt.sign(user, config.get('JWT_SECRET') as string, {
       expiresIn: '30d'
     })
@@ -165,9 +170,7 @@ export class LoginResolver {
           // { name: 'verifyingContract', type: 'address' }
         ],
         Login: [{ name: 'user', type: 'User' }],
-        User: [
-          { name: 'wallets', type: 'address[]' }
-        ]
+        User: [{ name: 'wallets', type: 'address[]' }]
       },
       domain: {
         name: 'Giveth Login',
@@ -182,51 +185,59 @@ export class LoginResolver {
       }
     })
 
-    if (hashedMsg === null) return null;
+    if (hashedMsg === null) return null
 
     const publicAddress = sigUtil.recoverTypedSignature_v4({
       data: JSON.parse(msgParams),
       sig: signature
     })
 
-    if (!publicAddress) return null;
+    if (!publicAddress) return null
 
-    const publicAddressLowerCase = publicAddress.toLocaleLowerCase();
+    const publicAddressLowerCase = publicAddress.toLocaleLowerCase()
 
-    if (walletAddress.toLocaleLowerCase() !== publicAddressLowerCase) return null;
+    if (walletAddress.toLocaleLowerCase() !== publicAddressLowerCase)
+      return null
 
-    let user = await User.findOne({ where: { walletAddress: publicAddressLowerCase } })
+    let user = await User.findOne({
+      where: { walletAddress: publicAddressLowerCase }
+    })
 
     try {
-      
       if (!user) {
         user = await User.create({
           email,
           name,
           walletAddress: publicAddressLowerCase,
           loginType: 'wallet',
-          avatar
+          avatar,
+          segmentIdentified: true
         }).save()
+        console.log(`analytics.identifyUser -> New user`)
 
+        analytics.identifyUser(user)
       } else {
-        let modified = false;
+        let modified = false
         const updateUserIfNeeded = (field, value) => {
           // @ts-ignore
           if (user[field] !== value) {
             // @ts-ignore
-            user[field] = value;
-            modified = true;
+            user[field] = value
+            modified = true
           }
         }
 
-        if (name)
-          updateUserIfNeeded('name', name);
+        if (name) updateUserIfNeeded('name', name)
 
-        updateUserIfNeeded('avatar', avatar);
-        updateUserIfNeeded('walletAddress', publicAddressLowerCase);
-
-        if (modified)
-          await user.save();
+        updateUserIfNeeded('avatar', avatar)
+        updateUserIfNeeded('walletAddress', publicAddressLowerCase)
+        if (user.segmentIdentified === false) {
+          console.log(`analytics.identifyUser -> User was already logged in`)
+          analytics.identifyUser(user)
+          user.segmentIdentified = true
+          modified = true
+        }
+        if (modified) await user.save()
       }
       const response = new LoginResponse()
 
@@ -242,7 +253,7 @@ export class LoginResolver {
       return response
     } catch (e) {
       console.error(e)
-      return null;
+      return null
     }
   }
 }

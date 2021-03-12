@@ -15,6 +15,9 @@ function isMainNet (chainId) {
 function isXDai (chainId) {
   return chainId === 100
 }
+function isRopsten (chainId) {
+  return chainId === 3
+}
 
 export default class Sdk {
   sdk: { Token; Route; Pair; Fetcher }
@@ -25,7 +28,7 @@ export default class Sdk {
   }
 
   getSwapSdk (chainId) {
-    if (isMainNet(chainId)) {
+    if (isMainNet(chainId) || isRopsten(chainId)) {
       this.sdk = UniSdk
     } else if (isXDai(chainId)) {
       this.sdk = HoneySdk
