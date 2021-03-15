@@ -163,6 +163,8 @@ export class ProjectResolver {
   constructor (
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    @InjectRepository(ProjectStatus)
+    private readonly projectStatusRepository: Repository<ProjectStatus>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
@@ -191,12 +193,13 @@ export class ProjectResolver {
   ): Promise<Project[]> {
     return !admin
       ? this.projectRepository.find({
+          where: { status: { id: 5 } },
           take,
           skip,
           relations: ['donations', 'reactions']
         })
       : this.projectRepository.find({
-          where: { admin },
+          where: { admin, statusId: 5 },
           take,
           skip
         })
@@ -366,6 +369,12 @@ export class ProjectResolver {
       slug = slugBase + '-' + i
     }
 
+    const status = await this.projectStatusRepository.findOne({
+      id: 5
+    })
+
+    console.log(` status : ${JSON.stringify(status, null, 2)}`)
+
     const project = this.projectRepository.create({
       ...projectInput,
       categories,
@@ -374,7 +383,7 @@ export class ProjectResolver {
       slug: slug.toLowerCase(),
       admin: ctx.req.user.userId,
       users: [user],
-      statusId: 2
+      status
     })
 
     const newProject = await this.projectRepository.save(project)
@@ -393,7 +402,6 @@ export class ProjectResolver {
       id: 1,
       message: 'A new project was created'
     }
-    console.log('here', newProject.id)
 
     if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
       triggerBuild(newProject.id)
@@ -461,8 +469,6 @@ export class ProjectResolver {
 
     console.log(`projectId ---> : ${projectId}`)
     const project = await Project.findOne({ id: projectId })
-
-    console.log(`project : ${JSON.stringify(project, null, 2)}`)
 
     if (!project) throw new Error('Project not found.')
     if (project.admin != user.userId)
