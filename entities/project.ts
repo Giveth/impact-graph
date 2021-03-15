@@ -94,6 +94,10 @@ class Project extends BaseEntity {
   )
   donations?: Donation[]
 
+  @Field(type => Float, { nullable: true })
+  @Column({ nullable: true })
+  qualityScore: number = 0
+
   @ManyToMany(
     type => User,
     user => user.projects,
@@ -110,6 +114,11 @@ class Project extends BaseEntity {
   )
   reactions?: Reaction[]
 
+  @Field(type => Float, { nullable: true })
+  reactionsCount () {
+    return this.reactions ? this.reactions.length : 0
+  }
+
   @Field(type => ProjectStatus)
   @ManyToOne(type => ProjectStatus, { eager: true })
   status: ProjectStatus
@@ -122,6 +131,18 @@ class Project extends BaseEntity {
       return true
     } else {
       return false
+    }
+  }
+
+  /**
+   * Add / remove a heart to the score
+   * @param loved true to add a heart, false to remove
+   */
+  updateQualityScoreHeart (loved: boolean) {
+    if (loved) {
+      this.qualityScore = this.qualityScore + 10
+    } else {
+      this.qualityScore = this.qualityScore - 10
     }
   }
 }
