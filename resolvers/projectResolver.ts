@@ -336,17 +336,32 @@ export class ProjectResolver {
       project.image = imageStatic
     }
 
+    const heartCount = await Reaction.findAndCount({
+      projectId: projectId
+    })
+
+    let qualityScore = this.getQualityScore(
+      project.description,
+      !!imageUpload,
+      heartCount
+    )
+    project.qualityScore = qualityScore
     await project.save()
 
     return project
   }
 
-  getQualityScore (projectInput) {
+  //getQualityScore (projectInput) {
+  getQualityScore (description, hasImageUpload, heartCount) {
+    const heartScore = 10
     let qualityScore = 40
 
-    if (projectInput.description.length > 100) qualityScore = qualityScore + 10
-    if (projectInput.imageUpload) qualityScore = qualityScore + 30
+    if (description.length > 100) qualityScore = qualityScore + 10
+    if (hasImageUpload) qualityScore = qualityScore + 30
 
+    if (heartCount) {
+      qualityScore = heartCount * heartScore
+    }
     return qualityScore
   }
 
@@ -358,7 +373,11 @@ export class ProjectResolver {
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx)
 
-    let qualityScore = this.getQualityScore(projectInput)
+    let qualityScore = this.getQualityScore(
+      projectInput.description,
+      !!projectInput.imageUpload,
+      0
+    )
 
     const categoriesPromise = Promise.all(
       projectInput.categories
@@ -407,8 +426,6 @@ export class ProjectResolver {
       id: 5
     })
 
-    console.log(` status : ${JSON.stringify(status, null, 2)}`)
-
     const project = this.projectRepository.create({
       ...projectInput,
       categories,
@@ -447,8 +464,6 @@ export class ProjectResolver {
       project,
       null
     )
-
-    console.log(`project : ${JSON.stringify(project, null, 2)}`)
 
     await pubSub.publish('NOTIFICATIONS', payload)
 
