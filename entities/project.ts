@@ -6,7 +6,7 @@ import {
   ManyToMany,
   ManyToOne,
   RelationId,
-  JoinTable, 
+  JoinTable,
   BaseEntity,
   OneToMany
 } from 'typeorm'
@@ -18,7 +18,6 @@ import { Category } from './category'
 import { User } from './user'
 import { ProjectStatus } from './projectStatus'
 
-
 @Entity()
 @ObjectType()
 class Project extends BaseEntity {
@@ -28,11 +27,11 @@ class Project extends BaseEntity {
 
   @Field()
   @Column()
-  title: string;
+  title: string
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  slug?: string;
+  slug?: string
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -68,14 +67,18 @@ class Project extends BaseEntity {
   impactLocation?: string
 
   @Field(type => [Category], { nullable: true })
-  @ManyToMany(type => Category,category => category.projects, { nullable: true, eager: true, cascade: true })
+  @ManyToMany(
+    type => Category,
+    category => category.projects,
+    { nullable: true, eager: true, cascade: true }
+  )
   @JoinTable()
-  categories: Category[];
+  categories: Category[]
 
-  @Field(type=> Float, { nullable: true })
+  @Field(type => Float, { nullable: true })
   @Column('float', { nullable: true })
   balance: number = 0
-  
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   stripeAccountId?: string
@@ -83,7 +86,7 @@ class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   walletAddress?: string
-  
+
   @Field(type => [Donation], { nullable: true })
   @OneToMany(
     type => Donation,
@@ -91,11 +94,19 @@ class Project extends BaseEntity {
   )
   donations?: Donation[]
 
-  @ManyToMany(type => User, user => user.projects, { eager: true })
+  @Field(type => Float, { nullable: true })
+  @Column({ nullable: true })
+  qualityScore: number = 0
+
+  @ManyToMany(
+    type => User,
+    user => user.projects,
+    { eager: true }
+  )
   @JoinTable()
   @Field(type => [User], { nullable: true })
-  users: User[];
-  
+  users: User[]
+
   @Field(type => [Reaction], { nullable: true })
   @OneToMany(
     type => Reaction,
@@ -103,18 +114,36 @@ class Project extends BaseEntity {
   )
   reactions?: Reaction[]
 
+  @Field(type => Float, { nullable: true })
+  reactionsCount () {
+    return this.reactions ? this.reactions.length : 0
+  }
+
   @Field(type => ProjectStatus)
   @ManyToOne(type => ProjectStatus, { eager: true })
   status: ProjectStatus
+
   @RelationId((project: Project) => project.status)
   statusId: number
-  
-  mayUpdateStatus(user: User) {
-    if(this.users.filter(o => o.id === user.id).length > 0) {
+
+  mayUpdateStatus (user: User) {
+    if (this.users.filter(o => o.id === user.id).length > 0) {
       return true
     } else {
       return false
-    }  
+    }
+  }
+
+  /**
+   * Add / remove a heart to the score
+   * @param loved true to add a heart, false to remove
+   */
+  updateQualityScoreHeart (loved: boolean) {
+    if (loved) {
+      this.qualityScore = this.qualityScore + 10
+    } else {
+      this.qualityScore = this.qualityScore - 10
+    }
   }
 }
 
@@ -150,8 +179,4 @@ class ProjectUpdate extends BaseEntity {
   isMain: boolean
 }
 
-export {
-  Project,
-  Category,
-  ProjectUpdate
-}
+export { Project, Category, ProjectUpdate }

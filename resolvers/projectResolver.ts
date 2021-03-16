@@ -48,6 +48,7 @@ enum ProjStatus {
   can = 6,
   del = 7
 }
+import { inspect } from 'util'
 
 @ObjectType()
 class TopProjects {
@@ -163,6 +164,8 @@ export class ProjectResolver {
   constructor (
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    @InjectRepository(ProjectStatus)
+    private readonly projectStatusRepository: Repository<ProjectStatus>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
@@ -189,14 +192,37 @@ export class ProjectResolver {
   async projects (
     @Args() { take, skip, admin }: GetProjectsArgs
   ): Promise<Project[]> {
+    // const projects = await this.projectRepository
+    //   .createQueryBuilder('project')
+    //   //.select('COUNT(reactions.id)', 'reactionsCount')
+    //   .leftJoinAndSelect('project.reactions', 'reactions')
+    //   .leftJoinAndSelect('project.donations', 'donations')
+    //   .select('project')
+    //   .addSelect('COUNT(project.id) as reactionsCount')
+    //   .getMany()
+    // // .where('project.id = :id', { id: 1 })
+    // //.getRawOne()
+
+    // console.log(inspect(projects))
+
     return !admin
       ? this.projectRepository.find({
+          where: { status: { id: 5 } },
           take,
           skip,
-          relations: ['donations', 'reactions']
+          relations: ['status', 'donations', 'reactions'],
+          // select: [
+          //   'donations',
+          //   'reactions',
+          //   'COUNT(reactions.id) as reactionsCount'
+          // ],
+          order: {
+            qualityScore: 'DESC'
+            // reactionsCount: 'DESC'
+          }
         })
       : this.projectRepository.find({
-          where: { admin },
+          where: { admin, status: { id: 5 } },
           take,
           skip
         })
@@ -310,9 +336,33 @@ export class ProjectResolver {
       project.image = imageStatic
     }
 
+    const heartCount = await Reaction.findAndCount({
+      projectId: projectId
+    })
+
+    let qualityScore = this.getQualityScore(
+      project.description,
+      !!imageUpload,
+      heartCount
+    )
+    project.qualityScore = qualityScore
     await project.save()
 
     return project
+  }
+
+  //getQualityScore (projectInput) {
+  getQualityScore (description, hasImageUpload, heartCount) {
+    const heartScore = 10
+    let qualityScore = 40
+
+    if (description.length > 100) qualityScore = qualityScore + 10
+    if (hasImageUpload) qualityScore = qualityScore + 30
+
+    if (heartCount) {
+      qualityScore = heartCount * heartScore
+    }
+    return qualityScore
   }
 
   @Mutation(returns => Project)
@@ -322,6 +372,12 @@ export class ProjectResolver {
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx)
+
+    let qualityScore = this.getQualityScore(
+      projectInput.description,
+      !!projectInput.imageUpload,
+      0
+    )
 
     const categoriesPromise = Promise.all(
       projectInput.categories
@@ -366,6 +422,10 @@ export class ProjectResolver {
       slug = slugBase + '-' + i
     }
 
+    const status = await this.projectStatusRepository.findOne({
+      id: 5
+    })
+
     const project = this.projectRepository.create({
       ...projectInput,
       categories,
@@ -374,7 +434,8 @@ export class ProjectResolver {
       slug: slug.toLowerCase(),
       admin: ctx.req.user.userId,
       users: [user],
-      statusId: 2
+      status,
+      qualityScore
     })
 
     const newProject = await this.projectRepository.save(project)
@@ -393,7 +454,6 @@ export class ProjectResolver {
       id: 1,
       message: 'A new project was created'
     }
-    console.log('here', newProject.id)
 
     if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
       triggerBuild(newProject.id)
@@ -404,45 +464,6 @@ export class ProjectResolver {
       project,
       null
     )
-
-    console.log(`project : ${JSON.stringify(project, null, 2)}`)
-
-    await pubSub.publish('NOTIFICATIONS', payload)
-
-    return newProject
-  }
-
-  @Mutation(returns => Project)
-  async addProjectSimple (
-    @Arg('title') title: string,
-    @Arg('description') description: string,
-    @Ctx() { user }: Context,
-    @PubSub() pubSub: PubSubEngine
-  ): Promise<Project> {
-    const projectInput = new ProjectInput()
-    projectInput.title = title
-    projectInput.description = description
-
-    const slugBase = slugify(projectInput.title)
-
-    let slug = slugBase
-    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
-      slug = slugBase + '-' + i
-    }
-
-    const project = this.projectRepository.create({
-      ...projectInput,
-      slug,
-      categories: []
-      //   // ...projectInput,
-      //   // authorId: user.id
-    })
-    const newProject = await this.projectRepository.save(project)
-    // await AuthorBook.create({ authorId, bookId }).save();
-    const payload: NotificationPayload = {
-      id: 1,
-      message: 'A new project was created'
-    }
 
     await pubSub.publish('NOTIFICATIONS', payload)
 
@@ -461,8 +482,6 @@ export class ProjectResolver {
 
     console.log(`projectId ---> : ${projectId}`)
     const project = await Project.findOne({ id: projectId })
-
-    console.log(`project : ${JSON.stringify(project, null, 2)}`)
 
     if (!project) throw new Error('Project not found.')
     if (project.admin != user.userId)
@@ -519,22 +538,37 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId })
     if (!update) throw new Error('Update not found.')
 
+    //if there is one, then delete it
     const currentReaction = await Reaction.findOne({
       projectUpdateId: update.id,
       userId: user.userId
     })
 
-    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId })
+    let project = await Project.findOne({ id: update.projectId })
+    if (!project) throw new Error('Project not found')
 
-    if (currentReaction && currentReaction.reaction === reaction) return false
+    console.log(`project.id ---> : ${project.id}`)
 
-    const newReaction = await Reaction.create({
-      userId: user.userId,
-      projectUpdateId: update.id,
-      reaction
-    })
+    if (currentReaction && currentReaction.reaction === reaction) {
+      await Reaction.delete({ projectUpdateId: update.id, userId: user.userId })
 
-    await Reaction.save(newReaction)
+      //increment qualityScore
+      project.updateQualityScoreHeart(false)
+      project.save()
+      return false
+    } else {
+      //if there wasn't one, then create it
+      const newReaction = await Reaction.create({
+        userId: user.userId,
+        projectUpdateId: update.id,
+        reaction
+      })
+
+      project.updateQualityScoreHeart(true)
+      project.save()
+
+      await Reaction.save(newReaction)
+    }
 
     return true
   }
