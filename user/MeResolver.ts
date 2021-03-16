@@ -7,8 +7,32 @@ import { Project } from '../entities/project'
 // import { OrganisationProject } from '../entities/organisationProject'
 import { OrganisationUser } from '../entities/organisationUser'
 import { MyContext } from '../types/MyContext'
-
 import { Repository, In } from 'typeorm'
+import Logger from '../logger'
+
+function checkIfUserInRequest (ctx: MyContext) {
+  if (!ctx.req.user) {
+    throw new Error('Access denied')
+  }
+}
+
+async function getLoggedInUser (ctx: MyContext) {
+  checkIfUserInRequest(ctx)
+
+  const user = await User.findOne({ id: ctx.req.user.userId })
+
+  if (!user) {
+    const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`
+    const userMessage = 'Access denied'
+    Logger.captureMessage(errorMessage)
+    console.error(
+      `Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`
+    )
+    throw new Error(userMessage)
+  }
+
+  return user
+}
 
 @Resolver()
 export class MeResolver {
@@ -20,20 +44,15 @@ export class MeResolver {
     private readonly organisationRepository: Repository<Organisation>,
 
     @InjectRepository(Project)
-    private readonly projectRepository: Repository<Project> // @InjectRepository(OrganisationProject) // private readonly organisationProjectRepository: Repository<
-  ) //   OrganisationProject
-  // >
-  {}
+    private readonly projectRepository: Repository<Project> // @InjectRepository(OrganisationProject) // private readonly organisationProjectRepository: Repository< //   OrganisationProject // >
+  ) {}
 
   @Authorized()
   @Query(() => User, { nullable: true, complexity: 5 })
   async me (@Ctx() ctx: MyContext): Promise<User | undefined> {
-    console.log(`ctx ---> : ${ctx}`)
-    // if (!ctx.req.session!.userId) {
-    //   return undefined
-    // }
+    const user = await getLoggedInUser(ctx)
 
-    return User.findOne(1)
+    return user
   }
 
   // @Query(() => [Organisation], { nullable: true, complexity: 5 })
@@ -58,46 +77,17 @@ export class MeResolver {
 
   // @Authorized()
   @Query(() => [Project], { nullable: true, complexity: 5 })
-  async myProjects (@Ctx() ctx: MyContext): Promise<[Project] | undefined> {
-    console.log('-------------- ME RESOLVER  --------------')
+  async myProjects (@Ctx() ctx: MyContext): Promise<Project[] | undefined> {
+    const user = await getLoggedInUser(ctx)
 
-    if (!ctx.req.user) {
-      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-
-      return undefined
-    }
-
-    console.log(`ctx.req.user.email : ${ctx.req.user.email}`)
-
-    const user = await User.findOne({
-      email: ctx.req.user.email
+    const projects = this.projectRepository.find({
+      where: { admin: user.id },
+      relations: ['status', 'donations', 'reactions'],
+      order: {
+        qualityScore: 'DESC'
+      }
     })
 
-    console.log(`user : ${JSON.stringify(user, null, 2)}`)
-
-    // const organisationProjects = await this.organisationProjectRepository.find({
-    //   cache: 1000,
-    //   where: { userId: 1 }
-    // })
-
-    // const organisationProjectsIds = organisationProjects.map(o => o.id)
-
-    // console.log(
-    //   `organisationProjectsIds : ${JSON.stringify(
-    //     organisationProjectsIds,
-    //     null,
-    //     2
-    //   )}`
-    // )
-
-    return undefined
-
-    // return await this.projectRepository.find({
-    //   cache: 1000,
-    //   where: { organisationProjectsId: In(organisationProjectsIds) }
-    // })
-    // console.log(`projects : ${JSON.stringify(projects, null, 2)}`)
-
-    // return projects
+    return projects
   }
 }
