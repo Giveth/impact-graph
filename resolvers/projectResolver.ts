@@ -192,6 +192,21 @@ export class ProjectResolver {
   async projects (
     @Args() { take, skip, admin }: GetProjectsArgs
   ): Promise<Project[]> {
+    let projects
+    let totalCount
+    ;[projects, totalCount] = await this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.reactions', 'reactions')
+      .leftJoinAndSelect('project.donations', 'donations')
+      .leftJoinAndSelect('project.status', 'status')
+      .orderBy(`project.qualityScore`, 'DESC')
+      .limit(skip)
+      .take(take)
+      .innerJoinAndSelect('project.categories', 'c')
+      .getManyAndCount()
+
+    return projects
+
     // const projects = await this.projectRepository
     //   .createQueryBuilder('project')
     //   //.select('COUNT(reactions.id)', 'reactionsCount')
@@ -203,29 +218,29 @@ export class ProjectResolver {
     // // .where('project.id = :id', { id: 1 })
     // //.getRawOne()
 
-    // console.log(inspect(projects))
+    // // console.log(inspect(projects))
 
-    return !admin
-      ? this.projectRepository.find({
-          where: { status: { id: 5 } },
-          take,
-          skip,
-          relations: ['status', 'donations', 'reactions'],
-          // select: [
-          //   'donations',
-          //   'reactions',
-          //   'COUNT(reactions.id) as reactionsCount'
-          // ],
-          order: {
-            qualityScore: 'DESC'
-            // reactionsCount: 'DESC'
-          }
-        })
-      : this.projectRepository.find({
-          where: { admin, status: { id: 5 } },
-          take,
-          skip
-        })
+    // return !admin
+    //   ? this.projectRepository.find({
+    //       where: { status: { id: 5 } },
+    //       take,
+    //       skip,
+    //       relations: ['status', 'donations', 'reactions'],
+    //       // select: [
+    //       //   'donations',
+    //       //   'reactions',
+    //       //   'COUNT(reactions.id) as reactionsCount'
+    //       // ],
+    //       order: {
+    //         qualityScore: 'DESC'
+    //         // reactionsCount: 'DESC'
+    //       }
+    //     })
+    //   : this.projectRepository.find({
+    //       where: { admin, status: { id: 5 } },
+    //       take,
+    //       skip
+    //     })
   }
 
   @Query(returns => TopProjects)
