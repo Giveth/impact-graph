@@ -336,7 +336,11 @@ export class ProjectResolver {
       project.image = imageStatic
     }
 
-    const heartCount = await Reaction.findAndCount({
+    // const heartCount = await Reaction.findAndCount({
+    //   projectId: projectId
+    // })
+
+    const [, heartCount] = await Reaction.findAndCount({
       projectId: projectId
     })
 
