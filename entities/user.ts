@@ -81,5 +81,11 @@ export class User extends BaseEntity {
   )
   @JoinTable()
   projects?: Project[]
-  
+
+  @Column('bool', { default: false })
+  segmentIdentified: boolean
+
+  segmentUserId () {
+    return `givethId-${this.id}`
+  }
 }

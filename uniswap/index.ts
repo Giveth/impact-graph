@@ -1,6 +1,7 @@
 import Sdk from './sdk'
 import config from '../config'
 import { allTokens } from './tokenLists'
+import { textSpanIntersectsWith } from 'typescript'
 
 const INFURA_ID = config.get('ETHEREUM_NODE_ID')
 const ethers = require('ethers')
@@ -69,10 +70,28 @@ export function getTokenFromList (symbol: string, chainId: number) {
   const token = allTokens.find(
     o => o.symbol === inSymbol && o.chainId === chainId
   )
+
   if (!token) throw new Error('Token not found')
   return token
 }
 
+function isTestPrice (symbol, baseSymbol) {
+  return (
+    (symbol === 'ETH' && baseSymbol === 'USDT') ||
+    (symbol === 'ETH' && baseSymbol === 'ETH')
+  )
+}
+function isETHisETH (symbol, baseSymbol) {
+  return symbol === 'ETH' && baseSymbol === 'ETH'
+}
+function getTestPrice (symbol, baseSymbol, chainId) {
+  if (symbol === 'ETH' && baseSymbol === 'USDT' && chainId !== 1) return 2000
+  if (symbol === 'ETH' && baseSymbol === 'ETH') return 1
+  throw Error('No test price, this should not happen')
+}
+function getETHisETHPrice () {
+  return 1
+}
 export async function getTokenPrice (
   symbol: string,
   baseSymbol: string,
@@ -80,6 +99,11 @@ export async function getTokenPrice (
 ) {
   try {
     const sdk = new Sdk(chainId)
+
+    if (isETHisETH(symbol, baseSymbol)) return getETHisETHPrice()
+    if (isTestPrice(symbol, baseSymbol))
+      return getTestPrice(symbol, baseSymbol, chainId)
+
     const token = await sdk.getSwapToken(getTokenFromList(symbol, chainId))
 
     if (!token) throw Error(`Symbol ${symbol} not found in our token list`)

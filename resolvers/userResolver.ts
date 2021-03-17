@@ -8,14 +8,17 @@ import {
   Ctx,
   Int
 } from 'type-graphql'
-import { Repository, In } from 'typeorm'
 import { InjectRepository } from 'typeorm-typedi-extensions'
+import { Repository, In } from 'typeorm'
 
 import { OrganisationUser } from '../entities/organisationUser'
 import { User } from '../entities/user'
 import { RegisterInput } from '../user/register/RegisterInput'
 import { Organisation } from '../entities/organisation'
 import { MyContext } from '../types/MyContext'
+import { getAnalytics } from '../analytics'
+
+const analytics = getAnalytics()
 
 @Resolver(of => User)
 export class UserResolver {
@@ -46,19 +49,25 @@ export class UserResolver {
     @Arg('firstName') firstName: string,
     @Arg('lastName') lastName: string,
     @Arg('location') location: string,
-    @Arg('name', { nullable: true} ) name: string,
+    @Arg('email') email: string,
+    @Arg('name', { nullable: true }) name: string,
     @Arg('url') url: string,
     @Ctx() { req: { user } }: MyContext
   ): Promise<boolean> {
     if (!user) throw new Error('Authentication required.')
-    let dbUser = await User.findOne({ id: user.userId });
+    let dbUser = await User.findOne({ id: user.userId })
 
-    if(dbUser) {
+    if (dbUser) {
       let fullName: string = ''
-      if(!name) {
+      if (!name) {
         fullName = firstName + ' ' + lastName
       }
-      await User.update({ id: user.userId }, { firstName, lastName, name: fullName, location, url })
+      await User.update(
+        { id: user.userId },
+        { firstName, lastName, name: fullName, location, email, url }
+      )
+      analytics.track('Updated profile', dbUser.segmentUserId(), {}, null)
+
       return true
     } else {
       return false
