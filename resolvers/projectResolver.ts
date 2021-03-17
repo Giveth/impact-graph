@@ -198,6 +198,7 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.reactions', 'reactions')
       .leftJoinAndSelect('project.donations', 'donations')
+      .leftJoinAndSelect('project.status', 'status')
       .orderBy(`project.qualityScore`, 'DESC')
       .limit(skip)
       .take(take)
