@@ -198,6 +198,7 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.reactions', 'reactions')
       .leftJoinAndSelect('project.donations', 'donations')
+      .leftJoinAndSelect('project.status', 'status')
       .orderBy(`project.qualityScore`, 'DESC')
       .limit(skip)
       .take(take)
@@ -350,7 +351,7 @@ export class ProjectResolver {
       project.image = imageStatic
     }
 
-    const heartCount = await Reaction.findAndCount({
+    const [hearts, heartCount] = await Reaction.findAndCount({
       projectId: projectId
     })
 
@@ -361,6 +362,9 @@ export class ProjectResolver {
     )
     project.qualityScore = qualityScore
     await project.save()
+
+    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
+      triggerBuild(projectId)
 
     return project
   }
@@ -469,9 +473,6 @@ export class ProjectResolver {
       message: 'A new project was created'
     }
 
-    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
-      triggerBuild(newProject.id)
-
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
@@ -480,6 +481,9 @@ export class ProjectResolver {
     )
 
     await pubSub.publish('NOTIFICATIONS', payload)
+
+    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
+      triggerBuild(newProject.id)
 
     return newProject
   }
@@ -560,8 +564,6 @@ export class ProjectResolver {
 
     let project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
-
-    console.log(`project.id ---> : ${project.id}`)
 
     if (currentReaction && currentReaction.reaction === reaction) {
       await Reaction.delete({ projectUpdateId: update.id, userId: user.userId })

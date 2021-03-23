@@ -4,9 +4,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  BaseEntity, RelationId, ManyToOne
+  BaseEntity,
+  RelationId,
+  ManyToOne
 } from 'typeorm'
-import { Project } from './project' 
+import { Project } from './project'
 
 @Entity()
 @ObjectType()
@@ -31,6 +33,7 @@ export class Reaction extends BaseEntity {
   @ManyToOne(type => Project, { eager: true })
   project: Project
   @RelationId((reaction: Reaction) => reaction.project)
+  @Column({ nullable: true })
   projectId: number
 }
-export type REACTION_TYPE = "heart";
+export type REACTION_TYPE = 'heart'
