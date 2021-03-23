@@ -8,11 +8,14 @@ const environment = config.get('ENVIRONMENT')
 
 const netlifyUrl = `https://api.netlify.com/build_hooks/${deployHook}`
 
-async function netlifyIsDeploying () {
+async function isNetlifyDeploying () {
   const redisNetlifyIsDeploying = await redis.get(
     'impact-graph:netlifyDeploy:isDeploying'
   )
-  return redisNetlifyIsDeploying === null || redisNetlifyIsDeploying === 'false'
+  console.log(`redisNetlifyIsDeploying ! ---> : ${redisNetlifyIsDeploying}`)
+  return redisNetlifyIsDeploying === null ||
+    redisNetlifyIsDeploying === '' ||
+    redisNetlifyIsDeploying === 'false'
     ? false
     : true
 }
@@ -31,7 +34,9 @@ export async function triggerBuild (projectId) {
 
       projectsToDeploy.push(projectId)
 
-      if (!(await netlifyIsDeploying())) {
+      const netlifyIsDeploying = await isNetlifyDeploying()
+      console.log(`netlifyIsDeploying ---> : ${netlifyIsDeploying}`)
+      if (!netlifyIsDeploying) {
         await redis.set(
           'impact-graph:netlifyDeploy:projects:deploying',
           projectsToDeploy.join(','),
@@ -44,10 +49,10 @@ export async function triggerBuild (projectId) {
           `projectsToDeploy : ${JSON.stringify(projectsToDeploy, null, 2)}`
         )
 
+        console.log(`Posting to netlifyUrl ---> : ${netlifyUrl}`)
         const response: any = await axios.post(netlifyUrl, {})
+        console.log(`response.data : ${JSON.stringify(response.data, null, 2)}`)
       } else {
-        console.log(`netlifyIsDeploying() ---> : ${await netlifyIsDeploying()}`)
-
         await redis.set(
           'impact-graph:netlifyDeploy:projects:toDeploy',
           projectsToDeploy.join(','),

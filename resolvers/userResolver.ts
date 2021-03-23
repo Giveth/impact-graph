@@ -46,12 +46,12 @@ export class UserResolver {
 
   @Mutation(returns => Boolean)
   async updateUser (
-    @Arg('firstName') firstName: string,
-    @Arg('lastName') lastName: string,
-    @Arg('location') location: string,
-    @Arg('email') email: string,
+    @Arg('firstName', { nullable: true }) firstName: string,
+    @Arg('lastName', { nullable: true }) lastName: string,
+    @Arg('location', { nullable: true }) location: string,
+    @Arg('email', { nullable: true }) email: string,
     @Arg('name', { nullable: true }) name: string,
-    @Arg('url') url: string,
+    @Arg('url', { nullable: true }) url: string,
     @Ctx() { req: { user } }: MyContext
   ): Promise<boolean> {
     if (!user) throw new Error('Authentication required.')
@@ -66,7 +66,7 @@ export class UserResolver {
         { id: user.userId },
         { firstName, lastName, name: fullName, location, email, url }
       )
-      analytics.track('Updated profile', dbUser.segmentUserId(), {}, null)
+      // analytics.track('Updated profile', dbUser.segmentUserId(), {}, null)
 
       return true
     } else {
