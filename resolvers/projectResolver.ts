@@ -351,11 +351,7 @@ export class ProjectResolver {
       project.image = imageStatic
     }
 
-    // const heartCount = await Reaction.findAndCount({
-    //   projectId: projectId
-    // })
-
-    const [, heartCount] = await Reaction.findAndCount({
+    const [hearts, heartCount] = await Reaction.findAndCount({
       projectId: projectId
     })
 
@@ -565,8 +561,6 @@ export class ProjectResolver {
 
     let project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
-
-    console.log(`project.id ---> : ${project.id}`)
 
     if (currentReaction && currentReaction.reaction === reaction) {
       await Reaction.delete({ projectUpdateId: update.id, userId: user.userId })
