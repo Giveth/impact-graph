@@ -12,6 +12,7 @@ async function isNetlifyDeploying () {
   const redisNetlifyIsDeploying = await redis.get(
     'impact-graph:netlifyDeploy:isDeploying'
   )
+  console.log(`redisNetlifyIsDeploying ! ---> : ${redisNetlifyIsDeploying}`)
   return redisNetlifyIsDeploying === null ||
     redisNetlifyIsDeploying === '' ||
     redisNetlifyIsDeploying === 'false'
