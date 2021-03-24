@@ -14,6 +14,13 @@ const cmc200 = {
   tokens: [
     {
       chainId: 1,
+      address: '0xd56dac73a4d6766464b38ec6d91eb45ce7457c44',
+      symbol: 'PAN',
+      name: 'Panvala',
+      decimals: 18
+    },
+    {
+      chainId: 1,
       address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
       symbol: 'USDT',
       name: 'Tether',
@@ -585,6 +592,13 @@ export const xDaiTokenList = [
     address: '0x3a97704a1b25F08aa230ae53B352e2e72ef52843',
     symbol: 'AGVE',
     name: 'Agave Token',
+    decimals: 18
+  },
+  {
+    chainId: 100,
+    address: '0x981fb9ba94078a2275a8fc906898ea107b9462a8',
+    symbol: 'PAN',
+    name: 'Panvala',
     decimals: 18
   }
 ]
