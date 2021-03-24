@@ -363,6 +363,9 @@ export class ProjectResolver {
     project.qualityScore = qualityScore
     await project.save()
 
+    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
+      triggerBuild(projectId)
+
     return project
   }
 
@@ -470,9 +473,6 @@ export class ProjectResolver {
       message: 'A new project was created'
     }
 
-    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
-      triggerBuild(newProject.id)
-
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
@@ -481,6 +481,9 @@ export class ProjectResolver {
     )
 
     await pubSub.publish('NOTIFICATIONS', payload)
+
+    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
+      triggerBuild(newProject.id)
 
     return newProject
   }
