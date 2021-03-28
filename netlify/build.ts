@@ -9,7 +9,6 @@ const environment = config.get('ENVIRONMENT')
 const netlifyUrl = `https://api.netlify.com/build_hooks/${deployHook}`
 
 async function isNetlifyDeploying () {
-  return false
   const redisNetlifyIsDeploying = await redis.get(
     'impact-graph:netlifyDeploy:isDeploying'
   )

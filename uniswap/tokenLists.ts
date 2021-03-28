@@ -586,6 +586,13 @@ export const xDaiTokenList = [
     symbol: 'AGVE',
     name: 'Agave Token',
     decimals: 18
+  },
+  {
+    chainId: 1,
+    address: '0xd56dac73a4d6766464b38ec6d91eb45ce7457c44',
+    symbol: 'PAN',
+    name: 'Panvala',
+    decimals: 8
   }
 ]
 
