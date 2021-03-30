@@ -145,6 +145,8 @@ export class DonationResolver {
       analytics.track('Made donation', analyticsUserId, donation, anonymousId)
       getTokenPrices(token, baseTokens, Number(chainId))
         .then(async (prices: number[]) => {
+          console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
+
           donation.valueUsd = Number(amount) * Number(prices[0])
           donation.valueEth = Number(amount) * Number(prices[1])
 

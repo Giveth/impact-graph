@@ -174,20 +174,6 @@ export class ProjectResolver {
     private readonly donationRepository: Repository<Donation>
   ) {}
 
-  // @FieldResolver()
-  // async author(@Root() project: Project): Promise<User> {
-  //   return (await this.userRepository.findOne(project.authorId, { cache: 1000 }))!;
-  // }
-
-  // private readonly items: Project[] = generateProjects(100);
-
-  // @Query(returns => [Project])
-  // async projects(@Args() { skip, take }: ProjectsArguments): Promise<Project[]> {
-  //   const start: number = skip;
-  //   const end: number = skip + take;
-  //   return await this.items.slice(start, end);
-  // }
-
   @Query(returns => [Project])
   async projects (
     @Args() { take, skip, admin }: GetProjectsArgs
@@ -203,44 +189,24 @@ export class ProjectResolver {
       .limit(skip)
       .take(take)
       .innerJoinAndSelect('project.categories', 'c')
+
       .getManyAndCount()
 
-    return projects
+    function sum (items, prop) {
+      return items.reduce(function (a, b) {
+        return a + b[prop]
+      }, 0)
+    }
 
-    // const projects = await this.projectRepository
-    //   .createQueryBuilder('project')
-    //   //.select('COUNT(reactions.id)', 'reactionsCount')
-    //   .leftJoinAndSelect('project.reactions', 'reactions')
-    //   .leftJoinAndSelect('project.donations', 'donations')
-    //   .select('project')
-    //   .addSelect('COUNT(project.id) as reactionsCount')
-    //   .getMany()
-    // // .where('project.id = :id', { id: 1 })
-    // //.getRawOne()
+    const withTotal = projects.map(project => {
+      return {
+        ...project,
+        totalDonations: sum(project.donations, 'valueUsd'),
+        totalHearts: project.reactions.length
+      }
+    })
 
-    // // console.log(inspect(projects))
-
-    // return !admin
-    //   ? this.projectRepository.find({
-    //       where: { status: { id: 5 } },
-    //       take,
-    //       skip,
-    //       relations: ['status', 'donations', 'reactions'],
-    //       // select: [
-    //       //   'donations',
-    //       //   'reactions',
-    //       //   'COUNT(reactions.id) as reactionsCount'
-    //       // ],
-    //       order: {
-    //         qualityScore: 'DESC'
-    //         // reactionsCount: 'DESC'
-    //       }
-    //     })
-    //   : this.projectRepository.find({
-    //       where: { admin, status: { id: 5 } },
-    //       take,
-    //       skip
-    //     })
+    return withTotal
   }
 
   @Query(returns => TopProjects)

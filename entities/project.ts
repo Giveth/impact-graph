@@ -145,6 +145,14 @@ class Project extends BaseEntity {
       this.qualityScore = this.qualityScore - 10
     }
   }
+
+  @Field(type => Float, { nullable: true })
+  @Column({ nullable: true })
+  totalDonations: number = 0
+
+  @Field(type => Float, { nullable: true })
+  @Column({ nullable: true })
+  totalHearts: number = 0
 }
 
 @Entity()
