@@ -71,7 +71,7 @@ export function getTokenFromList (symbol: string, chainId: number) {
     o => o.symbol === inSymbol && o.chainId === chainId
   )
 
-  if (!token) throw new Error('Token not found')
+  if (!token) throw new Error(`Token ${inSymbol} not found`)
   return token
 }
 
