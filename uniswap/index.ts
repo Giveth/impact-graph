@@ -103,8 +103,9 @@ export async function getTokenPrice (
     const sdk = new Sdk(chainId)
 
     if (isETHisETH(symbol, baseSymbol)) return getETHisETHPrice()
-    if (isTestPrice(symbol, baseSymbol))
-      return getTestPrice(symbol, baseSymbol, chainId)
+    //Should use main net now
+    // if (isTestPrice(symbol, baseSymbol))
+    //   return getTestPrice(symbol, baseSymbol, chainId)
 
     const token = await sdk.getSwapToken(getTokenFromList(symbol, chainId))
 
