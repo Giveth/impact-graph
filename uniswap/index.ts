@@ -64,14 +64,16 @@ export async function getTokenPrices (
  * Get Token details
  */
 export function getTokenFromList (symbol: string, chainId: number) {
-  const inSymbol =
-    symbol.toUpperCase() === 'ETH' ? 'WETH' : symbol.toUpperCase()
+  let inSymbol = symbol.toUpperCase() === 'ETH' ? 'WETH' : symbol.toUpperCase()
+
+  inSymbol = symbol.toUpperCase() === 'XDAI' ? 'WXDAI' : symbol.toUpperCase()
 
   const token = allTokens.find(
     o => o.symbol === inSymbol && o.chainId === chainId
   )
 
-  if (!token) throw new Error(`Token ${inSymbol} not found`)
+  if (!token)
+    throw new Error(`Token ${inSymbol} not found for chainId ${chainId}`)
   return token
 }
 
