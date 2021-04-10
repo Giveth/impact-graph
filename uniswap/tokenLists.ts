@@ -14,6 +14,13 @@ const cmc200 = {
   tokens: [
     {
       chainId: 1,
+      address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+      symbol: 'WETH',
+      name: 'Wrapped Ether',
+      decimals: 18
+    },
+    {
+      chainId: 1,
       address: '0xd56dac73a4d6766464b38ec6d91eb45ce7457c44',
       symbol: 'PAN',
       name: 'Panvala',
