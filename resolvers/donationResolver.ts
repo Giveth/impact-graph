@@ -1,7 +1,7 @@
 import { Resolver, Query, Arg, Mutation, Ctx } from 'type-graphql'
 import { InjectRepository } from 'typeorm-typedi-extensions'
-import { getTokenPrices, getOurTokenList } from '../uniswap'
-//import { getTokenPrices, getOurTokenList } from 'monoswap'
+//import { getTokenPrices, getOurTokenList } from '../uniswap'
+import { getTokenPrices, getOurTokenList } from 'monoswap'
 import { Donation } from '../entities/donation'
 import { getProviderFromChainId } from '../provider'
 import { MyContext } from '../types/MyContext'
@@ -144,17 +144,16 @@ export class DonationResolver {
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
 
       analytics.track('Made donation', analyticsUserId, donation, anonymousId)
-      console.log(`baseTokens : ${JSON.stringify(baseTokens, null, 2)}`)
 
       getTokenPrices(token, baseTokens, Number(priceChainId))
         .then(async (prices: number[]) => {
-          console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
-
-          donation.valueUsd = Number(amount) * Number(prices[0])
-          donation.valueEth = Number(amount) * Number(prices[1])
+          //console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
 
           donation.priceUsd = Number(prices[0])
           donation.priceEth = Number(prices[1])
+
+          donation.valueUsd = Number(amount) * donation.priceUsd
+          donation.valueEth = Number(amount) * donation.priceEth
 
           await donation.save()
         })

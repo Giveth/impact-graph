@@ -114,10 +114,26 @@ export async function getTokenPrice (
     const baseToken = await sdk.getSwapToken(
       getTokenFromList(baseSymbol, chainId)
     )
+
     if (!baseToken)
       throw Error(`BaseSymbol ${baseSymbol} not found in our token list`)
 
     if (token.address === baseToken.address) return 1
+
+    console.log('FIND PAIR')
+    console.log(`{token,
+      baseToken,
+      getProvider(getNetworkFromChainId(chainId)),
+      chainId} : ${JSON.stringify(
+        {
+          token,
+          baseToken,
+          provider: getProvider(getNetworkFromChainId(chainId)),
+          chainId
+        },
+        null,
+        2
+      )}`)
 
     const pair = await sdk.getPair(
       token,
@@ -125,7 +141,11 @@ export async function getTokenPrice (
       getProvider(getNetworkFromChainId(chainId)),
       chainId
     )
-    return sdk.getPrice(pair, token, chainId)
+    //console.log(`Found pair : ${JSON.stringify(pair, null, 2)}`)
+
+    const price = sdk.getPrice(pair, token, chainId)
+    // console.log(`price : ${JSON.stringify(price, null, 2)}`)
+    return price
   } catch (error) {
     console.error(error)
     throw new Error(error)

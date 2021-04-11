@@ -464,7 +464,6 @@ export class ProjectResolver {
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error('Authentication required.')
 
-    console.log(`projectId ---> : ${projectId}`)
     const project = await Project.findOne({ id: projectId })
 
     if (!project) throw new Error('Project not found.')
