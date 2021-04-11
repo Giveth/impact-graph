@@ -111,6 +111,7 @@ export class DonationResolver {
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId
         originUser = await User.findOne({ id: userId })
+        analytics.identifyUser(originUser)
 
         if (!originUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`)
