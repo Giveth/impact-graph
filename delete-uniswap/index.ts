@@ -64,14 +64,16 @@ export async function getTokenPrices (
  * Get Token details
  */
 export function getTokenFromList (symbol: string, chainId: number) {
-  const inSymbol =
-    symbol.toUpperCase() === 'ETH' ? 'WETH' : symbol.toUpperCase()
+  let inSymbol = symbol.toUpperCase() === 'ETH' ? 'WETH' : symbol.toUpperCase()
+
+  inSymbol = symbol.toUpperCase() === 'XDAI' ? 'WXDAI' : inSymbol.toUpperCase()
 
   const token = allTokens.find(
     o => o.symbol === inSymbol && o.chainId === chainId
   )
 
-  if (!token) throw new Error(`Token ${inSymbol} not found`)
+  if (!token)
+    throw new Error(`Token ${inSymbol} not found for chainId ${chainId}`)
   return token
 }
 
@@ -101,8 +103,9 @@ export async function getTokenPrice (
     const sdk = new Sdk(chainId)
 
     if (isETHisETH(symbol, baseSymbol)) return getETHisETHPrice()
-    if (isTestPrice(symbol, baseSymbol))
-      return getTestPrice(symbol, baseSymbol, chainId)
+    //Should use main net now
+    // if (isTestPrice(symbol, baseSymbol))
+    //   return getTestPrice(symbol, baseSymbol, chainId)
 
     const token = await sdk.getSwapToken(getTokenFromList(symbol, chainId))
 
@@ -111,10 +114,26 @@ export async function getTokenPrice (
     const baseToken = await sdk.getSwapToken(
       getTokenFromList(baseSymbol, chainId)
     )
+
     if (!baseToken)
       throw Error(`BaseSymbol ${baseSymbol} not found in our token list`)
 
     if (token.address === baseToken.address) return 1
+
+    console.log('FIND PAIR')
+    console.log(`{token,
+      baseToken,
+      getProvider(getNetworkFromChainId(chainId)),
+      chainId} : ${JSON.stringify(
+        {
+          token,
+          baseToken,
+          provider: getProvider(getNetworkFromChainId(chainId)),
+          chainId
+        },
+        null,
+        2
+      )}`)
 
     const pair = await sdk.getPair(
       token,
@@ -122,7 +141,11 @@ export async function getTokenPrice (
       getProvider(getNetworkFromChainId(chainId)),
       chainId
     )
-    return sdk.getPrice(pair, token, chainId)
+    //console.log(`Found pair : ${JSON.stringify(pair, null, 2)}`)
+
+    const price = sdk.getPrice(pair, token, chainId)
+    // console.log(`price : ${JSON.stringify(price, null, 2)}`)
+    return price
   } catch (error) {
     console.error(error)
     throw new Error(error)

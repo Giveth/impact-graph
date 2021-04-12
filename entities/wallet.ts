@@ -24,6 +24,6 @@ export class Wallet extends BaseEntity {
   @ManyToOne(type => User, { eager: true })
   user: User
   @RelationId((donation: Wallet) => donation.user)
+  @Column()
   userId: number
-
 }

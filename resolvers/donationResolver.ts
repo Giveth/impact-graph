@@ -1,7 +1,9 @@
 import { Resolver, Query, Arg, Mutation, Ctx } from 'type-graphql'
 import { InjectRepository } from 'typeorm-typedi-extensions'
-import { getTokenPrices, getOurTokenList } from '../uniswap'
+//import { getTokenPrices, getOurTokenList } from '../uniswap'
+import { getTokenPrices, getOurTokenList } from 'monoswap'
 import { Donation } from '../entities/donation'
+import { getProviderFromChainId } from '../provider'
 import { MyContext } from '../types/MyContext'
 import { Project } from '../entities/project'
 import axios, { AxiosResponse } from 'axios'
@@ -102,12 +104,14 @@ export class DonationResolver {
     try {
       let userId
       if (!chainId) chainId = 1
+      const priceChainId = chainId === 3 ? 1 : chainId
       let originUser
 
       //Logged in
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId
         originUser = await User.findOne({ id: userId })
+        analytics.identifyUser(originUser)
 
         if (!originUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`)
@@ -138,20 +142,19 @@ export class DonationResolver {
         : null
 
       const baseTokens =
-        Number(chainId) === 1 || Number(chainId) === 3
-          ? ['USDT', 'ETH']
-          : ['WXDAI', 'WETH']
+        Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
 
       analytics.track('Made donation', analyticsUserId, donation, anonymousId)
-      getTokenPrices(token, baseTokens, Number(chainId))
-        .then(async (prices: number[]) => {
-          console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
 
-          donation.valueUsd = Number(amount) * Number(prices[0])
-          donation.valueEth = Number(amount) * Number(prices[1])
+      getTokenPrices(token, baseTokens, Number(priceChainId))
+        .then(async (prices: number[]) => {
+          //console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
 
           donation.priceUsd = Number(prices[0])
           donation.priceEth = Number(prices[1])
+
+          donation.valueUsd = Number(amount) * donation.priceUsd
+          donation.valueEth = Number(amount) * donation.priceEth
 
           await donation.save()
         })
@@ -173,69 +176,106 @@ export class DonationResolver {
     @Arg('donationId') donationId: Number,
     @Ctx() ctx: MyContext
   ): Promise<Boolean> {
-    try {
-      const txInfo = await web3.eth.getTransaction(transactionId)
+    return true
+    //This end point is to be removed
+    // try {
+    //   const donation = await Donation.findOne({ id: Number(donationId) })
+    //   if (!donation) throw new Error(`Donation not found by Id ${donationId}`)
 
-      if (!txInfo)
-        Logger.captureMessage(`Transaction ID ${transactionId} not found.`)
-      const destinationProject = await Project.findOne({
-        walletAddress: txInfo.to?.toString() || ''
-      })
+    //   const chainId =
+    //     donation.transactionNetworkId === 3 ? 1 : donation.transactionNetworkId
+    //   console.log(`chainID ---> : ${chainId}`)
+    //   const provider = getProviderFromChainId(chainId)
+    //   console.log(`transactionId ---> : ${transactionId}`)
+    //   //const txInfo = await provider.eth.getTransaction(transactionId)
+    //   const txInfo = await web3.eth.getTransaction(transactionId)
+    //   //config.get('ETHEREUM_NETWORK')
+    //   console.log(`txInfo : ${JSON.stringify(txInfo, null, 2)}`)
 
-      let userId
+    //   //const txInfo = await web3.eth.getTransaction(transactionId)
 
-      let originUser
+    //   if (!txInfo)
+    //     Logger.captureMessage(`Transaction ID ${transactionId} not found.`)
 
-      //Logged in
-      if (ctx.req.user && ctx.req.user.userId) {
-        userId = ctx.req.user.userId
-        originUser = await User.findOne({ id: userId })
+    //   let userId
 
-        if (!originUser)
-          throw Error(
-            `No user with user id of ${userId} found this should not happen. TransactionID ${transactionId} `
-          )
-        //Transaction not made with the users primary wallet
-        if (originUser && originUser.walletAddress !== txInfo.from) {
-          const donation = await Wallet.create({
-            user: originUser,
-            address: txInfo.from.toLowerCase()
-          })
-        }
-      } else {
-        originUser = await User.findOne({ walletAddress: txInfo.from })
+    //   let originUser
 
-        userId = originUser ? originUser.id : null
-      }
+    //   console.log(`ctx.req.user.userId ---> : ${ctx.req.user.userId}`)
+    //   //Logged in
+    //   if (ctx.req.user && ctx.req.user.userId) {
+    //     userId = ctx.req.user.userId
+    //     originUser = await User.findOne({ id: userId })
 
-      if (!destinationProject)
-        throw new Error('Transaction project was not found.')
+    //     console.log(`originUser : ${JSON.stringify(originUser, null, 2)}`)
 
-      const value = txInfo.value ? Number(web3.utils.fromWei(txInfo.value)) : 0
+    //     if (!originUser)
+    //       throw Error(
+    //         `No user with user id of ${userId} found this should not happen. TransactionID ${transactionId} `
+    //       )
 
-      const donation = await Donation.findOne({ id: Number(donationId) })
-      if (!donation) throw new Error(`Donation not found by Id ${donationId}`)
+    //     console.log(
+    //       `originUser.walletAddress ---> : ${originUser.walletAddress}`
+    //     )
+    //     console.log(`xxx txInfo.from ---> : ${txInfo.from}`)
+    //     console.log(`donation   from ---> : ${donation.fromWalletAddress}`)
+    //     //Transaction not made with the users primary wallet
+    //     if (originUser && originUser.walletAddress !== txInfo.from) {
+    //       console.log('ARE HERE', userId)
 
-      donation.transactionId = transactionId
+    //       const originUserWallet = await Wallet.findOne({ userId: userId })
+    //       console.log(`originUserWallet111 ---> : ${originUserWallet}`)
+    //       if (!originUserWallet) {
+    //         console.log('Save new wallet for user')
 
-      const feathersServer =
-        config.get('ETHEREUM_NETWORK') === 'ropsten' ? 'develop' : 'beta' // live is beta
-      const feathersUrl: string = `https://feathers.${feathersServer}.giveth.io/conversionRates?txHash=${transactionId}&from=ETH&isHome=true`
+    //         const wallet = await Wallet.create({
+    //           user: originUser,
+    //           address: txInfo.from.toLowerCase()
+    //         })
+    //         console.log(`wallet : ${JSON.stringify(wallet, null, 2)}`)
+    //         wallet.save()
+    //       } else {
+    //         console.log('User wallet exists')
+    //       }
+    //     }
+    //   } else {
+    //     originUser = await User.findOne({ walletAddress: txInfo.from })
 
-      let valueUsd = 0
-      axios.get(feathersUrl).then(response => {
-        valueUsd = response.data.rate * Number(value)
-        donation.valueUsd = valueUsd
-        donation.save()
-        console.log('Saved Feathers response')
-      })
+    //     userId = originUser ? originUser.id : null
+    //   }
 
-      return true
-    } catch (e) {
-      //Log the error
-      Logger.captureException(e)
-      // Logger.captureMessage(`Error calling feathers for transaction - ${feathersUrl}`);
-      throw new Error(`Error saving donation`)
-    }
+    //   const value = txInfo.value ? Number(web3.utils.fromWei(txInfo.value)) : 0
+
+    //   // const donation = await Donation.findOne({ id: Number(donationId) })
+    //   // if (!donation) throw new Error(`Donation not found by Id ${donationId}`)
+
+    //   donation.transactionId = transactionId
+
+    //   const feathersServer =
+    //     config.get('ETHEREUM_NETWORK') === 'ropsten' ? 'develop' : 'beta' // live is beta
+    //   const feathersUrl: string = `https://feathers.${feathersServer}.giveth.io/conversionRates?txHash=${transactionId}&from=ETH&isHome=true`
+
+    //   console.log(`feathersUrl ---> : ${feathersUrl}`)
+    //   let valueUsd = 0
+    //   axios
+    //     .get(feathersUrl)
+    //     .then(response => {
+    //       valueUsd = response.data.rate * Number(value)
+    //       donation.valueUsd = valueUsd
+    //       donation.save()
+    //       console.log('Saved Feathers response')
+    //     })
+    //     .catch(e => {
+    //       console.error('Error calling feathers')
+    //       console.log({ e })
+    //     })
+
+    //   return true
+    // } catch (e) {
+    //   //Log the error
+    //   Logger.captureException(e)
+    //   // Logger.captureMessage(`Error calling feathers for transaction - ${feathersUrl}`);
+    //   throw new Error(`Error saving donation`)
+    // }
   }
 }

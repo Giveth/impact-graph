@@ -66,7 +66,16 @@ export class UserResolver {
         { id: user.userId },
         { firstName, lastName, name: fullName, location, email, url }
       )
-      // analytics.track('Updated profile', dbUser.segmentUserId(), {}, null)
+      const idUser = dbUser
+      idUser.firstName = firstName
+      idUser.lastName = lastName
+      idUser.name = fullName
+      idUser.location = location
+      idUser.email = email
+      idUser.url = url
+
+      analytics.identifyUser(idUser)
+      analytics.track('Updated profile', dbUser.segmentUserId(), {}, null)
 
       return true
     } else {
