@@ -20,6 +20,7 @@ import { Service } from 'typedi'
 import config from '../config'
 import slugify from 'slugify'
 import Logger from '../logger'
+import { getProvider } from '../provider'
 import {
   Arg,
   Args,
@@ -36,6 +37,19 @@ import {
   registerEnumType,
   Resolver
 } from 'type-graphql'
+
+function isSmartContract (provider) {
+  return async function (projectWalletAddress) {
+    const code = await provider.getCode(projectWalletAddress)
+
+    return code !== '0x'
+  }
+}
+
+const mainnetProvider = getProvider('mainnet')
+const xdaiProvider = getProvider('xdaiChain')
+const isSmartContractMainnet = isSmartContract(mainnetProvider)
+const isSmartContractXDai = isSmartContract(xdaiProvider)
 
 const analytics = getAnalytics()
 
@@ -57,6 +71,15 @@ class TopProjects {
 
   @Field(type => Int)
   totalCount: number
+}
+
+@ObjectType()
+class WalletAddressIsValidResponse {
+  @Field(type => Boolean)
+  isValid: boolean
+
+  @Field(type => [String])
+  reasons: string[]
 }
 
 enum OrderField {
@@ -256,6 +279,7 @@ export class ProjectResolver {
     return this.projectRepository.find({ id })
   }
 
+  //Move this to it's own resolver later
   @Query(returns => Project)
   async projectBySlug (@Arg('slug') slug: string) {
     return await this.projectRepository.findOne({
@@ -650,6 +674,48 @@ export class ProjectResolver {
     })
 
     return await Reaction.find({ where: { projectUpdateId: update?.id || -1 } })
+  }
+
+  @Query(returns => Boolean)
+  async isWalletSmartContract (@Arg('address') address: string) {
+    const isContractPromises: any = []
+    isContractPromises.push(isSmartContractMainnet(address))
+    isContractPromises.push(isSmartContractXDai(address))
+
+    return Promise.all(isContractPromises).then(promises => {
+      const [isSmartContractOnMainnet, isSmartContractOnXDai] = promises
+      if (isSmartContractOnMainnet || isSmartContractOnXDai) {
+        return true
+      } else {
+        return false
+      }
+    })
+  }
+
+  /**
+   * Can a project use this wallet?
+   * @param address wallet address
+   * @returns
+   */
+  @Query(returns => WalletAddressIsValidResponse)
+  async walletAddressIsValid (@Arg('address') address: string) {
+    const isSmartContractWallet = await this.isWalletSmartContract(address)
+    const reasons: string[] = []
+    if (isSmartContractWallet) {
+      reasons.push('smart-contract')
+    }
+    const projectWithAddress = await this.projectByAddress(address)
+    const addressUsed = !!projectWithAddress
+
+    if (addressUsed) {
+      reasons.push('address-used')
+    }
+
+    const isValid = !isSmartContractWallet && (addressUsed ? false : true)
+    return {
+      isValid: isValid,
+      reasons
+    }
   }
 
   @Query(returns => Project, { nullable: true })
