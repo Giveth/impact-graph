@@ -468,8 +468,8 @@ export class ProjectResolver {
       project,
       null
     )
-    const segmentProject = project.map(project => {
-   return {
+    const segmentProject = {
+
        projectOwnerEmail: project.users[0].email,
        projectTitle: project.title,
        projectCreatorLastName: project.users[0].lastName,
@@ -478,8 +478,8 @@ export class ProjectResolver {
        projectSlug: project.slug,
        projectWalletAddress: project.walletAddress,
 
-   }
-})
+
+}
 
     await pubSub.publish('NOTIFICATIONS', payload)
 
