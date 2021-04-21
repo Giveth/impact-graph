@@ -208,6 +208,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.reactions', 'reactions')
       .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.users', 'users')
       .orderBy(`project.qualityScore`, 'DESC')
       .limit(skip)
       .take(take)
