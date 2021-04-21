@@ -461,15 +461,8 @@ export class ProjectResolver {
       id: 1,
       message: 'A new project was created'
     }
-
-    analytics.track(
-      'Project created',
-      `givethId-${ctx.req.user.userId}`,
-      project,
-      null
-    )
     const segmentProject = {
-
+       email: project.users[0].email,
        projectOwnerEmail: project.users[0].email,
        projectTitle: project.title,
        projectCreatorLastName: project.users[0].lastName,
@@ -480,6 +473,14 @@ export class ProjectResolver {
 
 
 }
+
+    analytics.track(
+      'Project created',
+      `givethId-${ctx.req.user.userId}`,
+      segmentProject,
+      null
+    )
+
 
     await pubSub.publish('NOTIFICATIONS', payload)
 
