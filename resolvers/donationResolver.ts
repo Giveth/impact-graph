@@ -162,7 +162,6 @@ export class DonationResolver {
            fromWalletAddress: fromAddress.toString().toLowerCase(),
            anonymous: !!userId
     }
-      console.log(`donation : ${JSON.stringify(donation, null, 2)}`)
       analytics.track('Made donation', analyticsUserId, segmentDonation, anonymousId)
 
       getTokenPrices(token, baseTokens, Number(priceChainId))
