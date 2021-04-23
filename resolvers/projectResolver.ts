@@ -464,11 +464,11 @@ export class ProjectResolver {
     const segmentProject = {
        email: project.users[0].email,
        projectOwnerEmail: project.users[0].email,
-       projectTitle: project.title,
+       title: project.title,
        projectCreatorLastName: project.users[0].lastName,
        projectCreatorFirstName: project.users[0].firstName,
        projectOwnerId: project.admin,
-       projectSlug: project.slug,
+       slug: project.slug,
        projectWalletAddress: project.walletAddress,
 
 
