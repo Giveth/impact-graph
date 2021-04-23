@@ -143,8 +143,26 @@ export class DonationResolver {
 
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
-
-      analytics.track('Made donation', analyticsUserId, donation, anonymousId)
+      const segmentDonation = {
+        email: user.email,
+        projectOwnerEmail: project.users[0].email,
+        title: project.title,
+        projectCreatorLastName: project.users[0].lastName,
+        projectCreatorFirstName: project.users[0].firstName,
+        projectOwnerId: project.admin,
+        slug: project.slug,
+        projectWalletAddress: project.walletAddress,
+        amount: Number(amount),
+        transactionId: transactionId.toString().toLowerCase(),
+        transactionNetworkId: Number(transactionNetworkId),
+        currency: token,
+        donaterFirstName: user.firstName,
+        createdAt: new Date(),
+        toWalletAddress: toAddress.toString().toLowerCase(),
+        fromWalletAddress: fromAddress.toString().toLowerCase(),
+        anonymous: !!userId
+    }
+      analytics.track('Made donation', analyticsUserId, segmentDonation, anonymousId)
 
       getTokenPrices(token, baseTokens, Number(priceChainId))
         .then(async (prices: number[]) => {
