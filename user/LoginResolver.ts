@@ -104,9 +104,12 @@ export class LoginResolver {
         throw Error('Invalid login type')
     }
 
-    const user: any = await User.findOne({
-      where: { email, loginType: 'password' }
-    })
+    const user: any = await User
+      .createQueryBuilder('user')
+      .where('user.email = :email', {email})
+      .andWhere('user.loginType = :loginType', {loginType: 'password'})
+      .addSelect('user.password')
+      .getOne()
 
     if (!user) {
       console.log(`No user with email address ${email}`)
@@ -137,6 +140,7 @@ export class LoginResolver {
 
     const response = new LoginResponse()
 
+    delete user.password
     response.user = user
     response.token = accessToken
     return response
