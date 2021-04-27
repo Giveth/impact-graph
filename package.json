@@ -44,7 +44,7 @@
     "i": "^0.3.6",
     "ioredis": "^4.23.0",
     "jsonwebtoken": "^8.5.1",
-    "monoswap": "^0.3.3",
+    "monoswap": "^0.3.7",
     "nodemailer": "^6.5.0",
     "npm": "^7.6.1",
     "pg": "^8.5.1",
