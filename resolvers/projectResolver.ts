@@ -508,7 +508,7 @@ export class ProjectResolver {
       `givethId-${user.userId}`,
       {
         project,
-        update
+        update: title
       },
       null
     )
@@ -524,7 +524,7 @@ export class ProjectResolver {
         `givethId-${donation.user.id}`,
         {
           project,
-          update,
+          update: title,
           donation
         },
         null
