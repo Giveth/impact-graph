@@ -12,8 +12,10 @@ export class ProjectInput {
   admin?: string
 
   @Field({ nullable: true })
-  @Length(0, 2000)
+  // @Length(0, 2000) 
   description?: string
+  // Removing this as rich texts are longer
+  // We can consider making this check without img or video tags
 
   @Field(type=>[String], { nullable: true, defaultValue: [] })
   categories?: string[]

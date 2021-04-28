@@ -463,10 +463,14 @@ export class ProjectResolver {
       message: 'A new project was created'
     }
 
+    const formattedProject =  {
+      ...projectInput,
+      description: projectInput?.description?.replace(/<img .*?>/g,'')
+    }
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
-      project,
+      formattedProject,
       null
     )
 
