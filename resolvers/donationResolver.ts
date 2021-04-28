@@ -144,14 +144,9 @@ export class DonationResolver {
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
 
-      let donorEmail = ""
-      let donorFirstName = ""
-      if (user != null) {
-        donorEmail = user.email
-        donorFirstName = user.firstName
-      }
       const segmentDonation = {
-        email: donorEmail,
+        email: (user != null) ? user.email : "",
+        donaterFirstName: (user != null) ? user.firstName : "",
         projectOwnerEmail: project.users[0].email,
         title: project.title,
         projectCreatorLastName: project.users[0].lastName,
@@ -163,7 +158,6 @@ export class DonationResolver {
         transactionId: transactionId.toString().toLowerCase(),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
-        donaterFirstName: donorFirstName,
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
