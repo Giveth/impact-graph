@@ -44,6 +44,7 @@ export class RegisterResolver {
 
     await sendEmail(email, await createConfirmationUrl(user.id))
 
+    delete user.password
     return user
   }
 
