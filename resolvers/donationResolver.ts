@@ -145,7 +145,8 @@ export class DonationResolver {
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
 
       const segmentDonation = {
-        email: user.email,
+        email: (user != null) ? user.email : "",
+        donorFirstName: (user != null) ? user.firstName : "",
         projectOwnerEmail: project.users[0].email,
         title: project.title,
         projectCreatorLastName: project.users[0].lastName,
@@ -157,20 +158,17 @@ export class DonationResolver {
         transactionId: transactionId.toString().toLowerCase(),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
-        donaterFirstName: user.firstName,
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: !!userId
       }
-
       analytics.track(
         'Made donation',
         analyticsUserId,
         segmentDonation,
         anonymousId
       )
-
       getTokenPrices(token, baseTokens, Number(priceChainId))
         .then(async (prices: number[]) => {
           //console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
