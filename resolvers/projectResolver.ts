@@ -462,6 +462,16 @@ export class ProjectResolver {
       id: 1,
       message: 'A new project was created'
     }
+    const segmentProject = {
+      email: project.users[0].email,
+      projectOwnerEmail: project.users[0].email,
+      title: project.title,
+      projectCreatorLastName: project.users[0].lastName,
+      projectCreatorFirstName: project.users[0].firstName,
+      projectOwnerId: project.admin,
+      slug: project.slug,
+      projectWalletAddress: project.walletAddress
+    }
 
     const formattedProject =  {
       ...projectInput,
