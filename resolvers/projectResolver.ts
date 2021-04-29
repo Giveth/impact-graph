@@ -212,8 +212,7 @@ export class ProjectResolver {
       .orderBy(`project.qualityScore`, 'DESC')
       .limit(skip)
       .take(take)
-      .innerJoinAndSelect('project.categories', 'c')
-
+      // .innerJoinAndSelect('project.categories', 'c')
       .getManyAndCount()
 
     function sum (items, prop) {
@@ -463,11 +462,21 @@ export class ProjectResolver {
       id: 1,
       message: 'A new project was created'
     }
+    const segmentProject = {
+      email: project.users[0].email,
+      projectOwnerEmail: project.users[0].email,
+      title: project.title,
+      projectCreatorLastName: project.users[0].lastName,
+      projectCreatorFirstName: project.users[0].firstName,
+      projectOwnerId: project.admin,
+      slug: project.slug,
+      projectWalletAddress: project.walletAddress
+    }
 
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
-      project,
+      segmentProject,
       null
     )
 
