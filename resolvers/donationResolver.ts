@@ -146,7 +146,7 @@ export class DonationResolver {
 
       const segmentDonation = {
         email: (user != null) ? user.email : "",
-        donaterFirstName: (user != null) ? user.firstName : "",
+        donorFirstName: (user != null) ? user.firstName : "",
         projectOwnerEmail: project.users[0].email,
         title: project.title,
         projectCreatorLastName: project.users[0].lastName,
