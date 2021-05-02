@@ -144,13 +144,10 @@ export class DonationResolver {
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
 
-      const segmentDonation = {
+      const segmentDonationMade = {
         email: (user != null) ? user.email : "",
         donorFirstName: (user != null) ? user.firstName : "",
-        projectOwnerEmail: project.users[0].email,
         title: project.title,
-        projectCreatorLastName: project.users[0].lastName,
-        projectCreatorFirstName: project.users[0].firstName,
         projectOwnerId: project.admin,
         slug: project.slug,
         projectWalletAddress: project.walletAddress,
@@ -161,14 +158,44 @@ export class DonationResolver {
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
-        anonymous: !!userId
+        anonymous: !userId
       }
-      analytics.track(
+      const segmentDonationReceived = {
+        email: project.users[0].email,
+        title: project.title,
+        firstName: project.users[0].firstName,
+        projectOwnerId: project.admin,
+        slug: project.slug,
+        amount: Number(amount),
+        transactionId: transactionId.toString().toLowerCase(),
+        transactionNetworkId: Number(transactionNetworkId),
+        currency: token,
+        createdAt: new Date(),
+        toWalletAddress: toAddress.toString().toLowerCase(),
+        fromWalletAddress: fromAddress.toString().toLowerCase(),
+      }
+      function madeDonation() {
+        analytics.track(
         'Made donation',
         analyticsUserId,
-        segmentDonation,
+        segmentDonationMade,
         anonymousId
-      )
+      )}
+      function donationReceived() {
+        analytics.track(
+        'Donation received',
+        analyticsUserId,
+        segmentDonationReceived,
+        anonymousId
+      )}
+      if (user != null) {
+       madeDonation()
+       donationReceived()
+      }
+      else {
+       donationReceived()
+      }
+
       getTokenPrices(token, baseTokens, Number(priceChainId))
         .then(async (prices: number[]) => {
           //console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
