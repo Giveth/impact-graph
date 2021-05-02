@@ -146,7 +146,7 @@ export class DonationResolver {
 
       const segmentDonationMade = {
         email: (user != null) ? user.email : "",
-        donorFirstName: (user != null) ? user.firstName : "",
+        firstName: (user != null) ? user.firstName : "",
         title: project.title,
         projectOwnerId: project.admin,
         slug: project.slug,
