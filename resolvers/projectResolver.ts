@@ -466,8 +466,8 @@ export class ProjectResolver {
       email: project.users[0].email,
       projectOwnerEmail: project.users[0].email,
       title: project.title,
-      projectCreatorLastName: project.users[0].lastName,
-      projectCreatorFirstName: project.users[0].firstName,
+      projectOwnerLastName: project.users[0].lastName,
+      projectOwnerFirstName: project.users[0].firstName,
       projectOwnerId: project.admin,
       slug: project.slug,
       projectWalletAddress: project.walletAddress
