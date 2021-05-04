@@ -77,4 +77,8 @@ export class Donation extends BaseEntity {
   @Field(type => Date)
   @Column()
   createdAt: Date
+
+  @Field(type => String)
+  @Column({ nullable: true })
+  donationType: string
 }
