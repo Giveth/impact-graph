@@ -20,6 +20,14 @@ class GraphAnalytics {
   }
 
   track (eventName, analyticsUserId, properties, anonymousId) {
+    // console.log(
+    //   `{ eventName, analyticsUserId, properties, anonymousId } : ${JSON.stringify(
+    //     { eventName, analyticsUserId, properties, anonymousId },
+    //     null,
+    //     2
+    //   )}`
+    // )
+
     let userId
     if (!analyticsUserId) {
       userId = anonymousId
