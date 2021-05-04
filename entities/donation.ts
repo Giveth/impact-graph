@@ -78,7 +78,7 @@ export class Donation extends BaseEntity {
   @Column()
   createdAt: Date
 
-  @Field(type => String)
+  @Field(type => String, { nullable: true })
   @Column({ nullable: true })
-  donationType: string
+  donationType?: string
 }
