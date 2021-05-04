@@ -161,6 +161,10 @@ class Project extends BaseEntity {
   @Field(type => Float, { nullable: true })
   @Column({ nullable: true })
   totalHearts: number = 0
+
+  owner () {
+    return this.users[0]
+  }
 }
 
 @Entity()

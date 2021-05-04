@@ -209,6 +209,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.users', 'users')
+      .where('project.statusId = 5')
       .orderBy(`project.qualityScore`, 'DESC')
       .limit(skip)
       .take(take)
@@ -265,6 +266,7 @@ export class ProjectResolver {
           { category }
         )
         .innerJoin('project.reactions', 'reaction')
+        .where('project.statusId = 5')
         .orderBy(`project.${field}`, direction)
         .limit(skip)
         .take(take)
@@ -466,16 +468,16 @@ export class ProjectResolver {
       email: project.users[0].email,
       projectOwnerEmail: project.users[0].email,
       title: project.title,
-      projectCreatorLastName: project.users[0].lastName,
-      projectCreatorFirstName: project.users[0].firstName,
+      projectOwnerLastName: project.users[0].lastName,
+      projectOwnerFirstName: project.users[0].firstName,
       projectOwnerId: project.admin,
       slug: project.slug,
       projectWalletAddress: project.walletAddress
     }
 
-    const formattedProject =  {
+    const formattedProject = {
       ...projectInput,
-      description: projectInput?.description?.replace(/<img .*?>/g,'')
+      description: projectInput?.description?.replace(/<img .*?>/g, '')
     }
     analytics.track(
       'Project created',

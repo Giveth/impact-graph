@@ -107,19 +107,69 @@ export class DonationResolver {
       const priceChainId = chainId === 3 ? 1 : chainId
       let originUser
 
+      const project = await Project.findOne({ id: Number(projectId) })
+
+      if (!project) throw new Error('Transaction project was not found.')
+
       //Logged in
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId
         originUser = await User.findOne({ id: userId })
+
         analytics.identifyUser(originUser)
 
         if (!originUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`)
-        //Transaction not made with the users primary wallet
-      }
-      const project = await Project.findOne({ id: Number(projectId) })
 
-      if (!project) throw new Error('Transaction project was not found.')
+        const segmentDonationMade = {
+          email: originUser != null ? originUser.email : '',
+          firstName: originUser != null ? originUser.firstName : '',
+          title: project.title,
+          projectOwnerId: project.admin,
+          slug: project.slug,
+          projectWalletAddress: project.walletAddress,
+          amount: Number(amount),
+          transactionId: transactionId.toString().toLowerCase(),
+          transactionNetworkId: Number(transactionNetworkId),
+          currency: token,
+          createdAt: new Date(),
+          toWalletAddress: toAddress.toString().toLowerCase(),
+          fromWalletAddress: fromAddress.toString().toLowerCase(),
+          anonymous: !userId
+        }
+
+        analytics.track(
+          'Made donation',
+          originUser.segmentUserId(),
+          segmentDonationMade,
+          originUser.segmentUserId()
+        )
+      }
+
+      const projectOwner = project.owner()
+      analytics.identifyUser(projectOwner)
+
+      const segmentDonationReceived = {
+        email: project.users[0].email,
+        title: project.title,
+        firstName: project.users[0].firstName,
+        projectOwnerId: project.admin,
+        slug: project.slug,
+        amount: Number(amount),
+        transactionId: transactionId.toString().toLowerCase(),
+        transactionNetworkId: Number(transactionNetworkId),
+        currency: token,
+        createdAt: new Date(),
+        toWalletAddress: toAddress.toString().toLowerCase(),
+        fromWalletAddress: fromAddress.toString().toLowerCase()
+      }
+
+      analytics.track(
+        'Donation received',
+        projectOwner.segmentUserId(),
+        segmentDonationReceived,
+        projectOwner.segmentUserId()
+      )
 
       const user = userId ? originUser : null
       const donation = await Donation.create({
@@ -136,39 +186,9 @@ export class DonationResolver {
       })
       await donation.save()
 
-      const analyticsUserId = userId ? originUser.segmentUserId() : null
-      const anonymousId = !analyticsUserId
-        ? fromAddress.toString().toLowerCase()
-        : null
-
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
 
-      const segmentDonation = {
-        email: (user != null) ? user.email : "",
-        donorFirstName: (user != null) ? user.firstName : "",
-        projectOwnerEmail: project.users[0].email,
-        title: project.title,
-        projectCreatorLastName: project.users[0].lastName,
-        projectCreatorFirstName: project.users[0].firstName,
-        projectOwnerId: project.admin,
-        slug: project.slug,
-        projectWalletAddress: project.walletAddress,
-        amount: Number(amount),
-        transactionId: transactionId.toString().toLowerCase(),
-        transactionNetworkId: Number(transactionNetworkId),
-        currency: token,
-        createdAt: new Date(),
-        toWalletAddress: toAddress.toString().toLowerCase(),
-        fromWalletAddress: fromAddress.toString().toLowerCase(),
-        anonymous: !!userId
-      }
-      analytics.track(
-        'Made donation',
-        analyticsUserId,
-        segmentDonation,
-        anonymousId
-      )
       getTokenPrices(token, baseTokens, Number(priceChainId))
         .then(async (prices: number[]) => {
           //console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
