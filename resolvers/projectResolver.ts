@@ -209,6 +209,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.users', 'users')
+      .where('project.statusId = 5')
       .orderBy(`project.qualityScore`, 'DESC')
       .limit(skip)
       .take(take)
@@ -265,6 +266,7 @@ export class ProjectResolver {
           { category }
         )
         .innerJoin('project.reactions', 'reaction')
+        .where('project.statusId = 5')
         .orderBy(`project.${field}`, direction)
         .limit(skip)
         .take(take)
@@ -473,10 +475,14 @@ export class ProjectResolver {
       projectWalletAddress: project.walletAddress
     }
 
+    const formattedProject = {
+      ...projectInput,
+      description: projectInput?.description?.replace(/<img .*?>/g, '')
+    }
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
-      segmentProject,
+      formattedProject,
       null
     )
 
@@ -518,7 +524,7 @@ export class ProjectResolver {
       `givethId-${user.userId}`,
       {
         project,
-        update
+        update: title
       },
       null
     )
@@ -534,7 +540,7 @@ export class ProjectResolver {
         `givethId-${donation.user.id}`,
         {
           project,
-          update,
+          update: title,
           donation
         },
         null

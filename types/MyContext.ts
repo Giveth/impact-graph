@@ -3,6 +3,7 @@ import { createAuthorsLoader } from '../utils/authorsLoader'
 
 interface GraphRequest extends Request {
   user: any
+  auth: any
 }
 
 export interface MyContext {

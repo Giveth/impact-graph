@@ -1,6 +1,7 @@
 import config from '../config'
 import { ApolloServer } from 'apollo-server-express'
 import * as jwt from 'jsonwebtoken'
+import { json } from 'express'
 import { handleStripeWebhook } from '../utils/stripe'
 import { netlifyDeployed } from '../netlify/deployed'
 import createSchema from './createSchema'
@@ -59,13 +60,17 @@ export async function bootstrap () {
             req.userwalletAddress = userWalletAddress
           }
         } catch (error) {
-          console.error(
-            `Apollo Server error : ${JSON.stringify(error, null, 2)}`
-          )
-          Logger.captureMessage(
-            `Error with with token, check pm2 logs and search for - Error for token - to get the token`
-          )
-          console.error(`Error for token - ${token}`)
+          // console.error(
+          //   `Apollo Server error : ${JSON.stringify(error, null, 2)}`
+          // )
+          // Logger.captureMessage(
+          //   `Error with with token, check pm2 logs and search for - Error for token - to get the token`
+          // )
+          // console.error(`Error for token - ${token}`)
+          req.auth = {}
+          req.auth.token = token
+          req.auth.error = error
+          //console.log(`ctx.req.auth : ${JSON.stringify(ctx.req.auth, null, 2)}`)
         }
 
         return {
@@ -87,6 +92,9 @@ export async function bootstrap () {
     const app = express()
 
     app.use(cors())
+    app.use(
+      json({ limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000 })
+    )
     app.use(
       graphqlUploadExpress({
         maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,

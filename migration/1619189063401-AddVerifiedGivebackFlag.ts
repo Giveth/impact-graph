@@ -6,8 +6,13 @@ export class AddVerifiedGivebackFlag1619189063401
     await queryRunner.query(
       `ALTER TABLE "project" ADD "verified" boolean default false`
     )
+    await queryRunner.query(`update "project" SET "verified" = false WHERE 1=1`)
+
     await queryRunner.query(
       `ALTER TABLE "project" ADD "giveBacks" boolean default false`
+    )
+    await queryRunner.query(
+      `update "project" SET "giveBacks" = false WHERE 1=1`
     )
   }
 
