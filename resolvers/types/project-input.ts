@@ -1,6 +1,7 @@
 import { MaxLength, Length } from 'class-validator'
 import { InputType, Field  } from 'type-graphql'
-import { GraphQLUpload, FileUpload } from 'graphql-upload';
+import { FileUpload } from 'graphql-upload';
+import { GraphQLUpload } from "apollo-server-express"
 
 @InputType()
 export class ImageUpload {
