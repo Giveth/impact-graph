@@ -213,7 +213,7 @@ export class ProjectResolver {
       .orderBy(`project.qualityScore`, 'DESC')
       .limit(skip)
       .take(take)
-      .innerJoinAndSelect('project.categories', 'c')
+      // .innerJoinAndSelect('project.categories', 'c')
       .getManyAndCount()
 
     function sum (items, prop) {
