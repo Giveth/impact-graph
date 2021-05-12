@@ -3,6 +3,16 @@ import { InputType, Field  } from 'type-graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload';
 
 @InputType()
+export class ImageUpload {
+   // Client uploads image file
+   @Field(type => GraphQLUpload, { nullable: true })
+   image?: FileUpload
+
+   @Field({ nullable: true })
+   projectId?: number
+}
+
+@InputType()
 export class ProjectInput {
   @Field()
   @MaxLength(70)

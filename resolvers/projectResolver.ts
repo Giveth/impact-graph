@@ -3,7 +3,7 @@ import { Reaction, REACTION_TYPE } from '../entities/reaction'
 import { Project, ProjectUpdate } from '../entities/project'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 import { ProjectStatus } from '../entities/projectStatus'
-import { ProjectInput } from './types/project-input'
+import { ProjectInput, ImageUpload } from './types/project-input'
 import { PubSubEngine } from 'graphql-subscriptions'
 import { pinFile } from '../middleware/pinataUtils'
 import { UserPermissions } from '../permissions'
@@ -373,6 +373,28 @@ export class ProjectResolver {
       qualityScore = heartCount * heartScore
     }
     return qualityScore
+  }
+
+  @Mutation(returns => String)
+  async uploadImage (
+    @Arg('imageUpload') imageUpload: ImageUpload,
+    @Ctx() ctx: MyContext
+  ): Promise<string> {
+    //const user = await getLoggedInUser(ctx)
+    let url = ''
+    
+    if (imageUpload.image) {
+      const { filename, createReadStream, encoding } = await imageUpload.image
+      
+      try {
+        const response = await pinFile(createReadStream(), filename, encoding)
+        url = 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash
+      } catch (e) {
+        throw Error('Upload file failed')
+      }
+    } 
+    
+    return url
   }
 
   @Mutation(returns => Project)
