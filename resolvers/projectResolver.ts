@@ -445,7 +445,9 @@ export class ProjectResolver {
       admin: ctx.req.user.userId,
       users: [user],
       status,
-      qualityScore
+      qualityScore,
+      verified: false,
+      giveBacks: false
     })
 
     const newProject = await this.projectRepository.save(project)
