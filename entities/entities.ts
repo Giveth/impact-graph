@@ -8,6 +8,7 @@ import { Token } from './token';
 import { Donation } from './donation';
 import { Wallet } from './wallet';
 import { ProjectStatus } from './projectStatus';
+import { ProjectImage } from './projectImage';
 import Notification from './notification';
 import { BankAccount, StripeTransaction } from './bankAccount';
 
@@ -25,5 +26,6 @@ export const entities: any = [
     Donation,
     Token,
     Wallet,
-    ProjectStatus
+    ProjectStatus,
+    ProjectImage
 ]
