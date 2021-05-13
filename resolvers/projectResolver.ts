@@ -9,6 +9,7 @@ import { pinFile } from '../middleware/pinataUtils'
 import { UserPermissions } from '../permissions'
 import { Category } from '../entities/category'
 import { Donation } from '../entities/donation'
+import { ProjectImage } from '../entities/projectImage'
 import { triggerBuild } from '../netlify/build'
 import { MyContext } from '../types/MyContext'
 import { getAnalytics } from '../analytics'
@@ -182,6 +183,18 @@ class ToggleResponse {
   reactionCount: number
 }
 
+@ObjectType()
+class ImageResponse {
+  @Field(type => String)
+  url: string
+
+  @Field(type => Number, { nullable: true })
+  projectId?: number
+
+  @Field(type => Number)
+  projectImageId: number
+}
+
 @Resolver(of => Project)
 export class ProjectResolver {
   constructor (
@@ -194,7 +207,9 @@ export class ProjectResolver {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private userPermissions: UserPermissions,
     @InjectRepository(Donation)
-    private readonly donationRepository: Repository<Donation>
+    private readonly donationRepository: Repository<Donation>,
+    @InjectRepository(ProjectImage)
+    private readonly projectImageRepository: Repository<ProjectImage>
   ) {}
 
   @Query(returns => [Project])
@@ -375,26 +390,41 @@ export class ProjectResolver {
     return qualityScore
   }
 
-  @Mutation(returns => String)
+  @Mutation(returns => ImageResponse)
   async uploadImage (
     @Arg('imageUpload') imageUpload: ImageUpload,
     @Ctx() ctx: MyContext
-  ): Promise<string> {
-    //const user = await getLoggedInUser(ctx)
+  ): Promise<ImageResponse> {
+    const user = await getLoggedInUser(ctx)
     let url = ''
     
     if (imageUpload.image) {
       const { filename, createReadStream, encoding } = await imageUpload.image
       
       try {
-        const response = await pinFile(createReadStream(), filename, encoding)
-        url = 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash
+        const pinResponse = await pinFile(createReadStream(), filename, encoding)
+        url = 'https://gateway.pinata.cloud/ipfs/' + pinResponse.data.IpfsHash
+        
+        const projectImage = this.projectImageRepository.create({
+          url,
+          projectId: imageUpload.projectId
+        })
+        await projectImage.save()
+          
+        const response: ImageResponse = {
+          url,
+          projectId: imageUpload.projectId,
+          projectImageId: projectImage.id
+        }
+        console.log(`response : ${JSON.stringify(response, null, 2)}`)
+        
+        return response
+        
       } catch (e) {
         throw Error('Upload file failed')
       }
-    } 
-    
-    return url
+    }
+    throw Error('Upload file failed') 
   }
 
   @Mutation(returns => Project)
@@ -483,6 +513,21 @@ export class ProjectResolver {
       isMain: true
     })
     await ProjectUpdate.save(update)
+    
+    console.log(`projectInput.projectImageIds : ${JSON.stringify(projectInput.projectImageIds, null, 2)}`)
+    
+    //Associate already uploaded images:
+    if(projectInput.projectImageIds) {
+      console.log('updating projectInput.projectImageIds', projectInput.projectImageIds)
+      
+      //await ProjectImage.update projectInput.projectImageIds
+      await this.projectImageRepository.createQueryBuilder('project_image')
+        .update(ProjectImage)
+        .set({ projectId: newProject.id })
+        .where(`project_image.id IN (${projectInput.projectImageIds})`).execute()
+    }
+    
+
 
     const payload: NotificationPayload = {
       id: 1,
