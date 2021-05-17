@@ -359,10 +359,12 @@ export class ProjectResolver {
       imagePromise = Promise.resolve(imageStatic)
     }
 
-    const [image] = await Promise.all([
-      imagePromise
-    ])
-    project.image = image
+    if(!!imageUpload || !!imageStatic) {
+      const [image] = await Promise.all([
+        imagePromise
+      ])
+      project.image = image
+    }
 
     const [hearts, heartCount] = await Reaction.findAndCount({
       projectId: projectId
