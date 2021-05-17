@@ -337,13 +337,14 @@ export class ProjectResolver {
       const categories = await Promise.all(categoriesPromise)
       project.categories = categories
     }
+    let imagePromise: Promise<string | undefined> = Promise.resolve(undefined)
 
     const { imageUpload, imageStatic } = newProjectData
     if (imageUpload) {
       const { filename, createReadStream, encoding } = await imageUpload
 
       try {
-        project.image = await pinFile(
+        imagePromise = pinFile(
           createReadStream(),
           filename,
           encoding
@@ -355,7 +356,14 @@ export class ProjectResolver {
         throw Error('Upload file failed')
       }
     } else if (imageStatic) {
-      project.image = imageStatic
+      imagePromise = Promise.resolve(imageStatic)
+    }
+
+    if(!!imageUpload || !!imageStatic) {
+      const [image] = await Promise.all([
+        imagePromise
+      ])
+      project.image = image
     }
 
     const [hearts, heartCount] = await Reaction.findAndCount({
