@@ -298,6 +298,15 @@ export class ProjectResolver {
 
   //Move this to it's own resolver later
   @Query(returns => Project)
+  async projectById (@Arg('id') id: number) {
+    return await this.projectRepository.findOne({
+      where: { id },
+      relations: ['donations', 'reactions']
+    })
+  }
+
+  //Move this to it's own resolver later
+  @Query(returns => Project)
   async projectBySlug (@Arg('slug') slug: string) {
     return await this.projectRepository.findOne({
       where: { slug },
@@ -317,6 +326,8 @@ export class ProjectResolver {
     const project = await Project.findOne({ id: projectId })
 
     if (!project) throw new Error('Project not found.')
+    console.log(`project.admin ---> : ${project.admin}`)
+    console.log(`user.userId ---> : ${user.userId}`)
     if (project.admin != user.userId)
       throw new Error('You are not the owner of this project.')
 
@@ -367,6 +378,14 @@ export class ProjectResolver {
       !!imageUpload,
       heartCount
     )
+    const slugBase = slugify(newProjectData.title)
+    
+    let slug = slugBase
+    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
+      slug = slugBase + '-' + i
+    }
+    project.slug = slug
+
     project.qualityScore = qualityScore
     await project.save()
 
@@ -477,8 +496,9 @@ export class ProjectResolver {
       categoriesPromise,
       imagePromise
     ])
-    const slugBase = slugify(projectInput.title)
 
+    const slugBase = slugify(projectInput.title)
+    
     let slug = slugBase
     for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
       slug = slugBase + '-' + i
