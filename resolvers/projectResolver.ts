@@ -3,12 +3,13 @@ import { Reaction, REACTION_TYPE } from '../entities/reaction'
 import { Project, ProjectUpdate } from '../entities/project'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 import { ProjectStatus } from '../entities/projectStatus'
-import { ProjectInput } from './types/project-input'
+import { ProjectInput, ImageUpload } from './types/project-input'
 import { PubSubEngine } from 'graphql-subscriptions'
 import { pinFile } from '../middleware/pinataUtils'
 import { UserPermissions } from '../permissions'
 import { Category } from '../entities/category'
 import { Donation } from '../entities/donation'
+import { ProjectImage } from '../entities/projectImage'
 import { triggerBuild } from '../netlify/build'
 import { MyContext } from '../types/MyContext'
 import { getAnalytics } from '../analytics'
@@ -182,6 +183,18 @@ class ToggleResponse {
   reactionCount: number
 }
 
+@ObjectType()
+class ImageResponse {
+  @Field(type => String)
+  url: string
+
+  @Field(type => Number, { nullable: true })
+  projectId?: number
+
+  @Field(type => Number)
+  projectImageId: number
+}
+
 @Resolver(of => Project)
 export class ProjectResolver {
   constructor (
@@ -194,7 +207,9 @@ export class ProjectResolver {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private userPermissions: UserPermissions,
     @InjectRepository(Donation)
-    private readonly donationRepository: Repository<Donation>
+    private readonly donationRepository: Repository<Donation>,
+    @InjectRepository(ProjectImage)
+    private readonly projectImageRepository: Repository<ProjectImage>
   ) {}
 
   @Query(returns => [Project])
@@ -209,11 +224,11 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.users', 'users')
+      .where('project.statusId = 5')
       .orderBy(`project.qualityScore`, 'DESC')
       .limit(skip)
       .take(take)
       .innerJoinAndSelect('project.categories', 'c')
-
       .getManyAndCount()
 
     function sum (items, prop) {
@@ -266,6 +281,7 @@ export class ProjectResolver {
           { category }
         )
         .innerJoin('project.reactions', 'reaction')
+        .where('project.statusId = 5')
         .orderBy(`project.${field}`, direction)
         .limit(skip)
         .take(take)
@@ -278,6 +294,15 @@ export class ProjectResolver {
   @Query(returns => [Project])
   async project (@Args() { id }: GetProjectArgs): Promise<Project[]> {
     return this.projectRepository.find({ id })
+  }
+
+  //Move this to it's own resolver later
+  @Query(returns => Project)
+  async projectById (@Arg('id') id: number) {
+    return await this.projectRepository.findOne({
+      where: { id },
+      relations: ['donations', 'reactions']
+    })
   }
 
   //Move this to it's own resolver later
@@ -301,6 +326,8 @@ export class ProjectResolver {
     const project = await Project.findOne({ id: projectId })
 
     if (!project) throw new Error('Project not found.')
+    console.log(`project.admin ---> : ${project.admin}`)
+    console.log(`user.userId ---> : ${user.userId}`)
     if (project.admin != user.userId)
       throw new Error('You are not the owner of this project.')
 
@@ -321,13 +348,14 @@ export class ProjectResolver {
       const categories = await Promise.all(categoriesPromise)
       project.categories = categories
     }
+    let imagePromise: Promise<string | undefined> = Promise.resolve(undefined)
 
     const { imageUpload, imageStatic } = newProjectData
     if (imageUpload) {
       const { filename, createReadStream, encoding } = await imageUpload
 
       try {
-        project.image = await pinFile(
+        imagePromise = pinFile(
           createReadStream(),
           filename,
           encoding
@@ -339,7 +367,14 @@ export class ProjectResolver {
         throw Error('Upload file failed')
       }
     } else if (imageStatic) {
-      project.image = imageStatic
+      imagePromise = Promise.resolve(imageStatic)
+    }
+
+    if(!!imageUpload || !!imageStatic) {
+      const [image] = await Promise.all([
+        imagePromise
+      ])
+      project.image = image
     }
 
     const [hearts, heartCount] = await Reaction.findAndCount({
@@ -351,6 +386,14 @@ export class ProjectResolver {
       !!imageUpload,
       heartCount
     )
+    const slugBase = slugify(newProjectData.title)
+    
+    let slug = slugBase
+    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
+      slug = slugBase + '-' + i
+    }
+    project.slug = slug
+
     project.qualityScore = qualityScore
     await project.save()
 
@@ -372,6 +415,43 @@ export class ProjectResolver {
       qualityScore = heartCount * heartScore
     }
     return qualityScore
+  }
+
+  @Mutation(returns => ImageResponse)
+  async uploadImage (
+    @Arg('imageUpload') imageUpload: ImageUpload,
+    @Ctx() ctx: MyContext
+  ): Promise<ImageResponse> {
+    const user = await getLoggedInUser(ctx)
+    let url = ''
+    
+    if (imageUpload.image) {
+      const { filename, createReadStream, encoding } = await imageUpload.image
+      
+      try {
+        const pinResponse = await pinFile(createReadStream(), filename, encoding)
+        url = 'https://gateway.pinata.cloud/ipfs/' + pinResponse.data.IpfsHash
+        
+        const projectImage = this.projectImageRepository.create({
+          url,
+          projectId: imageUpload.projectId
+        })
+        await projectImage.save()
+          
+        const response: ImageResponse = {
+          url,
+          projectId: imageUpload.projectId,
+          projectImageId: projectImage.id
+        }
+        console.log(`response : ${JSON.stringify(response, null, 2)}`)
+        
+        return response
+        
+      } catch (e) {
+        throw Error('Upload file failed')
+      }
+    }
+    throw Error('Upload file failed') 
   }
 
   @Mutation(returns => Project)
@@ -424,8 +504,9 @@ export class ProjectResolver {
       categoriesPromise,
       imagePromise
     ])
-    const slugBase = slugify(projectInput.title)
 
+    const slugBase = slugify(projectInput.title)
+    
     let slug = slugBase
     for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
       slug = slugBase + '-' + i
@@ -444,7 +525,9 @@ export class ProjectResolver {
       admin: ctx.req.user.userId,
       users: [user],
       status,
-      qualityScore
+      qualityScore,
+      verified: false,
+      giveBacks: false
     })
 
     const newProject = await this.projectRepository.save(project)
@@ -458,16 +541,45 @@ export class ProjectResolver {
       isMain: true
     })
     await ProjectUpdate.save(update)
+    
+    console.log(`projectInput.projectImageIds : ${JSON.stringify(projectInput.projectImageIds, null, 2)}`)
+    
+    //Associate already uploaded images:
+    if(projectInput.projectImageIds) {
+      console.log('updating projectInput.projectImageIds', projectInput.projectImageIds)
+      
+      //await ProjectImage.update projectInput.projectImageIds
+      await this.projectImageRepository.createQueryBuilder('project_image')
+        .update(ProjectImage)
+        .set({ projectId: newProject.id })
+        .where(`project_image.id IN (${projectInput.projectImageIds})`).execute()
+    }
+    
+
 
     const payload: NotificationPayload = {
       id: 1,
       message: 'A new project was created'
     }
+    const segmentProject = {
+      email: project.users[0].email,
+      projectOwnerEmail: project.users[0].email,
+      title: project.title,
+      projectOwnerLastName: project.users[0].lastName,
+      projectOwnerFirstName: project.users[0].firstName,
+      projectOwnerId: project.admin,
+      slug: project.slug,
+      projectWalletAddress: project.walletAddress
+    }
 
+    const formattedProject = {
+      ...projectInput,
+      description: projectInput?.description?.replace(/<img .*?>/g, '')
+    }
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
-      project,
+      formattedProject,
       null
     )
 
@@ -509,7 +621,7 @@ export class ProjectResolver {
       `givethId-${user.userId}`,
       {
         project,
-        update
+        update: title
       },
       null
     )
@@ -525,7 +637,7 @@ export class ProjectResolver {
         `givethId-${donation.user.id}`,
         {
           project,
-          update,
+          update: title,
           donation
         },
         null

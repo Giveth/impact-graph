@@ -3,6 +3,16 @@ import { InputType, Field  } from 'type-graphql'
 import { GraphQLUpload, FileUpload } from 'graphql-upload';
 
 @InputType()
+export class ImageUpload {
+   // Client uploads image file
+   @Field(type => GraphQLUpload, { nullable: true })
+   image: FileUpload
+
+   @Field({ nullable: true })
+   projectId?: number
+}
+
+@InputType()
 export class ProjectInput {
   @Field()
   @MaxLength(70)
@@ -12,8 +22,10 @@ export class ProjectInput {
   admin?: string
 
   @Field({ nullable: true })
-  @Length(0, 2000)
+  // @Length(0, 2000) 
   description?: string
+  // Removing this as rich texts are longer
+  // We can consider making this check without img or video tags
 
   @Field(type=>[String], { nullable: true, defaultValue: [] })
   categories?: string[]
@@ -37,4 +49,7 @@ export class ProjectInput {
 
   @Field({ nullable: true })
   walletAddress?: string
+
+  @Field({ nullable: true })
+  projectImageIds?: string
 }

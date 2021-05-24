@@ -107,19 +107,69 @@ export class DonationResolver {
       const priceChainId = chainId === 3 ? 1 : chainId
       let originUser
 
+      const project = await Project.findOne({ id: Number(projectId) })
+
+      if (!project) throw new Error('Transaction project was not found.')
+
       //Logged in
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId
         originUser = await User.findOne({ id: userId })
+
         analytics.identifyUser(originUser)
 
         if (!originUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`)
-        //Transaction not made with the users primary wallet
-      }
-      const project = await Project.findOne({ id: Number(projectId) })
 
-      if (!project) throw new Error('Transaction project was not found.')
+        const segmentDonationMade = {
+          email: originUser != null ? originUser.email : '',
+          firstName: originUser != null ? originUser.firstName : '',
+          title: project.title,
+          projectOwnerId: project.admin,
+          slug: project.slug,
+          projectWalletAddress: project.walletAddress,
+          amount: Number(amount),
+          transactionId: transactionId.toString().toLowerCase(),
+          transactionNetworkId: Number(transactionNetworkId),
+          currency: token,
+          createdAt: new Date(),
+          toWalletAddress: toAddress.toString().toLowerCase(),
+          fromWalletAddress: fromAddress.toString().toLowerCase(),
+          anonymous: !userId
+        }
+
+        analytics.track(
+          'Made donation',
+          originUser.segmentUserId(),
+          segmentDonationMade,
+          originUser.segmentUserId()
+        )
+      }
+
+      const projectOwner = project.owner()
+      analytics.identifyUser(projectOwner)
+
+      const segmentDonationReceived = {
+        email: project.users[0].email,
+        title: project.title,
+        firstName: project.users[0].firstName,
+        projectOwnerId: project.admin,
+        slug: project.slug,
+        amount: Number(amount),
+        transactionId: transactionId.toString().toLowerCase(),
+        transactionNetworkId: Number(transactionNetworkId),
+        currency: token,
+        createdAt: new Date(),
+        toWalletAddress: toAddress.toString().toLowerCase(),
+        fromWalletAddress: fromAddress.toString().toLowerCase()
+      }
+
+      analytics.track(
+        'Donation received',
+        projectOwner.segmentUserId(),
+        segmentDonationReceived,
+        projectOwner.segmentUserId()
+      )
 
       const user = userId ? originUser : null
       const donation = await Donation.create({
@@ -136,15 +186,8 @@ export class DonationResolver {
       })
       await donation.save()
 
-      const analyticsUserId = userId ? originUser.segmentUserId() : null
-      const anonymousId = !analyticsUserId
-        ? fromAddress.toString().toLowerCase()
-        : null
-
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
-
-      analytics.track('Made donation', analyticsUserId, donation, anonymousId)
 
       getTokenPrices(token, baseTokens, Number(priceChainId))
         .then(async (prices: number[]) => {
@@ -168,114 +211,5 @@ export class DonationResolver {
       console.error(e)
       throw new Error(e)
     }
-  }
-
-  @Mutation(returns => Boolean)
-  async saveDonationTransaction (
-    @Arg('transactionId') transactionId: string,
-    @Arg('donationId') donationId: Number,
-    @Ctx() ctx: MyContext
-  ): Promise<Boolean> {
-    return true
-    //This end point is to be removed
-    // try {
-    //   const donation = await Donation.findOne({ id: Number(donationId) })
-    //   if (!donation) throw new Error(`Donation not found by Id ${donationId}`)
-
-    //   const chainId =
-    //     donation.transactionNetworkId === 3 ? 1 : donation.transactionNetworkId
-    //   console.log(`chainID ---> : ${chainId}`)
-    //   const provider = getProviderFromChainId(chainId)
-    //   console.log(`transactionId ---> : ${transactionId}`)
-    //   //const txInfo = await provider.eth.getTransaction(transactionId)
-    //   const txInfo = await web3.eth.getTransaction(transactionId)
-    //   //config.get('ETHEREUM_NETWORK')
-    //   console.log(`txInfo : ${JSON.stringify(txInfo, null, 2)}`)
-
-    //   //const txInfo = await web3.eth.getTransaction(transactionId)
-
-    //   if (!txInfo)
-    //     Logger.captureMessage(`Transaction ID ${transactionId} not found.`)
-
-    //   let userId
-
-    //   let originUser
-
-    //   console.log(`ctx.req.user.userId ---> : ${ctx.req.user.userId}`)
-    //   //Logged in
-    //   if (ctx.req.user && ctx.req.user.userId) {
-    //     userId = ctx.req.user.userId
-    //     originUser = await User.findOne({ id: userId })
-
-    //     console.log(`originUser : ${JSON.stringify(originUser, null, 2)}`)
-
-    //     if (!originUser)
-    //       throw Error(
-    //         `No user with user id of ${userId} found this should not happen. TransactionID ${transactionId} `
-    //       )
-
-    //     console.log(
-    //       `originUser.walletAddress ---> : ${originUser.walletAddress}`
-    //     )
-    //     console.log(`xxx txInfo.from ---> : ${txInfo.from}`)
-    //     console.log(`donation   from ---> : ${donation.fromWalletAddress}`)
-    //     //Transaction not made with the users primary wallet
-    //     if (originUser && originUser.walletAddress !== txInfo.from) {
-    //       console.log('ARE HERE', userId)
-
-    //       const originUserWallet = await Wallet.findOne({ userId: userId })
-    //       console.log(`originUserWallet111 ---> : ${originUserWallet}`)
-    //       if (!originUserWallet) {
-    //         console.log('Save new wallet for user')
-
-    //         const wallet = await Wallet.create({
-    //           user: originUser,
-    //           address: txInfo.from.toLowerCase()
-    //         })
-    //         console.log(`wallet : ${JSON.stringify(wallet, null, 2)}`)
-    //         wallet.save()
-    //       } else {
-    //         console.log('User wallet exists')
-    //       }
-    //     }
-    //   } else {
-    //     originUser = await User.findOne({ walletAddress: txInfo.from })
-
-    //     userId = originUser ? originUser.id : null
-    //   }
-
-    //   const value = txInfo.value ? Number(web3.utils.fromWei(txInfo.value)) : 0
-
-    //   // const donation = await Donation.findOne({ id: Number(donationId) })
-    //   // if (!donation) throw new Error(`Donation not found by Id ${donationId}`)
-
-    //   donation.transactionId = transactionId
-
-    //   const feathersServer =
-    //     config.get('ETHEREUM_NETWORK') === 'ropsten' ? 'develop' : 'beta' // live is beta
-    //   const feathersUrl: string = `https://feathers.${feathersServer}.giveth.io/conversionRates?txHash=${transactionId}&from=ETH&isHome=true`
-
-    //   console.log(`feathersUrl ---> : ${feathersUrl}`)
-    //   let valueUsd = 0
-    //   axios
-    //     .get(feathersUrl)
-    //     .then(response => {
-    //       valueUsd = response.data.rate * Number(value)
-    //       donation.valueUsd = valueUsd
-    //       donation.save()
-    //       console.log('Saved Feathers response')
-    //     })
-    //     .catch(e => {
-    //       console.error('Error calling feathers')
-    //       console.log({ e })
-    //     })
-
-    //   return true
-    // } catch (e) {
-    //   //Log the error
-    //   Logger.captureException(e)
-    //   // Logger.captureMessage(`Error calling feathers for transaction - ${feathersUrl}`);
-    //   throw new Error(`Error saving donation`)
-    // }
   }
 }

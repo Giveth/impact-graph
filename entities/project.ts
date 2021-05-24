@@ -87,6 +87,14 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   walletAddress?: string
 
+  @Field(type => Boolean)
+  @Column()
+  verified: boolean
+
+  @Field(type => Boolean)
+  @Column()
+  giveBacks: boolean
+
   @Field(type => [Donation], { nullable: true })
   @OneToMany(
     type => Donation,
@@ -153,6 +161,10 @@ class Project extends BaseEntity {
   @Field(type => Float, { nullable: true })
   @Column({ nullable: true })
   totalHearts: number = 0
+
+  owner () {
+    return this.users[0]
+  }
 }
 
 @Entity()
