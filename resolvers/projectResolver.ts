@@ -309,8 +309,8 @@ export class ProjectResolver {
   @Query(returns => Project)
   async projectBySlug (@Arg('slug') slug: string) {
     return await this.projectRepository.findOne({
-      where: { slug },
-      relations: ['donations', 'reactions']
+      where: { slug }
+      // relations: ['donations', 'reactions']
     })
   }
 
