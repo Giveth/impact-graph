@@ -573,6 +573,57 @@ export class ProjectResolver {
     return ProjectUpdate.save(update)
   }
 
+  @Mutation(returns => ProjectUpdate)
+  async editProjectUpdate (
+    @Arg('updateId') updateId: number,
+    @Arg('title') title: string,
+    @Arg('content') content: string,
+    @Ctx() { req: { user } }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<ProjectUpdate> {
+    if (!user) throw new Error('Authentication required.')
+
+    const update = await ProjectUpdate.findOne({ id: updateId })
+    if (!update) throw new Error('Project Update not found.')
+
+    let project = await Project.findOne({ id: update.projectId })
+    if (!project) throw new Error('Project not found')
+    if (project.admin != user.userId)
+      throw new Error('You are not the owner of this project.')
+
+    update.title = title
+    update.content = content
+
+    return update.save()
+  }
+
+  @Mutation(returns => Boolean)
+  async deleteProjectUpdate (
+    @Arg('updateId') updateId: number,
+    @Ctx() { req: { user } }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<Boolean> {
+    if (!user) throw new Error('Authentication required.')
+
+    const update = await ProjectUpdate.findOne({ id: updateId })
+    if (!update) throw new Error('Project Update not found.')
+
+    let project = await Project.findOne({ id: update.projectId })
+    if (!project) throw new Error('Project not found')
+    if (project.admin != user.userId)
+      throw new Error('You are not the owner of this project.')
+
+    const [reactions, reactionsCount] = await Reaction.findAndCount({
+        where: { projectUpdateId: update.id }
+      })
+
+    if (reactionsCount > 0)
+      await Reaction.remove(reactions)
+
+    await ProjectUpdate.delete({ id: update.id })
+    return true
+  }
+
   @Mutation(returns => Boolean)
   async toggleReaction (
     @Arg('updateId') updateId: number,
