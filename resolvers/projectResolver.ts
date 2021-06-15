@@ -387,7 +387,7 @@ export class ProjectResolver {
       heartCount
     )
     const slugBase = slugify(newProjectData.title)
-    
+
     let slug = slugBase
     for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
       slug = slugBase + '-' + i
@@ -424,34 +424,34 @@ export class ProjectResolver {
   ): Promise<ImageResponse> {
     const user = await getLoggedInUser(ctx)
     let url = ''
-    
+
     if (imageUpload.image) {
       const { filename, createReadStream, encoding } = await imageUpload.image
-      
+
       try {
         const pinResponse = await pinFile(createReadStream(), filename, encoding)
         url = 'https://gateway.pinata.cloud/ipfs/' + pinResponse.data.IpfsHash
-        
+
         const projectImage = this.projectImageRepository.create({
           url,
           projectId: imageUpload.projectId
         })
         await projectImage.save()
-          
+
         const response: ImageResponse = {
           url,
           projectId: imageUpload.projectId,
           projectImageId: projectImage.id
         }
         console.log(`response : ${JSON.stringify(response, null, 2)}`)
-        
+
         return response
-        
+
       } catch (e) {
         throw Error('Upload file failed')
       }
     }
-    throw Error('Upload file failed') 
+    throw Error('Upload file failed')
   }
 
   @Mutation(returns => Project)
@@ -506,7 +506,7 @@ export class ProjectResolver {
     ])
 
     const slugBase = slugify(projectInput.title)
-    
+
     let slug = slugBase
     for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
       slug = slugBase + '-' + i
@@ -541,20 +541,20 @@ export class ProjectResolver {
       isMain: true
     })
     await ProjectUpdate.save(update)
-    
+
     console.log(`projectInput.projectImageIds : ${JSON.stringify(projectInput.projectImageIds, null, 2)}`)
-    
+
     //Associate already uploaded images:
     if(projectInput.projectImageIds) {
       console.log('updating projectInput.projectImageIds', projectInput.projectImageIds)
-      
+
       //await ProjectImage.update projectInput.projectImageIds
       await this.projectImageRepository.createQueryBuilder('project_image')
         .update(ProjectImage)
         .set({ projectId: newProject.id })
         .where(`project_image.id IN (${projectInput.projectImageIds})`).execute()
     }
-    
+
 
 
     const payload: NotificationPayload = {
@@ -563,13 +563,12 @@ export class ProjectResolver {
     }
     const segmentProject = {
       email: project.users[0].email,
-      projectOwnerEmail: project.users[0].email,
       title: project.title,
-      projectOwnerLastName: project.users[0].lastName,
-      projectOwnerFirstName: project.users[0].firstName,
-      projectOwnerId: project.admin,
+      LastName: project.users[0].lastName,
+      FirstName: project.users[0].firstName,
+      OwnerId: project.admin,
       slug: project.slug,
-      projectWalletAddress: project.walletAddress
+      WalletAddress: project.walletAddress
     }
 
     const formattedProject = {
@@ -579,7 +578,7 @@ export class ProjectResolver {
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
-      formattedProject,
+      segmentProject,
       null
     )
 
