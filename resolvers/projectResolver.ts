@@ -563,13 +563,12 @@ export class ProjectResolver {
     }
     const segmentProject = {
       email: project.users[0].email,
-      projectOwnerEmail: project.users[0].email,
       title: project.title,
-      projectOwnerLastName: project.users[0].lastName,
-      projectOwnerFirstName: project.users[0].firstName,
-      projectOwnerId: project.admin,
+      LastName: project.users[0].lastName,
+      FirstName: project.users[0].firstName,
+      OwnerId: project.admin,
       slug: project.slug,
-      projectWalletAddress: project.walletAddress
+      WalletAddress: project.walletAddress
     }
 
     const formattedProject = {
