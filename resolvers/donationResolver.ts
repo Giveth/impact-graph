@@ -111,6 +111,22 @@ export class DonationResolver {
 
       if (!project) throw new Error('Transaction project was not found.')
 
+      const user = userId ? originUser : null
+      const donation = await Donation.create({
+        amount: Number(amount),
+        transactionId: transactionId.toString().toLowerCase(),
+        transactionNetworkId: Number(transactionNetworkId),
+        currency: token,
+        user,
+        project: project,
+        createdAt: new Date(),
+        toWalletAddress: toAddress.toString().toLowerCase(),
+        fromWalletAddress: fromAddress.toString().toLowerCase(),
+        anonymous: !!userId
+      })
+      await donation.save()
+
+
       //Logged in
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId
@@ -170,21 +186,6 @@ export class DonationResolver {
         segmentDonationReceived,
         projectOwner.segmentUserId()
       )
-
-      const user = userId ? originUser : null
-      const donation = await Donation.create({
-        amount: Number(amount),
-        transactionId: transactionId.toString().toLowerCase(),
-        transactionNetworkId: Number(transactionNetworkId),
-        currency: token,
-        user,
-        project: project,
-        createdAt: new Date(),
-        toWalletAddress: toAddress.toString().toLowerCase(),
-        fromWalletAddress: fromAddress.toString().toLowerCase(),
-        anonymous: !!userId
-      })
-      await donation.save()
 
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
