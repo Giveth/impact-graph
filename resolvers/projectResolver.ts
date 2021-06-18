@@ -936,14 +936,14 @@ export class ProjectResolver {
              slug: project.slug,
            }
 
-      analytics.track(
-        'Project deactivated',
-        `givethId-${ctx.req.user.userId}`,
-        segmentProject,
-        null
-      )
+         analytics.track(
+          'Project deactivated',
+          `givethId-${ctx.req.user.userId}`,
+          segmentProject,
+          null
+         )
+      }
     }
-  }
       return didDeactivate
     } catch (error) {
       Logger.captureException(error)
