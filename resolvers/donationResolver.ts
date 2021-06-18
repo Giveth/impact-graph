@@ -162,30 +162,33 @@ export class DonationResolver {
         )
       }
 
-      const projectOwner = project.owner()
-      analytics.identifyUser(projectOwner)
+      const projectOwner = await User.findOne({ id: Number(project.admin) })
 
-      const segmentDonationReceived = {
-        email: project.users[0].email,
-        title: project.title,
-        firstName: project.users[0].firstName,
-        projectOwnerId: project.admin,
-        slug: project.slug,
-        amount: Number(amount),
-        transactionId: transactionId.toString().toLowerCase(),
-        transactionNetworkId: Number(transactionNetworkId),
-        currency: token,
-        createdAt: new Date(),
-        toWalletAddress: toAddress.toString().toLowerCase(),
-        fromWalletAddress: fromAddress.toString().toLowerCase()
+      if (projectOwner) {
+        analytics.identifyUser(projectOwner)
+
+        const segmentDonationReceived = {
+          email: projectOwner.email,
+          title: project.title,
+          firstName: projectOwner.firstName,
+          projectOwnerId: project.admin,
+          slug: project.slug,
+          amount: Number(amount),
+          transactionId: transactionId.toString().toLowerCase(),
+          transactionNetworkId: Number(transactionNetworkId),
+          currency: token,
+          createdAt: new Date(),
+          toWalletAddress: toAddress.toString().toLowerCase(),
+          fromWalletAddress: fromAddress.toString().toLowerCase()
+        }
+
+        analytics.track(
+          'Donation received',
+          projectOwner.segmentUserId(),
+          segmentDonationReceived,
+          projectOwner.segmentUserId()
+        )
       }
-
-      analytics.track(
-        'Donation received',
-        projectOwner.segmentUserId(),
-        segmentDonationReceived,
-        projectOwner.segmentUserId()
-      )
 
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
