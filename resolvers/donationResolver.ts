@@ -111,7 +111,7 @@ export class DonationResolver {
 
       if (!project) throw new Error('Transaction project was not found.')
 
-      const user = userId ? originUser : null
+      const user = userId ? ( originUser = await User.findOne({ id: userId }) ) : null
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId.toString().toLowerCase(),
