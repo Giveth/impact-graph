@@ -102,7 +102,7 @@ export class DonationResolver {
     @Ctx() ctx: MyContext
   ): Promise<Number> {
     try {
-      let userId = ctx.req.user.userId
+      let userId
       if (!chainId) chainId = 1
       const priceChainId = chainId === 3 ? 1 : chainId
       let originUser
@@ -111,16 +111,13 @@ export class DonationResolver {
 
       if (!project) throw new Error('Transaction project was not found.')
 
-      if(userId) {
-        originUser = await User.findOne({ id: ctx.req.user.userId })
-      }
-
+      const user = userId ? originUser : null
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId.toString().toLowerCase(),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
-        user: originUser,
+        user,
         project: project,
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
