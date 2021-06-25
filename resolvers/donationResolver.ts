@@ -113,6 +113,8 @@ export class DonationResolver {
 
       if(userId) {
         originUser = await User.findOne({ id: ctx.req.user.userId })
+      }else {
+        originUser = null
       }
 
       const donation = await Donation.create({
