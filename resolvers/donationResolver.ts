@@ -102,7 +102,7 @@ export class DonationResolver {
     @Ctx() ctx: MyContext
   ): Promise<Number> {
     try {
-      let userId = ctx.req.user.userId
+      let userId = ctx?.req?.user?.userId || null
       if (!chainId) chainId = 1
       const priceChainId = chainId === 3 ? 1 : chainId
       let originUser
