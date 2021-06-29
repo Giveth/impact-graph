@@ -615,14 +615,18 @@ export class ProjectResolver {
       createdAt: new Date(),
       isMain: false
     })
-
+    const projectUpdateInfo = {
+      title: project.title,
+      email: project.users[0].email,
+      slug: project.slug,
+      update: title,
+      projectId: project.id,
+      firstName: project.users[0].firstName
+    }
     analytics.track(
       'Project updated - owner',
       `givethId-${user.userId}`,
-      {
-        project,
-        update: title
-      },
+      projectUpdateInfo,
       null
     )
 
@@ -631,15 +635,27 @@ export class ProjectResolver {
       relations: ['user']
     })
 
-    donations.forEach(donation => {
+    const projectDonors = donations.map(donation => {
+      return donation.user
+    })
+    const uniqueDonors = projectDonors.filter((currentDonor, index) => {
+        return projectDonors.findIndex(duplicateDonor => duplicateDonor.id === currentDonor.id) === index
+      })
+
+    uniqueDonors.forEach(donor => {
+      const donorUpdateInfo = {
+        title: project.title,
+        projectId: project.id,
+        projectOwnerId: project.admin,
+        slug: project.slug,
+        update: title,
+        email: donor.email,
+        firstName: donor.firstName
+        }
       analytics.track(
         'Project updated - donor',
-        `givethId-${donation.user.id}`,
-        {
-          project,
-          update: title,
-          donation
-        },
+        `givethId-${donor.id}`,
+        donorUpdateInfo,
         null
       )
     })
