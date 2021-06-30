@@ -174,11 +174,13 @@ export class DonationResolver {
 
           donation.valueUsd = Number(amount) * donation.priceUsd
           donation.valueEth = Number(amount) * donation.priceEth
+
+          await donation.save()
+          
           return [
              donation.valueUsd,
              donation.valueEth
            ]
-          await donation.save()
         })
         .catch(e => {
           throw new Error(e)
