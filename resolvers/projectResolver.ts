@@ -616,6 +616,8 @@ export class ProjectResolver {
       isMain: false
     })
 
+    const save = ProjectUpdate.save(update)
+
     analytics.track(
       'Project updated - owner',
       `givethId-${user.userId}`,
@@ -643,7 +645,7 @@ export class ProjectResolver {
         null
       )
     })
-    return ProjectUpdate.save(update)
+    return save
   }
 
   @Mutation(returns => ProjectUpdate)
