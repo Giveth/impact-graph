@@ -629,14 +629,14 @@ export class ProjectResolver {
     )
 
     const donations = await this.donationRepository.find({
-      where: { project: { id: project.id } },
+      where: { project: { id: project?.id } },
       relations: ['user']
     })
 
-    donations.forEach(donation => {
+    donations?.forEach(donation => {
       analytics.track(
         'Project updated - donor',
-        `givethId-${donation.user.id}`,
+        `givethId-${donation?.user?.id}`,
         {
           project,
           update: title,
