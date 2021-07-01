@@ -616,7 +616,7 @@ export class ProjectResolver {
       isMain: false
     })
 
-    const save = ProjectUpdate.save(update)
+    const save = await ProjectUpdate.save(update)
 
     analytics.track(
       'Project updated - owner',
