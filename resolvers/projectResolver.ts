@@ -573,8 +573,12 @@ export class ProjectResolver {
       walletAddress: project.walletAddress
     }
  // -Mitch I'm not sure why formattedProject was added in here, the object is missing a few important pieces of
+<<<<<<< HEAD
  // information into the analytics
  
+=======
+ // information into the analytics...
+>>>>>>> 1e32935f15a169947f9c3477711f9dc286832879
     const formattedProject = {
       ...projectInput,
       description: projectInput?.description?.replace(/<img .*?>/g, '')
@@ -647,7 +651,12 @@ export class ProjectResolver {
       return donation.user
     })
     const uniqueDonors = projectDonors.filter((currentDonor, index) => {
+<<<<<<< HEAD
         return (currentDonor != null) && (projectDonors.findIndex(duplicateDonor => duplicateDonor.id === currentDonor.id) === index)
+=======
+      return (currentDonor != null) && (projectDonors.findIndex(duplicateDonor => duplicateDonor.id === currentDonor.id) === index)
+    })
+>>>>>>> 1e32935f15a169947f9c3477711f9dc286832879
       })
 
     uniqueDonors.forEach(donor => {
