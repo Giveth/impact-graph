@@ -462,6 +462,7 @@ export class ProjectResolver {
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx)
 
+
     let qualityScore = this.getQualityScore(
       projectInput.description,
       !!projectInput.imageUpload,
@@ -530,6 +531,7 @@ export class ProjectResolver {
       giveBacks: false
     })
 
+
     const newProject = await this.projectRepository.save(project)
 
     const update = await ProjectUpdate.create({
@@ -562,16 +564,16 @@ export class ProjectResolver {
       message: 'A new project was created'
     }
     const segmentProject = {
-      email: project.users[0].email,
-      projectOwnerEmail: project.users[0].email,
+      email: user.email,
       title: project.title,
-      projectOwnerLastName: project.users[0].lastName,
-      projectOwnerFirstName: project.users[0].firstName,
-      projectOwnerId: project.admin,
+      lastName: user.lastName,
+      firstName: user.firstName,
+      OwnerId: user.id,
       slug: project.slug,
-      projectWalletAddress: project.walletAddress
+      walletAddress: project.walletAddress
     }
-
+ // -Mitch I'm not sure why formattedProject was added in here, the object is missing a few important pieces of
+ // information into the analytics... 
     const formattedProject = {
       ...projectInput,
       description: projectInput?.description?.replace(/<img .*?>/g, '')
@@ -579,7 +581,7 @@ export class ProjectResolver {
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
-      formattedProject,
+      segmentProject,
       null
     )
 
@@ -601,6 +603,10 @@ export class ProjectResolver {
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error('Authentication required.')
 
+    const owner = await User.findOne({ id: user.userId })
+
+    if (!owner) throw new Error('User not found.')
+
     const project = await Project.findOne({ id: projectId })
 
     if (!project) throw new Error('Project not found.')
@@ -615,13 +621,14 @@ export class ProjectResolver {
       createdAt: new Date(),
       isMain: false
     })
+
     const projectUpdateInfo = {
       title: project.title,
-      email: project.users[0].email,
+      email: owner.email,
       slug: project.slug,
       update: title,
       projectId: project.id,
-      firstName: project.users[0].firstName
+      firstName: owner.firstName
     }
     analytics.track(
       'Project updated - owner',
