@@ -462,6 +462,7 @@ export class ProjectResolver {
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx)
 
+
     let qualityScore = this.getQualityScore(
       projectInput.description,
       !!projectInput.imageUpload,
@@ -530,6 +531,7 @@ export class ProjectResolver {
       giveBacks: false
     })
 
+
     const newProject = await this.projectRepository.save(project)
 
     const update = await ProjectUpdate.create({
@@ -562,15 +564,17 @@ export class ProjectResolver {
       message: 'A new project was created'
     }
     const segmentProject = {
-      email: project.users[0].email,
-      projectOwnerEmail: project.users[0].email,
+      email: user.email,
       title: project.title,
-      projectOwnerLastName: project.users[0].lastName,
-      projectOwnerFirstName: project.users[0].firstName,
-      projectOwnerId: project.admin,
+      lastName: user.lastName,
+      firstName: user.firstName,
+      OwnerId: user.id,
       slug: project.slug,
-      projectWalletAddress: project.walletAddress
+      walletAddress: project.walletAddress
     }
+ // -Mitch I'm not sure why formattedProject was added in here, the object is missing a few important pieces of
+ // information into the analytics
+
 
     const formattedProject = {
       ...projectInput,
@@ -579,7 +583,7 @@ export class ProjectResolver {
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
-      formattedProject,
+      segmentProject,
       null
     )
 
@@ -601,6 +605,10 @@ export class ProjectResolver {
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error('Authentication required.')
 
+    const owner = await User.findOne({ id: user.userId })
+
+    if (!owner) throw new Error('User not found.')
+
     const project = await Project.findOne({ id: projectId })
 
     if (!project) throw new Error('Project not found.')
@@ -616,13 +624,18 @@ export class ProjectResolver {
       isMain: false
     })
 
+    const projectUpdateInfo = {
+      title: project.title,
+      email: owner.email,
+      slug: project.slug,
+      update: title,
+      projectId: project.id,
+      firstName: owner.firstName
+    }
     analytics.track(
       'Project updated - owner',
       `givethId-${user.userId}`,
-      {
-        project,
-        update: title
-      },
+      projectUpdateInfo,
       null
     )
 
@@ -631,15 +644,27 @@ export class ProjectResolver {
       relations: ['user']
     })
 
-    donations.forEach(donation => {
+    const projectDonors = donations.map(donation => {
+      return donation.user
+    })
+    const uniqueDonors = projectDonors.filter((currentDonor, index) => {
+        return (currentDonor != null) && (projectDonors.findIndex(duplicateDonor => duplicateDonor.id === currentDonor.id) === index)
+      })
+
+    uniqueDonors.forEach(donor => {
+      const donorUpdateInfo = {
+        title: project.title,
+        projectId: project.id,
+        projectOwnerId: project.admin,
+        slug: project.slug,
+        update: title,
+        email: donor.email,
+        firstName: donor.firstName
+        }
       analytics.track(
         'Project updated - donor',
-        `givethId-${donation.user.id}`,
-        {
-          project,
-          update: title,
-          donation
-        },
+        `givethId-${donor.id}`,
+        donorUpdateInfo,
         null
       )
     })
