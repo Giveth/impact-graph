@@ -632,6 +632,8 @@ export class ProjectResolver {
       projectId: project.id,
       firstName: owner.firstName
     }
+    const save = await ProjectUpdate.save(update)
+
     analytics.track(
       'Project updated - owner',
       `givethId-${user.userId}`,
@@ -640,18 +642,18 @@ export class ProjectResolver {
     )
 
     const donations = await this.donationRepository.find({
-      where: { project: { id: project.id } },
+      where: { project: { id: project?.id } },
       relations: ['user']
     })
 
-    const projectDonors = donations.map(donation => {
+    const projectDonors = donations?.map(donation => {
       return donation.user
     })
-    const uniqueDonors = projectDonors.filter((currentDonor, index) => {
+    const uniqueDonors = projectDonors?.filter((currentDonor, index) => {
         return (currentDonor != null) && (projectDonors.findIndex(duplicateDonor => duplicateDonor.id === currentDonor.id) === index)
       })
 
-    uniqueDonors.forEach(donor => {
+    uniqueDonors?.forEach(donor => {
       const donorUpdateInfo = {
         title: project.title,
         projectId: project.id,
@@ -668,7 +670,7 @@ export class ProjectResolver {
         null
       )
     })
-    return ProjectUpdate.save(update)
+    return save
   }
 
   @Mutation(returns => ProjectUpdate)
