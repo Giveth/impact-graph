@@ -450,8 +450,11 @@ export class ProjectResolver {
     const slugBase = slugify(projectInput.title)
 
     let slug = slugBase
-    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
-      slug = slugBase + '-' + i
+
+    const [, projectCount] = await Project.findAndCount({ slug })
+
+    if (projectCount > 0) {
+      slug = slugBase + '-' + projectCount
     }
 
     const status = await this.projectStatusRepository.findOne({
