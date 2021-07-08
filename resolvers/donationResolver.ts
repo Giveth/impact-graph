@@ -167,38 +167,10 @@ export class DonationResolver {
         )
       }
 
-      const projectOwner = await User.findOne({ id: Number(project.admin) })
-
-      if (projectOwner) {
-        analytics.identifyUser(projectOwner)
-
-        const segmentDonationReceived = {
-          email: projectOwner.email,
-          title: project.title,
-          firstName: projectOwner.firstName,
-          projectOwnerId: project.admin,
-          slug: project.slug,
-          amount: Number(amount),
-          transactionId: transactionId.toString().toLowerCase(),
-          transactionNetworkId: Number(transactionNetworkId),
-          currency: token,
-          createdAt: new Date(),
-          toWalletAddress: toAddress.toString().toLowerCase(),
-          fromWalletAddress: fromAddress.toString().toLowerCase()
-        }
-
-        analytics.track(
-          'Donation received',
-          projectOwner.segmentUserId(),
-          segmentDonationReceived,
-          projectOwner.segmentUserId()
-        )
-      }
-
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
 
-      getTokenPrices(token, baseTokens, Number(priceChainId))
+    const tokenValues = getTokenPrices(token, baseTokens, Number(priceChainId))
         .then(async (prices: number[]) => {
           //console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
 
@@ -209,11 +181,48 @@ export class DonationResolver {
           donation.valueEth = Number(amount) * donation.priceEth
 
           await donation.save()
+
+          return [
+             donation.valueUsd,
+             donation.valueEth
+           ]
         })
         .catch(e => {
           throw new Error(e)
         })
 
+        const projectOwner = await User.findOne({ id: Number(project.admin) })
+
+        if (projectOwner) {
+
+          await tokenValues
+
+          analytics.identifyUser(projectOwner)
+
+          const segmentDonationReceived = {
+            email: projectOwner.email,
+            title: project.title,
+            firstName: projectOwner.firstName,
+            projectOwnerId: project.admin,
+            slug: project.slug,
+            amount: Number(amount),
+            transactionId: transactionId.toString().toLowerCase(),
+            transactionNetworkId: Number(transactionNetworkId),
+            currency: token,
+            createdAt: new Date(),
+            toWalletAddress: toAddress.toString().toLowerCase(),
+            fromWalletAddress: fromAddress.toString().toLowerCase(),
+            donationValueUsd: donation.valueUsd,
+            donationValueEth: donation.valueEth
+          }
+
+          analytics.track(
+            'Donation received',
+            projectOwner.segmentUserId(),
+            segmentDonationReceived,
+            projectOwner.segmentUserId()
+            )
+        }
       return donation.id
     } catch (e) {
       Logger.captureException(e)
