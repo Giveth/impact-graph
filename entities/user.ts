@@ -11,6 +11,7 @@ import {
 import { OrganisationUser } from './organisationUser'
 import { Organisation } from './organisation'
 import { Project } from './project'
+import { AccountVerification } from './accountVerification'
 
 @ObjectType()
 @Entity()
@@ -58,6 +59,10 @@ export class User extends BaseEntity {
   @Column()
   loginType: string
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  dId?: string
+
   @Column('bool', { default: false })
   confirmed: boolean
 
@@ -88,4 +93,11 @@ export class User extends BaseEntity {
   segmentUserId () {
     return `givethId-${this.id}`
   }
+
+  @Field(type => [AccountVerification], { nullable: true })
+  @OneToMany(
+    type => AccountVerification,
+    accountVerification => accountVerification.user
+  )
+  accountVerifications?: AccountVerification[]
 }
