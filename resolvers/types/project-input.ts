@@ -6,7 +6,7 @@ import { GraphQLUpload, FileUpload } from 'graphql-upload';
 export class ImageUpload {
    // Client uploads image file
    @Field(type => GraphQLUpload, { nullable: true })
-   image?: FileUpload
+   image: FileUpload
 
    @Field({ nullable: true })
    projectId?: number
@@ -49,4 +49,7 @@ export class ProjectInput {
 
   @Field({ nullable: true })
   walletAddress?: string
+
+  @Field({ nullable: true })
+  projectImageIds?: string
 }

@@ -9,6 +9,7 @@ import { pinFile } from '../middleware/pinataUtils'
 import { UserPermissions } from '../permissions'
 import { Category } from '../entities/category'
 import { Donation } from '../entities/donation'
+import { ProjectImage } from '../entities/projectImage'
 import { triggerBuild } from '../netlify/build'
 import { MyContext } from '../types/MyContext'
 import { getAnalytics } from '../analytics'
@@ -182,6 +183,18 @@ class ToggleResponse {
   reactionCount: number
 }
 
+@ObjectType()
+class ImageResponse {
+  @Field(type => String)
+  url: string
+
+  @Field(type => Number, { nullable: true })
+  projectId?: number
+
+  @Field(type => Number)
+  projectImageId: number
+}
+
 @Resolver(of => Project)
 export class ProjectResolver {
   constructor (
@@ -194,7 +207,9 @@ export class ProjectResolver {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private userPermissions: UserPermissions,
     @InjectRepository(Donation)
-    private readonly donationRepository: Repository<Donation>
+    private readonly donationRepository: Repository<Donation>,
+    @InjectRepository(ProjectImage)
+    private readonly projectImageRepository: Repository<ProjectImage>
   ) {}
 
   @Query(returns => [Project])
@@ -283,10 +298,19 @@ export class ProjectResolver {
 
   //Move this to it's own resolver later
   @Query(returns => Project)
+  async projectById (@Arg('id') id: number) {
+    return await this.projectRepository.findOne({
+      where: { id },
+      relations: ['donations', 'reactions']
+    })
+  }
+
+  //Move this to it's own resolver later
+  @Query(returns => Project)
   async projectBySlug (@Arg('slug') slug: string) {
     return await this.projectRepository.findOne({
-      where: { slug },
-      relations: ['donations', 'reactions']
+      where: { slug }
+      // relations: ['donations', 'reactions']
     })
   }
 
@@ -302,6 +326,8 @@ export class ProjectResolver {
     const project = await Project.findOne({ id: projectId })
 
     if (!project) throw new Error('Project not found.')
+    console.log(`project.admin ---> : ${project.admin}`)
+    console.log(`user.userId ---> : ${user.userId}`)
     if (project.admin != user.userId)
       throw new Error('You are not the owner of this project.')
 
@@ -322,13 +348,14 @@ export class ProjectResolver {
       const categories = await Promise.all(categoriesPromise)
       project.categories = categories
     }
+    let imagePromise: Promise<string | undefined> = Promise.resolve(undefined)
 
     const { imageUpload, imageStatic } = newProjectData
     if (imageUpload) {
       const { filename, createReadStream, encoding } = await imageUpload
 
       try {
-        project.image = await pinFile(
+        imagePromise = pinFile(
           createReadStream(),
           filename,
           encoding
@@ -340,7 +367,14 @@ export class ProjectResolver {
         throw Error('Upload file failed')
       }
     } else if (imageStatic) {
-      project.image = imageStatic
+      imagePromise = Promise.resolve(imageStatic)
+    }
+
+    if(!!imageUpload || !!imageStatic) {
+      const [image] = await Promise.all([
+        imagePromise
+      ])
+      project.image = image
     }
 
     const [hearts, heartCount] = await Reaction.findAndCount({
@@ -352,6 +386,14 @@ export class ProjectResolver {
       !!imageUpload,
       heartCount
     )
+    const slugBase = slugify(newProjectData.title)
+
+    let slug = slugBase
+    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
+      slug = slugBase + '-' + i
+    }
+    project.slug = slug
+
     project.qualityScore = qualityScore
     await project.save()
 
@@ -375,26 +417,41 @@ export class ProjectResolver {
     return qualityScore
   }
 
-  @Mutation(returns => String)
+  @Mutation(returns => ImageResponse)
   async uploadImage (
     @Arg('imageUpload') imageUpload: ImageUpload,
     @Ctx() ctx: MyContext
-  ): Promise<string> {
-    //const user = await getLoggedInUser(ctx)
+  ): Promise<ImageResponse> {
+    const user = await getLoggedInUser(ctx)
     let url = ''
-    
+
     if (imageUpload.image) {
       const { filename, createReadStream, encoding } = await imageUpload.image
-      
+
       try {
-        const response = await pinFile(createReadStream(), filename, encoding)
-        url = 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash
+        const pinResponse = await pinFile(createReadStream(), filename, encoding)
+        url = 'https://gateway.pinata.cloud/ipfs/' + pinResponse.data.IpfsHash
+
+        const projectImage = this.projectImageRepository.create({
+          url,
+          projectId: imageUpload.projectId
+        })
+        await projectImage.save()
+
+        const response: ImageResponse = {
+          url,
+          projectId: imageUpload.projectId,
+          projectImageId: projectImage.id
+        }
+        console.log(`response : ${JSON.stringify(response, null, 2)}`)
+
+        return response
+
       } catch (e) {
         throw Error('Upload file failed')
       }
-    } 
-    
-    return url
+    }
+    throw Error('Upload file failed')
   }
 
   @Mutation(returns => Project)
@@ -404,6 +461,7 @@ export class ProjectResolver {
     @PubSub() pubSub: PubSubEngine
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx)
+
 
     let qualityScore = this.getQualityScore(
       projectInput.description,
@@ -447,6 +505,7 @@ export class ProjectResolver {
       categoriesPromise,
       imagePromise
     ])
+
     const slugBase = slugify(projectInput.title)
 
     let slug = slugBase
@@ -472,6 +531,7 @@ export class ProjectResolver {
       giveBacks: false
     })
 
+
     const newProject = await this.projectRepository.save(project)
 
     const update = await ProjectUpdate.create({
@@ -484,20 +544,37 @@ export class ProjectResolver {
     })
     await ProjectUpdate.save(update)
 
+    console.log(`projectInput.projectImageIds : ${JSON.stringify(projectInput.projectImageIds, null, 2)}`)
+
+    //Associate already uploaded images:
+    if(projectInput.projectImageIds) {
+      console.log('updating projectInput.projectImageIds', projectInput.projectImageIds)
+
+      //await ProjectImage.update projectInput.projectImageIds
+      await this.projectImageRepository.createQueryBuilder('project_image')
+        .update(ProjectImage)
+        .set({ projectId: newProject.id })
+        .where(`project_image.id IN (${projectInput.projectImageIds})`).execute()
+    }
+
+
+
     const payload: NotificationPayload = {
       id: 1,
       message: 'A new project was created'
     }
     const segmentProject = {
-      email: project.users[0].email,
-      projectOwnerEmail: project.users[0].email,
+      email: user.email,
       title: project.title,
-      projectOwnerLastName: project.users[0].lastName,
-      projectOwnerFirstName: project.users[0].firstName,
-      projectOwnerId: project.admin,
+      lastName: user.lastName,
+      firstName: user.firstName,
+      OwnerId: user.id,
       slug: project.slug,
-      projectWalletAddress: project.walletAddress
+      walletAddress: project.walletAddress
     }
+ // -Mitch I'm not sure why formattedProject was added in here, the object is missing a few important pieces of
+ // information into the analytics
+
 
     const formattedProject = {
       ...projectInput,
@@ -506,7 +583,7 @@ export class ProjectResolver {
     analytics.track(
       'Project created',
       `givethId-${ctx.req.user.userId}`,
-      formattedProject,
+      segmentProject,
       null
     )
 
@@ -528,6 +605,10 @@ export class ProjectResolver {
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error('Authentication required.')
 
+    const owner = await User.findOne({ id: user.userId })
+
+    if (!owner) throw new Error('User not found.')
+
     const project = await Project.findOne({ id: projectId })
 
     if (!project) throw new Error('Project not found.')
@@ -543,34 +624,104 @@ export class ProjectResolver {
       isMain: false
     })
 
+    const projectUpdateInfo = {
+      title: project.title,
+      email: owner.email,
+      slug: project.slug,
+      update: title,
+      projectId: project.id,
+      firstName: owner.firstName
+    }
+    const save = await ProjectUpdate.save(update)
+
     analytics.track(
       'Project updated - owner',
       `givethId-${user.userId}`,
-      {
-        project,
-        update: title
-      },
+      projectUpdateInfo,
       null
     )
 
     const donations = await this.donationRepository.find({
-      where: { project: { id: project.id } },
+      where: { project: { id: project?.id } },
       relations: ['user']
     })
 
-    donations.forEach(donation => {
+    const projectDonors = donations?.map(donation => {
+      return donation.user
+    })
+    const uniqueDonors = projectDonors?.filter((currentDonor, index) => {
+        return (currentDonor != null) && (projectDonors.findIndex(duplicateDonor => duplicateDonor.id === currentDonor.id) === index)
+      })
+
+    uniqueDonors?.forEach(donor => {
+      const donorUpdateInfo = {
+        title: project.title,
+        projectId: project.id,
+        projectOwnerId: project.admin,
+        slug: project.slug,
+        update: title,
+        email: donor.email,
+        firstName: donor.firstName
+        }
       analytics.track(
         'Project updated - donor',
-        `givethId-${donation.user.id}`,
-        {
-          project,
-          update: title,
-          donation
-        },
+        `givethId-${donor.id}`,
+        donorUpdateInfo,
         null
       )
     })
-    return ProjectUpdate.save(update)
+    return save
+  }
+
+  @Mutation(returns => ProjectUpdate)
+  async editProjectUpdate (
+    @Arg('updateId') updateId: number,
+    @Arg('title') title: string,
+    @Arg('content') content: string,
+    @Ctx() { req: { user } }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<ProjectUpdate> {
+    if (!user) throw new Error('Authentication required.')
+
+    const update = await ProjectUpdate.findOne({ id: updateId })
+    if (!update) throw new Error('Project Update not found.')
+
+    let project = await Project.findOne({ id: update.projectId })
+    if (!project) throw new Error('Project not found')
+    if (project.admin != user.userId)
+      throw new Error('You are not the owner of this project.')
+
+    update.title = title
+    update.content = content
+
+    return update.save()
+  }
+
+  @Mutation(returns => Boolean)
+  async deleteProjectUpdate (
+    @Arg('updateId') updateId: number,
+    @Ctx() { req: { user } }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<Boolean> {
+    if (!user) throw new Error('Authentication required.')
+
+    const update = await ProjectUpdate.findOne({ id: updateId })
+    if (!update) throw new Error('Project Update not found.')
+
+    let project = await Project.findOne({ id: update.projectId })
+    if (!project) throw new Error('Project not found')
+    if (project.admin != user.userId)
+      throw new Error('You are not the owner of this project.')
+
+    const [reactions, reactionsCount] = await Reaction.findAndCount({
+        where: { projectUpdateId: update.id }
+      })
+
+    if (reactionsCount > 0)
+      await Reaction.remove(reactions)
+
+    await ProjectUpdate.delete({ id: update.id })
+    return true
   }
 
   @Mutation(returns => Boolean)
@@ -797,7 +948,30 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx)
-      return await this.updateProjectStatus(projectId, ProjStatus.can, user)
+      const didDeactivate = await this.updateProjectStatus(projectId, ProjStatus.can, user)
+      if (didDeactivate)
+       {
+         const project = await Project.findOne({ id: projectId })
+         if (project)
+         {
+           const segmentProject = {
+             email: user.email,
+             title: project.title,
+             LastName: user.lastName,
+             FirstName: user.firstName,
+             OwnerId: project.admin,
+             slug: project.slug,
+           }
+
+         analytics.track(
+          'Project deactivated',
+          `givethId-${ctx.req.user.userId}`,
+          segmentProject,
+          null
+         )
+      }
+    }
+      return didDeactivate
     } catch (error) {
       Logger.captureException(error)
       throw error

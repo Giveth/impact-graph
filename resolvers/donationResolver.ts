@@ -102,7 +102,7 @@ export class DonationResolver {
     @Ctx() ctx: MyContext
   ): Promise<Number> {
     try {
-      let userId
+      let userId = ctx?.req?.user?.userId || null
       if (!chainId) chainId = 1
       const priceChainId = chainId === 3 ? 1 : chainId
       let originUser
@@ -110,6 +110,27 @@ export class DonationResolver {
       const project = await Project.findOne({ id: Number(projectId) })
 
       if (!project) throw new Error('Transaction project was not found.')
+
+      if(userId) {
+        originUser = await User.findOne({ id: ctx.req.user.userId })
+      }else {
+        originUser = null
+      }
+
+      const donation = await Donation.create({
+        amount: Number(amount),
+        transactionId: transactionId.toString().toLowerCase(),
+        transactionNetworkId: Number(transactionNetworkId),
+        currency: token,
+        user: originUser,
+        project: project,
+        createdAt: new Date(),
+        toWalletAddress: toAddress.toString().toLowerCase(),
+        fromWalletAddress: fromAddress.toString().toLowerCase(),
+        anonymous: !!userId
+      })
+      await donation.save()
+
 
       //Logged in
       if (ctx.req.user && ctx.req.user.userId) {
@@ -146,50 +167,10 @@ export class DonationResolver {
         )
       }
 
-      const projectOwner = project.owner()
-      analytics.identifyUser(projectOwner)
-
-      const segmentDonationReceived = {
-        email: project.users[0].email,
-        title: project.title,
-        firstName: project.users[0].firstName,
-        projectOwnerId: project.admin,
-        slug: project.slug,
-        amount: Number(amount),
-        transactionId: transactionId.toString().toLowerCase(),
-        transactionNetworkId: Number(transactionNetworkId),
-        currency: token,
-        createdAt: new Date(),
-        toWalletAddress: toAddress.toString().toLowerCase(),
-        fromWalletAddress: fromAddress.toString().toLowerCase()
-      }
-
-      analytics.track(
-        'Donation received',
-        projectOwner.segmentUserId(),
-        segmentDonationReceived,
-        projectOwner.segmentUserId()
-      )
-
-      const user = userId ? originUser : null
-      const donation = await Donation.create({
-        amount: Number(amount),
-        transactionId: transactionId.toString().toLowerCase(),
-        transactionNetworkId: Number(transactionNetworkId),
-        currency: token,
-        user,
-        project: project,
-        createdAt: new Date(),
-        toWalletAddress: toAddress.toString().toLowerCase(),
-        fromWalletAddress: fromAddress.toString().toLowerCase(),
-        anonymous: !!userId
-      })
-      await donation.save()
-
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
 
-      getTokenPrices(token, baseTokens, Number(priceChainId))
+    const tokenValues = getTokenPrices(token, baseTokens, Number(priceChainId))
         .then(async (prices: number[]) => {
           //console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
 
@@ -200,11 +181,48 @@ export class DonationResolver {
           donation.valueEth = Number(amount) * donation.priceEth
 
           await donation.save()
+
+          return [
+             donation.valueUsd,
+             donation.valueEth
+           ]
         })
         .catch(e => {
           throw new Error(e)
         })
 
+        const projectOwner = await User.findOne({ id: Number(project.admin) })
+
+        if (projectOwner) {
+
+          await tokenValues
+
+          analytics.identifyUser(projectOwner)
+
+          const segmentDonationReceived = {
+            email: projectOwner.email,
+            title: project.title,
+            firstName: projectOwner.firstName,
+            projectOwnerId: project.admin,
+            slug: project.slug,
+            amount: Number(amount),
+            transactionId: transactionId.toString().toLowerCase(),
+            transactionNetworkId: Number(transactionNetworkId),
+            currency: token,
+            createdAt: new Date(),
+            toWalletAddress: toAddress.toString().toLowerCase(),
+            fromWalletAddress: fromAddress.toString().toLowerCase(),
+            donationValueUsd: donation.valueUsd,
+            donationValueEth: donation.valueEth
+          }
+
+          analytics.track(
+            'Donation received',
+            projectOwner.segmentUserId(),
+            segmentDonationReceived,
+            projectOwner.segmentUserId()
+            )
+        }
       return donation.id
     } catch (e) {
       Logger.captureException(e)
