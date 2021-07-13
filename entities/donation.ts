@@ -6,7 +6,8 @@ import {
   BaseEntity,
   ManyToOne,
   ColumnOptions,
-  RelationId
+  RelationId,
+  Index
 } from 'typeorm'
 import { Project } from './project'
 import { User } from './user'
@@ -62,12 +63,14 @@ export class Donation extends BaseEntity {
   @Column({ type: 'real', nullable: true })
   priceUsd: number
 
+  @Index()
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
   project: Project
   @RelationId((donation: Donation) => donation.project)
   projectId: number
 
+  @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })
   user: User
