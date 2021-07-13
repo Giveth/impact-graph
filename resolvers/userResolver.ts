@@ -14,6 +14,8 @@ import { Repository, In } from 'typeorm'
 import { OrganisationUser } from '../entities/organisationUser'
 import { User } from '../entities/user'
 import { RegisterInput } from '../user/register/RegisterInput'
+import { AccountVerification } from '../entities/accountVerification'
+import { AccountVerificationInput } from './types/accountVerificationInput'
 import { Organisation } from '../entities/organisation'
 import { MyContext } from '../types/MyContext'
 import { getAnalytics } from '../analytics'
@@ -27,7 +29,9 @@ export class UserResolver {
     @InjectRepository(OrganisationUser)
     private readonly organisationUserRepository: Repository<OrganisationUser>,
     @InjectRepository(Organisation)
-    private readonly organisationRepository: Repository<Organisation> // , // @InjectRepository(OrganisationUser) // private readonly organisationUserRepository: Repository<OrganisationUser>
+    private readonly organisationRepository: Repository<Organisation>, // , // @InjectRepository(OrganisationUser) // private readonly organisationUserRepository: Repository<OrganisationUser>
+    @InjectRepository(AccountVerification)
+    private readonly accountVerificationRepository: Repository<AccountVerification>,
   ) {}
 
   async create (@Arg('data', () => RegisterInput) data: any) {
@@ -35,8 +39,12 @@ export class UserResolver {
   }
 
   @Query(returns => User, { nullable: true })
-  user (@Arg('userId', type => Int) userId: number) {
-    return this.userRepository.findOne(userId)
+  async user (@Arg('userId', type => Int) userId: number) {
+    return await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['accountVerifications']
+      }
+    )
   }
 
   @Query(returns => User, { nullable: true })
@@ -90,6 +98,31 @@ export class UserResolver {
       return false
     }
   }
+
+  // Sets the current account verification and creates related verifications
+  @Mutation(returns => Boolean)
+  async addUserVerification (
+    @Arg('dId', { nullable: true }) dId: string,
+    @Arg('verifications', type => [AccountVerificationInput]) verificationsInput: AccountVerificationInput[],
+    @Ctx() { req: { user } }: MyContext
+  ): Promise<boolean> {
+    if (!user) throw new Error('Authentication required.')
+
+    let currentUser = await User.findOne({ id: user.userId })
+    if (!currentUser) throw new Error('User not found')
+
+    currentUser.dId = dId
+    await currentUser.save()
+
+    const associatedVerifications = verificationsInput.map(verification => {
+      return { ...verification, user: currentUser, dId: dId }
+    })
+    const accountVerifications = this.accountVerificationRepository.create(associatedVerifications)
+    await this.accountVerificationRepository.save(accountVerifications)
+
+    return true
+  }
+
   // @FieldResolver()
   // organisationUsers (@Root() user: User) {
   //   return this.organisationUserRepository.find({
