@@ -8,7 +8,8 @@ import {
   RelationId,
   JoinTable,
   BaseEntity,
-  OneToMany
+  OneToMany,
+  Index
 } from 'typeorm'
 
 import { Organisation } from './organisation'
@@ -29,6 +30,7 @@ class Project extends BaseEntity {
   @Column()
   title: string
 
+  @Index()
   @Field({ nullable: true })
   @Column({ nullable: true })
   slug?: string
@@ -127,6 +129,7 @@ class Project extends BaseEntity {
     return this.reactions ? this.reactions.length : 0
   }
 
+  @Index()
   @Field(type => ProjectStatus)
   @ManyToOne(type => ProjectStatus, { eager: true })
   status: ProjectStatus

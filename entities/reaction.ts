@@ -6,7 +6,8 @@ import {
   Column,
   BaseEntity,
   RelationId,
-  ManyToOne
+  ManyToOne,
+  Index
 } from 'typeorm'
 import { Project } from './project'
 
@@ -17,6 +18,7 @@ export class Reaction extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number
 
+  @Index()
   @Field(type => ID)
   @Column()
   projectUpdateId: number
@@ -29,6 +31,7 @@ export class Reaction extends BaseEntity {
   @Column()
   reaction: string
 
+  @Index()
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
   project: Project
