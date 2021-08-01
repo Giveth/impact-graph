@@ -510,7 +510,7 @@ export class ProjectResolver {
 
     let slug = slugBase
 
-    const [, projectCount] = await Project.findAndCount({ slug })
+    const [, projectCount] = await Project.findAndCount({ slug: slug.toLowerCase() })
 
     if (projectCount > 0) {
       slug = slugBase + '-' + projectCount
