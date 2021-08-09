@@ -221,7 +221,7 @@ export class ProjectResolver {
     ;[projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.reactions', 'reactions')
-      .leftJoinAndSelect('project.donations', 'donations')
+      // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.users', 'users')
       .where('project.statusId = 5')
