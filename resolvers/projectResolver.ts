@@ -386,13 +386,19 @@ export class ProjectResolver {
       !!imageUpload,
       heartCount
     )
-    const slugBase = slugify(newProjectData.title)
+    if (newProjectData.title) {
+      const slugBase = slugify(newProjectData.title)
 
-    let slug = slugBase
-    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
-      slug = slugBase + '-' + i
+      let slug = slugBase
+
+      const [, projectCount] = await Project.findAndCount({ slug: slug.toLowerCase() })
+
+      if (projectCount > 1) {
+        slug = slugBase + '-' + (projectCount - 1)
+      }
+
+      project.slug = slug.toLowerCase()
     }
-    project.slug = slug
 
     project.qualityScore = qualityScore
     await project.save()
