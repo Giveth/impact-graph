@@ -240,7 +240,8 @@ export class ProjectResolver {
     const withTotal = projects.map(project => {
       return {
         ...project,
-        totalDonations: sum(project.donations, 'valueUsd'),
+        // totalDonations: sum(project.donations, 'valueUsd'),
+        totalDonations: 0,
         totalHearts: project.reactions.length
       }
     })
