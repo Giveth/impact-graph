@@ -216,7 +216,7 @@ export class ProjectResolver {
   async projects (
     @Args() { take, skip, admin }: GetProjectsArgs
   ): Promise<Project[]> {
-    let projects
+    let projects 
     let totalCount
     ;[projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
