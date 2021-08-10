@@ -216,7 +216,7 @@ export class ProjectResolver {
   async projects (
     @Args() { take, skip, admin }: GetProjectsArgs
   ): Promise<Project[]> {
-    let projects
+    let projects 
     let totalCount
     ;[projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
@@ -297,7 +297,7 @@ export class ProjectResolver {
     return this.projectRepository.find({ id })
   }
 
-  //Move this to it's own resolver later
+  //Move this to it's own resolver latere
   @Query(returns => Project)
   async projectById (@Arg('id') id: number) {
     return await this.projectRepository.findOne({
@@ -390,10 +390,12 @@ export class ProjectResolver {
     const slugBase = slugify(newProjectData.title)
 
     let slug = slugBase
-    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
-      slug = slugBase + '-' + i
+    const [, projectCount] = await Project.findAndCount({ slug: slug.toLowerCase() })
+
+    if (projectCount > 1) {
+      slug = slugBase + '-' + (projectCount - 1)
     }
-    project.slug = slug
+    project.slug = slug.toLowerCase()
 
     project.qualityScore = qualityScore
     await project.save()
