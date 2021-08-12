@@ -220,8 +220,6 @@ export class ProjectResolver {
     let totalCount
     ;[projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
-      .leftJoinAndSelect('project.reactions', 'reactions')
-      // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.users', 'users')
       .where('project.statusId = 5')
@@ -231,22 +229,7 @@ export class ProjectResolver {
       .innerJoinAndSelect('project.categories', 'c')
       .getManyAndCount()
 
-    function sum (items, prop) {
-      return items.reduce(function (a, b) {
-        return a + b[prop]
-      }, 0)
-    }
-
-    const withTotal = projects.map(project => {
-      return {
-        ...project,
-        // totalDonations: sum(project.donations, 'valueUsd'),
-        totalDonations: 0,
-        totalHearts: project.reactions.length
-      }
-    })
-
-    return withTotal
+    return projects
   }
 
   @Query(returns => TopProjects)
@@ -420,6 +403,32 @@ export class ProjectResolver {
     return qualityScore
   }
 
+  @Mutation(returns => Boolean)
+  async heartsAndDonations (
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<Boolean> {
+    let projects;
+    projects = await this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.reactions', 'reactions')
+      .leftJoinAndSelect('project.donations', 'donations')
+      .getMany()
+
+    function sum (items, prop) {
+      return items.reduce(function (a, b) {
+        return a + b[prop]
+      }, 0)
+    }
+
+    projects.forEach(project => {
+      project.totalDonations = sum(project.donations, 'valueUsd')
+      project.totalHearts = project.reactions.length
+      project.save()
+    })
+    
+    return true
+  }
+
   @Mutation(returns => ImageResponse)
   async uploadImage (
     @Arg('imageUpload') imageUpload: ImageUpload,
@@ -456,7 +465,7 @@ export class ProjectResolver {
     }
     throw Error('Upload file failed')
   }
-
+  
   @Mutation(returns => Project)
   async addProject (
     @Arg('project') projectInput: ProjectInput,
