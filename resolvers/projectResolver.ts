@@ -420,10 +420,10 @@ export class ProjectResolver {
       }, 0)
     }
 
-    projects.forEach(project => {
+    projects.forEach(async project => {
       project.totalDonations = sum(project.donations, 'valueUsd')
       project.totalHearts = project.reactions.length
-      project.save()
+      await project.save()
     })
     
     return true
