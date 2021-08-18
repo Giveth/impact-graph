@@ -81,7 +81,7 @@ export class MeResolver {
     const user = await getLoggedInUser(ctx)
 
     const projects = this.projectRepository.find({
-      where: { admin: user.id },
+      where: { admin: user.id?.toString() },
       relations: ['status', 'donations', 'reactions'],
       order: {
         qualityScore: 'DESC'
