@@ -28,6 +28,13 @@ const cmc200 = {
     },
     {
       chainId: 1,
+      address: '0x03ab458634910aad20ef5f1c8ee96f1d6ac54919',
+      symbol: 'RAI',
+      name: 'Rai Reflex Index',
+      decimals: 18
+    },
+    {
+      chainId: 1,
       address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
       symbol: 'USDT',
       name: 'Tether',
