@@ -158,11 +158,11 @@ class Project extends BaseEntity {
   }
 
   @Field(type => Float, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ type: 'real', nullable: true })
   totalDonations: number = 0
 
   @Field(type => Float, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ type: 'real', nullable: true })
   totalHearts: number = 0
 
   owner () {

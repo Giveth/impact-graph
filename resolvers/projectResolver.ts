@@ -220,8 +220,6 @@ export class ProjectResolver {
     let totalCount
     ;[projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
-      .leftJoinAndSelect('project.reactions', 'reactions')
-      .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.users', 'users')
       .where('project.statusId = 5')
@@ -231,21 +229,7 @@ export class ProjectResolver {
       .innerJoinAndSelect('project.categories', 'c')
       .getManyAndCount()
 
-    function sum (items, prop) {
-      return items.reduce(function (a, b) {
-        return a + b[prop]
-      }, 0)
-    }
-
-    const withTotal = projects.map(project => {
-      return {
-        ...project,
-        totalDonations: sum(project.donations, 'valueUsd'),
-        totalHearts: project.reactions.length
-      }
-    })
-
-    return withTotal
+    return projects
   }
 
   @Query(returns => TopProjects)
@@ -296,7 +280,7 @@ export class ProjectResolver {
     return this.projectRepository.find({ id })
   }
 
-  //Move this to it's own resolver later
+  //Move this to it's own resolver latere
   @Query(returns => Project)
   async projectById (@Arg('id') id: number) {
     return await this.projectRepository.findOne({
@@ -389,10 +373,12 @@ export class ProjectResolver {
     const slugBase = slugify(newProjectData.title)
 
     let slug = slugBase
-    for (let i = 1; await this.projectRepository.findOne({ slug }); i++) {
-      slug = slugBase + '-' + i
+    const [, projectCount] = await Project.findAndCount({ slug: slug.toLowerCase() })
+
+    if (projectCount > 1) {
+      slug = slugBase + '-' + (projectCount - 1)
     }
-    project.slug = slug
+    project.slug = slug.toLowerCase()
 
     project.qualityScore = qualityScore
     await project.save()
@@ -415,6 +401,34 @@ export class ProjectResolver {
       qualityScore = heartCount * heartScore
     }
     return qualityScore
+  }
+
+  @Mutation(returns => Boolean)
+  async heartsAndDonations (
+    @PubSub() pubSub: PubSubEngine
+  ): Promise<Boolean> {
+    let projects;
+    projects = await this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.reactions', 'reactions')
+      .leftJoinAndSelect('project.donations', 'donations')
+      .getMany()
+
+    function sum (items, prop) {
+      return items.reduce(function (a, b) {
+        return a + b[prop]
+      }, 0)
+    }
+
+    const updatedProjects = projects.map(project => {
+      let totalDonations = sum(project.donations, 'valueUsd')
+      let totalHearts = project.reactions.length
+      return { id: project.id, totalDonations: totalDonations, totalHearts: totalHearts }
+    })
+
+    await this.projectRepository.save(updatedProjects)
+    
+    return true
   }
 
   @Mutation(returns => ImageResponse)
@@ -453,7 +467,7 @@ export class ProjectResolver {
     }
     throw Error('Upload file failed')
   }
-
+  
   @Mutation(returns => Project)
   async addProject (
     @Arg('project') projectInput: ProjectInput,
