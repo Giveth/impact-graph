@@ -72,6 +72,12 @@ export class DonationResolver {
     return getOurTokenList()
   }
 
+  @Mutation(returns => [Number])
+  async getTokenPrice (@Arg('symbol') symbol: string,) {
+    const prices = await getTokenPrices(symbol, ['USDT', 'ETH'], 1)
+    return prices
+  }
+
   @Query(returns => [Donation], { nullable: true })
   async donationsByDonor (@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
