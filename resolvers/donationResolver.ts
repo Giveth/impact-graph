@@ -73,8 +73,8 @@ export class DonationResolver {
   }
 
   @Mutation(returns => [Number])
-  async getTokenPrice (@Arg('symbol') symbol: string,) {
-    const prices = await getTokenPrices(symbol, ['USDT', 'ETH'], 1)
+  async getTokenPrice (@Arg('symbol') symbol: string, @Arg('chainId') chainId: number) {
+    const prices = await getTokenPrices(symbol, ['USDT', 'ETH'], chainId)
     return prices
   }
 
