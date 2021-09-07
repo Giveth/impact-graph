@@ -223,7 +223,7 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.users', 'users')
-      .where('project.statusId = 5')
+      .where('project.statusId = 5 AND project.listed = true')
       .orderBy(`project.qualityScore`, 'DESC')
       .limit(skip)
       .take(take)
@@ -266,7 +266,7 @@ export class ProjectResolver {
           { category }
         )
         .innerJoin('project.reactions', 'reaction')
-        .where('project.statusId = 5')
+        .where('project.statusId = 5 AND project.listed = true')
         .orderBy(`project.${field}`, direction)
         .limit(skip)
         .take(take)
@@ -546,7 +546,8 @@ export class ProjectResolver {
       status,
       qualityScore,
       verified: false,
-      giveBacks: false
+      giveBacks: false,
+      listed: false
     })
 
 
@@ -1011,27 +1012,27 @@ export class ProjectResolver {
     }
   }
 
-  // @Mutation(returns => Boolean)
-  // async updateProjectsListing (
-  //   @Arg('slugs', type => [String]) slugs: string[],
-  //   @Arg('listed') listed: boolean,
-  //   @Arg('accessToken') accessToken: string,
-  //   @Ctx() ctx: MyContext
-  // ): Promise<Boolean> {
-  //   if (config.get('ACCESS_TOKEN') !== accessToken) throw new Error('Authentication required.')
+  @Mutation(returns => Boolean)
+  async updateProjectsListing (
+    @Arg('slugs', type => [String]) slugs: string[],
+    @Arg('listed') listed: boolean,
+    @Arg('accessToken') accessToken: string,
+    @Ctx() ctx: MyContext
+  ): Promise<Boolean> {
+    if (config.get('ACCESS_TOKEN') !== accessToken) throw new Error('Authentication required.')
 
-  //   const projects = await this.projectRepository
-  //     .createQueryBuilder('project')
-  //     .where('project.slug IN (:...slugs)')
-  //     .setParameter('slugs', slugs)
-  //     .getMany()
+    const projects = await this.projectRepository
+      .createQueryBuilder('project')
+      .where('project.slug IN (:...slugs)')
+      .setParameter('slugs', slugs)
+      .getMany()
 
-  //   const projectsUpdatedListing = projects.map(project => {
-  //     return { id: project.id, listed: listed }
-  //   })
+    const projectsUpdatedListing = projects.map(project => {
+      return { id: project.id, listed: listed }
+    })
 
-  //   await this.projectRepository.save(projectsUpdatedListing)
+    await this.projectRepository.save(projectsUpdatedListing)
 
-  //   return true
-  // }
+    return true
+  }
 }
