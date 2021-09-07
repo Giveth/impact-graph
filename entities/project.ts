@@ -169,9 +169,9 @@ class Project extends BaseEntity {
     return this.users[0]
   }
 
-  @Field(type => Boolean)
-  @Column({ default: true, nullable: true })
-  listed: boolean = true
+  // @Field(type => Boolean)
+  // @Column({ default: true, nullable: true })
+  // listed: boolean = true
 }
 
 @Entity()
