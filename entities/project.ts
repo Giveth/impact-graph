@@ -170,7 +170,7 @@ class Project extends BaseEntity {
   }
 
   @Field(type => Boolean)
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   listed: boolean = true
 }
 
