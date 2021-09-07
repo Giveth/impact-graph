@@ -168,10 +168,6 @@ class Project extends BaseEntity {
   owner () {
     return this.users[0]
   }
-
-  @Field(type => Boolean)
-  @Column({ nullable: false, default: true })
-  listed: boolean = true
 }
 
 @Entity()
