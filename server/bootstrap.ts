@@ -19,6 +19,9 @@ import { validate } from 'class-validator'
 
 import { Project } from '../entities/project'
 import { ProjectStatus } from '../entities/projectStatus';
+import { User } from '../entities/user';
+
+import bcrypt from 'bcrypt'
 
 import AdminBro from 'admin-bro';
 const AdminBroExpress = require('@admin-bro/express')
@@ -61,6 +64,7 @@ export async function bootstrap () {
 
     // Create GraphQL server
     const apolloServer = new ApolloServer({
+      uploads: false,
       schema,
       context: ({ req, res }: any) => {
         let token
@@ -124,7 +128,6 @@ export async function bootstrap () {
       playground: {
         endpoint: '/graphql'
       },
-      uploads: false,
       introspection: true
     })
 
@@ -132,15 +135,31 @@ export async function bootstrap () {
     const app = express()
 
     app.use(cors())
+
     app.use(
       json({ limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000 })
     )
-    app.use(
-      graphqlUploadExpress({
-        maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
-        maxFiles: 10
-      })
-    )
+    // app.use(
+    //   graphqlUploadExpress({
+    //     maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
+    //     maxFiles: 10
+    //   })
+    // )
+    function onlyGraphql(req, res, next) {
+      if ( req.path == '/graphql') {
+        app.use(
+          graphqlUploadExpress({
+            maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
+            maxFiles: 10
+          })
+        )
+        return next();
+      }
+      next();
+    }
+
+    app.use(onlyGraphql)
+
     apolloServer.applyMiddleware({ app })
     app.post(
       '/stripe-webhook',
@@ -163,10 +182,41 @@ export async function bootstrap () {
     // Admin Bruh!
     Project.useConnection(dbConnection);
     ProjectStatus.useConnection(dbConnection)
+    User.useConnection(dbConnection)
 
     const adminBro = new AdminBro({
       // databases: [connection],
       resources: [
+        {
+          resource: User,
+          options: {
+            properties: {
+              encryptedPassword: {
+                isVisible: false,
+              },
+              password: {
+                type: 'string',
+                isVisible: {
+                  list: false, edit: true, filter: false, show: false,
+                },
+              },
+            },
+            actions: {
+              new: {
+                before: async (request) => {
+                  if(request.payload.password) {
+                    request.payload = {
+                      ...request.payload,
+                      encryptedPassword: await bcrypt.hash(request.payload.password, 10),
+                      password: undefined,
+                    }
+                  }
+                  return request
+                },
+              }
+            }
+          }
+        },
         { resource: Project },
         { resource: ProjectStatus }
     ],
@@ -174,7 +224,7 @@ export async function bootstrap () {
     });
     const router = AdminBroExpress.buildRouter(adminBro)
     app.use(adminBro.options.rootPath, router)
-    
+
   } catch (err) {
     console.error(err)
   }

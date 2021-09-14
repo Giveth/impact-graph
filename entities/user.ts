@@ -13,12 +13,25 @@ import { Organisation } from './organisation'
 import { Project } from './project'
 import { AccountVerification } from './accountVerification'
 
+export enum UserRole {
+  ADMIN = "admin",
+  RESTRICTED = "restricted"
+}
+
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number
+
+  @Field({ nullable: true })
+  @Column({
+    type: "enum",
+    enum: UserRole,
+    default: UserRole.RESTRICTED
+  })
+  role: UserRole;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -43,6 +56,10 @@ export class User extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true, select: false })
   password?: string
+
+  @Field({ nullable: true })
+  @Column({ nullable: true, select: false })
+  encryptedPassword?: string
 
   @Field({ nullable: true })
   @Column({ nullable: true })
