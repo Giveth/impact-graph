@@ -1,12 +1,27 @@
 import config from '../config'
 import { ApolloServer } from 'apollo-server-express'
 import * as jwt from 'jsonwebtoken'
+import * as TypeORM from 'typeorm'
 import { json } from 'express'
 import { handleStripeWebhook } from '../utils/stripe'
 import { netlifyDeployed } from '../netlify/deployed'
 import createSchema from './createSchema'
+import { resolvers } from '../resolvers/resolvers'
+import { entities } from '../entities/entities'
+import { Container } from 'typedi'
+import { RegisterResolver } from '../user/register/RegisterResolver'
+import { ConfirmUserResolver } from '../user/ConfirmUserResolver'
+
 import Logger from '../logger'
 import { graphqlUploadExpress } from 'graphql-upload'
+import { Database, Resource } from '@admin-bro/typeorm';
+import { validate } from 'class-validator'
+
+import { Project } from '../entities/project'
+import { ProjectStatus } from '../entities/projectStatus';
+
+import AdminBro from 'admin-bro';
+const AdminBroExpress = require('@admin-bro/express')
 
 // tslint:disable:no-var-requires
 const express = require('express')
@@ -15,8 +30,33 @@ const cors = require('cors')
 
 // register 3rd party IOC container
 
+Resource.validate = validate;
+AdminBro.registerAdapter({ Database, Resource });
+
 export async function bootstrap () {
   try {
+    TypeORM.useContainer(Container)
+
+    if (config.get('REGISTER_USERNAME_PASSWORD') === 'true') {
+      resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver])
+    }
+  
+    const dropSchema = config.get('DROP_DATABASE') === 'true'
+    const dbConnection = await TypeORM.createConnection({
+      type: 'postgres',
+      database: config.get('TYPEORM_DATABASE_NAME') as string,
+      username: config.get('TYPEORM_DATABASE_USER') as string,
+      password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+      port: config.get('TYPEORM_DATABASE_PORT') as number,
+      host: config.get('TYPEORM_DATABASE_HOST') as string,
+      entities,
+      synchronize: true,
+      logger: 'advanced-console',
+      logging: ['error'],
+      dropSchema,
+      cache: true,
+    })
+
     const schema = await createSchema()
 
     // Create GraphQL server
@@ -118,6 +158,23 @@ export async function bootstrap () {
     console.log(
       `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`
     )
+
+
+    // Admin Bruh!
+    Project.useConnection(dbConnection);
+    ProjectStatus.useConnection(dbConnection)
+
+    const adminBro = new AdminBro({
+      // databases: [connection],
+      resources: [
+        { resource: Project },
+        { resource: ProjectStatus }
+    ],
+      rootPath: '/admin',
+    });
+    const router = AdminBroExpress.buildRouter(adminBro)
+    app.use(adminBro.options.rootPath, router)
+    
   } catch (err) {
     console.error(err)
   }
