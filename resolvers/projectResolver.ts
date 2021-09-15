@@ -17,7 +17,7 @@ import { Max, Min } from 'class-validator'
 import { User } from '../entities/user'
 import { Context } from '../context'
 import { Repository } from 'typeorm'
-import { Raw } from "typeorm";
+import { Raw } from 'typeorm';
 import { Service } from 'typedi'
 import config from '../config'
 import slugify from 'slugify'
@@ -281,7 +281,7 @@ export class ProjectResolver {
     return this.projectRepository.find({ id })
   }
 
-  //Move this to it's own resolver latere
+  // Move this to it's own resolver latere
   @Query(returns => Project)
   async projectById (@Arg('id') id: number) {
     return await this.projectRepository.findOne({
@@ -290,7 +290,7 @@ export class ProjectResolver {
     })
   }
 
-  //Move this to it's own resolver later
+  // Move this to it's own resolver later
   @Query(returns => Project)
   async projectBySlug (@Arg('slug') slug: string) {
     return await this.projectRepository.findOne({
@@ -355,7 +355,7 @@ export class ProjectResolver {
       imagePromise = Promise.resolve(imageStatic)
     }
 
-    if(!!imageUpload || !!imageStatic) {
+    if (!!imageUpload || !!imageStatic) {
       const [image] = await Promise.all([
         imagePromise
       ])
@@ -363,10 +363,10 @@ export class ProjectResolver {
     }
 
     const [hearts, heartCount] = await Reaction.findAndCount({
-      projectId: projectId
+      projectId
     })
 
-    let qualityScore = this.getQualityScore(
+    const qualityScore = this.getQualityScore(
       project.description,
       !!imageUpload,
       heartCount
@@ -390,7 +390,7 @@ export class ProjectResolver {
     return project
   }
 
-  //getQualityScore (projectInput) {
+  // getQualityScore (projectInput) {
   getQualityScore (description, hasImageUpload, heartCount) {
     const heartScore = 10
     let qualityScore = 40
@@ -422,9 +422,9 @@ export class ProjectResolver {
     }
 
     const updatedProjects = projects.map(project => {
-      let totalDonations = sum(project.donations, 'valueUsd')
-      let totalHearts = project.reactions.length
-      return { id: project.id, totalDonations: totalDonations, totalHearts: totalHearts }
+      const totalDonations = sum(project.donations, 'valueUsd')
+      const totalHearts = project.reactions.length
+      return { id: project.id, totalDonations, totalHearts }
     })
 
     await this.projectRepository.save(updatedProjects)
@@ -478,7 +478,7 @@ export class ProjectResolver {
     const user = await getLoggedInUser(ctx)
 
 
-    let qualityScore = this.getQualityScore(
+    const qualityScore = this.getQualityScore(
       projectInput.description,
       !!projectInput.imageUpload,
       0
@@ -565,11 +565,11 @@ export class ProjectResolver {
 
     console.log(`projectInput.projectImageIds : ${JSON.stringify(projectInput.projectImageIds, null, 2)}`)
 
-    //Associate already uploaded images:
-    if(projectInput.projectImageIds) {
+    // Associate already uploaded images:
+    if (projectInput.projectImageIds) {
       console.log('updating projectInput.projectImageIds', projectInput.projectImageIds)
 
-      //await ProjectImage.update projectInput.projectImageIds
+      // await ProjectImage.update projectInput.projectImageIds
       await this.projectImageRepository.createQueryBuilder('project_image')
         .update(ProjectImage)
         .set({ projectId: newProject.id })
@@ -705,7 +705,7 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId })
     if (!update) throw new Error('Project Update not found.')
 
-    let project = await Project.findOne({ id: update.projectId })
+    const project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
     if (project.admin != user.userId)
       throw new Error('You are not the owner of this project.')
@@ -727,7 +727,7 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId })
     if (!update) throw new Error('Project Update not found.')
 
-    let project = await Project.findOne({ id: update.projectId })
+    const project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
     if (project.admin != user.userId)
       throw new Error('You are not the owner of this project.')
@@ -755,24 +755,24 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId })
     if (!update) throw new Error('Update not found.')
 
-    //if there is one, then delete it
+    // if there is one, then delete it
     const currentReaction = await Reaction.findOne({
       projectUpdateId: update.id,
       userId: user.userId
     })
 
-    let project = await Project.findOne({ id: update.projectId })
+    const project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
 
     if (currentReaction && currentReaction.reaction === reaction) {
       await Reaction.delete({ projectUpdateId: update.id, userId: user.userId })
 
-      //increment qualityScore
+      // increment qualityScore
       project.updateQualityScoreHeart(false)
       project.save()
       return false
     } else {
-      //if there wasn't one, then create it
+      // if there wasn't one, then create it
       const newReaction = await Reaction.create({
         userId: user.userId,
         projectUpdateId: update.id,
@@ -797,7 +797,7 @@ export class ProjectResolver {
   ): Promise<object> {
     if (!user) throw new Error('Authentication required.')
 
-    let project = await Project.findOne({ id: projectId })
+    const project = await Project.findOne({ id: projectId })
 
     if (!project) throw new Error('Project not found.')
 
@@ -923,7 +923,7 @@ export class ProjectResolver {
 
     const isValid = !isSmartContractWallet && (addressUsed ? false : true)
     return {
-      isValid: isValid,
+      isValid,
       reasons
     }
   }
@@ -1028,7 +1028,7 @@ export class ProjectResolver {
       .getMany()
 
     const projectsUpdatedListing = projects.map(project => {
-      return { id: project.id, listed: listed }
+      return { id: project.id, listed }
     })
 
     await this.projectRepository.save(projectsUpdatedListing)

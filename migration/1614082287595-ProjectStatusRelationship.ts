@@ -2,8 +2,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm'
 
 export class ProjectStatusRelationship1614082287595
   implements MigrationInterface {
-  public async up (queryRunner: QueryRunner): Promise<void> {
-    //wtf? await queryRunner.query(`ALTER TABLE "project" DROP COLUMN "projectId"`);
+  async up (queryRunner: QueryRunner): Promise<void> {
+    // wtf? await queryRunner.query(`ALTER TABLE "project" DROP COLUMN "projectId"`);
     await queryRunner.query(`UPDATE "project" SET "statusId" = 5`)
 
     await queryRunner.query(
@@ -11,7 +11,7 @@ export class ProjectStatusRelationship1614082287595
     )
   }
 
-  public async down (queryRunner: QueryRunner): Promise<void> {
+  async down (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `ALTER TABLE "project" DROP CONSTRAINT "FK_b6d55aff9b16e061712260da686"`
     )

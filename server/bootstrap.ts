@@ -70,7 +70,7 @@ export async function bootstrap () {
           req.auth = {}
           req.auth.token = token
           req.auth.error = error
-          //console.log(`ctx.req.auth : ${JSON.stringify(ctx.req.auth, null, 2)}`)
+          // console.log(`ctx.req.auth : ${JSON.stringify(ctx.req.auth, null, 2)}`)
         }
 
         return {

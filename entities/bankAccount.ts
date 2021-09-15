@@ -1,4 +1,4 @@
-import { Field, Float, ID, ObjectType } from "type-graphql";
+import { Field, Float, ID, ObjectType } from 'type-graphql';
 import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @ObjectType()
@@ -81,7 +81,7 @@ export class StripeTransaction extends BaseEntity {
     @Field()
     createdAt: Date
 
-    @Column({ type: "float", nullable: true })
+    @Column({ type: 'float', nullable: true })
     @Field(type => Float, { nullable: true })
     amount: number
 

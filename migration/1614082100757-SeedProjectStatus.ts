@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner, getRepository } from 'typeorm'
 import { ProjectStatus } from '../entities/projectStatus'
 
 export class SeedProjectStatus1614082100757 implements MigrationInterface {
-  public async up (queryRunner: QueryRunner): Promise<void> {
+  async up (queryRunner: QueryRunner): Promise<void> {
     // const projectStatusRepository = getRepository(ProjectStatus)
     // const projectStatuses = projectStatusRepository.create([{
     //     symbol: 'rjt',
@@ -54,7 +54,7 @@ export class SeedProjectStatus1614082100757 implements MigrationInterface {
         ;`)
   }
 
-  public async down (queryRunner: QueryRunner): Promise<void> {
+  async down (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `update project set "statusId" = null where "statusId" is not null;`
     )

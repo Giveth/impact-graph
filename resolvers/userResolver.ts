@@ -63,7 +63,7 @@ export class UserResolver {
     @Ctx() { req: { user } }: MyContext
   ): Promise<boolean> {
     if (!user) throw new Error('Authentication required.')
-    let dbUser = await User.findOne({ id: user.userId })
+    const dbUser = await User.findOne({ id: user.userId })
 
     if (dbUser) {
       let fullName: string = ''
@@ -108,14 +108,14 @@ export class UserResolver {
   ): Promise<boolean> {
     if (!user) throw new Error('Authentication required.')
 
-    let currentUser = await User.findOne({ id: user.userId })
+    const currentUser = await User.findOne({ id: user.userId })
     if (!currentUser) throw new Error('User not found')
 
     currentUser.dId = dId
     await currentUser.save()
 
     const associatedVerifications = verificationsInput.map(verification => {
-      return { ...verification, user: currentUser, dId: dId }
+      return { ...verification, user: currentUser, dId }
     })
     const accountVerifications = this.accountVerificationRepository.create(associatedVerifications)
     await this.accountVerificationRepository.save(accountVerifications)

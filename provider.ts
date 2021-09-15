@@ -23,7 +23,7 @@ export function getProvider (network) {
       config.get('XDAI_NODE_HTTP_URL')
     )
   }
-  //'https://bsc-dataseed.binance.org/'
+  // 'https://bsc-dataseed.binance.org/'
   if (network === 'bsc') {
     return new ethers.providers.JsonRpcProvider(
       config.get('BSC_NODE_HTTP_URL'),
