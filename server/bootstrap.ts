@@ -21,8 +21,6 @@ import { Project } from '../entities/project'
 import { ProjectStatus } from '../entities/projectStatus';
 import { User } from '../entities/user';
 
-import bcrypt from 'bcrypt'
-
 import AdminBro from 'admin-bro';
 const AdminBroExpress = require('@admin-bro/express')
 
@@ -30,6 +28,7 @@ const AdminBroExpress = require('@admin-bro/express')
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
+const bcrypt = require('bcrypt');
 
 // register 3rd party IOC container
 
@@ -136,15 +135,6 @@ export async function bootstrap () {
 
     app.use(cors())
 
-    app.use(
-      json({ limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000 })
-    )
-    // app.use(
-    //   graphqlUploadExpress({
-    //     maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
-    //     maxFiles: 10
-    //   })
-    // )
     function onlyGraphql(req, res, next) {
       if ( req.path == '/graphql') {
         app.use(
@@ -186,7 +176,33 @@ export async function bootstrap () {
 
     const adminBro = new AdminBro({
       // databases: [connection],
+      branding: {
+        logo: 'https://i.imgur.com/cGKo1Tk.png',
+        favicon: 'https://icoholder.com/media/cache/ico_logo_view_page/files/img/e15c430125a607a604a3aee82e65a8f7.png',
+        companyName: 'Giveth',
+        softwareBrothers: false
+      },
       resources: [
+        { 
+          resource: Project, 
+          options: {
+            properties: {
+              description: {
+                isVisible: false,
+              },
+            },
+            actions: {
+              newAction: {
+                actionType: 'bulk',
+                icon: 'View',
+                isVisible: true,
+                handler: async () => null,
+                // component: AdminBro.bundle('./your-action-component'),
+              },
+            }
+          } 
+        },
+        { resource: ProjectStatus },
         {
           resource: User,
           options: {
@@ -196,34 +212,58 @@ export async function bootstrap () {
               },
               password: {
                 type: 'string',
-                isVisible: {
-                  list: false, edit: true, filter: false, show: false,
-                },
+                // isVisible: {
+                //   list: false, edit: true, filter: false, show: false,
+                // },
+                isVisible: false,
               },
             },
             actions: {
               new: {
                 before: async (request) => {
                   if(request.payload.password) {
+                    const bc =  await bcrypt.hash(request.payload.password, process.env.BCRYPT_SALT)
                     request.payload = {
                       ...request.payload,
-                      encryptedPassword: await bcrypt.hash(request.payload.password, 10),
-                      password: undefined,
+                      encryptedPassword: bc,
+                      password: null,
                     }
                   }
                   return request
-                },
+                }
               }
             }
           }
-        },
-        { resource: Project },
-        { resource: ProjectStatus }
+        }
     ],
       rootPath: '/admin',
     });
-    const router = AdminBroExpress.buildRouter(adminBro)
+    // const router = AdminBroExpress.buildRouter(adminBro)
+    const router = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
+      authenticate: async (email, password) => {
+        try {
+          const user = await User.findOne({ email })
+          console.log({email, user, password})
+          if (user) {
+            const matched = await bcrypt.compare(password, user.encryptedPassword)
+            if (matched) {
+              return user
+            }
+          }
+          return false
+        }catch (e) {
+          console.log({e})
+          return false
+        }
+      },
+      cookiePassword: process.env.ADMIN_BRO_COOKIE_SECRET,
+    })
+
     app.use(adminBro.options.rootPath, router)
+
+    app.use(
+      json({ limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000 })
+    )
 
   } catch (err) {
     console.error(err)

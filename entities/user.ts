@@ -54,11 +54,11 @@ export class User extends BaseEntity {
   walletAddress?: string
 
   @Field({ nullable: true })
-  @Column({ nullable: true, select: false })
+  @Column({ nullable: true })
   password?: string
 
   @Field({ nullable: true })
-  @Column({ nullable: true, select: false })
+  @Column({ nullable: true })
   encryptedPassword?: string
 
   @Field({ nullable: true })
