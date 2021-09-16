@@ -217,7 +217,7 @@ export class ProjectResolver {
   async projects (
     @Args() { take, skip, admin }: GetProjectsArgs
   ): Promise<Project[]> {
-    let projects 
+    let projects
     let totalCount
     ;[projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
@@ -428,7 +428,7 @@ export class ProjectResolver {
     })
 
     await this.projectRepository.save(updatedProjects)
-    
+
     return true
   }
 
@@ -468,7 +468,7 @@ export class ProjectResolver {
     }
     throw Error('Upload file failed')
   }
-  
+
   @Mutation(returns => Project)
   async addProject (
     @Arg('project') projectInput: ProjectInput,
@@ -1027,11 +1027,36 @@ export class ProjectResolver {
       .setParameter('slugs', slugs)
       .getMany()
 
+
     const projectsUpdatedListing = projects.map(project => {
       return { id: project.id, listed: listed }
     })
 
+    const segmentProject = await projects.map( async project => {
+      const user = await User.find({ id: Number(project.admin) })
+
+      if (project.listed === false) {
+
+        analytics.track(
+          'Project unlisted',
+          `givethId-${project.admin}`,
+          {
+            id: project.id,
+            email: user[0].email,
+            title: project.title,
+            LastName: user[0].lastName,
+            FirstName: user[0].firstName,
+            OwnerId: project.admin,
+            slug: project.slug,
+            listed: listed
+          },
+          null
+        )
+      }
+    })
+
     await this.projectRepository.save(projectsUpdatedListing)
+
 
     return true
   }
