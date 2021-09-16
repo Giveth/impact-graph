@@ -174,6 +174,30 @@ export async function bootstrap () {
     ProjectStatus.useConnection(dbConnection)
     User.useConnection(dbConnection)
 
+    const listDelist =async(context, request, list = true)=> {
+      const { h, resource, records } = context
+      try {
+        const projects = await Project.createQueryBuilder('project')
+        .update<Project>(Project, {listed: list})
+        .where('project.id IN (:...ids)')
+        .setParameter('ids', request.query.recordIds.split(','))
+        .updateEntity(true)
+        .execute()
+
+        console.log({records})
+      } catch (error) {
+        throw error
+      }
+      return {
+        records: records.map(record => record.toJSON(context.currentAdmin)),
+        notice: {
+          message: `Project(s) successfully ${list ? 'listed' : 'delisted'}`,
+          type: 'success',
+        },
+        redirectUrl: h.resourceUrl({ resourceId: resource._decorated?.id() || resource.id() }),
+      }
+    }
+
     const adminBro = new AdminBro({
       // databases: [connection],
       branding: {
@@ -187,17 +211,56 @@ export async function bootstrap () {
           resource: Project, 
           options: {
             properties: {
+              id: {
+                isVisible: { list: false, filter: false, show: true, edit: false },
+              },
+              admin: {
+                isVisible: { list: false, filter: false, show: true, edit: true },
+              },
               description: {
+                isVisible: { list: false, filter: false, show: true, edit: true },
+              },
+              slug: {
+                isVisible: { list: false, filter: false, show: true, edit: true },
+              },
+              organisationId: {
+                isVisible: false
+              },
+              coOrdinates: {
+                isVisible: false
+              },
+              image: {
+                isVisible: { list: false, filter: false, show: true, edit: true },
+              },
+              balance: {
+                isVisible: { list: false, filter: false, show: true, edit: false },
+              },
+              giveBacks: {
                 isVisible: false,
               },
+              stripeAccountId: {
+                isVisible: { list: false, filter: false, show: true, edit: false },
+              },
+              walletAddress: {
+                isVisible: { list: false, filter: false, show: true, edit: true },
+              }
             },
             actions: {
-              newAction: {
+              listProject: {
                 actionType: 'bulk',
-                icon: 'View',
                 isVisible: true,
-                handler: async () => null,
-                // component: AdminBro.bundle('./your-action-component'),
+                handler: async (request, response, context) => {
+                  return listDelist(context, request, true)
+                },
+                component: false,
+              },
+              delistProject: {
+                actionType: 'bulk',
+                isVisible: true,
+                handler: async (request, response, context) => {
+                  return listDelist(context, request, false)
+                },
+                component: false,
               },
             }
           } 
@@ -238,26 +301,26 @@ export async function bootstrap () {
     ],
       rootPath: '/admin',
     });
-    // const router = AdminBroExpress.buildRouter(adminBro)
-    const router = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
-      authenticate: async (email, password) => {
-        try {
-          const user = await User.findOne({ email })
-          console.log({email, user, password})
-          if (user) {
-            const matched = await bcrypt.compare(password, user.encryptedPassword)
-            if (matched) {
-              return user
-            }
-          }
-          return false
-        }catch (e) {
-          console.log({e})
-          return false
-        }
-      },
-      cookiePassword: process.env.ADMIN_BRO_COOKIE_SECRET,
-    })
+    const router = AdminBroExpress.buildRouter(adminBro)
+    // const router = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
+    //   authenticate: async (email, password) => {
+    //     try {
+    //       const user = await User.findOne({ email })
+    //       console.log({email, user, password})
+    //       if (user) {
+    //         const matched = await bcrypt.compare(password, user.encryptedPassword)
+    //         if (matched) {
+    //           return user
+    //         }
+    //       }
+    //       return false
+    //     }catch (e) {
+    //       console.log({e})
+    //       return false
+    //     }
+    //   },
+    //   cookiePassword: process.env.ADMIN_BRO_COOKIE_SECRET,
+    // })
 
     app.use(adminBro.options.rootPath, router)
 
