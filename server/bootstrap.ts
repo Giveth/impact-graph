@@ -301,26 +301,26 @@ export async function bootstrap () {
     ],
       rootPath: '/admin',
     });
-    const router = AdminBroExpress.buildRouter(adminBro)
-    // const router = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
-    //   authenticate: async (email, password) => {
-    //     try {
-    //       const user = await User.findOne({ email })
-    //       console.log({email, user, password})
-    //       if (user) {
-    //         const matched = await bcrypt.compare(password, user.encryptedPassword)
-    //         if (matched) {
-    //           return user
-    //         }
-    //       }
-    //       return false
-    //     }catch (e) {
-    //       console.log({e})
-    //       return false
-    //     }
-    //   },
-    //   cookiePassword: process.env.ADMIN_BRO_COOKIE_SECRET,
-    // })
+    // const router = AdminBroExpress.buildRouter(adminBro)
+    const router = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
+      authenticate: async (email, password) => {
+        try {
+          const user = await User.findOne({ email })
+          console.log({email, user, password})
+          if (user) {
+            const matched = await bcrypt.compare(password, user.encryptedPassword)
+            if (matched) {
+              return user
+            }
+          }
+          return false
+        }catch (e) {
+          console.log({e})
+          return false
+        }
+      },
+      cookiePassword: process.env.ADMIN_BRO_COOKIE_SECRET,
+    })
 
     app.use(adminBro.options.rootPath, router)
 
