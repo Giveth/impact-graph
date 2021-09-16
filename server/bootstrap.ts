@@ -183,18 +183,18 @@ export async function bootstrap () {
         .setParameter('ids', request.query.recordIds.split(','))
         .updateEntity(true)
         .execute()
-
-        console.log({records})
       } catch (error) {
         throw error
       }
       return {
-        records: records.map(record => record.toJSON(context.currentAdmin)),
+        redirectUrl: 'Project',
+        records: records.map(record => {
+          record.toJSON(context.currentAdmin)
+        }),
         notice: {
           message: `Project(s) successfully ${list ? 'listed' : 'delisted'}`,
           type: 'success',
-        },
-        redirectUrl: h.resourceUrl({ resourceId: resource._decorated?.id() || resource.id() }),
+        }
       }
     }
 
@@ -218,7 +218,7 @@ export async function bootstrap () {
                 isVisible: { list: false, filter: false, show: true, edit: true },
               },
               description: {
-                isVisible: { list: false, filter: false, show: true, edit: true },
+                isVisible: { list: false, filter: false, show: false, edit: true },
               },
               slug: {
                 isVisible: { list: false, filter: false, show: true, edit: true },
