@@ -222,6 +222,7 @@ export class ProjectResolver {
     ;[projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.reactions', 'reaction')
       .leftJoinAndSelect('project.users', 'users')
       .where('project.statusId = 5 AND project.listed = true')
       .orderBy(`project.qualityScore`, 'DESC')
