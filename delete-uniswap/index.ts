@@ -7,7 +7,7 @@ const INFURA_ID = config.get('ETHEREUM_NODE_ID')
 const ethers = require('ethers')
 const network = 'mainnet'
 
-//const provider = new ethers.providers.InfuraProvider(network, INFURA_ID)
+// const provider = new ethers.providers.InfuraProvider(network, INFURA_ID)
 function getProvider (network) {
   if (network === 'xdaiChain') {
     return new ethers.providers.JsonRpcProvider(
@@ -103,7 +103,7 @@ export async function getTokenPrice (
     const sdk = new Sdk(chainId)
 
     if (isETHisETH(symbol, baseSymbol)) return getETHisETHPrice()
-    //Should use main net now
+    // Should use main net now
     // if (isTestPrice(symbol, baseSymbol))
     //   return getTestPrice(symbol, baseSymbol, chainId)
 
@@ -141,7 +141,7 @@ export async function getTokenPrice (
       getProvider(getNetworkFromChainId(chainId)),
       chainId
     )
-    //console.log(`Found pair : ${JSON.stringify(pair, null, 2)}`)
+    // console.log(`Found pair : ${JSON.stringify(pair, null, 2)}`)
 
     const price = sdk.getPrice(pair, token, chainId)
     // console.log(`price : ${JSON.stringify(price, null, 2)}`)

@@ -22,7 +22,7 @@ export async function seedDatabase () {
 
   const seedPassword = config.get('SEED_PASSWORD').toString()
   const serverEmail = config.get('SERVER_ADMIN_EMAIL').toString()
-  let users: User[] = []
+  const users: User[] = []
 
   /** 
    * { name: 'sdg-poverty', value: 'End Poverty', source: 'SDG' },
@@ -54,23 +54,23 @@ export async function seedDatabase () {
     { name: 'nutrition', value: 'Nutrition', source: 'adhoc' },
     { name: 'art-culture', value: 'Art & Culture', source: 'adhoc' },
 
-    { name: 'agriculture', value: 'Agriculture', source: 'IRIS'},
-    { name: 'air', value: 'Air', source: 'IRIS'},
-    { name: 'biodiversity', value: 'Biodiversity', source: 'IRIS'},
-    { name: 'climate', value: 'Climate', source: 'IRIS'},
-    { name: 'inclusion', value: 'Inclusion', source: 'IRIS'},
-    { name: 'education', value: 'Education', source: 'IRIS'},
-    { name: 'employment', value: 'Employment', source: 'IRIS'},
-    { name: 'energy', value: 'Energy', source: 'IRIS'},
-    { name: 'finance', value: 'Finance', source: 'IRIS'},
-    { name: 'health', value: 'Health', source: 'IRIS'},
-    { name: 'infrastructure', value: 'Infrastructure', source: 'IRIS'},
-    { name: 'land', value: 'Land', source: 'IRIS'},
-    { name: 'oceans', value: 'Oceans', source: 'IRIS'},
-    { name: 'pollution', value: 'Pollution', source: 'IRIS'},
-    { name: 'real-estate', value: 'Real Estate', source: 'IRIS'},
-    { name: 'waste', value: 'Waste', source: 'IRIS'},
-    { name: 'water', value: 'Water', source: 'IRIS'},
+    { name: 'agriculture', value: 'Agriculture', source: 'IRIS' },
+    { name: 'air', value: 'Air', source: 'IRIS' },
+    { name: 'biodiversity', value: 'Biodiversity', source: 'IRIS' },
+    { name: 'climate', value: 'Climate', source: 'IRIS' },
+    { name: 'inclusion', value: 'Inclusion', source: 'IRIS' },
+    { name: 'education', value: 'Education', source: 'IRIS' },
+    { name: 'employment', value: 'Employment', source: 'IRIS' },
+    { name: 'energy', value: 'Energy', source: 'IRIS' },
+    { name: 'finance', value: 'Finance', source: 'IRIS' },
+    { name: 'health', value: 'Health', source: 'IRIS' },
+    { name: 'infrastructure', value: 'Infrastructure', source: 'IRIS' },
+    { name: 'land', value: 'Land', source: 'IRIS' },
+    { name: 'oceans', value: 'Oceans', source: 'IRIS' },
+    { name: 'pollution', value: 'Pollution', source: 'IRIS' },
+    { name: 'real-estate', value: 'Real Estate', source: 'IRIS' },
+    { name: 'waste', value: 'Waste', source: 'IRIS' },
+    { name: 'water', value: 'Water', source: 'IRIS' },
     { name: 'other', value: 'Other', source: 'adhoc' }
     
   ])
@@ -83,15 +83,15 @@ export async function seedDatabase () {
     password: bcrypt.hashSync(seedPassword, 12),
     confirmed: true,
     loginType: 'password',
-    walletAddress: "0x324bE1Bc256e97CF9a858a37d880bCE687671215"
+    walletAddress: '0x324bE1Bc256e97CF9a858a37d880bCE687671215'
   })
 
   users.push(superAdminUser)
 
-  let projects: Project[] = []
+  const projects: Project[] = []
   let organisations: Organisation[] = []
   
-  if(config.get('DEFAULT_ORGANISATION') === 'giveth' ) {
+  if (config.get('DEFAULT_ORGANISATION') === 'giveth' ) {
     const givethAdmin = userRepository.create({
       email: 'james@giveth.io',
       firstName: 'admin',

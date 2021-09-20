@@ -12,8 +12,8 @@ const ormConfig: ConnectionOptions = {
   username: process.env.TYPEORM_DATABASE_USER,
   password: process.env.TYPEORM_DATABASE_PASSWORD,
   database: process.env.TYPEORM_DATABASE_NAME,
-  entities: entities,
-  migrations: ["migration/*.ts"],
+  entities,
+  migrations: ['migration/*.ts'],
   cli: {
     migrationsDir: 'migration',
   }

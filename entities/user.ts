@@ -107,14 +107,14 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   segmentIdentified: boolean
 
-  segmentUserId () {
-    return `givethId-${this.id}`
-  }
-
   @Field(type => [AccountVerification], { nullable: true })
   @OneToMany(
     type => AccountVerification,
     accountVerification => accountVerification.user
   )
   accountVerifications?: AccountVerification[]
+
+  segmentUserId () {
+    return `givethId-${this.id}`
+  }
 }
