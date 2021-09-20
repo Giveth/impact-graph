@@ -65,6 +65,7 @@ enum ProjStatus {
   del = 7
 }
 import { inspect } from 'util'
+import { errorMessages } from '../utils/errorMessages';
 
 @ObjectType()
 class TopProjects {
@@ -314,7 +315,7 @@ export class ProjectResolver {
     if (!project) throw new Error('Project not found.')
     console.log(`project.admin ---> : ${project.admin}`)
     console.log(`user.userId ---> : ${user.userId}`)
-    if (project.admin != user.userId)
+    if ( project.admin !== String(user.userId))
       throw new Error('You are not the owner of this project.')
 
     for (const field in newProjectData) project[field] = newProjectData[field]
@@ -332,6 +333,9 @@ export class ProjectResolver {
       )
 
       const categories = await Promise.all(categoriesPromise)
+      if (categories.length > 5){
+        throw new Error(errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE)
+      }
       project.categories = categories
     }
     let imagePromise: Promise<string | undefined> = Promise.resolve(undefined)
@@ -521,7 +525,9 @@ export class ProjectResolver {
       categoriesPromise,
       imagePromise
     ])
-
+    if (categories.length > 5){
+      throw new Error(errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE)
+    }
     const slugBase = slugify(projectInput.title)
 
     let slug = slugBase
@@ -632,7 +638,7 @@ export class ProjectResolver {
     const project = await Project.findOne({ id: projectId })
 
     if (!project) throw new Error('Project not found.')
-    if (project.admin != user.userId)
+    if (project.admin !== String(user.userId))
       throw new Error('You are not the owner of this project.')
 
     const update = await ProjectUpdate.create({
@@ -708,7 +714,7 @@ export class ProjectResolver {
 
     const project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
-    if (project.admin != user.userId)
+    if (project.admin !== String(user.userId))
       throw new Error('You are not the owner of this project.')
 
     update.title = title
