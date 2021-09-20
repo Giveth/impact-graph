@@ -42,7 +42,7 @@ export class UserResolver {
   async user (@Arg('userId', type => Int) userId: number) {
     return await this.userRepository.findOne({
         where: { id: userId },
-        relations: ['accountVerifications']
+        relations: ['accountVerifications', 'projects']
       }
     )
   }
