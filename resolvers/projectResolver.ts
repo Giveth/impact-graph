@@ -312,11 +312,11 @@ export class ProjectResolver {
 
     const project = await Project.findOne({ id: projectId })
 
-    if (!project) throw new Error('Project not found.')
+    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND)
     console.log(`project.admin ---> : ${project.admin}`)
     console.log(`user.userId ---> : ${user.userId}`)
     if ( project.admin !== String(user.userId))
-      throw new Error('You are not the owner of this project.')
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT)
 
     for (const field in newProjectData) project[field] = newProjectData[field]
 
@@ -633,13 +633,13 @@ export class ProjectResolver {
 
     const owner = await User.findOne({ id: user.userId })
 
-    if (!owner) throw new Error('User not found.')
+    if (!owner) throw new Error(errorMessages.USER_NOT_FOUND)
 
     const project = await Project.findOne({ id: projectId })
 
-    if (!project) throw new Error('Project not found.')
+    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND)
     if (project.admin !== String(user.userId))
-      throw new Error('You are not the owner of this project.')
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT)
 
     const update = await ProjectUpdate.create({
       userId: user.userId,
@@ -715,7 +715,7 @@ export class ProjectResolver {
     const project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
     if (project.admin !== String(user.userId))
-      throw new Error('You are not the owner of this project.')
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT)
 
     update.title = title
     update.content = content
@@ -736,8 +736,8 @@ export class ProjectResolver {
 
     const project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
-    if (project.admin != user.userId)
-      throw new Error('You are not the owner of this project.')
+    if (project.admin !== String(user.userId))
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT)
 
     const [reactions, reactionsCount] = await Reaction.findAndCount({
         where: { projectUpdateId: update.id }
@@ -806,7 +806,7 @@ export class ProjectResolver {
 
     const project = await Project.findOne({ id: projectId })
 
-    if (!project) throw new Error('Project not found.')
+    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND)
 
     let update = await ProjectUpdate.findOne({ projectId, isMain: true })
     if (!update) {

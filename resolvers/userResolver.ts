@@ -19,6 +19,7 @@ import { AccountVerificationInput } from './types/accountVerificationInput'
 import { Organisation } from '../entities/organisation'
 import { MyContext } from '../types/MyContext'
 import { getAnalytics } from '../analytics'
+import { errorMessages } from '../utils/errorMessages';
 
 const analytics = getAnalytics()
 
@@ -109,7 +110,7 @@ export class UserResolver {
     if (!user) throw new Error('Authentication required.')
 
     const currentUser = await User.findOne({ id: user.userId })
-    if (!currentUser) throw new Error('User not found')
+    if (!currentUser) throw new Error(errorMessages.USER_NOT_FOUND)
 
     currentUser.dId = dId
     await currentUser.save()

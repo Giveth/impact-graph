@@ -2,6 +2,7 @@ import { User } from '../entities/user'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 import { Repository } from 'typeorm'
 import { Service } from 'typedi'
+import { errorMessages } from '../utils/errorMessages';
 
 @Service()
 export class UserPermissions {
@@ -31,7 +32,7 @@ export class UserPermissions {
         throw new Error('User is not a member of any organisations')
       }
     } else {
-      throw new Error('User not found')
+      throw new Error(errorMessages.USER_NOT_FOUND)
     }
   }
 }
