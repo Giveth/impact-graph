@@ -1032,25 +1032,24 @@ export class ProjectResolver {
       return { id: project.id, listed: listed }
     })
 
-    const segmentProject = await projects.map( async project => {
-      const user = await User.find({ id: Number(project.admin) })
-
-      if (project.listed === false) {
+  await projects.map( async project => {
+      const projectOwner = await User.findOne({ id: Number(project.admin) })
+      if (listed === false) {
 
         analytics.track(
           'Project unlisted',
           `givethId-${project.admin}`,
           {
             id: project.id,
-            email: user[0].email,
+            email: projectOwner?.email,
             title: project.title,
-            LastName: user[0].lastName,
-            FirstName: user[0].firstName,
+            LastName: projectOwner?.lastName,
+            FirstName: projectOwner?.firstName,
             OwnerId: project.admin,
             slug: project.slug,
-            listed: listed
+            listed,
           },
-          null
+          projectOwner?.segmentUserId()
         )
       }
     })
