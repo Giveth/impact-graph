@@ -201,11 +201,20 @@ npm run typeorm:cli migration:create -- -n UpdateUserEmailUnique -d migration
 Or by changing the entities and generating the migrations with:
 ```
 npm run typeorm:cli migration:generate -- -n UpdateUserEmailUnique
+```
 
 Then you need to run the migrations like so:
 
 ```
 npm run typeorm:cli -- migration:run
 ```
+
+If you want to revert last migration :
+
+```
+npm run typeorm:cli -- migration:revert
+```
+
+
 
 You will need to add the above command to your build process so that all database migrations are run upon deployments.
