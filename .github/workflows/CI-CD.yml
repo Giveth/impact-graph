@@ -1,0 +1,32 @@
+name:  CI/CD
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_USER: giveth_user
+          POSTGRES_PASSWORD: mypass
+          POSTGRES_DB: giveth
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: install dependencies
+        run: npm ci
+      - name: run tests
+        run: npm run test
+      - name: Run migrations
+        run: npm run typeorm:cli:test -- migration:run
+

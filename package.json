@@ -96,6 +96,7 @@
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
     "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts",
+    "typeorm:cli:test": "NODE_ENV=test ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts",
     "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts"
   },
   "husky": {
