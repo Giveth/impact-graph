@@ -294,10 +294,14 @@ export class ProjectResolver {
   // Move this to it's own resolver later
   @Query(returns => Project)
   async projectBySlug (@Arg('slug') slug: string) {
-    return await this.projectRepository.findOne({
-      where: { slug }
-      // relations: ['donations', 'reactions']
-    })
+
+    return  await this.projectRepository
+      .createQueryBuilder('project')
+      // check current slug and previous slugs
+      .where(`'${slug}' = ANY(project."slugHistory") or project.slug = '${slug}'`)
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.categories', 'categories')
+      .getOne()
   }
 
   @Mutation(returns => Project)
@@ -373,15 +377,12 @@ export class ProjectResolver {
       heartCount
     )
     const slugBase = slugify(newProjectData.title)
-
-    let slug = slugBase
-    const [, projectCount] = await Project.findAndCount({ slug: slug.toLowerCase() })
-
-    if (projectCount > 1) {
-      slug = slugBase + '-' + (projectCount - 1)
+    const newSlug = await this.getAppropriateSlug(slugBase)
+    if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)){
+      // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
+      project.slugHistory?.push(project.slug as string)
     }
-    project.slug = slug.toLowerCase()
-
+    project.slug = newSlug
     project.qualityScore = qualityScore
     await project.save()
 
@@ -523,15 +524,7 @@ export class ProjectResolver {
     ])
 
     const slugBase = slugify(projectInput.title)
-
-    let slug = slugBase
-
-    const [, projectCount] = await Project.findAndCount({ slug: slug.toLowerCase() })
-
-    if (projectCount > 0) {
-      slug = slugBase + '-' + projectCount
-    }
-
+    const slug = await this.getAppropriateSlug(slugBase)
     const status = await this.projectStatusRepository.findOne({
       id: 5
     })
@@ -1035,5 +1028,20 @@ export class ProjectResolver {
     await this.projectRepository.save(projectsUpdatedListing)
 
     return true
+  }
+
+
+  private async getAppropriateSlug (slugBase:string):Promise<string>{
+    let slug = slugBase.toLowerCase();
+    const projectCount =   await this.projectRepository
+      .createQueryBuilder('project')
+      // check current slug and previous slugs
+      .where(`'${slug}' = ANY(project."slugHistory") or project.slug = '${slug}'`)
+      .getCount()
+
+    if (projectCount > 0) {
+      slug = slugBase + '-' + (projectCount - 1)
+    }
+    return slug
   }
 }
