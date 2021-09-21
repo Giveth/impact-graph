@@ -541,6 +541,7 @@ export class ProjectResolver {
       image,
       creationDate: new Date(),
       slug: slug.toLowerCase(),
+      slugHistory: [],
       admin: ctx.req.user.userId,
       users: [user],
       status,
