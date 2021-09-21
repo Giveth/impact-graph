@@ -5,20 +5,22 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:12
-        env:
-          POSTGRES_USER: giveth_user
-          POSTGRES_PASSWORD: mypass
-          POSTGRES_DB: giveth
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+
+# I commented the postgres container to reduce time of CI/CD but we can undo that after adding integration tests
+#    services:
+#      postgres:
+#        image: postgres:12
+#        env:
+#          POSTGRES_USER: giveth_user
+#          POSTGRES_PASSWORD: mypass
+#          POSTGRES_DB: giveth
+#        options: >-
+#          --health-cmd pg_isready
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#        ports:
+#          - 5432:5432
     steps:
       - uses: actions/checkout@v1
       - name: Use Node.js
@@ -29,6 +31,5 @@ jobs:
         run: npm ci
       - name: run tests
         run: npm run test
-      - name: Run migrations
-        run: npm run typeorm:cli:test -- migration:run
+
 

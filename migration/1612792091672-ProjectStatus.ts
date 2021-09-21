@@ -4,7 +4,11 @@ export class ProjectStatus1612792091672 implements MigrationInterface {
     name = 'ProjectStatus1612792091672'
 
     async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "project" ADD "statusId" integer DEFAULT 2`);
+        try {
+            await queryRunner.query(`ALTER TABLE "project" ADD "statusId" integer DEFAULT 2`);
+        } catch (e) {
+            await queryRunner.rollbackTransaction()
+        }
     }
 
     async down(queryRunner: QueryRunner): Promise<void> {
