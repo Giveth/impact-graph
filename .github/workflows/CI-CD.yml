@@ -33,3 +33,34 @@ jobs:
         run: npm run test
 
 
+  deploy:
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    steps:
+      - name: develop deploy
+        if: github.ref == 'refs/heads/develop'
+        uses: garygrossgarten/github-action-ssh@v0.6.4
+        with:
+          command: cd impact-graph && git checkout develop && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;
+          host: ${{ secrets.DEVELOP_HOST }}
+          username: ${{ secrets.DEVELOP_USERNAME }}
+          privateKey: ${{ secrets.DEVELOP_PRIVATE_KEY}}
+
+      - name: staging deploy
+        if: github.ref == 'refs/heads/staging'
+        uses: garygrossgarten/github-action-ssh@v0.6.4
+        with:
+          command: cd impact-graph && git checkout staging && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          privateKey: ${{ secrets.STAGING_PRIVATE_KEY}}
+
+      - name: production deploy
+        if: github.ref == 'refs/heads/master'
+        uses: garygrossgarten/github-action-ssh@v0.6.4
+        with:
+          command: cd impact-graph && git checkout master && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          privateKey: ${{ secrets.PRODUCTION_PRIVATE_KEY}}
+
