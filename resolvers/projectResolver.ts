@@ -390,6 +390,23 @@ export class ProjectResolver {
     project.qualityScore = qualityScore
     await project.save()
 
+    const segmentProject = {
+      email: user.email,
+      title: project.title,
+      lastName: user.lastName,
+      firstName: user.firstName,
+      OwnerId: user.id,
+      slug: project.slug,
+      walletAddress: project.walletAddress
+    }
+
+    analytics.track(
+      'Project edited',
+      `givethId-${user.userId}`,
+      segmentProject,
+      null
+    )
+
     if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
       triggerBuild(projectId)
 
