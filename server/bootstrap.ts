@@ -243,9 +243,21 @@ export async function bootstrap () {
               },
               walletAddress: {
                 isVisible: { list: false, filter: false, show: true, edit: true },
+              },
+              impactLocation: {
+                isVisible: { list: false, filter: true, show: true, edit: true },
+              },
+              slugHistory: {
+                isVisible: false
               }
             },
             actions: {
+              delete: {
+                isVisible: false
+              },
+              bulkDelete: {
+                isVisible: false
+              },
               listProject: {
                 actionType: 'bulk',
                 isVisible: true,
@@ -265,13 +277,26 @@ export async function bootstrap () {
             }
           } 
         },
-        { resource: ProjectStatus },
+        { resource: ProjectStatus, options: {
+            actions: {
+              delete: {
+                isVisible: false
+              },
+              bulkDelete: {
+                isVisible: false
+              },
+            },
+          }
+        },
         {
           resource: User,
           options: {
             properties: {
               encryptedPassword: {
                 isVisible: false,
+              },
+              avatar: {
+                isVisible: false
               },
               password: {
                 type: 'string',
@@ -282,6 +307,12 @@ export async function bootstrap () {
               },
             },
             actions: {
+              delete: {
+                isVisible: false
+              },
+              bulkDelete: {
+                isVisible: false
+              },
               new: {
                 before: async (request) => {
                   if(request.payload.password) {
