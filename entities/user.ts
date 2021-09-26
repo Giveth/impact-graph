@@ -79,7 +79,7 @@ export class User extends BaseEntity {
   )
   organisations: Organisation[]
 
-  @Field(type => Project)
+  @Field(type => [Project])
   @ManyToMany(
     type => Project,
     project => project.users
