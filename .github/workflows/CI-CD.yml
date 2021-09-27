@@ -35,6 +35,7 @@ jobs:
 
   deploy:
     if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/staging'
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: develop deploy
