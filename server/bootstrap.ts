@@ -198,6 +198,58 @@ export async function bootstrap () {
       }
     }
 
+    const verifyProjects =async(context, request, verified = true)=> {
+      const { h, resource, records } = context
+      try {
+        const projects = await Project.createQueryBuilder('project')
+        .update<Project>(Project, {verified: verified})
+        .where('project.id IN (:...ids)')
+        .setParameter('ids', request.query.recordIds.split(','))
+        .updateEntity(true)
+        .execute()
+      } catch (error) {
+        throw error
+      }
+      return {
+        redirectUrl: 'Project',
+        records: records.map(record => {
+          record.toJSON(context.currentAdmin)
+        }),
+        notice: {
+          message: `Project(s) successfully ${verified ? 'verified' : 'unverified'}`,
+          type: 'success',
+        }
+      }
+    }
+
+    const updateStatuslProjects =async(context, request, status)=> {
+      const { h, resource, records } = context
+      try {
+        const projectStatus = await ProjectStatus.findOne({ id: status })
+        if(projectStatus) {
+          const projects = await Project.createQueryBuilder('project')
+          .update<Project>(Project, {status: projectStatus})
+          .where('project.id IN (:...ids)')
+          .setParameter('ids', request.query.recordIds.split(','))
+          .updateEntity(true)
+          .execute()
+        }
+        
+      } catch (error) {
+        throw error
+      }
+      return {
+        redirectUrl: 'Project',
+        records: records.map(record => {
+          record.toJSON(context.currentAdmin)
+        }),
+        notice: {
+          message: `Project(s) status successfully updated`,
+          type: 'success',
+        }
+      }
+    }
+
     const adminBro = new AdminBro({
       // databases: [connection],
       branding: {
@@ -274,6 +326,38 @@ export async function bootstrap () {
                 },
                 component: false,
               },
+              verifyProject: {
+                actionType: 'bulk',
+                isVisible: true,
+                handler: async (request, response, context) => {
+                  return verifyProjects(context, request, true)
+                },
+                component: false,
+              },
+              unverifyProject: {
+                actionType: 'bulk',
+                isVisible: true,
+                handler: async (request, response, context) => {
+                  return verifyProjects(context, request, false)
+                },
+                component: false,
+              },
+              activateProject: {
+                actionType: 'bulk',
+                isVisible: true,
+                handler: async (request, response, context) => {
+                  return updateStatuslProjects(context, request, 5)
+                },
+                component: false,
+              },
+              cancelProject: {
+                actionType: 'bulk',
+                isVisible: true,
+                handler: async (request, response, context) => {
+                  return updateStatuslProjects(context, request, 6)
+                },
+                component: false,
+              },
             }
           } 
         },
@@ -300,10 +384,10 @@ export async function bootstrap () {
               },
               password: {
                 type: 'string',
-                // isVisible: {
-                //   list: false, edit: true, filter: false, show: false,
-                // },
-                isVisible: false,
+                isVisible: {
+                  list: false, edit: true, filter: false, show: false,
+                },
+                // isVisible: false,
               },
             },
             actions: {
@@ -316,7 +400,21 @@ export async function bootstrap () {
               new: {
                 before: async (request) => {
                   if(request.payload.password) {
-                    const bc =  await bcrypt.hash(request.payload.password, process.env.BCRYPT_SALT)
+                    const bc =  await bcrypt.hash(request.payload.password, parseInt(process.env.BCRYPT_SALT!))
+                    request.payload = {
+                      ...request.payload,
+                      encryptedPassword: bc,
+                      password: null,
+                    }
+                  }
+                  return request
+                }
+              },
+              edit: {
+                before: async (request) => {
+                  console.log({request: request.payload})
+                  if(request.payload.password) {
+                    const bc =  await bcrypt.hash(request.payload.password, parseInt(process.env.BCRYPT_SALT!))
                     request.payload = {
                       ...request.payload,
                       encryptedPassword: bc,
@@ -337,7 +435,6 @@ export async function bootstrap () {
       authenticate: async (email, password) => {
         try {
           const user = await User.findOne({ email })
-          console.log({email, user, password})
           if (user) {
             const matched = await bcrypt.compare(password, user.encryptedPassword)
             if (matched) {
@@ -350,7 +447,7 @@ export async function bootstrap () {
           return false
         }
       },
-      cookiePassword: process.env.ADMIN_BRO_COOKIE_SECRET,
+      cookiePassword:  config.get('ADMIN_BRO_COOKIE_SECRET'),
     })
 
     app.use(adminBro.options.rootPath, router)
