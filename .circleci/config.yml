@@ -11,5 +11,4 @@ orbs:
 workflows:
   build-deploy:
     jobs:
-      - build
       - test
