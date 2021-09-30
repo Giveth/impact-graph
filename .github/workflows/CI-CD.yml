@@ -1,0 +1,67 @@
+name:  CI/CD
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+# I commented the postgres container to reduce time of CI/CD but we can undo that after adding integration tests
+#    services:
+#      postgres:
+#        image: postgres:12
+#        env:
+#          POSTGRES_USER: giveth_user
+#          POSTGRES_PASSWORD: mypass
+#          POSTGRES_DB: giveth
+#        options: >-
+#          --health-cmd pg_isready
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#        ports:
+#          - 5432:5432
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: install dependencies
+        run: npm ci
+      - name: run tests
+        run: npm run test
+
+
+  deploy:
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/staging'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: develop deploy
+        if: github.ref == 'refs/heads/develop'
+        uses: garygrossgarten/github-action-ssh@v0.6.4
+        with:
+          command: cd impact-graph && git checkout develop && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;
+          host: ${{ secrets.DEVELOP_HOST }}
+          username: ${{ secrets.DEVELOP_USERNAME }}
+          privateKey: ${{ secrets.DEVELOP_PRIVATE_KEY}}
+
+      - name: staging deploy
+        if: github.ref == 'refs/heads/staging'
+        uses: garygrossgarten/github-action-ssh@v0.6.4
+        with:
+          command: cd impact-graph && git checkout staging && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          privateKey: ${{ secrets.STAGING_PRIVATE_KEY}}
+
+      - name: production deploy
+        if: github.ref == 'refs/heads/master'
+        uses: garygrossgarten/github-action-ssh@v0.6.4
+        with:
+          command: cd impact-graph && git checkout master && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          privateKey: ${{ secrets.PRODUCTION_PRIVATE_KEY}}
+

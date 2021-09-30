@@ -134,22 +134,16 @@ export async function bootstrap () {
     const app = express()
 
     app.use(cors())
-
-    function onlyGraphql(req, res, next) {
-      if ( req.path == '/graphql') {
-        app.use(
-          graphqlUploadExpress({
-            maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
-            maxFiles: 10
-          })
-        )
-        return next();
-      }
-      next();
-    }
-
-    app.use(onlyGraphql)
-
+    app.use('/graphql',
+      json({ limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000 })
+    )
+    app.use(
+      '/graphql',
+      graphqlUploadExpress({
+        maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
+        maxFiles: 10
+      })
+    )
     apolloServer.applyMiddleware({ app })
     app.post(
       '/stripe-webhook',
