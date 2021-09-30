@@ -9,7 +9,7 @@ orbs:
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  build:
+  build-deploy:
     jobs:
       - build
       - test
