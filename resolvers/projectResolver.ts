@@ -1070,6 +1070,23 @@ export class ProjectResolver {
           projectOwner?.segmentUserId()
         )
       }
+    else if (listed === true) {
+      analytics.track(
+        'Project listed',
+        `givethId-${project.admin}`,
+        {
+          id: project.id,
+          email: projectOwner?.email,
+          title: project.title,
+          LastName: projectOwner?.lastName,
+          FirstName: projectOwner?.firstName,
+          OwnerId: project.admin,
+          slug: project.slug,
+          listed,
+        },
+        projectOwner?.segmentUserId()
+      )
+    }
     })
 
     await this.projectRepository.save(projectsUpdatedListing)
