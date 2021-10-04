@@ -162,7 +162,7 @@ export class DonationResolver {
           toWalletAddress: toAddress.toString().toLowerCase(),
           fromWalletAddress: fromAddress.toString().toLowerCase(),
           anonymous: !userId,
-          verified: project.verified != null ? project.verified : ''
+          verified: Boolean(project.verified)
           }
 
         analytics.track(
@@ -220,7 +220,7 @@ export class DonationResolver {
             fromWalletAddress: fromAddress.toString().toLowerCase(),
             donationValueUsd: donation.valueUsd,
             donationValueEth: donation.valueEth,
-            verified: project.verified != null ? project.verified : ''
+            verified: Boolean(project.verified)
           }
 
           analytics.track(
