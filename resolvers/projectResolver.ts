@@ -17,7 +17,7 @@ import { Max, Min } from 'class-validator'
 import { User } from '../entities/user'
 import { Context } from '../context'
 import { Repository } from 'typeorm'
-import { Raw } from "typeorm";
+import { Raw } from 'typeorm';
 import { Service } from 'typedi'
 import config from '../config'
 import slugify from 'slugify'
@@ -65,6 +65,7 @@ enum ProjStatus {
   del = 7
 }
 import { inspect } from 'util'
+import { errorMessages } from '../utils/errorMessages';
 
 @ObjectType()
 class TopProjects {
@@ -217,11 +218,12 @@ export class ProjectResolver {
   async projects (
     @Args() { take, skip, admin }: GetProjectsArgs
   ): Promise<Project[]> {
-    let projects 
+    let projects
     let totalCount
     ;[projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.reactions', 'reaction')
       .leftJoinAndSelect('project.users', 'users')
       .where('project.statusId = 5 AND project.listed = true')
       .orderBy(`project.qualityScore`, 'DESC')
@@ -281,7 +283,7 @@ export class ProjectResolver {
     return this.projectRepository.find({ id })
   }
 
-  //Move this to it's own resolver latere
+  // Move this to it's own resolver latere
   @Query(returns => Project)
   async projectById (@Arg('id') id: number) {
     return await this.projectRepository.findOne({
@@ -290,13 +292,19 @@ export class ProjectResolver {
     })
   }
 
-  //Move this to it's own resolver later
+  // Move this to it's own resolver later
   @Query(returns => Project)
   async projectBySlug (@Arg('slug') slug: string) {
-    return await this.projectRepository.findOne({
-      where: { slug }
-      // relations: ['donations', 'reactions']
-    })
+
+    return  await this.projectRepository
+      .createQueryBuilder('project')
+      // check current slug and previous slugs
+      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+        slug
+      })
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.categories', 'categories')
+      .getOne()
   }
 
   @Mutation(returns => Project)
@@ -310,11 +318,11 @@ export class ProjectResolver {
 
     const project = await Project.findOne({ id: projectId })
 
-    if (!project) throw new Error('Project not found.')
+    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND)
     console.log(`project.admin ---> : ${project.admin}`)
     console.log(`user.userId ---> : ${user.userId}`)
-    if (project.admin != user.userId)
-      throw new Error('You are not the owner of this project.')
+    if ( project.admin !== String(user.userId))
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT)
 
     for (const field in newProjectData) project[field] = newProjectData[field]
 
@@ -331,6 +339,9 @@ export class ProjectResolver {
       )
 
       const categories = await Promise.all(categoriesPromise)
+      if (categories.length > 5){
+        throw new Error(errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE)
+      }
       project.categories = categories
     }
     let imagePromise: Promise<string | undefined> = Promise.resolve(undefined)
@@ -355,7 +366,7 @@ export class ProjectResolver {
       imagePromise = Promise.resolve(imageStatic)
     }
 
-    if(!!imageUpload || !!imageStatic) {
+    if (!!imageUpload || !!imageStatic) {
       const [image] = await Promise.all([
         imagePromise
       ])
@@ -363,26 +374,40 @@ export class ProjectResolver {
     }
 
     const [hearts, heartCount] = await Reaction.findAndCount({
-      projectId: projectId
+      projectId
     })
 
-    let qualityScore = this.getQualityScore(
+    const qualityScore = this.getQualityScore(
       project.description,
       !!imageUpload,
       heartCount
     )
     const slugBase = slugify(newProjectData.title)
-
-    let slug = slugBase
-    const [, projectCount] = await Project.findAndCount({ slug: slug.toLowerCase() })
-
-    if (projectCount > 1) {
-      slug = slugBase + '-' + (projectCount - 1)
+    const newSlug = await this.getAppropriateSlug(slugBase)
+    if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)){
+      // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
+      project.slugHistory?.push(project.slug as string)
     }
-    project.slug = slug.toLowerCase()
-
+    project.slug = newSlug
     project.qualityScore = qualityScore
     await project.save()
+
+    const segmentProject = {
+      email: user.email,
+      title: project.title,
+      lastName: user.lastName,
+      firstName: user.firstName,
+      OwnerId: user.id,
+      slug: project.slug,
+      walletAddress: project.walletAddress
+    }
+
+    analytics.track(
+      'Project edited',
+      `givethId-${user.userId}`,
+      segmentProject,
+      null
+    )
 
     if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
       triggerBuild(projectId)
@@ -390,7 +415,7 @@ export class ProjectResolver {
     return project
   }
 
-  //getQualityScore (projectInput) {
+  // getQualityScore (projectInput) {
   getQualityScore (description, hasImageUpload, heartCount) {
     const heartScore = 10
     let qualityScore = 40
@@ -422,13 +447,13 @@ export class ProjectResolver {
     }
 
     const updatedProjects = projects.map(project => {
-      let totalDonations = sum(project.donations, 'valueUsd')
-      let totalHearts = project.reactions.length
-      return { id: project.id, totalDonations: totalDonations, totalHearts: totalHearts }
+      const totalDonations = sum(project.donations, 'valueUsd')
+      const totalHearts = project.reactions.length
+      return { id: project.id, totalDonations, totalHearts }
     })
 
     await this.projectRepository.save(updatedProjects)
-    
+
     return true
   }
 
@@ -468,7 +493,7 @@ export class ProjectResolver {
     }
     throw Error('Upload file failed')
   }
-  
+
   @Mutation(returns => Project)
   async addProject (
     @Arg('project') projectInput: ProjectInput,
@@ -478,7 +503,7 @@ export class ProjectResolver {
     const user = await getLoggedInUser(ctx)
 
 
-    let qualityScore = this.getQualityScore(
+    const qualityScore = this.getQualityScore(
       projectInput.description,
       !!projectInput.imageUpload,
       0
@@ -520,17 +545,11 @@ export class ProjectResolver {
       categoriesPromise,
       imagePromise
     ])
-
-    const slugBase = slugify(projectInput.title)
-
-    let slug = slugBase
-
-    const [, projectCount] = await Project.findAndCount({ slug: slug.toLowerCase() })
-
-    if (projectCount > 0) {
-      slug = slugBase + '-' + projectCount
+    if (categories.length > 5){
+      throw new Error(errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE)
     }
-
+    const slugBase = slugify(projectInput.title)
+    const slug = await this.getAppropriateSlug(slugBase)
     const status = await this.projectStatusRepository.findOne({
       id: 5
     })
@@ -541,6 +560,7 @@ export class ProjectResolver {
       image,
       creationDate: new Date(),
       slug: slug.toLowerCase(),
+      slugHistory: [],
       admin: ctx.req.user.userId,
       users: [user],
       status,
@@ -565,11 +585,11 @@ export class ProjectResolver {
 
     console.log(`projectInput.projectImageIds : ${JSON.stringify(projectInput.projectImageIds, null, 2)}`)
 
-    //Associate already uploaded images:
-    if(projectInput.projectImageIds) {
+    // Associate already uploaded images:
+    if (projectInput.projectImageIds) {
       console.log('updating projectInput.projectImageIds', projectInput.projectImageIds)
 
-      //await ProjectImage.update projectInput.projectImageIds
+      // await ProjectImage.update projectInput.projectImageIds
       await this.projectImageRepository.createQueryBuilder('project_image')
         .update(ProjectImage)
         .set({ projectId: newProject.id })
@@ -626,13 +646,13 @@ export class ProjectResolver {
 
     const owner = await User.findOne({ id: user.userId })
 
-    if (!owner) throw new Error('User not found.')
+    if (!owner) throw new Error(errorMessages.USER_NOT_FOUND)
 
     const project = await Project.findOne({ id: projectId })
 
-    if (!project) throw new Error('Project not found.')
-    if (project.admin != user.userId)
-      throw new Error('You are not the owner of this project.')
+    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND)
+    if (project.admin !== String(user.userId))
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT)
 
     const update = await ProjectUpdate.create({
       userId: user.userId,
@@ -705,10 +725,10 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId })
     if (!update) throw new Error('Project Update not found.')
 
-    let project = await Project.findOne({ id: update.projectId })
+    const project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
-    if (project.admin != user.userId)
-      throw new Error('You are not the owner of this project.')
+    if (project.admin !== String(user.userId))
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT)
 
     update.title = title
     update.content = content
@@ -727,10 +747,10 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId })
     if (!update) throw new Error('Project Update not found.')
 
-    let project = await Project.findOne({ id: update.projectId })
+    const project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
-    if (project.admin != user.userId)
-      throw new Error('You are not the owner of this project.')
+    if (project.admin !== String(user.userId))
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT)
 
     const [reactions, reactionsCount] = await Reaction.findAndCount({
         where: { projectUpdateId: update.id }
@@ -755,24 +775,24 @@ export class ProjectResolver {
     const update = await ProjectUpdate.findOne({ id: updateId })
     if (!update) throw new Error('Update not found.')
 
-    //if there is one, then delete it
+    // if there is one, then delete it
     const currentReaction = await Reaction.findOne({
       projectUpdateId: update.id,
       userId: user.userId
     })
 
-    let project = await Project.findOne({ id: update.projectId })
+    const project = await Project.findOne({ id: update.projectId })
     if (!project) throw new Error('Project not found')
 
     if (currentReaction && currentReaction.reaction === reaction) {
       await Reaction.delete({ projectUpdateId: update.id, userId: user.userId })
 
-      //increment qualityScore
+      // increment qualityScore
       project.updateQualityScoreHeart(false)
       project.save()
       return false
     } else {
-      //if there wasn't one, then create it
+      // if there wasn't one, then create it
       const newReaction = await Reaction.create({
         userId: user.userId,
         projectUpdateId: update.id,
@@ -797,9 +817,9 @@ export class ProjectResolver {
   ): Promise<object> {
     if (!user) throw new Error('Authentication required.')
 
-    let project = await Project.findOne({ id: projectId })
+    const project = await Project.findOne({ id: projectId })
 
-    if (!project) throw new Error('Project not found.')
+    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND)
 
     let update = await ProjectUpdate.findOne({ projectId, isMain: true })
     if (!update) {
@@ -923,7 +943,7 @@ export class ProjectResolver {
 
     const isValid = !isSmartContractWallet && (addressUsed ? false : true)
     return {
-      isValid: isValid,
+      isValid,
       reasons
     }
   }
@@ -1027,12 +1047,70 @@ export class ProjectResolver {
       .setParameter('slugs', slugs)
       .getMany()
 
+
     const projectsUpdatedListing = projects.map(project => {
-      return { id: project.id, listed: listed }
+      return { id: project.id, listed }
+    })
+
+  await projects.map( async project => {
+      const projectOwner = await User.findOne({ id: Number(project.admin) })
+      if (listed === false) {
+
+        analytics.track(
+          'Project unlisted',
+          `givethId-${project.admin}`,
+          {
+            id: project.id,
+            email: projectOwner?.email,
+            title: project.title,
+            LastName: projectOwner?.lastName,
+            FirstName: projectOwner?.firstName,
+            OwnerId: project.admin,
+            slug: project.slug,
+            listed,
+          },
+          projectOwner?.segmentUserId()
+        )
+      }
+    else if (listed === true) {
+      analytics.track(
+        'Project listed',
+        `givethId-${project.admin}`,
+        {
+          id: project.id,
+          email: projectOwner?.email,
+          title: project.title,
+          LastName: projectOwner?.lastName,
+          FirstName: projectOwner?.firstName,
+          OwnerId: project.admin,
+          slug: project.slug,
+          listed,
+        },
+        projectOwner?.segmentUserId()
+      )
+    }
     })
 
     await this.projectRepository.save(projectsUpdatedListing)
 
+
     return true
+  }
+
+
+  private async getAppropriateSlug (slugBase:string):Promise<string>{
+    let slug = slugBase.toLowerCase();
+    const projectCount =   await this.projectRepository
+      .createQueryBuilder('project')
+      // check current slug and previous slugs
+      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug` ,{
+        slug
+      })
+      .getCount()
+
+    if (projectCount > 0) {
+      slug = slugBase + '-' + (projectCount - 1)
+    }
+    return slug
   }
 }

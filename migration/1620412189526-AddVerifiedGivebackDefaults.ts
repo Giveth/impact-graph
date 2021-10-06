@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm'
 
 export class AddVerifiedGivebackDefaults1620412189526
   implements MigrationInterface {
-  public async up (queryRunner: QueryRunner): Promise<void> {
+  async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `ALTER TABLE project ALTER COLUMN verified SET DEFAULT false`
     )
@@ -11,5 +11,5 @@ export class AddVerifiedGivebackDefaults1620412189526
     )
   }
 
-  public async down (queryRunner: QueryRunner): Promise<void> {}
+  async down (queryRunner: QueryRunner): Promise<void> {}
 }

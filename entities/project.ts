@@ -35,6 +35,11 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   slug?: string
 
+  @Index()
+  @Field(type => [String] ,{ nullable: true })
+  @Column( 'text',{ array:true, nullable: true })
+  slugHistory?: string[]
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   admin?: string
@@ -124,11 +129,6 @@ class Project extends BaseEntity {
   )
   reactions?: Reaction[]
 
-  @Field(type => Float, { nullable: true })
-  reactionsCount () {
-    return this.reactions ? this.reactions.length : 0
-  }
-
   @Index()
   @Field(type => ProjectStatus)
   @ManyToOne(type => ProjectStatus, { eager: true })
@@ -136,6 +136,23 @@ class Project extends BaseEntity {
 
   @RelationId((project: Project) => project.status)
   statusId: number
+
+  @Field(type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true })
+  totalDonations: number = 0
+
+  @Field(type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true })
+  totalHearts: number = 0
+
+  @Field(type => Boolean)
+  @Column({ default: true, nullable: false })
+  listed: boolean = true
+
+  @Field(type => Float, { nullable: true })
+  reactionsCount () {
+    return this.reactions ? this.reactions.length : 0
+  }
 
   mayUpdateStatus (user: User) {
     if (this.users.filter(o => o.id === user.id).length > 0) {
@@ -157,21 +174,9 @@ class Project extends BaseEntity {
     }
   }
 
-  @Field(type => Float, { nullable: true })
-  @Column({ type: 'real', nullable: true })
-  totalDonations: number = 0
-
-  @Field(type => Float, { nullable: true })
-  @Column({ type: 'real', nullable: true })
-  totalHearts: number = 0
-
   owner () {
     return this.users[0]
   }
-
-  @Field(type => Boolean)
-  @Column({ default: true, nullable: false })
-  listed: boolean = true
 }
 
 @Entity()

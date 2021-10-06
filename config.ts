@@ -89,7 +89,7 @@ class Config {
     this.validateEnv(envFile)
   }
 
-  //Have this - replace it!
+  // Have this - replace it!
   validateEnv (envFile) {
     envVars.forEach(envVar => {
       if (envFile[envVar]) {

@@ -175,6 +175,12 @@ mutation LoginWallet {
 }
 
 ```
+### Admin panel
+We use [Admin Bro](https://github.com/SoftwareBrothers/adminjs) for Admin dashboard
+You should navigate to `/admin` for browsing admin panel.
+in your local database you can hash a desired password with `BCRYPT_SALT` that is in your `config/development.env` with 
+[bcrypt](https://github.com/kelektiv/node.bcrypt.js) then you set that value in `encryptedPassword` of your user in DB, 
+Now you can login in admin dashboard with your user's `email` and the `password` you already set 
 
 ### Logging:
 
@@ -201,11 +207,20 @@ npm run typeorm:cli migration:create -- -n UpdateUserEmailUnique -d migration
 Or by changing the entities and generating the migrations with:
 ```
 npm run typeorm:cli migration:generate -- -n UpdateUserEmailUnique
+```
 
 Then you need to run the migrations like so:
 
 ```
 npm run typeorm:cli -- migration:run
 ```
+
+If you want to revert last migration :
+
+```
+npm run typeorm:cli -- migration:revert
+```
+
+
 
 You will need to add the above command to your build process so that all database migrations are run upon deployments.

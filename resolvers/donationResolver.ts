@@ -1,6 +1,6 @@
 import { Resolver, Query, Arg, Mutation, Ctx } from 'type-graphql'
 import { InjectRepository } from 'typeorm-typedi-extensions'
-//import { getTokenPrices, getOurTokenList } from '../uniswap'
+// import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap'
 import { Donation } from '../entities/donation'
 import { getProviderFromChainId } from '../provider'
@@ -117,7 +117,7 @@ export class DonationResolver {
 
       if (!project) throw new Error('Transaction project was not found.')
 
-      if(userId) {
+      if (userId) {
         originUser = await User.findOne({ id: ctx.req.user.userId })
       }else {
         originUser = null
@@ -129,7 +129,7 @@ export class DonationResolver {
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         user: originUser,
-        project: project,
+        project,
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
@@ -137,8 +137,7 @@ export class DonationResolver {
       })
       await donation.save()
 
-
-      //Logged in
+      // Logged in
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId
         originUser = await User.findOne({ id: userId })
@@ -162,8 +161,9 @@ export class DonationResolver {
           createdAt: new Date(),
           toWalletAddress: toAddress.toString().toLowerCase(),
           fromWalletAddress: fromAddress.toString().toLowerCase(),
-          anonymous: !userId
-        }
+          anonymous: !userId,
+          verified: Boolean(project.verified)
+          }
 
         analytics.track(
           'Made donation',
@@ -178,7 +178,7 @@ export class DonationResolver {
 
     const tokenValues = getTokenPrices(token, baseTokens, Number(priceChainId))
         .then(async (prices: number[]) => {
-          //console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
+          // console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
 
           donation.priceUsd = Number(prices[0])
           donation.priceEth = Number(prices[1])
@@ -219,7 +219,8 @@ export class DonationResolver {
             toWalletAddress: toAddress.toString().toLowerCase(),
             fromWalletAddress: fromAddress.toString().toLowerCase(),
             donationValueUsd: donation.valueUsd,
-            donationValueEth: donation.valueEth
+            donationValueEth: donation.valueEth,
+            verified: Boolean(project.verified)
           }
 
           analytics.track(

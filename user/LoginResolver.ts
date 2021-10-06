@@ -106,8 +106,8 @@ export class LoginResolver {
 
     const user: any = await User
       .createQueryBuilder('user')
-      .where('user.email = :email', {email})
-      .andWhere('user.loginType = :loginType', {loginType: 'password'})
+      .where('user.email = :email', { email })
+      .andWhere('user.loginType = :loginType', { loginType: 'password' })
       .addSelect('user.password')
       .getOne()
 
@@ -160,7 +160,7 @@ export class LoginResolver {
     @Arg('email', { nullable: true }) email: string,
     @Arg('name', { nullable: true }) name: string,
     @Arg('avatar', { nullable: true }) avatar: string,
-    @Arg('isXDAI', {nullable: true}) isXDAI: boolean,
+    @Arg('isXDAI', { nullable: true }) isXDAI: boolean,
     @Ctx() ctx: MyContext
   ): Promise<LoginResponse | null> {
     const hashedMsg = this.getHostnameSignMessageHash(hostname)

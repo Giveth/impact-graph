@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm'
 
 export class AddEthUsdValueColumnDonationTable1614603242980
   implements MigrationInterface {
-  public async up (queryRunner: QueryRunner): Promise<void> {
+  async up (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `ALTER TABLE "donation" ADD "priceEth" double precision NULL`
     )
@@ -11,7 +11,7 @@ export class AddEthUsdValueColumnDonationTable1614603242980
     )
   }
 
-  public async down (queryRunner: QueryRunner): Promise<void> {
+  async down (queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`ALTER TABLE "donation" DROP COLUMN "priceEth"`)
     await queryRunner.query(`ALTER TABLE "donation" DROP COLUMN "priceUsd"`)
   }
