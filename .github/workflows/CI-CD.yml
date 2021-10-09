@@ -30,7 +30,7 @@ jobs:
       - name: install dependencies
         run: npm ci
       - name: run tests
-        run: ETHERSCAN_API_KEY=${{ secrets.ETHERSCAN_API_KEY }} XDAI_NODE_HTTP_URL=${{XDAI_NODE_HTTP_URL}} MAINNET_NODE_HTTP_URL=https://mainnet.infura.io/v3/${{ secrets.INFURA_API_KEY }} ROPSTEN_NODE_HTTP_URL=https://mainnet.infura.io/v3/${{ secrets.INFURA_API_KEY }} npm run test
+        run: ETHERSCAN_API_KEY=${{ secrets.ETHERSCAN_API_KEY }} XDAI_NODE_HTTP_URL=${{ XDAI_NODE_HTTP_URL }} MAINNET_NODE_HTTP_URL=https://mainnet.infura.io/v3/${{ secrets.INFURA_API_KEY }} ROPSTEN_NODE_HTTP_URL=https://mainnet.infura.io/v3/${{ secrets.INFURA_API_KEY }} npm run test
 
 
   deploy:
