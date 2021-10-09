@@ -330,6 +330,10 @@ const getListOfTokenTransferTransactionsByAddress = async (input: {
       sort: 'desc',
     }
   })
+  if (!result.data || !result.data.result || !Array.isArray(result.data.result)){
+    throw new Error(errorMessages.TRANSACTION_NOT_FOUNT_IN_USER_HISTORY)
+  }
+
   return result.data.result.filter(tx => {
     return tx.from.toLowerCase() === input.address.toLowerCase()
   }).map(tx => {
