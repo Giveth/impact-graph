@@ -22,6 +22,8 @@ import { ProjectStatus } from '../entities/projectStatus';
 import { User } from '../entities/user';
 
 import AdminBro from 'admin-bro';
+import TransakWebhookHandler from '../services/transak/webhookHandler';
+
 const AdminBroExpress = require('@admin-bro/express')
 
 // tslint:disable:no-var-requires
@@ -134,6 +136,7 @@ export async function bootstrap () {
     const app = express()
 
     app.use(cors())
+    app.use(bodyParser.json())
     app.use('/graphql',
       json({ limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000 })
     )
@@ -155,6 +158,7 @@ export async function bootstrap () {
       bodyParser.raw({ type: 'application/json' }),
       netlifyDeployed
     )
+    app.post('/transak_webhook', TransakWebhookHandler)
 
     // Start the server
     app.listen({ port: 4000 })

@@ -84,4 +84,13 @@ export class Donation extends BaseEntity {
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   donationType?: string
+
+  @Index()
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true, unique: true })
+  transakId?: string
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  transakStatus?: string
 }

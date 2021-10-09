@@ -105,6 +105,8 @@ export class DonationResolver {
     @Arg('token') token: string,
     @Arg('projectId') projectId: Number,
     @Arg('chainId') chainId: Number,
+    @Arg('transakId') transakId: string,
+    @Arg('transakStatus') transakStatus: string,
     @Ctx() ctx: MyContext
   ): Promise<Number> {
     try {
@@ -133,6 +135,8 @@ export class DonationResolver {
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
+        transakId: transakId,
+        transakStatus: transakStatus,
         anonymous: !!userId
       })
       await donation.save()
