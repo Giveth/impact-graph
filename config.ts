@@ -29,7 +29,6 @@ const envVars = [
   'DEFAULT_ORGANISATION',
   'UPLOAD_FILE_MAX_SIZE',
   'ETHEREUM_NODE_ID',
-  'ETHEREUM_NETWORK',
   'HOSTNAME_WHITELIST',
   'SENTRY_ID',
   'SENTRY_TOKEN',
@@ -37,9 +36,8 @@ const envVars = [
   'ENVIRONMENT',
   'WEBSITE_URL',
   'TRIGGER_BUILD_ON_NEW_PROJECT',
-  'ETHEREUM_NETWORK_ID',
   'OUR_SECRET',
-  'XDAI_NODE_HTTP_URL',
+  // 'XDAI_NODE_HTTP_URL',
   'SEGMENT_API_KEY'
 ]
 interface requiredEnv {
@@ -75,7 +73,6 @@ interface requiredEnv {
   ENVIRONMENT: string
   WEBSITE_URL: string
   TRIGGER_BUILD_ON_NEW_PROJECT: string
-  ETHEREUM_NETWORK_ID: string
   OUR_SECRET: string
   XDAI_NODE_HTTP_URL: string
   SEGMENT_API_KEY: string
@@ -102,9 +99,12 @@ class Config {
   }
 
   get (envVar: string): string | number {
-    if (!this.env[envVar]) {
-      throw new Error(`${envVar} is an invalid env variable`)
-    }
+    // I thinks it's an unnecessary checking, because may we have some optional config, but this checking make all
+    // config variables required
+
+    // if (!this.env[envVar]) {
+    //   throw new Error(`${envVar} is an invalid env variable`)
+    // }
     return this.env[envVar]
   }
 }
