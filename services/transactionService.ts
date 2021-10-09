@@ -268,9 +268,9 @@ const getEtherscanOrBlockScoutUrl = (networkId: number): string => {
     case NETWORK_IDS.XDAI:
       return config.get('BLOCKSCOUT_API_URL') as string
     case NETWORK_IDS.MAIN_NET:
-      return `${config.get('ETHERSCAN_MAINNET_API_URL')}?apiKey=${config.get('ETHERSCAN_API_KEY=')}`
+      return `${config.get('ETHERSCAN_MAINNET_API_URL')}?apikey=${config.get('ETHERSCAN_API_KEY')}`
     case NETWORK_IDS.ROPSTEN:
-      return `${config.get('ETHERSCAN_ROPSTEN_API_URL')}?apiKey=${config.get('ETHERSCAN_API_KEY=')}`
+      return `${config.get('ETHERSCAN_ROPSTEN_API_URL')}?apikey=${config.get('ETHERSCAN_API_KEY')}`
     default:
       throw new Error(errorMessages.INVALID_NETWORK_ID)
   }
@@ -318,7 +318,7 @@ const getListOfTokenTransferTransactionsByAddress = async (input: {
   console.log('getListOfTokenTransferTransactionsByAddress called', input)
   const { address, networkId, contractAddress } = input;
   const page = input.page || 1
-  const offset = input.offset || 500
+  const offset = input.offset || 1000
   // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-erc20-token-transfer-events-by-address
   // https://blockscout.com/xdai/mainnet/api-docs#account
   const result = await axios.get(getEtherscanOrBlockScoutUrl(networkId), {
