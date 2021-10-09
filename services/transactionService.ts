@@ -316,21 +316,31 @@ const getListOfTokenTransferTransactionsByAddress = async (input: {
   offset?: number,
 }): Promise<NetworkTransactionInfo[]> => {
   console.log('getListOfTokenTransferTransactionsByAddress called', input)
-  const { address, page, offset, networkId, contractAddress } = input;
+  const { address, networkId, contractAddress } = input;
+  const page = input.page || 1
+  const offset = input.offset || 500
   // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-erc20-token-transfer-events-by-address
   // https://blockscout.com/xdai/mainnet/api-docs#account
   const result = await axios.get(getEtherscanOrBlockScoutUrl(networkId), {
     params: {
       module: 'account',
       action: 'tokentx',
-      page: page || 1,
-      offset: offset || 1000,
+      page,
+      offset,
       address,
       contractAddress,
       sort: 'desc',
     }
   })
   if (!result.data || !result.data.result || !Array.isArray(result.data.result)){
+    console.log('getListOfTokenTransferTransactionsByAddress transactions are empty',{
+      networkId,
+      page,
+      offset,
+      address,
+      contractAddress,
+      response : result.data
+    })
     throw new Error(errorMessages.TRANSACTION_NOT_FOUNT_IN_USER_HISTORY)
   }
 
