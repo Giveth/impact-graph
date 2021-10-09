@@ -1,4 +1,6 @@
 // tslint:disable-next-line:no-var-requires
+import { NETWORK_IDS } from '../utils/tokenUtils';
+
 require('dotenv').config()
 import * as bcrypt from 'bcryptjs'
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
@@ -179,7 +181,7 @@ export class LoginResolver {
       },
       domain: {
         name: 'Giveth Login',
-        chainId: isXDAI ? 100 : process.env.ETHEREUM_NETWORK_ID,
+        chainId: isXDAI ? NETWORK_IDS.XDAI : NETWORK_IDS.ROPSTEN,
         version: '1'
       },
       message: {
