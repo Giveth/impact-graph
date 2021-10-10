@@ -20,12 +20,25 @@ export class Donation extends BaseEntity {
   id: number
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   transactionId: string
 
   @Field()
-  @Column()
+  @Column('integer', { default: 0 })
+    // If we have nonce, we can check if donations is mined in network event if user has been speedup
+  nonce: number
+
+  @Field()
+  @Column( { nullable: false })
   transactionNetworkId: number
+
+  @Field()
+  @Column('text', { default: 'pending' })
+  status: string
+
+  @Field()
+  @Column('boolean', { default: false })
+  speedup: boolean
 
   @Field()
   @Column()
