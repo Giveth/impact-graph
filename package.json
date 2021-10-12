@@ -92,7 +92,7 @@
     "tslint-eslint-rules": "^5.4.0"
   },
   "scripts": {
-    "test": "NODE_ENV=test mocha --exit -r ts-node/register resolvers/*.test.ts",
+    "test": "NODE_ENV=test mocha --exit -r ts-node/register resolvers/*.test.ts services/**/*.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
     "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./ormconfig.ts",
