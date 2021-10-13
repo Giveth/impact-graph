@@ -22,6 +22,7 @@ import { ProjectStatus } from '../entities/projectStatus';
 import { User } from '../entities/user';
 
 import AdminBro from 'admin-bro';
+import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
 const AdminBroExpress = require('@admin-bro/express')
 
 // tslint:disable:no-var-requires
@@ -167,6 +168,7 @@ export async function bootstrap () {
     Project.useConnection(dbConnection);
     ProjectStatus.useConnection(dbConnection)
     User.useConnection(dbConnection)
+    runCheckPendingDonationsCronJob()
 
     const listDelist =async(context, request, list = true)=> {
       const { h, resource, records } = context
