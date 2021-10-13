@@ -36,6 +36,39 @@ const getTransactionDetailTestCases = () => {
     }
     await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND)
   })
+
+  it('should return error when fromAddress of transaction is different from donation fromAddress', async () => {
+    const amount = 0.04
+    // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
+    const badFunc = async () => {
+      await getTransactionDetail({
+        txHash: '0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a',
+        symbol: 'ETH',
+        networkId: NETWORK_IDS.MAIN_NET,
+        fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0781',
+        toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
+        amount
+      })
+    }
+    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS)
+  })
+
+  it('should return error when toAddress of transaction is different to donation toAddress', async () => {
+    const amount = 0.04
+    // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
+    const badFunc = async () => {
+      await getTransactionDetail({
+        txHash: '0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a',
+        symbol: 'ETH',
+        networkId: NETWORK_IDS.MAIN_NET,
+        fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
+        toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93c',
+        amount
+      })
+    }
+    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS)
+  })
+
   it('should return transaction when transactionHash is wrong because of speedup in mainnet', async () => {
     const amount = 0.04
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
@@ -68,11 +101,46 @@ const getTransactionDetailTestCases = () => {
     assert.equal(transactionInfo.currency, 'DAI')
     assert.equal(transactionInfo.amount, amount)
   })
+
+  it('should return error when fromAddress of transaction is different from donation fromAddress for DAI in mainnet', async () => {
+    const amount = 1760
+    // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
+    const badFunc = async () => {
+      await getTransactionDetail({
+        txHash: '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
+        symbol: 'DAI',
+        networkId: NETWORK_IDS.MAIN_NET,
+        fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93c',
+        toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
+        amount,
+        nonce: 4
+      })
+    }
+    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS)
+  })
+
+  it('should return error when toAddress of transaction is different to donation toAddress for DAI in mainnet', async () => {
+    const amount = 1760
+    // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
+    const badFunc = async () => {
+      await getTransactionDetail({
+        txHash: '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
+        symbol: 'DAI',
+        networkId: NETWORK_IDS.MAIN_NET,
+        fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
+        toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F4',
+        amount,
+        nonce: 4
+      })
+    }
+    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS)
+  })
+
   it('should return transaction detail for DAI token transfer on mainnet when transaction is invalid but speedup', async () => {
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
     const amount = 1760
     const transactionInfo = await getTransactionDetail({
-      txHash: '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e871230',
+      txHash: '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e871229',
       symbol: 'DAI',
       networkId: NETWORK_IDS.MAIN_NET,
       fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
