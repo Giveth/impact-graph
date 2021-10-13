@@ -415,12 +415,18 @@ async function getTransactionDetailForNormalTransfer(input: TransactionDetailInp
     symbol,
     networkId,
     fromAddress,
+    toAddress,
     nonce
   } = input;
   const transaction = await getNetworkWeb3(networkId).eth.getTransaction(txHash)
   if (transaction && transaction.from.toLowerCase() !== fromAddress.toLowerCase()) {
     throw new Error(errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS)
   }
+  if (transaction && transaction.to && transaction.to.toLowerCase() !== toAddress.toLowerCase()) {
+    throw new Error(errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS)
+  }
+  // ADD checking for toAddress and amount
+
   if (transaction) {
     return {
       from: transaction.from,
@@ -444,7 +450,8 @@ async function getTransactionDetailForTokenTransfer(input: TransactionDetailInpu
     symbol,
     networkId,
     fromAddress,
-    nonce
+    nonce,
+    toAddress
   } = input;
   const token = findTokenByNetworkAndSymbol(networkId, symbol)
   const web3 = getNetworkWeb3(networkId)
@@ -462,10 +469,14 @@ async function getTransactionDetailForTokenTransfer(input: TransactionDetailInpu
   }
   if (transaction) {
     const transactionData = abiDecoder.decodeMethod(transaction.input)
+    const transactionToAddress = transactionData.params.find(item => item.name === '_to').value;
+    if (transactionToAddress.toLowerCase() !== toAddress.toLowerCase()) {
+      throw new Error(errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS)
+    }
     return {
       from: transaction.from,
       hash: txHash,
-      to: transactionData.params.find(item => item.name === '_to').value,
+      to: transactionToAddress,
       amount: normalizeAmount(transactionData.params.find(item => item.name === '_value').value, token.decimals),
       currency: symbol
     }
@@ -483,6 +494,8 @@ export async function getTransactionDetail(input: TransactionDetailInput): Promi
     symbol,
     networkId
   } = input;
+
+  //  refactor this condition with array.some , ...
   if (symbol === 'ETH' && networkId === NETWORK_IDS.MAIN_NET) {
     return getTransactionDetailForNormalTransfer(input)
   } else if (symbol === 'ETH' && networkId === NETWORK_IDS.ROPSTEN) {
