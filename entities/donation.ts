@@ -12,6 +12,12 @@ import {
 import { Project } from './project'
 import { User } from './user'
 
+export const DONATION_STATUS = {
+  PENDING: 'pending',
+  VERIFIED: 'verified',
+  FAILED: 'failed'
+}
+
 @Entity()
 @ObjectType()
 export class Donation extends BaseEntity {
@@ -35,6 +41,10 @@ export class Donation extends BaseEntity {
   @Field()
   @Column('text', { default: 'pending' })
   status: string
+
+  @Field()
+  @Column('text', { nullable : true })
+  verifyErrorMessage: string
 
   @Field()
   @Column('boolean', { default: false })
