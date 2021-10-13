@@ -11,6 +11,7 @@ import { Repository, In } from 'typeorm'
 import { User } from '../entities/user'
 import Logger from '../logger'
 import { NETWORK_IDS } from '../utils/tokenUtils';
+import { errorMessages } from '../utils/errorMessages';
 
 const analytics = getAnalytics()
 
@@ -111,6 +112,9 @@ export class DonationResolver {
       const project = await Project.findOne({ id: Number(projectId) })
 
       if (!project) throw new Error('Transaction project was not found.')
+      if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()){
+        throw new Error(errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS)
+      }
 
       if (userId) {
         originUser = await User.findOne({ id: ctx.req.user.userId })
