@@ -31,11 +31,11 @@ export class Donation extends BaseEntity {
 
   @Field()
   @Column('integer', { default: 0 })
-    // If we have nonce, we can check if donations is mined in network event if user has been speedup
+  // To match the transaction in case user has done speed up
   nonce: number
 
   @Field()
-  @Column( { nullable: false })
+  @Column({ nullable: false })
   transactionNetworkId: number
 
   @Field()
@@ -43,7 +43,7 @@ export class Donation extends BaseEntity {
   status: string
 
   @Field()
-  @Column('text', { nullable : true })
+  @Column('text', { nullable: true })
   verifyErrorMessage: string
 
   @Field()

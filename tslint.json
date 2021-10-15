@@ -3,6 +3,7 @@
   "extends": [
     "tslint:recommended",
     "tslint-eslint-rules",
+    "tslint-plugin-prettier",
     "tslint-config-prettier"
   ],
   "rules": {
