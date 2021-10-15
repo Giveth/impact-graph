@@ -20,6 +20,7 @@ import { Organisation } from '../entities/organisation'
 import { MyContext } from '../types/MyContext'
 import { getAnalytics } from '../analytics'
 import { errorMessages } from '../utils/errorMessages';
+import { Project } from '../entities/project'
 
 const analytics = getAnalytics()
 
@@ -32,6 +33,7 @@ export class UserResolver {
     @InjectRepository(Organisation)
     private readonly organisationRepository: Repository<Organisation>, // , // @InjectRepository(OrganisationUser) // private readonly organisationUserRepository: Repository<OrganisationUser>
     @InjectRepository(AccountVerification)
+    @InjectRepository(Project)
     private readonly accountVerificationRepository: Repository<AccountVerification>,
   ) {}
 

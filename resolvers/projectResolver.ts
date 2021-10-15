@@ -299,7 +299,9 @@ export class ProjectResolver {
     return  await this.projectRepository
       .createQueryBuilder('project')
       // check current slug and previous slugs
-      .where(`'${slug}' = ANY(project."slugHistory") or project.slug = '${slug}'`)
+      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+        slug
+      })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
       .getOne()
@@ -1070,6 +1072,23 @@ export class ProjectResolver {
           projectOwner?.segmentUserId()
         )
       }
+    else if (listed === true) {
+      analytics.track(
+        'Project listed',
+        `givethId-${project.admin}`,
+        {
+          id: project.id,
+          email: projectOwner?.email,
+          title: project.title,
+          LastName: projectOwner?.lastName,
+          FirstName: projectOwner?.firstName,
+          OwnerId: project.admin,
+          slug: project.slug,
+          listed,
+        },
+        projectOwner?.segmentUserId()
+      )
+    }
     })
 
     await this.projectRepository.save(projectsUpdatedListing)
@@ -1084,7 +1103,9 @@ export class ProjectResolver {
     const projectCount =   await this.projectRepository
       .createQueryBuilder('project')
       // check current slug and previous slugs
-      .where(`'${slug}' = ANY(project."slugHistory") or project.slug = '${slug}'`)
+      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug` ,{
+        slug
+      })
       .getCount()
 
     if (projectCount > 0) {

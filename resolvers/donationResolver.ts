@@ -136,7 +136,6 @@ export class DonationResolver {
       })
       await donation.save()
 
-
       // Logged in
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId
@@ -161,8 +160,9 @@ export class DonationResolver {
           createdAt: new Date(),
           toWalletAddress: toAddress.toString().toLowerCase(),
           fromWalletAddress: fromAddress.toString().toLowerCase(),
-          anonymous: !userId
-        }
+          anonymous: !userId,
+          verified: Boolean(project.verified)
+          }
 
         analytics.track(
           'Made donation',
@@ -218,7 +218,8 @@ export class DonationResolver {
             toWalletAddress: toAddress.toString().toLowerCase(),
             fromWalletAddress: fromAddress.toString().toLowerCase(),
             donationValueUsd: donation.valueUsd,
-            donationValueEth: donation.valueEth
+            donationValueEth: donation.valueEth,
+            verified: Boolean(project.verified)
           }
 
           analytics.track(
