@@ -83,7 +83,6 @@
     "@types/chai": "^4.2.15",
     "@types/mocha": "^8.2.1",
     "@types/node-cron": "^3.0.0",
-    "@types/web3": "^1.2.2",
     "apollo": "^2.32.5",
     "apollo-server-testing": "^2.21.0",
     "chai": "^4.3.0",
