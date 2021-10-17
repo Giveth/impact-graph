@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "0.0.9",
+  "version": "1.0.0",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
