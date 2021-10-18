@@ -105,8 +105,8 @@ export class DonationResolver {
     @Arg('token') token: string,
     @Arg('projectId') projectId: Number,
     @Arg('chainId') chainId: Number,
-    @Arg('transakId') transakId: string,
-    @Arg('transakStatus') transakStatus: string,
+    @Arg('transakId', { nullable: true }) transakId: string,
+    @Arg('transakStatus', { nullable: true }) transakStatus: string,
     @Ctx() ctx: MyContext
   ): Promise<Number> {
     try {
