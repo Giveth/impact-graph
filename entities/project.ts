@@ -23,6 +23,7 @@ import { Category } from './category'
 import { User } from './user'
 import { ProjectStatus } from './projectStatus'
 
+// tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
 @Entity()
@@ -155,35 +156,6 @@ class Project extends BaseEntity {
   @Column({ default: true, nullable: false })
   listed: boolean = true
 
-  @Field(type => Float, { nullable: true })
-  reactionsCount () {
-    return this.reactions ? this.reactions.length : 0
-  }
-
-  mayUpdateStatus (user: User) {
-    if (this.users.filter(o => o.id === user.id).length > 0) {
-      return true
-    } else {
-      return false
-    }
-  }
-
-  /**
-   * Add / remove a heart to the score
-   * @param loved true to add a heart, false to remove
-   */
-  updateQualityScoreHeart (loved: boolean) {
-    if (loved) {
-      this.qualityScore = this.qualityScore + 10
-    } else {
-      this.qualityScore = this.qualityScore - 10
-    }
-  }
-
-  owner () {
-    return this.users[0]
-  }
-
   /**
    * Custom Query Builders to chain together
    */
@@ -206,13 +178,13 @@ class Project extends BaseEntity {
   }
 
   static addCustomDateQuery(query: SelectQueryBuilder<Project>, sortBy: string, direction: any) {
-    let thirtyDaysAgo = moment().subtract(30, 'days')
+    const thirtyDaysAgo = moment().subtract(30, 'days')
 
-    if (sortBy == "recentProjects") query.andWhere(new Brackets(qb => {
+    if (sortBy === 'recentProjects') query.andWhere(new Brackets(qb => {
       qb.where({ creationDate: MoreThan(thirtyDaysAgo) })
     }))
 
-    if (sortBy == "oldProjects") query.andWhere(new Brackets(qb => {
+    if (sortBy === 'oldProjects') query.andWhere(new Brackets(qb => {
       qb.where({ creationDate: LessThan(thirtyDaysAgo) })
     }))
 
@@ -221,17 +193,17 @@ class Project extends BaseEntity {
 
   // Backward Compatible Projects Query with added pagination, frontend sorts and category search
   static searchProjects(limit: number, offset: number, sortBy: string, direction: any, category: string, searchTerm: string) {
-    let query = this.createQueryBuilder("project")
+    const query = this.createQueryBuilder('project')
                .leftJoinAndSelect('project.status', 'status')
                .leftJoinAndSelect('project.reactions', 'reaction')
                .leftJoinAndSelect('project.users', 'users')
                .innerJoinAndSelect('project.categories', 'c')
                .where('project.statusId = 5 AND project.listed = true')
 
-    if (category && category != "") this.addCategoryQuery(query, category)
-    if (searchTerm && searchTerm != "") this.addSearchQuery(query, searchTerm)
+    if (category) this.addCategoryQuery(query, category)
+    if (searchTerm) this.addSearchQuery(query, searchTerm)
 
-    if (sortBy == "recentProjects" || sortBy == "oldProjects") {
+    if (sortBy === 'recentProjects' || sortBy === 'oldProjects') {
       this.addCustomDateQuery(query, sortBy, direction)
     } else {
       query.orderBy(`project.${sortBy}`, direction)
@@ -240,6 +212,31 @@ class Project extends BaseEntity {
     return query.limit(limit)
                 .offset(offset)
                 .getMany()
+  }
+
+  @Field(type => Float, { nullable: true })
+  reactionsCount () {
+    return this.reactions ? this.reactions.length : 0
+  }
+
+  mayUpdateStatus (user: User) {
+    return this.users.filter(o => o.id === user.id).length > 0;
+  }
+
+  /**
+   * Add / remove a heart to the score
+   * @param loved true to add a heart, false to remove
+   */
+  updateQualityScoreHeart (loved: boolean) {
+    if (loved) {
+      this.qualityScore = this.qualityScore + 10
+    } else {
+      this.qualityScore = this.qualityScore - 10
+    }
+  }
+
+  owner () {
+    return this.users[0]
   }
 }
 
