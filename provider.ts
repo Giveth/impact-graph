@@ -4,7 +4,7 @@ import Web3 from 'web3'
 import { errorMessages } from './utils/errorMessages'
 
 const INFURA_ID = config.get('ETHEREUM_NODE_ID')
-const INFURA_KEY = config.get('INFURA_KEY')
+const INFURA_API_KEY = config.get('INFURA_API_KEY')
 
 export const NETWORK_IDS = {
   MAIN_NET: 1,
@@ -25,9 +25,9 @@ const NETWORK_ID_MAP = {
   56: NETWORK_NAMES.BSC
 }
 
-const mainnetNodeUrl = `https://${NETWORK_NAMES.MAINNET}.infura.io/v3/${INFURA_KEY}`
+const mainnetNodeUrl = `https://${NETWORK_NAMES.MAINNET}.infura.io/v3/${INFURA_API_KEY}`
 const mainnetWeb3 = new Web3(mainnetNodeUrl)
-const ropstenNodeUrl = `https://${NETWORK_NAMES.ROPSTEN}.infura.io/v3/${INFURA_KEY}`
+const ropstenNodeUrl = `https://${NETWORK_NAMES.ROPSTEN}.infura.io/v3/${INFURA_API_KEY}`
 const ropstenWeb3 = new Web3(ropstenNodeUrl)
 const xdaiWeb3NodeUrl = config.get('XDAI_NODE_HTTP_URL') as string
 const xdaiWeb3 = new Web3(xdaiWeb3NodeUrl)
