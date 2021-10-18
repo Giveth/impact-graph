@@ -1,3 +1,6 @@
+/**
+ * @see @link{https://gist.github.com/veox/8800debbf56e24718f9f483e1e40c35c, https://stackoverflow.com/a/67617052/4650625}
+ */
 export const erc20ABI = [
   {
     constant: true,

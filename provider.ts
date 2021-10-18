@@ -1,34 +1,82 @@
 import config from './config'
 import { ethers } from 'ethers'
+import Web3 from 'web3'
+import { errorMessages } from './utils/errorMessages'
 
 const INFURA_ID = config.get('ETHEREUM_NODE_ID')
+const INFURA_KEY = config.get('INFURA_KEY')
 
-export function getProvider(network) {
-  if (network === 'xdaiChain') {
+export const NETWORK_IDS = {
+  MAIN_NET: 1,
+  ROPSTEN: 3,
+  XDAI: 100,
+  BSC: 56
+}
+const NETWORK_NAMES = {
+  BSC: 'bsc',
+  XDAI: 'xdaichain',
+  MAINNET: 'mainnet',
+  ROPSTEN: 'ropsten'
+}
+const NETWORK_ID_MAP = {
+  1: NETWORK_NAMES.MAINNET,
+  3: NETWORK_NAMES.ROPSTEN,
+  100: NETWORK_NAMES.XDAI,
+  56: NETWORK_NAMES.BSC
+}
+
+const mainnetNodeUrl = `https://${NETWORK_NAMES.MAINNET}.infura.io/v3/${INFURA_KEY}`
+const mainnetWeb3 = new Web3(mainnetNodeUrl)
+const ropstenNodeUrl = `https://${NETWORK_NAMES.ROPSTEN}.infura.io/v3/${INFURA_KEY}`
+const ropstenWeb3 = new Web3(ropstenNodeUrl)
+const xdaiWeb3NodeUrl = config.get('XDAI_NODE_HTTP_URL') as string
+const xdaiWeb3 = new Web3(xdaiWeb3NodeUrl)
+
+export const getNetworkWeb3 = (networkId: number): Web3 => {
+  switch (networkId) {
+    case NETWORK_IDS.MAIN_NET:
+      return mainnetWeb3
+
+    case NETWORK_IDS.ROPSTEN:
+      return ropstenWeb3
+
+    case NETWORK_IDS.XDAI:
+      return xdaiWeb3
+    default:
+      throw new Error(errorMessages.INVALID_NETWORK_ID)
+  }
+}
+
+export function getProvider(networkId: number) {
+  const network = NETWORK_ID_MAP[networkId]
+  if (network === NETWORK_NAMES.XDAI) {
     return new ethers.providers.JsonRpcProvider(
       config.get('XDAI_NODE_HTTP_URL') as string
     )
   }
   // 'https://bsc-dataseed.binance.org/'
-  if (network === 'bsc') {
+  if (network === NETWORK_NAMES.BSC) {
     return new ethers.providers.JsonRpcProvider(
       config.get('BSC_NODE_HTTP_URL') as string,
-      { name: 'binance', chainId: 56 }
+      { name: NETWORK_NAMES.BSC, chainId: NETWORK_IDS.BSC }
     )
   }
-
-  // return new Web3(
-  //   new Web3.providers.HttpProvider(config.get('XDAI_NODE_HTTP_URL'))
-  // )
-  // quiknode return new ethers.providers.JsonRpcProvider(
-  //   'https://billowing-billowing-brook.quiknode.pro/04334528cb42b86923888fd5c38ba0553bc84dc6/'
-  // )
-
-  // nowork return new ethers.providers.JsonRpcProvider(config.get('XDAI_NODE_HTTP_URL'))
-  // nowork return new ethers.providers.JsonRpcProvider(
-  //   new Web3(new Web3.providers.HttpProvider(config.get('XDAI_NODE_HTTP_URL')))
-  // )
-  // console.log(`p : ${JSON.stringify(p, null, 2)}`)
-  // return p
   return new ethers.providers.InfuraProvider(network, INFURA_ID)
+}
+
+export function getEtherscanOrBlockScoutUrl(networkId: number): string {
+  switch (networkId) {
+    case NETWORK_IDS.XDAI:
+      return config.get('BLOCKSCOUT_API_URL') as string
+    case NETWORK_IDS.MAIN_NET:
+      return `${config.get('ETHERSCAN_MAINNET_API_URL')}?apikey=${config.get(
+        'ETHERSCAN_API_KEY'
+      )}`
+    case NETWORK_IDS.ROPSTEN:
+      return `${config.get('ETHERSCAN_ROPSTEN_API_URL')}?apikey=${config.get(
+        'ETHERSCAN_API_KEY'
+      )}`
+    default:
+      throw new Error(errorMessages.INVALID_NETWORK_ID)
+  }
 }

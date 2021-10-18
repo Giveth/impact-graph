@@ -10,27 +10,27 @@ import { Token } from '../entities/token'
 import { Repository, In } from 'typeorm'
 import { User } from '../entities/user'
 import Logger from '../logger'
-import { NETWORK_IDS } from '../utils/tokenUtils';
-import { errorMessages } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages'
+import { NETWORK_IDS } from '../provider'
 
 const analytics = getAnalytics()
 
 @Resolver(of => User)
 export class DonationResolver {
-  constructor (
+  constructor(
     @InjectRepository(Donation)
     private readonly donationRepository: Repository<Donation>
   ) {}
 
   @Query(returns => [Donation], { nullable: true })
-  async donations () {
+  async donations() {
     const donation = await this.donationRepository.find()
 
     return donation
   }
 
   @Query(returns => [Donation], { nullable: true })
-  async donationsFromWallets (
+  async donationsFromWallets(
     @Ctx() ctx: MyContext,
     @Arg('fromWalletAddresses', type => [String]) fromWalletAddresses: string[]
   ) {
@@ -47,7 +47,7 @@ export class DonationResolver {
   }
 
   @Query(returns => [Donation], { nullable: true })
-  async donationsToWallets (
+  async donationsToWallets(
     @Ctx() ctx: MyContext,
     @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[]
   ) {
@@ -64,18 +64,21 @@ export class DonationResolver {
   }
 
   @Query(returns => [Token], { nullable: true })
-  async tokens () {
+  async tokens() {
     return getOurTokenList()
   }
 
   @Mutation(returns => [Number])
-  async getTokenPrice (@Arg('symbol') symbol: string, @Arg('chainId') chainId: number) {
+  async getTokenPrice(
+    @Arg('symbol') symbol: string,
+    @Arg('chainId') chainId: number
+  ) {
     const prices = await getTokenPrices(symbol, ['USDT', 'ETH'], chainId)
     return prices
   }
 
   @Query(returns => [Donation], { nullable: true })
-  async donationsByDonor (@Ctx() ctx: MyContext) {
+  async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
       throw new Error(
         'You must be logged in in order to register project donations'
@@ -92,7 +95,7 @@ export class DonationResolver {
   }
 
   @Mutation(returns => Number)
-  async saveDonation (
+  async saveDonation(
     @Arg('fromAddress') fromAddress: string,
     @Arg('toAddress') toAddress: string,
     @Arg('amount') amount: Number,
@@ -106,19 +109,22 @@ export class DonationResolver {
     try {
       let userId = ctx?.req?.user?.userId || null
       if (!chainId) chainId = NETWORK_IDS.MAIN_NET
-      const priceChainId = chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId
+      const priceChainId =
+        chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId
       let originUser
 
       const project = await Project.findOne({ id: Number(projectId) })
 
       if (!project) throw new Error('Transaction project was not found.')
-      if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()){
-        throw new Error(errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS)
+      if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
+        throw new Error(
+          errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS
+        )
       }
 
       if (userId) {
         originUser = await User.findOne({ id: ctx.req.user.userId })
-      }else {
+      } else {
         originUser = null
       }
 
@@ -162,7 +168,7 @@ export class DonationResolver {
           fromWalletAddress: fromAddress.toString().toLowerCase(),
           anonymous: !userId,
           verified: Boolean(project.verified)
-          }
+        }
 
         analytics.track(
           'Made donation',
@@ -175,7 +181,11 @@ export class DonationResolver {
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH']
 
-    const tokenValues = getTokenPrices(token, baseTokens, Number(priceChainId))
+      const tokenValues = getTokenPrices(
+        token,
+        baseTokens,
+        Number(priceChainId)
+      )
         .then(async (prices: number[]) => {
           // console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
 
@@ -187,48 +197,44 @@ export class DonationResolver {
 
           await donation.save()
 
-          return [
-             donation.valueUsd,
-             donation.valueEth
-           ]
+          return [donation.valueUsd, donation.valueEth]
         })
         .catch(e => {
           throw new Error(e)
         })
 
-        const projectOwner = await User.findOne({ id: Number(project.admin) })
+      const projectOwner = await User.findOne({ id: Number(project.admin) })
 
-        if (projectOwner) {
+      if (projectOwner) {
+        await tokenValues
 
-          await tokenValues
+        analytics.identifyUser(projectOwner)
 
-          analytics.identifyUser(projectOwner)
-
-          const segmentDonationReceived = {
-            email: projectOwner.email,
-            title: project.title,
-            firstName: projectOwner.firstName,
-            projectOwnerId: project.admin,
-            slug: project.slug,
-            amount: Number(amount),
-            transactionId: transactionId.toString().toLowerCase(),
-            transactionNetworkId: Number(transactionNetworkId),
-            currency: token,
-            createdAt: new Date(),
-            toWalletAddress: toAddress.toString().toLowerCase(),
-            fromWalletAddress: fromAddress.toString().toLowerCase(),
-            donationValueUsd: donation.valueUsd,
-            donationValueEth: donation.valueEth,
-            verified: Boolean(project.verified)
-          }
-
-          analytics.track(
-            'Donation received',
-            projectOwner.segmentUserId(),
-            segmentDonationReceived,
-            projectOwner.segmentUserId()
-            )
+        const segmentDonationReceived = {
+          email: projectOwner.email,
+          title: project.title,
+          firstName: projectOwner.firstName,
+          projectOwnerId: project.admin,
+          slug: project.slug,
+          amount: Number(amount),
+          transactionId: transactionId.toString().toLowerCase(),
+          transactionNetworkId: Number(transactionNetworkId),
+          currency: token,
+          createdAt: new Date(),
+          toWalletAddress: toAddress.toString().toLowerCase(),
+          fromWalletAddress: fromAddress.toString().toLowerCase(),
+          donationValueUsd: donation.valueUsd,
+          donationValueEth: donation.valueEth,
+          verified: Boolean(project.verified)
         }
+
+        analytics.track(
+          'Donation received',
+          projectOwner.segmentUserId(),
+          segmentDonationReceived,
+          projectOwner.segmentUserId()
+        )
+      }
       return donation.id
     } catch (e) {
       Logger.captureException(e)

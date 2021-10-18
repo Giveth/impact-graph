@@ -224,7 +224,7 @@ npm run typeorm:cli -- migration:revert
 ### TEST
 For running tests you need to register infura and etherscan api-key, and you should pass this environment variables
 
-`ETHERSCAN_API_KEY=0000000000000000000000000000000000 XDAI_NODE_HTTP_URL=https://xxxxxx.xdai.quiknode.pro MAINNET_NODE_HTTP_URL=https://mainnet.infura.io/v3/0000000000000000000000000000000000 ROPSTEN_NODE_HTTP_URL=https://ropsten.infura.io/v3/0000000000000000000000000000000000 npm run test` 
+`ETHERSCAN_API_KEY=0000000000000000000000000000000000 XDAI_NODE_HTTP_URL=https://xxxxxx.xdai.quiknode.pro INFURA_API_KEY=0000000000000000000000000000000000 npm run test` 
 
 
 

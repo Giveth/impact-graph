@@ -22,7 +22,7 @@ import { Service } from 'typedi'
 import config from '../config'
 import slugify from 'slugify'
 import Logger from '../logger'
-import { getProvider } from '../provider'
+import { getProvider, NETWORK_IDS } from '../provider'
 import {
   Arg,
   Args,
@@ -48,8 +48,8 @@ function isSmartContract (provider) {
   }
 }
 
-const mainnetProvider = getProvider('mainnet')
-const xdaiProvider = getProvider('xdaiChain')
+const mainnetProvider = getProvider(NETWORK_IDS.MAIN_NET)
+const xdaiProvider = getProvider(NETWORK_IDS.XDAI)
 const isSmartContractMainnet = isSmartContract(mainnetProvider)
 const isSmartContractXDai = isSmartContract(xdaiProvider)
 

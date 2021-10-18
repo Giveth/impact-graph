@@ -1,10 +1,5 @@
 import { errorMessages } from './errorMessages'
-
-export const NETWORK_IDS = {
-  MAIN_NET: 1,
-  ROPSTEN: 3,
-  XDAI: 100
-}
+import { NETWORK_IDS } from '../provider'
 
 /**
  * tokens list comes from https://github.com/Giveth/giveth-next/blob/master/src/utils/erc20TokenList.js
@@ -113,7 +108,7 @@ const mainnetTokens = [
     decimals: 18
   },
   {
-    address: '0xNETWORK_IDS.XDAI86399dd8c1e3de736724af52587a2044c9fa2',
+    address: '0x10086399dd8c1e3de736724af52587a2044c9fa2',
     symbol: 'TMTG',
     name: 'The Midas Touch Gold',
     decimals: 18
@@ -221,7 +216,7 @@ const mainnetTokens = [
     decimals: 18
   },
   {
-    address: '0x039b5649a59967e3e936d7471f9c3700NETWORK_IDS.XDAIee1ab',
+    address: '0x039b5649a59967e3e936d7471f9c3700100ee1ab',
     symbol: 'KCS',
     name: 'KuCoin Shares',
     decimals: 6
@@ -281,7 +276,7 @@ const mainnetTokens = [
     decimals: 9
   },
   {
-    address: '0xbf2179859fc6d5bee9bf9158632dc51678a4NETWORK_IDS.XDAIe',
+    address: '0xbf2179859fc6d5bee9bf9158632dc51678a4100e',
     symbol: 'ELF',
     name: 'aelf',
     decimals: 18
