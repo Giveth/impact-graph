@@ -22,7 +22,7 @@ class DonationTracker {
     async track() {
         this.project = await Project.findOne({ id: this.donation.projectId })
 
-        if (this.donation.anonymous) {
+        if (!this.donation.anonymous) {
             this.userToNotify = await User.findOne({ id: Number(this.project?.admin) })
         } else {
             this.userToNotify = await User.findOne({ id: this.donation.userId })
