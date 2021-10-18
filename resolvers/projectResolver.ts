@@ -87,7 +87,13 @@ class WalletAddressIsValidResponse {
 
 enum OrderField {
   CreationDate = 'creationDate',
-  Balance = 'balance'
+  Balance = 'balance',
+  QualityScore = 'qualityScore',
+  Verified = 'verified',
+  Hearts = 'totalHearts',
+  Donations = 'totalDonations',
+  RecentlyAdded = 'recentProjects',
+  OldProjects = 'oldProjects'
 }
 
 enum OrderDirection {
@@ -149,9 +155,12 @@ class GetProjectsArgs {
   take: number
 
   @Field(type => OrderBy, {
-    defaultValue: { field: OrderField.Balance, direction: OrderDirection.DESC }
+    defaultValue: { field: OrderField.QualityScore, direction: OrderDirection.DESC }
   })
   orderBy: OrderBy
+
+  @Field(type => String, { nullable: true })
+  searchTerm: string
 
   @Field({ nullable: true })
   category: string
@@ -216,21 +225,11 @@ export class ProjectResolver {
 
   @Query(returns => [Project])
   async projects (
-    @Args() { take, skip, admin }: GetProjectsArgs
+    @Args() { take, skip, orderBy, searchTerm, category, admin }: GetProjectsArgs
   ): Promise<Project[]> {
-    let projects
-    let totalCount
-    ;[projects, totalCount] = await this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.reactions', 'reaction')
-      .leftJoinAndSelect('project.users', 'users')
-      .where('project.statusId = 5 AND project.listed = true')
-      .orderBy(`project.qualityScore`, 'DESC')
-      .limit(skip)
-      .take(take)
-      .innerJoinAndSelect('project.categories', 'c')
-      .getManyAndCount()
+    let projects = await Project.searchProjects(
+      take, skip, orderBy.field, orderBy.direction, category, searchTerm
+    )
 
     return projects
   }

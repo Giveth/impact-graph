@@ -9,7 +9,11 @@ import {
   JoinTable,
   BaseEntity,
   OneToMany,
-  Index
+  Index,
+  MoreThan,
+  LessThan,
+  Brackets,
+  SelectQueryBuilder
 } from 'typeorm'
 
 import { Organisation } from './organisation'
@@ -18,6 +22,8 @@ import { Reaction } from './reaction'
 import { Category } from './category'
 import { User } from './user'
 import { ProjectStatus } from './projectStatus'
+
+const moment = require('moment');
 
 @Entity()
 @ObjectType()
@@ -176,6 +182,64 @@ class Project extends BaseEntity {
 
   owner () {
     return this.users[0]
+  }
+
+  /**
+   * Custom Query Builders to chain together
+   */
+
+  static addCategoryQuery(query: SelectQueryBuilder<Project>, category: string) {
+    return query.innerJoin(
+      'project.categories',
+      'category',
+      'category.name = :category',
+      { category }
+    )
+  }
+
+  static addSearchQuery(query: SelectQueryBuilder<Project>, searchTerm: string) {
+    return query.andWhere(new Brackets(qb => {
+      qb.where('project.title ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+        .orWhere('project.description ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+        .orWhere('project.impactLocation ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+    }))
+  }
+
+  static addCustomDateQuery(query: SelectQueryBuilder<Project>, sortBy: string, direction: any) {
+    let thirtyDaysAgo = moment().subtract(30, 'days')
+
+    if (sortBy == "recentProjects") query.andWhere(new Brackets(qb => {
+      qb.where({ creationDate: MoreThan(thirtyDaysAgo) })
+    }))
+
+    if (sortBy == "oldProjects") query.andWhere(new Brackets(qb => {
+      qb.where({ creationDate: LessThan(thirtyDaysAgo) })
+    }))
+
+    return query.orderBy(`project.creationDate`, direction)
+  }
+
+  // Backward Compatible Projects Query with added pagination, frontend sorts and category search
+  static searchProjects(limit: number, offset: number, sortBy: string, direction: any, category: string, searchTerm: string) {
+    let query = this.createQueryBuilder("project")
+               .leftJoinAndSelect('project.status', 'status')
+               .leftJoinAndSelect('project.reactions', 'reaction')
+               .leftJoinAndSelect('project.users', 'users')
+               .innerJoinAndSelect('project.categories', 'c')
+               .where('project.statusId = 5 AND project.listed = true')
+
+    if (category && category != "") this.addCategoryQuery(query, category)
+    if (searchTerm && searchTerm != "") this.addSearchQuery(query, searchTerm)
+
+    if (sortBy == "recentProjects" || sortBy == "oldProjects") {
+      this.addCustomDateQuery(query, sortBy, direction)
+    } else {
+      query.orderBy(`project.${sortBy}`, direction)
+    }
+
+    return query.limit(limit)
+                .offset(offset)
+                .getMany()
   }
 }
 
