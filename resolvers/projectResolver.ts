@@ -41,9 +41,8 @@ import {
 } from 'type-graphql'
 
 function isSmartContract (provider) {
-  return async function (projectWalletAddress) {
+  return async  (projectWalletAddress) => {
     const code = await provider.getCode(projectWalletAddress)
-
     return code !== '0x'
   }
 }
@@ -64,7 +63,6 @@ enum ProjStatus {
   can = 6,
   del = 7
 }
-import { inspect } from 'util'
 import { errorMessages } from '../utils/errorMessages';
 
 @ObjectType()
@@ -227,7 +225,7 @@ export class ProjectResolver {
   async projects (
     @Args() { take, skip, orderBy, searchTerm, category, admin }: GetProjectsArgs
   ): Promise<Project[]> {
-    let projects = await Project.searchProjects(
+    const projects = await Project.searchProjects(
       take, skip, orderBy.field, orderBy.direction, category, searchTerm
     )
 
@@ -440,7 +438,7 @@ export class ProjectResolver {
       .getMany()
 
     function sum (items, prop) {
-      return items.reduce(function (a, b) {
+      return items.reduce( (a, b) => {
         return a + b[prop]
       }, 0)
     }
