@@ -1,5 +1,5 @@
 import { Donation } from '../../entities/donation';
-import DonationTracker from '../segment/donationTracker';
+import DonationTracker from '../segment/DonationTracker';
 import transakOrder from './order';
 /**
  * Will Update the Donation based on the Transak Order values
