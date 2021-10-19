@@ -178,6 +178,9 @@ export async function checkIfTransactionHasBeenSpeedup(data: {
     return { ...foundTransaction, speedup: true }
   }
 
+  // userRecentTransactions just includes the transactions that source is our fromAddress
+  // so if the lowest nonce in this array is smaller than the sent nonce we would know that we should not
+  // check latest transactions
   const smallestNonce: number = userRecentTransactions[
     userRecentTransactions.length - 1
   ].nonce as number
