@@ -8,6 +8,8 @@ import transakOrder from './order';
 class DonationUpdaterService {
     transakOrder: transakOrder
 
+    TRANSAK_COMPLETED_STATUSES = ["COMPLETED", "PAYMENT_DONE_MARKED_BY_USER"]
+
     constructor(decryptedOrderObject: transakOrder) {
         this.transakOrder = decryptedOrderObject;
     }
@@ -19,8 +21,10 @@ class DonationUpdaterService {
         donation.transakStatus = this.transakOrder.transakStatus;
         await donation.save()
 
-        const segmentDonation = new DonationTracker(donation, "Transak Donation Update")
-        await segmentDonation.track()
+        if (this.TRANSAK_COMPLETED_STATUSES.includes(this.transakOrder.transakStatus)) {
+            const segmentDonation = new DonationTracker(donation, "Transak Donation Update")
+            await segmentDonation.track()
+        }
     }
 }
 

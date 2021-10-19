@@ -11,6 +11,7 @@ class WebhookHandler {
     }
 
     execute() {
+        console.log("IT ENTERED HERE")
         this.decryptOrder()
         return this.updateOrderStatus()
     }
@@ -21,6 +22,7 @@ class WebhookHandler {
     }
 
     private updateOrderStatus() {
+        console.log(this.order)
         const donationUpdater = new donationUpdaterService(this.order)
         return donationUpdater.execute()
     }
