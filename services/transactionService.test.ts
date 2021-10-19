@@ -156,6 +156,26 @@ const getTransactionDetailTestCases = () => {
     )
   })
 
+  it('should return error when sent nonce didnt mine already', async () => {
+    const amount = 1760
+    const badFunc = async () => {
+      await getTransactionDetail({
+        txHash:
+          '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f32',
+        symbol: 'DAI',
+        networkId: NETWORK_IDS.MAIN_NET,
+        fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
+        toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
+        amount,
+        nonce: 99999999
+      })
+    }
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY
+    )
+  })
+
   it('should return transaction detail for DAI token transfer on mainnet when transaction is invalid but speedup', async () => {
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
     const amount = 1760
