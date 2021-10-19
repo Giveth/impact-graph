@@ -72,6 +72,9 @@ class AllProjects {
 
   @Field(type => Int)
   totalCount: number
+
+  @Field(type => [Category])
+  categories: Category[]
 }
 
 @ObjectType()
@@ -234,11 +237,12 @@ export class ProjectResolver {
   async projects (
     @Args() { take, skip, orderBy, searchTerm, category, admin }: GetProjectsArgs
   ): Promise<AllProjects> {
+    const categories = await Category.find()
     const [projects, totalCount] = await Project.searchProjects(
       take, skip, orderBy.field, orderBy.direction, category, searchTerm
     )
 
-    return { projects, totalCount }
+    return { projects, totalCount, categories }
   }
 
   @Query(returns => TopProjects)
