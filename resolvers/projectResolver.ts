@@ -66,6 +66,15 @@ enum ProjStatus {
 import { errorMessages } from '../utils/errorMessages';
 
 @ObjectType()
+class AllProjects {
+  @Field(type => [Project])
+  projects: Project[]
+
+  @Field(type => Int)
+  totalCount: number
+}
+
+@ObjectType()
 class TopProjects {
   @Field(type => [Project])
   projects: Project[]
@@ -221,15 +230,15 @@ export class ProjectResolver {
     private readonly projectImageRepository: Repository<ProjectImage>
   ) {}
 
-  @Query(returns => [Project])
+  @Query(returns => AllProjects)
   async projects (
     @Args() { take, skip, orderBy, searchTerm, category, admin }: GetProjectsArgs
-  ): Promise<Project[]> {
-    const projects = await Project.searchProjects(
+  ): Promise<AllProjects> {
+    const [projects, totalCount] = await Project.searchProjects(
       take, skip, orderBy.field, orderBy.direction, category, searchTerm
     )
 
-    return projects
+    return { projects, totalCount }
   }
 
   @Query(returns => TopProjects)

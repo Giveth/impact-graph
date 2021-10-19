@@ -211,7 +211,7 @@ class Project extends BaseEntity {
 
     return query.limit(limit)
                 .offset(offset)
-                .getMany()
+                .getManyAndCount()
   }
 
   @Field(type => Float, { nullable: true })
