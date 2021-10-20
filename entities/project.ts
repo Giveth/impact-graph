@@ -27,7 +27,7 @@ class Project extends BaseEntity {
   readonly id: number
 
   @Field()
-  @Column({ unique:true })
+  @Column()
   title: string
 
   @Index()
