@@ -65,15 +65,6 @@ class TopProjects {
   totalCount: number
 }
 
-@ObjectType()
-class WalletAddressIsValidResponse {
-  @Field(type => Boolean)
-  isValid: boolean
-
-  @Field(type => [String])
-  reasons: string[]
-}
-
 enum OrderField {
   CreationDate = 'creationDate',
   Balance = 'balance'
@@ -430,7 +421,7 @@ export class ProjectResolver {
       .getMany()
 
     function sum (items, prop) {
-      return items.reduce(function (a, b) {
+      return items.reduce( (a, b) =>{
         return a + b[prop]
       }, 0)
     }
@@ -906,7 +897,7 @@ export class ProjectResolver {
    * @param address wallet address
    * @returns
    */
-  @Query(returns => WalletAddressIsValidResponse)
+  @Query(returns => Boolean)
   async walletAddressIsValid (@Arg('address') address: string) {
     return validateProjectWalletAddress(address)
   }

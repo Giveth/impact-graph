@@ -7,7 +7,7 @@ export function isWalletAddressValid(address) {
   return Boolean(address && address.length === 42 && Web3.utils.isAddress(address))
 }
 
-export const validateProjectWalletAddress = async (walletAddress: string) => {
+export const validateProjectWalletAddress = async (walletAddress: string) :Promise <boolean>=> {
   if (!isWalletAddressValid(walletAddress)) {
     throw new Error(errorMessages.INVALID_WALLET_ADDRESS)
   }
@@ -18,8 +18,8 @@ export const validateProjectWalletAddress = async (walletAddress: string) => {
   const projectWithAddress = await Project.findOne({walletAddress})
   if (projectWithAddress) {
     throw new Error(`Eth address ${walletAddress} is already being used for a project`)
-
   }
+  return true;
 }
 
 export const isWalletAddressSmartContract = async (address: string): Promise<boolean> => {
