@@ -950,7 +950,11 @@ export class ProjectResolver {
 
   @Query(returns => Project, { nullable: true })
   projectByAddress (@Arg('address', type => String) address: string) {
-    return this.projectRepository.findOne({ walletAddress: address })
+    return this.projectRepository.createQueryBuilder('project')
+      .where(`lower("walletAddress")=lower(:address)`,{
+        address
+      })
+      .getOne()
   }
 
   async updateProjectStatus (
