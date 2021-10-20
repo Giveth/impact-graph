@@ -27,7 +27,7 @@ class Project extends BaseEntity {
   readonly id: number
 
   @Field()
-  @Column()
+  @Column({ unique:true })
   title: string
 
   @Index()
@@ -90,8 +90,8 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   stripeAccountId?: string
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Field()
+  @Column({ unique: true })
   walletAddress?: string
 
   @Field(type => Boolean)

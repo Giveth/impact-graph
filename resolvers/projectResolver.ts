@@ -40,18 +40,6 @@ import {
   Resolver
 } from 'type-graphql'
 
-function isSmartContract (provider) {
-  return async function (projectWalletAddress) {
-    const code = await provider.getCode(projectWalletAddress)
-
-    return code !== '0x'
-  }
-}
-
-const mainnetProvider = getProvider('mainnet')
-const xdaiProvider = getProvider('xdaiChain')
-const isSmartContractMainnet = isSmartContract(mainnetProvider)
-const isSmartContractXDai = isSmartContract(xdaiProvider)
 
 const analytics = getAnalytics()
 
@@ -66,6 +54,7 @@ enum ProjStatus {
 }
 import { inspect } from 'util'
 import { errorMessages } from '../utils/errorMessages';
+import { isWalletAddressSmartContract, validateProjectWalletAddress } from '../utils/validators/projectValidator';
 
 @ObjectType()
 class TopProjects {
@@ -548,6 +537,7 @@ export class ProjectResolver {
     if (categories.length > 5){
       throw new Error(errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE)
     }
+    await validateProjectWalletAddress(projectInput.walletAddress as string)
     const slugBase = slugify(projectInput.title)
     const slug = await this.getAppropriateSlug(slugBase)
     const status = await this.projectStatusRepository.findOne({
@@ -908,18 +898,7 @@ export class ProjectResolver {
 
   @Query(returns => Boolean)
   async isWalletSmartContract (@Arg('address') address: string) {
-    const isContractPromises: any = []
-    isContractPromises.push(isSmartContractMainnet(address))
-    isContractPromises.push(isSmartContractXDai(address))
-
-    return Promise.all(isContractPromises).then(promises => {
-      const [isSmartContractOnMainnet, isSmartContractOnXDai] = promises
-      if (isSmartContractOnMainnet || isSmartContractOnXDai) {
-        return true
-      } else {
-        return false
-      }
-    })
+    return isWalletAddressSmartContract(address)
   }
 
   /**
@@ -929,23 +908,7 @@ export class ProjectResolver {
    */
   @Query(returns => WalletAddressIsValidResponse)
   async walletAddressIsValid (@Arg('address') address: string) {
-    const isSmartContractWallet = await this.isWalletSmartContract(address)
-    const reasons: string[] = []
-    if (isSmartContractWallet) {
-      reasons.push('smart-contract')
-    }
-    const projectWithAddress = await this.projectByAddress(address)
-    const addressUsed = !!projectWithAddress
-
-    if (addressUsed) {
-      reasons.push('address-used')
-    }
-
-    const isValid = !isSmartContractWallet && (addressUsed ? false : true)
-    return {
-      isValid,
-      reasons
-    }
+    return validateProjectWalletAddress(address)
   }
 
   @Query(returns => Project, { nullable: true })
