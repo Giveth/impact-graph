@@ -12,17 +12,58 @@ export const NETWORK_IDS = {
   XDAI: 100,
   BSC: 56
 }
+
 const NETWORK_NAMES = {
   BSC: 'bsc',
   XDAI: 'xdaichain',
   MAINNET: 'mainnet',
   ROPSTEN: 'ropsten'
 }
+
+const NETWORK_NATIVE_TOKENS = {
+  BSC: 'BNB',
+  XDAI: 'XDAI',
+  MAINNET: 'ETH',
+  ROPSTEN: 'ETH'
+}
+
+const networkNativeTokensList = [
+  {
+    networkName: NETWORK_NAMES.BSC,
+    networkId: NETWORK_IDS.BSC,
+    nativeToken: NETWORK_NATIVE_TOKENS.BSC
+  },
+  {
+    networkName: NETWORK_NAMES.MAINNET,
+    networkId: NETWORK_IDS.MAIN_NET,
+    nativeToken: NETWORK_NATIVE_TOKENS.MAINNET
+  },
+  {
+    networkName: NETWORK_NAMES.XDAI,
+    networkId: NETWORK_IDS.XDAI,
+    nativeToken: NETWORK_NATIVE_TOKENS.XDAI
+  },
+  {
+    networkName: NETWORK_NAMES.ROPSTEN,
+    networkId: NETWORK_IDS.ROPSTEN,
+    nativeToken: NETWORK_NATIVE_TOKENS.ROPSTEN
+  }
+]
 const NETWORK_ID_MAP = {
   1: NETWORK_NAMES.MAINNET,
   3: NETWORK_NAMES.ROPSTEN,
   100: NETWORK_NAMES.XDAI,
   56: NETWORK_NAMES.BSC
+}
+
+export function getNetworkNativeToken(networkId: number): string {
+  const networkInfo = networkNativeTokensList.find(item => {
+    return item.networkId === networkId
+  })
+  if (!networkInfo) {
+    throw new Error(errorMessages.INVALID_NETWORK_ID)
+  }
+  return networkInfo.nativeToken
 }
 
 const mainnetNodeUrl = `https://${NETWORK_NAMES.MAINNET}.infura.io/v3/${INFURA_API_KEY}`

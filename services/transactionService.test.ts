@@ -82,9 +82,10 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction when transactionHash is wrong because of speedup in mainnet', async () => {
     const amount = 0.04
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
+    const txHash =
+      '0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da21'
     const transactionInfo = await getTransactionDetail({
-      txHash:
-        '0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da21',
+      txHash,
       symbol: 'ETH',
       networkId: NETWORK_IDS.MAIN_NET,
       fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
@@ -95,7 +96,7 @@ const getTransactionDetailTestCases = () => {
     assert.isOk(transactionInfo)
     assert.equal(transactionInfo.currency, 'ETH')
     assert.equal(transactionInfo.amount, amount)
-    assert.equal(transactionInfo.speedup, true)
+    assert.notEqual(transactionInfo.hash, txHash)
   })
   it('should return transaction detail for DAI token transfer on mainnet', async () => {
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
@@ -179,9 +180,10 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction detail for DAI token transfer on mainnet when transaction is invalid but speedup', async () => {
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
     const amount = 1760
+    const txHash =
+      '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e871229'
     const transactionInfo = await getTransactionDetail({
-      txHash:
-        '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e871229',
+      txHash,
       symbol: 'DAI',
       networkId: NETWORK_IDS.MAIN_NET,
       fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
@@ -192,7 +194,7 @@ const getTransactionDetailTestCases = () => {
     assert.isOk(transactionInfo)
     assert.equal(transactionInfo.currency, 'DAI')
     assert.equal(transactionInfo.amount, amount)
-    assert.isTrue(transactionInfo.speedup)
+    assert.notEqual(transactionInfo.hash, txHash)
   })
   it('should return transaction detail for normal transfer on ropsten', async () => {
     // https://ropsten.etherscan.io/tx/0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7
@@ -213,9 +215,10 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction when transactionHash is wrong because of speedup on ropsten', async () => {
     // https://ropsten.etherscan.io/tx/0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7
     const amount = 0.001
+    const txHash =
+      '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e331234'
     const transactionInfo = await getTransactionDetail({
-      txHash:
-        '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e331234',
+      txHash,
       symbol: 'ETH',
       networkId: NETWORK_IDS.ROPSTEN,
       fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
@@ -226,7 +229,7 @@ const getTransactionDetailTestCases = () => {
     assert.isOk(transactionInfo)
     assert.equal(transactionInfo.currency, 'ETH')
     assert.equal(transactionInfo.amount, amount)
-    assert.isTrue(transactionInfo.speedup)
+    assert.notEqual(transactionInfo.hash, txHash)
     assert.equal(
       transactionInfo.hash,
       '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7'

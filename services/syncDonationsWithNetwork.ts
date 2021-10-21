@@ -72,7 +72,7 @@ verifyDonationsQueue.process(
         symbol: donation.currency,
         txHash: donation.transactionId
       })
-      if (transaction.speedup) {
+      if (transaction.hash !== donation.transactionId) {
         donation.speedup = true
       }
       donation.status = DONATION_STATUS.VERIFIED

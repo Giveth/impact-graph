@@ -9,8 +9,8 @@ import axios from 'axios'
 import { erc20ABI } from '../assets/erc20ABI'
 import {
   getEtherscanOrBlockScoutUrl,
-  getNetworkWeb3,
-  NETWORK_IDS
+  getNetworkNativeToken,
+  getNetworkWeb3
 } from '../provider'
 
 abiDecoder.addABI(erc20ABI)
@@ -18,13 +18,13 @@ abiDecoder.addABI(erc20ABI)
 export async function getTransactionDetail(
   input: TransactionDetailInput
 ): Promise<NetworkTransactionInfo> {
-  const { symbol, networkId } = input
+  const { symbol, networkId, nonce } = input
 
-  const web3 = getNetworkWeb3(input.networkId)
+  const web3 = getNetworkWeb3(networkId)
   const userTransactionsCount = await web3.eth.getTransactionCount(
     input.fromAddress
   )
-  if (input.nonce && userTransactionsCount <= input.nonce) {
+  if (nonce && userTransactionsCount <= nonce) {
     console.log('getTransactionDetail check nonce', {
       input,
       userTransactionsCount
@@ -35,46 +35,23 @@ export async function getTransactionDetail(
   }
   let transaction: NetworkTransactionInfo | null
 
-  // we fill it if this is token transfer
-  let contractAddress
-  if (
-    (symbol === 'ETH' && networkId === NETWORK_IDS.MAIN_NET) ||
-    (symbol === 'ETH' && networkId === NETWORK_IDS.ROPSTEN) ||
-    (symbol === 'XDAI' && networkId === NETWORK_IDS.XDAI)
-  ) {
+  const nativeToken = getNetworkNativeToken(input.networkId)
+  if (nativeToken === symbol) {
     transaction = await getTransactionDetailForNormalTransfer(input)
   } else {
-    const token = findTokenByNetworkAndSymbol(networkId, symbol)
-    contractAddress = token.address
-    transaction = await getTransactionDetailForTokenTransfer(input, token)
+    transaction = await getTransactionDetailForTokenTransfer(input)
   }
 
-  if (input.nonce && !transaction) {
+  if (!transaction && nonce) {
     // if nonce didn't pass, we can not understand whether is speedup or not
-    transaction = await checkIfTransactionHasBeenSpeedup({
-      input,
-      contractAddress
+    transaction = await findTransactionByNonce({
+      input
     })
-  } else if (!transaction) {
+  }
+  if (!transaction) {
     throw new Error(errorMessages.TRANSACTION_NOT_FOUND)
   }
-
-  //TODO check amount
-
-  if (transaction.to.toLowerCase() !== input.toAddress.toLowerCase()) {
-    throw new Error(
-      errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS
-    )
-  }
-
-  if (
-    transaction &&
-    transaction.from.toLowerCase() !== input.fromAddress.toLowerCase()
-  ) {
-    throw new Error(
-      errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS
-    )
-  }
+  validateTransactionWithInputData(transaction, input)
   return transaction
 }
 
@@ -97,14 +74,10 @@ async function getTransactionDetailForNormalTransfer(
 }
 
 async function getTransactionDetailForTokenTransfer(
-  input: TransactionDetailInput,
-  token: {
-    address: string
-    symbol: string
-    decimals: number
-  }
+  input: TransactionDetailInput
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId } = input
+  const token = findTokenByNetworkAndSymbol(networkId, symbol)
   const web3 = getNetworkWeb3(networkId)
   const transaction = await web3.eth.getTransaction(txHash)
   console.log('getTransactionDetailForTokenTransfer', { transaction, input })
@@ -137,49 +110,45 @@ async function getTransactionDetailForTokenTransfer(
   }
 }
 
-export async function checkIfTransactionHasBeenSpeedup(data: {
+export async function findTransactionByNonce(data: {
   input: TransactionDetailInput
   page?: number
-  contractAddress?: string
-}): Promise<NetworkTransactionInfo> {
-  console.log('checkIfTransactionHasBeenSpeedup called', data)
-  const { input, page = 1, contractAddress } = data
+}): Promise<NetworkTransactionInfo | null> {
+  console.log('findTransactionByNonce called', data)
+  const { input, page = 1 } = data
   const nonce = input.nonce as number
-  const { userRecentTransactions, isTransactionListEmpty } = contractAddress
-    ? await getListOfTokenTransferTransactionsByAddress({
-        address: input.fromAddress,
-        page,
-        networkId: input.networkId,
-        contractAddress
-      })
-    : await getListOfNormalTransactionsByAddress({
-        address: input.fromAddress,
-        page,
-        networkId: input.networkId
-      })
+  const { userRecentTransactions, isTransactionListEmpty } =
+    await getListOfNormalTransactionsByAddress({
+      address: input.fromAddress,
+      page,
+      networkId: input.networkId
+    })
   if (isTransactionListEmpty) {
     // we know that we reached to end of transactions
-    console.log(
-      'checkIfTransactionHasBeenSpeedup, no more found donations for address',
-      {
-        page,
-        address: input.fromAddress,
-        contractAddress
-      }
-    )
+    console.log('findTransactionByNonce, no more found donations for address', {
+      page,
+      address: input.fromAddress
+    })
     throw new Error(errorMessages.TRANSACTION_NOT_FOUND)
   }
   const foundTransaction = userRecentTransactions.find(
     tx => tx.nonce === input.nonce
   )
-  // if (
-  //   foundTransaction &&
-  //   foundTransaction.to.toLowerCase() === input.toAddress.toLowerCase() &&
-  //   foundTransaction.amount === input.amount
-  // ) {
-  //   return { ...foundTransaction, speedup: true }
-  // }
-  return { ...foundTransaction, speedup: true }
+
+  if (foundTransaction) {
+    console.log('findTransactionByNonce foundTransaction', foundTransaction)
+  }
+  // if we dont use  as NetworkTransactionInfo, we can access to amount field
+  if (foundTransaction && (foundTransaction as NetworkTransactionInfo).amount) {
+    // we have a normal transfer and we have the transaction info
+    return foundTransaction as NetworkTransactionInfo
+  } else if (foundTransaction) {
+    // we have token transfer and should get the transactionInfo
+    return getTransactionDetailForTokenTransfer({
+      ...input,
+      txHash: foundTransaction.hash
+    })
+  }
 
   // userRecentTransactions just includes the transactions that source is our fromAddress
   // so if the lowest nonce in this array is smaller than the sent nonce we would know that we should not
@@ -198,10 +167,9 @@ export async function checkIfTransactionHasBeenSpeedup(data: {
     throw new Error(errorMessages.TRANSACTION_NOT_FOUNT_IN_USER_HISTORY)
   }
 
-  return checkIfTransactionHasBeenSpeedup({
+  return findTransactionByNonce({
     input,
-    page: page + 1,
-    contractAddress
+    page: page + 1
   })
 }
 
@@ -215,7 +183,13 @@ async function getListOfNormalTransactionsByAddress(input: {
   page?: number
   offset?: number
 }): Promise<{
-  userRecentTransactions: NetworkTransactionInfo[]
+  userRecentTransactions: (
+    | {
+        hash: string
+        nonce: number
+      }
+    | NetworkTransactionInfo
+  )[]
   isTransactionListEmpty: boolean
 }> {
   const { address, page, offset, networkId } = input
@@ -236,13 +210,22 @@ async function getListOfNormalTransactionsByAddress(input: {
       return tx.from.toLowerCase() === input.address.toLowerCase()
     })
     .map(tx => {
+      const hash = tx.hash
+      const nonce = Number(tx.nonce)
+      if (tx.value === '0') {
+        // in this case we know it's a token transfer (smart contract call)
+        return {
+          hash,
+          nonce
+        }
+      }
       return {
-        hash: tx.hash,
-        nonce: Number(tx.nonce),
+        hash,
+        nonce,
         amount: Number(tx.value) / 10 ** 18,
         from: tx.from,
         to: tx.to,
-        currency: networkId === NETWORK_IDS.XDAI ? 'XDAI' : 'ETH'
+        currency: getNetworkNativeToken(networkId)
       }
     })
   return {
@@ -250,67 +233,25 @@ async function getListOfNormalTransactionsByAddress(input: {
     isTransactionListEmpty: result.data.result.length === 0
   }
 }
-async function getListOfTokenTransferTransactionsByAddress(input: {
-  networkId: number
-  address: string
-  contractAddress: string
-  page?: number
-  offset?: number
-}): Promise<{
-  userRecentTransactions: NetworkTransactionInfo[]
-  isTransactionListEmpty: boolean
-}> {
-  console.log('getListOfTokenTransferTransactionsByAddress called', input)
-  const { address, networkId, contractAddress } = input
-  const page = input.page || 1
-  const offset = input.offset || 1000
-  // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-erc20-token-transfer-events-by-address
-  // https://blockscout.com/xdai/mainnet/api-docs#account
-  const result = await axios.get(getEtherscanOrBlockScoutUrl(networkId), {
-    params: {
-      module: 'account',
-      action: 'tokentx',
-      page,
-      offset,
-      address,
-      contractAddress,
-      sort: 'desc'
-    }
-  })
-  if (
-    !result.data ||
-    !result.data.result ||
-    !Array.isArray(result.data.result)
-  ) {
-    console.log(
-      'getListOfTokenTransferTransactionsByAddress transactions are empty',
-      {
-        networkId,
-        page,
-        offset,
-        address,
-        contractAddress,
-        response: result.data
-      }
+
+function validateTransactionWithInputData(
+  transaction: NetworkTransactionInfo,
+  input: TransactionDetailInput
+): never | void {
+  if (transaction.to.toLowerCase() !== input.toAddress.toLowerCase()) {
+    throw new Error(
+      errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS
     )
-    throw new Error(errorMessages.TRANSACTION_NOT_FOUNT_IN_USER_HISTORY)
   }
-  const userRecentTransactions = result.data.result
-    .filter(tx => {
-      return tx.from.toLowerCase() === input.address.toLowerCase()
-    })
-    .map(tx => {
-      return {
-        hash: tx.hash,
-        nonce: Number(tx.nonce),
-        amount: Number(tx.value) / 10 ** Number(tx.tokenDecimal),
-        from: tx.from,
-        to: tx.to,
-        currency: tx.tokenSymbol
-      }
-    })
-  return {
-    userRecentTransactions,
-    isTransactionListEmpty: result.data.result.length === 0
+
+  if (transaction.from.toLowerCase() !== input.fromAddress.toLowerCase()) {
+    throw new Error(
+      errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS
+    )
+  }
+  if (transaction.amount !== input.amount) {
+    throw new Error(
+      errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT
+    )
   }
 }
