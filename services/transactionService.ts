@@ -24,7 +24,7 @@ export async function getTransactionDetail(
   const userTransactionsCount = await web3.eth.getTransactionCount(
     input.fromAddress
   )
-  if (input.nonce && userTransactionsCount < input.nonce) {
+  if (input.nonce && userTransactionsCount <= input.nonce) {
     console.log('getTransactionDetail check nonce', {
       input,
       userTransactionsCount
@@ -58,6 +58,8 @@ export async function getTransactionDetail(
   } else if (!transaction) {
     throw new Error(errorMessages.TRANSACTION_NOT_FOUND)
   }
+
+  //TODO check amount
 
   if (transaction.to.toLowerCase() !== input.toAddress.toLowerCase()) {
     throw new Error(
@@ -170,13 +172,14 @@ export async function checkIfTransactionHasBeenSpeedup(data: {
   const foundTransaction = userRecentTransactions.find(
     tx => tx.nonce === input.nonce
   )
-  if (
-    foundTransaction &&
-    foundTransaction.to.toLowerCase() === input.toAddress.toLowerCase() &&
-    foundTransaction.amount === input.amount
-  ) {
-    return { ...foundTransaction, speedup: true }
-  }
+  // if (
+  //   foundTransaction &&
+  //   foundTransaction.to.toLowerCase() === input.toAddress.toLowerCase() &&
+  //   foundTransaction.amount === input.amount
+  // ) {
+  //   return { ...foundTransaction, speedup: true }
+  // }
+  return { ...foundTransaction, speedup: true }
 
   // userRecentTransactions just includes the transactions that source is our fromAddress
   // so if the lowest nonce in this array is smaller than the sent nonce we would know that we should not
