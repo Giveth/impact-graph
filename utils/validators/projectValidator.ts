@@ -22,6 +22,23 @@ export const validateProjectWalletAddress = async (walletAddress: string) :Promi
   return true;
 }
 
+export const validateProjectTitle = async (title: string) :Promise <boolean>=> {
+  const validTitleRegex = /^\w+$/.test(title.replace(/\s/g, ''))
+  if (!validTitleRegex){
+    throw new Error(errorMessages.INVALID_PROJECT_TITLE)
+  }
+  const projectWithThisTitle = await Project.createQueryBuilder('project')
+    .where(`lower("title")=lower(:title)`,{
+      title
+    }).getCount()
+
+  console.log('validateProjectTitle projectWithThisTitle', projectWithThisTitle)
+  if (projectWithThisTitle > 0) {
+    throw new Error(errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS)
+  }
+  return true;
+}
+
 export const isWalletAddressSmartContract = async (address: string): Promise<boolean> => {
   const mainnetProvider = getProvider('mainnet')
   const xdaiProvider = getProvider('xdaiChain')

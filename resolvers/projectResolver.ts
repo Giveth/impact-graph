@@ -54,7 +54,11 @@ enum ProjStatus {
 }
 import { inspect } from 'util'
 import { errorMessages } from '../utils/errorMessages';
-import { isWalletAddressSmartContract, validateProjectWalletAddress } from '../utils/validators/projectValidator';
+import {
+  isWalletAddressSmartContract,
+  validateProjectTitle,
+  validateProjectWalletAddress
+} from '../utils/validators/projectValidator';
 
 @ObjectType()
 class TopProjects {
@@ -900,6 +904,16 @@ export class ProjectResolver {
   @Query(returns => Boolean)
   async walletAddressIsValid (@Arg('address') address: string) {
     return validateProjectWalletAddress(address)
+  }
+
+  /**
+   * Can a project use this title?
+   * @param title
+   * @returns
+   */
+  @Query(returns => Boolean)
+  async isValidTitleForProject (@Arg('title') title: string) {
+    return validateProjectTitle(title)
   }
 
   @Query(returns => Project, { nullable: true })
