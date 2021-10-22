@@ -22,18 +22,22 @@ export const validateProjectWalletAddress = async (walletAddress: string) :Promi
   return true;
 }
 
+const getSimilarTitleInTraceRegex = (title:string ):string => {
+  return new RegExp(`^\\s*${title.replace(/^\s+|\s+$|\s+(?=\s)/g, '')}\\s*$`, 'i').source;
+};
+
 export const validateProjectTitle = async (title: string) :Promise <boolean>=> {
-  const validTitleRegex = /^\w+$/.test(title.replace(/\s/g, ''))
-  if (!validTitleRegex){
+  const isTitleValid = /^\w+$/.test(title.replace(/\s/g, ''))
+  if (!isTitleValid){
     throw new Error(errorMessages.INVALID_PROJECT_TITLE)
   }
-  const projectWithThisTitle = await Project.createQueryBuilder('project')
-    .where(`lower("title")=lower(:title)`,{
-      title
-    }).getCount()
+  const regex = getSimilarTitleInTraceRegex(title)
+  console.log('regex', regex)
+  const projectWithThisTitle = await Project.query(
+    `SELECT title , REGEXP_MATCHES(title, '${regex}','i') FROM project;`)
 
-  console.log('validateProjectTitle projectWithThisTitle', projectWithThisTitle)
-  if (projectWithThisTitle > 0) {
+  if (projectWithThisTitle.length > 0) {
+    console.log('validateProjectTitle projectWithThisTitle', projectWithThisTitle)
     throw new Error(errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS)
   }
   return true;
