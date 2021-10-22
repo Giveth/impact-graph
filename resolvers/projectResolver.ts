@@ -366,6 +366,10 @@ export class ProjectResolver {
       !!imageUpload,
       heartCount
     )
+    if(newProjectData.title !== project.title){
+      await validateProjectTitle(newProjectData.title)
+    }
+
     const slugBase = slugify(newProjectData.title)
     const newSlug = await this.getAppropriateSlug(slugBase)
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)){
@@ -533,6 +537,7 @@ export class ProjectResolver {
       throw new Error(errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE)
     }
     await validateProjectWalletAddress(projectInput.walletAddress as string)
+    await validateProjectTitle(projectInput.title)
     const slugBase = slugify(projectInput.title)
     const slug = await this.getAppropriateSlug(slugBase)
     const status = await this.projectStatusRepository.findOne({
