@@ -1,5 +1,5 @@
 import { Donation, DONATION_STATUS } from '../entities/donation'
-import { getTransactionDetail } from './transactionService'
+import { getTransactionInfoFromNetwork } from './transactionService'
 import { errorMessages } from '../utils/errorMessages'
 import { schedule } from 'node-cron'
 
@@ -29,7 +29,8 @@ export const runCheckPendingDonationsCronJob = () => {
 const addJobToCheckPendingDonationsWithNetwork = async () => {
   const donations = await Donation.find({
     where: {
-      status: DONATION_STATUS.PENDING
+      status: DONATION_STATUS.PENDING,
+      isFiat: false
     },
     select: ['id']
   })
@@ -63,7 +64,7 @@ verifyDonationsQueue.process(
         await donation.save()
         return done()
       }
-      const transaction = await getTransactionDetail({
+      const transaction = await getTransactionInfoFromNetwork({
         nonce: donation.nonce,
         networkId: donation.transactionNetworkId,
         toAddress: donation.toWalletAddress,
@@ -72,10 +73,11 @@ verifyDonationsQueue.process(
         symbol: donation.currency,
         txHash: donation.transactionId
       })
+      donation.status = DONATION_STATUS.VERIFIED
       if (transaction.hash !== donation.transactionId) {
         donation.speedup = true
+        donation.transactionId = transaction.hash
       }
-      donation.status = DONATION_STATUS.VERIFIED
       await donation.save()
       console.log('donation and transaction', {
         transaction,

@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 import 'mocha'
-import { getTransactionDetail } from './transactionService'
+import { getTransactionInfoFromNetwork } from './transactionService'
 import { assertThrowsAsync } from '../test/testUtils'
 import { errorMessages } from '../utils/errorMessages'
 import { NETWORK_IDS } from '../provider'
@@ -9,7 +9,7 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction detail for normal transfer on mainnet', async () => {
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
     const amount = 0.04
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a',
       symbol: 'ETH',
@@ -26,7 +26,7 @@ const getTransactionDetailTestCases = () => {
     const amount = 0.04
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
     const badFunc = async () => {
-      await getTransactionDetail({
+      await getTransactionInfoFromNetwork({
         txHash:
           '0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da21',
         symbol: 'ETH',
@@ -43,7 +43,7 @@ const getTransactionDetailTestCases = () => {
     const amount = 0.04
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
     const badFunc = async () => {
-      await getTransactionDetail({
+      await getTransactionInfoFromNetwork({
         txHash:
           '0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a',
         symbol: 'ETH',
@@ -63,7 +63,7 @@ const getTransactionDetailTestCases = () => {
     const amount = 0.04
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
     const badFunc = async () => {
-      await getTransactionDetail({
+      await getTransactionInfoFromNetwork({
         txHash:
           '0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a',
         symbol: 'ETH',
@@ -84,7 +84,7 @@ const getTransactionDetailTestCases = () => {
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
     const txHash =
       '0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da21'
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash,
       symbol: 'ETH',
       networkId: NETWORK_IDS.MAIN_NET,
@@ -101,7 +101,7 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction detail for DAI token transfer on mainnet', async () => {
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
     const amount = 1760
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
       symbol: 'DAI',
@@ -119,7 +119,7 @@ const getTransactionDetailTestCases = () => {
     const amount = 1760
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
     const badFunc = async () => {
-      await getTransactionDetail({
+      await getTransactionInfoFromNetwork({
         txHash:
           '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
         symbol: 'DAI',
@@ -140,7 +140,7 @@ const getTransactionDetailTestCases = () => {
     const amount = 1760
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
     const badFunc = async () => {
-      await getTransactionDetail({
+      await getTransactionInfoFromNetwork({
         txHash:
           '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
         symbol: 'DAI',
@@ -160,7 +160,7 @@ const getTransactionDetailTestCases = () => {
   it('should return error when sent nonce didnt mine already', async () => {
     const amount = 1760
     const badFunc = async () => {
-      await getTransactionDetail({
+      await getTransactionInfoFromNetwork({
         txHash:
           '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f32',
         symbol: 'DAI',
@@ -182,7 +182,7 @@ const getTransactionDetailTestCases = () => {
     const amount = 1760
     const txHash =
       '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e871229'
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash,
       symbol: 'DAI',
       networkId: NETWORK_IDS.MAIN_NET,
@@ -199,7 +199,7 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction detail for normal transfer on ropsten', async () => {
     // https://ropsten.etherscan.io/tx/0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7
     const amount = 0.001
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7',
       symbol: 'ETH',
@@ -217,7 +217,7 @@ const getTransactionDetailTestCases = () => {
     const amount = 0.001
     const txHash =
       '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e331234'
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash,
       symbol: 'ETH',
       networkId: NETWORK_IDS.ROPSTEN,
@@ -238,7 +238,7 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction detail for normal transfer on xdai', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c734
     const amount = 0.001
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c734',
       symbol: 'XDAI',
@@ -254,7 +254,7 @@ const getTransactionDetailTestCases = () => {
   it('should return error when transactionHash is wrong on  xdai', async () => {
     const amount = 0.001
     const badFunc = async () => {
-      await getTransactionDetail({
+      await getTransactionInfoFromNetwork({
         txHash:
           '0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c722',
         symbol: 'XDAI',
@@ -270,7 +270,7 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction when transactionHash is wrong because of speedup in xdai', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c734
     const amount = 0.001
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c722',
       symbol: 'XDAI',
@@ -287,7 +287,7 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction detail for HNY token transfer on XDAI', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x99e70642fe1aa03cb2db35c3e3909466e66b233840b7b1e0dd47296c878c16b4
     const amount = 0.001
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x99e70642fe1aa03cb2db35c3e3909466e66b233840b7b1e0dd47296c878c16b4',
       symbol: 'HNY',
@@ -303,7 +303,7 @@ const getTransactionDetailTestCases = () => {
   it('should return transaction detail for HNY token transfer on when transaction is invalid but speedup ', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x99e70642fe1aa03cb2db35c3e3909466e66b233840b7b1e0dd47296c878c16b4
     const amount = 0.001
-    const transactionInfo = await getTransactionDetail({
+    const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x99e70642fe1aa03cb2db35c3e3909466e66b233840b7b1e0dd47296c878c1234',
       symbol: 'HNY',

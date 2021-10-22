@@ -25,8 +25,9 @@ export class Donation extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Field({ nullable: true })
-  @Column({ nullable: true, unique: true })
+  @Field()
+  @Column({ unique: true })
+  // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string
 
   @Field()
@@ -49,6 +50,10 @@ export class Donation extends BaseEntity {
   @Field()
   @Column('boolean', { default: false })
   speedup: boolean
+
+  @Field()
+  @Column('boolean', { default: false })
+  isFiat: boolean
 
   @Field()
   @Column()
