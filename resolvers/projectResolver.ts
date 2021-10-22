@@ -100,7 +100,7 @@ enum OrderField {
   Balance = 'balance',
   QualityScore = 'qualityScore',
   Verified = 'verified',
-  Hearts = 'totalHearts',
+  Reactions = 'reactions',
   Donations = 'totalDonations',
   RecentlyAdded = 'recentProjects',
   OldProjects = 'oldProjects'

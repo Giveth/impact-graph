@@ -191,11 +191,35 @@ class Project extends BaseEntity {
     return query.orderBy(`project.creationDate`, direction)
   }
 
+  // Precalculates de amount of reactions and alias it during query execution for ordering
+  static addReactionsCountQuery(query: SelectQueryBuilder<Project>, direction: any) {
+    return query.addSelect((subQuery) => {
+      return subQuery
+          .select('COUNT(r.id)', 'count')
+          .from(Reaction, 'r')
+          .where('r.projectId = project.id');
+      }, 'count')
+    .orderBy('count', direction)
+  }
+
+  // Precalculates the sum of donations and alias it during query execution for ordering
+  static addTotalDonationsQuery(query: SelectQueryBuilder<Project>, direction: any) {
+    query.addSelect('SUM(donations.amount) as totalDonated')
+         .groupBy('project.id, donations.id, reactions.id, status.id, users.id, c.id')
+
+    if (direction === 'ASC') {
+      return query.orderBy('totalDonated', direction, 'NULLS FIRST')
+    } else {
+      return query.orderBy('totalDonated', direction, 'NULLS LAST')
+    }
+  }
+
   // Backward Compatible Projects Query with added pagination, frontend sorts and category search
   static searchProjects(limit: number, offset: number, sortBy: string, direction: any, category: string, searchTerm: string) {
     const query = this.createQueryBuilder('project')
                .leftJoinAndSelect('project.status', 'status')
-               .leftJoinAndSelect('project.reactions', 'reaction')
+               .leftJoinAndSelect('project.donations', 'donations')
+               .leftJoinAndSelect('project.reactions', 'reactions')
                .leftJoinAndSelect('project.users', 'users')
                .innerJoinAndSelect('project.categories', 'c')
                .where('project.statusId = 5 AND project.listed = true')
@@ -205,6 +229,10 @@ class Project extends BaseEntity {
 
     if (sortBy === 'recentProjects' || sortBy === 'oldProjects') {
       this.addCustomDateQuery(query, sortBy, direction)
+    } else if (sortBy === 'reactions') {
+      this.addReactionsCountQuery(query, direction)
+    } else if (sortBy === 'totalDonations') {
+      this.addTotalDonationsQuery(query, direction)
     } else {
       query.orderBy(`project.${sortBy}`, direction)
     }
