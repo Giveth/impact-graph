@@ -177,6 +177,27 @@ const getTransactionDetailTestCases = () => {
     )
   })
 
+  it('should return error when transaction amount is different with donation amount', async () => {
+    // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
+    const amount = 1730
+    const badFunc = async () => {
+      await getTransactionInfoFromNetwork({
+        txHash:
+          '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
+        symbol: 'DAI',
+        networkId: NETWORK_IDS.MAIN_NET,
+        fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
+        toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
+        amount,
+        nonce: 4
+      })
+    }
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT
+    )
+  })
+
   it('should return transaction detail for DAI token transfer on mainnet when transaction is invalid but speedup', async () => {
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
     const amount = 1760
@@ -196,6 +217,7 @@ const getTransactionDetailTestCases = () => {
     assert.equal(transactionInfo.amount, amount)
     assert.notEqual(transactionInfo.hash, txHash)
   })
+
   it('should return transaction detail for normal transfer on ropsten', async () => {
     // https://ropsten.etherscan.io/tx/0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7
     const amount = 0.001
