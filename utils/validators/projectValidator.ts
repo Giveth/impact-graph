@@ -22,7 +22,7 @@ export const validateProjectWalletAddress = async (walletAddress: string) :Promi
   return true;
 }
 
-const getSimilarTitleInTraceRegex = (title:string ):string => {
+const getSimilarTitleInProjectsRegex = (title:string ):string => {
   return new RegExp(`^\\s*${title.replace(/^\s+|\s+$|\s+(?=\s)/g, '')}\\s*$`, 'i').source;
 };
 
@@ -31,7 +31,7 @@ export const validateProjectTitle = async (title: string) :Promise <boolean>=> {
   if (!isTitleValid){
     throw new Error(errorMessages.INVALID_PROJECT_TITLE)
   }
-  const regex = getSimilarTitleInTraceRegex(title)
+  const regex = getSimilarTitleInProjectsRegex(title)
   console.log('regex', regex)
   const projectWithThisTitle = await Project.query(
     `SELECT title , REGEXP_MATCHES(title, '${regex}','i') FROM project;`)
