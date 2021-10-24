@@ -23,7 +23,6 @@ export const errorMessages = {
   TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY:
     'Transaction with this nonce is not mined already',
   TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS:
-    'toAddress of donation should be equal to project wallet address'
-  USER_NOT_FOUND: 'User not found.',
+    'toAddress of donation should be equal to project wallet address',
   INVALID_WALLET_ADDRESS: 'Eth address not valid'
 }
