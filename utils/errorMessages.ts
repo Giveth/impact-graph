@@ -9,6 +9,8 @@ export const errorMessages = {
     'FromAddress of Transaction is different from sent fromAddress',
   TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT:
     'Transaction amount is different with sent amount',
+  TRANSACTION_CANT_BE_OLDER_THAN_DONATION:
+    'Transaction can not be older than donation',
   TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS:
     'ToAddress of Transaction is different to sent toAddress',
   TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY:

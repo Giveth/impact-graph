@@ -157,18 +157,21 @@ async function getListOfTransactionsByAddress(input: {
   }
 }
 
-
 async function getTransactionDetailForNormalTransfer(
   input: TransactionDetailInput
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId } = input
   const transaction = await getNetworkWeb3(networkId).eth.getTransaction(txHash)
-
   if (!transaction) {
     return null
   }
+  const block = await getNetworkWeb3(networkId).eth.getBlock(
+    transaction.blockNumber as number
+  )
+
   return {
     from: transaction.from,
+    timestamp: block.timestamp as number,
     to: transaction.to as string,
     hash: txHash,
     amount: normalizeAmount(transaction.value, 18),
@@ -200,9 +203,12 @@ async function getTransactionDetailForTokenTransfer(
   const transactionToAddress = transactionData.params.find(
     item => item.name === '_to'
   ).value
-
+  const block = await getNetworkWeb3(networkId).eth.getBlock(
+    transaction.blockNumber as number
+  )
   return {
     from: transaction.from,
+    timestamp: block.timestamp as number,
     hash: txHash,
     to: transactionToAddress,
     amount: normalizeAmount(
@@ -232,5 +238,10 @@ function validateTransactionWithInputData(
     throw new Error(
       errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT
     )
+  }
+  if (transaction.timestamp <= input.timestamp) {
+    // because we first create donation, then transaction will be mined, the transaction always should be greater than
+    // donation created time
+    throw new Error(errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION)
   }
 }

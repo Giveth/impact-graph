@@ -5,6 +5,7 @@ export interface TransactionDetailInput {
   fromAddress: string
   toAddress: string
   amount: number
+  timestamp: number
   nonce?: number
 }
 
@@ -15,4 +16,5 @@ export interface NetworkTransactionInfo {
   from: string
   to: string
   currency: string
+  timestamp: number
 }
