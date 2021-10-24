@@ -28,7 +28,12 @@ const AdminBroExpress = require('@admin-bro/express')
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt')
+const segmentProjectStatusEvents = {
+  'act': 'activated',
+  'can': 'deactivated',
+  'del': 'cancelled'
+}
 
 // register 3rd party IOC container
 
@@ -175,8 +180,16 @@ export async function bootstrap () {
         .update<Project>(Project, {listed: list})
         .where('project.id IN (:...ids)')
         .setParameter('ids', request.query.recordIds.split(','))
+        .returning('*')
         .updateEntity(true)
         .execute()
+
+        projects.raw.forEach(project => {
+          Project.notifySegment(
+            project,
+            `Project ${list ? 'listed' : 'unlisted'}`
+          )
+        })
       } catch (error) {
         throw error
       }
@@ -186,7 +199,7 @@ export async function bootstrap () {
           record.toJSON(context.currentAdmin)
         }),
         notice: {
-          message: `Project(s) successfully ${list ? 'listed' : 'delisted'}`,
+          message: `Project(s) successfully ${list ? 'listed' : 'unlisted'}`,
           type: 'success',
         }
       }
@@ -199,8 +212,15 @@ export async function bootstrap () {
         .update<Project>(Project, {verified: verified})
         .where('project.id IN (:...ids)')
         .setParameter('ids', request.query.recordIds.split(','))
+        .returning('*')
         .updateEntity(true)
         .execute()
+
+        projects.raw.forEach(project => {
+          Project.notifySegment(
+            project,
+            `Project ${verified? 'verified' : 'unverified'}`)
+        })
       } catch (error) {
         throw error
       }
@@ -225,13 +245,22 @@ export async function bootstrap () {
           .update<Project>(Project, {status: projectStatus})
           .where('project.id IN (:...ids)')
           .setParameter('ids', request.query.recordIds.split(','))
+          .returning('*')
           .updateEntity(true)
           .execute()
+
+          projects.raw.forEach(project => {
+            Project.notifySegment(
+              project,
+              `Project ${segmentProjectStatusEvents[projectStatus.symbol]}`
+            )
+          })
         }
-        
+
       } catch (error) {
         throw error
       }
+
       return {
         redirectUrl: 'Project',
         records: records.map(record => {
@@ -344,7 +373,7 @@ export async function bootstrap () {
                 },
                 component: false,
               },
-              cancelProject: {
+              deactivateProject: {
                 actionType: 'bulk',
                 isVisible: true,
                 handler: async (request, response, context) => {
@@ -352,8 +381,16 @@ export async function bootstrap () {
                 },
                 component: false,
               },
+              cancelProject: {
+                actionType: 'bulk',
+                isVisible: true,
+                handler: async (request, response, context) => {
+                  return updateStatuslProjects(context, request, 7)
+                },
+                component: false,
+              }
             }
-          } 
+          }
         },
         { resource: ProjectStatus, options: {
             actions: {

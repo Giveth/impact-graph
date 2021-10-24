@@ -9,7 +9,8 @@ import {
   JoinTable,
   BaseEntity,
   OneToMany,
-  Index
+  Index,
+  AfterUpdate
 } from 'typeorm'
 
 import { Organisation } from './organisation'
@@ -18,6 +19,7 @@ import { Reaction } from './reaction'
 import { Category } from './category'
 import { User } from './user'
 import { ProjectStatus } from './projectStatus'
+import ProjectTracker from '../services/segment/projectTracker'
 
 @Entity()
 @ObjectType()
@@ -149,12 +151,19 @@ class Project extends BaseEntity {
   @Column({ default: true, nullable: false })
   listed: boolean = true
 
+  static notifySegment(project: any, eventName: string) {
+    new ProjectTracker(project, eventName).track()
+  }
+
   @Field(type => Float, { nullable: true })
   reactionsCount () {
     return this.reactions ? this.reactions.length : 0
   }
 
+  // Status 7 is deleted status
   mayUpdateStatus (user: User) {
+    if (this.statusId == 7) return false
+
     if (this.users.filter(o => o.id === user.id).length > 0) {
       return true
     } else {
@@ -176,6 +185,11 @@ class Project extends BaseEntity {
 
   owner () {
     return this.users[0]
+  }
+
+  @AfterUpdate()
+  notifyProjectEdited() {
+    Project.notifySegment(this, 'Project edited')
   }
 }
 
