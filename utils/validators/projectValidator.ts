@@ -15,7 +15,11 @@ export const validateProjectWalletAddress = async (walletAddress: string) :Promi
   if (isSmartContractWallet) {
     throw new Error(`Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`)
   }
-  const projectWithAddress = await Project.findOne({walletAddress})
+  const projectWithAddress = await Project.createQueryBuilder('project')
+    .where(`lower("walletAddress")=lower(:walletAddress)`,{
+      walletAddress
+    })
+    .getOne()
   if (projectWithAddress) {
     throw new Error(`Eth address ${walletAddress} is already being used for a project`)
   }
