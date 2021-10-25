@@ -54,7 +54,11 @@ enum ProjStatus {
 }
 import { inspect } from 'util'
 import { errorMessages } from '../utils/errorMessages';
-import { isWalletAddressSmartContract, validateProjectWalletAddress } from '../utils/validators/projectValidator';
+import {
+  isWalletAddressSmartContract,
+  validateProjectTitle,
+  validateProjectWalletAddress
+} from '../utils/validators/projectValidator';
 
 @ObjectType()
 class TopProjects {
@@ -362,6 +366,10 @@ export class ProjectResolver {
       !!imageUpload,
       heartCount
     )
+    if(newProjectData.title !== project.title){
+      await validateProjectTitle(newProjectData.title)
+    }
+
     const slugBase = slugify(newProjectData.title)
     const newSlug = await this.getAppropriateSlug(slugBase)
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)){
@@ -529,6 +537,7 @@ export class ProjectResolver {
       throw new Error(errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE)
     }
     await validateProjectWalletAddress(projectInput.walletAddress as string)
+    await validateProjectTitle(projectInput.title)
     const slugBase = slugify(projectInput.title)
     const slug = await this.getAppropriateSlug(slugBase)
     const status = await this.projectStatusRepository.findOne({
@@ -900,6 +909,16 @@ export class ProjectResolver {
   @Query(returns => Boolean)
   async walletAddressIsValid (@Arg('address') address: string) {
     return validateProjectWalletAddress(address)
+  }
+
+  /**
+   * Can a project use this title?
+   * @param title
+   * @returns
+   */
+  @Query(returns => Boolean)
+  async isValidTitleForProject (@Arg('title') title: string) {
+    return validateProjectTitle(title)
   }
 
   @Query(returns => Project, { nullable: true })
