@@ -26,9 +26,9 @@ export enum ProjStatus {
   pen = 2,
   clr = 3,
   ver = 4,
-  act = 5,
-  can = 6,
-  del = 7
+  active = 5,
+  deactive = 6,
+  cancel = 7
 }
 
 @Entity()
@@ -172,7 +172,7 @@ class Project extends BaseEntity {
 
   // Status 7 is deleted status
   mayUpdateStatus (user: User) {
-    if (this.statusId === ProjStatus.del) return false
+    if (this.statusId === ProjStatus.cancel) return false
 
     if (this.users.filter(o => o.id === user.id).length > 0) {
       return true

@@ -225,7 +225,7 @@ export class ProjectResolver {
         relations: ['reactions'],
         where: {
           status: {
-            id: ProjStatus.act
+            id: ProjStatus.active
           }
         }
       })
@@ -503,7 +503,7 @@ export class ProjectResolver {
     const slugBase = slugify(projectInput.title)
     const slug = await this.getAppropriateSlug(slugBase)
     const status = await this.projectStatusRepository.findOne({
-      id: 5
+      id: ProjStatus.active
     })
 
     const project = this.projectRepository.create({
@@ -916,7 +916,7 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx)
-      const didDeactivate = await this.updateProjectStatus(projectId, ProjStatus.can, user)
+      const didDeactivate = await this.updateProjectStatus(projectId, ProjStatus.deactive, user)
       if (didDeactivate)
        {
          const project = await Project.findOne({ id: projectId })
@@ -954,7 +954,7 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx)
-      return await this.updateProjectStatus(projectId, ProjStatus.act, user)
+      return await this.updateProjectStatus(projectId, ProjStatus.active, user)
     } catch (error) {
       Logger.captureException(error)
       throw error

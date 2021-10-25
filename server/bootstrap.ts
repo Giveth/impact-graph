@@ -17,7 +17,7 @@ import { graphqlUploadExpress } from 'graphql-upload'
 import { Database, Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator'
 
-import { Project } from '../entities/project'
+import { Project, ProjStatus } from '../entities/project'
 import { ProjectStatus } from '../entities/projectStatus';
 import { User } from '../entities/user';
 
@@ -369,7 +369,7 @@ export async function bootstrap () {
                 actionType: 'bulk',
                 isVisible: true,
                 handler: async (request, response, context) => {
-                  return updateStatuslProjects(context, request, 5)
+                  return updateStatuslProjects(context, request, ProjStatus.active)
                 },
                 component: false,
               },
@@ -377,7 +377,7 @@ export async function bootstrap () {
                 actionType: 'bulk',
                 isVisible: true,
                 handler: async (request, response, context) => {
-                  return updateStatuslProjects(context, request, 6)
+                  return updateStatuslProjects(context, request, ProjStatus.deactive)
                 },
                 component: false,
               },
@@ -385,7 +385,7 @@ export async function bootstrap () {
                 actionType: 'bulk',
                 isVisible: true,
                 handler: async (request, response, context) => {
-                  return updateStatuslProjects(context, request, 7)
+                  return updateStatuslProjects(context, request, ProjStatus.cancel)
                 },
                 component: false,
               }
