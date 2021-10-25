@@ -140,58 +140,48 @@ export class DonationResolver {
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
-      const tokenValues = getTokenPrices(
+      const tokenPrices = await getTokenPrices(
         token,
         baseTokens,
         Number(priceChainId)
       )
-        .then(async (prices: number[]) => {
-          // console.log(`prices : ${JSON.stringify(prices, null, 2)}`)
+      donation.priceUsd = Number(tokenPrices[0]);
+      donation.priceEth = Number(tokenPrices[1]);
 
-          donation.priceUsd = Number(prices[0]);
-          donation.priceEth = Number(prices[1]);
+      donation.valueUsd = Number(amount) * donation.priceUsd;
+      donation.valueEth = Number(amount) * donation.priceEth;
+      await donation.save();
 
-          donation.valueUsd = Number(amount) * donation.priceUsd;
-          donation.valueEth = Number(amount) * donation.priceEth;
+      const segmentDonationInfo = {
+        slug: project.slug,
+        title: project.title,
+        amount: Number(amount),
+        transactionId: transactionId.toLowerCase(),
+        toWalletAddress: toAddress.toLowerCase(),
+        fromWalletAddress: fromAddress.toLowerCase(),
+        donationValueUsd: donation.valueUsd,
+        donationValueEth: donation.valueEth,
+        verified: Boolean(project.verified),
+        projectOwnerId: project.admin,
+        transactionNetworkId: Number(transactionNetworkId),
+        currency: token,
+        projectWalletAddress: project.walletAddress,
+        createdAt: new Date(),
+      }
 
-          await donation.save();
-
-          return [donation.valueUsd, donation.valueEth];
-        })
-        .catch(e => {
-          throw new Error(e);
-        });
-      // Logged in
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId;
         originUser = await User.findOne({ id: userId });
-
-        await tokenValues;
-
         analytics.identifyUser(originUser);
-
         if (!originUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`);
         console.log(donation.valueUsd);
 
         const segmentDonationMade = {
+          ...segmentDonationInfo,
           email: originUser != null ? originUser.email : '',
           firstName: originUser != null ? originUser.firstName : '',
-          title: project.title,
-          projectOwnerId: project.admin,
-          slug: project.slug,
-          projectWalletAddress: project.walletAddress,
-          amount: Number(amount),
-          transactionId: transactionId.toString().toLowerCase(),
-          transactionNetworkId: Number(transactionNetworkId),
-          currency: token,
-          donationValueUsd: donation.valueUsd,
-          donationValueEth: donation.valueEth,
-          createdAt: new Date(),
-          toWalletAddress: toAddress.toString().toLowerCase(),
-          fromWalletAddress: fromAddress.toString().toLowerCase(),
           anonymous: !userId,
-          verified: Boolean(project.verified)
         };
 
         analytics.track(
@@ -205,26 +195,13 @@ export class DonationResolver {
       const projectOwner = await User.findOne({ id: Number(project.admin) });
 
       if (projectOwner) {
-        await tokenValues;
 
         analytics.identifyUser(projectOwner);
 
         const segmentDonationReceived = {
+          ...segmentDonationInfo,
           email: projectOwner.email,
-          title: project.title,
           firstName: projectOwner.firstName,
-          projectOwnerId: project.admin,
-          slug: project.slug,
-          amount: Number(amount),
-          transactionId: transactionId.toString().toLowerCase(),
-          transactionNetworkId: Number(transactionNetworkId),
-          currency: token,
-          createdAt: new Date(),
-          toWalletAddress: toAddress.toString().toLowerCase(),
-          fromWalletAddress: fromAddress.toString().toLowerCase(),
-          donationValueUsd: donation.valueUsd,
-          donationValueEth: donation.valueEth,
-          verified: Boolean(project.verified)
         };
 
         analytics.track(
