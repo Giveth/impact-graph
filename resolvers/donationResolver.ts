@@ -1,21 +1,18 @@
-import { Resolver, Query, Arg, Mutation, Ctx } from "type-graphql";
-import { InjectRepository } from "typeorm-typedi-extensions";
+import { Resolver, Query, Arg, Mutation, Ctx } from 'type-graphql';
+import { InjectRepository } from 'typeorm-typedi-extensions';
 // import { getTokenPrices, getOurTokenList } from '../uniswap'
-import { getTokenPrices, getOurTokenList } from "monoswap";
-import { Donation } from "../entities/donation";
-import { getProviderFromChainId } from "../provider";
-import { MyContext } from "../types/MyContext";
-import { Project } from "../entities/project";
-import axios, { AxiosResponse } from "axios";
-import { getAnalytics } from "../analytics";
-import { Wallet } from "../entities/wallet";
-import { Token } from "../entities/token";
-import { Repository, In } from "typeorm";
-import { User } from "../entities/user";
-import { web3 } from "../utils/web3";
-import config from "../config";
-import Logger from "../logger";
-import chalk = require("chalk");
+import { getTokenPrices, getOurTokenList } from 'monoswap';
+import { Donation } from '../entities/donation';
+import { getProviderFromChainId } from '../provider';
+import { MyContext } from '../types/MyContext';
+import { Project } from '../entities/project';
+import axios, { AxiosResponse } from 'axios';
+import { getAnalytics } from '../analytics';
+import { Wallet } from '../entities/wallet';
+import { Token } from '../entities/token';
+import { Repository, In } from 'typeorm';
+import { User } from '../entities/user';
+import Logger from '../logger';
 
 const analytics = getAnalytics();
 
@@ -36,7 +33,7 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsFromWallets(
     @Ctx() ctx: MyContext,
-    @Arg("fromWalletAddresses", type => [String]) fromWalletAddresses: string[]
+    @Arg('fromWalletAddresses', type => [String]) fromWalletAddresses: string[]
   ) {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase()
@@ -53,7 +50,7 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsToWallets(
     @Ctx() ctx: MyContext,
-    @Arg("toWalletAddresses", type => [String]) toWalletAddresses: string[]
+    @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[]
   ) {
     const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
       o.toLowerCase()
@@ -74,10 +71,10 @@ export class DonationResolver {
 
   @Mutation(returns => [Number])
   async getTokenPrice(
-    @Arg("symbol") symbol: string,
-    @Arg("chainId") chainId: number
+    @Arg('symbol') symbol: string,
+    @Arg('chainId') chainId: number
   ) {
-    const prices = await getTokenPrices(symbol, ["USDT", "ETH"], chainId);
+    const prices = await getTokenPrices(symbol, ['USDT', 'ETH'], chainId);
     return prices;
   }
 
@@ -85,7 +82,7 @@ export class DonationResolver {
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
       throw new Error(
-        "You must be logged in in order to register project donations"
+        'You must be logged in in order to register project donations'
       );
     const userId = ctx.req.user.userId;
 
@@ -100,14 +97,14 @@ export class DonationResolver {
 
   @Mutation(returns => Number)
   async saveDonation(
-    @Arg("fromAddress") fromAddress: string,
-    @Arg("toAddress") toAddress: string,
-    @Arg("amount") amount: Number,
-    @Arg("transactionId") transactionId: string,
-    @Arg("transactionNetworkId") transactionNetworkId: Number,
-    @Arg("token") token: string,
-    @Arg("projectId") projectId: Number,
-    @Arg("chainId") chainId: Number,
+    @Arg('fromAddress') fromAddress: string,
+    @Arg('toAddress') toAddress: string,
+    @Arg('amount') amount: Number,
+    @Arg('transactionId') transactionId: string,
+    @Arg('transactionNetworkId') transactionNetworkId: Number,
+    @Arg('token') token: string,
+    @Arg('projectId') projectId: Number,
+    @Arg('chainId') chainId: Number,
     @Ctx() ctx: MyContext
   ): Promise<Number> {
     try {
@@ -118,7 +115,7 @@ export class DonationResolver {
 
       const project = await Project.findOne({ id: Number(projectId) });
 
-      if (!project) throw new Error("Transaction project was not found.");
+      if (!project) throw new Error('Transaction project was not found.');
 
       if (userId) {
         originUser = await User.findOne({ id: ctx.req.user.userId });
@@ -141,7 +138,7 @@ export class DonationResolver {
       await donation.save();
 
       const baseTokens =
-        Number(priceChainId) === 1 ? ["USDT", "ETH"] : ["WXDAI", "WETH"];
+        Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
       const tokenValues = getTokenPrices(
         token,
@@ -178,8 +175,8 @@ export class DonationResolver {
         console.log(donation.valueUsd);
 
         const segmentDonationMade = {
-          email: originUser != null ? originUser.email : "",
-          firstName: originUser != null ? originUser.firstName : "",
+          email: originUser != null ? originUser.email : '',
+          firstName: originUser != null ? originUser.firstName : '',
           title: project.title,
           projectOwnerId: project.admin,
           slug: project.slug,
@@ -198,7 +195,7 @@ export class DonationResolver {
         };
 
         analytics.track(
-          "Made donation",
+          'Made donation',
           originUser.segmentUserId(),
           segmentDonationMade,
           originUser.segmentUserId()
@@ -231,7 +228,7 @@ export class DonationResolver {
         };
 
         analytics.track(
-          "Donation received",
+          'Donation received',
           projectOwner.segmentUserId(),
           segmentDonationReceived,
           projectOwner.segmentUserId()
