@@ -11,40 +11,32 @@ const analytics = getAnalytics()
 class DonationTracker {
     donation: Donation
     eventName: string
-    project?: Project
-    userToNotify?: User
+    project: Project
+    user: User
 
-    constructor(donationToUpdate: Donation, eventTitle: string) {
+    constructor(donationToUpdate: Donation, projectToNotify: Project, userToNotify: User, eventTitle: string) {
         this.donation = donationToUpdate
+        this.project = projectToNotify
+        this.user = userToNotify
         this.eventName = eventTitle
     }
 
-    async track() {
-        this.project = await Project.findOne({ id: this.donation.projectId })
-
-        if (!this.donation.anonymous) {
-            this.userToNotify = await User.findOne({ id: Number(this.project?.admin) })
-        } else {
-            this.userToNotify = await User.findOne({ id: this.donation.userId })
-        }
-
-        if(this.project && this.userToNotify) {
-            analytics.track(
-                this.eventName,
-                this.userToNotify.segmentUserId(),
-                this.segmentDonationAttributes(),
-                this.userToNotify.segmentUserId()
-            )
-        }
+    track() {
+        analytics.track(
+            this.eventName,
+            this.user.segmentUserId(),
+            this.segmentDonationAttributes(),
+            this.user.segmentUserId()
+        )
     }
 
     private segmentDonationAttributes() {
         return {
-            email: this.userToNotify?.email,
-            title: this.project?.title,
-            firstName: this.userToNotify?.firstName,
-            projectOwnerId: this.project?.admin,
-            slug: this.project?.slug,
+            email: this.user.email,
+            title: this.project.title,
+            firstName: this.user.firstName,
+            projectOwnerId: this.project.admin,
+            slug: this.project.slug,
             amount: Number(this.donation.amount),
             transactionId: this.donation.transactionId.toString().toLowerCase(),
             transactionNetworkId: Number(this.donation.transactionNetworkId),
@@ -54,7 +46,7 @@ class DonationTracker {
             fromWalletAddress: this.donation.fromWalletAddress.toString().toLowerCase(),
             donationValueUsd: this.donation.valueUsd,
             donationValueEth: this.donation.valueEth,
-            verified: Boolean(this.project?.verified),
+            verified: Boolean(this.project.verified),
             transakStatus: this.donation.transakStatus
         }
     }
