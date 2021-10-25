@@ -21,6 +21,16 @@ import { User } from './user'
 import { ProjectStatus } from './projectStatus'
 import ProjectTracker from '../services/segment/projectTracker'
 
+export enum ProjStatus {
+  rjt = 1,
+  pen = 2,
+  clr = 3,
+  ver = 4,
+  act = 5,
+  can = 6,
+  del = 7
+}
+
 @Entity()
 @ObjectType()
 class Project extends BaseEntity {
@@ -162,7 +172,7 @@ class Project extends BaseEntity {
 
   // Status 7 is deleted status
   mayUpdateStatus (user: User) {
-    if (this.statusId == 7) return false
+    if (this.statusId === ProjStatus.del) return false
 
     if (this.users.filter(o => o.id === user.id).length > 0) {
       return true
