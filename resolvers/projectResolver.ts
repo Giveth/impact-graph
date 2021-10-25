@@ -1,6 +1,6 @@
 import NotificationPayload from '../entities/notificationPayload'
 import { Reaction, REACTION_TYPE } from '../entities/reaction'
-import { Project, ProjectUpdate } from '../entities/project'
+import { Project, ProjectUpdate, ProjStatus } from '../entities/project'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 import { ProjectStatus } from '../entities/projectStatus'
 import { ProjectInput, ImageUpload } from './types/project-input'
@@ -43,15 +43,6 @@ import {
 
 const analytics = getAnalytics()
 
-enum ProjStatus {
-  rjt = 1,
-  pen = 2,
-  clr = 3,
-  ver = 4,
-  act = 5,
-  can = 6,
-  del = 7
-}
 import { inspect } from 'util'
 import { errorMessages } from '../utils/errorMessages';
 import {
@@ -238,7 +229,7 @@ export class ProjectResolver {
         relations: ['reactions'],
         where: {
           status: {
-            id: ProjStatus.act
+            id: ProjStatus.active
           }
         }
       })
@@ -379,26 +370,6 @@ export class ProjectResolver {
     project.slug = newSlug
     project.qualityScore = qualityScore
     await project.save()
-
-    const segmentProject = {
-      email: user.email,
-      title: project.title,
-      lastName: user.lastName,
-      firstName: user.firstName,
-      OwnerId: user.id,
-      slug: project.slug,
-      walletAddress: project.walletAddress
-    }
-
-    analytics.track(
-      'Project edited',
-      `givethId-${user.userId}`,
-      segmentProject,
-      null
-    )
-
-    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
-      triggerBuild(projectId)
 
     return project
   }
@@ -541,7 +512,7 @@ export class ProjectResolver {
     const slugBase = slugify(projectInput.title)
     const slug = await this.getAppropriateSlug(slugBase)
     const status = await this.projectStatusRepository.findOne({
-      id: 5
+      id: ProjStatus.active
     })
 
     const project = this.projectRepository.create({
@@ -964,7 +935,7 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx)
-      const didDeactivate = await this.updateProjectStatus(projectId, ProjStatus.can, user)
+      const didDeactivate = await this.updateProjectStatus(projectId, ProjStatus.deactive, user)
       if (didDeactivate)
        {
          const project = await Project.findOne({ id: projectId })
@@ -1002,7 +973,7 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx)
-      return await this.updateProjectStatus(projectId, ProjStatus.act, user)
+      return await this.updateProjectStatus(projectId, ProjStatus.active, user)
     } catch (error) {
       Logger.captureException(error)
       throw error
