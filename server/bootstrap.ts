@@ -22,7 +22,7 @@ import { ProjectStatus } from '../entities/projectStatus';
 import { User } from '../entities/user';
 
 import AdminBro from 'admin-bro';
-import TransakWebhookHandler from '../services/transak/webhookHandler';
+import { webhookHandler } from '../services/transak/webhookHandler';
 
 const AdminBroExpress = require('@admin-bro/express')
 
@@ -158,7 +158,7 @@ export async function bootstrap () {
       bodyParser.raw({ type: 'application/json' }),
       netlifyDeployed
     )
-    app.post('/transak_webhook', TransakWebhookHandler)
+    app.post('/transak_webhook', webhookHandler)
 
     // Start the server
     app.listen({ port: 4000 })

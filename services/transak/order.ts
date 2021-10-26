@@ -4,7 +4,9 @@
         "eventID": "ORDER_CREATED",
         "createdAt": "2020-02-17T01:55:05.100Z",
         "webhookData": {
+            // tslint:disable-next-line:jsdoc-format
             "id": "9151faa1-e69b-4a36-b959-3c4f894afb68",
+            // tslint:disable-next-line:jsdoc-format
             "walletAddress": "0x86349020e9394b2BE1b1262531B0C3335fc32F20",
             "createdAt": "2020-02-17T01:55:05.095Z",
             "status": "AWAITING_PAYMENT_FROM_USER",
@@ -30,65 +32,32 @@
     }
 */
 
-import transakOrder from './order';
-
-/**
-    * Makes Json values more easily accessible.
- */
-class Order {
-    decryptedOrder: any = {}
-    orderAttributes: any = {}
-
-    constructor(decryptedOrderJson: transakOrder) {
-        this.decryptedOrder = decryptedOrderJson;
-        this.orderAttributes = this.decryptedOrder.webhookData;
+export interface TransakOrder {
+    eventID:'ORDER_PROCESSING' | 'ORDER_FAILED' |'ORDER_COMPLETED' | 'ORDER_PAYMENT_VERIFYING' | 'ORDER_CREATED',
+    createdAt: Date,
+    webhookData:{
+        id:string,
+        walletAddress:string,
+        createdAt:Date,
+        status:string,
+        fiatCurrency:string,
+        userId:string,
+        cryptocurrency:string,
+        isBuyOrSell:string,
+        fiatAmount:number,
+        commissionDecimal:number,
+        fromWalletAddress:string,
+        walletLink:string,
+        amountPaid:0,
+        partnerOrderId:string,
+        partnerCustomerId:string,
+        redirectURL:string,
+        conversionPrice:number
+        cryptoAmount:number,
+        totalFee:number,
+        paymentOption:[],
+        autoExpiresAt:Date,
+        referenceCode:number
     }
 
-    get donationAttributes(): any {
-        return {
-            transakStatus: this.status
-        }
-    }
-
-    get transakId(): string {
-        return this.orderAttributes.id;
-    }
-
-    get transakStatus(): string {
-        return this.orderAttributes.status;
-    }
-
-    get fiatCurrency(): string {
-        return this.orderAttributes.fiatCurrency;
-    }
-
-    get fiatAmount(): string {
-        return this.orderAttributes.fiatAmount;
-    }
-
-    get status(): string {
-        return this.orderAttributes.status;
-    }
-
-    get fromWalletAddress(): string {
-        return this.orderAttributes.fromWalletAddress;
-    }
-
-    get toWalletAddress(): string {
-        return this.orderAttributes.walletAddress;
-    }
-
-    get cryptoCurrency(): string {
-        return this.orderAttributes.crytocurrency;
-    }
-
-    get cryptoAmount(): number {
-        return this.orderAttributes.cryptoAmount;
-    }
-
-    get updateAt() : string {
-        return this.decryptedOrder.createdAt;
-    }
 }
-
-export default Order;
