@@ -106,6 +106,8 @@ export class DonationResolver {
     @Arg('projectId') projectId: Number,
     @Arg('chainId') chainId: Number,
     @Arg('transakId', { nullable: true }) transakId: string,
+
+    // TODO should remove this in the future, we dont use transakStatus in creating donation
     @Arg('transakStatus', { nullable: true }) transakStatus: string,
     @Ctx() ctx: MyContext
   ): Promise<Number> {
@@ -136,7 +138,6 @@ export class DonationResolver {
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         transakId,
-        transakStatus,
         anonymous: !!userId
       })
       await donation.save()
