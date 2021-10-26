@@ -135,8 +135,8 @@ export class DonationResolver {
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
-        transakId: transakId,
-        transakStatus: transakStatus,
+        transakId,
+        transakStatus,
         anonymous: !!userId
       })
       await donation.save()

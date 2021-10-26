@@ -11,7 +11,14 @@ export const updateDonationByTransakData = async (transakData: TransakOrder)=>{
 
   donation.transakStatus = transakData.webhookData.status;
   donation.currency = transakData.webhookData.cryptocurrency
-  donation.amount = transakData.webhookData.cryptoAmount
+  if (donation.amount !== transakData.webhookData.cryptoAmount){
+    // If the transaction amount is different with donation amount
+    // it proves it's might be fraud, so we change the valueEth and valueUsd
+    donation.valueUsd = donation.valueUsd * (transakData.webhookData.cryptoAmount /  donation.amount)
+    donation.valueEth= donation.valueEth * (transakData.webhookData.cryptoAmount /  donation.amount)
+    donation.amount = transakData.webhookData.cryptoAmount
+  }
+
   if (donation.toWalletAddress.toLowerCase() !== transakData.webhookData.walletAddress.toLowerCase()){
     donation.toWalletAddress= transakData.webhookData.walletAddress
     const project = await Project.findOne({
