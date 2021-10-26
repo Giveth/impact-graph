@@ -11,6 +11,7 @@ export const updateDonationByTransakData = async (transakData: TransakOrder)=>{
 
   donation.transakStatus = transakData.webhookData.status;
   donation.currency = transakData.webhookData.cryptocurrency
+  donation.fromWalletAddress = transakData.webhookData.fromWalletAddress
   if (donation.amount !== transakData.webhookData.cryptoAmount){
     // If the transaction amount is different with donation amount
     // it proves it's might be fraud, so we change the valueEth and valueUsd
@@ -20,12 +21,16 @@ export const updateDonationByTransakData = async (transakData: TransakOrder)=>{
   }
 
   if (donation.toWalletAddress.toLowerCase() !== transakData.webhookData.walletAddress.toLowerCase()){
+    // we should check the walletAddress is matched with what is in donation, ir prevents fraud
     donation.toWalletAddress= transakData.webhookData.walletAddress
     const project = await Project.findOne({
       walletAddress: transakData.webhookData.walletAddress
     })
-    // we should check the walletAddress is matched with what is in donation, ir prevents fraud
-    donation.projectId = project?.id || 0
+    if (project){
+      donation.projectId = project.id || 0
+    }
+    // TODO we should do something if the walletAddress of transaction is not any of out project wallet addrees
+    // maybe in this case we should not verify donation in the future
   }
   await donation.save()
 
