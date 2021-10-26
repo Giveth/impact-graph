@@ -6,7 +6,7 @@ import { TransakOrder } from './order';
 const TRANSAK_COMPLETED_STATUS = 'COMPLETED'
 
 export const updateDonationByTransakData = async (transakData: TransakOrder)=>{
-  const donation = await Donation.findOne({ transakId: transakData.webhookData.id })
+  const donation = await Donation.findOne({ transactionId: transakData.webhookData.id })
   if (!donation) throw new Error('Donation not found.')
 
   donation.transakStatus = transakData.webhookData.status;

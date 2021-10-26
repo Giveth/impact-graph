@@ -129,7 +129,7 @@ export class DonationResolver {
 
       const donation = await Donation.create({
         amount: Number(amount),
-        transactionId: transactionId?.toString()?.toLowerCase(),
+        transactionId: transactionId?.toLowerCase() || transakId,
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         user: originUser,
@@ -137,7 +137,6 @@ export class DonationResolver {
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
-        transakId,
         anonymous: !!userId
       })
       await donation.save()
