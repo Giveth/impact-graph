@@ -100,11 +100,15 @@ export class DonationResolver {
     @Arg('fromAddress') fromAddress: string,
     @Arg('toAddress') toAddress: string,
     @Arg('amount') amount: Number,
-    @Arg('transactionId') transactionId: string,
+    @Arg('transactionId', { nullable: true }) transactionId: string,
     @Arg('transactionNetworkId') transactionNetworkId: Number,
     @Arg('token') token: string,
     @Arg('projectId') projectId: Number,
     @Arg('chainId') chainId: Number,
+    @Arg('transakId', { nullable: true }) transakId: string,
+
+    // TODO should remove this in the future, we dont use transakStatus in creating donation
+    @Arg('transakStatus', { nullable: true }) transakStatus: string,
     @Ctx() ctx: MyContext
   ): Promise<Number> {
     try {
@@ -125,7 +129,7 @@ export class DonationResolver {
 
       const donation = await Donation.create({
         amount: Number(amount),
-        transactionId: transactionId.toString().toLowerCase(),
+        transactionId: transactionId?.toLowerCase() || transakId,
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         user: originUser,
@@ -151,6 +155,10 @@ export class DonationResolver {
       donation.valueUsd = Number(amount) * donation.priceUsd;
       donation.valueEth = Number(amount) * donation.priceEth;
       await donation.save();
+      if (transakId){
+        // we send segment event for transak donations after the transak call our webhook to verifying transactions
+        return donation.id;
+      }
 
       const segmentDonationInfo = {
         slug: project.slug,

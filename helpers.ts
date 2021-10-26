@@ -7,6 +7,7 @@ import { OrganisationUser } from './entities/organisationUser'
 // import { OrganisationProject } from './entities/organisationProject'
 import { Project } from './entities/project'
 import { Category } from './entities/category'
+import { Donation } from './entities/donation'
 import { User } from './entities/user'
 
 import projectBg from './constants/projectBg'
@@ -15,6 +16,7 @@ export async function seedDatabase () {
   
   const categoryRepository = getRepository(Category)
   const projectRepository = getRepository(Project)
+  const donationRepository = getRepository(Donation)
   const organisationRepository = getRepository(Organisation)
   const organisationUserRepository = getRepository(OrganisationUser)
   // const organisationProjectRepository = getRepository(OrganisationProject)
@@ -195,14 +197,31 @@ export async function seedDatabase () {
     })
     await organisationUserRepository.save(adminOrganisationUser)
   }
-  
-  
-  
-  await projectRepository.save(projects)
-  
-  
 
-  
+  await projectRepository.save(projects)
+
+  const donations = donationRepository.create({
+    transactionId: '10',
+    transactionNetworkId: 10,
+    toWalletAddress: "134",
+    fromWalletAddress: "134",
+    currency: "PolyDoge",
+    anonymous: false,
+    amount: 10,
+    valueEth: 10,
+    valueUsd: 10,
+    priceEth: 10,
+    priceUsd: 10,
+    createdAt: new Date(),
+    donationType: 'test',
+    transakId: '9151faa1-e69b-4a36-b959-3c4f894afb68',
+    transakStatus: 'ORDER_PROCESSING',
+    user: superAdminUser,
+    project: projects[0]
+  })
+
+  await donationRepository.save(donations)
+
   // Seed join table
   // const organisationProject = organisationProjectRepository.create({
   //   organisation: testOrganizations[0],

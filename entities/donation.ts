@@ -21,6 +21,7 @@ export class Donation extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
+  // it could be transactionHash for crypto transfers and transakId for transak donations
   transactionId: string
 
   @Field()
@@ -84,4 +85,9 @@ export class Donation extends BaseEntity {
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   donationType?: string
+
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  transakStatus?: string
 }
