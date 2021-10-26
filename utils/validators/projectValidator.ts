@@ -26,8 +26,19 @@ export const validateProjectWalletAddress = async (walletAddress: string) :Promi
   return true;
 }
 
-const getSimilarTitleInProjectsRegex = (title:string ):string => {
-  return new RegExp(`^\\s*${title.replace(/^\s+|\s+$|\s+(?=\s)/g, '')}\\s*$`, 'i').source;
+
+export const validateProjectTitleForEdit = async (title:string, projectId: number)=>{
+  const project  = await Project.findOne(projectId)
+  if (getSimilarTitleInProjectsRegex(project?.title as string).test(title.replace(/^\s+|\s+$|\s+(?=\s)/g, '')) ){
+    // If the new title of project is similar to older one , we dont call validateProjectTitle
+    return true;
+  }
+  return  validateProjectTitle(title)
+}
+
+
+export const getSimilarTitleInProjectsRegex = (title:string ):RegExp => {
+  return new RegExp(`^\\s*${title.replace(/^\s+|\s+$|\s+(?=\s)/g, '')}\\s*$`, 'i');
 };
 
 export const validateProjectTitle = async (title: string) :Promise <boolean>=> {
@@ -36,9 +47,10 @@ export const validateProjectTitle = async (title: string) :Promise <boolean>=> {
     throw new Error(errorMessages.INVALID_PROJECT_TITLE)
   }
   const regex = getSimilarTitleInProjectsRegex(title)
-  console.log('regex', regex)
+  console.log('regexSource', { title, regex })
   const projectWithThisTitle = await Project.query(
-    `SELECT title , REGEXP_MATCHES(title, '${regex}','i') FROM project;`)
+    `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project;`)
+  console.log('validateProjectTitle projectWithThisTitle', projectWithThisTitle)
 
   if (projectWithThisTitle.length > 0) {
     console.log('validateProjectTitle projectWithThisTitle', projectWithThisTitle)
