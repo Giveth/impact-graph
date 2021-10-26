@@ -155,6 +155,10 @@ export class DonationResolver {
       donation.valueUsd = Number(amount) * donation.priceUsd;
       donation.valueEth = Number(amount) * donation.priceEth;
       await donation.save();
+      if (transakId){
+        // we send segment event for transak donations after the transak call our webhook to verifying transactions
+        return donation.id;
+      }
 
       const segmentDonationInfo = {
         slug: project.slug,
