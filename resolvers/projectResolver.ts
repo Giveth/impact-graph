@@ -46,8 +46,9 @@ const analytics = getAnalytics()
 import { inspect } from 'util'
 import { errorMessages } from '../utils/errorMessages';
 import {
+  getSimilarTitleInProjectsRegex,
   isWalletAddressSmartContract,
-  validateProjectTitle,
+  validateProjectTitle, validateProjectTitleForEdit,
   validateProjectWalletAddress
 } from '../utils/validators/projectValidator';
 
@@ -357,8 +358,8 @@ export class ProjectResolver {
       !!imageUpload,
       heartCount
     )
-    if(newProjectData.title !== project.title){
-      await validateProjectTitle(newProjectData.title)
+    if (newProjectData.title ){
+      await validateProjectTitleForEdit(newProjectData.title, projectId)
     }
 
     const slugBase = slugify(newProjectData.title)
@@ -885,10 +886,15 @@ export class ProjectResolver {
   /**
    * Can a project use this title?
    * @param title
+   * @param projectId
    * @returns
    */
   @Query(returns => Boolean)
-  async isValidTitleForProject (@Arg('title') title: string) {
+  async isValidTitleForProject (@Arg('title') title: string,
+                                @Arg('projectId',{ nullable: true }) projectId ?: number) {
+    if (projectId){
+      return  validateProjectTitleForEdit(title, projectId)
+    }
     return validateProjectTitle(title)
   }
 
