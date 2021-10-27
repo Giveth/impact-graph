@@ -13,7 +13,8 @@ import {
   MoreThan,
   LessThan,
   Brackets,
-  SelectQueryBuilder
+  SelectQueryBuilder,
+  AfterUpdate
 } from 'typeorm'
 
 import { Organisation } from './organisation'
@@ -22,6 +23,17 @@ import { Reaction } from './reaction'
 import { Category } from './category'
 import { User } from './user'
 import { ProjectStatus } from './projectStatus'
+import ProjectTracker from '../services/segment/projectTracker'
+
+export enum ProjStatus {
+  rjt = 1,
+  pen = 2,
+  clr = 3,
+  ver = 4,
+  active = 5,
+  deactive = 6,
+  cancel = 7
+}
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -97,8 +109,8 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   stripeAccountId?: string
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Field()
+  @Column({ unique: true })
   walletAddress?: string
 
   @Field(type => Boolean)
@@ -242,13 +254,24 @@ class Project extends BaseEntity {
                 .getManyAndCount()
   }
 
+  static notifySegment(project: any, eventName: string) {
+    new ProjectTracker(project, eventName).track()
+  }
+
   @Field(type => Float, { nullable: true })
   reactionsCount () {
     return this.reactions ? this.reactions.length : 0
   }
 
+  // Status 7 is deleted status
   mayUpdateStatus (user: User) {
-    return this.users.filter(o => o.id === user.id).length > 0;
+    if (this.statusId === ProjStatus.cancel) return false
+
+    if (this.users.filter(o => o.id === user.id).length > 0) {
+      return true
+    } else {
+      return false
+    }
   }
 
   /**
@@ -265,6 +288,11 @@ class Project extends BaseEntity {
 
   owner () {
     return this.users[0]
+  }
+
+  @AfterUpdate()
+  notifyProjectEdited() {
+    Project.notifySegment(this, 'Project edited')
   }
 }
 

@@ -160,7 +160,7 @@ export class LoginResolver {
     @Arg('email', { nullable: true }) email: string,
     @Arg('name', { nullable: true }) name: string,
     @Arg('avatar', { nullable: true }) avatar: string,
-    @Arg('isXDAI', { nullable: true }) isXDAI: boolean,
+    @Arg('networkId') networkId: number,
     @Ctx() ctx: MyContext
   ): Promise<LoginResponse | null> {
     const hashedMsg = this.getHostnameSignMessageHash(hostname)
@@ -179,7 +179,7 @@ export class LoginResolver {
       },
       domain: {
         name: 'Giveth Login',
-        chainId: isXDAI ? 100 : process.env.ETHEREUM_NETWORK_ID,
+        chainId: networkId ,
         version: '1'
       },
       message: {
