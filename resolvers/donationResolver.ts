@@ -135,6 +135,7 @@ export class DonationResolver {
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId?.toLowerCase() || transakId,
+        isFiat: Boolean(transakId),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         user: originUser,
