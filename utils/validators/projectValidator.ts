@@ -23,13 +23,51 @@ export const validateProjectWalletAddress = async (
       `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`
     )
   }
-  const projectWithAddress = await Project.findOne({ walletAddress })
+  const projectWithAddress = await Project.createQueryBuilder('project')
+    .where(`lower("walletAddress")=lower(: walletAddress )`,{
+      walletAddress
+    })
+    .getOne()
   if (projectWithAddress) {
     throw new Error(
       `Eth address ${walletAddress} is already being used for a project`
     )
   }
   return true
+}
+
+const titleReplacerRegex = /^\s+|\s+$|\s+(?=\s)/g;
+
+export const validateProjectTitleForEdit = async (title:string, projectId: number)=>{
+  const project  = await Project.findOne(projectId)
+  if (getSimilarTitleInProjectsRegex(project?.title as string).test(title.replace(titleReplacerRegex, '')) ){
+    // If the new title of project is similar to older one , we dont call validateProjectTitle
+    return true;
+  }
+  return  validateProjectTitle(title)
+}
+
+
+export const getSimilarTitleInProjectsRegex = (title:string ):RegExp => {
+  return new RegExp(`^\\s*${title.replace(titleReplacerRegex, '')}\\s*$`, 'i');
+};
+
+export const validateProjectTitle = async (title: string) :Promise <boolean>=> {
+  const isTitleValid = /^\w+$/.test(title.replace(/\s/g, ''))
+  if (!isTitleValid){
+    throw new Error(errorMessages.INVALID_PROJECT_TITLE)
+  }
+  const regex = getSimilarTitleInProjectsRegex(title)
+  console.log('regexSource', { title, regex })
+  const projectWithThisTitle = await Project.query(
+    `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project;`)
+  console.log('validateProjectTitle projectWithThisTitle', projectWithThisTitle)
+
+  if (projectWithThisTitle.length > 0) {
+    console.log('validateProjectTitle projectWithThisTitle', projectWithThisTitle)
+    throw new Error(errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS)
+  }
+  return true;
 }
 
 export const isWalletAddressSmartContract = async (

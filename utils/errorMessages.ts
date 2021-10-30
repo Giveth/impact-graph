@@ -24,5 +24,7 @@ export const errorMessages = {
     'Transaction with this nonce is not mined already',
   TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS:
     'toAddress of donation should be equal to project wallet address',
-  INVALID_WALLET_ADDRESS: 'Eth address not valid'
+  INVALID_WALLET_ADDRESS: 'Eth address not valid',
+  PROJECT_WITH_THIS_TITLE_EXISTS: 'There is a project with this title, please use another title',
+  INVALID_PROJECT_TITLE: 'Your project name isn\'t valid, please only use letters and numbers'
 }
