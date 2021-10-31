@@ -112,7 +112,9 @@
     }
   },
   "standard": {
-    "env": ["mocha"]
+    "env": [
+      "mocha"
+    ]
   },
   "engines": {
     "node": "12.20.0"

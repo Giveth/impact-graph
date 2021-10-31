@@ -1,17 +1,17 @@
 import { Resolver, Query, Arg, Mutation, Ctx } from 'type-graphql';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 // import { getTokenPrices, getOurTokenList } from '../uniswap'
-import { getTokenPrices, getOurTokenList } from 'monoswap'
-import { Donation } from '../entities/donation'
-import { MyContext } from '../types/MyContext'
-import { Project } from '../entities/project'
-import { getAnalytics } from '../analytics'
-import { Token } from '../entities/token'
-import { Repository, In } from 'typeorm'
-import { User } from '../entities/user'
-import Logger from '../logger'
-import { errorMessages } from '../utils/errorMessages'
-import { NETWORK_IDS } from '../provider'
+import { getTokenPrices, getOurTokenList } from 'monoswap';
+import { Donation } from '../entities/donation';
+import { MyContext } from '../types/MyContext';
+import { Project } from '../entities/project';
+import { getAnalytics } from '../analytics';
+import { Token } from '../entities/token';
+import { Repository, In } from 'typeorm';
+import { User } from '../entities/user';
+import Logger from '../logger';
+import { errorMessages } from '../utils/errorMessages';
+import { NETWORK_IDS } from '../provider';
 
 const analytics = getAnalytics();
 
@@ -32,7 +32,8 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsFromWallets(
     @Ctx() ctx: MyContext,
-    @Arg('fromWalletAddresses', type => [String]) fromWalletAddresses: string[]
+    @Arg('fromWalletAddresses', type => [String])
+    fromWalletAddresses: string[]
   ) {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase()
@@ -105,25 +106,24 @@ export class DonationResolver {
     @Arg('projectId') projectId: Number,
     @Arg('chainId') chainId: Number,
     @Arg('transakId', { nullable: true }) transakId: string,
-
     // TODO should remove this in the future, we dont use transakStatus in creating donation
     @Arg('transakStatus', { nullable: true }) transakStatus: string,
     @Ctx() ctx: MyContext
   ): Promise<Number> {
     try {
-      let userId = ctx?.req?.user?.userId || null
-      if (!chainId) chainId = NETWORK_IDS.MAIN_NET
+      let userId = ctx?.req?.user?.userId || null;
+      if (!chainId) chainId = NETWORK_IDS.MAIN_NET;
       const priceChainId =
-        chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId
-      let originUser
+        chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
+      let originUser;
 
       const project = await Project.findOne({ id: Number(projectId) });
 
-      if (!project) throw new Error('Transaction project was not found.')
+      if (!project) throw new Error('Transaction project was not found.');
       if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
         throw new Error(
           errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS
-        )
+        );
       }
 
       if (userId) {
@@ -154,14 +154,14 @@ export class DonationResolver {
         token,
         baseTokens,
         Number(priceChainId)
-      )
+      );
       donation.priceUsd = Number(tokenPrices[0]);
       donation.priceEth = Number(tokenPrices[1]);
 
       donation.valueUsd = Number(amount) * donation.priceUsd;
       donation.valueEth = Number(amount) * donation.priceEth;
       await donation.save();
-      if (transakId){
+      if (transakId) {
         // we send segment event for transak donations after the transak call our webhook to verifying transactions
         return donation.id;
       }
@@ -180,8 +180,8 @@ export class DonationResolver {
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         projectWalletAddress: project.walletAddress,
-        createdAt: new Date(),
-      }
+        createdAt: new Date()
+      };
 
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId;
@@ -195,8 +195,7 @@ export class DonationResolver {
           ...segmentDonationInfo,
           email: originUser != null ? originUser.email : '',
           firstName: originUser != null ? originUser.firstName : '',
-          anonymous: !userId,
-
+          anonymous: !userId
         };
 
         analytics.track(
@@ -207,20 +206,15 @@ export class DonationResolver {
         );
       }
 
-
-
       const projectOwner = await User.findOne({ id: Number(project.admin) });
 
       if (projectOwner) {
-
-
         analytics.identifyUser(projectOwner);
 
         const segmentDonationReceived = {
-          ...segmentDonationInfo,email: projectOwner.email,
-
-          firstName: projectOwner.firstName,
-
+          ...segmentDonationInfo,
+          email: projectOwner.email,
+          firstName: projectOwner.firstName
         };
 
         analytics.track(
