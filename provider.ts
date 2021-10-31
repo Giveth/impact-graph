@@ -1,78 +1,123 @@
 import config from './config'
-const Web3 = require('web3')
+import { ethers } from 'ethers'
+import Web3 from 'web3'
+import { errorMessages } from './utils/errorMessages'
+
 const INFURA_ID = config.get('ETHEREUM_NODE_ID')
-const ethers = require('ethers')
-const network = 'mainnet'
+const INFURA_API_KEY = config.get('INFURA_API_KEY')
 
-export function getProviderFromChainId (chainId: number) {
-  if (chainId === 100) {
-    return new ethers.providers.JsonRpcProvider(
-      config.get('XDAI_NODE_HTTP_URL')
-    )
-  } else if (chainId === 3) {
-    return new ethers.providers.JsonRpcProvider(
-      config.get('XDAI_NODE_HTTP_URL')
-    )
-  }
-
-  return new ethers.providers.InfuraProvider(network, INFURA_ID)
+export const NETWORK_IDS = {
+  MAIN_NET: 1,
+  ROPSTEN: 3,
+  XDAI: 100,
+  BSC: 56
 }
-export function getProvider (network) {
-  if (network === 'xdaiChain') {
+
+const NETWORK_NAMES = {
+  BSC: 'bsc',
+  XDAI: 'xdaichain',
+  MAINNET: 'mainnet',
+  ROPSTEN: 'ropsten'
+}
+
+const NETWORK_NATIVE_TOKENS = {
+  BSC: 'BNB',
+  XDAI: 'XDAI',
+  MAINNET: 'ETH',
+  ROPSTEN: 'ETH'
+}
+
+const networkNativeTokensList = [
+  {
+    networkName: NETWORK_NAMES.BSC,
+    networkId: NETWORK_IDS.BSC,
+    nativeToken: NETWORK_NATIVE_TOKENS.BSC
+  },
+  {
+    networkName: NETWORK_NAMES.MAINNET,
+    networkId: NETWORK_IDS.MAIN_NET,
+    nativeToken: NETWORK_NATIVE_TOKENS.MAINNET
+  },
+  {
+    networkName: NETWORK_NAMES.XDAI,
+    networkId: NETWORK_IDS.XDAI,
+    nativeToken: NETWORK_NATIVE_TOKENS.XDAI
+  },
+  {
+    networkName: NETWORK_NAMES.ROPSTEN,
+    networkId: NETWORK_IDS.ROPSTEN,
+    nativeToken: NETWORK_NATIVE_TOKENS.ROPSTEN
+  }
+]
+const NETWORK_ID_MAP = {
+  1: NETWORK_NAMES.MAINNET,
+  3: NETWORK_NAMES.ROPSTEN,
+  100: NETWORK_NAMES.XDAI,
+  56: NETWORK_NAMES.BSC
+}
+
+export function getNetworkNativeToken(networkId: number): string {
+  const networkInfo = networkNativeTokensList.find(item => {
+    return item.networkId === networkId
+  })
+  if (!networkInfo) {
+    throw new Error(errorMessages.INVALID_NETWORK_ID)
+  }
+  return networkInfo.nativeToken
+}
+
+const mainnetNodeUrl = `https://${NETWORK_NAMES.MAINNET}.infura.io/v3/${INFURA_API_KEY}`
+const mainnetWeb3 = new Web3(mainnetNodeUrl)
+const ropstenNodeUrl = `https://${NETWORK_NAMES.ROPSTEN}.infura.io/v3/${INFURA_API_KEY}`
+const ropstenWeb3 = new Web3(ropstenNodeUrl)
+const xdaiWeb3NodeUrl = config.get('XDAI_NODE_HTTP_URL') as string
+const xdaiWeb3 = new Web3(xdaiWeb3NodeUrl)
+
+export const getNetworkWeb3 = (networkId: number): Web3 => {
+  switch (networkId) {
+    case NETWORK_IDS.MAIN_NET:
+      return mainnetWeb3
+
+    case NETWORK_IDS.ROPSTEN:
+      return ropstenWeb3
+
+    case NETWORK_IDS.XDAI:
+      return xdaiWeb3
+    default:
+      throw new Error(errorMessages.INVALID_NETWORK_ID)
+  }
+}
+
+export function getProvider(networkId: number) {
+  const network = NETWORK_ID_MAP[networkId]
+  if (network === NETWORK_NAMES.XDAI) {
     return new ethers.providers.JsonRpcProvider(
-      config.get('XDAI_NODE_HTTP_URL')
+      config.get('XDAI_NODE_HTTP_URL') as string
     )
   }
   // 'https://bsc-dataseed.binance.org/'
-  if (network === 'bsc') {
+  if (network === NETWORK_NAMES.BSC) {
     return new ethers.providers.JsonRpcProvider(
-      config.get('BSC_NODE_HTTP_URL'),
-      { name: 'binance', chainId: 56 }
+      config.get('BSC_NODE_HTTP_URL') as string,
+      { name: NETWORK_NAMES.BSC, chainId: NETWORK_IDS.BSC }
     )
   }
-
-  // return new Web3(
-  //   new Web3.providers.HttpProvider(config.get('XDAI_NODE_HTTP_URL'))
-  // )
-  // quiknode return new ethers.providers.JsonRpcProvider(
-  //   'https://billowing-billowing-brook.quiknode.pro/04334528cb42b86923888fd5c38ba0553bc84dc6/'
-  // )
-
-  // nowork return new ethers.providers.JsonRpcProvider(config.get('XDAI_NODE_HTTP_URL'))
-  // nowork return new ethers.providers.JsonRpcProvider(
-  //   new Web3(new Web3.providers.HttpProvider(config.get('XDAI_NODE_HTTP_URL')))
-  // )
-  // console.log(`p : ${JSON.stringify(p, null, 2)}`)
-  // return p
   return new ethers.providers.InfuraProvider(network, INFURA_ID)
 }
 
-export function getWsProvider (network) {
-  if (network === 'xdaiChain') {
-    return new Web3(
-      new Web3.providers.WebsocketProvider(config.get('XDAI_NODE_WS_URL'))
-    )
+export function getEtherscanOrBlockScoutUrl(networkId: number): string {
+  switch (networkId) {
+    case NETWORK_IDS.XDAI:
+      return config.get('BLOCKSCOUT_API_URL') as string
+    case NETWORK_IDS.MAIN_NET:
+      return `${config.get('ETHERSCAN_MAINNET_API_URL')}?apikey=${config.get(
+        'ETHERSCAN_API_KEY'
+      )}`
+    case NETWORK_IDS.ROPSTEN:
+      return `${config.get('ETHERSCAN_ROPSTEN_API_URL')}?apikey=${config.get(
+        'ETHERSCAN_API_KEY'
+      )}`
+    default:
+      throw new Error(errorMessages.INVALID_NETWORK_ID)
   }
-  if (network === 'bsc') {
-    return new Web3(
-      new Web3.providers.WebsocketProvider(config.get('BSC_NODE_WS_URL'), {
-        name: 'binance',
-        chainId: 56
-      })
-    )
-  }
-  return new Web3(
-    new Web3.providers.WebsocketProvider(
-      `wss://mainnet.infura.io/ws/v3/${INFURA_ID}`
-    )
-  )
-
-  // return new ethers.providers.WebSocketProvider(
-  //   network,
-  //   `wss://mainnet.infura.io/ws/v3/${INFURA_ID}`
-  // )
-  // const infuraProvider = new ethers.providers.InfuraProvider(network, INFURA_ID)
-  // //console.log(`infuraProvider : ${JSON.stringify(infuraProvider, null, 2)}`)
-
-  // return infuraProvider.WebSocketProvider()
 }

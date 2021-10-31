@@ -3,16 +3,15 @@ import { InjectRepository } from 'typeorm-typedi-extensions';
 // import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
 import { Donation } from '../entities/donation';
-import { getProviderFromChainId } from '../provider';
 import { MyContext } from '../types/MyContext';
 import { Project } from '../entities/project';
-import axios, { AxiosResponse } from 'axios';
 import { getAnalytics } from '../analytics';
-import { Wallet } from '../entities/wallet';
 import { Token } from '../entities/token';
 import { Repository, In } from 'typeorm';
 import { User } from '../entities/user';
 import Logger from '../logger';
+import { errorMessages } from '../utils/errorMessages';
+import { NETWORK_IDS } from '../provider';
 
 const analytics = getAnalytics();
 
@@ -20,7 +19,7 @@ const analytics = getAnalytics();
 export class DonationResolver {
   constructor(
     @InjectRepository(Donation)
-    private readonly donationRepository: Repository<Donation>
+    private readonly donationRepository: Repository<Donation>,
   ) {}
 
   @Query(returns => [Donation], { nullable: true })
@@ -33,16 +32,17 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsFromWallets(
     @Ctx() ctx: MyContext,
-    @Arg('fromWalletAddresses', type => [String]) fromWalletAddresses: string[]
+    @Arg('fromWalletAddresses', type => [String])
+    fromWalletAddresses: string[],
   ) {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
-      o.toLowerCase()
+      o.toLowerCase(),
     );
 
     const donations = await this.donationRepository.find({
       where: {
-        fromWalletAddress: In(fromWalletAddressesArray)
-      }
+        fromWalletAddress: In(fromWalletAddressesArray),
+      },
     });
     return donations;
   }
@@ -50,16 +50,16 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsToWallets(
     @Ctx() ctx: MyContext,
-    @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[]
+    @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[],
   ) {
     const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
-      o.toLowerCase()
+      o.toLowerCase(),
     );
 
     const donations = await this.donationRepository.find({
       where: {
-        toWalletAddress: In(toWalletAddressesArray)
-      }
+        toWalletAddress: In(toWalletAddressesArray),
+      },
     });
     return donations;
   }
@@ -72,7 +72,7 @@ export class DonationResolver {
   @Mutation(returns => [Number])
   async getTokenPrice(
     @Arg('symbol') symbol: string,
-    @Arg('chainId') chainId: number
+    @Arg('chainId') chainId: number,
   ) {
     const prices = await getTokenPrices(symbol, ['USDT', 'ETH'], chainId);
     return prices;
@@ -82,14 +82,14 @@ export class DonationResolver {
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
       throw new Error(
-        'You must be logged in in order to register project donations'
+        'You must be logged in in order to register project donations',
       );
     const userId = ctx.req.user.userId;
 
     const donations = await this.donationRepository.find({
       where: {
-        user: userId
-      }
+        user: userId,
+      },
     });
 
     return donations;
@@ -106,20 +106,25 @@ export class DonationResolver {
     @Arg('projectId') projectId: Number,
     @Arg('chainId') chainId: Number,
     @Arg('transakId', { nullable: true }) transakId: string,
-
     // TODO should remove this in the future, we dont use transakStatus in creating donation
     @Arg('transakStatus', { nullable: true }) transakStatus: string,
-    @Ctx() ctx: MyContext
+    @Ctx() ctx: MyContext,
   ): Promise<Number> {
     try {
       let userId = ctx?.req?.user?.userId || null;
-      if (!chainId) chainId = 1;
-      const priceChainId = chainId === 3 ? 1 : chainId;
+      if (!chainId) chainId = NETWORK_IDS.MAIN_NET;
+      const priceChainId =
+        chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
       let originUser;
 
       const project = await Project.findOne({ id: Number(projectId) });
 
       if (!project) throw new Error('Transaction project was not found.');
+      if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
+        throw new Error(
+          errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
+        );
+      }
 
       if (userId) {
         originUser = await User.findOne({ id: ctx.req.user.userId });
@@ -130,6 +135,7 @@ export class DonationResolver {
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId?.toLowerCase() || transakId,
+        isFiat: Boolean(transakId),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         user: originUser,
@@ -137,7 +143,7 @@ export class DonationResolver {
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
-        anonymous: !!userId
+        anonymous: !!userId,
       });
       await donation.save();
 
@@ -147,15 +153,15 @@ export class DonationResolver {
       const tokenPrices = await getTokenPrices(
         token,
         baseTokens,
-        Number(priceChainId)
-      )
+        Number(priceChainId),
+      );
       donation.priceUsd = Number(tokenPrices[0]);
       donation.priceEth = Number(tokenPrices[1]);
 
       donation.valueUsd = Number(amount) * donation.priceUsd;
       donation.valueEth = Number(amount) * donation.priceEth;
       await donation.save();
-      if (transakId){
+      if (transakId) {
         // we send segment event for transak donations after the transak call our webhook to verifying transactions
         return donation.id;
       }
@@ -175,7 +181,7 @@ export class DonationResolver {
         currency: token,
         projectWalletAddress: project.walletAddress,
         createdAt: new Date(),
-      }
+      };
 
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId;
@@ -196,14 +202,13 @@ export class DonationResolver {
           'Made donation',
           originUser.segmentUserId(),
           segmentDonationMade,
-          originUser.segmentUserId()
+          originUser.segmentUserId(),
         );
       }
 
       const projectOwner = await User.findOne({ id: Number(project.admin) });
 
       if (projectOwner) {
-
         analytics.identifyUser(projectOwner);
 
         const segmentDonationReceived = {
@@ -216,7 +221,7 @@ export class DonationResolver {
           'Donation received',
           projectOwner.segmentUserId(),
           segmentDonationReceived,
-          projectOwner.segmentUserId()
+          projectOwner.segmentUserId(),
         );
       }
       return donation.id;
