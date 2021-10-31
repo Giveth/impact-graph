@@ -31,7 +31,7 @@ export class Donation extends BaseEntity {
   transactionId: string
 
   @Field()
-  @Column('integer', { default: 0 })
+  @Column('integer',{ nullable: true })
   // To match the transaction in case user has done speed up
   nonce: number
 

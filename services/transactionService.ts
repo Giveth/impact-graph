@@ -24,7 +24,7 @@ export async function getTransactionInfoFromNetwork(
   const userTransactionsCount = await web3.eth.getTransactionCount(
     input.fromAddress,
   );
-  if (nonce && userTransactionsCount <= nonce) {
+  if ( typeof nonce !== 'number' && userTransactionsCount <= nonce) {
     console.log('getTransactionDetail check nonce', {
       input,
       userTransactionsCount,
@@ -91,11 +91,11 @@ async function findTransactionByNonce(data: {
   // userRecentTransactions just includes the transactions that source is our fromAddress
   // so if the lowest nonce in this array is smaller than the sent nonce we would know that we should not
   // check latest transactions
-  const smallestNonce: number = userRecentTransactions[
+  const smallestNonce = userRecentTransactions.length > 0 ? userRecentTransactions[
     userRecentTransactions.length - 1
-  ].nonce as number;
+  ].nonce : undefined;
 
-  if (smallestNonce < nonce) {
+  if (smallestNonce !== undefined && smallestNonce < nonce) {
     console.log('checkIfTransactionHasBeenSpeedup', {
       smallestNonce,
       input,
