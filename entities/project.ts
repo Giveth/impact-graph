@@ -60,6 +60,16 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   description?: string
 
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  traceCampaignId?: string
+
+
+  @Field(type => Boolean)
+  @Column({default: false})
+  isTraceCampaign: boolean
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   organisationId?: number

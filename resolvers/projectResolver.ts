@@ -51,6 +51,7 @@ import {
   validateProjectTitle, validateProjectTitleForEdit,
   validateProjectWalletAddress
 } from '../utils/validators/projectValidator';
+import { updateCampaignInTrace } from '../services/trace/traceService';
 
 @ObjectType()
 class TopProjects {
@@ -372,6 +373,8 @@ export class ProjectResolver {
     project.qualityScore = qualityScore
     await project.save()
 
+    // We dont wait for trace reponse, because it may increase our response time
+    updateCampaignInTrace(project);
     return project
   }
 
