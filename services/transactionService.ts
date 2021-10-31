@@ -24,7 +24,7 @@ export async function getTransactionInfoFromNetwork(
   const userTransactionsCount = await web3.eth.getTransactionCount(
     input.fromAddress,
   );
-  if ( typeof nonce !== 'number' && userTransactionsCount <= nonce) {
+  if (typeof nonce === 'number' && userTransactionsCount <= nonce) {
     console.log('getTransactionDetail check nonce', {
       input,
       userTransactionsCount,
