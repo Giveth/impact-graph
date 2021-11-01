@@ -238,10 +238,6 @@ function validateTransactionWithInputData(
     );
   }
   if (transaction.amount !== input.amount) {
-    console.log('validateTransactionWithInputData() different amount', {
-      transaction,
-      input,
-    });
     throw new Error(
       errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
     );
