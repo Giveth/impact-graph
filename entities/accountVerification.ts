@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql'
+import { Field, ID, ObjectType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -9,48 +9,50 @@ import {
   RelationId,
   Index,
   CreateDateColumn,
-  UpdateDateColumn
-} from 'typeorm'
-import { User } from './user'
+  UpdateDateColumn,
+} from 'typeorm';
+import { User } from './user';
 
 @Entity()
 @ObjectType()
 export class AccountVerification extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
-  id: number
+  id: number;
 
   @Field()
   @Column()
-  platform: string
+  platform: string;
 
   @Index()
   @Field()
   @Column()
-  dId: string
+  dId: string;
 
   @Field()
   @Column()
-  protocol: string
+  protocol: string;
 
   @Field()
   @Column()
-  claim?: string
+  claim?: string;
 
   @Field()
   @Column()
-  attestation?: string
+  attestation?: string;
 
   @Index()
   @Field(type => User)
   @ManyToOne(type => User, { eager: true })
-  user: User
-  @RelationId((accountVerification: AccountVerification) => accountVerification.user)
-  userId: number
+  user: User;
+  @RelationId(
+    (accountVerification: AccountVerification) => accountVerification.user,
+  )
+  userId: number;
 
   @CreateDateColumn()
-  createdAt: Date
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date
+  updatedAt: Date;
 }

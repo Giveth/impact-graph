@@ -1,40 +1,40 @@
-import { PubSubEngine } from 'graphql-subscriptions'
+import { PubSubEngine } from 'graphql-subscriptions';
 import {
   Resolver,
   Subscription,
   Root,
   Mutation,
   Arg,
-  PubSub
-} from 'type-graphql'
+  PubSub,
+} from 'type-graphql';
 
-import Notification from '../entities/notification'
-import NotificationPayload from '../entities/notificationPayload'
+import Notification from '../entities/notification';
+import NotificationPayload from '../entities/notificationPayload';
 
 @Resolver(of => Notification)
 export class NotificationResolver {
   @Subscription({
-    topics: 'NOTIFICATIONS'
+    topics: 'NOTIFICATIONS',
   })
-  newNotification (@Root() { id, message }: NotificationPayload): Notification {
-    const newNotification: Notification = { id, message, date: new Date() }
+  newNotification(@Root() { id, message }: NotificationPayload): Notification {
+    const newNotification: Notification = { id, message, date: new Date() };
     console.log(
-      `notificationPayload : ${JSON.stringify(newNotification, null, 2)}`
-    )
-    return newNotification
+      `notificationPayload : ${JSON.stringify(newNotification, null, 2)}`,
+    );
+    return newNotification;
   }
 
   @Mutation(returns => Boolean)
-  async triggerNotification (
+  async triggerNotification(
     @Arg('trigger') input: boolean,
-    @PubSub() pubSub: PubSubEngine
+    @PubSub() pubSub: PubSubEngine,
   ) {
     const payload: NotificationPayload = {
       id: 1,
-      message: 'A notification was triggered'
-    }
+      message: 'A notification was triggered',
+    };
 
-    await pubSub.publish('NOTIFICATIONS', payload)
-    return true
+    await pubSub.publish('NOTIFICATIONS', payload);
+    return true;
   }
 }

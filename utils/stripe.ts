@@ -1,63 +1,63 @@
-import Stripe from 'stripe'
+import Stripe from 'stripe';
 
-import { Repository } from 'typeorm'
+import { Repository } from 'typeorm';
 
-import config from '../config'
-import { BankAccount, StripeTransaction } from '../entities/bankAccount'
-import { Project } from '../entities/project'
-import { User } from '../entities/user'
+import config from '../config';
+import { BankAccount, StripeTransaction } from '../entities/bankAccount';
+import { Project } from '../entities/project';
+import { User } from '../entities/user';
 
 const stripe = new Stripe(config.get('STRIPE_SECRET').toString(), {
-  apiVersion: '2020-08-27'
-})
+  apiVersion: '2020-08-27',
+});
 
 interface CreateStripeCheckoutSessionOptions {
-  amount: number
-  successUrl: string
-  cancelUrl: string
-  applicationFee?: number
+  amount: number;
+  successUrl: string;
+  cancelUrl: string;
+  applicationFee?: number;
 }
 
-export async function getStripeAccountId (project: Project) {
-  if (project.stripeAccountId) return project.stripeAccountId
+export async function getStripeAccountId(project: Project) {
+  if (project.stripeAccountId) return project.stripeAccountId;
 
-  const customer = await createStripeAccount(project)
+  const customer = await createStripeAccount(project);
 
-  return customer.id
+  return customer.id;
 }
 
-export async function createStripeAccount (project: Project) {
-  const account = await (stripe as any).accounts.create({ type: 'standard' })
+export async function createStripeAccount(project: Project) {
+  const account = await (stripe as any).accounts.create({ type: 'standard' });
 
-  project.stripeAccountId = account.id
+  project.stripeAccountId = account.id;
 
-  await Project.save(project)
+  await Project.save(project);
 
-  return account
+  return account;
 }
 
-export function createStripeAccountLink (
+export function createStripeAccountLink(
   accountId: string,
   refreshUrl: string,
-  returnUrl: string
+  returnUrl: string,
 ) {
   return stripe.accountLinks.create({
     account: accountId,
     type: 'account_onboarding',
     refresh_url: refreshUrl,
-    return_url: refreshUrl
-  })
+    return_url: refreshUrl,
+  });
 }
 
-export async function createStripeCheckoutSession (
+export async function createStripeCheckoutSession(
   project: Project,
-  options: CreateStripeCheckoutSessionOptions
+  options: CreateStripeCheckoutSessionOptions,
 ) {
   const fee = options.applicationFee
     ? {
-        payment_intent_data: { application_fee_amount: options.applicationFee }
+        payment_intent_data: { application_fee_amount: options.applicationFee },
       }
-    : {}
+    : {};
   return await stripe.checkout.sessions.create(
     {
       payment_method_types: ['card'],
@@ -66,26 +66,26 @@ export async function createStripeCheckoutSession (
           name: `${project.title} donation: ($${options.amount / 100})`,
           amount: options.amount,
           currency: 'USD',
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
       success_url: options.successUrl,
       cancel_url: options.cancelUrl,
-      ...fee
+      ...fee,
     },
     {
-      stripeAccount: project.stripeAccountId
-    }
-  )
+      stripeAccount: project.stripeAccountId,
+    },
+  );
 }
 
-export async function getStripeCheckoutSession (sessionId: string) {
-  return await stripe.checkout.sessions.retrieve(sessionId)
+export async function getStripeCheckoutSession(sessionId: string) {
+  return await stripe.checkout.sessions.retrieve(sessionId);
 }
 
-export async function handleStripeWebhook (rq, rs) {
-  const sig = rq.headers['stripe-signature']
-  let event
+export async function handleStripeWebhook(rq, rs) {
+  const sig = rq.headers['stripe-signature'];
+  let event;
 
   // Verify webhook signature and extract the event.
   // See https://stripe.com/docs/webhooks/signatures for more information.
@@ -93,21 +93,21 @@ export async function handleStripeWebhook (rq, rs) {
     event = stripe.webhooks.constructEvent(
       rq.body,
       sig,
-      config.get('STRIPE_WEBHOOK_SECRET').toString()
-    )
+      config.get('STRIPE_WEBHOOK_SECRET').toString(),
+    );
   } catch (err) {
-    console.log('Webhook Error:', err)
-    return rs.status(400).send(`Webhook Error: ${err.message}`)
+    console.log('Webhook Error:', err);
+    return rs.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object
-    const connectedAccountId = event.account
+    const session = event.data.object;
+    const connectedAccountId = event.account;
     const customer = (await getStripeCustomer(
       connectedAccountId,
-      session.customer
-    )) as Stripe.Customer
-    console.log(session)
+      session.customer,
+    )) as Stripe.Customer;
+    console.log(session);
 
     await StripeTransaction.update(
       { sessionId: session.id },
@@ -115,19 +115,16 @@ export async function handleStripeWebhook (rq, rs) {
         status: session.payment_status,
         donorCustomerId: session.customer,
         donorEmail: customer.email || '',
-        donorName: customer.name || ''
-      }
-    )
+        donorName: customer.name || '',
+      },
+    );
   }
 
-  rs.json({ received: true })
+  rs.json({ received: true });
 }
 
-export async function getStripeCustomer (
-  accountId: string,
-  customerId: string
-) {
+export async function getStripeCustomer(accountId: string, customerId: string) {
   return await stripe.customers.retrieve(customerId, {
-    stripeAccount: accountId
-  })
+    stripeAccount: accountId,
+  });
 }
