@@ -33,31 +33,37 @@
 */
 
 export interface TransakOrder {
-    eventID:'ORDER_PROCESSING' | 'ORDER_FAILED' |'ORDER_COMPLETED' | 'ORDER_PAYMENT_VERIFYING' | 'ORDER_CREATED',
-    createdAt: Date,
-    webhookData:{
-        id:string,
-        walletAddress:string,
-        createdAt:Date,
-        status:string,
-        fiatCurrency:string,
-        userId:string,
-        cryptocurrency:string,
-        isBuyOrSell:string,
-        fiatAmount:number,
-        commissionDecimal:number,
-        fromWalletAddress:string,
-        walletLink:string,
-        amountPaid:0,
-        partnerOrderId:string,
-        partnerCustomerId:string,
-        redirectURL:string,
-        conversionPrice:number
-        cryptoAmount:number,
-        totalFee:number,
-        paymentOption:[],
-        autoExpiresAt:Date,
-        referenceCode:number
-    }
-
+  eventID:
+    | 'ORDER_PROCESSING'
+    | 'ORDER_FAILED'
+    | 'ORDER_COMPLETED'
+    | 'ORDER_PAYMENT_VERIFYING'
+    | 'ORDER_CREATED';
+  createdAt: Date;
+  webhookData: {
+    id: string;
+    walletAddress: string;
+    createdAt: Date;
+    status: string;
+    fiatCurrency: string;
+    userId: string;
+    cryptocurrency: string;
+    isBuyOrSell: string;
+    fiatAmount: number;
+    commissionDecimal: number;
+    fromWalletAddress: string;
+    walletLink: string;
+    amountPaid: 0;
+    partnerOrderId: string;
+    partnerCustomerId: string;
+    redirectURL: string;
+    conversionPrice: number;
+    cryptoAmount: number;
+    totalFee: number;
+    paymentOption: [];
+    autoExpiresAt: Date;
+    referenceCode: number;
+    transactionLink?: string;
+    transactionHash?: string;
+  };
 }
