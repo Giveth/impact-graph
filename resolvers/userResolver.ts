@@ -60,50 +60,53 @@ export class UserResolver {
     @Arg('lastName', { nullable: true }) lastName: string,
     @Arg('location', { nullable: true }) location: string,
     @Arg('email', { nullable: true }) email: string,
-    @Arg('name', { nullable: true }) name: string,
+    @Arg('name') name: string,
     @Arg('url', { nullable: true }) url: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
     if (!user) throw new Error('Authentication required.');
     const dbUser = await User.findOne({ id: user.userId });
-
-    if (dbUser) {
-      let fullName: string = '';
-      if (!name) {
-        fullName = firstName + ' ' + lastName;
-      }
-      await User.update(
-        { id: user.userId },
-        { firstName, lastName, name: fullName, location, email, url },
-      );
-      const idUser = dbUser;
-      idUser.firstName = firstName;
-      idUser.lastName = lastName;
-      idUser.name = fullName;
-      idUser.location = location;
-      idUser.email = email;
-      idUser.url = url;
-
-      const segmentUpdateProfile = {
-        firstName: idUser.firstName,
-        lastName: idUser.lastName,
-        location: idUser.location,
-        email: idUser.email,
-        url: idUser.url,
-      };
-
-      analytics.identifyUser(idUser);
-      analytics.track(
-        'Updated profile',
-        dbUser.segmentUserId(),
-        segmentUpdateProfile,
-        null,
-      );
-
-      return true;
-    } else {
+    if (!dbUser) {
       return false;
     }
+    if (!firstName && !lastName) {
+      throw new Error(
+        errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
+      );
+    }
+    let fullName: string = '';
+    if (!name) {
+      fullName = firstName + ' ' + lastName;
+    }
+    await User.update(
+      { id: user.userId },
+      { firstName, lastName, name: fullName, location, email, url },
+    );
+    const idUser = dbUser;
+    idUser.firstName = firstName;
+    idUser.lastName = lastName;
+    idUser.name = fullName;
+    idUser.location = location;
+    idUser.email = email;
+    idUser.url = url;
+
+    const segmentUpdateProfile = {
+      firstName: idUser.firstName,
+      lastName: idUser.lastName,
+      location: idUser.location,
+      email: idUser.email,
+      url: idUser.url,
+    };
+
+    analytics.identifyUser(idUser);
+    analytics.track(
+      'Updated profile',
+      dbUser.segmentUserId(),
+      segmentUpdateProfile,
+      null,
+    );
+
+    return true;
   }
 
   // Sets the current account verification and creates related verifications
