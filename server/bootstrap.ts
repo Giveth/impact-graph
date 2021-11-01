@@ -22,6 +22,7 @@ import { ProjectStatus } from '../entities/projectStatus';
 import { User } from '../entities/user';
 
 import AdminBro from 'admin-bro';
+import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
 import { webhookHandler } from '../services/transak/webhookHandler';
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
 import { updateTraceableProjectsHandler } from '../services/trace/traceService';
@@ -172,6 +173,8 @@ export async function bootstrap () {
     app.use(
       json({ limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000 })
     )
+    runCheckPendingDonationsCronJob()
+
 
   } catch (err) {
     console.error(err)

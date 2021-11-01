@@ -12,6 +12,12 @@ import {
 import { Project } from './project'
 import { User } from './user'
 
+export const DONATION_STATUS = {
+  PENDING: 'pending',
+  VERIFIED: 'verified',
+  FAILED: 'failed'
+}
+
 @Entity()
 @ObjectType()
 export class Donation extends BaseEntity {
@@ -19,14 +25,35 @@ export class Donation extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  // it could be transactionHash for crypto transfers and transakId for transak donations
+  @Field()
+  @Column({ unique: true })
+  // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string
 
   @Field()
-  @Column()
+  @Column('integer',{ nullable: true })
+  // To match the transaction in case user has done speed up
+  nonce: number
+
+  @Field()
+  @Column({ nullable: false })
   transactionNetworkId: number
+
+  @Field()
+  @Column('text', { default: 'pending' })
+  status: string
+
+  @Field()
+  @Column('text', { nullable: true })
+  verifyErrorMessage: string
+
+  @Field()
+  @Column('boolean', { default: false })
+  speedup: boolean
+
+  @Field()
+  @Column('boolean', { default: false })
+  isFiat: boolean
 
   @Field()
   @Column()

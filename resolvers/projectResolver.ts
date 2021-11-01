@@ -22,7 +22,7 @@ import { Service } from 'typedi'
 import config from '../config'
 import slugify from 'slugify'
 import Logger from '../logger'
-import { getProvider } from '../provider'
+import { getProvider, NETWORK_IDS } from '../provider'
 import {
   Arg,
   Args,

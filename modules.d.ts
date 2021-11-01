@@ -32,7 +32,6 @@ declare namespace NodeJS {
     ENVIRONMENT: string
     WEBSITE_URL: string
     TRIGGER_BUILD_ON_NEW_PROJECT: string
-    ETHEREUM_NETWORK_ID: string
     OUR_SECRET: string
     XDAI_NODE_HTTP_URL: string
     SEGMENT_API_KEY: string

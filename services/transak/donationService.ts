@@ -1,4 +1,4 @@
-import { Donation } from '../../entities/donation';
+import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import DonationTracker from '../segment/DonationTracker';
@@ -8,7 +8,7 @@ const TRANSAK_COMPLETED_STATUS = 'COMPLETED'
 export const updateDonationByTransakData = async (transakData: TransakOrder)=>{
   const donation = await Donation.findOne({ transactionId: transakData.webhookData.id })
   if (!donation) throw new Error('Donation not found.')
-
+  let donationProjectIsValid = true;
   donation.transakStatus = transakData.webhookData.status;
   donation.currency = transakData.webhookData.cryptocurrency
   donation.fromWalletAddress = transakData.webhookData.fromWalletAddress
@@ -28,15 +28,19 @@ export const updateDonationByTransakData = async (transakData: TransakOrder)=>{
     })
     if (project){
       donation.projectId = project.id || 0
+    }else{
+      donationProjectIsValid = false
     }
-    // TODO we should do something if the walletAddress of transaction is not any of out project wallet addrees
-    // maybe in this case we should not verify donation in the future
   }
-  await donation.save()
 
   if (TRANSAK_COMPLETED_STATUS === donation.transakStatus) {
     notifyTransakUpdate(donation)
+    if (donationProjectIsValid){
+      donation.status = DONATION_STATUS.VERIFIED
+    }
   }
+  await donation.save()
+
 }
 const  notifyTransakUpdate = async (donation)=> {
   const project = await Project.findOne({ id: donation.projectId })
