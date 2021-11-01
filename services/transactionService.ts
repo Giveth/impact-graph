@@ -91,9 +91,10 @@ async function findTransactionByNonce(data: {
   // userRecentTransactions just includes the transactions that source is our fromAddress
   // so if the lowest nonce in this array is smaller than the sent nonce we would know that we should not
   // check latest transactions
-  const smallestNonce = userRecentTransactions.length > 0 ? userRecentTransactions[
-    userRecentTransactions.length - 1
-  ].nonce : undefined;
+  const smallestNonce =
+    userRecentTransactions.length > 0
+      ? userRecentTransactions[userRecentTransactions.length - 1].nonce
+      : undefined;
 
   if (smallestNonce !== undefined && smallestNonce < nonce) {
     console.log('checkIfTransactionHasBeenSpeedup', {
@@ -241,9 +242,10 @@ function validateTransactionWithInputData(
       errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
     );
   }
-  if (transaction.timestamp <= input.timestamp) {
+  const ONE_HOUR = 60 * 60;
+  if (input.timestamp - transaction.timestamp > ONE_HOUR) {
     // because we first create donation, then transaction will be mined, the transaction always should be greater than
-    // donation created time
+    // donation created time, but we set one hour because maybe our server time is different with blockchain time server
     throw new Error(errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION);
   }
 }
