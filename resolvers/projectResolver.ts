@@ -150,10 +150,10 @@ class OrderBy {
 
 @InputType()
 class FilterBy {
-  @Field(type => FilterField)
+  @Field(type => FilterField, { nullable: true })
   field: FilterField
 
-  @Field(type => FilterBoolean)
+  @Field(type => FilterBoolean, { nullable: true })
   value: FilterBoolean
 }
 
@@ -181,7 +181,7 @@ class GetProjectsArgs {
   category: string;
 
   @Field(type => FilterBy, {
-    nullable: true, defaultValue: { column: null, value: null }
+    nullable: true, defaultValue: { field: null, value: null }
   })
   filterBy: FilterBy
 
@@ -249,7 +249,7 @@ export class ProjectResolver {
   ): Promise<AllProjects> {
     const categories = await Category.find()
     const [projects, totalCount] = await Project.searchProjects(
-      take, skip, orderBy.field, orderBy.direction, category, searchTerm, filterBy.field, filterBy.value
+      take, skip, orderBy.field, orderBy.direction, category, searchTerm, filterBy?.field, filterBy?.value
     )
 
     return { projects, totalCount, categories }

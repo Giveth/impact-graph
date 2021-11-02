@@ -192,13 +192,17 @@ class Project extends BaseEntity {
 
   // Precalculates the sum of donations and alias it during query execution for ordering
   static addTotalDonationsQuery(query: SelectQueryBuilder<Project>, direction: any) {
-    query.addSelect('SUM(donations.amount) as totalDonated')
-         .groupBy('project.id, donations.id, reactions.id, status.id, users.id, c.id')
+    query.addSelect((subQuery) => {
+      return subQuery.select('SUM(donations.amount)', 'donated')
+                     .from(Donation, 'd')
+                     .where('d.projectId = project.id');
+      }, 'donated')
+    .groupBy('project.id, donations.id, reactions.id, status.id, users.id, c.id')
 
     if (direction === 'ASC') {
-      return query.orderBy('totalDonated', direction, 'NULLS FIRST')
+      return query.orderBy('donated', direction, 'NULLS FIRST')
     } else {
-      return query.orderBy('totalDonated', direction, 'NULLS LAST')
+      return query.orderBy('donated', direction, 'NULLS LAST')
     }
   }
 
