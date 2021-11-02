@@ -68,8 +68,8 @@
     "typeorm-typedi-extensions": "^0.2.3",
     "typescript": "^3.9.9",
     "wkhtmltopdf": "^0.3.4",
-    "moment": "^2.29.1"
-    "web3": "^1.6.0",
+    "moment": "^2.29.1",
+    "web3": "^1.6.0"
   },
   "lint-staged": {
     "*.ts": [
