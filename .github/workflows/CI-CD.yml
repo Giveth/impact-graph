@@ -46,7 +46,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         uses: garygrossgarten/github-action-ssh@v0.6.4
         with:
-          command: cd impact-graph && git checkout develop && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;
+          command: cd impact-graph && git reset --hard && git checkout develop && git pull && npm i && npm run typeorm:cli:live -- migration:run && npm run serve;
           host: ${{ secrets.DEVELOP_HOST }}
           username: ${{ secrets.DEVELOP_USERNAME }}
           privateKey: ${{ secrets.DEVELOP_PRIVATE_KEY}}
