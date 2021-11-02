@@ -73,6 +73,15 @@ class TopProjects {
   totalCount: number;
 }
 
+enum FilterField {
+  Verified = 'verified'
+}
+
+enum FilterBoolean {
+  True = 'true',
+  False = 'false'
+}
+
 enum OrderField {
   CreationDate = 'creationDate',
   Balance = 'balance',
@@ -128,6 +137,15 @@ class OrderBy {
   direction: OrderDirection;
 }
 
+@InputType()
+class FilterBy {
+  @Field(type => FilterField)
+  column: FilterField
+
+  @Field(type => FilterBoolean)
+  value: FilterBoolean
+}
+
 @Service()
 @ArgsType()
 class GetProjectsArgs {
@@ -150,6 +168,11 @@ class GetProjectsArgs {
 
   @Field({ nullable: true })
   category: string;
+
+  @Field(type => FilterBy, {
+    nullable: true, defaultValue: { column: null, value: null }
+  })
+  filter: FilterBy
 
   @Field({ nullable: true })
   admin?: number;
@@ -211,11 +234,11 @@ export class ProjectResolver {
 
   @Query(returns => AllProjects)
   async projects (
-    @Args() { take, skip, orderBy, searchTerm, category, admin }: GetProjectsArgs
+    @Args() { take, skip, orderBy, searchTerm, category, filter, admin }: GetProjectsArgs
   ): Promise<AllProjects> {
     const categories = await Category.find()
     const [projects, totalCount] = await Project.searchProjects(
-      take, skip, orderBy.field, orderBy.direction, category, searchTerm
+      take, skip, orderBy.field, orderBy.direction, category, searchTerm, filter.column, filter.value
     )
 
     return { projects, totalCount, categories }

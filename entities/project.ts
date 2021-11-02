@@ -202,8 +202,12 @@ class Project extends BaseEntity {
     }
   }
 
+  static addFilterQuery(query, filter, filterValue) {
+    return query.andWhere(`project.${filter} = ${filterValue}`)
+  }
+
   // Backward Compatible Projects Query with added pagination, frontend sorts and category search
-  static searchProjects(limit: number, offset: number, sortBy: string, direction: any, category: string, searchTerm: string) {
+  static searchProjects(limit: number, offset: number, sortBy: string, direction: any, category: string, searchTerm: string, filter: string, filterValue: string) {
     const query = this.createQueryBuilder('project')
                .leftJoinAndSelect('project.status', 'status')
                .leftJoinAndSelect('project.donations', 'donations')
@@ -212,9 +216,12 @@ class Project extends BaseEntity {
                .innerJoinAndSelect('project.categories', 'c')
                .where('project.statusId = 5 AND project.listed = true')
 
+    // Filters
     if (category) this.addCategoryQuery(query, category)
     if (searchTerm) this.addSearchQuery(query, searchTerm)
+    if (filter) this.addFilterQuery(query, filter, filterValue)
 
+    // Sorts
     if (sortBy === 'reactions') {
       this.addReactionsCountQuery(query, direction)
     } else if (sortBy === 'totalDonations') {
