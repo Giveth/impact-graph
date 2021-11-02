@@ -68,7 +68,7 @@ class Project extends BaseEntity {
 
   @Field(type => Boolean)
   @Column({default: false})
-  isTraceCampaign: boolean
+  isTraceable: boolean
 
   @Field({ nullable: true })
   @Column({ nullable: true })

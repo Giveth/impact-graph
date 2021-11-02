@@ -25,7 +25,7 @@ import AdminBro from 'admin-bro';
 import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
 import { webhookHandler } from '../services/transak/webhookHandler';
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
-import { updateTraceableProjectsHandler } from '../services/trace/traceService';
+import { authorizeGivethTrace, updateTraceableProjectsHandler } from '../services/trace/traceService';
 
 
 // tslint:disable:no-var-requires
@@ -160,7 +160,7 @@ export async function bootstrap () {
       netlifyDeployed
     )
     app.post('/transak_webhook', webhookHandler)
-    app.put('/traceableProject/:id', updateTraceableProjectsHandler)
+    app.put('/traceableProject/:id', authorizeGivethTrace, updateTraceableProjectsHandler)
 
     // Start the server
     app.listen({ port: 4000 })
