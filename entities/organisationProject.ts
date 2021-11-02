@@ -1,8 +1,8 @@
-import { Field, ID, ObjectType } from 'type-graphql'
-import { PrimaryGeneratedColumn, Column, Entity, ManyToOne } from 'typeorm'
-import { Organisation } from './organisation'
-import { Project } from './project'
-import { RelationColumn } from '../helpers'
+import { Field, ID, ObjectType } from 'type-graphql';
+import { PrimaryGeneratedColumn, Column, Entity, ManyToOne } from 'typeorm';
+import { Organisation } from './organisation';
+import { Project } from './project';
+import { RelationColumn } from '../helpers';
 
 // @ObjectType()
 // @Entity()

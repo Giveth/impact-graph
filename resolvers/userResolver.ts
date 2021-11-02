@@ -6,23 +6,23 @@ import {
   Root,
   Mutation,
   Ctx,
-  Int
-} from 'type-graphql'
-import { InjectRepository } from 'typeorm-typedi-extensions'
-import { Repository, In } from 'typeorm'
+  Int,
+} from 'type-graphql';
+import { InjectRepository } from 'typeorm-typedi-extensions';
+import { Repository, In } from 'typeorm';
 
-import { OrganisationUser } from '../entities/organisationUser'
-import { User } from '../entities/user'
-import { RegisterInput } from '../user/register/RegisterInput'
-import { AccountVerification } from '../entities/accountVerification'
-import { AccountVerificationInput } from './types/accountVerificationInput'
-import { Organisation } from '../entities/organisation'
-import { MyContext } from '../types/MyContext'
-import { getAnalytics } from '../analytics'
+import { OrganisationUser } from '../entities/organisationUser';
+import { User } from '../entities/user';
+import { RegisterInput } from '../user/register/RegisterInput';
+import { AccountVerification } from '../entities/accountVerification';
+import { AccountVerificationInput } from './types/accountVerificationInput';
+import { Organisation } from '../entities/organisation';
+import { MyContext } from '../types/MyContext';
+import { getAnalytics } from '../analytics';
 import { errorMessages } from '../utils/errorMessages';
-import { Project } from '../entities/project'
+import { Project } from '../entities/project';
 
-const analytics = getAnalytics()
+const analytics = getAnalytics();
 
 @Resolver(of => User)
 export class UserResolver {
@@ -35,8 +35,7 @@ export class UserResolver {
     @InjectRepository(AccountVerification)
     @InjectRepository(Project)
     private readonly accountVerificationRepository: Repository<AccountVerification>,
-  ) {
-  }
+  ) {}
 
   async create(@Arg('data', () => RegisterInput) data: any) {
     // return User.create(data).save();
@@ -45,15 +44,14 @@ export class UserResolver {
   @Query(returns => User, { nullable: true })
   async user(@Arg('userId', type => Int) userId: number) {
     return await this.userRepository.findOne({
-        where: { id: userId },
-        relations: ['accountVerifications', 'projects']
-      }
-    )
+      where: { id: userId },
+      relations: ['accountVerifications', 'projects'],
+    });
   }
 
   @Query(returns => User, { nullable: true })
   userByAddress(@Arg('address', type => String) address: string) {
-    return this.userRepository.findOne({ walletAddress: address })
+    return this.userRepository.findOne({ walletAddress: address });
   }
 
   @Mutation(returns => Boolean)
@@ -64,31 +62,33 @@ export class UserResolver {
     @Arg('email', { nullable: true }) email: string,
     @Arg('name') name: string,
     @Arg('url', { nullable: true }) url: string,
-    @Ctx() { req: { user } }: MyContext
+    @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
-    if (!user) throw new Error('Authentication required.')
-    const dbUser = await User.findOne({ id: user.userId })
+    if (!user) throw new Error('Authentication required.');
+    const dbUser = await User.findOne({ id: user.userId });
     if (!dbUser) {
-      return false
+      return false;
     }
     if (!firstName && !lastName) {
-      throw new Error(errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY)
+      throw new Error(
+        errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
+      );
     }
-    let fullName: string = ''
+    let fullName: string = '';
     if (!name) {
-      fullName = firstName + ' ' + lastName
+      fullName = firstName + ' ' + lastName;
     }
     await User.update(
       { id: user.userId },
-      { firstName, lastName, name: fullName, location, email, url }
-    )
-    const idUser = dbUser
-    idUser.firstName = firstName
-    idUser.lastName = lastName
-    idUser.name = fullName
-    idUser.location = location
-    idUser.email = email
-    idUser.url = url
+      { firstName, lastName, name: fullName, location, email, url },
+    );
+    const idUser = dbUser;
+    idUser.firstName = firstName;
+    idUser.lastName = lastName;
+    idUser.name = fullName;
+    idUser.location = location;
+    idUser.email = email;
+    idUser.url = url;
 
     const segmentUpdateProfile = {
       firstName: idUser.firstName,
@@ -96,37 +96,44 @@ export class UserResolver {
       location: idUser.location,
       email: idUser.email,
       url: idUser.url,
-    }
+    };
 
-    analytics.identifyUser(idUser)
-    analytics.track('Updated profile', dbUser.segmentUserId(), segmentUpdateProfile, null)
+    analytics.identifyUser(idUser);
+    analytics.track(
+      'Updated profile',
+      dbUser.segmentUserId(),
+      segmentUpdateProfile,
+      null,
+    );
 
-    return true
-
+    return true;
   }
 
   // Sets the current account verification and creates related verifications
   @Mutation(returns => Boolean)
   async addUserVerification(
     @Arg('dId', { nullable: true }) dId: string,
-    @Arg('verifications', type => [AccountVerificationInput]) verificationsInput: AccountVerificationInput[],
-    @Ctx() { req: { user } }: MyContext
+    @Arg('verifications', type => [AccountVerificationInput])
+    verificationsInput: AccountVerificationInput[],
+    @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
-    if (!user) throw new Error('Authentication required.')
+    if (!user) throw new Error('Authentication required.');
 
-    const currentUser = await User.findOne({ id: user.userId })
-    if (!currentUser) throw new Error(errorMessages.USER_NOT_FOUND)
+    const currentUser = await User.findOne({ id: user.userId });
+    if (!currentUser) throw new Error(errorMessages.USER_NOT_FOUND);
 
-    currentUser.dId = dId
-    await currentUser.save()
+    currentUser.dId = dId;
+    await currentUser.save();
 
     const associatedVerifications = verificationsInput.map(verification => {
-      return { ...verification, user: currentUser, dId }
-    })
-    const accountVerifications = this.accountVerificationRepository.create(associatedVerifications)
-    await this.accountVerificationRepository.save(accountVerifications)
+      return { ...verification, user: currentUser, dId };
+    });
+    const accountVerifications = this.accountVerificationRepository.create(
+      associatedVerifications,
+    );
+    await this.accountVerificationRepository.save(accountVerifications);
 
-    return true
+    return true;
   }
 
   // @FieldResolver()

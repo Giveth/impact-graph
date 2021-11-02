@@ -25,7 +25,10 @@ export const errorMessages = {
   TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS:
     'toAddress of donation should be equal to project wallet address',
   INVALID_WALLET_ADDRESS: 'Eth address not valid',
-  BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY: 'Both firstName and lastName cant be empty',
-  PROJECT_WITH_THIS_TITLE_EXISTS: 'There is a project with this title, please use another title',
-  INVALID_PROJECT_TITLE: 'Your project name isn\'t valid, please only use letters and numbers'
-}
+  BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY:
+    'Both firstName and lastName cant be empty',
+  PROJECT_WITH_THIS_TITLE_EXISTS:
+    'There is a project with this title, please use another title',
+  INVALID_PROJECT_TITLE:
+    "Your project name isn't valid, please only use letters and numbers",
+};

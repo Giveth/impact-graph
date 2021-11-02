@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql'
+import { Field, ID, ObjectType } from 'type-graphql';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,16 +6,16 @@ import {
   ManyToMany,
   OneToMany,
   JoinTable,
-  ColumnOptions
-} from 'typeorm'
+  ColumnOptions,
+} from 'typeorm';
 
-import { OrganisationUser } from './organisationUser'
+import { OrganisationUser } from './organisationUser';
 // import { OrganisationProject } from './organisationProject'
-import { User } from './user'
-import { Project } from './project'
+import { User } from './user';
+import { Project } from './project';
 // import { RelationColumn } from '../helpers'
-function RelationColumn (options?: ColumnOptions) {
-  return Column({ nullable: true, ...options })
+function RelationColumn(options?: ColumnOptions) {
+  return Column({ nullable: true, ...options });
 }
 
 @Entity()
@@ -23,15 +23,15 @@ function RelationColumn (options?: ColumnOptions) {
 export class Organisation {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
-  readonly id: number
+  readonly id: number;
 
   @Field()
   @Column()
-  title: string
+  title: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  description?: string
+  description?: string;
 
   // Manually get the join table
   // @Field(type => [OrganisationProject], { nullable: true })
@@ -50,19 +50,16 @@ export class Organisation {
   @ManyToMany(type => Project)
   @JoinTable()
   @Field(type => [Project], { nullable: true })
-  projects: Project[]
+  projects: Project[];
 
   // @Column()
   // @Field(type => [Project])
   // projectz: Project[]
 
   @Field(type => User)
-  @ManyToMany(
-    type => User,
-    user => user.organisations
-  )
+  @ManyToMany(type => User, user => user.organisations)
   @JoinTable()
-  users: User[]
+  users: User[];
   // @RelationColumn()
   // authorId: number
 }

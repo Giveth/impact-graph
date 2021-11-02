@@ -1,4 +1,4 @@
-import gql from 'graphql-tag'
+import gql from 'graphql-tag';
 
 const FETCH_PROJECTS = gql`
   query FetchProjects($limit: Int, $skip: Int, $orderBy: OrderBy) {
@@ -19,7 +19,7 @@ const FETCH_PROJECTS = gql`
       totalCount
     }
   }
-`
+`;
 
 const FETCH_PROJECT = gql`
   query Project($id: ID!) {
@@ -37,7 +37,7 @@ const FETCH_PROJECT = gql`
       }
     }
   }
-`
+`;
 
 const FETCH_PROJECT_BY_SLUG = gql`
   query ProjectBySlug($slug: String!) {
@@ -55,7 +55,7 @@ const FETCH_PROJECT_BY_SLUG = gql`
       }
     }
   }
-`
+`;
 
 const ADD_BANK_ACCOUNT = gql`
   mutation AddBankAccount($id: ID!) {
@@ -64,7 +64,7 @@ const ADD_BANK_ACCOUNT = gql`
       projectId
     }
   }
-`
+`;
 
 const GET_LINK_BANK_CREATION = gql`
   query SetProjectBankAccount(
@@ -78,7 +78,7 @@ const GET_LINK_BANK_CREATION = gql`
       refreshUrl: $refreshUrl
     )
   }
-`
+`;
 const GET_DONATION_SESSION = gql`
   query GetStripeProjectDonationSession(
     $projectId: Float!
@@ -100,7 +100,7 @@ const GET_DONATION_SESSION = gql`
       accountId
     }
   }
-`
+`;
 
 // const GET_STRIPE_DONATION_PDF = gql`
 //   query GetStripeDonationPDF($sessionId: Float!) {
@@ -128,7 +128,7 @@ const GET_STRIPE_DONATION_PDF = gql`
       }
     }
   }
-`
+`;
 
 // const GET_STRIPE_PROJECT_DONATIONS = gql`
 //   query GetStripeDonations($projectId: Float!) {
@@ -156,9 +156,9 @@ const GET_STRIPE_PROJECT_DONATIONS = gql`
       totalDonors
     }
   }
-`
+`;
 const ADD_PROJECT = gql`
-  mutation($project: ProjectInput!) {
+  mutation ($project: ProjectInput!) {
     addProject(project: $project) {
       id
       title
@@ -173,12 +173,12 @@ const ADD_PROJECT = gql`
       }
     }
   }
-`
+`;
 /*
  ** PROJECT UPDATES
  */
 const ADD_PROJECT_UPDATE = gql`
-  mutation($projectId: Float!, $title: String!, $content: String!) {
+  mutation ($projectId: Float!, $title: String!, $content: String!) {
     addProjectUpdate(projectId: $projectId, title: $title, content: $content) {
       id
       projectId
@@ -186,7 +186,7 @@ const ADD_PROJECT_UPDATE = gql`
       content
     }
   }
-`
+`;
 
 const GET_PROJECT_UPDATES = gql`
   query GetProjectUpdates($projectId: Float!, $take: Float!, $skip: Float!) {
@@ -205,18 +205,18 @@ const GET_PROJECT_UPDATES = gql`
       }
     }
   }
-`
+`;
 
 export {
-    FETCH_PROJECTS,
-    FETCH_PROJECT,
-    FETCH_PROJECT_BY_SLUG,
-    ADD_PROJECT,
-    ADD_BANK_ACCOUNT,
-    GET_LINK_BANK_CREATION,
-    GET_DONATION_SESSION,
-    GET_STRIPE_DONATION_PDF,
-    GET_STRIPE_PROJECT_DONATIONS,
-    ADD_PROJECT_UPDATE,
-    GET_PROJECT_UPDATES
-}
+  FETCH_PROJECTS,
+  FETCH_PROJECT,
+  FETCH_PROJECT_BY_SLUG,
+  ADD_PROJECT,
+  ADD_BANK_ACCOUNT,
+  GET_LINK_BANK_CREATION,
+  GET_DONATION_SESSION,
+  GET_STRIPE_DONATION_PDF,
+  GET_STRIPE_PROJECT_DONATIONS,
+  ADD_PROJECT_UPDATE,
+  GET_PROJECT_UPDATES,
+};
