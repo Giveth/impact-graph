@@ -151,7 +151,7 @@ class OrderBy {
 @InputType()
 class FilterBy {
   @Field(type => FilterField)
-  column: FilterField
+  field: FilterField
 
   @Field(type => FilterBoolean)
   value: FilterBoolean
@@ -183,7 +183,7 @@ class GetProjectsArgs {
   @Field(type => FilterBy, {
     nullable: true, defaultValue: { column: null, value: null }
   })
-  filter: FilterBy
+  filterBy: FilterBy
 
   @Field({ nullable: true })
   admin?: number;
@@ -245,11 +245,11 @@ export class ProjectResolver {
 
   @Query(returns => AllProjects)
   async projects (
-    @Args() { take, skip, orderBy, searchTerm, category, filter, admin }: GetProjectsArgs
+    @Args() { take, skip, orderBy, searchTerm, category, filterBy, admin }: GetProjectsArgs
   ): Promise<AllProjects> {
     const categories = await Category.find()
     const [projects, totalCount] = await Project.searchProjects(
-      take, skip, orderBy.field, orderBy.direction, category, searchTerm, filter.column, filter.value
+      take, skip, orderBy.field, orderBy.direction, category, searchTerm, filterBy.field, filterBy.value
     )
 
     return { projects, totalCount, categories }
