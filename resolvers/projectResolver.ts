@@ -78,9 +78,7 @@ enum OrderField {
   QualityScore = 'qualityScore',
   Verified = 'verified',
   Reactions = 'reactions',
-  Donations = 'totalDonations',
-  RecentlyAdded = 'recentProjects',
-  OldProjects = 'oldProjects'
+  Donations = 'totalDonations'
 }
 
 enum OrderDirection {

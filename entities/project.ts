@@ -189,20 +189,6 @@ class Project extends BaseEntity {
     }))
   }
 
-  static addCustomDateQuery(query: SelectQueryBuilder<Project>, sortBy: string, direction: any) {
-    const thirtyDaysAgo = moment().subtract(30, 'days')
-
-    if (sortBy === 'recentProjects') query.andWhere(new Brackets(qb => {
-      qb.where({ creationDate: MoreThan(thirtyDaysAgo) })
-    }))
-
-    if (sortBy === 'oldProjects') query.andWhere(new Brackets(qb => {
-      qb.where({ creationDate: LessThan(thirtyDaysAgo) })
-    }))
-
-    return query.orderBy(`project.creationDate`, direction)
-  }
-
   // Precalculates de amount of reactions and alias it during query execution for ordering
   static addReactionsCountQuery(query: SelectQueryBuilder<Project>, direction: any) {
     return query.addSelect((subQuery) => {
@@ -239,9 +225,7 @@ class Project extends BaseEntity {
     if (category) this.addCategoryQuery(query, category)
     if (searchTerm) this.addSearchQuery(query, searchTerm)
 
-    if (sortBy === 'recentProjects' || sortBy === 'oldProjects') {
-      this.addCustomDateQuery(query, sortBy, direction)
-    } else if (sortBy === 'reactions') {
+    if (sortBy === 'reactions') {
       this.addReactionsCountQuery(query, direction)
     } else if (sortBy === 'totalDonations') {
       this.addTotalDonationsQuery(query, direction)
@@ -249,8 +233,8 @@ class Project extends BaseEntity {
       query.orderBy(`project.${sortBy}`, direction)
     }
 
-    return query.limit(limit)
-                .offset(offset)
+    return query.take(limit)
+                .skip(offset)
                 .getManyAndCount()
   }
 
