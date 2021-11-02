@@ -48,6 +48,7 @@ export const updateDonationByTransakData = async (
     notifyTransakUpdate(donation);
     if (donationProjectIsValid) {
       donation.status = DONATION_STATUS.VERIFIED;
+      donation.transakTransactionLink = transakData.webhookData.transactionLink;
     }
   }
   await donation.save();

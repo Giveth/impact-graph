@@ -63,5 +63,7 @@ export interface TransakOrder {
     paymentOption: [];
     autoExpiresAt: Date;
     referenceCode: number;
+    transactionLink?: string;
+    transactionHash?: string;
   };
 }
