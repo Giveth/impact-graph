@@ -247,7 +247,7 @@ export class ProjectResolver {
   async projects (
     @Args() { take, skip, orderBy, searchTerm, category, filterBy, admin }: GetProjectsArgs
   ): Promise<AllProjects> {
-    const categories = await Category.find({ cache: 60000 })
+    const categories = await Category.find()
     const [projects, totalCount] = await Project.searchProjects(
       take, skip, orderBy.field, orderBy.direction, category, searchTerm, filterBy?.field, filterBy?.value
     )
