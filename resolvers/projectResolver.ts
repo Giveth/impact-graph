@@ -73,6 +73,7 @@ class TopProjects {
   totalCount: number;
 }
 
+// this is to prevent SQL injection
 enum FilterField {
   Verified = 'verified'
 }
@@ -95,6 +96,16 @@ enum OrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
+
+registerEnumType(FilterField, {
+  name: 'FilterField',
+  description: 'Filter by field',
+});
+
+registerEnumType(FilterBoolean, {
+  name: 'FilterBoolean',
+  description: 'Filter by field value',
+});
 
 registerEnumType(OrderField, {
   name: 'OrderField',
