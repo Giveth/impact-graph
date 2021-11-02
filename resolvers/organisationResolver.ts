@@ -1,4 +1,4 @@
-import { InjectRepository } from 'typeorm-typedi-extensions'
+import { InjectRepository } from 'typeorm-typedi-extensions';
 
 import {
   Resolver,
@@ -8,23 +8,23 @@ import {
   Query,
   Arg,
   Mutation,
-  Args
-} from 'type-graphql'
+  Args,
+} from 'type-graphql';
 
-import { Organisation } from '../entities/organisation'
-import { OrganisationX } from '../entities/organisationX'
+import { Organisation } from '../entities/organisation';
+import { OrganisationX } from '../entities/organisationX';
 // import { OrganisationProject } from '../entities/organisationProject'
-import { OrganisationUser } from '../entities/organisationUser'
-import { User } from '../entities/user'
-import { Project } from '../entities/project'
-import { Repository, In, getManager } from 'typeorm'
-import { MyContext } from '../types/MyContext'
-import { Service } from 'typedi'
+import { OrganisationUser } from '../entities/organisationUser';
+import { User } from '../entities/user';
+import { Project } from '../entities/project';
+import { Repository, In, getManager } from 'typeorm';
+import { MyContext } from '../types/MyContext';
+import { Service } from 'typedi';
 
 @Service()
 @Resolver(of => OrganisationX)
 export class OrganisationResolver {
-  constructor (
+  constructor(
     @InjectRepository(Organisation)
     private readonly organisationRepository: Repository<Organisation>,
 
@@ -35,7 +35,7 @@ export class OrganisationResolver {
     private readonly projectRepository: Repository<Project>,
 
     @InjectRepository(OrganisationUser)
-    private readonly organisationUserRepository: Repository<OrganisationUser>
+    private readonly organisationUserRepository: Repository<OrganisationUser>,
   ) {}
 
   // @FieldResolver()
@@ -47,7 +47,7 @@ export class OrganisationResolver {
   // }
 
   @FieldResolver()
-  async projects (@Root() organisation: Organisation) {
+  async projects(@Root() organisation: Organisation) {
     // const ops = await this.organisationProjectRepository.find({
     //   cache: 1000,
     //   where: { organisationId: organisation.id }
@@ -77,19 +77,19 @@ export class OrganisationResolver {
   // }
 
   @Query(returns => [Project])
-  async organisationProjects (
+  async organisationProjects(
     @Arg('organisationId') organisationId: number,
-    @Ctx() ctx: MyContext
+    @Ctx() ctx: MyContext,
   ): Promise<Project[]> {
-    console.log(`organisationId ---> : ${organisationId}`)
+    console.log(`organisationId ---> : ${organisationId}`);
 
     if (!ctx.req.user) {
-      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`)
-      throw new Error('Access denied')
+      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`);
+      throw new Error('Access denied');
       // return undefined
     }
 
-    console.log(`ctx.req.user.email : ${ctx.req.user.email}`)
+    console.log(`ctx.req.user.email : ${ctx.req.user.email}`);
     // const organisations = await this.organisationRepository
     //   .createQueryBuilder('organisation')
     //   .leftJoinAndSelect('organisation.projects', 'projects')
@@ -97,25 +97,25 @@ export class OrganisationResolver {
     //   .getMany()
     const organisations = await this.organisationRepository.find({
       relations: ['projects'],
-      where: { id: organisationId }
-    })
+      where: { id: organisationId },
+    });
 
     console.log(
       `organisations ---> : ${JSON.stringify(
         organisations[0].projects,
         null,
-        2
-      )}`
-    )
+        2,
+      )}`,
+    );
 
-    return organisations[0].projects
+    return organisations[0].projects;
   }
 
   @Query(returns => [OrganisationX])
-  async organisationById (
-    @Arg('organisationId') organisationId: number
+  async organisationById(
+    @Arg('organisationId') organisationId: number,
   ): Promise<OrganisationX[]> {
-    console.log(`organisationId ---> : ${organisationId}`)
+    console.log(`organisationId ---> : ${organisationId}`);
     // const organisations = await this.organisationRepository
     //   .createQueryBuilder('organisation')
     //   .leftJoinAndSelect('organisation.projects', 'projects')
@@ -123,20 +123,20 @@ export class OrganisationResolver {
     //   .getMany()
     const organisations = await this.organisationRepository.find({
       relations: ['projects'],
-      where: { id: organisationId }
-    })
-    console.log(`organisations ---> : ${organisations[0].projects}`)
-    console.log(`organisations : ${JSON.stringify(organisations, null, 2)}`)
+      where: { id: organisationId },
+    });
+    console.log(`organisations ---> : ${organisations[0].projects}`);
+    console.log(`organisations : ${JSON.stringify(organisations, null, 2)}`);
 
     const OrganisationXs: any = organisations.map(o => {
-      const x = new OrganisationX()
-      x.title = o.title
-      x.description = o.description
-      x.projects = ['1', '2', '3']
-      return x
-    })
+      const x = new OrganisationX();
+      x.title = o.title;
+      x.description = o.description;
+      x.projects = ['1', '2', '3'];
+      return x;
+    });
 
-    console.log(`OrganisationXs : ${JSON.stringify(OrganisationXs, null, 2)}`)
+    console.log(`OrganisationXs : ${JSON.stringify(OrganisationXs, null, 2)}`);
 
     // organisations = organisations.map(o => {
     //   return {
@@ -160,11 +160,11 @@ export class OrganisationResolver {
     //   where: { id: organisationId }
     // })
 
-    return OrganisationXs
+    return OrganisationXs;
   }
 
   @Query(returns => [Organisation])
-  organisations (): Promise<Organisation[]> {
-    return this.organisationRepository.find()
+  organisations(): Promise<Organisation[]> {
+    return this.organisationRepository.find();
   }
 }

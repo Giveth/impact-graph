@@ -1,30 +1,29 @@
 import config from './config';
-import { getRepository, Column, ColumnOptions } from 'typeorm'
-import * as bcrypt from 'bcryptjs'
+import { getRepository, Column, ColumnOptions } from 'typeorm';
+import * as bcrypt from 'bcryptjs';
 
-import { Organisation } from './entities/organisation'
-import { OrganisationUser } from './entities/organisationUser'
+import { Organisation } from './entities/organisation';
+import { OrganisationUser } from './entities/organisationUser';
 // import { OrganisationProject } from './entities/organisationProject'
-import { Project } from './entities/project'
-import { Category } from './entities/category'
-import { Donation } from './entities/donation'
-import { User } from './entities/user'
+import { Project } from './entities/project';
+import { Category } from './entities/category';
+import { Donation } from './entities/donation';
+import { User } from './entities/user';
 
-import projectBg from './constants/projectBg'
+import projectBg from './constants/projectBg';
 
-export async function seedDatabase () {
-  
-  const categoryRepository = getRepository(Category)
-  const projectRepository = getRepository(Project)
-  const donationRepository = getRepository(Donation)
-  const organisationRepository = getRepository(Organisation)
-  const organisationUserRepository = getRepository(OrganisationUser)
+export async function seedDatabase() {
+  const categoryRepository = getRepository(Category);
+  const projectRepository = getRepository(Project);
+  const donationRepository = getRepository(Donation);
+  const organisationRepository = getRepository(Organisation);
+  const organisationUserRepository = getRepository(OrganisationUser);
   // const organisationProjectRepository = getRepository(OrganisationProject)
-  const userRepository = getRepository(User)
+  const userRepository = getRepository(User);
 
-  const seedPassword = config.get('SEED_PASSWORD').toString()
-  const serverEmail = config.get('SERVER_ADMIN_EMAIL').toString()
-  const users: User[] = []
+  const seedPassword = config.get('SEED_PASSWORD').toString();
+  const serverEmail = config.get('SERVER_ADMIN_EMAIL').toString();
+  const users: User[] = [];
 
   /** 
    * { name: 'sdg-poverty', value: 'End Poverty', source: 'SDG' },
@@ -73,37 +72,36 @@ export async function seedDatabase () {
     { name: 'real-estate', value: 'Real Estate', source: 'IRIS' },
     { name: 'waste', value: 'Waste', source: 'IRIS' },
     { name: 'water', value: 'Water', source: 'IRIS' },
-    { name: 'other', value: 'Other', source: 'adhoc' }
-    
-  ])
+    { name: 'other', value: 'Other', source: 'adhoc' },
+  ]);
 
-  await categoryRepository.save(categorySeeds)
-  
+  await categoryRepository.save(categorySeeds);
+
   const superAdminUser = userRepository.create({
     email: serverEmail,
     firstName: 'admin',
     password: bcrypt.hashSync(seedPassword, 12),
     confirmed: true,
     loginType: 'password',
-    walletAddress: '0x324bE1Bc256e97CF9a858a37d880bCE687671215'
-  })
+    walletAddress: '0x324bE1Bc256e97CF9a858a37d880bCE687671215',
+  });
 
-  users.push(superAdminUser)
+  users.push(superAdminUser);
 
-  const projects: Project[] = []
-  let organisations: Organisation[] = []
-  
-  if (config.get('DEFAULT_ORGANISATION') === 'giveth' ) {
+  const projects: Project[] = [];
+  let organisations: Organisation[] = [];
+
+  if (config.get('DEFAULT_ORGANISATION') === 'giveth') {
     const givethAdmin = userRepository.create({
       email: 'james@giveth.io',
       firstName: 'admin',
       password: bcrypt.hashSync(seedPassword, 12),
       confirmed: true,
       loginType: 'password',
-      walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5'
-    })
-    users.push(givethAdmin)
-    await userRepository.save(users)
+      walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5',
+    });
+    users.push(givethAdmin);
+    await userRepository.save(users);
     const project1 = projectRepository.create({
       title: 'Giveth - Support the future of giving',
       description: `Join us in building the future of giving!\n\nIn addition to maintaining beta.giveth.io, we’re actively developing v2.giveth.io, the free, open-source, and decentralized application for peer-to-peer donations. Donations such as yours are our primary source of funding and are deeply appreciated! 💜\n\nProgress 🚀\n\n - Giveth now has 501c3 status!\n - The beta version of Giveth is live at beta.giveth.io with free donations for projects!\n - We’re building the next evolution of Giveth at v2.giveth.io and making incredible progress. Take it for a test drive and let us know what you think!\n - We are Hiring! We are looking for experienced devs and project managers to join the team!\n\nIn the next evolution of Giveth, we're building upon firsthand experience over the past 3+ years with the Giveth Dapp. The V2 is starting out with a simple purpose:\n\nEnable projects anywhere in the world to start accepting donations in a few minutes, with zero fees and zero censorship.\n\nOffer the best experience for anyone looking to donate to a cause, whether with crypto or a credit card.\n\nCheck out the in-progress v2, and please donate to help make this dream a reality!`,
@@ -114,28 +112,28 @@ export async function seedDatabase () {
       walletAddress: '0x8f951903C9360345B4e1b536c7F5ae8f88A64e79',
       slug: 'giveth',
       image: projectBg,
-      creationDate: '2016-01-01T00:00:00-05:00'
-    })
-    projects.push(project1)
+      creationDate: '2016-01-01T00:00:00-05:00',
+    });
+    projects.push(project1);
     organisations = organisationRepository.create([
       {
         title: 'Giveth',
-        description: 'Giveth is the future of giving.'
+        description: 'Giveth is the future of giving.',
       },
       {
         title: 'Gaia Protection',
         description:
-          'The Madre Tierra Verde Foundation aims to contribute to the transition of Costa Rican society towards a paradigm of a green and intelligent society, following the guidelines of the National Strategy for Decarbonizing the Economy, through guidance and advice to organizations, communities and governments.'
-      }
-    ])
-    await organisationRepository.save(organisations)
+          'The Madre Tierra Verde Foundation aims to contribute to the transition of Costa Rican society towards a paradigm of a green and intelligent society, following the guidelines of the National Strategy for Decarbonizing the Economy, through guidance and advice to organizations, communities and governments.',
+      },
+    ]);
+    await organisationRepository.save(organisations);
     const adminOrganisationUser = organisationUserRepository.create({
       role: 'admin',
       organisation: organisations[0],
-      user: givethAdmin
-    })
-    
-    await organisationUserRepository.save(adminOrganisationUser)
+      user: givethAdmin,
+    });
+
+    await organisationUserRepository.save(adminOrganisationUser);
   } else {
     // Organisation 1
     const co2kenAdmin = userRepository.create({
@@ -143,10 +141,10 @@ export async function seedDatabase () {
       firstName: 'CO2ken',
       password: bcrypt.hashSync(seedPassword, 12),
       confirmed: true,
-      loginType: 'password'
-    })
-    users.push(co2kenAdmin)
-    await userRepository.save(users)
+      loginType: 'password',
+    });
+    users.push(co2kenAdmin);
+    await userRepository.save(users);
     const project1 = projectRepository.create({
       title: 'Ecoera',
       description: `Become Climate Positive
@@ -157,8 +155,9 @@ export async function seedDatabase () {
       verified: true,
       walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5',
       slug: 'ecoera',
-      image: 'https://cdn.shopify.com/s/files/1/2556/2892/files/BiokolBigbag_3000x.JPG?v=1511514366'
-    })
+      image:
+        'https://cdn.shopify.com/s/files/1/2556/2892/files/BiokolBigbag_3000x.JPG?v=1511514366',
+    });
     const project2 = projectRepository.create({
       title: 'REDD+ Papua New Guinea',
       description: `Why only Offsett and Reduce your carbon footprint? Our Validated, Verified, and Registered Carbon Credits conserve endangered tropical rainforests in Papua New Guinea and generate historical economic growth and social transformation for its people.`,
@@ -168,44 +167,44 @@ export async function seedDatabase () {
       verified: true,
       walletAddress: '0x63A32F1595a68E811496D820680B74A5ccA303c5',
       slug: 'redd-papua-new-guinea',
-      image: 'https://offsetra.com/agrocortex_banner.jpg'
-    })
-    projects.push(project1)
-    projects.push(project2)
+      image: 'https://offsetra.com/agrocortex_banner.jpg',
+    });
+    projects.push(project1);
+    projects.push(project2);
 
     organisations = organisationRepository.create([
       {
         title: 'CO2ken',
         description:
-          'We tokenize carbon offsets to make them available for Ethereums web3 ecosystem.'
+          'We tokenize carbon offsets to make them available for Ethereums web3 ecosystem.',
       },
       {
         title: 'Giveth',
-        description: 'Giveth is the future of giving.'
+        description: 'Giveth is the future of giving.',
       },
       {
         title: 'Gaia Protection',
         description:
-          'The Madre Tierra Verde Foundation aims to contribute to the transition of Costa Rican society towards a paradigm of a green and intelligent society, following the guidelines of the National Strategy for Decarbonizing the Economy, through guidance and advice to organizations, communities and governments.'
-      }
-    ])
-    await organisationRepository.save(organisations)
+          'The Madre Tierra Verde Foundation aims to contribute to the transition of Costa Rican society towards a paradigm of a green and intelligent society, following the guidelines of the National Strategy for Decarbonizing the Economy, through guidance and advice to organizations, communities and governments.',
+      },
+    ]);
+    await organisationRepository.save(organisations);
     const adminOrganisationUser = organisationUserRepository.create({
       role: 'admin',
       organisation: organisations[0],
-      user: co2kenAdmin
-    })
-    await organisationUserRepository.save(adminOrganisationUser)
+      user: co2kenAdmin,
+    });
+    await organisationUserRepository.save(adminOrganisationUser);
   }
 
-  await projectRepository.save(projects)
+  await projectRepository.save(projects);
 
   const donations = donationRepository.create({
     transactionId: '9151faa1-e69b-4a36-b959-3c4f894afb68',
     transactionNetworkId: 10,
-    toWalletAddress: "134",
-    fromWalletAddress: "134",
-    currency: "PolyDoge",
+    toWalletAddress: '134',
+    fromWalletAddress: '134',
+    currency: 'PolyDoge',
     anonymous: false,
     amount: 10,
     valueEth: 10,
@@ -216,10 +215,10 @@ export async function seedDatabase () {
     donationType: 'test',
     transakStatus: 'ORDER_PROCESSING',
     user: superAdminUser,
-    project: projects[0]
-  })
+    project: projects[0],
+  });
 
-  await donationRepository.save(donations)
+  await donationRepository.save(donations);
 
   // Seed join table
   // const organisationProject = organisationProjectRepository.create({
@@ -227,8 +226,6 @@ export async function seedDatabase () {
   //   project: covidProject
   // })
   // await organisationProjectRepository.save(organisationProject)
-
-  
 
   // const icrcProjects = projectRepository.create([
   //   {
@@ -339,10 +336,10 @@ export async function seedDatabase () {
   // await recipeRepository.save(recipes)
 
   return {
-    defaultUser: superAdminUser
-  }
+    defaultUser: superAdminUser,
+  };
 }
 
-export function RelationColumn (options?: ColumnOptions) {
-  return Column({ nullable: true, ...options })
+export function RelationColumn(options?: ColumnOptions) {
+  return Column({ nullable: true, ...options });
 }

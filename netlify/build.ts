@@ -1,74 +1,76 @@
-import config from '../config'
-import axios from 'axios'
-import Logger from '../logger'
-import { redis } from '../redis'
+import config from '../config';
+import axios from 'axios';
+import Logger from '../logger';
+import { redis } from '../redis';
 
-const deployHook = config.get('NETLIFY_DEPLOY_HOOK')
-const environment = config.get('ENVIRONMENT')
+const deployHook = config.get('NETLIFY_DEPLOY_HOOK');
+const environment = config.get('ENVIRONMENT');
 
-const netlifyUrl = `https://api.netlify.com/build_hooks/${deployHook}`
+const netlifyUrl = `https://api.netlify.com/build_hooks/${deployHook}`;
 
-async function isNetlifyDeploying () {
-  return false
+async function isNetlifyDeploying() {
+  return false;
   const redisNetlifyIsDeploying = await redis.get(
-    'impact-graph:netlifyDeploy:isDeploying'
-  )
-  console.log(`redisNetlifyIsDeploying ! ---> : ${redisNetlifyIsDeploying}`)
+    'impact-graph:netlifyDeploy:isDeploying',
+  );
+  console.log(`redisNetlifyIsDeploying ! ---> : ${redisNetlifyIsDeploying}`);
   return redisNetlifyIsDeploying === null ||
     redisNetlifyIsDeploying === '' ||
     redisNetlifyIsDeploying === 'false'
     ? false
-    : true
+    : true;
 }
-export async function triggerBuild (projectId) {
+export async function triggerBuild(projectId) {
   try {
     if (
       deployHook &&
       (environment === 'staging' || environment === 'production')
     ) {
       const projectsToDeployRedis = await redis.get(
-        'impact-graph:netlifyDeploy:projects:toDeploy'
-      )
+        'impact-graph:netlifyDeploy:projects:toDeploy',
+      );
       const projectsToDeploy = projectsToDeployRedis
         ? projectsToDeployRedis.split(',')
-        : []
+        : [];
 
-      projectsToDeploy.push(projectId)
+      projectsToDeploy.push(projectId);
 
-      const netlifyIsDeploying = await isNetlifyDeploying()
-      console.log(`netlifyIsDeploying ---> : ${netlifyIsDeploying}`)
+      const netlifyIsDeploying = await isNetlifyDeploying();
+      console.log(`netlifyIsDeploying ---> : ${netlifyIsDeploying}`);
       if (!netlifyIsDeploying) {
         await redis.set(
           'impact-graph:netlifyDeploy:projects:deploying',
           projectsToDeploy.join(','),
           'ex',
-          60 * 60 * 24
-        ) // 1 day expiration
-        await redis.set('impact-graph:netlifyDeploy:isDeploying', 'true')
-        console.log('Calling netlify webhook')
+          60 * 60 * 24,
+        ); // 1 day expiration
+        await redis.set('impact-graph:netlifyDeploy:isDeploying', 'true');
+        console.log('Calling netlify webhook');
         console.log(
-          `projectsToDeploy : ${JSON.stringify(projectsToDeploy, null, 2)}`
-        )
+          `projectsToDeploy : ${JSON.stringify(projectsToDeploy, null, 2)}`,
+        );
 
-        console.log(`Posting to netlifyUrl ---> : ${netlifyUrl}`)
-        const response: any = await axios.post(netlifyUrl, {})
-        console.log(`response.data : ${JSON.stringify(response.data, null, 2)}`)
+        console.log(`Posting to netlifyUrl ---> : ${netlifyUrl}`);
+        const response: any = await axios.post(netlifyUrl, {});
+        console.log(
+          `response.data : ${JSON.stringify(response.data, null, 2)}`,
+        );
       } else {
         await redis.set(
           'impact-graph:netlifyDeploy:projects:toDeploy',
           projectsToDeploy.join(','),
           'ex',
-          60 * 60 * 24
-        ) // 1 day expiration
+          60 * 60 * 24,
+        ); // 1 day expiration
       }
     }
   } catch (e) {
-    Logger.captureException(e)
-    console.error(`Error while triggering rebuild`, e)
+    Logger.captureException(e);
+    console.error(`Error while triggering rebuild`, e);
   }
 }
 // triggerBuild(1)
-export function notifyDiscord () {
+export function notifyDiscord() {
   /** 
    * 
    * post 

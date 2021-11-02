@@ -11,15 +11,15 @@ import { CategoryResolver } from './categoryResolver';
 import { DonationResolver } from './donationResolver';
 
 export const resolvers: any = [
-    UserResolver,
-    ProjectResolver,
-    OrganisationResolver,
-    NotificationResolver,
-    LoginResolver,
-    RegisterResolver,
-    MeResolver,
-    BankAccountResolver,
-    UploadResolver,
-    CategoryResolver,
-    DonationResolver
-]
+  UserResolver,
+  ProjectResolver,
+  OrganisationResolver,
+  NotificationResolver,
+  LoginResolver,
+  RegisterResolver,
+  MeResolver,
+  BankAccountResolver,
+  UploadResolver,
+  CategoryResolver,
+  DonationResolver,
+];

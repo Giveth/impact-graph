@@ -1,55 +1,55 @@
 // tslint:disable-next-line:no-var-requires
-const bcrypt = require('bcryptjs')
-import { Resolver, Query, Mutation, Arg, UseMiddleware } from 'type-graphql'
-import { InjectRepository } from 'typeorm-typedi-extensions'
-import { Organisation } from '../../entities/organisation'
-import { OrganisationUser } from '../../entities/organisationUser'
+const bcrypt = require('bcryptjs');
+import { Resolver, Query, Mutation, Arg, UseMiddleware } from 'type-graphql';
+import { InjectRepository } from 'typeorm-typedi-extensions';
+import { Organisation } from '../../entities/organisation';
+import { OrganisationUser } from '../../entities/organisationUser';
 
-import { User } from '../../entities/user'
-import { RegisterWalletInput } from './RegisterWalletInput'
-import { RegisterInput } from './RegisterInput'
+import { User } from '../../entities/user';
+import { RegisterWalletInput } from './RegisterWalletInput';
+import { RegisterInput } from './RegisterInput';
 // import { isAuth } from '../../middleware/isAuth'
 // import { logger } from '../../middleware/logger'
-import { sendEmail } from '../../utils/sendEmail'
-import { createConfirmationUrl } from '../../utils/createConfirmationUrl'
-import { Repository, getRepository } from 'typeorm'
+import { sendEmail } from '../../utils/sendEmail';
+import { createConfirmationUrl } from '../../utils/createConfirmationUrl';
+import { Repository, getRepository } from 'typeorm';
 
 @Resolver()
 export class RegisterResolver {
-  constructor (
+  constructor(
     @InjectRepository(OrganisationUser)
     private readonly organisationUserRepository: Repository<OrganisationUser>,
 
     @InjectRepository(Organisation)
-    private readonly organisationRepository: Repository<Organisation>
+    private readonly organisationRepository: Repository<Organisation>,
   ) {}
 
   @Mutation(() => User)
-  async register (
+  async register(
     @Arg('data')
-    { email, firstName, lastName, password }: RegisterInput
+    { email, firstName, lastName, password }: RegisterInput,
   ): Promise<User> {
-    console.log(`In Register Resolver : ${JSON.stringify(bcrypt, null, 2)}`)
+    console.log(`In Register Resolver : ${JSON.stringify(bcrypt, null, 2)}`);
 
     // const hashedPassword = await bcrypt.hash(password, 12)
-    const hashedPassword = bcrypt.hashSync(password, 12)
-    console.log(`hashedPassword ---> : ${hashedPassword}`)
+    const hashedPassword = bcrypt.hashSync(password, 12);
+    console.log(`hashedPassword ---> : ${hashedPassword}`);
     const user = await User.create({
       firstName,
       lastName,
       email,
       password: hashedPassword,
-      loginType: 'password'
-    }).save()
+      loginType: 'password',
+    }).save();
 
-    await sendEmail(email, await createConfirmationUrl(user.id))
+    await sendEmail(email, await createConfirmationUrl(user.id));
 
-    delete user.password
-    return user
+    delete user.password;
+    return user;
   }
 
   @Mutation(() => User)
-  async registerWallet (
+  async registerWallet(
     @Arg('data')
     {
       email,
@@ -57,8 +57,8 @@ export class RegisterResolver {
       firstName,
       lastName,
       walletAddress,
-      organisationId
-    }: RegisterWalletInput
+      organisationId,
+    }: RegisterWalletInput,
   ): Promise<User> {
     const user = await User.create({
       firstName,
@@ -66,33 +66,33 @@ export class RegisterResolver {
       email,
       name,
       walletAddress,
-      loginType: 'wallet'
-    })
+      loginType: 'wallet',
+    });
 
     if (organisationId) {
       const organisation = await this.organisationRepository.find({
-        where: { id: organisationId }
-      })
+        where: { id: organisationId },
+      });
 
       if (organisation) {
-        user.organisations = [organisation[0]]
-        const organisationUser = new OrganisationUser()
-        organisationUser.role = 'donor'
-        user.organisationUsers = [organisationUser]
+        user.organisations = [organisation[0]];
+        const organisationUser = new OrganisationUser();
+        organisationUser.role = 'donor';
+        user.organisationUsers = [organisationUser];
         // TODO: The above isn't saving the role, but we don't need it right now #8 https://github.com/topiahq/impact-graph/issues/8
 
-        user.save()
+        user.save();
       } else {
-        throw new Error('Organisation doesnt exist')
+        throw new Error('Organisation doesnt exist');
       }
     } else {
-      throw new Error('User must be associated with an Organisation!')
+      throw new Error('User must be associated with an Organisation!');
     }
 
     if (email) {
-      await sendEmail(email, await createConfirmationUrl(user.id))
+      await sendEmail(email, await createConfirmationUrl(user.id));
     }
 
-    return user
+    return user;
   }
 }
