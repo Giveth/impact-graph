@@ -75,12 +75,7 @@ class TopProjects {
 
 // this is to prevent SQL injection
 enum FilterField {
-  Verified = 'verified'
-}
-
-enum FilterBoolean {
-  True = 'true',
-  False = 'false'
+  verified = 'verified'
 }
 
 enum OrderField {
@@ -102,10 +97,6 @@ registerEnumType(FilterField, {
   description: 'Filter by field',
 });
 
-registerEnumType(FilterBoolean, {
-  name: 'FilterBoolean',
-  description: 'Filter by field value',
-});
 
 registerEnumType(OrderField, {
   name: 'OrderField',
@@ -153,8 +144,8 @@ class FilterBy {
   @Field(type => FilterField, { nullable: true })
   field: FilterField
 
-  @Field(type => FilterBoolean, { nullable: true })
-  value: FilterBoolean
+  @Field(type => Boolean, { nullable: true })
+  value: boolean
 }
 
 @Service()

@@ -14,8 +14,8 @@ import {
   LessThan,
   Brackets,
   SelectQueryBuilder,
-  AfterUpdate
-} from 'typeorm'
+  AfterUpdate,
+} from 'typeorm';
 
 import { Organisation } from './organisation';
 import { Donation } from './donation';
@@ -162,73 +162,108 @@ class Project extends BaseEntity {
    * Custom Query Builders to chain together
    */
 
-  static addCategoryQuery(query: SelectQueryBuilder<Project>, category: string) {
+  static addCategoryQuery(
+    query: SelectQueryBuilder<Project>,
+    category: string,
+  ) {
     return query.innerJoin(
       'project.categories',
       'category',
       'category.name = :category',
-      { category }
-    )
+      { category },
+    );
   }
 
-  static addSearchQuery(query: SelectQueryBuilder<Project>, searchTerm: string) {
-    return query.andWhere(new Brackets(qb => {
-      qb.where('project.title ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-        .orWhere('project.description ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-        .orWhere('project.impactLocation ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-    }))
+  static addSearchQuery(
+    query: SelectQueryBuilder<Project>,
+    searchTerm: string,
+  ) {
+    return query.andWhere(
+      new Brackets(qb => {
+        qb.where('project.title ILIKE :searchTerm', {
+          searchTerm: `%${searchTerm}%`,
+        })
+          .orWhere('project.description ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
+          })
+          .orWhere('project.impactLocation ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
+          });
+      }),
+    );
   }
 
   // Precalculates de amount of reactions and alias it during query execution for ordering
-  static addReactionsCountQuery(query: SelectQueryBuilder<Project>, direction: any) {
-    return query.addSelect('COUNT(reactions.id)', 'count')
-                .groupBy('project.id, donations.id, reactions.id, status.id, users.id, c.id')
-                .orderBy('count', direction)
+  static addReactionsCountQuery(
+    query: SelectQueryBuilder<Project>,
+    direction: any,
+  ) {
+    return query
+      .addSelect('COUNT(reactions.id)', 'count')
+      .groupBy(
+        'project.id, donations.id, reactions.id, status.id, users.id, c.id',
+      )
+      .orderBy('count', direction);
   }
 
   // Precalculates the sum of donations and alias it during query execution for ordering
-  static addTotalDonationsQuery(query: SelectQueryBuilder<Project>, direction: any) {
-    query.addSelect('SUM(donations.amount)', 'donated')
-         .groupBy('project.id, donations.id, reactions.id, status.id, users.id, c.id')
+  static addTotalDonationsQuery(
+    query: SelectQueryBuilder<Project>,
+    direction: any,
+  ) {
+    query
+      .addSelect('SUM(donations.valueUsd)', 'donated')
+      .groupBy(
+        ' donations.id, project.id, reactions.id, status.id, users.id, c.id',
+      );
 
     if (direction === 'ASC') {
-      return query.orderBy('donated', direction, 'NULLS FIRST')
+      return query.orderBy('donated', direction, 'NULLS FIRST');
     } else {
-      return query.orderBy('donated', direction, 'NULLS LAST')
+      return query.orderBy('donated', direction, 'NULLS LAST');
     }
   }
 
-  static addFilterQuery(query, filter, filterValue) {
-    return query.andWhere(`project.${filter} = ${filterValue}`)
+  static addFilterQuery(query: any, filter: string, filterValue: boolean) {
+    return query.andWhere(`project.${filter} = ${filterValue}`);
   }
 
   // Backward Compatible Projects Query with added pagination, frontend sorts and category search
-  static searchProjects(limit: number, offset: number, sortBy: string, direction: any, category: string, searchTerm: string, filter: string, filterValue: string) {
+  static searchProjects(
+    limit: number,
+    offset: number,
+    sortBy: string,
+    direction: any,
+    category: string,
+    searchTerm: string,
+    filter: string,
+    filterValue: boolean,
+  ) {
     const query = this.createQueryBuilder('project')
-               .leftJoinAndSelect('project.status', 'status')
-               .leftJoinAndSelect('project.donations', 'donations')
-               .leftJoinAndSelect('project.reactions', 'reactions')
-               .leftJoinAndSelect('project.users', 'users')
-               .innerJoinAndSelect('project.categories', 'c')
-               .where('project.statusId = 5 AND project.listed = true')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.donations', 'donations')
+      .leftJoinAndSelect('project.reactions', 'reactions')
+      .leftJoinAndSelect('project.users', 'users')
+      .innerJoinAndSelect('project.categories', 'c')
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      );
 
     // Filters
-    if (category) this.addCategoryQuery(query, category)
-    if (searchTerm) this.addSearchQuery(query, searchTerm)
-    if (filter) this.addFilterQuery(query, filter, filterValue)
+    if (category) this.addCategoryQuery(query, category);
+    if (searchTerm) this.addSearchQuery(query, searchTerm);
+    if (filter) this.addFilterQuery(query, filter, filterValue);
 
     // Sorts
     if (sortBy === 'reactions') {
-      this.addReactionsCountQuery(query, direction)
+      this.addReactionsCountQuery(query, direction);
     } else if (sortBy === 'totalDonations') {
-      this.addTotalDonationsQuery(query, direction)
+      this.addTotalDonationsQuery(query, direction);
     } else {
-      query.orderBy(`project.${sortBy}`, direction)
+      query.orderBy(`project.${sortBy}`, direction);
     }
 
-    return query.take(limit)
-                .skip(offset)
-                .getManyAndCount()
+    return query.take(limit).skip(offset).getManyAndCount();
   }
 
   static notifySegment(project: any, eventName: string) {
