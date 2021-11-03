@@ -80,7 +80,7 @@ class TopProjects {
 
 // this is to prevent SQL injection
 enum FilterField {
-  verified = 'verified',
+  Verified = 'verified',
 }
 
 enum OrderDirection {
