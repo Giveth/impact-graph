@@ -91,9 +91,10 @@ async function findTransactionByNonce(data: {
   // userRecentTransactions just includes the transactions that source is our fromAddress
   // so if the lowest nonce in this array is smaller than the sent nonce we would know that we should not
   // check latest transactions
-  const smallestNonce = userRecentTransactions.length > 0 ? userRecentTransactions[
-    userRecentTransactions.length - 1
-  ].nonce : undefined;
+  const smallestNonce =
+    userRecentTransactions.length > 0
+      ? userRecentTransactions[userRecentTransactions.length - 1].nonce
+      : undefined;
 
   if (smallestNonce !== undefined && smallestNonce < nonce) {
     console.log('checkIfTransactionHasBeenSpeedup', {

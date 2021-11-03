@@ -1,19 +1,19 @@
-import { Field, ID, ObjectType } from 'type-graphql'
+import { Field, ID, ObjectType } from 'type-graphql';
 
 @ObjectType()
 export class Token {
   @Field({ nullable: true })
-  chainId: number
+  chainId: number;
 
   @Field({ nullable: true })
-  address: string
+  address: string;
 
   @Field({ nullable: true })
-  symbol: string
+  symbol: string;
 
   @Field({ nullable: true })
-  name: string
+  name: string;
 
   @Field({ nullable: true })
-  decimals: number
+  decimals: number;
 }

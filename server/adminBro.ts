@@ -1,43 +1,47 @@
-import { Project, ProjStatus } from '../entities/project'
-import { ProjectStatus } from '../entities/projectStatus'
-import AdminBro from 'admin-bro'
-import { User } from '../entities/user'
-import AdminBroExpress from '@admin-bro/express'
-import config from '../config'
-import { updateCampaignInTrace } from '../services/trace/traceService'
+import { Project, ProjStatus } from '../entities/project';
+import { ProjectStatus } from '../entities/projectStatus';
+import AdminBro from 'admin-bro';
+import { User } from '../entities/user';
+import AdminBroExpress from '@admin-bro/express';
+import config from '../config';
+import { updateCampaignInTrace } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
 // tslint:disable-next-line:no-var-requires
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
 AdminBro.registerAdapter({ Database, Resource });
 
-export  const getAdminBroRouter = () => {
+export const getAdminBroRouter = () => {
   return AdminBroExpress.buildAuthenticatedRouter(getAdminBroInstance(), {
     authenticate: async (email, password) => {
       try {
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ email });
         if (user) {
-          const matched = await bcrypt.compare(password, user.encryptedPassword)
+          const matched = await bcrypt.compare(
+            password,
+            user.encryptedPassword,
+          );
           if (matched) {
-            return user
+            return user;
           }
         }
-        return false
+        return false;
       } catch (e) {
-        console.log({ e })
-        return false
+        console.log({ e });
+        return false;
       }
     },
-    cookiePassword: config.get('ADMIN_BRO_COOKIE_SECRET') as string
-  })
-}
+    cookiePassword: config.get('ADMIN_BRO_COOKIE_SECRET') as string,
+  });
+};
 
-const getAdminBroInstance = ()=>{
+const getAdminBroInstance = () => {
   return new AdminBro({
     branding: {
       logo: 'https://i.imgur.com/cGKo1Tk.png',
-      favicon: 'https://icoholder.com/media/cache/ico_logo_view_page/files/img/e15c430125a607a604a3aee82e65a8f7.png',
+      favicon:
+        'https://icoholder.com/media/cache/ico_logo_view_page/files/img/e15c430125a607a604a3aee82e65a8f7.png',
       companyName: 'Giveth',
-      softwareBrothers: false
+      softwareBrothers: false,
     },
     resources: [
       {
@@ -45,292 +49,333 @@ const getAdminBroInstance = ()=>{
         options: {
           properties: {
             id: {
-              isVisible: { list: false, filter: false, show: true, edit: false }
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
             },
             admin: {
-              isVisible: { list: false, filter: false, show: true, edit: true }
+              isVisible: { list: false, filter: false, show: true, edit: true },
             },
             description: {
-              isVisible: { list: false, filter: false, show: false, edit: true }
+              isVisible: {
+                list: false,
+                filter: false,
+                show: false,
+                edit: true,
+              },
             },
             slug: {
-              isVisible: { list: false, filter: false, show: true, edit: true }
+              isVisible: { list: false, filter: false, show: true, edit: true },
             },
             organisationId: {
-              isVisible: false
+              isVisible: false,
             },
             coOrdinates: {
-              isVisible: false
+              isVisible: false,
             },
             image: {
-              isVisible: { list: false, filter: false, show: true, edit: true }
+              isVisible: { list: false, filter: false, show: true, edit: true },
             },
             balance: {
-              isVisible: { list: false, filter: false, show: true, edit: false }
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
             },
             giveBacks: {
-              isVisible: false
+              isVisible: false,
             },
             stripeAccountId: {
-              isVisible: { list: false, filter: false, show: true, edit: false }
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
             },
             walletAddress: {
-              isVisible: { list: false, filter: false, show: true, edit: true }
+              isVisible: { list: false, filter: false, show: true, edit: true },
             },
             impactLocation: {
-              isVisible: { list: false, filter: true, show: true, edit: true }
+              isVisible: { list: false, filter: true, show: true, edit: true },
             },
             slugHistory: {
-              isVisible: false
-            }
+              isVisible: false,
+            },
           },
           actions: {
             delete: {
-              isVisible: false
+              isVisible: false,
             },
             bulkDelete: {
-              isVisible: false
+              isVisible: false,
             },
             listProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return listDelist(context, request, true)
+                return listDelist(context, request, true);
               },
-              component: false
+              component: false,
             },
             delistProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return listDelist(context, request, false)
+                return listDelist(context, request, false);
               },
-              component: false
+              component: false,
             },
             verifyProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifyProjects(context, request, true)
+                return verifyProjects(context, request, true);
               },
-              component: false
+              component: false,
             },
             unverifyProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifyProjects(context, request, false)
+                return verifyProjects(context, request, false);
               },
-              component: false
+              component: false,
             },
             activateProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return updateStatuslProjects(context, request, ProjStatus.active)
+                return updateStatuslProjects(
+                  context,
+                  request,
+                  ProjStatus.active,
+                );
               },
-              component: false
+              component: false,
             },
             deactivateProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return updateStatuslProjects(context, request, ProjStatus.deactive)
+                return updateStatuslProjects(
+                  context,
+                  request,
+                  ProjStatus.deactive,
+                );
               },
-              component: false
+              component: false,
             },
             cancelProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return updateStatuslProjects(context, request, ProjStatus.cancel)
+                return updateStatuslProjects(
+                  context,
+                  request,
+                  ProjStatus.cancel,
+                );
               },
-              component: false
-            }
-          }
-        }
+              component: false,
+            },
+          },
+        },
       },
       {
         resource: ProjectStatus,
         options: {
           actions: {
             delete: {
-              isVisible: false
+              isVisible: false,
             },
             bulkDelete: {
-              isVisible: false
-            }
-          }
-        }
+              isVisible: false,
+            },
+          },
+        },
       },
       {
         resource: User,
         options: {
           properties: {
             encryptedPassword: {
-              isVisible: false
+              isVisible: false,
             },
             avatar: {
-              isVisible: false
+              isVisible: false,
             },
             password: {
               type: 'string',
               isVisible: {
-                list: false, edit: true, filter: false, show: false
-              }
+                list: false,
+                edit: true,
+                filter: false,
+                show: false,
+              },
               // isVisible: false,
-            }
+            },
           },
           actions: {
             delete: {
-              isVisible: false
+              isVisible: false,
             },
             bulkDelete: {
-              isVisible: false
+              isVisible: false,
             },
             new: {
-              before: async (request) => {
+              before: async request => {
                 if (request.payload.password) {
-                  const bc = await bcrypt.hash(request.payload.password, Number(process.env.BCRYPT_SALT))
+                  const bc = await bcrypt.hash(
+                    request.payload.password,
+                    Number(process.env.BCRYPT_SALT),
+                  );
                   request.payload = {
                     ...request.payload,
                     encryptedPassword: bc,
-                    password: null
-                  }
+                    password: null,
+                  };
                 }
-                return request
-              }
+                return request;
+              },
             },
             edit: {
-              before: async (request) => {
-                console.log({ request: request.payload })
+              before: async request => {
+                console.log({ request: request.payload });
                 if (request.payload.password) {
-                  const bc = await bcrypt.hash(request.payload.password, Number(process.env.BCRYPT_SALT))
+                  const bc = await bcrypt.hash(
+                    request.payload.password,
+                    Number(process.env.BCRYPT_SALT),
+                  );
                   request.payload = {
                     ...request.payload,
                     encryptedPassword: bc,
-                    password: null
-                  }
+                    password: null,
+                  };
                 }
-                return request
-              }
-            }
-          }
-        }
-      }
+                return request;
+              },
+            },
+          },
+        },
+      },
     ],
-    rootPath: adminBroRootPath
-  })
-}
+    rootPath: adminBroRootPath,
+  });
+};
 
 const listDelist = async (context, request, list = true) => {
-  const { records } = context
+  const { records } = context;
   try {
     const projects = await Project.createQueryBuilder('project')
-      .update < Project > (Project, { listed: list })
+      .update<Project>(Project, { listed: list })
       .where('project.id IN (:...ids)')
       .setParameter('ids', request.query.recordIds.split(','))
       .returning('*')
       .updateEntity(true)
-      .execute()
+      .execute();
 
     projects.raw.forEach(project => {
-      updateCampaignInTrace(project)
-      Project.notifySegment(
-        project,
-        `Project ${list ? 'listed' : 'unlisted'}`
-      )
-    })
+      updateCampaignInTrace(project);
+      Project.notifySegment(project, `Project ${list ? 'listed' : 'unlisted'}`);
+    });
   } catch (error) {
-    console.log('listDelist error', error)
-    throw error
+    console.log('listDelist error', error);
+    throw error;
   }
   return {
     redirectUrl: 'Project',
     records: records.map(record => {
-      record.toJSON(context.currentAdmin)
+      record.toJSON(context.currentAdmin);
     }),
     notice: {
       message: `Project(s) successfully ${list ? 'listed' : 'unlisted'}`,
-      type: 'success'
-    }
-  }
-}
+      type: 'success',
+    },
+  };
+};
 
 const verifyProjects = async (context, request, verified = true) => {
-  const { records } = context
+  const { records } = context;
   try {
     const projects = await Project.createQueryBuilder('project')
-      .update < Project > (Project, { verified })
+      .update<Project>(Project, { verified })
       .where('project.id IN (:...ids)')
       .setParameter('ids', request.query.recordIds.split(','))
       .returning('*')
       .updateEntity(true)
-      .execute()
+      .execute();
 
     projects.raw.forEach(project => {
-      updateCampaignInTrace(project)
+      updateCampaignInTrace(project);
       Project.notifySegment(
         project,
-        `Project ${verified ? 'verified' : 'unverified'}`)
-    })
+        `Project ${verified ? 'verified' : 'unverified'}`,
+      );
+    });
   } catch (error) {
-    console.log('verifyProjects() error', error)
-    throw error
+    console.log('verifyProjects() error', error);
+    throw error;
   }
   return {
     redirectUrl: 'Project',
     records: records.map(record => {
-      record.toJSON(context.currentAdmin)
+      record.toJSON(context.currentAdmin);
     }),
     notice: {
-      message: `Project(s) successfully ${verified ? 'verified' : 'unverified'}`,
-      type: 'success'
-    }
-  }
-}
+      message: `Project(s) successfully ${
+        verified ? 'verified' : 'unverified'
+      }`,
+      type: 'success',
+    },
+  };
+};
 
 const updateStatuslProjects = async (context, request, status) => {
-  const { h, resource, records } = context
+  const { h, resource, records } = context;
   try {
-    const projectStatus = await ProjectStatus.findOne({ id: status })
+    const projectStatus = await ProjectStatus.findOne({ id: status });
     if (projectStatus) {
       const projects = await Project.createQueryBuilder('project')
-        .update < Project > (Project, { status: projectStatus })
+        .update<Project>(Project, { status: projectStatus })
         .where('project.id IN (:...ids)')
         .setParameter('ids', request.query.recordIds.split(','))
         .returning('*')
         .updateEntity(true)
-        .execute()
+        .execute();
 
       projects.raw.forEach(project => {
-        updateCampaignInTrace(project)
+        updateCampaignInTrace(project);
         Project.notifySegment(
           project,
-          `Project ${segmentProjectStatusEvents[projectStatus.symbol]}`
-        )
-      })
+          `Project ${segmentProjectStatusEvents[projectStatus.symbol]}`,
+        );
+      });
     }
   } catch (error) {
-    throw error
+    throw error;
   }
 
   return {
     redirectUrl: 'Project',
     records: records.map(record => {
-      record.toJSON(context.currentAdmin)
+      record.toJSON(context.currentAdmin);
     }),
     notice: {
       message: 'Project(s) status successfully updated',
-      type: 'success'
-    }
-  }
-}
+      type: 'success',
+    },
+  };
+};
 
 const segmentProjectStatusEvents = {
   act: 'activated',
   can: 'deactivated',
-  del: 'cancelled'
-}
+  del: 'cancelled',
+};
 
-export const adminBroRootPath = '/admin'
+export const adminBroRootPath = '/admin';
