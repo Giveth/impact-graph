@@ -61,6 +61,15 @@ class TopProjects {
   totalCount: number;
 }
 
+@ObjectType()
+class ProjectAndAdmin {
+  @Field(type => Project)
+  project: Project;
+
+  @Field(type => User)
+  admin: User;
+}
+
 enum OrderField {
   CreationDate = 'creationDate',
   Balance = 'balance',
@@ -266,6 +275,23 @@ export class ProjectResolver {
       where: { id },
       relations: ['donations', 'reactions'],
     });
+  }
+
+  @Query(returns => ProjectAndAdmin)
+  async projectWithAdminBySlug(@Arg('slug') slug: string) {
+    const project = await this.projectRepository
+      .createQueryBuilder('project')
+      // check current slug and previous slugs
+      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+        slug,
+      })
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.categories', 'categories')
+      .getOne();
+
+    const admin = await User.findOne({ id: Number(project?.admin) })
+
+    return { project, admin }
   }
 
   // Move this to it's own resolver later

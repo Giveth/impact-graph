@@ -1,4 +1,4 @@
-import { Resolver, Query, Arg, Mutation, Ctx } from 'type-graphql';
+import { Resolver, Query, Arg, Mutation, Ctx, ObjectType, Field } from 'type-graphql';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 // import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
@@ -14,6 +14,18 @@ import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 
 const analytics = getAnalytics();
+
+@ObjectType()
+class DonationsByWallets {
+  @Field(type => [Donation], { nullable: true })
+  donations: Donation[];
+
+  @Field(type => Number, { nullable: true })
+  totalCount: number;
+
+  @Field(type => Number, { nullable: true })
+  ethBalance: number
+}
 
 @Resolver(of => User)
 export class DonationResolver {
@@ -62,6 +74,28 @@ export class DonationResolver {
       },
     });
     return donations;
+  }
+
+  @Query(returns => DonationsByWallets, { nullable: true })
+  async donationsByWallets(
+    @Ctx() ctx: MyContext,
+    @Arg('skip', { defaultValue: 0 }) skip: number,
+    @Arg('take', { defaultValue: 10 }) take: number,
+    @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[],
+  ) {
+    const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
+      o.toLowerCase(),
+    );
+
+    const query = this.donationRepository
+                      .createQueryBuilder('donation')
+                      .where('donation.toWalletAddress IN (:addresses)', { addresses: toWalletAddressesArray });
+
+    const [donations, donationsCount] = await query.take(take).skip(skip).getManyAndCount();
+    const balance = await query.select('SUM(donation.amount)', 'ethBalance').getRawOne();
+    const ethBalance = balance?.ethBalance
+
+    return { donations, donationsCount, ethBalance };
   }
 
   @Query(returns => [Token], { nullable: true })
