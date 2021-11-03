@@ -35,6 +35,15 @@ export enum ProjStatus {
   cancel = 7,
 }
 
+export enum OrderField {
+  CreationDate = 'creationDate',
+  Balance = 'balance',
+  QualityScore = 'qualityScore',
+  Verified = 'verified',
+  Reactions = 'reactions',
+  Donations = 'totalDonations',
+}
+
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
@@ -146,14 +155,6 @@ class Project extends BaseEntity {
   @RelationId((project: Project) => project.status)
   statusId: number;
 
-  @Field(type => Float, { nullable: true })
-  @Column({ type: 'real', nullable: true })
-  totalDonations: number = 0;
-
-  @Field(type => Float, { nullable: true })
-  @Column({ type: 'real', nullable: true })
-  totalHearts: number = 0;
-
   @Field(type => Boolean)
   @Column({ default: true, nullable: false })
   listed: boolean = true;
@@ -255,9 +256,9 @@ class Project extends BaseEntity {
     if (filter) this.addFilterQuery(query, filter, filterValue);
 
     // Sorts
-    if (sortBy === 'reactions') {
+    if (sortBy === OrderField.Reactions) {
       this.addReactionsCountQuery(query, direction);
-    } else if (sortBy === 'totalDonations') {
+    } else if (sortBy ===  OrderField.Donations) {
       this.addTotalDonationsQuery(query, direction);
     } else {
       query.orderBy(`project.${sortBy}`, direction);
