@@ -213,15 +213,15 @@ class Project extends BaseEntity {
     direction: any,
   ) {
     query
-      .addSelect('SUM(donations.valueUsd)', 'donated')
+      .addSelect('COALESCE(SUM(donations.valueUsd),0)', 'donated')
       .groupBy(
-        ' donations.id, project.id, reactions.id, status.id, users.id, c.id',
+        'donations.id, project.id, reactions.id, status.id, users.id, c.id',
       );
 
     if (direction === 'ASC') {
-      return query.orderBy('donated', direction, 'NULLS FIRST');
+      return query.orderBy('donated', direction);
     } else {
-      return query.orderBy('donated', direction, 'NULLS LAST');
+      return query.orderBy('donated', direction);
     }
   }
 
