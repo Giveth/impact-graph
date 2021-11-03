@@ -57,8 +57,10 @@ export async function updateTraceableProjectsHandler(
   response: Response,
 ) {
   try {
+    console.log('updateTraceableProjectsHandler() has been called');
     const requestData = request.body;
-    const project = await Project.findOne(request.params.id);
+    const projectId = request.params.id;
+    const project = await Project.findOne(projectId);
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
@@ -67,6 +69,9 @@ export async function updateTraceableProjectsHandler(
     project.isTraceable = true;
     project.traceCampaignId = requestData.campaignId;
     await project.save();
+    console.log('Project has been updated by giveth trace', {
+      projectId,
+    });
     response.status(200).send(project);
   } catch (e) {
     console.log('updateTraceableProjects() error', e);
