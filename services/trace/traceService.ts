@@ -4,6 +4,7 @@ import config from '../../config';
 import { Buffer } from 'buffer';
 import { NextFunction, Request, Response } from 'express';
 import { errorMessages } from '../../utils/errorMessages';
+import { ProjectStatus } from '../../entities/projectStatus';
 
 export interface UpdateCampaignData {
   title?: string;
@@ -57,7 +58,10 @@ export async function updateTraceableProjectsHandler(
   response: Response,
 ) {
   try {
-    console.log('updateTraceableProjectsHandler() has been called');
+    console.log(
+      'updateTraceableProjectsHandler() has been called',
+      request.body,
+    );
     const requestData = request.body;
     const projectId = request.params.id;
     const project = await Project.findOne(projectId);
@@ -68,6 +72,16 @@ export async function updateTraceableProjectsHandler(
     project.description = requestData.description;
     project.isTraceable = true;
     project.traceCampaignId = requestData.campaignId;
+    if (requestData.image) {
+      project.image = `https://gateway.pinata.cloud${requestData.image}`;
+    }
+    const statusId = requestData.archived
+      ? ProjStatus.cancel
+      : ProjStatus.active;
+    const status = (await ProjectStatus.findOne({
+      id: statusId,
+    })) as ProjectStatus;
+    project.status = status;
     await project.save();
     console.log('Project has been updated by giveth trace', {
       projectId,
