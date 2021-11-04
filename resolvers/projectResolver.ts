@@ -329,6 +329,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.reactions', 'reactions')
       .getOne();
   }
 
