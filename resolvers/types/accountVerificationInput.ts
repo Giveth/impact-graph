@@ -1,22 +1,22 @@
-import { MaxLength, Length } from 'class-validator'
-import { InputType, Field  } from 'type-graphql'
+import { MaxLength, Length } from 'class-validator';
+import { InputType, Field } from 'type-graphql';
 import { GraphQLUpload, FileUpload } from 'graphql-upload';
 
 @InputType()
 export class AccountVerificationInput {
   @Field({ nullable: true })
-  platform: string
+  platform: string;
 
   @Field({ nullable: true })
-  dId?: string
+  dId?: string;
 
   @Field({ nullable: true })
-  protocol: string
+  protocol: string;
 
   @Field({ nullable: true })
-  claim?: string
+  claim?: string;
 
   // JWT verification from 3box or other source
   @Field({ nullable: true })
-  attestation?: string
+  attestation?: string;
 }
