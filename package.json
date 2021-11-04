@@ -64,7 +64,7 @@
     "tslint-config-airbnb": "^5.11.2",
     "type-graphql": "^1.1.1",
     "typedi": "^0.8.0",
-    "typeorm": "^0.2.32",
+    "typeorm": "^0.2.38",
     "typeorm-typedi-extensions": "^0.2.3",
     "typescript": "^3.9.9",
     "wkhtmltopdf": "^0.3.4",

@@ -199,12 +199,13 @@ class Project extends BaseEntity {
     query: SelectQueryBuilder<Project>,
     direction: any,
   ) {
-    return query
-      .addSelect('COUNT(reactions.id)', 'count')
-      .groupBy(
-        'project.id, donations.id, reactions.id, status.id, users.id, c.id',
-      )
-      .orderBy('count', direction);
+    return query.addSelect((subQuery) => {
+      return subQuery
+          .select('COUNT(r.id)', 'count')
+          .from(Reaction, 'r')
+          .where('r.projectId = project.id');
+      }, 'count')
+    .orderBy('count', direction)
   }
 
   // Precalculates the sum of donations and alias it during query execution for ordering
@@ -212,17 +213,13 @@ class Project extends BaseEntity {
     query: SelectQueryBuilder<Project>,
     direction: any,
   ) {
-    query
-      .addSelect('COALESCE(SUM(donations.valueUsd),0)', 'donated')
-      .groupBy(
-        'donations.id, project.id, reactions.id, status.id, users.id, c.id',
-      );
-
-    if (direction === 'ASC') {
-      return query.orderBy('donated', direction);
-    } else {
-      return query.orderBy('donated', direction);
-    }
+    query.addSelect((subQuery) => {
+      return subQuery
+          .select('COALESCE(SUM(d.valueUsd),0)', 'donated')
+          .from(Donation, 'd')
+          .where('d.projectId = project.id');
+      }, 'donated')
+      .orderBy('donated', direction)
   }
 
   static addFilterQuery(query: any, filter: string, filterValue: boolean) {
@@ -258,7 +255,7 @@ class Project extends BaseEntity {
     // Sorts
     if (sortBy === OrderField.Reactions) {
       this.addReactionsCountQuery(query, direction);
-    } else if (sortBy ===  OrderField.Donations) {
+    } else if (sortBy === OrderField.Donations) {
       this.addTotalDonationsQuery(query, direction);
     } else {
       query.orderBy(`project.${sortBy}`, direction);
