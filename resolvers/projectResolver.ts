@@ -66,7 +66,7 @@ class ProjectAndAdmin {
   @Field(type => Project)
   project: Project;
 
-  @Field(type => User)
+  @Field(type => User, { nullable: true })
   admin: User;
 }
 
@@ -289,9 +289,14 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.categories', 'categories')
       .getOne();
 
-    const admin = await User.findOne({ id: Number(project?.admin) })
+    // Typeorm does not know how to handle NaN
+    const adminId = Number(project?.admin);
+    if (Number.isNaN(adminId)) {
+      return { project, admin: null };
+    }
 
-    return { project, admin }
+    const admin = await User.findOne({ id: adminId });
+    return { project, admin };
   }
 
   // Move this to it's own resolver later

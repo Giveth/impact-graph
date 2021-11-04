@@ -16,7 +16,7 @@ import { NETWORK_IDS } from '../provider';
 const analytics = getAnalytics();
 
 @ObjectType()
-class DonationsByWallets {
+class PaginateDonations {
   @Field(type => [Donation], { nullable: true })
   donations: Donation[];
 
@@ -24,7 +24,7 @@ class DonationsByWallets {
   totalCount: number;
 
   @Field(type => Number, { nullable: true })
-  ethBalance: number
+  totalEthBalance: number
 }
 
 @Resolver(of => User)
@@ -76,8 +76,8 @@ export class DonationResolver {
     return donations;
   }
 
-  @Query(returns => DonationsByWallets, { nullable: true })
-  async donationsByWallets(
+  @Query(returns => PaginateDonations, { nullable: true })
+  async donationsByDestinationWallets(
     @Ctx() ctx: MyContext,
     @Arg('skip', { defaultValue: 0 }) skip: number,
     @Arg('take', { defaultValue: 10 }) take: number,
@@ -89,13 +89,17 @@ export class DonationResolver {
 
     const query = this.donationRepository
                       .createQueryBuilder('donation')
-                      .where('donation.toWalletAddress IN (:addresses)', { addresses: toWalletAddressesArray });
+                      .where('lower(donation.toWalletAddress) IN (:...addresses)')
+                      .setParameter('addresses', toWalletAddressesArray);
 
-    const [donations, donationsCount] = await query.take(take).skip(skip).getManyAndCount();
+    const [donations, donationsCount] = await query.limit(take).offset(skip).getManyAndCount();
     const balance = await query.select('SUM(donation.amount)', 'ethBalance').getRawOne();
-    const ethBalance = balance?.ethBalance
 
-    return { donations, donationsCount, ethBalance };
+    return {
+      donations: donations,
+      totalCount: donationsCount,
+      totalEthBalance: balance.ethBalance
+    };
   }
 
   @Query(returns => [Token], { nullable: true })
