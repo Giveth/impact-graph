@@ -75,13 +75,25 @@ export async function updateTraceableProjectsHandler(
     if (requestData.image) {
       project.image = `https://gateway.pinata.cloud${requestData.image}`;
     }
-    const statusId = requestData.archived
-      ? ProjStatus.cancel
-      : ProjStatus.active;
-    const status = (await ProjectStatus.findOne({
-      id: statusId,
-    })) as ProjectStatus;
-    project.status = status;
+
+    let statusId;
+    if (requestData.archived) {
+      statusId = ProjStatus.cancel;
+    } else if (
+      !requestData.archived &&
+      project.status.id === ProjStatus.cancel
+    ) {
+      // Maybe project status is deactive in giveth.io, so we should not
+      // change to active in this case, we just change the cancel status to active with this endpoint
+      statusId = ProjStatus.active;
+    }
+    if (statusId) {
+      const status = (await ProjectStatus.findOne({
+        id: statusId,
+      })) as ProjectStatus;
+      project.status = status;
+    }
+
     await project.save();
     console.log('Project has been updated by giveth trace', {
       projectId,
