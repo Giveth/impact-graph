@@ -12,6 +12,7 @@ import { User } from '../entities/user';
 import Logger from '../logger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
+import { updateTotalDonationsOfProject } from '../services/donationService';
 
 const analytics = getAnalytics();
 
@@ -99,12 +100,12 @@ export class DonationResolver {
   async saveDonation(
     @Arg('fromAddress') fromAddress: string,
     @Arg('toAddress') toAddress: string,
-    @Arg('amount') amount: Number,
+    @Arg('amount') amount: number,
     @Arg('transactionId', { nullable: true }) transactionId: string,
-    @Arg('transactionNetworkId') transactionNetworkId: Number,
+    @Arg('transactionNetworkId') transactionNetworkId: number,
     @Arg('token') token: string,
-    @Arg('projectId') projectId: Number,
-    @Arg('chainId') chainId: Number,
+    @Arg('projectId') projectId: number,
+    @Arg('chainId') chainId: number,
     @Arg('transakId', { nullable: true }) transakId: string,
     // TODO should remove this in the future, we dont use transakStatus in creating donation
     @Arg('transakStatus', { nullable: true }) transakStatus: string,
@@ -146,7 +147,6 @@ export class DonationResolver {
         anonymous: !!userId,
       });
       await donation.save();
-
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
@@ -161,6 +161,10 @@ export class DonationResolver {
       donation.valueUsd = Number(amount) * donation.priceUsd;
       donation.valueEth = Number(amount) * donation.priceEth;
       await donation.save();
+
+      // After updating price we update totalDonations
+      await updateTotalDonationsOfProject(projectId);
+
       if (transakId) {
         // we send segment event for transak donations after the transak call our webhook to verifying transactions
         return donation.id;

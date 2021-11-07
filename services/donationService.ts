@@ -1,8 +1,9 @@
-import { Donation, DONATION_STATUS } from '../../entities/donation';
-import { Project } from '../../entities/project';
-import { User } from '../../entities/user';
-import DonationTracker from '../segment/DonationTracker';
-import { TransakOrder } from './order';
+import { Project } from '../entities/project';
+import { Donation, DONATION_STATUS } from '../entities/donation';
+import { TransakOrder } from './transak/order';
+import { User } from '../entities/user';
+import DonationTracker from './segment/DonationTracker';
+
 const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
 export const updateDonationByTransakData = async (
@@ -52,7 +53,9 @@ export const updateDonationByTransakData = async (
     }
   }
   await donation.save();
+  await updateTotalDonationsOfProject(donation.projectId);
 };
+
 const notifyTransakUpdate = async donation => {
   const project = await Project.findOne({ id: donation.projectId });
   const owner = await User.findOne({ id: Number(project?.admin) });
@@ -67,5 +70,21 @@ const notifyTransakUpdate = async donation => {
 
       if (donor) new DonationTracker(donation, project, donor, 'Made donation');
     }
+  }
+};
+
+export const updateTotalDonationsOfProject = async (projectId: number) => {
+  try {
+    const donationsAmount = await Donation.query(
+      `select COALESCE(SUM("valueUsd"),0) as total from donation where "projectId" = ${projectId}`,
+    );
+    await Project.update(
+      { id: projectId },
+      {
+        totalDonations: donationsAmount[0].total,
+      },
+    );
+  } catch (e) {
+    console.log('updateTotalDonationsOfAProject error', e);
   }
 };
