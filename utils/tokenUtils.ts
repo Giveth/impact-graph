@@ -444,6 +444,7 @@ const ropstenTokens = [
     address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
     symbol: 'UNI',
     name: 'UNI Ropsten',
+    decimals: 18,
   },
 ];
 
@@ -464,31 +465,31 @@ const xDaiTokens = [
     address: '0xb7D311E2Eb55F2f68a9440da38e7989210b9A05e',
     symbol: 'STAKE',
     name: 'STAKE on xDai',
-    // decimals: 18
+    decimals: 18
   },
   {
     address: '0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83',
     symbol: 'USDC',
     name: 'USDC on xDai',
-    // decimals: 18
+    decimals: 6
   },
   {
     address: '0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1',
     symbol: 'WETH',
     name: 'Wrapped Ether on xDai',
-    // decimals: 18
+    decimals: 18
   },
   {
     address: '0xE2e73A1c69ecF83F464EFCE6A5be353a37cA09b2',
     symbol: 'LINK',
     name: 'ChainLink Token on xDai',
-    // decimals: 18
+    decimals: 18
   },
   {
     address: '0x1e16aa4Df73d29C029d94CeDa3e3114EC191E25A',
     symbol: 'xMOON',
     name: 'Moons on xDai',
-    // decimals: 18
+    decimals: 18
   },
   {
     address: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
@@ -512,7 +513,7 @@ const xDaiTokens = [
     address: '0x3a97704a1b25F08aa230ae53B352e2e72ef52843',
     symbol: 'AGVE',
     name: 'Agave Token',
-    // decimals: 18
+    decimals: 18,
   },
 ];
 

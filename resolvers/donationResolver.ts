@@ -1,4 +1,12 @@
-import { Resolver, Query, Arg, Mutation, Ctx, ObjectType, Field } from 'type-graphql';
+import {
+  Resolver,
+  Query,
+  Arg,
+  Mutation,
+  Ctx,
+  ObjectType,
+  Field,
+} from 'type-graphql';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 // import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
@@ -24,7 +32,7 @@ class PaginateDonations {
   totalCount: number;
 
   @Field(type => Number, { nullable: true })
-  totalEthBalance: number
+  totalEthBalance: number;
 }
 
 @Resolver(of => User)
@@ -88,17 +96,22 @@ export class DonationResolver {
     );
 
     const query = this.donationRepository
-                      .createQueryBuilder('donation')
-                      .where('lower(donation.toWalletAddress) IN (:...addresses)')
-                      .setParameter('addresses', toWalletAddressesArray);
+      .createQueryBuilder('donation')
+      .where('lower(donation.toWalletAddress) IN (:...addresses)')
+      .setParameter('addresses', toWalletAddressesArray);
 
-    const [donations, donationsCount] = await query.limit(take).offset(skip).getManyAndCount();
-    const balance = await query.select('SUM(donation.amount)', 'ethBalance').getRawOne();
+    const [donations, donationsCount] = await query
+      .limit(take)
+      .offset(skip)
+      .getManyAndCount();
+    const balance = await query
+      .select('SUM(donation.amount)', 'ethBalance')
+      .getRawOne();
 
     return {
-      donations: donations,
+      donations,
       totalCount: donationsCount,
-      totalEthBalance: balance.ethBalance
+      totalEthBalance: balance.ethBalance,
     };
   }
 

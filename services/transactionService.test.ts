@@ -4,6 +4,7 @@ import { getTransactionInfoFromNetwork } from './transactionService';
 import { assertThrowsAsync } from '../test/testUtils';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
+const ONE_DAY = 60 * 60 * 24;
 
 const getTransactionDetailTestCases = () => {
   it('should return transaction detail for normal transfer on mainnet', async () => {
@@ -95,7 +96,7 @@ const getTransactionDetailTestCases = () => {
         fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
         toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
         amount,
-        timestamp: 1607360949,
+        timestamp: 1607360950 + ONE_DAY,
       });
     };
     await assertThrowsAsync(
@@ -267,6 +268,25 @@ const getTransactionDetailTestCases = () => {
     assert.equal(transactionInfo.currency, 'ETH');
     assert.equal(transactionInfo.amount, amount);
   });
+
+  it('should return transaction detail for UNI token transfer on ropsten', async () => {
+    // https://ropsten.etherscan.io/tx/0xba3c2627c9d3dd963455648b4f9d7239e8b5c80d0aa85ac354d2b762d99e4441
+    const amount = 0.01;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xba3c2627c9d3dd963455648b4f9d7239e8b5c80d0aa85ac354d2b762d99e4441',
+      symbol: 'UNI',
+      networkId: NETWORK_IDS.ROPSTEN,
+      fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
+      toAddress: '0x8f951903c9360345b4e1b536c7f5ae8f88a64e79',
+      amount,
+      timestamp: 1615739937,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'UNI');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return transaction when transactionHash is wrong because of speedup on ropsten', async () => {
     // https://ropsten.etherscan.io/tx/0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7
     const amount = 0.001;
@@ -360,6 +380,23 @@ const getTransactionDetailTestCases = () => {
     assert.equal(transactionInfo.currency, 'HNY');
     assert.equal(transactionInfo.amount, amount);
   });
+  it('should return transaction detail for USDC token transfer on XDAI', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0x00aef89fc40cea0cc0cb7ae5ac18c0e586dccb200b230a9caabca0e08ff7a36b
+    const amount = 1;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x00aef89fc40cea0cc0cb7ae5ac18c0e586dccb200b230a9caabca0e08ff7a36b',
+      symbol: 'USDC',
+      networkId: NETWORK_IDS.XDAI,
+      fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
+      toAddress: '0x87f1c862c166b0ceb79da7ad8d0864d53468d076',
+      amount,
+      timestamp: 1626278641,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'USDC');
+    assert.equal(transactionInfo.amount, amount);
+  });
   it('should return error when transaction time is newer than sent timestamp for HNY token transfer on XDAI', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x99e70642fe1aa03cb2db35c3e3909466e66b233840b7b1e0dd47296c878c16b4
     const amount = 0.001;
@@ -372,7 +409,7 @@ const getTransactionDetailTestCases = () => {
         fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
         toAddress: '0x5A5a0732c1231D99DB8FFcA38DbEf1c8316fD3E1',
         amount,
-        timestamp: 1617903451,
+        timestamp: 1617903450 + ONE_DAY,
       });
     };
     await assertThrowsAsync(
