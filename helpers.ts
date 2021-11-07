@@ -200,7 +200,7 @@ export async function seedDatabase() {
   await projectRepository.save(projects);
 
   const donations = donationRepository.create({
-    transactionId: '10',
+    transactionId: '9151faa1-e69b-4a36-b959-3c4f894afb68',
     transactionNetworkId: 10,
     toWalletAddress: '134',
     fromWalletAddress: '134',
@@ -213,7 +213,6 @@ export async function seedDatabase() {
     priceUsd: 10,
     createdAt: new Date(),
     donationType: 'test',
-    transakId: '9151faa1-e69b-4a36-b959-3c4f894afb68',
     transakStatus: 'ORDER_PROCESSING',
     user: superAdminUser,
     project: projects[0],

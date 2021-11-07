@@ -11,6 +11,9 @@ import {
   OneToMany,
   MoreThan,
   Index,
+  LessThan,
+  Brackets,
+  SelectQueryBuilder,
   AfterUpdate,
 } from 'typeorm';
 
@@ -33,6 +36,15 @@ export enum ProjStatus {
   active = 5,
   deactive = 6,
   cancel = 7,
+}
+
+export enum OrderField {
+  CreationDate = 'creationDate',
+  Balance = 'balance',
+  QualityScore = 'qualityScore',
+  Verified = 'verified',
+  Reactions = 'reactions',
+  Donations = 'totalDonations',
 }
 
 @Entity()
@@ -143,17 +155,114 @@ class Project extends BaseEntity {
   @RelationId((project: Project) => project.status)
   statusId: number;
 
-  @Field(type => Float, { nullable: true })
-  @Column({ type: 'real', nullable: true })
-  totalDonations: number = 0;
-
-  @Field(type => Float, { nullable: true })
-  @Column({ type: 'real', nullable: true })
-  totalHearts: number = 0;
-
   @Field(type => Boolean)
   @Column({ default: null, nullable: true })
   listed: boolean;
+
+  /**
+   * Custom Query Builders to chain together
+   */
+
+  static addCategoryQuery(
+    query: SelectQueryBuilder<Project>,
+    category: string,
+  ) {
+    return query.innerJoin(
+      'project.categories',
+      'category',
+      'category.name = :category',
+      { category },
+    );
+  }
+
+  static addSearchQuery(
+    query: SelectQueryBuilder<Project>,
+    searchTerm: string,
+  ) {
+    return query.andWhere(
+      new Brackets(qb => {
+        qb.where('project.title ILIKE :searchTerm', {
+          searchTerm: `%${searchTerm}%`,
+        })
+          .orWhere('project.description ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
+          })
+          .orWhere('project.impactLocation ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
+          });
+      }),
+    );
+  }
+
+  // Precalculates de amount of reactions and alias it during query execution for ordering
+  static addReactionsCountQuery(
+    query: SelectQueryBuilder<Project>,
+    direction: any,
+  ) {
+    return query.addSelect((subQuery) => {
+      return subQuery
+          .select('COUNT(r.id)', 'count')
+          .from(Reaction, 'r')
+          .where('r.projectId = project.id');
+      }, 'count')
+    .orderBy('count', direction)
+  }
+
+  // Precalculates the sum of donations and alias it during query execution for ordering
+  static addTotalDonationsQuery(
+    query: SelectQueryBuilder<Project>,
+    direction: any,
+  ) {
+    query.addSelect((subQuery) => {
+      return subQuery
+          .select('COALESCE(SUM(d.valueUsd),0)', 'donated')
+          .from(Donation, 'd')
+          .where('d.projectId = project.id');
+      }, 'donated')
+      .orderBy('donated', direction)
+  }
+
+  static addFilterQuery(query: any, filter: string, filterValue: boolean) {
+    return query.andWhere(`project.${filter} = ${filterValue}`);
+  }
+
+  // Backward Compatible Projects Query with added pagination, frontend sorts and category search
+  static searchProjects(
+    limit: number,
+    offset: number,
+    sortBy: string,
+    direction: any,
+    category: string,
+    searchTerm: string,
+    filter: string,
+    filterValue: boolean,
+  ) {
+    const query = this.createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.donations', 'donations')
+      .leftJoinAndSelect('project.reactions', 'reactions')
+      .leftJoinAndSelect('project.users', 'users')
+      .innerJoinAndSelect('project.categories', 'c')
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      );
+
+    // Filters
+    if (category) this.addCategoryQuery(query, category);
+    if (searchTerm) this.addSearchQuery(query, searchTerm);
+    if (filter) this.addFilterQuery(query, filter, filterValue);
+
+    // Sorts
+    if (sortBy === OrderField.Reactions) {
+      this.addReactionsCountQuery(query, direction);
+    } else if (sortBy === OrderField.Donations) {
+      this.addTotalDonationsQuery(query, direction);
+    } else {
+      query.orderBy(`project.${sortBy}`, direction);
+    }
+
+    return query.take(limit).skip(offset).getManyAndCount();
+  }
 
   static notifySegment(project: any, eventName: string) {
     new ProjectTracker(project, eventName).track();
