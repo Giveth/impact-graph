@@ -1,6 +1,11 @@
 import NotificationPayload from '../entities/notificationPayload';
 import { Reaction, REACTION_TYPE } from '../entities/reaction';
-import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
+import {
+  OrderField,
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+} from '../entities/project';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectInput, ImageUpload } from './types/project-input';
@@ -54,6 +59,18 @@ import {
 import { updateCampaignInTrace } from '../services/trace/traceService';
 
 @ObjectType()
+class AllProjects {
+  @Field(type => [Project])
+  projects: Project[];
+
+  @Field(type => Int)
+  totalCount: number;
+
+  @Field(type => [Category])
+  categories: Category[];
+}
+
+@ObjectType()
 class TopProjects {
   @Field(type => [Project])
   projects: Project[];
@@ -62,15 +79,20 @@ class TopProjects {
   totalCount: number;
 }
 
-enum OrderField {
-  CreationDate = 'creationDate',
-  Balance = 'balance',
+// this is to prevent SQL injection
+enum FilterField {
+  Verified = 'verified',
 }
 
 enum OrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
+
+registerEnumType(FilterField, {
+  name: 'FilterField',
+  description: 'Filter by field',
+});
 
 registerEnumType(OrderField, {
   name: 'OrderField',
@@ -113,6 +135,15 @@ class OrderBy {
   direction: OrderDirection;
 }
 
+@InputType()
+class FilterBy {
+  @Field(type => FilterField, { nullable: true })
+  field: FilterField;
+
+  @Field(type => Boolean, { nullable: true })
+  value: boolean;
+}
+
 @Service()
 @ArgsType()
 class GetProjectsArgs {
@@ -126,12 +157,24 @@ class GetProjectsArgs {
   take: number;
 
   @Field(type => OrderBy, {
-    defaultValue: { field: OrderField.Balance, direction: OrderDirection.DESC },
+    defaultValue: {
+      field: OrderField.QualityScore,
+      direction: OrderDirection.DESC,
+    },
   })
   orderBy: OrderBy;
 
+  @Field(type => String, { nullable: true })
+  searchTerm: string;
+
   @Field({ nullable: true })
   category: string;
+
+  @Field(type => FilterBy, {
+    nullable: true,
+    defaultValue: { field: null, value: null },
+  })
+  filterBy: FilterBy;
 
   @Field({ nullable: true })
   admin?: number;
@@ -191,25 +234,32 @@ export class ProjectResolver {
     private readonly projectImageRepository: Repository<ProjectImage>,
   ) {}
 
-  @Query(returns => [Project])
+  @Query(returns => AllProjects)
   async projects(
-    @Args() { take, skip, admin }: GetProjectsArgs,
-  ): Promise<Project[]> {
-    let projects;
-    let totalCount;
-    [projects, totalCount] = await this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.reactions', 'reaction')
-      .leftJoinAndSelect('project.users', 'users')
-      .where('project.statusId = 5 AND project.listed = true')
-      .orderBy(`project.qualityScore`, 'DESC')
-      .limit(skip)
-      .take(take)
-      .innerJoinAndSelect('project.categories', 'c')
-      .getManyAndCount();
+    @Args()
+    {
+      take,
+      skip,
+      orderBy,
+      searchTerm,
+      category,
+      filterBy,
+      admin,
+    }: GetProjectsArgs,
+  ): Promise<AllProjects> {
+    const categories = await Category.find();
+    const [projects, totalCount] = await Project.searchProjects(
+      take,
+      skip,
+      orderBy.field,
+      orderBy.direction,
+      category,
+      searchTerm,
+      filterBy?.field,
+      filterBy?.value,
+    );
 
-    return projects;
+    return { projects, totalCount, categories };
   }
 
   @Query(returns => TopProjects)
@@ -280,6 +330,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.reactions', 'reactions')
       .getOne();
   }
 
@@ -389,32 +440,6 @@ export class ProjectResolver {
       qualityScore = heartCount * heartScore;
     }
     return qualityScore;
-  }
-
-  @Mutation(returns => Boolean)
-  async heartsAndDonations(@PubSub() pubSub: PubSubEngine): Promise<Boolean> {
-    let projects;
-    projects = await this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.reactions', 'reactions')
-      .leftJoinAndSelect('project.donations', 'donations')
-      .getMany();
-
-    function sum(items, prop) {
-      return items.reduce((a, b) => {
-        return a + b[prop];
-      }, 0);
-    }
-
-    const updatedProjects = projects.map(project => {
-      const totalDonations = sum(project.donations, 'valueUsd');
-      const totalHearts = project.reactions.length;
-      return { id: project.id, totalDonations, totalHearts };
-    });
-
-    await this.projectRepository.save(updatedProjects);
-
-    return true;
   }
 
   @Mutation(returns => ImageResponse)

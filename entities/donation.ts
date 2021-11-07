@@ -30,7 +30,7 @@ export class Donation extends BaseEntity {
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column('integer', { nullable: true })
   // To match the transaction in case user has done speed up
   nonce: number;
@@ -43,7 +43,7 @@ export class Donation extends BaseEntity {
   @Column('text', { default: 'pending' })
   status: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column('text', { nullable: true })
   verifyErrorMessage: string;
 
