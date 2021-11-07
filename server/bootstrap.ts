@@ -23,6 +23,7 @@ import { User } from '../entities/user';
 
 import AdminBro from 'admin-bro';
 import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
+import { runCheckPendingProjectListingCronJob } from '../services/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 const AdminBroExpress = require('@admin-bro/express');
@@ -180,6 +181,7 @@ export async function bootstrap() {
     ProjectStatus.useConnection(dbConnection);
     User.useConnection(dbConnection);
     runCheckPendingDonationsCronJob();
+    runCheckPendingProjectListingCronJob();
 
     const listDelist = async (context, request, list = true) => {
       const { h, resource, records } = context;

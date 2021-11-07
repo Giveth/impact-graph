@@ -9,6 +9,7 @@ import {
   JoinTable,
   BaseEntity,
   OneToMany,
+  MoreThan,
   Index,
   AfterUpdate,
 } from 'typeorm';
@@ -20,6 +21,9 @@ import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
+
+// tslint:disable-next-line:no-var-requires
+const moment = require('moment');
 
 export enum ProjStatus {
   rjt = 1,
@@ -148,11 +152,20 @@ class Project extends BaseEntity {
   totalHearts: number = 0;
 
   @Field(type => Boolean)
-  @Column({ default: true, nullable: false })
-  listed: boolean = true;
+  @Column({ default: null, nullable: true })
+  listed: boolean;
 
   static notifySegment(project: any, eventName: string) {
     new ProjectTracker(project, eventName).track();
+  }
+
+  static pendingReviewSince(maximumDaysForListing: Number) {
+    const maxDaysForListing = moment().add(maximumDaysForListing, 'days')
+
+    return this.createQueryBuilder('project')
+               .where({ creationDate: MoreThan(maxDaysForListing) })
+               .andWhere('project.listed IS NULL')
+               .getMany();
   }
 
   @Field(type => Float, { nullable: true })
