@@ -63,15 +63,13 @@ export const updateCampaignInTrace = async (
 updateCampaignQueue.process(1, async (job, done) => {
   try {
     // There are title, description in job.data but we dont use theme right now
-    const { givethIoProjectId, title, description, campaignId, status } =
+    const { givethIoProjectId, campaignId, status } =
       job.data;
     console.info('updateGivethIoProjectQueue(), job.data', job.data);
     const project = await Project.findOne(givethIoProjectId);
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
-    project.title = title;
-    project.description = description;
     project.isTraceable = true;
     project.traceCampaignId = campaignId;
     let statusId;
