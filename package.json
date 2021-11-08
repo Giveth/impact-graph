@@ -29,7 +29,7 @@
     "bcrypt": "^5.0.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
-    "bull": "^3.29.2",
+    "bull": "^3.29.3",
     "chalk": "^4.1.0",
     "class-validator": "^0.12.2",
     "connect": "^3.7.0",
@@ -52,6 +52,7 @@
     "i": "^0.3.6",
     "ioredis": "^4.23.0",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
     "monoswap": "0.3.10",
     "node-cron": "^3.0.0",
     "nodemailer": "^6.5.0",
@@ -67,9 +68,8 @@
     "typeorm": "^0.2.38",
     "typeorm-typedi-extensions": "^0.2.3",
     "typescript": "^3.9.9",
-    "wkhtmltopdf": "^0.3.4",
-    "moment": "^2.29.1",
-    "web3": "^1.6.0"
+    "web3": "^1.6.0",
+    "wkhtmltopdf": "^0.3.4"
   },
   "lint-staged": {
     "*.ts": [

@@ -1,16 +1,30 @@
-import axios from 'axios';
 import { Project, ProjStatus } from '../../entities/project';
-import config from '../../config';
-import { Buffer } from 'buffer';
-import { NextFunction, Request, Response } from 'express';
 import { errorMessages } from '../../utils/errorMessages';
 import { ProjectStatus } from '../../entities/projectStatus';
+import { RedisOptions } from 'ioredis';
+// tslint:disable-next-line:no-var-requires
+const Queue = require('bull');
+
+// There is shared redis between giveth.io and trace.giveth.io notify each other about verifiedCampaigns/project update
+const redisConfig: RedisOptions = {
+  host: process.env.SHARED_REDIS_HOST,
+  port: Number(process.env.SHARED_REDIS_PORT),
+};
+if (process.env.SHARED_REDIS_PASSWORD) {
+  redisConfig.password = process.env.SHARED_REDIS_PASSWORD;
+}
+
+const updateCampaignQueue = new Queue('trace-campaign-updated', {
+  redis: redisConfig,
+});
+const updateGivethIoProjectQueue = new Queue('givethio-project-updated', {
+  redis: redisConfig,
+});
 
 export interface UpdateCampaignData {
   title?: string;
   campaignId?: string;
   description?: string;
-  image?: string;
   verified?: boolean;
   archived?: boolean;
 }
@@ -32,19 +46,10 @@ export const updateCampaignInTrace = async (
       campaignId: project.traceCampaignId,
       title: project.title,
       description: project.description,
-      image: project.image,
       verified: project.verified,
       archived: project.statusId === ProjStatus.cancel,
     };
-    const updateCampaignUrl = config.get('TRACE_UPDATE_CAMPAIGN_URL') as string;
-    const username = config.get('TRACE_UPDATE_CAMPAIGN_USERNAME');
-    const password = config.get('TRACE_UPDATE_CAMPAIGN_PASSWORD');
-    return axios.put(updateCampaignUrl, payload, {
-      headers: {
-        Authorization:
-          'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-      },
-    });
+    await updateGivethIoProjectQueue.add(payload);
   } catch (e) {
     console.log('updateCampaignInTrace() error', {
       e,
@@ -53,83 +58,39 @@ export const updateCampaignInTrace = async (
   }
 };
 
-export async function updateTraceableProjectsHandler(
-  request: Request,
-  response: Response,
-) {
+updateCampaignQueue.process(1, async (job, done) => {
   try {
-    console.log(
-      'updateTraceableProjectsHandler() has been called',
-      request.body,
-    );
-    const requestData = request.body;
-    const projectId = request.params.id;
-    const project = await Project.findOne(projectId);
+    // There are title, description in job.data but we dont use theme right now
+    const { givethIoProjectId, title, description, campaignId, status } =
+      job.data;
+    console.info('updateGivethIoProjectQueue(), job.data', job.data);
+    const project = await Project.findOne(givethIoProjectId);
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
-    project.title = requestData.title;
-    project.description = requestData.description;
+    project.title = title;
+    project.description = description;
     project.isTraceable = true;
-    project.traceCampaignId = requestData.campaignId;
-    if (requestData.image) {
-      project.image = `https://gateway.pinata.cloud${requestData.image}`;
-    }
-
+    project.traceCampaignId = campaignId;
     let statusId;
-    if (requestData.archived) {
+    if (status === 'Archived') {
       statusId = ProjStatus.cancel;
-    } else if (
-      !requestData.archived &&
-      project.status.id === ProjStatus.cancel
-    ) {
+    } else if (status === 'Active' && project.status.id === ProjStatus.cancel) {
       // Maybe project status is deactive in giveth.io, so we should not
       // change to active in this case, we just change the cancel status to active with this endpoint
       statusId = ProjStatus.active;
     }
     if (statusId) {
-      const status = (await ProjectStatus.findOne({
+      const projectStatus = (await ProjectStatus.findOne({
         id: statusId,
       })) as ProjectStatus;
-      project.status = status;
+      project.status = projectStatus;
     }
 
     await project.save();
-    console.log('Project has been updated by giveth trace', {
-      projectId,
-    });
-    response.status(200).send(project);
+    done();
   } catch (e) {
-    console.log('updateTraceableProjects() error', e);
-    response.status(500).send({
-      message: e.message,
-    });
+    console.error('updateGivethIoProjectQueue() error', e);
+    done();
   }
-}
-export async function authorizeGivethTrace(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const { authorization } = req.headers;
-  const traceUsername = config.get('TRACE_USERNAME');
-  const tracePassword = config.get('TRACE_PASSWORD');
-  if (!traceUsername || !authorization || !authorization.includes(' ')) {
-    return res.status(401).send({ message: errorMessages.UN_AUTHORIZED });
-  }
-  const { username, password } = decodeBasicAuthentication(authorization);
-  if (username !== traceUsername || password !== tracePassword) {
-    return res.status(401).send({ message: errorMessages.UN_AUTHORIZED });
-  }
-  return next();
-}
-
-const decodeBasicAuthentication = basicAuthentication => {
-  const [username, password] = Buffer.from(
-    basicAuthentication.split(' ')[1],
-    'base64',
-  )
-    .toString()
-    .split(':');
-  return { username, password };
-};
+});
