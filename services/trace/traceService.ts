@@ -49,6 +49,8 @@ export const updateCampaignInTrace = async (
       verified: project.verified,
       archived: project.statusId === ProjStatus.cancel,
     };
+
+    // Giveth trace will handle this event
     await updateGivethIoProjectQueue.add(payload);
   } catch (e) {
     console.log('updateCampaignInTrace() error', {
