@@ -32,7 +32,7 @@ class PaginateDonations {
   totalCount: number;
 
   @Field(type => Number, { nullable: true })
-  totalEthBalance: number;
+  totalUsdBalance: number;
 }
 
 @Resolver(of => User)
@@ -105,13 +105,13 @@ export class DonationResolver {
       .offset(skip)
       .getManyAndCount();
     const balance = await query
-      .select('SUM(donation.amount)', 'ethBalance')
+      .select('SUM(donation.valueUsd)', 'usdBalance')
       .getRawOne();
 
     return {
       donations,
       totalCount: donationsCount,
-      totalEthBalance: balance.ethBalance,
+      totalUsdBalance: balance.usdBalance,
     };
   }
 
