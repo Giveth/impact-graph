@@ -83,22 +83,16 @@ export class DonationResolver {
     });
     return donations;
   }
-
   @Query(returns => PaginateDonations, { nullable: true })
-  async donationsByDestinationWallets(
+  async donationsByProjectId(
     @Ctx() ctx: MyContext,
     @Arg('skip', { defaultValue: 0 }) skip: number,
     @Arg('take', { defaultValue: 10 }) take: number,
-    @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[],
+    @Arg('projectId', type => Number) projectId: number,
   ) {
-    const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
-      o.toLowerCase(),
-    );
-
     const query = this.donationRepository
       .createQueryBuilder('donation')
-      .where('lower(donation.toWalletAddress) IN (:...addresses)')
-      .setParameter('addresses', toWalletAddressesArray);
+      .where(`donation.projectId = ${projectId}`);
 
     const [donations, donationsCount] = await query
       .limit(take)
