@@ -22,14 +22,14 @@ const updateGivethIoProjectQueue = new Queue('givethio-project-updated', {
 });
 
 export interface UpdateCampaignData {
-  title?: string;
+  title: string;
   campaignId?: string;
-  description?: string;
+  description: string;
   verified?: boolean;
   archived?: boolean;
 }
 
-export const updateCampaignInTrace = async (
+export const dispatchProjectUpdateEvent = async (
   project: Project,
 ): Promise<void> => {
   try {
@@ -45,7 +45,7 @@ export const updateCampaignInTrace = async (
     const payload: UpdateCampaignData = {
       campaignId: project.traceCampaignId,
       title: project.title,
-      description: project.description,
+      description: project.description as string,
       verified: project.verified,
       archived: project.statusId === ProjStatus.cancel,
     };
@@ -61,9 +61,9 @@ export const updateCampaignInTrace = async (
 };
 
 updateCampaignQueue.process(1, async (job, done) => {
+  // These events come from Gievth trace
   try {
-    // There are title, description in job.data but we dont use theme right now
-    const { givethIoProjectId, campaignId, status } =
+    const { givethIoProjectId, campaignId, status, title, description } =
       job.data;
     console.info('updateGivethIoProjectQueue(), job.data', job.data);
     const project = await Project.findOne(givethIoProjectId);
@@ -72,6 +72,8 @@ updateCampaignQueue.process(1, async (job, done) => {
     }
     project.isTraceable = true;
     project.traceCampaignId = campaignId;
+    project.title = title;
+    project.description = description;
     let statusId;
     if (status === 'Archived') {
       statusId = ProjStatus.cancel;

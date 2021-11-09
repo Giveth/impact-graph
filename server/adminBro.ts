@@ -4,7 +4,7 @@ import AdminBro from 'admin-bro';
 import { User } from '../entities/user';
 import AdminBroExpress from '@admin-bro/express';
 import config from '../config';
-import { updateCampaignInTrace } from '../services/trace/traceService';
+import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -280,7 +280,7 @@ const listDelist = async (context, request, list = true) => {
       .execute();
 
     projects.raw.forEach(project => {
-      updateCampaignInTrace(project);
+      dispatchProjectUpdateEvent(project);
       Project.notifySegment(project, `Project ${list ? 'listed' : 'unlisted'}`);
     });
   } catch (error) {
@@ -311,7 +311,7 @@ const verifyProjects = async (context, request, verified = true) => {
       .execute();
 
     projects.raw.forEach(project => {
-      updateCampaignInTrace(project);
+      dispatchProjectUpdateEvent(project);
       Project.notifySegment(
         project,
         `Project ${verified ? 'verified' : 'unverified'}`,
@@ -349,7 +349,7 @@ const updateStatuslProjects = async (context, request, status) => {
         .execute();
 
       projects.raw.forEach(project => {
-        updateCampaignInTrace(project);
+        dispatchProjectUpdateEvent(project);
         Project.notifySegment(
           project,
           `Project ${segmentProjectStatusEvents[projectStatus.symbol]}`,

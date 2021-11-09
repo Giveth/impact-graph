@@ -56,7 +56,7 @@ import {
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
-import { updateCampaignInTrace } from '../services/trace/traceService';
+import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 
 @ObjectType()
 class AllProjects {
@@ -424,7 +424,7 @@ export class ProjectResolver {
     await project.save();
 
     // We dont wait for trace reponse, because it may increase our response time
-    updateCampaignInTrace(project);
+    dispatchProjectUpdateEvent(project);
     return project;
   }
 
