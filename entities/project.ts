@@ -80,10 +80,6 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   traceCampaignId?: string;
 
-  @Field(type => Boolean)
-  @Column({ default: false })
-  isTraceable: boolean;
-
   @Field({ nullable: true })
   @Column({ nullable: true })
   organisationId?: number;

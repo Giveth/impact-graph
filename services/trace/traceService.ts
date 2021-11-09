@@ -33,7 +33,7 @@ export const dispatchProjectUpdateEvent = async (
   project: Project,
 ): Promise<void> => {
   try {
-    if (!project.isTraceable) {
+    if (!project.traceCampaignId) {
       console.log(
         'updateCampaignInTrace(), the project is not a trace campaign',
         {
@@ -70,7 +70,6 @@ updateCampaignQueue.process(1, async (job, done) => {
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
-    project.isTraceable = true;
     project.traceCampaignId = campaignId;
     project.title = title;
     project.description = description;
