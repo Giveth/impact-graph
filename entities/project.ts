@@ -269,10 +269,11 @@ class Project extends BaseEntity {
   }
 
   static pendingReviewSince(maximumDaysForListing: Number) {
-    const maxDaysForListing = moment().add(maximumDaysForListing, 'days')
+    const maxDaysForListing =
+      moment().subtract(maximumDaysForListing, 'days').endOf('day')
 
     return this.createQueryBuilder('project')
-               .where({ creationDate: MoreThan(maxDaysForListing) })
+               .where({ creationDate: LessThan(maxDaysForListing) })
                .andWhere('project.listed IS NULL')
                .getMany();
   }
