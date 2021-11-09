@@ -61,11 +61,13 @@ export const dispatchProjectUpdateEvent = async (
 };
 
 updateCampaignQueue.process(1, async (job, done) => {
-  // These events come from Gievth trace
+  console.log('Listen to events of ', updateCampaignQueue.name);
+
+  // These events come from Giveth trace
   try {
     const { givethIoProjectId, campaignId, status, title, description } =
       job.data;
-    console.info('updateGivethIoProjectQueue(), job.data', job.data);
+    console.log('updateGivethIoProjectQueue(), job.data', job.data);
     const project = await Project.findOne(givethIoProjectId);
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
@@ -91,7 +93,7 @@ updateCampaignQueue.process(1, async (job, done) => {
     await project.save();
     done();
   } catch (e) {
-    console.error('updateGivethIoProjectQueue() error', e);
+    console.log('updateGivethIoProjectQueue() error', e);
     done();
   }
 });
