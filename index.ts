@@ -1,4 +1,4 @@
-import 'reflect-metadata'
+import 'reflect-metadata';
 import { bootstrap } from './server/bootstrap';
 
-bootstrap()
+bootstrap();

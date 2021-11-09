@@ -3,11 +3,20 @@
   "extends": [
     "tslint:recommended",
     "tslint-eslint-rules",
+    "tslint-plugin-prettier",
     "tslint-config-prettier"
   ],
   "rules": {
     "prettier": [
-      true
+      true,
+      {
+        "arrowParens": "avoid",
+        "singleQuote": true,
+        "semi": true,
+        "tabWidth": 2,
+        "useTabs": false,
+        "trailingComma": "all"
+      }
     ],
     "adjacent-overload-signatures": true,
     "quotemark": [

@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql'
+import { Field, ID, ObjectType } from 'type-graphql';
 
 import {
   Entity,
@@ -7,36 +7,36 @@ import {
   BaseEntity,
   RelationId,
   ManyToOne,
-  Index
-} from 'typeorm'
-import { Project } from './project'
+  Index,
+} from 'typeorm';
+import { Project } from './project';
 
 @Entity()
 @ObjectType()
 export class Reaction extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
-  readonly id: number
+  readonly id: number;
 
   @Index()
   @Field(type => ID)
   @Column()
-  projectUpdateId: number
+  projectUpdateId: number;
 
   @Field(type => ID)
   @Column()
-  userId: number
+  userId: number;
 
   @Field(type => String)
   @Column()
-  reaction: string
+  reaction: string;
 
   @Index()
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
-  project: Project
+  project: Project;
   @RelationId((reaction: Reaction) => reaction.project)
   @Column({ nullable: true })
-  projectId: number
+  projectId: number;
 }
-export type REACTION_TYPE = 'heart'
+export type REACTION_TYPE = 'heart';
