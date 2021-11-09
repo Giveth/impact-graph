@@ -78,6 +78,10 @@ class Project extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
+  traceCampaignId?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   organisationId?: number;
 
   @Field({ nullable: true })

@@ -56,6 +56,7 @@ import {
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
+import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 
 @ObjectType()
 class AllProjects {
@@ -422,6 +423,8 @@ export class ProjectResolver {
     project.qualityScore = qualityScore;
     await project.save();
 
+    // We dont wait for trace reponse, because it may increase our response time
+    dispatchProjectUpdateEvent(project);
     return project;
   }
 
