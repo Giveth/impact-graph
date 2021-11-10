@@ -1,6 +1,6 @@
 import { User } from '../../entities/user';
 import { Project } from '../../entities/project';
-import { getAnalytics } from '../../analytics';
+import { getAnalytics, SegmentEvents } from '../../analytics';
 
 const analytics = getAnalytics();
 
@@ -9,10 +9,10 @@ const analytics = getAnalytics();
  */
 class ProjectTracker {
   project: Project;
-  eventName: string;
+  eventName: SegmentEvents;
   projectOwner?: User;
 
-  constructor(projectToUpdate: Project, eventTitle: string) {
+  constructor(projectToUpdate: Project, eventTitle: SegmentEvents) {
     this.project = projectToUpdate;
     this.eventName = eventTitle;
   }

@@ -8,7 +8,7 @@ import {
 } from '../entities/project';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
-import { ProjectInput, ImageUpload } from './types/project-input';
+import { ImageUpload, ProjectInput } from './types/project-input';
 import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
 import { UserPermissions } from '../permissions';
@@ -17,17 +17,15 @@ import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { triggerBuild } from '../netlify/build';
 import { MyContext } from '../types/MyContext';
-import { getAnalytics } from '../analytics';
+import { getAnalytics, SegmentEvents } from '../analytics';
 import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import { Context } from '../context';
 import { Repository } from 'typeorm';
-import { Raw } from 'typeorm';
 import { Service } from 'typedi';
 import config from '../config';
 import slugify from 'slugify';
 import Logger from '../logger';
-import { getProvider, NETWORK_IDS } from '../provider';
 import {
   Arg,
   Args,
@@ -44,10 +42,6 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-
-const analytics = getAnalytics();
-
-import { inspect } from 'util';
 import { errorMessages } from '../utils/errorMessages';
 import {
   isWalletAddressSmartContract,
@@ -57,6 +51,8 @@ import {
 } from '../utils/validators/projectValidator';
 import { updateTotalReactionsOfAProject } from '../services/reactionsService';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
+
+const analytics = getAnalytics();
 
 @ObjectType()
 class AllProjects {
@@ -650,7 +646,7 @@ export class ProjectResolver {
       description: projectInput?.description?.replace(/<img .*?>/g, ''),
     };
     analytics.track(
-      'Project created',
+      SegmentEvents.PROJECT_CREATED,
       `givethId-${ctx.req.user.userId}`,
       segmentProject,
       null,
@@ -703,7 +699,7 @@ export class ProjectResolver {
     const save = await ProjectUpdate.save(update);
 
     analytics.track(
-      'Project updated - owner',
+      SegmentEvents.PROJECT_UPDATED_OWNER,
       `givethId-${user.userId}`,
       projectUpdateInfo,
       null,
@@ -737,7 +733,7 @@ export class ProjectResolver {
         firstName: donor.firstName,
       };
       analytics.track(
-        'Project updated - donor',
+        SegmentEvents.PROJECT_UPDATED_DONOR,
         `givethId-${donor.id}`,
         donorUpdateInfo,
         null,
@@ -1034,7 +1030,7 @@ export class ProjectResolver {
           };
 
           analytics.track(
-            'Project deactivated',
+            SegmentEvents.PROJECT_DEACTIVATED,
             `givethId-${ctx.req.user.userId}`,
             segmentProject,
             null,

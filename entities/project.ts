@@ -1,20 +1,19 @@
-import { Field, ID, Float, ObjectType, Authorized } from 'type-graphql';
+import { Field, Float, ID, ObjectType } from 'type-graphql';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
+  AfterUpdate,
+  BaseEntity,
+  Brackets,
   Column,
+  Entity,
+  Index,
+  JoinTable,
+  LessThan,
   ManyToMany,
   ManyToOne,
-  RelationId,
-  JoinTable,
-  BaseEntity,
   OneToMany,
-  Index,
-  MoreThan,
-  LessThan,
-  Brackets,
+  PrimaryGeneratedColumn,
+  RelationId,
   SelectQueryBuilder,
-  AfterUpdate,
 } from 'typeorm';
 
 import { Organisation } from './organisation';
@@ -24,6 +23,10 @@ import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
+import { SegmentEvents } from '../analytics';
+
+// tslint:disable-next-line:no-var-requires
+const moment = require('moment');
 
 export enum ProjStatus {
   rjt = 1,
@@ -43,9 +46,6 @@ export enum OrderField {
   Reactions = 'totalReactions',
   Donations = 'totalDonations',
 }
-
-// tslint:disable-next-line:no-var-requires
-const moment = require('moment');
 
 @Entity()
 @ObjectType()
@@ -168,8 +168,8 @@ class Project extends BaseEntity {
   totalReactions: number = 0;
 
   @Field(type => Boolean)
-  @Column({ default: true, nullable: false })
-  listed: boolean = true;
+  @Column({ default: null, nullable: true })
+  listed: boolean;
 
   /**
    * Custom Query Builders to chain together
@@ -241,8 +241,19 @@ class Project extends BaseEntity {
     return query.take(limit).skip(offset).getManyAndCount();
   }
 
-  static notifySegment(project: any, eventName: string) {
+  static notifySegment(project: any, eventName: SegmentEvents) {
     new ProjectTracker(project, eventName).track();
+  }
+
+  static pendingReviewSince(maximumDaysForListing: Number) {
+    const maxDaysForListing = moment()
+      .subtract(maximumDaysForListing, 'days')
+      .endOf('day');
+
+    return this.createQueryBuilder('project')
+      .where({ creationDate: LessThan(maxDaysForListing) })
+      .andWhere('project.listed IS NULL')
+      .getMany();
   }
 
   @Field(type => Float, { nullable: true })
@@ -280,7 +291,7 @@ class Project extends BaseEntity {
 
   @AfterUpdate()
   notifyProjectEdited() {
-    Project.notifySegment(this, 'Project edited');
+    Project.notifySegment(this, SegmentEvents.PROJECT_EDITED);
   }
 }
 

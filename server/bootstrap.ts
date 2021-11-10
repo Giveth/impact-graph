@@ -11,8 +11,6 @@ import { entities } from '../entities/entities';
 import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
-
-import Logger from '../logger';
 import { graphqlUploadExpress } from 'graphql-upload';
 import { Database, Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator';
@@ -23,7 +21,12 @@ import { User } from '../entities/user';
 
 import AdminBro from 'admin-bro';
 import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
+import { runCheckPendingProjectListingCronJob } from '../services/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
+import { SegmentEvents } from '../analytics';
+
+const AdminBroExpress = require('@admin-bro/express');
+
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
 
 // tslint:disable:no-var-requires
@@ -168,6 +171,7 @@ export async function bootstrap() {
       `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
     );
 
+    // Admin Bruh!
     app.use(adminBroRootPath, getAdminBroRouter());
 
     app.use(
@@ -176,6 +180,7 @@ export async function bootstrap() {
       }),
     );
     runCheckPendingDonationsCronJob();
+    runCheckPendingProjectListingCronJob();
   } catch (err) {
     console.error(err);
   }
