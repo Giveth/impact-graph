@@ -1,4 +1,3 @@
-import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import { Reaction } from '../entities/reaction';
 

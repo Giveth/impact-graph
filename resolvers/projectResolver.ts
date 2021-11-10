@@ -50,7 +50,6 @@ const analytics = getAnalytics();
 import { inspect } from 'util';
 import { errorMessages } from '../utils/errorMessages';
 import {
-  getSimilarTitleInProjectsRegex,
   isWalletAddressSmartContract,
   validateProjectTitle,
   validateProjectTitleForEdit,

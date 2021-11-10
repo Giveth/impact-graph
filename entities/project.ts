@@ -40,7 +40,7 @@ export enum OrderField {
   Balance = 'balance',
   QualityScore = 'qualityScore',
   Verified = 'verified',
-  Reactions = 'reactions',
+  Reactions = 'totalReactions',
   Donations = 'totalDonations',
 }
 
@@ -236,14 +236,7 @@ class Project extends BaseEntity {
     if (searchTerm) this.addSearchQuery(query, searchTerm);
     if (filter) this.addFilterQuery(query, filter, filterValue);
 
-    // Sorts
-    if (sortBy === OrderField.Reactions) {
-      query.orderBy(`project.totalReactions`, direction);
-    } else if (sortBy === OrderField.Donations) {
-      query.orderBy(`project.totalDonations`, direction);
-    } else {
-      query.orderBy(`project.${sortBy}`, direction);
-    }
+    query.orderBy(`project.${sortBy}`, direction);
 
     return query.take(limit).skip(offset).getManyAndCount();
   }
