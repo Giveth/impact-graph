@@ -11,8 +11,6 @@ import { entities } from '../entities/entities';
 import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
-
-import Logger from '../logger';
 import { graphqlUploadExpress } from 'graphql-upload';
 import { Database, Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator';
@@ -25,6 +23,7 @@ import AdminBro from 'admin-bro';
 import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
+import { SegmentEvents } from '../analytics';
 
 const AdminBroExpress = require('@admin-bro/express');
 
@@ -34,9 +33,9 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const segmentProjectStatusEvents = {
-  act: 'activated',
-  can: 'deactivated',
-  del: 'cancelled',
+  act: SegmentEvents.PROJECT_ACTIVATED,
+  can: SegmentEvents.PROJECT_DEACTIVATED,
+  del: SegmentEvents.PROJECT_CANCELLED,
 };
 
 // register 3rd party IOC container
@@ -197,7 +196,9 @@ export async function bootstrap() {
         projects.raw.forEach(project => {
           Project.notifySegment(
             project,
-            `Project ${list ? 'listed' : 'unlisted'}`,
+            list
+              ? SegmentEvents.PROJECT_LISTED
+              : SegmentEvents.PROJECT_UNLISTED,
           );
         });
       } catch (error) {
@@ -219,7 +220,7 @@ export async function bootstrap() {
       const { h, resource, records } = context;
       try {
         const projects = await Project.createQueryBuilder('project')
-          .update<Project>(Project, { verified: verified })
+          .update<Project>(Project, { verified })
           .where('project.id IN (:...ids)')
           .setParameter('ids', request.query.recordIds.split(','))
           .returning('*')
@@ -229,7 +230,9 @@ export async function bootstrap() {
         projects.raw.forEach(project => {
           Project.notifySegment(
             project,
-            `Project ${verified ? 'verified' : 'unverified'}`,
+            verified
+              ? SegmentEvents.PROJECT_VERIFIED
+              : SegmentEvents.PROJECT_UNVERIFIED,
           );
         });
       } catch (error) {
@@ -265,7 +268,7 @@ export async function bootstrap() {
           projects.raw.forEach(project => {
             Project.notifySegment(
               project,
-              `Project ${segmentProjectStatusEvents[projectStatus.symbol]}`,
+              segmentProjectStatusEvents[projectStatus.symbol],
             );
           });
         }

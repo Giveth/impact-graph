@@ -1,20 +1,19 @@
-import { Field, ID, Float, ObjectType, Authorized } from 'type-graphql';
+import { Field, Float, ID, ObjectType } from 'type-graphql';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
+  AfterUpdate,
+  BaseEntity,
+  Brackets,
   Column,
+  Entity,
+  Index,
+  JoinTable,
+  LessThan,
   ManyToMany,
   ManyToOne,
-  RelationId,
-  JoinTable,
-  BaseEntity,
   OneToMany,
-  MoreThan,
-  Index,
-  LessThan,
-  Brackets,
+  PrimaryGeneratedColumn,
+  RelationId,
   SelectQueryBuilder,
-  AfterUpdate,
 } from 'typeorm';
 
 import { Organisation } from './organisation';
@@ -24,6 +23,7 @@ import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
+import { SegmentEvents } from '../analytics';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -199,13 +199,14 @@ class Project extends BaseEntity {
     query: SelectQueryBuilder<Project>,
     direction: any,
   ) {
-    return query.addSelect((subQuery) => {
-      return subQuery
+    return query
+      .addSelect(subQuery => {
+        return subQuery
           .select('COUNT(r.id)', 'count')
           .from(Reaction, 'r')
           .where('r.projectId = project.id');
       }, 'count')
-    .orderBy('count', direction)
+      .orderBy('count', direction);
   }
 
   // Precalculates the sum of donations and alias it during query execution for ordering
@@ -213,13 +214,14 @@ class Project extends BaseEntity {
     query: SelectQueryBuilder<Project>,
     direction: any,
   ) {
-    query.addSelect((subQuery) => {
-      return subQuery
+    query
+      .addSelect(subQuery => {
+        return subQuery
           .select('COALESCE(SUM(d.valueUsd),0)', 'donated')
           .from(Donation, 'd')
           .where('d.projectId = project.id');
       }, 'donated')
-      .orderBy('donated', direction)
+      .orderBy('donated', direction);
   }
 
   static addFilterQuery(query: any, filter: string, filterValue: boolean) {
@@ -264,18 +266,19 @@ class Project extends BaseEntity {
     return query.take(limit).skip(offset).getManyAndCount();
   }
 
-  static notifySegment(project: any, eventName: string) {
+  static notifySegment(project: any, eventName: SegmentEvents) {
     new ProjectTracker(project, eventName).track();
   }
 
   static pendingReviewSince(maximumDaysForListing: Number) {
-    const maxDaysForListing =
-      moment().subtract(maximumDaysForListing, 'days').endOf('day')
+    const maxDaysForListing = moment()
+      .subtract(maximumDaysForListing, 'days')
+      .endOf('day');
 
     return this.createQueryBuilder('project')
-               .where({ creationDate: LessThan(maxDaysForListing) })
-               .andWhere('project.listed IS NULL')
-               .getMany();
+      .where({ creationDate: LessThan(maxDaysForListing) })
+      .andWhere('project.listed IS NULL')
+      .getMany();
   }
 
   @Field(type => Float, { nullable: true })
@@ -312,7 +315,7 @@ class Project extends BaseEntity {
 
   @AfterUpdate()
   notifyProjectEdited() {
-    Project.notifySegment(this, 'Project edited');
+    Project.notifySegment(this, SegmentEvents.PROJECT_EDITED);
   }
 }
 

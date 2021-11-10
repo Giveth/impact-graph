@@ -2,6 +2,23 @@ import Analytics from 'analytics-node';
 import config from './config';
 import { User } from './entities/user';
 
+export enum SegmentEvents {
+  PROJECT_LISTED = 'Project listed',
+  PROJECT_UNLISTED = 'Project unlisted',
+  PROJECT_EDITED = 'Project edited',
+  PROJECT_VERIFIED = 'Project verified',
+  PROJECT_UNVERIFIED = 'Project unverified',
+  PROJECT_ACTIVATED = 'Project activated',
+  PROJECT_DEACTIVATED = 'Project deactivated',
+  PROJECT_CANCELLED = 'Project cancelled',
+  MADE_DONATION = 'Made donation',
+  DONATION_RECEIVED = 'Donation received',
+  PROJECT_UPDATED_DONOR = 'Project updated - donor',
+  PROJECT_UPDATED_OWNER = 'Project updated - owner',
+  PROJECT_CREATED = 'Project created',
+  UPDATED_PROFILE = 'Updated profile',
+}
+
 class GraphAnalytics {
   analytics: Analytics;
   constructor(analytics: Analytics) {
@@ -19,7 +36,7 @@ class GraphAnalytics {
     });
   }
 
-  track(eventName, analyticsUserId, properties, anonymousId) {
+  track(eventName: SegmentEvents, analyticsUserId, properties, anonymousId) {
     // console.log(
     //   `{ eventName, analyticsUserId, properties, anonymousId } : ${JSON.stringify(
     //     { eventName, analyticsUserId, properties, anonymousId },
