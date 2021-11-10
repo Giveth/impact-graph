@@ -50,6 +50,7 @@ export const dispatchProjectUpdateEvent = async (
       archived: project.statusId === ProjStatus.cancel,
     };
 
+    console.log('dispatchProjectUpdateEvent() add event to queue', payload);
     // Giveth trace will handle this event
     await updateGivethIoProjectQueue.add(payload);
   } catch (e) {
