@@ -1,20 +1,19 @@
-import { Field, ID, Float, ObjectType, Authorized } from 'type-graphql';
+import { Field, Float, ID, ObjectType } from 'type-graphql';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
+  AfterUpdate,
+  BaseEntity,
+  Brackets,
   Column,
+  Entity,
+  Index,
+  JoinTable,
+  LessThan,
   ManyToMany,
   ManyToOne,
-  RelationId,
-  JoinTable,
-  BaseEntity,
   OneToMany,
-  MoreThan,
-  Index,
-  LessThan,
-  Brackets,
+  PrimaryGeneratedColumn,
+  RelationId,
   SelectQueryBuilder,
-  AfterUpdate,
 } from 'typeorm';
 
 import { Organisation } from './organisation';
@@ -23,7 +22,7 @@ import { Reaction } from './reaction';
 import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
-import ProjectTracker from '../services/segment/projectTracker';
+import ProjectTracker, { SegmentEvents } from '../services/segment/projectTracker';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -266,7 +265,7 @@ class Project extends BaseEntity {
     return query.take(limit).skip(offset).getManyAndCount();
   }
 
-  static notifySegment(project: any, eventName: string) {
+  static notifySegment(project: any, eventName: SegmentEvents) {
     new ProjectTracker(project, eventName).track();
   }
 
@@ -315,7 +314,7 @@ class Project extends BaseEntity {
 
   @AfterUpdate()
   notifyProjectEdited() {
-    Project.notifySegment(this, 'Project edited');
+    Project.notifySegment(this, SegmentEvents.PROJECT_EDITED);
   }
 }
 

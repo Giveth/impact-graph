@@ -4,15 +4,26 @@ import { getAnalytics } from '../../analytics';
 
 const analytics = getAnalytics();
 
+export enum SegmentEvents {
+  PROJECT_LISTED = 'Project listed',
+  PROJECT_UNLISTED = 'Project unlisted',
+  PROJECT_EDITED = 'Project edited',
+  PROJECT_VERIFIED = 'Project verified',
+  PROJECT_UNVERIFIED = 'Project unverified',
+  PROJECT_ACTIVATED = 'Project activated',
+  PROJECT_DEACTIVATED = 'Project deactivated',
+  PROJECT_CANCELLED = 'Project cancelled',
+}
+
 /**
  * Notifies Segment any event concerning the project
  */
 class ProjectTracker {
   project: Project;
-  eventName: string;
+  eventName: SegmentEvents;
   projectOwner?: User;
 
-  constructor(projectToUpdate: Project, eventTitle: string) {
+  constructor(projectToUpdate: Project, eventTitle: SegmentEvents) {
     this.project = projectToUpdate;
     this.eventName = eventTitle;
   }

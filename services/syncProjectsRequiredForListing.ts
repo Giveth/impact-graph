@@ -3,6 +3,7 @@ import { schedule } from 'node-cron';
 import { getRepository } from 'typeorm';
 
 import config from '../config';
+import { SegmentEvents } from './segment/projectTracker';
 
 const cronJobTime =
   (config.get('MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB_EXPRESSION') as string) ||
@@ -30,6 +31,6 @@ const updateProjectListing = async () => {
       id: project.id,
       listed: true,
     });
-    Project.notifySegment(project, 'Project listed');
+    Project.notifySegment(project, SegmentEvents.PROJECT_LISTED);
   }
 };
