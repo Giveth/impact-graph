@@ -3,7 +3,7 @@ import { schedule } from 'node-cron';
 import { getRepository } from 'typeorm';
 
 import config from '../config';
-import { SegmentEvents } from './segment/projectTracker';
+import { SegmentEvents } from '../analytics';
 
 const cronJobTime =
   (config.get('MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB_EXPRESSION') as string) ||

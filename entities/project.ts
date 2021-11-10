@@ -22,7 +22,8 @@ import { Reaction } from './reaction';
 import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
-import ProjectTracker, { SegmentEvents } from '../services/segment/projectTracker';
+import ProjectTracker from '../services/segment/projectTracker';
+import { SegmentEvents } from '../analytics';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');

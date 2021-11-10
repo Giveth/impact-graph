@@ -1,19 +1,8 @@
 import { User } from '../../entities/user';
 import { Project } from '../../entities/project';
-import { getAnalytics } from '../../analytics';
+import { getAnalytics, SegmentEvents } from '../../analytics';
 
 const analytics = getAnalytics();
-
-export enum SegmentEvents {
-  PROJECT_LISTED = 'Project listed',
-  PROJECT_UNLISTED = 'Project unlisted',
-  PROJECT_EDITED = 'Project edited',
-  PROJECT_VERIFIED = 'Project verified',
-  PROJECT_UNVERIFIED = 'Project unverified',
-  PROJECT_ACTIVATED = 'Project activated',
-  PROJECT_DEACTIVATED = 'Project deactivated',
-  PROJECT_CANCELLED = 'Project cancelled',
-}
 
 /**
  * Notifies Segment any event concerning the project

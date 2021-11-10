@@ -18,7 +18,7 @@ import { AccountVerification } from '../entities/accountVerification';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { Organisation } from '../entities/organisation';
 import { MyContext } from '../types/MyContext';
-import { getAnalytics } from '../analytics';
+import { getAnalytics, SegmentEvents } from '../analytics';
 import { errorMessages } from '../utils/errorMessages';
 import { Project } from '../entities/project';
 
@@ -100,7 +100,7 @@ export class UserResolver {
 
     analytics.identifyUser(idUser);
     analytics.track(
-      'Updated profile',
+      SegmentEvents.UPDATED_PROFILE,
       dbUser.segmentUserId(),
       segmentUpdateProfile,
       null,

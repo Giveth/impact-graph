@@ -23,7 +23,7 @@ import AdminBro from 'admin-bro';
 import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
-import { SegmentEvents } from '../services/segment/projectTracker';
+import { SegmentEvents } from '../analytics';
 
 const AdminBroExpress = require('@admin-bro/express');
 
