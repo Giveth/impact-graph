@@ -76,7 +76,9 @@ const notifyTransakUpdate = async donation => {
 export const updateTotalDonationsOfProject = async (projectId: number) => {
   try {
     const donationsAmount = await Donation.query(
-      `select COALESCE(SUM("valueUsd"),0) as total from donation where "projectId" = ${projectId}`,
+      `SELECT COALESCE(SUM("valueUsd"),0) AS total
+            FROM donation
+            WHERE "projectId" = ${projectId}`,
     );
     await Project.update(
       { id: projectId },

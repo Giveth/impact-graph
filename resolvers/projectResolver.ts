@@ -56,7 +56,7 @@ import {
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
-import { updateTotalHeartsOfAProject } from '../services/heartsService';
+import { updateTotalReactionsOfAProject } from '../services/reactionsService';
 
 @ObjectType()
 class AllProjects {
@@ -804,7 +804,7 @@ export class ProjectResolver {
 
       await Reaction.save(newReaction);
     }
-    await updateTotalHeartsOfAProject(update.projectId);
+    await updateTotalReactionsOfAProject(update.projectId);
 
     return true;
   }
@@ -863,7 +863,7 @@ export class ProjectResolver {
       response.reactionCount = response.reactionCount + 1;
       response.reaction = true;
     }
-    await updateTotalHeartsOfAProject(projectId);
+    await updateTotalReactionsOfAProject(projectId);
     return response;
   }
 

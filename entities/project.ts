@@ -160,8 +160,8 @@ class Project extends BaseEntity {
   totalDonations: number = 0;
 
   @Field(type => Float)
-  @Column({ type: 'real', default: 0})
-  totalHearts: number = 0;
+  @Column({ type: 'real', default: 0 })
+  totalReactions: number = 0;
 
   @Field(type => Boolean)
   @Column({ default: true, nullable: false })
@@ -234,7 +234,7 @@ class Project extends BaseEntity {
 
     // Sorts
     if (sortBy === OrderField.Reactions) {
-      query.orderBy(`project.totalHearts`, direction);
+      query.orderBy(`project.totalReactions`, direction);
     } else if (sortBy === OrderField.Donations) {
       query.orderBy(`project.totalDonations`, direction);
     } else {

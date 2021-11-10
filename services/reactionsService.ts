@@ -2,19 +2,19 @@ import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import { Reaction } from '../entities/reaction';
 
-export const updateTotalHeartsOfAProject = async (projectId: number) => {
+export const updateTotalReactionsOfAProject = async (projectId: number) => {
   try {
-    const totalHearts = await Reaction.count({
+    const totalReactions = await Reaction.count({
       projectId,
       reaction: 'heart',
     });
     await Project.update(
       { id: projectId },
       {
-        totalHearts,
+        totalReactions,
       },
     );
   } catch (e) {
-    console.log('updateTotalHeartsOfAProject error', e);
+    console.log('updateTotalReactionsOfAProject error', e);
   }
 };
