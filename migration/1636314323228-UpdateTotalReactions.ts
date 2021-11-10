@@ -18,6 +18,6 @@ export class UpdateTotalReactions1636314323228 implements MigrationInterface {
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`update project set "totalReactions"=0`);
+    await queryRunner.query(`ALTER TABLE project DROP "totalReactions"`);
   }
 }
