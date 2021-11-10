@@ -199,13 +199,14 @@ class Project extends BaseEntity {
     query: SelectQueryBuilder<Project>,
     direction: any,
   ) {
-    return query.addSelect((subQuery) => {
-      return subQuery
+    return query
+      .addSelect(subQuery => {
+        return subQuery
           .select('COUNT(r.id)', 'count')
           .from(Reaction, 'r')
           .where('r.projectId = project.id');
       }, 'count')
-    .orderBy('count', direction)
+      .orderBy('count', direction);
   }
 
   // Precalculates the sum of donations and alias it during query execution for ordering
@@ -213,13 +214,14 @@ class Project extends BaseEntity {
     query: SelectQueryBuilder<Project>,
     direction: any,
   ) {
-    query.addSelect((subQuery) => {
-      return subQuery
+    query
+      .addSelect(subQuery => {
+        return subQuery
           .select('COALESCE(SUM(d.valueUsd),0)', 'donated')
           .from(Donation, 'd')
           .where('d.projectId = project.id');
       }, 'donated')
-      .orderBy('donated', direction)
+      .orderBy('donated', direction);
   }
 
   static addFilterQuery(query: any, filter: string, filterValue: boolean) {
@@ -269,13 +271,14 @@ class Project extends BaseEntity {
   }
 
   static pendingReviewSince(maximumDaysForListing: Number) {
-    const maxDaysForListing =
-      moment().subtract(maximumDaysForListing, 'days').endOf('day')
+    const maxDaysForListing = moment()
+      .subtract(maximumDaysForListing, 'days')
+      .endOf('day');
 
     return this.createQueryBuilder('project')
-               .where({ creationDate: LessThan(maxDaysForListing) })
-               .andWhere('project.listed IS NULL')
-               .getMany();
+      .where({ creationDate: LessThan(maxDaysForListing) })
+      .andWhere('project.listed IS NULL')
+      .getMany();
   }
 
   @Field(type => Float, { nullable: true })

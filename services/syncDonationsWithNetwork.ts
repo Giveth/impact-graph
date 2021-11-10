@@ -16,7 +16,7 @@ const numberOfVerifyDonationConcurrentJob =
   Number(config.get('NUMBER_OF_VERIFY_DONATION_CONCURRENT_JOB')) || 1;
 
 const cronJobTime =
-  String(config.get('VERIFY_DONATION_CRONJOB_EXPRESSION')) || '0 0 * * * *';
+  (config.get('VERIFY_DONATION_CRONJOB_EXPRESSION') as string) || '0 0 * * * *';
 
 export const runCheckPendingDonationsCronJob = () => {
   console.log('runCheckPendingDonationsCronJob() has been called');
