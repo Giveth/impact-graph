@@ -1,4 +1,12 @@
-import { Resolver, Query, Arg, Mutation, Ctx } from 'type-graphql';
+import {
+  Resolver,
+  Query,
+  Arg,
+  Mutation,
+  Ctx,
+  ObjectType,
+  Field,
+} from 'type-graphql';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 // import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
@@ -14,6 +22,18 @@ import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 
 const analytics = getAnalytics();
+
+@ObjectType()
+class PaginateDonations {
+  @Field(type => [Donation], { nullable: true })
+  donations: Donation[];
+
+  @Field(type => Number, { nullable: true })
+  totalCount: number;
+
+  @Field(type => Number, { nullable: true })
+  totalUsdBalance: number;
+}
 
 @Resolver(of => User)
 export class DonationResolver {
@@ -62,6 +82,31 @@ export class DonationResolver {
       },
     });
     return donations;
+  }
+  @Query(returns => PaginateDonations, { nullable: true })
+  async donationsByProjectId(
+    @Ctx() ctx: MyContext,
+    @Arg('skip', { defaultValue: 0 }) skip: number,
+    @Arg('take', { defaultValue: 10 }) take: number,
+    @Arg('projectId', type => Number) projectId: number,
+  ) {
+    const query = this.donationRepository
+      .createQueryBuilder('donation')
+      .where(`donation.projectId = ${projectId}`);
+
+    const [donations, donationsCount] = await query
+      .limit(take)
+      .offset(skip)
+      .getManyAndCount();
+    const balance = await query
+      .select('SUM(donation.valueUsd)', 'usdBalance')
+      .getRawOne();
+
+    return {
+      donations,
+      totalCount: donationsCount,
+      totalUsdBalance: balance.usdBalance,
+    };
   }
 
   @Query(returns => [Token], { nullable: true })
