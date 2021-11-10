@@ -40,7 +40,7 @@ export enum OrderField {
   Balance = 'balance',
   QualityScore = 'qualityScore',
   Verified = 'verified',
-  Reactions = 'reactions',
+  Reactions = 'totalReactions',
   Donations = 'totalDonations',
 }
 
@@ -159,6 +159,14 @@ class Project extends BaseEntity {
   @RelationId((project: Project) => project.status)
   statusId: number;
 
+  @Field(type => Float)
+  @Column({ type: 'real', default: 0 })
+  totalDonations: number = 0;
+
+  @Field(type => Float)
+  @Column({ type: 'real', default: 0 })
+  totalReactions: number = 0;
+
   @Field(type => Boolean)
   @Column({ default: true, nullable: false })
   listed: boolean = true;
@@ -198,36 +206,6 @@ class Project extends BaseEntity {
     );
   }
 
-  // Precalculates de amount of reactions and alias it during query execution for ordering
-  static addReactionsCountQuery(
-    query: SelectQueryBuilder<Project>,
-    direction: any,
-  ) {
-    return query
-      .addSelect(subQuery => {
-        return subQuery
-          .select('COUNT(r.id)', 'count')
-          .from(Reaction, 'r')
-          .where('r.projectId = project.id');
-      }, 'count')
-      .orderBy('count', direction);
-  }
-
-  // Precalculates the sum of donations and alias it during query execution for ordering
-  static addTotalDonationsQuery(
-    query: SelectQueryBuilder<Project>,
-    direction: any,
-  ) {
-    query
-      .addSelect(subQuery => {
-        return subQuery
-          .select('COALESCE(SUM(d.valueUsd),0)', 'donated')
-          .from(Donation, 'd')
-          .where('d.projectId = project.id');
-      }, 'donated')
-      .orderBy('donated', direction);
-  }
-
   static addFilterQuery(query: any, filter: string, filterValue: boolean) {
     return query.andWhere(`project.${filter} = ${filterValue}`);
   }
@@ -258,14 +236,7 @@ class Project extends BaseEntity {
     if (searchTerm) this.addSearchQuery(query, searchTerm);
     if (filter) this.addFilterQuery(query, filter, filterValue);
 
-    // Sorts
-    if (sortBy === OrderField.Reactions) {
-      this.addReactionsCountQuery(query, direction);
-    } else if (sortBy === OrderField.Donations) {
-      this.addTotalDonationsQuery(query, direction);
-    } else {
-      query.orderBy(`project.${sortBy}`, direction);
-    }
+    query.orderBy(`project.${sortBy}`, direction);
 
     return query.take(limit).skip(offset).getManyAndCount();
   }
@@ -295,6 +266,7 @@ class Project extends BaseEntity {
    * @param loved true to add a heart, false to remove
    */
   updateQualityScoreHeart(loved: boolean) {
+    // TODO should remove this, we should have a function to calculate score from scratch everytime
     if (loved) {
       this.qualityScore = this.qualityScore + 10;
     } else {
