@@ -164,7 +164,7 @@ class Project extends BaseEntity {
   totalDonations: number;
 
   @Field(type => Float)
-  @Column({ type: 'real', nullable: true })
+  @Column({ type: 'real'})
   totalReactions: number;
 
   @Field(type => Boolean)
