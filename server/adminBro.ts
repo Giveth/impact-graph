@@ -6,8 +6,16 @@ import AdminBroExpress from '@admin-bro/express';
 import config from '../config';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
+import { SegmentEvents } from '../analytics';
+
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
+const segmentProjectStatusEvents = {
+  act: SegmentEvents.PROJECT_ACTIVATED,
+  can: SegmentEvents.PROJECT_DEACTIVATED,
+  del: SegmentEvents.PROJECT_CANCELLED,
+};
+
 AdminBro.registerAdapter({ Database, Resource });
 
 export const getAdminBroRouter = () => {
@@ -55,6 +63,9 @@ const getAdminBroInstance = () => {
                 show: true,
                 edit: false,
               },
+            },
+            traceCampaignId: {
+              isVisible: { list: false, filter: false, show: true, edit: false }
             },
             admin: {
               isVisible: { list: false, filter: false, show: true, edit: true },
@@ -281,7 +292,10 @@ const listDelist = async (context, request, list = true) => {
 
     projects.raw.forEach(project => {
       dispatchProjectUpdateEvent(project);
-      Project.notifySegment(project, `Project ${list ? 'listed' : 'unlisted'}`);
+      Project.notifySegment(
+        project,
+        list ? SegmentEvents.PROJECT_LISTED : SegmentEvents.PROJECT_UNLISTED,
+      );
     });
   } catch (error) {
     console.log('listDelist error', error);
@@ -314,7 +328,9 @@ const verifyProjects = async (context, request, verified = true) => {
       dispatchProjectUpdateEvent(project);
       Project.notifySegment(
         project,
-        `Project ${verified ? 'verified' : 'unverified'}`,
+        verified
+          ? SegmentEvents.PROJECT_VERIFIED
+          : SegmentEvents.PROJECT_UNVERIFIED,
       );
     });
   } catch (error) {
@@ -352,7 +368,7 @@ const updateStatuslProjects = async (context, request, status) => {
         dispatchProjectUpdateEvent(project);
         Project.notifySegment(
           project,
-          `Project ${segmentProjectStatusEvents[projectStatus.symbol]}`,
+          segmentProjectStatusEvents[projectStatus.symbol],
         );
       });
     }
@@ -370,12 +386,6 @@ const updateStatuslProjects = async (context, request, status) => {
       type: 'success',
     },
   };
-};
-
-const segmentProjectStatusEvents = {
-  act: 'activated',
-  can: 'deactivated',
-  del: 'cancelled',
 };
 
 export const adminBroRootPath = '/admin';

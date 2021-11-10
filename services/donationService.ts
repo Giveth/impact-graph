@@ -3,6 +3,7 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { TransakOrder } from './transak/order';
 import { User } from '../entities/user';
 import DonationTracker from './segment/DonationTracker';
+import { SegmentEvents } from '../analytics';
 
 const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -62,13 +63,24 @@ const notifyTransakUpdate = async donation => {
 
   // Notify Owner of donation, and notify authenticated user his donation was received
   if (project && owner) {
-    new DonationTracker(donation, project, owner, 'Donation received').track();
+    new DonationTracker(
+      donation,
+      project,
+      owner,
+      SegmentEvents.DONATION_RECEIVED,
+    ).track();
 
     // anonymous boolean is inverted in our db and code. Anonymous Users are the authenticated.
     if (donation.anonymous) {
       const donor = await User.findOne({ id: donation.userId });
 
-      if (donor) new DonationTracker(donation, project, donor, 'Made donation');
+      if (donor)
+        new DonationTracker(
+          donation,
+          project,
+          donor,
+          SegmentEvents.MADE_DONATION,
+        ).track();
     }
   }
 };
