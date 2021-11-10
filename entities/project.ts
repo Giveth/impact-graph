@@ -78,6 +78,10 @@ class Project extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
+  traceCampaignId?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   organisationId?: number;
 
   @Field({ nullable: true })
@@ -199,13 +203,14 @@ class Project extends BaseEntity {
     query: SelectQueryBuilder<Project>,
     direction: any,
   ) {
-    return query.addSelect((subQuery) => {
-      return subQuery
+    return query
+      .addSelect(subQuery => {
+        return subQuery
           .select('COUNT(r.id)', 'count')
           .from(Reaction, 'r')
           .where('r.projectId = project.id');
       }, 'count')
-    .orderBy('count', direction)
+      .orderBy('count', direction);
   }
 
   // Precalculates the sum of donations and alias it during query execution for ordering
@@ -213,13 +218,14 @@ class Project extends BaseEntity {
     query: SelectQueryBuilder<Project>,
     direction: any,
   ) {
-    query.addSelect((subQuery) => {
-      return subQuery
+    query
+      .addSelect(subQuery => {
+        return subQuery
           .select('COALESCE(SUM(d.valueUsd),0)', 'donated')
           .from(Donation, 'd')
           .where('d.projectId = project.id');
       }, 'donated')
-      .orderBy('donated', direction)
+      .orderBy('donated', direction);
   }
 
   static addFilterQuery(query: any, filter: string, filterValue: boolean) {
