@@ -24,7 +24,7 @@ export const validateProjectWalletAddress = async (
     );
   }
   const projectWithAddress = await Project.createQueryBuilder('project')
-    .where(`lower("walletAddress")=lower(: walletAddress )`, {
+    .where(`lower("walletAddress")=lower(:walletAddress )`, {
       walletAddress,
     })
     .getOne();
@@ -64,9 +64,9 @@ export const validateProjectTitle = async (title: string): Promise<boolean> => {
     throw new Error(errorMessages.INVALID_PROJECT_TITLE);
   }
   const regex = getSimilarTitleInProjectsRegex(title);
-  console.log('regexSource', { title, regex });
+  console.log('regexSource', { title, regex, query: `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project` });
   const projectWithThisTitle = await Project.query(
-    `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project;`,
+    `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project`,
   );
   console.log(
     'validateProjectTitle projectWithThisTitle',
