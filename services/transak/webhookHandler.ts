@@ -1,5 +1,5 @@
 import { verify } from 'jsonwebtoken';
-import { updateDonationByTransakData } from './donationService';
+import { updateDonationByTransakData } from '../donationService';
 import { TransakOrder } from './order';
 
 /**

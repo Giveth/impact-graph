@@ -27,6 +27,8 @@ import { SegmentEvents } from '../analytics';
 
 const AdminBroExpress = require('@admin-bro/express');
 
+import { adminBroRootPath, getAdminBroRouter } from './adminBro';
+
 // tslint:disable:no-var-requires
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -41,7 +43,7 @@ const segmentProjectStatusEvents = {
 // register 3rd party IOC container
 
 Resource.validate = validate;
-AdminBro.registerAdapter({ Database, Resource });
+// AdminBro.registerAdapter({ Database, Resource });
 
 export async function bootstrap() {
   try {
@@ -568,13 +570,14 @@ export async function bootstrap() {
       cookiePassword: config.get('ADMIN_BRO_COOKIE_SECRET'),
     });
 
-    app.use(adminBro.options.rootPath, router);
+    app.use(adminBroRootPath, getAdminBroRouter());
 
     app.use(
       json({
         limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000,
       }),
     );
+    runCheckPendingDonationsCronJob();
   } catch (err) {
     console.error(err);
   }

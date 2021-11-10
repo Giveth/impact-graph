@@ -49,6 +49,8 @@ import {
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
+import { updateTotalReactionsOfAProject } from '../services/reactionsService';
+import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 
 const analytics = getAnalytics();
 
@@ -73,7 +75,15 @@ class TopProjects {
   totalCount: number;
 }
 
-// this is to prevent SQL injection
+@ObjectType()
+class ProjectAndAdmin {
+  @Field(type => Project)
+  project: Project;
+
+  @Field(type => User, { nullable: true })
+  admin: User;
+}
+
 enum FilterField {
   Verified = 'verified',
 }
@@ -313,6 +323,29 @@ export class ProjectResolver {
     });
   }
 
+  @Query(returns => ProjectAndAdmin)
+  async projectWithAdminBySlug(@Arg('slug') slug: string) {
+    const project = await this.projectRepository
+      .createQueryBuilder('project')
+      // check current slug and previous slugs
+      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+        slug,
+      })
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.reactions', 'reactions')
+      .getOne();
+
+    // Typeorm does not know how to handle NaN
+    const adminId = Number(project?.admin);
+    if (Number.isNaN(adminId)) {
+      return { project, admin: null };
+    }
+
+    const admin = await User.findOne({ id: adminId });
+    return { project, admin };
+  }
+
   // Move this to it's own resolver later
   @Query(returns => Project)
   async projectBySlug(@Arg('slug') slug: string) {
@@ -333,7 +366,6 @@ export class ProjectResolver {
     @Arg('projectId') projectId: number,
     @Arg('newProjectData') newProjectData: ProjectInput,
     @Ctx() { req: { user } }: MyContext,
-    @PubSub() pubSub: PubSubEngine,
   ) {
     if (!user) throw new Error('Authentication required.');
 
@@ -417,6 +449,8 @@ export class ProjectResolver {
     project.qualityScore = qualityScore;
     await project.save();
 
+    // We dont wait for trace reponse, because it may increase our response time
+    dispatchProjectUpdateEvent(project);
     return project;
   }
 
@@ -632,7 +666,6 @@ export class ProjectResolver {
     @Arg('title') title: string,
     @Arg('content') content: string,
     @Ctx() { req: { user } }: MyContext,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error('Authentication required.');
 
@@ -715,7 +748,6 @@ export class ProjectResolver {
     @Arg('title') title: string,
     @Arg('content') content: string,
     @Ctx() { req: { user } }: MyContext,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error('Authentication required.');
 
@@ -737,7 +769,6 @@ export class ProjectResolver {
   async deleteProjectUpdate(
     @Arg('updateId') updateId: number,
     @Ctx() { req: { user } }: MyContext,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<Boolean> {
     if (!user) throw new Error('Authentication required.');
 
@@ -764,7 +795,6 @@ export class ProjectResolver {
     @Arg('updateId') updateId: number,
     @Arg('reaction') reaction: REACTION_TYPE = 'heart',
     @Ctx() { req: { user } }: MyContext,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<boolean> {
     if (!user) throw new Error('Authentication required.');
 
@@ -803,6 +833,7 @@ export class ProjectResolver {
 
       await Reaction.save(newReaction);
     }
+    await updateTotalReactionsOfAProject(update.projectId);
 
     return true;
   }
@@ -812,7 +843,6 @@ export class ProjectResolver {
     @Arg('projectId') projectId: number,
     @Arg('reaction') reaction: REACTION_TYPE = 'heart',
     @Ctx() { req: { user } }: MyContext,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<object> {
     if (!user) throw new Error('Authentication required.');
 
@@ -862,6 +892,7 @@ export class ProjectResolver {
       response.reactionCount = response.reactionCount + 1;
       response.reaction = true;
     }
+    await updateTotalReactionsOfAProject(projectId);
     return response;
   }
 
@@ -871,7 +902,6 @@ export class ProjectResolver {
     @Arg('skip') skip: number,
     @Arg('take') take: number,
     @Ctx() { user }: Context,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<GetProjectUpdatesResult[]> {
     const updates = await ProjectUpdate.find({
       where: { projectId, isMain: false },
@@ -896,7 +926,6 @@ export class ProjectResolver {
   async getProjectReactions(
     @Arg('projectId') projectId: number,
     @Ctx() { user }: Context,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<Reaction[]> {
     const update = await ProjectUpdate.findOne({
       where: { projectId, isMain: true },
@@ -1028,68 +1057,6 @@ export class ProjectResolver {
       Logger.captureException(error);
       throw error;
     }
-  }
-
-  @Mutation(returns => Boolean)
-  async updateProjectsListing(
-    @Arg('slugs', type => [String]) slugs: string[],
-    @Arg('listed') listed: boolean,
-    @Arg('accessToken') accessToken: string,
-    @Ctx() ctx: MyContext,
-  ): Promise<Boolean> {
-    if (config.get('ACCESS_TOKEN') !== accessToken)
-      throw new Error('Authentication required.');
-
-    const projects = await this.projectRepository
-      .createQueryBuilder('project')
-      .where('project.slug IN (:...slugs)')
-      .setParameter('slugs', slugs)
-      .getMany();
-
-    const projectsUpdatedListing = projects.map(project => {
-      return { id: project.id, listed };
-    });
-
-    await projects.map(async project => {
-      const projectOwner = await User.findOne({ id: Number(project.admin) });
-      if (listed === false) {
-        analytics.track(
-          SegmentEvents.PROJECT_UNLISTED,
-          `givethId-${project.admin}`,
-          {
-            id: project.id,
-            email: projectOwner?.email,
-            title: project.title,
-            LastName: projectOwner?.lastName,
-            FirstName: projectOwner?.firstName,
-            OwnerId: project.admin,
-            slug: project.slug,
-            listed,
-          },
-          projectOwner?.segmentUserId(),
-        );
-      } else if (listed === true) {
-        analytics.track(
-          SegmentEvents.PROJECT_LISTED,
-          `givethId-${project.admin}`,
-          {
-            id: project.id,
-            email: projectOwner?.email,
-            title: project.title,
-            LastName: projectOwner?.lastName,
-            FirstName: projectOwner?.firstName,
-            OwnerId: project.admin,
-            slug: project.slug,
-            listed,
-          },
-          projectOwner?.segmentUserId(),
-        );
-      }
-    });
-
-    await this.projectRepository.save(projectsUpdatedListing);
-
-    return true;
   }
 
   private async getAppropriateSlug(slugBase: string): Promise<string> {
