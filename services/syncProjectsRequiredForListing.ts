@@ -30,5 +30,6 @@ const updateProjectListing = async () => {
       id: project.id,
       listed: true,
     });
+    Project.notifySegment(project, 'Project listed');
   }
 };
