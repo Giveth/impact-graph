@@ -80,10 +80,6 @@ export class UserResolver {
     } else {
       fullName = name;
     }
-    await User.update(
-      { id: user.userId },
-      { firstName, lastName, name: fullName, location, email, url },
-    );
     const idUser = dbUser;
     idUser.firstName = firstName;
     idUser.lastName = lastName;
@@ -91,6 +87,7 @@ export class UserResolver {
     idUser.location = location;
     idUser.email = email;
     idUser.url = url;
+    idUser.save();
 
     const segmentUpdateProfile = {
       firstName: idUser.firstName,
