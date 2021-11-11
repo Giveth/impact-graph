@@ -87,7 +87,7 @@ export class UserResolver {
     idUser.location = location;
     idUser.email = email;
     idUser.url = url;
-    idUser.save();
+    await idUser.save();
 
     const segmentUpdateProfile = {
       firstName: idUser.firstName,
