@@ -64,7 +64,11 @@ export const validateProjectTitle = async (title: string): Promise<boolean> => {
     throw new Error(errorMessages.INVALID_PROJECT_TITLE);
   }
   const regex = getSimilarTitleInProjectsRegex(title);
-  console.log('regexSource', { title, regex, query: `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project` });
+  console.log('regexSource', {
+    title,
+    regex,
+    query: `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project`,
+  });
   const projectWithThisTitle = await Project.query(
     `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project`,
   );

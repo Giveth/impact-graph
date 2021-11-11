@@ -60,7 +60,7 @@ export class UserResolver {
     @Arg('lastName', { nullable: true }) lastName: string,
     @Arg('location', { nullable: true }) location: string,
     @Arg('email', { nullable: true }) email: string,
-    @Arg('name') name: string,
+    @Arg('name', { nullable: true }) name: string,
     @Arg('url', { nullable: true }) url: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
@@ -77,6 +77,8 @@ export class UserResolver {
     let fullName: string = '';
     if (!name) {
       fullName = firstName + ' ' + lastName;
+    } else {
+      fullName = name;
     }
     await User.update(
       { id: user.userId },
