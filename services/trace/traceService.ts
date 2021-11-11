@@ -61,40 +61,45 @@ export const dispatchProjectUpdateEvent = async (
   }
 };
 
-updateCampaignQueue.process(1, async (job, done) => {
-  console.log('Listen to events of ', updateCampaignQueue.name);
+export const initHandlingTraceCampaignUpdateEvents = () => {
+  updateCampaignQueue.process(1, async (job, done) => {
+    console.log('Listen to events of ', updateCampaignQueue.name);
 
-  // These events come from Giveth trace
-  try {
-    const { givethIoProjectId, campaignId, status, title, description } =
-      job.data;
-    console.log('updateGivethIoProjectQueue(), job.data', job.data);
-    const project = await Project.findOne(givethIoProjectId);
-    if (!project) {
-      throw new Error(errorMessages.PROJECT_NOT_FOUND);
-    }
-    project.traceCampaignId = campaignId;
-    project.title = title;
-    project.description = description;
-    let statusId;
-    if (status === 'Archived') {
-      statusId = ProjStatus.cancel;
-    } else if (status === 'Active' && project.status.id === ProjStatus.cancel) {
-      // Maybe project status is deactive in giveth.io, so we should not
-      // change to active in this case, we just change the cancel status to active with this endpoint
-      statusId = ProjStatus.active;
-    }
-    if (statusId) {
-      const projectStatus = (await ProjectStatus.findOne({
-        id: statusId,
-      })) as ProjectStatus;
-      project.status = projectStatus;
-    }
+    // These events come from Giveth trace
+    try {
+      const { givethIoProjectId, campaignId, status, title, description } =
+        job.data;
+      console.log('updateGivethIoProjectQueue(), job.data', job.data);
+      const project = await Project.findOne(givethIoProjectId);
+      if (!project) {
+        throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      }
+      project.traceCampaignId = campaignId;
+      project.title = title;
+      project.description = description;
+      let statusId;
+      if (status === 'Archived') {
+        statusId = ProjStatus.cancel;
+      } else if (
+        status === 'Active' &&
+        project.status.id === ProjStatus.cancel
+      ) {
+        // Maybe project status is deactive in giveth.io, so we should not
+        // change to active in this case, we just change the cancel status to active with this endpoint
+        statusId = ProjStatus.active;
+      }
+      if (statusId) {
+        const projectStatus = (await ProjectStatus.findOne({
+          id: statusId,
+        })) as ProjectStatus;
+        project.status = projectStatus;
+      }
 
-    await project.save();
-    done();
-  } catch (e) {
-    console.log('updateGivethIoProjectQueue() error', e);
-    done();
-  }
-});
+      await project.save();
+      done();
+    } catch (e) {
+      console.log('updateGivethIoProjectQueue() error', e);
+      done();
+    }
+  });
+};

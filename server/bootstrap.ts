@@ -28,6 +28,7 @@ import { SegmentEvents } from '../analytics';
 const AdminBroExpress = require('@admin-bro/express');
 
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
+import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -181,6 +182,7 @@ export async function bootstrap() {
     );
     runCheckPendingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
+    initHandlingTraceCampaignUpdateEvents();
   } catch (err) {
     console.error(err);
   }
