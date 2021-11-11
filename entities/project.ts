@@ -24,6 +24,7 @@ import { User } from './user';
 import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
 import { SegmentEvents } from '../analytics';
+import { Int } from 'type-graphql/dist/scalars/aliases';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -163,8 +164,8 @@ class Project extends BaseEntity {
   @Column({ type: 'real' })
   totalDonations: number;
 
-  @Field(type => Float)
-  @Column({ type: 'real'})
+  @Field(type => Int, { nullable: true })
+  @Column({ type: 'integer', nullable: true })
   totalReactions: number;
 
   @Field(type => Boolean)
