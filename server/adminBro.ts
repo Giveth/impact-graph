@@ -65,7 +65,12 @@ const getAdminBroInstance = () => {
               },
             },
             traceCampaignId: {
-              isVisible: { list: false, filter: false, show: true, edit: false }
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
             },
             admin: {
               isVisible: { list: false, filter: false, show: true, edit: true },
