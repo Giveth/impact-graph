@@ -21,6 +21,13 @@ const updateGivethIoProjectQueue = new Queue('givethio-project-updated', {
   redis: redisConfig,
 });
 
+updateCampaignQueue.on('error', err => {
+  console.log('updateCampaignQueue connection error', err);
+});
+updateGivethIoProjectQueue.on('error', err => {
+  console.log('updateGivethIoProjectQueue connection error', err);
+});
+
 export interface UpdateCampaignData {
   title: string;
   campaignId?: string;
