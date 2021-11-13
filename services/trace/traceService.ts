@@ -5,6 +5,8 @@ import { RedisOptions } from 'ioredis';
 // tslint:disable-next-line:no-var-requires
 const Queue = require('bull');
 
+const TWO_MINUTES = 1000 * 60 * 2;
+
 // There is shared redis between giveth.io and trace.giveth.io notify each other about verifiedCampaigns/project update
 const redisConfig: RedisOptions = {
   host: process.env.SHARED_REDIS_HOST,
@@ -27,6 +29,15 @@ updateCampaignQueue.on('error', err => {
 updateGivethIoProjectQueue.on('error', err => {
   console.log('updateGivethIoProjectQueue connection error', err);
 });
+
+setInterval(async () => {
+  const updateCampaignQueueCount = await updateCampaignQueue.count();
+  const updateGivethIoProjectQueueCount = await updateGivethIoProjectQueue.count();
+  console.log(`Sync trace and givethio job queues count:`, {
+    updateCampaignQueueCount,
+    updateGivethIoProjectQueueCount,
+  });
+}, TWO_MINUTES);
 
 export interface UpdateCampaignData {
   title: string;
