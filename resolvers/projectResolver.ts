@@ -584,6 +584,8 @@ export class ProjectResolver {
       users: [user],
       status,
       qualityScore,
+      totalDonations: 0,
+      totalReactions: 0,
       verified: false,
       giveBacks: false,
       listed: false,
