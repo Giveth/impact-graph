@@ -588,7 +588,6 @@ export class ProjectResolver {
       totalReactions: 0,
       verified: false,
       giveBacks: false,
-      listed: false,
     });
 
     const newProject = await this.projectRepository.save(project);
