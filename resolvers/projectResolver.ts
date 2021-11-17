@@ -323,29 +323,6 @@ export class ProjectResolver {
     });
   }
 
-  @Query(returns => ProjectAndAdmin)
-  async projectWithAdminBySlug(@Arg('slug') slug: string) {
-    const project = await this.projectRepository
-      .createQueryBuilder('project')
-      // check current slug and previous slugs
-      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-        slug,
-      })
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.categories', 'categories')
-      .leftJoinAndSelect('project.reactions', 'reactions')
-      .getOne();
-
-    // Typeorm does not know how to handle NaN
-    const adminId = Number(project?.admin);
-    if (Number.isNaN(adminId)) {
-      return { project, admin: null };
-    }
-
-    const admin = await User.findOne({ id: adminId });
-    return { project, admin };
-  }
-
   // Move this to it's own resolver later
   @Query(returns => Project)
   async projectBySlug(@Arg('slug') slug: string) {
