@@ -131,6 +131,15 @@ const getAdminBroInstance = () => {
             bulkDelete: {
               isVisible: false,
             },
+            edit: {
+              after: async request => {
+                const project = await Project.findOne(request?.record?.id);
+                if (project) {
+                  await dispatchProjectUpdateEvent(project);
+                }
+                return request;
+              },
+            },
             listProject: {
               actionType: 'bulk',
               isVisible: true,
