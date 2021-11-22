@@ -174,7 +174,7 @@ class Project extends BaseEntity {
 
   // Virtual attribute to subquery result into
   @Field(type => User)
-  adminUser?: User
+  adminUser?: User;
 
   /**
    * Custom Query Builders to chain together
@@ -231,7 +231,12 @@ class Project extends BaseEntity {
       .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.reactions', 'reactions')
       .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndMapOne('project.adminUser', User, "user", "user.id = CAST(project.admin AS INTEGER)")
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      )
       .innerJoinAndSelect('project.categories', 'c')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -244,7 +249,10 @@ class Project extends BaseEntity {
 
     query.orderBy(`project.${sortBy}`, direction);
 
-    const projects = query.take(limit).skip(offset).getMany();
+    const projects = query
+      .take(limit || 0)
+      .skip(offset || 20)
+      .getMany();
     const totalCount = query.getCount();
 
     return Promise.all([projects, totalCount]);
