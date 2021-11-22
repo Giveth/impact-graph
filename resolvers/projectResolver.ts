@@ -335,7 +335,12 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.reactions', 'reactions')
-      .leftJoinAndMapOne('project.adminUser', User, "user", "user.id = CAST(project.admin AS INTEGER)")
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      )
       .getOne();
   }
 
