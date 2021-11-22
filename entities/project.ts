@@ -173,7 +173,7 @@ class Project extends BaseEntity {
   listed: boolean;
 
   // Virtual attribute to subquery result into
-  @Field(type => User)
+  @Field(type => User, { nullable: true })
   adminUser?: User;
 
   /**
