@@ -148,7 +148,7 @@ const getAdminBroInstance = () => {
               },
               component: false,
             },
-            delistProject: {
+            unlistProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
