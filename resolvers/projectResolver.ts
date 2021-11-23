@@ -982,7 +982,7 @@ export class ProjectResolver {
         }
       } else {
         throw new Error(
-          'User does not have permission to update status on that project',
+          'This project has been cancelled by an Admin for inappropriate content or a violation of the Terms of Use',
         );
       }
     } else {
