@@ -50,6 +50,7 @@ import {
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
 import { updateTotalReactionsOfAProject } from '../services/reactionsService';
+import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 
 const analytics = getAnalytics();
@@ -570,6 +571,7 @@ export class ProjectResolver {
       qualityScore,
       totalDonations: 0,
       totalReactions: 0,
+      totalProjectUpdates: 1,
       verified: false,
       giveBacks: false,
     });
@@ -683,6 +685,8 @@ export class ProjectResolver {
     };
     const save = await ProjectUpdate.save(update);
 
+    await updateTotalProjectUpdatesOfAProject(update.projectId);
+
     analytics.track(
       SegmentEvents.PROJECT_UPDATED_OWNER,
       `givethId-${user.userId}`,
@@ -772,6 +776,7 @@ export class ProjectResolver {
     if (reactionsCount > 0) await Reaction.remove(reactions);
 
     await ProjectUpdate.delete({ id: update.id });
+    await updateTotalProjectUpdatesOfAProject(update.projectId);
     return true;
   }
 
