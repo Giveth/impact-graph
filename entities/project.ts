@@ -250,8 +250,8 @@ class Project extends BaseEntity {
     query.orderBy(`project.${sortBy}`, direction);
 
     const projects = query
-      .take(limit || 0)
-      .skip(offset || 20)
+      .take(limit)
+      .skip(offset)
       .getMany();
     const totalCount = query.getCount();
 
