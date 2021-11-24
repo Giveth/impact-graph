@@ -1,7 +1,9 @@
 import { Field, Float, ID, ObjectType } from 'type-graphql';
 import {
+  AfterInsert,
   AfterUpdate,
   BaseEntity,
+  BeforeRemove,
   Brackets,
   Column,
   Entity,
@@ -14,6 +16,7 @@ import {
   PrimaryGeneratedColumn,
   RelationId,
   SelectQueryBuilder,
+  UpdateDateColumn,
 } from 'typeorm';
 
 import { Organisation } from './organisation';
@@ -41,6 +44,7 @@ export enum ProjStatus {
 
 export enum OrderField {
   CreationDate = 'creationDate',
+  UpdatedAt = 'updatedAt',
   Balance = 'balance',
   QualityScore = 'qualityScore',
   Verified = 'verified',
@@ -88,6 +92,10 @@ class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   creationDate: Date;
+
+  @Field({ nullable: true })
+  @UpdateDateColumn({ nullable: true, type: "timestamp", onUpdate: "CURRENT_TIMESTAMP(6)" })
+  updatedAt: Date;
 
   @Field(type => [Organisation])
   @ManyToMany(type => Organisation)
@@ -342,6 +350,22 @@ class ProjectUpdate extends BaseEntity {
   @Field(type => Boolean)
   @Column({ nullable: true })
   isMain: boolean;
+
+  @AfterInsert()
+  async updateProjectStampOnCreation() {
+    await Project.update(
+      { id: this.projectId },
+      { updatedAt: moment() }
+    )
+  }
+
+  @BeforeRemove()
+  async updateProjectStampOnDeletion() {
+    await Project.update(
+      { id: this.projectId },
+      { updatedAt: moment() }
+    )
+  }
 }
 
 export { Project, Category, ProjectUpdate };
