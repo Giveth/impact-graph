@@ -249,17 +249,28 @@ class Project extends BaseEntity {
 
     query.orderBy(`project.${sortBy}`, direction);
 
-    const projects = query
-      .take(limit)
-      .skip(offset)
-      .getMany();
+    const projects = query.take(limit).skip(offset).getMany();
     const totalCount = query.getCount();
 
     return Promise.all([projects, totalCount]);
   }
 
-  static notifySegment(project: any, eventName: SegmentEvents) {
+  static notifySegment(project: Project, eventName: SegmentEvents) {
     new ProjectTracker(project, eventName).track();
+  }
+
+  static sendBulkEventsToSegment(
+    projects: [Project],
+    eventName: SegmentEvents,
+  ) {
+    // TODO when sending bulk events, if number of events are more than 4, the segment misses some events
+    // So we have to put a delay between events, it works now, but it's not best practice for sure
+    const TWO_SECONDS = 2000;
+    for (let i = 0; i < projects.length; i++) {
+      setTimeout(() => {
+        this.notifySegment(projects[i], eventName);
+      }, TWO_SECONDS * i);
+    }
   }
 
   static pendingReviewSince(maximumDaysForListing: Number) {
