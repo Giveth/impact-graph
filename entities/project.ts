@@ -168,6 +168,10 @@ class Project extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   totalReactions: number;
 
+  @Field(type => Int, { nullable: true })
+  @Column({ type: 'integer', nullable: true })
+  totalProjectUpdates: number;
+
   @Field(type => Boolean, { nullable: true })
   @Column({ default: null, nullable: true })
   listed: boolean;
