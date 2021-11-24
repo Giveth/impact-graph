@@ -304,12 +304,12 @@ const listDelist = async (context, request, list = true) => {
       .updateEntity(true)
       .execute();
 
+    Project.sendBulkEventsToSegment(
+      projects.raw,
+      list ? SegmentEvents.PROJECT_LISTED : SegmentEvents.PROJECT_UNLISTED,
+    );
     projects.raw.forEach(project => {
       dispatchProjectUpdateEvent(project);
-      Project.notifySegment(
-        project,
-        list ? SegmentEvents.PROJECT_LISTED : SegmentEvents.PROJECT_UNLISTED,
-      );
     });
   } catch (error) {
     console.log('listDelist error', error);
@@ -338,14 +338,14 @@ const verifyProjects = async (context, request, verified = true) => {
       .updateEntity(true)
       .execute();
 
+    Project.sendBulkEventsToSegment(
+      projects.raw,
+      verified
+        ? SegmentEvents.PROJECT_VERIFIED
+        : SegmentEvents.PROJECT_UNVERIFIED,
+    );
     projects.raw.forEach(project => {
       dispatchProjectUpdateEvent(project);
-      Project.notifySegment(
-        project,
-        verified
-          ? SegmentEvents.PROJECT_VERIFIED
-          : SegmentEvents.PROJECT_UNVERIFIED,
-      );
     });
   } catch (error) {
     console.log('verifyProjects() error', error);
@@ -378,12 +378,12 @@ const updateStatuslProjects = async (context, request, status) => {
         .updateEntity(true)
         .execute();
 
+      Project.sendBulkEventsToSegment(
+        projects.raw,
+        segmentProjectStatusEvents[projectStatus.symbol],
+      );
       projects.raw.forEach(project => {
         dispatchProjectUpdateEvent(project);
-        Project.notifySegment(
-          project,
-          segmentProjectStatusEvents[projectStatus.symbol],
-        );
       });
     }
   } catch (error) {
