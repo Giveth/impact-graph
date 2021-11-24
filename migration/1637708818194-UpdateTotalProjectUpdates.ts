@@ -2,6 +2,9 @@ import {MigrationInterface, QueryRunner} from "typeorm";
 
 export class UpdateTotalProjectUpdates1637708818194 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(
+          `ALTER TABLE "project" ADD "totalProjectUpdates" Integer default 0`,
+        );
         const projects = await queryRunner.query(`select * from project`);
         for (const project of projects) {
             const totalProjectUpdates = await queryRunner.query(
@@ -14,6 +17,6 @@ export class UpdateTotalProjectUpdates1637708818194 implements MigrationInterfac
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`update project set "totalProjectUpdates"=0`);
+        await queryRunner.query(`ALTER TABLE "project" DROP "totalProjectUpdates"`);
     }
 }
