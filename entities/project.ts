@@ -265,11 +265,11 @@ class Project extends BaseEntity {
   ) {
     // TODO when sending bulk events, if number of events are more than 4, the segment misses some events
     // So we have to put a delay between events, it works now, but it's not best practice for sure
-    const ONE_SECOND = 1000;
+    const TWO_SECONDS = 2000;
     for (let i = 0; i < projects.length; i++) {
       setTimeout(() => {
         this.notifySegment(projects[i], eventName);
-      }, ONE_SECOND * i);
+      }, TWO_SECONDS * i);
     }
   }
 

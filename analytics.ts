@@ -62,18 +62,8 @@ class GraphAnalytics {
 }
 
 export function getAnalytics() {
-  let options;
-  if (config.get('ENVIRONMENT') === 'local') {
-    options = {
-      flushAt: 1,
-    };
-  } else {
-    options: {
-    }
-  }
-  const segmentAnalytics = new Analytics(
-    config.get('SEGMENT_API_KEY'),
-    options,
-  );
+  const segmentAnalytics = new Analytics(config.get('SEGMENT_API_KEY'), {
+    flushAt: 1,
+  });
   return new GraphAnalytics(segmentAnalytics);
 }
