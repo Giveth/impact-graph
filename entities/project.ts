@@ -94,7 +94,7 @@ class Project extends BaseEntity {
   creationDate: Date;
 
   @Field({ nullable: true })
-  @Column({ nullable: true, type: "timestamp", onUpdate: "CURRENT_TIMESTAMP(6)" })
+  @UpdateDateColumn({ nullable: true })
   updatedAt: Date;
 
   @Field(type => [Organisation])
