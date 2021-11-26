@@ -5,7 +5,7 @@ export class AddProjectStatus1614079067364 implements MigrationInterface {
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TABLE "project_status" ("id" SERIAL NOT NULL, "symbol" text NOT NULL, "name" character varying, "description" character varying, CONSTRAINT "UQ_0742348e857789fde8cda81a2ce" UNIQUE ("symbol"), CONSTRAINT "PK_625ed5469429a6b32e34ba9f827" PRIMARY KEY ("id"))`,
+      `CREATE TABLE IF NOT EXISTS "project_status" ("id" SERIAL NOT NULL, "symbol" text NOT NULL, "name" character varying, "description" character varying, CONSTRAINT "UQ_0742348e857789fde8cda81a2ce" UNIQUE ("symbol"), CONSTRAINT "PK_625ed5469429a6b32e34ba9f827" PRIMARY KEY ("id"))`,
     );
   }
 

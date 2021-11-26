@@ -4,7 +4,7 @@ import { Reaction } from '../entities/reaction';
 export class UpdateTotalReactions1636314323228 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "project" ADD "totalReactions" Integer default 0`,
+      `ALTER TABLE "project" ADD COLUMN IF NOT EXISTS  "totalReactions" Integer default 0`,
     );
     const projects = await queryRunner.query(`select * from project`);
     for (const project of projects) {
