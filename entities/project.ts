@@ -353,18 +353,12 @@ class ProjectUpdate extends BaseEntity {
 
   @AfterInsert()
   async updateProjectStampOnCreation() {
-    await Project.update(
-      { id: this.projectId },
-      { updatedAt: moment() }
-    )
+    await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
-    await Project.update(
-      { id: this.projectId },
-      { updatedAt: moment() }
-    )
+    await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 }
 
