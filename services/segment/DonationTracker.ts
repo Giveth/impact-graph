@@ -1,7 +1,7 @@
 import { User } from '../../entities/user';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import { getAnalytics, SegmentEvents } from '../../analytics';
+import { getAnalytics, SegmentEvents } from '../../analytics/analytics';
 
 const analytics = getAnalytics();
 

@@ -26,7 +26,7 @@ import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
-import { SegmentEvents } from '../analytics';
+import { SegmentEvents } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 
 // tslint:disable-next-line:no-var-requires
@@ -276,13 +276,8 @@ class Project extends BaseEntity {
     projects: [Project],
     eventName: SegmentEvents,
   ) {
-    // TODO when sending bulk events, if number of events are more than 4, the segment misses some events
-    // So we have to put a delay between events, it works now, but it's not best practice for sure
-    const TWO_SECONDS = 2000;
-    for (let i = 0; i < projects.length; i++) {
-      setTimeout(() => {
-        this.notifySegment(projects[i], eventName);
-      }, TWO_SECONDS * i);
+    for (const project of projects) {
+      this.notifySegment(project, eventName);
     }
   }
 

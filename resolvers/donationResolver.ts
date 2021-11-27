@@ -13,7 +13,7 @@ import { getTokenPrices, getOurTokenList } from 'monoswap';
 import { Donation } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project } from '../entities/project';
-import { getAnalytics, SegmentEvents } from '../analytics';
+import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In } from 'typeorm';
 import { User } from '../entities/user';
