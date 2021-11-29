@@ -17,5 +17,3 @@ coverage
 config/development.env
 config/production.env
 .vscode/settings.json
-
-*.rdb

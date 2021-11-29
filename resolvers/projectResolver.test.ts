@@ -7,25 +7,26 @@ import { ADD_PROJECT } from './graphqlApi/project';
 let apolloServer;
 
 describe('Test Project Resolver', () => {
-  it('Create Project', async () => {
-    const { query, mutate } = createTestClient(apolloServer);
+    it('Create Project', async () => {
+        const { query, mutate } = createTestClient(apolloServer);
 
-    const sampleProject = {
-      title: 'title1',
-    };
-    const result = await mutate({
-      mutation: ADD_PROJECT,
-      variables: {
-        project: sampleProject,
-      },
+        const sampleProject = {
+            title: 'title1'
+        }
+        const result = await mutate({
+            mutation: ADD_PROJECT,
+            variables: {
+                project: sampleProject
+            },
+        })
+
+        // const createProject = result.data.addProject
+
+        // expect(sampleProject.title).to.eq(createProject.title);
     });
-
-    // const createProject = result.data.addProject
-
-    // expect(sampleProject.title).to.eq(createProject.title);
-  });
 });
 
 before(async () => {
-  apolloServer = await createServerWithDummyUser();
-});
+    apolloServer = await createServerWithDummyUser()
+})
+
