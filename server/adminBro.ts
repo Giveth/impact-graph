@@ -6,7 +6,7 @@ import AdminBroExpress from '@admin-bro/express';
 import config from '../config';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
-import { SegmentEvents } from '../analytics';
+import { SegmentEvents } from '../analytics/analytics';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');

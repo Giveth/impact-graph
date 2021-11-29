@@ -18,7 +18,7 @@ import { AccountVerification } from '../entities/accountVerification';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { Organisation } from '../entities/organisation';
 import { MyContext } from '../types/MyContext';
-import { getAnalytics, SegmentEvents } from '../analytics';
+import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { errorMessages } from '../utils/errorMessages';
 import { Project } from '../entities/project';
 

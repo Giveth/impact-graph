@@ -11,7 +11,7 @@ import * as jwt from 'jsonwebtoken';
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql';
 import config from '../config';
 import Logger from '../logger';
-import { getAnalytics } from '../analytics';
+import { getAnalytics } from '../analytics/analytics';
 
 const analytics = getAnalytics();
 const sigUtil = require('eth-sig-util');

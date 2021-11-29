@@ -3,7 +3,7 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { TransakOrder } from './transak/order';
 import { User } from '../entities/user';
 import DonationTracker from './segment/DonationTracker';
-import { SegmentEvents } from '../analytics';
+import { SegmentEvents } from '../analytics/analytics';
 
 const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
