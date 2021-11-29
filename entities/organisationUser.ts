@@ -1,35 +1,35 @@
-import { Field, ID, ObjectType } from 'type-graphql'
+import { Field, ID, ObjectType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
   Entity,
   ManyToOne,
-  ColumnOptions
-} from 'typeorm'
-import { Organisation } from './organisation'
-import { User } from './user'
+  ColumnOptions,
+} from 'typeorm';
+import { Organisation } from './organisation';
+import { User } from './user';
 // import { RelationColumn } from '../helpers'
-function RelationColumn (options?: ColumnOptions) {
-  return Column({ nullable: true, ...options })
+function RelationColumn(options?: ColumnOptions) {
+  return Column({ nullable: true, ...options });
 }
 @ObjectType()
 @Entity()
 export class OrganisationUser {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
-  readonly id: number
+  readonly id: number;
 
   @Field()
   @Column()
-  role: string
+  role: string;
 
   @Field(type => Organisation)
   @ManyToOne(type => Organisation)
-  organisation: Organisation
+  organisation: Organisation;
   @RelationColumn()
-  organisationId: number
+  organisationId: number;
 
   @Field(type => User)
   @ManyToOne(type => User)
-  user: User
+  user: User;
 }

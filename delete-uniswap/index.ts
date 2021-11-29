@@ -1,53 +1,53 @@
-import Sdk from './sdk'
-import config from '../config'
-import { allTokens } from './tokenLists'
-import { textSpanIntersectsWith } from 'typescript'
+import Sdk from './sdk';
+import config from '../config';
+import { allTokens } from './tokenLists';
+import { textSpanIntersectsWith } from 'typescript';
 
-const INFURA_ID = config.get('ETHEREUM_NODE_ID')
-const ethers = require('ethers')
-const network = 'mainnet'
+const INFURA_ID = config.get('ETHEREUM_NODE_ID');
+const ethers = require('ethers');
+const network = 'mainnet';
 
 // const provider = new ethers.providers.InfuraProvider(network, INFURA_ID)
-function getProvider (network) {
+function getProvider(network) {
   if (network === 'xdaiChain') {
     return new ethers.providers.JsonRpcProvider(
-      config.get('XDAI_NODE_HTTP_URL')
-    )
+      config.get('XDAI_NODE_HTTP_URL'),
+    );
   }
-  return new ethers.providers.InfuraProvider(network, INFURA_ID)
+  return new ethers.providers.InfuraProvider(network, INFURA_ID);
 }
 
-function getNetworkFromChainId (chainId) {
+function getNetworkFromChainId(chainId) {
   if (chainId === 1) {
-    return 'mainnet'
+    return 'mainnet';
   } else if (chainId === 100) {
-    return 'xdaiChain'
+    return 'xdaiChain';
   } else if (chainId === 3) {
-    return 'ropstem'
+    return 'ropstem';
   } else {
-    throw new Error('Invalid chainId')
+    throw new Error('Invalid chainId');
   }
 }
 
-export function getOurTokenList () {
-  return allTokens
+export function getOurTokenList() {
+  return allTokens;
 }
 
-export async function getTokenPrices (
+export async function getTokenPrices(
   symbol: string,
   baseSymbols: string[],
-  chainId: number
+  chainId: number,
 ) {
   return new Promise((resolve: (prices: number[]) => void, reject) => {
     const pricePromises = baseSymbols.map(base =>
-      getTokenPrice(symbol, base, chainId)
-    )
+      getTokenPrice(symbol, base, chainId),
+    );
     Promise.all(pricePromises)
       .then((prices: number[]) => {
-        resolve(prices)
+        resolve(prices);
       })
-      .catch(reject)
-  })
+      .catch(reject);
+  });
 }
 
 // function getEthMainNet () {
@@ -63,64 +63,64 @@ export async function getTokenPrices (
 /**
  * Get Token details
  */
-export function getTokenFromList (symbol: string, chainId: number) {
-  let inSymbol = symbol.toUpperCase() === 'ETH' ? 'WETH' : symbol.toUpperCase()
+export function getTokenFromList(symbol: string, chainId: number) {
+  let inSymbol = symbol.toUpperCase() === 'ETH' ? 'WETH' : symbol.toUpperCase();
 
-  inSymbol = symbol.toUpperCase() === 'XDAI' ? 'WXDAI' : inSymbol.toUpperCase()
+  inSymbol = symbol.toUpperCase() === 'XDAI' ? 'WXDAI' : inSymbol.toUpperCase();
 
   const token = allTokens.find(
-    o => o.symbol === inSymbol && o.chainId === chainId
-  )
+    o => o.symbol === inSymbol && o.chainId === chainId,
+  );
 
   if (!token)
-    throw new Error(`Token ${inSymbol} not found for chainId ${chainId}`)
-  return token
+    throw new Error(`Token ${inSymbol} not found for chainId ${chainId}`);
+  return token;
 }
 
-function isTestPrice (symbol, baseSymbol) {
+function isTestPrice(symbol, baseSymbol) {
   return (
     (symbol === 'ETH' && baseSymbol === 'USDT') ||
     (symbol === 'ETH' && baseSymbol === 'ETH')
-  )
+  );
 }
-function isETHisETH (symbol, baseSymbol) {
-  return symbol === 'ETH' && baseSymbol === 'ETH'
+function isETHisETH(symbol, baseSymbol) {
+  return symbol === 'ETH' && baseSymbol === 'ETH';
 }
-function getTestPrice (symbol, baseSymbol, chainId) {
-  if (symbol === 'ETH' && baseSymbol === 'USDT' && chainId !== 1) return 2000
-  if (symbol === 'ETH' && baseSymbol === 'ETH') return 1
-  throw Error('No test price, this should not happen')
+function getTestPrice(symbol, baseSymbol, chainId) {
+  if (symbol === 'ETH' && baseSymbol === 'USDT' && chainId !== 1) return 2000;
+  if (symbol === 'ETH' && baseSymbol === 'ETH') return 1;
+  throw Error('No test price, this should not happen');
 }
-function getETHisETHPrice () {
-  return 1
+function getETHisETHPrice() {
+  return 1;
 }
-export async function getTokenPrice (
+export async function getTokenPrice(
   symbol: string,
   baseSymbol: string,
-  chainId: number
+  chainId: number,
 ) {
   try {
-    const sdk = new Sdk(chainId)
+    const sdk = new Sdk(chainId);
 
-    if (isETHisETH(symbol, baseSymbol)) return getETHisETHPrice()
+    if (isETHisETH(symbol, baseSymbol)) return getETHisETHPrice();
     // Should use main net now
     // if (isTestPrice(symbol, baseSymbol))
     //   return getTestPrice(symbol, baseSymbol, chainId)
 
-    const token = await sdk.getSwapToken(getTokenFromList(symbol, chainId))
+    const token = await sdk.getSwapToken(getTokenFromList(symbol, chainId));
 
-    if (!token) throw Error(`Symbol ${symbol} not found in our token list`)
+    if (!token) throw Error(`Symbol ${symbol} not found in our token list`);
 
     const baseToken = await sdk.getSwapToken(
-      getTokenFromList(baseSymbol, chainId)
-    )
+      getTokenFromList(baseSymbol, chainId),
+    );
 
     if (!baseToken)
-      throw Error(`BaseSymbol ${baseSymbol} not found in our token list`)
+      throw Error(`BaseSymbol ${baseSymbol} not found in our token list`);
 
-    if (token.address === baseToken.address) return 1
+    if (token.address === baseToken.address) return 1;
 
-    console.log('FIND PAIR')
+    console.log('FIND PAIR');
     console.log(`{token,
       baseToken,
       getProvider(getNetworkFromChainId(chainId)),
@@ -129,25 +129,25 @@ export async function getTokenPrice (
           token,
           baseToken,
           provider: getProvider(getNetworkFromChainId(chainId)),
-          chainId
+          chainId,
         },
         null,
-        2
-      )}`)
+        2,
+      )}`);
 
     const pair = await sdk.getPair(
       token,
       baseToken,
       getProvider(getNetworkFromChainId(chainId)),
-      chainId
-    )
+      chainId,
+    );
     // console.log(`Found pair : ${JSON.stringify(pair, null, 2)}`)
 
-    const price = sdk.getPrice(pair, token, chainId)
+    const price = sdk.getPrice(pair, token, chainId);
     // console.log(`price : ${JSON.stringify(price, null, 2)}`)
-    return price
+    return price;
   } catch (error) {
-    console.error(error)
-    throw new Error(error)
+    console.error(error);
+    throw new Error(error);
   }
 }
