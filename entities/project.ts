@@ -241,7 +241,7 @@ class Project extends BaseEntity {
   ) {
     const query = this.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.donations', 'donations')
+      // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.reactions', 'reactions')
       .leftJoinAndSelect('project.users', 'users')
       .leftJoinAndMapOne(
