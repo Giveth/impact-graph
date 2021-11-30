@@ -32,7 +32,8 @@ updateGivethIoProjectQueue.on('error', err => {
 
 setInterval(async () => {
   const updateCampaignQueueCount = await updateCampaignQueue.count();
-  const updateGivethIoProjectQueueCount = await updateGivethIoProjectQueue.count();
+  const updateGivethIoProjectQueueCount =
+    await updateGivethIoProjectQueue.count();
   console.log(`Sync trace and givethio job queues count:`, {
     updateCampaignQueueCount,
     updateGivethIoProjectQueueCount,

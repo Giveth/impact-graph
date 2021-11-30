@@ -60,12 +60,12 @@ const getAdminBroInstance = () => {
               'listed.true': 'Listed',
               'listed.false': 'Unlisted',
               'listed.null': 'Not Reviewed',
-              'listed.undefined': 'Not Reviewed'
-            }
-          }
-        }
+              'listed.undefined': 'Not Reviewed',
+            },
+          },
+        },
       },
-      language: 'en'
+      language: 'en',
     },
     resources: [
       {
@@ -120,7 +120,7 @@ const getAdminBroInstance = () => {
               },
             },
             totalProjectUpdates: {
-              isVisible: false
+              isVisible: false,
             },
             giveBacks: {
               isVisible: false,
@@ -134,7 +134,7 @@ const getAdminBroInstance = () => {
               },
             },
             totalReactions: {
-              isVisible: false
+              isVisible: false,
             },
             walletAddress: {
               isVisible: { list: false, filter: false, show: true, edit: true },
@@ -150,7 +150,7 @@ const getAdminBroInstance = () => {
               components: {
                 filter: AdminBro.bundle('./components/FilterListedComponent'),
               },
-            }
+            },
           },
           actions: {
             delete: {
