@@ -241,7 +241,8 @@ class Project extends BaseEntity {
   ) {
     const query = this.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.donations', 'donations')
+      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
+      // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.reactions', 'reactions')
       .leftJoinAndSelect('project.users', 'users')
       .leftJoinAndMapOne(
