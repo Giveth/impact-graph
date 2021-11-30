@@ -1,8 +1,8 @@
-import { MigrationInterface, QueryRunner, getRepository } from 'typeorm'
-import { ProjectStatus } from '../entities/projectStatus'
+import { MigrationInterface, QueryRunner, getRepository } from 'typeorm';
+import { ProjectStatus } from '../entities/projectStatus';
 
 export class SeedProjectStatus1614082100757 implements MigrationInterface {
-  async up (queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     // const projectStatusRepository = getRepository(ProjectStatus)
     // const projectStatuses = projectStatusRepository.create([{
     //     symbol: 'rjt',
@@ -51,13 +51,13 @@ export class SeedProjectStatus1614082100757 implements MigrationInterface {
         ,('act','active','This is an active project')
         ,('can','cancelled','Cancelled or deactivated (by owner)')
         ,('del','delisted','Delisted by Giveth or platform owner')
-        ;`)
+        ;`);
   }
 
-  async down (queryRunner: QueryRunner): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `update project set "statusId" = null where "statusId" is not null;`
-    )
-    await queryRunner.query(`delete from project_status where 1 = 1;`)
+      `update project set "statusId" = null where "statusId" is not null;`,
+    );
+    await queryRunner.query(`delete from project_status where 1 = 1;`);
   }
 }

@@ -14,20 +14,20 @@ import { BankAccount, StripeTransaction } from './bankAccount';
 import { AccountVerification } from './accountVerification';
 
 export const entities: any = [
-    Organisation,
-    OrganisationUser,
-    User,
-    Project,
-    Notification,
-    BankAccount,
-    StripeTransaction,
-    Category,
-    ProjectUpdate,
-    Reaction,
-    Donation,
-    Token,
-    Wallet,
-    ProjectStatus,
-    AccountVerification,
-    ProjectImage
-]
+  Organisation,
+  OrganisationUser,
+  User,
+  Project,
+  Notification,
+  BankAccount,
+  StripeTransaction,
+  Category,
+  ProjectUpdate,
+  Reaction,
+  Donation,
+  Token,
+  Wallet,
+  ProjectStatus,
+  AccountVerification,
+  ProjectImage,
+];
