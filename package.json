@@ -31,6 +31,7 @@
     "body-parser": "^1.19.0",
     "bull": "^3.29.3",
     "chalk": "^4.1.0",
+    "cheerio": "1.0.0-rc.10",
     "class-validator": "^0.12.2",
     "connect": "^3.7.0",
     "connect-redis": "^4.0.4",
