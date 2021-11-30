@@ -1,2 +1,2 @@
-const bgImage = 'https://i.imgur.com/uPFEgJu.png'
-export default bgImage
+const bgImage = 'https://i.imgur.com/uPFEgJu.png';
+export default bgImage;

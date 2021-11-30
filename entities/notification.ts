@@ -1,13 +1,13 @@
-import { ObjectType, Field, ID } from 'type-graphql'
+import { ObjectType, Field, ID } from 'type-graphql';
 
 @ObjectType()
 export default class Notification {
   @Field(type => ID)
-  id: number
+  id: number;
 
   @Field({ nullable: true })
-  message?: string
+  message?: string;
 
   @Field(type => Date)
-  date: Date
+  date: Date;
 }

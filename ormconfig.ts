@@ -1,9 +1,11 @@
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 import { ConnectionOptions } from 'typeorm';
 import { entities } from './entities/entities';
-dotenv.config({ path: path.resolve(__dirname, `./config/${process.env.NODE_ENV||''}.env`) });
+dotenv.config({
+  path: path.resolve(__dirname, `./config/${process.env.NODE_ENV || ''}.env`),
+});
 
 const ormConfig: ConnectionOptions = {
   type: 'postgres',
@@ -16,7 +18,7 @@ const ormConfig: ConnectionOptions = {
   migrations: ['migration/*.ts'],
   cli: {
     migrationsDir: 'migration',
-  }
+  },
 };
- 
+
 export = ormConfig;
