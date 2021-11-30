@@ -51,6 +51,22 @@ const getAdminBroInstance = () => {
       companyName: 'Giveth',
       softwareBrothers: false,
     },
+    locale: {
+      translations: {
+        resources: {
+          Project: {
+            properties: {
+              listed: 'Listed',
+              'listed.true': 'Listed',
+              'listed.false': 'Unlisted',
+              'listed.null': 'Not Reviewed',
+              'listed.undefined': 'Not Reviewed'
+            }
+          }
+        }
+      },
+      language: 'en'
+    },
     resources: [
       {
         resource: Project,
@@ -103,6 +119,9 @@ const getAdminBroInstance = () => {
                 edit: false,
               },
             },
+            totalProjectUpdates: {
+              isVisible: false
+            },
             giveBacks: {
               isVisible: false,
             },
@@ -114,6 +133,9 @@ const getAdminBroInstance = () => {
                 edit: false,
               },
             },
+            totalReactions: {
+              isVisible: false
+            },
             walletAddress: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -123,6 +145,12 @@ const getAdminBroInstance = () => {
             slugHistory: {
               isVisible: false,
             },
+            listed: {
+              isVisible: true,
+              components: {
+                filter: AdminBro.bundle('./components/FilterListedComponent'),
+              },
+            }
           },
           actions: {
             delete: {
