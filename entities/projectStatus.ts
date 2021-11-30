@@ -4,8 +4,7 @@ import {
   Column,
   Entity,
   BaseEntity,
-  OneToMany,
-  Index
+  OneToMany
 } from 'typeorm'
 import { Project } from './project'
 
@@ -20,7 +19,6 @@ export class ProjectStatus extends BaseEntity{
   @Column('text', { unique: true })
   symbol: string
 
-  @Index()
   @Field()
   @Column({ nullable: true })
   name: string

@@ -1,7 +1,5 @@
 // tslint:disable-next-line:no-var-requires
 require('dotenv').config()
-
-import { NETWORK_IDS } from '../provider';
 import * as bcrypt from 'bcryptjs'
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql'
 import { keccak256 } from 'ethers/lib/utils'
@@ -45,7 +43,7 @@ export class LoginResolver {
   // Return hash of message which should be signed by user
   // Null return means no hash message is available for hostname
   // Sign message differs based on application hostname (domain) in order to prevent sign-message popup in UI
-  getHostnameSignMessageHash(hostname: string): string | null {
+  getHostnameSignMessageHash (hostname: string): string | null {
     const cache = this.hostnameSignedMessageHashCache
     if (cache[hostname]) return cache[hostname]
 
@@ -66,7 +64,7 @@ export class LoginResolver {
 
   // James: We don't need this right now, maybe in the future
   @Mutation(() => Boolean, { nullable: true })
-  async validateToken(
+  async validateToken (
     @Arg('token') token: string,
     @Ctx() ctx: MyContext
   ): Promise<Boolean | null> {
@@ -85,7 +83,7 @@ export class LoginResolver {
   }
 
   @Mutation(() => LoginResponse, { nullable: true })
-  async login(
+  async login (
     @Arg('email') email: string,
     @Arg('password') password: string,
     @Arg('loginType', { nullable: true }) loginType: LoginType,
@@ -106,7 +104,8 @@ export class LoginResolver {
         throw Error('Invalid login type')
     }
 
-    const user: any = await User.createQueryBuilder('user')
+    const user: any = await User
+      .createQueryBuilder('user')
       .where('user.email = :email', { email })
       .andWhere('user.loginType = :loginType', { loginType: 'password' })
       .addSelect('user.password')
@@ -147,21 +146,21 @@ export class LoginResolver {
     return response
   }
 
-  createToken(user: any) {
+  createToken (user: any) {
     return jwt.sign(user, config.get('JWT_SECRET') as string, {
       expiresIn: '30d'
     })
   }
 
   @Mutation(() => LoginResponse, { nullable: true })
-  async loginWallet(
+  async loginWallet (
     @Arg('walletAddress') walletAddress: string,
     @Arg('signature') signature: string,
     @Arg('hostname') hostname: string,
     @Arg('email', { nullable: true }) email: string,
     @Arg('name', { nullable: true }) name: string,
     @Arg('avatar', { nullable: true }) avatar: string,
-    @Arg('networkId') networkId: number,
+    @Arg('isXDAI', { nullable: true }) isXDAI: boolean,
     @Ctx() ctx: MyContext
   ): Promise<LoginResponse | null> {
     const hashedMsg = this.getHostnameSignMessageHash(hostname)
@@ -180,7 +179,7 @@ export class LoginResolver {
       },
       domain: {
         name: 'Giveth Login',
-        chainId: networkId ,
+        chainId: isXDAI ? 100 : process.env.ETHEREUM_NETWORK_ID,
         version: '1'
       },
       message: {

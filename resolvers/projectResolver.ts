@@ -1,6 +1,6 @@
 import NotificationPayload from '../entities/notificationPayload'
 import { Reaction, REACTION_TYPE } from '../entities/reaction'
-import { Project, ProjectUpdate, ProjStatus } from '../entities/project'
+import { Project, ProjectUpdate } from '../entities/project'
 import { InjectRepository } from 'typeorm-typedi-extensions'
 import { ProjectStatus } from '../entities/projectStatus'
 import { ProjectInput, ImageUpload } from './types/project-input'
@@ -22,7 +22,7 @@ import { Service } from 'typedi'
 import config from '../config'
 import slugify from 'slugify'
 import Logger from '../logger'
-import { getProvider, NETWORK_IDS } from '../provider'
+import { getProvider } from '../provider'
 import {
   Arg,
   Args,
@@ -40,17 +40,32 @@ import {
   Resolver
 } from 'type-graphql'
 
+function isSmartContract (provider) {
+  return async function (projectWalletAddress) {
+    const code = await provider.getCode(projectWalletAddress)
+
+    return code !== '0x'
+  }
+}
+
+const mainnetProvider = getProvider('mainnet')
+const xdaiProvider = getProvider('xdaiChain')
+const isSmartContractMainnet = isSmartContract(mainnetProvider)
+const isSmartContractXDai = isSmartContract(xdaiProvider)
 
 const analytics = getAnalytics()
 
+enum ProjStatus {
+  rjt = 1,
+  pen = 2,
+  clr = 3,
+  ver = 4,
+  act = 5,
+  can = 6,
+  del = 7
+}
 import { inspect } from 'util'
 import { errorMessages } from '../utils/errorMessages';
-import {
-  getSimilarTitleInProjectsRegex,
-  isWalletAddressSmartContract,
-  validateProjectTitle, validateProjectTitleForEdit,
-  validateProjectWalletAddress
-} from '../utils/validators/projectValidator';
 
 @ObjectType()
 class TopProjects {
@@ -59,6 +74,15 @@ class TopProjects {
 
   @Field(type => Int)
   totalCount: number
+}
+
+@ObjectType()
+class WalletAddressIsValidResponse {
+  @Field(type => Boolean)
+  isValid: boolean
+
+  @Field(type => [String])
+  reasons: string[]
 }
 
 enum OrderField {
@@ -230,7 +254,7 @@ export class ProjectResolver {
         relations: ['reactions'],
         where: {
           status: {
-            id: ProjStatus.active
+            id: ProjStatus.act
           }
         }
       })
@@ -358,10 +382,6 @@ export class ProjectResolver {
       !!imageUpload,
       heartCount
     )
-    if (newProjectData.title ){
-      await validateProjectTitleForEdit(newProjectData.title, projectId)
-    }
-
     const slugBase = slugify(newProjectData.title)
     const newSlug = await this.getAppropriateSlug(slugBase)
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)){
@@ -371,6 +391,26 @@ export class ProjectResolver {
     project.slug = newSlug
     project.qualityScore = qualityScore
     await project.save()
+
+    const segmentProject = {
+      email: user.email,
+      title: project.title,
+      lastName: user.lastName,
+      firstName: user.firstName,
+      OwnerId: user.id,
+      slug: project.slug,
+      walletAddress: project.walletAddress
+    }
+
+    analytics.track(
+      'Project edited',
+      `givethId-${user.userId}`,
+      segmentProject,
+      null
+    )
+
+    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
+      triggerBuild(projectId)
 
     return project
   }
@@ -401,7 +441,7 @@ export class ProjectResolver {
       .getMany()
 
     function sum (items, prop) {
-      return items.reduce( (a, b) =>{
+      return items.reduce(function (a, b) {
         return a + b[prop]
       }, 0)
     }
@@ -508,12 +548,10 @@ export class ProjectResolver {
     if (categories.length > 5){
       throw new Error(errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE)
     }
-    await validateProjectWalletAddress(projectInput.walletAddress as string)
-    await validateProjectTitle(projectInput.title)
     const slugBase = slugify(projectInput.title)
     const slug = await this.getAppropriateSlug(slugBase)
     const status = await this.projectStatusRepository.findOne({
-      id: ProjStatus.active
+      id: 5
     })
 
     const project = this.projectRepository.create({
@@ -870,7 +908,18 @@ export class ProjectResolver {
 
   @Query(returns => Boolean)
   async isWalletSmartContract (@Arg('address') address: string) {
-    return isWalletAddressSmartContract(address)
+    const isContractPromises: any = []
+    isContractPromises.push(isSmartContractMainnet(address))
+    isContractPromises.push(isSmartContractXDai(address))
+
+    return Promise.all(isContractPromises).then(promises => {
+      const [isSmartContractOnMainnet, isSmartContractOnXDai] = promises
+      if (isSmartContractOnMainnet || isSmartContractOnXDai) {
+        return true
+      } else {
+        return false
+      }
+    })
   }
 
   /**
@@ -878,33 +927,30 @@ export class ProjectResolver {
    * @param address wallet address
    * @returns
    */
-  @Query(returns => Boolean)
+  @Query(returns => WalletAddressIsValidResponse)
   async walletAddressIsValid (@Arg('address') address: string) {
-    return validateProjectWalletAddress(address)
-  }
-
-  /**
-   * Can a project use this title?
-   * @param title
-   * @param projectId
-   * @returns
-   */
-  @Query(returns => Boolean)
-  async isValidTitleForProject (@Arg('title') title: string,
-                                @Arg('projectId',{ nullable: true }) projectId ?: number) {
-    if (projectId){
-      return  validateProjectTitleForEdit(title, projectId)
+    const isSmartContractWallet = await this.isWalletSmartContract(address)
+    const reasons: string[] = []
+    if (isSmartContractWallet) {
+      reasons.push('smart-contract')
     }
-    return validateProjectTitle(title)
+    const projectWithAddress = await this.projectByAddress(address)
+    const addressUsed = !!projectWithAddress
+
+    if (addressUsed) {
+      reasons.push('address-used')
+    }
+
+    const isValid = !isSmartContractWallet && (addressUsed ? false : true)
+    return {
+      isValid,
+      reasons
+    }
   }
 
   @Query(returns => Project, { nullable: true })
   projectByAddress (@Arg('address', type => String) address: string) {
-    return this.projectRepository.createQueryBuilder('project')
-      .where(`lower("walletAddress")=lower(:address)`,{
-        address
-      })
-      .getOne()
+    return this.projectRepository.findOne({ walletAddress: address })
   }
 
   async updateProjectStatus (
@@ -941,7 +987,7 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx)
-      const didDeactivate = await this.updateProjectStatus(projectId, ProjStatus.deactive, user)
+      const didDeactivate = await this.updateProjectStatus(projectId, ProjStatus.can, user)
       if (didDeactivate)
        {
          const project = await Project.findOne({ id: projectId })
@@ -979,7 +1025,7 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx)
-      return await this.updateProjectStatus(projectId, ProjStatus.active, user)
+      return await this.updateProjectStatus(projectId, ProjStatus.act, user)
     } catch (error) {
       Logger.captureException(error)
       throw error
