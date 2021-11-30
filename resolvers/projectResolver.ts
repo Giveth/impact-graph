@@ -336,7 +336,8 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.reactions', 'reactions')
-      .leftJoinAndSelect('project.donations', 'donations')
+      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
+      //.leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
