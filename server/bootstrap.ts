@@ -28,6 +28,7 @@ import { SegmentEvents } from '../analytics/analytics';
 const AdminBroExpress = require('@admin-bro/express');
 
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
+import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
 
@@ -185,6 +186,7 @@ export async function bootstrap() {
     runCheckPendingProjectListingCronJob();
     processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
+    runGivingBlocksProjectSynchronization();
   } catch (err) {
     console.error(err);
   }
