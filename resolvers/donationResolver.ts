@@ -93,6 +93,7 @@ export class DonationResolver {
   ) {
     const query = this.donationRepository
       .createQueryBuilder('donation')
+      .leftJoinAndSelect('donation.user', 'user')
       .where(`donation.projectId = ${projectId}`);
 
     const [donations, donationsCount] = await query
