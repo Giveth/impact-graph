@@ -977,6 +977,7 @@ export class ProjectResolver {
   ) {
     const [projects, projectsCount] = await this.projectRepository
       .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
