@@ -969,6 +969,31 @@ export class ProjectResolver {
       .getOne();
   }
 
+  @Query(returns => [Project], { nullable: true })
+  async projectsByUserId(
+    @Arg('userId', type => Int) userId: number,
+    @Arg('take', { defaultValue: 10 }) take: number,
+    @Arg('skip', { defaultValue: 0 }) skip: number
+  ) {
+    const [projects, projectsCount] = await this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .where("CAST(project.admin AS INTEGER) = :userId", { userId: userId })
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      projects,
+      totalCount: projectsCount
+    }
+  }
+
   async updateProjectStatus(
     projectId: number,
     status: number,
