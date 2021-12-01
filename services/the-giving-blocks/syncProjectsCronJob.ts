@@ -37,7 +37,7 @@ const exportGivingBlocksProjects = async () => {
     //             pledgeCurrency: 'ETH'
     //         }
     //         const addressResponse = await depositAddress(accessToken, organizationData);
-    //         // const project = projectRepository.create({
+    //         // const project = Project.create({
     //         //     title: '',
     //         //     description,
     //         //     impactLocation: '',

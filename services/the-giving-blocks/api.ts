@@ -6,6 +6,13 @@ const websiteBaseUrl = config.get('GIVING_BLOCKS_WEBSITE_URL') as string;
 
 import cheerio from 'cheerio';
 
+type AnonymousWalletType = {
+    organizationId: number;
+    isAnonymous: boolean;
+    pledgeAmount: string;
+    pledgeCurrency: string;
+}
+
 export const login = (): Promise<AxiosResponse> => {
     return Axios.post(
         `${apiBaseUrl}/v1/login`,
@@ -40,50 +47,10 @@ export const organizations = (accessToken: string): Promise<AxiosResponse> => {
     );
 }
 
-// Example
-// {
-// 	   "organizationId": 99,
-//     "isAnonymous": false,
-//     "pledgeCurrency": "ETH",
-//     "pledgeAmount": "0.0001",
-//     "firstName": "John",
-//     "lastName": "Doe",
-//     "receiptEmail": "some-donor-email@domain.com",
-//     "addressLine1": "My street 1",
-//     "addressLine2": "apt 2",
-//     "country": "US",
-//     "state": "NY",
-//     "city": "New York",
-//     "zipcode": "4422211"
-// }
-
-type OrganizationDataType = {
-  organizationId: number;
-  isAnonymous: boolean;
-  pledgeAmount: string;
-  pledgeCurrency: string;
-  firstName: string;
-  lastName: string;
-  receiptEmail: string;
-  addressLine1: string;
-  addressLine2: string;
-  country: string;
-  state: string;
-  city: string;
-  zipcode: string;
-}
-
-type AnonymousDonationType = {
-    organizationId: number;
-    isAnonymous: boolean;
-    pledgeAmount: string;
-    pledgeCurrency: string;
-}
-
-export const depositAddress = (accessToken:string, organizationData: AnonymousDonationType): Promise<AxiosResponse> => {
+export const depositAddress = (accessToken:string, organizationWalletData: AnonymousWalletType): Promise<AxiosResponse> => {
     return Axios.post(
         `${apiBaseUrl}/v1/deposit-address`,
-        organizationData,
+        organizationWalletData,
         {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         }
