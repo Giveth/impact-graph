@@ -63,7 +63,7 @@ class AllProjects {
   @Field(type => Int)
   totalCount: number;
 
-  @Field(type => [Category])
+  @Field(type => [Category], { nullable: true })
   categories: Category[];
 }
 
@@ -969,7 +969,7 @@ export class ProjectResolver {
       .getOne();
   }
 
-  @Query(returns => [Project], { nullable: true })
+  @Query(returns => AllProjects, { nullable: true })
   async projectsByUserId(
     @Arg('userId', type => Int) userId: number,
     @Arg('take', { defaultValue: 10 }) take: number,
@@ -985,6 +985,7 @@ export class ProjectResolver {
         'user.id = CAST(project.admin AS INTEGER)',
       )
       .where("CAST(project.admin AS INTEGER) = :userId", { userId: userId })
+      .orderBy('project.creationDate', 'DESC')
       .take(take)
       .skip(skip)
       .getManyAndCount();
