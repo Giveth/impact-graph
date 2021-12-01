@@ -5,7 +5,7 @@ export class UpdateTotalProjectUpdates1637708818194
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "project" ADD "totalProjectUpdates" Integer default 0`,
+      `ALTER TABLE "project" ADD COLUMN IF NOT EXISTS "totalProjectUpdates" Integer default 0`,
     );
     const projects = await queryRunner.query(`select * from project`);
     for (const project of projects) {
@@ -19,6 +19,6 @@ export class UpdateTotalProjectUpdates1637708818194
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "project" DROP "totalProjectUpdates"`);
+    await queryRunner.query(`ALTER TABLE "project" DROP COLUMN IF EXISTS "totalProjectUpdates"`);
   }
 }

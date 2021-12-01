@@ -6,14 +6,13 @@ export const updateTotalProjectUpdatesOfAProject = async (
 ) => {
   try {
     const totalProjectUpdates = await ProjectUpdate.count({
-      projectId,
+      where: { projectId, isMain: false },
     });
-    await Project.update(
-      { id: projectId },
-      {
-        totalProjectUpdates,
-      },
-    );
+    await Project.createQueryBuilder('project')
+      .update<Project>(Project, { totalProjectUpdates })
+      .where('project.id = :projectId', { projectId })
+      .updateEntity(true)
+      .execute();
   } catch (e) {
     console.log('updateTotalProjectUpdatesOfAProject error', e);
   }
