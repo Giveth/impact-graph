@@ -19,6 +19,8 @@ export class UpdateTotalProjectUpdates1637708818194
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "project" DROP COLUMN IF EXISTS "totalProjectUpdates"`);
+    await queryRunner.query(
+      `ALTER TABLE "project" DROP COLUMN IF EXISTS "totalProjectUpdates"`,
+    );
   }
 }
