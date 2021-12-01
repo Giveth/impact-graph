@@ -70,8 +70,7 @@ const notifyTransakUpdate = async donation => {
       SegmentEvents.DONATION_RECEIVED,
     ).track();
 
-    // anonymous boolean is inverted in our db and code. Anonymous Users are the authenticated.
-    if (donation.anonymous) {
+    if (!donation.anonymous) {
       const donor = await User.findOne({ id: donation.userId });
 
       if (donor)

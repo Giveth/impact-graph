@@ -190,7 +190,7 @@ export class DonationResolver {
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
-        anonymous: !!userId,
+        anonymous: !userId,
       });
       await donation.save();
       const baseTokens =
