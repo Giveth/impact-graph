@@ -2,15 +2,14 @@ import Axios, { AxiosResponse } from 'axios';
 import config from '../../config';
 
 const apiBaseUrl = config.get('GIVING_BLOCKS_URL') as string;
-const websiteBaseUrl = config.get('GIVING_BLOCKS_WEBSITE_URL') as string;
 
-import cheerio from 'cheerio';
-
-type AnonymousWalletType = {
-    organizationId: number;
-    isAnonymous: boolean;
-    pledgeAmount: string;
-    pledgeCurrency: string;
+// Anonymous Disposable Address to be created for the project
+// Need to decide how to accept multiple currencies
+// Setting it as a ethereum address for now
+const OrganizationWalletData = {
+    isAnonymous: true,
+    pledgeAmount: '0.1',
+    pledgeCurrency: 'ETH'
 }
 
 export const login = (): Promise<AxiosResponse> => {
@@ -45,22 +44,25 @@ export const organizations = (accessToken: string): Promise<AxiosResponse> => {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         }
     );
-}
+};
 
-export const depositAddress = (accessToken:string, organizationWalletData: AnonymousWalletType): Promise<AxiosResponse> => {
-    return Axios.post(
-        `${apiBaseUrl}/v1/deposit-address`,
-        organizationWalletData,
+export const organizationById = (accessToken: string, organizationId: number): Promise<AxiosResponse> => {
+    return Axios.get(
+        `${apiBaseUrl}/v1/organization/${organizationId}`,
         {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         }
     );
-}
+};
 
-export const projectDescription = async (slug: string) => {
-    const givingBlocksWebsite = await Axios.get(`${websiteBaseUrl}/${slug}`)
-    const $ = cheerio.load(givingBlocksWebsite.data);
-    const [description] = $('.et_pb_text_inner')
+export const depositAddress = (accessToken:string, organizationId: number): Promise<AxiosResponse> => {
+    OrganizationWalletData['organizationId'] = organizationId;
 
-    return $(description).find('p').text();
-}
+    return Axios.post(
+        `${apiBaseUrl}/v1/deposit-address`,
+        OrganizationWalletData,
+        {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        }
+    );
+};

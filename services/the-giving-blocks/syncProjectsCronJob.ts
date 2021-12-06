@@ -1,14 +1,19 @@
 import { schedule } from 'node-cron';
-import { Project } from '../../entities/project';
-import { login, refreshToken, organizations, depositAddress, projectDescription } from './api';
+import { Project, ProjStatus } from '../../entities/project';
+import { ProjectStatus } from '../../entities/projectStatus';
+import { Category } from '../../entities/category';
+import { login, organizations, depositAddress, organizationById } from './api';
+import { validateProjectTitle, validateProjectWalletAddress } from '../../utils/validators/projectValidator';
 import config from '../../config';
-import { useActionResponseHandler } from 'admin-bro';
-import { getRepository } from 'typeorm';
 import slugify from 'slugify';
 
-const cronJobTime = '*/1 * * * *';
+// Every week once on sunday at 0 hours
+const cronJobTime =
+    (config.get('SYNC_GIVING_BLOCKS_CRONJOB_EXPRESSION') as string) ||
+    '0 0 * * 0';
 
-// const projectRepository = getRepository(Project);
+// Admin Account assigned by Giveth to handle this projects
+const adminId = (config.get('GIVING_BLOCKS_ADMIN_USER_ID') as string) || '1'
 
 export const runGivingBlocksProjectSynchronization = () => {
     console.log('runGivingBlocksProjectSynchronization() has been called');
@@ -18,59 +23,111 @@ export const runGivingBlocksProjectSynchronization = () => {
 }
 
 const exportGivingBlocksProjects = async () => {
-    // const authResponse = await login();
-    // const accessToken = authResponse.data.data.accessToken;
+    const authResponse = await login();
+    const accessToken = authResponse.data.data.accessToken;
 
-    // const organizationResponse = await organizations(accessToken);
-    // const givingBlocksProjects = organizationResponse.data.data.organizations;
+    const organizationResponse = await organizations(accessToken);
+    const givingBlocksProjects = organizationResponse.data.data.organizations;
 
-    // for (const givingBlockProject of givingBlocksProjects) {
-    //     const slug = slugify(givingBlockProject.name);
-    //     const givethProject = await Project.find({ slug })
+    for (const givingBlockProject of givingBlocksProjects) {
+        try {
+            // seems to break with internal server error on multiple calls
+            const addressResponse = await depositAddress(accessToken, givingBlockProject.id);
+            // DISCUSS IN DEV CALL how to handle multiple currencies? we only have 1 address per project
+            const walletAddress = addressResponse.data.data.depositAddress;
 
-    //     if (!givethProject) {
-    //         const description = await projectDescription(slug);
-    //         const organizationData = {
-    //             organizationId: 1,
-    //             isAnonymous: true,
-    //             pledgeAmount: '0.1',
-    //             pledgeCurrency: 'ETH'
-    //         }
-    //         const addressResponse = await depositAddress(accessToken, organizationData);
-    //         // const project = Project.create({
-    //         //     title: '',
-    //         //     description,
-    //         //     impactLocation: '',
-    //         //     coOrdinates: '',
-    //         //     walletAddress: address,
-    //         //     creationDate: new Date(),
-    //         //     slug,
-    //         //     slugHistory: [],
-    //         //     admin: 1,
-    //         //     status: 5,
-    //         //     qualityScore: 1,
-    //         //     totalDonations: 0,
-    //         //     totalReactions: 0,
-    //         //     totalProjectUpdates: 0,
-    //         //     verified: true,
-    //         //     giveBacks: false
-    //         // });
-    //         const project = projectRepository.create({
-    //             title: 'Giveth - Support the future of giving',
-    //             description: `Join us in building the future of giving!\n\nIn addition to maintaining beta.giveth.io, we’re actively developing v2.giveth.io, the free, open-source, and decentralized application for peer-to-peer donations. Donations such as yours are our primary source of funding and are deeply appreciated! 💜\n\nProgress 🚀\n\n - Giveth now has 501c3 status!\n - The beta version of Giveth is live at beta.giveth.io with free donations for projects!\n - We’re building the next evolution of Giveth at v2.giveth.io and making incredible progress. Take it for a test drive and let us know what you think!\n - We are Hiring! We are looking for experienced devs and project managers to join the team!\n\nIn the next evolution of Giveth, we're building upon firsthand experience over the past 3+ years with the Giveth Dapp. The V2 is starting out with a simple purpose:\n\nEnable projects anywhere in the world to start accepting donations in a few minutes, with zero fees and zero censorship.\n\nOffer the best experience for anyone looking to donate to a cause, whether with crypto or a credit card.\n\nCheck out the in-progress v2, and please donate to help make this dream a reality!`,
-    //             organisationId: 1,
-    //             giveBacks: true,
-    //             verified: true,
-    //             admin: '1',
-    //             creationDate: new Date(),
-    //             walletAddress: '0x8f951903C9360345B4e1b536c7F5ae8f88A64e79',
-    //             slug: 'gdsgdiveth',
-    //             image: 'projectBg',
-    //             totalDonations: 0,
-    //             traceCampaignId: "10000000",
-    //             totalReactions: 0,
-    //           });
-    //     }
-    // };
-    // console.log(organizationResponse);
+            // Need to hit the API again to get website html strings
+            const organizationByIdResponse = await organizationById(accessToken, givingBlockProject.id);
+            const categories = organizationByIdResponse.data.data.organization.categories;
+            const description = organizationByIdResponse.data.data.organization?.websiteBlocks?.missionStatement?.value;
+            const youtube = organizationByIdResponse.data.data.organization?.websiteBlocks?.youtubeUrl?.value;
+            const website = organizationByIdResponse.data.data.organization?.websiteBlocks?.url?.value;
+
+            // Our Current Validations
+            await validateProjectWalletAddress(walletAddress as string);
+            await validateProjectTitle(givingBlockProject.name);
+            const slugBase = slugify(givingBlockProject.name);
+            const slug = await getAppropriateSlug(slugBase);
+            const status = await ProjectStatus.findOne({ id: ProjStatus.active });
+            const qualityScore = getQualityScore(description, !!givingBlockProject.logo);
+
+            // Find or create giving blocks categories
+            const dbCategories = await findOrCreateCategories(categories);
+
+            const project = Project.create({
+                title: givingBlockProject.name,
+                description,
+                categories: dbCategories,
+                walletAddress: walletAddress,
+                creationDate: new Date(),
+                slug,
+                youtube,
+                website,
+                slugHistory: [],
+                givingBlocksId: givingBlockProject.id,
+                admin: adminId,
+                statusId: 5,
+                qualityScore: qualityScore,
+                totalDonations: 0,
+                totalReactions: 0,
+                totalProjectUpdates: 0,
+                verified: true,
+                giveBacks: true
+            });
+
+            await project.save();
+        } catch(e) {
+            // Log Error but keep going with the rest of the projects
+            console.log(e);
+            continue;
+        };
+    };
+};
+
+// Current Formula: This will be changed in the future
+const getQualityScore = (description, hasImageUpload) => {
+    let qualityScore = 40;
+
+    if (description.length > 100) qualityScore = qualityScore + 10;
+    if (hasImageUpload) qualityScore = qualityScore + 30;
+
+    return qualityScore;
+}
+
+const getAppropriateSlug = async (slugBase: string) => {
+    let slug = slugBase.toLowerCase();
+    const projectCount = await Project
+      .createQueryBuilder('project')
+      // check current slug and previous slugs
+      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+        slug,
+      })
+      .getCount();
+
+    if (projectCount > 0) {
+      slug = slugBase + '-' + (projectCount - 1);
+    }
+    return slug;
+};
+
+// Are we creating giving blocks categories on our DB?
+type GivingBlocksCategory = {
+    id: number;
+    name: string;
+}
+
+const findOrCreateCategories = async (categories: [GivingBlocksCategory]) => {
+    const currentCategories = await Promise.all(
+        categories.map(async category => {
+            let [c] = await Category.find({ givingBlocksId: category.id })
+            if (c === undefined) {
+                c = new Category();
+                c.givingBlocksId = category.id;
+                c.name = category.name;
+            }
+            return c;
+        })
+    );
+
+    return currentCategories;
 };

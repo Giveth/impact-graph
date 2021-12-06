@@ -91,6 +91,14 @@ class Project extends BaseEntity {
   givingBlocksId?: string;
 
   @Field({ nullable: true })
+  @Column({ default: null, nullable: true })
+  website?: string;
+
+  @Field({ nullable: true })
+  @Column({ default: null, nullable: true })
+  youtube?: string;
+
+  @Field({ nullable: true })
   @Column({ nullable: true })
   organisationId?: number;
 
