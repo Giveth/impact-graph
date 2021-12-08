@@ -86,6 +86,7 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   traceCampaignId?: string;
 
+  @Index({ unique: true, where: '"givingBlocksId" IS NOT NULL'  })
   @Field({ nullable: true })
   @Column({ default: null, nullable: true })
   givingBlocksId?: string;

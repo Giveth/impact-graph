@@ -186,7 +186,11 @@ export async function bootstrap() {
     runCheckPendingProjectListingCronJob();
     processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
-    runGivingBlocksProjectSynchronization();
+
+    // If we need to deactivate the process use the env var
+    if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
+      runGivingBlocksProjectSynchronization();
+    }
   } catch (err) {
     console.error(err);
   }

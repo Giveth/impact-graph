@@ -3,14 +3,12 @@ import config from '../../config';
 
 const apiBaseUrl = config.get('GIVING_BLOCKS_URL') as string;
 
-// Anonymous Disposable Address to be created for the project
-// Need to decide how to accept multiple currencies
-// Setting it as a ethereum address for now
-const OrganizationWalletData = {
-  isAnonymous: true,
-  pledgeAmount: '0.1',
-  pledgeCurrency: 'ETH',
-};
+// Set high Number to prevent address disposability
+// Doesn't seem to affect api functionality
+const pledgeAmount = '99999999999';
+
+// set it as the base ethereum chain for all ERC20 tokens
+const pledgeCurrenty = 'ETH';
 
 export const loginGivingBlocks = async (): Promise<{
   accessToken: string;
@@ -58,34 +56,44 @@ export const fetchGivingBlockProjects = async (
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    // Maybe result.data.data.organizations
-    return result.data.organizations;
+    return result?.data?.data?.organizations;
   } catch (e) {
     console.log('giving block service fetchGivingBlockProjects() err', e);
     throw e;
   }
 };
 
-export const organizationById = (
+export const fetchOrganizationById = async (
   accessToken: string,
   organizationId: number,
-): Promise<AxiosResponse> => {
-  return Axios.get(`${apiBaseUrl}/v1/organization/${organizationId}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+) => {
+  try {
+    const result = await Axios.get(
+      `${apiBaseUrl}/v1/organization/${organizationId}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    );
+
+    return result?.data?.data?.organization;
+  } catch (e) {
+    console.log('giving block service fetchOrganizationById() err', e);
+    throw e;
+  }
 };
 
 export const generateGivingBlockDepositAddress = async (
   accessToken: string,
   organizationId: number,
 ): Promise<string> => {
+  console.log(organizationId);
   try {
     const result = await Axios.post(
       `${apiBaseUrl}/v1/deposit-address`,
       {
         isAnonymous: true,
-        pledgeAmount: '0.1',
-        pledgeCurrency: 'ETH',
+        pledgeAmount: pledgeAmount,
+        pledgeCurrency: pledgeCurrenty,
         organizationId,
       },
       {

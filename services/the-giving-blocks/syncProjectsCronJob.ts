@@ -1,12 +1,12 @@
 import { schedule } from 'node-cron';
-import { Project, ProjStatus } from '../../entities/project';
-import { ProjectStatus } from '../../entities/projectStatus';
+import { Project, ProjStatus, ProjectUpdate } from '../../entities/project';
 import { Category } from '../../entities/category';
+import { sleep } from '../../utils/utils';
 import {
   loginGivingBlocks,
   fetchGivingBlockProjects,
   generateGivingBlockDepositAddress,
-  organizationById,
+  fetchOrganizationById,
   GivingBlockProject,
 } from './api';
 import {
@@ -15,6 +15,8 @@ import {
 } from '../../utils/validators/projectValidator';
 import config from '../../config';
 import slugify from 'slugify';
+
+const givingBlockCategoryName = 'The Giving Block';
 
 // Every week once on sunday at 0 hours
 const cronJobTime =
@@ -36,59 +38,53 @@ const exportGivingBlocksProjects = async () => {
   const accessToken = authResponse.accessToken;
 
   const givingBlocksProjects = await fetchGivingBlockProjects(accessToken);
+  const givingBlocksCategory = await findOrCreateGivingBlocksCategory();
 
   for (const givingBlockProject of givingBlocksProjects) {
-    await createGivingProject({ accessToken, givingBlockProject });
+    await createGivingProject({
+      accessToken,
+      givingBlockProject,
+      givingBlocksCategory,
+    });
+    await sleep(1500);
   }
 };
 
 const createGivingProject = async (data: {
   accessToken: string;
   givingBlockProject: GivingBlockProject;
+  givingBlocksCategory: GivingBlocksCategory;
 }) => {
-  const { accessToken, givingBlockProject } = data;
+  const { accessToken, givingBlockProject, givingBlocksCategory } = data;
   try {
-    // seems to break with internal server error on multiple calls
     const walletAddress = await generateGivingBlockDepositAddress(
       accessToken,
       givingBlockProject.id,
     );
-    // DISCUSS IN DEV CALL how to handle multiple currencies? we only have 1 address per project
 
     // Need to hit the API again to get website html strings
-    const organizationByIdResponse = await organizationById(
+    const organization = await fetchOrganizationById(
       accessToken,
       givingBlockProject.id,
     );
-    const categories =
-      organizationByIdResponse.data.data.organization.categories;
-    const description =
-      organizationByIdResponse.data.data.organization?.websiteBlocks
-        ?.missionStatement?.value;
-    const youtube =
-      organizationByIdResponse.data.data.organization?.websiteBlocks?.youtubeUrl
-        ?.value;
-    const website =
-      organizationByIdResponse.data.data.organization?.websiteBlocks?.url
-        ?.value;
+    const description = organization?.websiteBlocks?.missionStatement?.value;
+    const youtube = organization?.websiteBlocks?.youtubeUrl?.value;
+    const website = organization?.websiteBlocks?.url?.value;
 
     // Our Current Validations
-    await validateProjectWalletAddress(walletAddress as string);
-    await validateProjectTitle(givingBlockProject.name);
-    const slugBase = slugify(givingBlockProject.name);
+    //await validateProjectWalletAddress(walletAddress as string);
+    //await validateProjectTitle(givingBlockProject.name);
+    const slugBase = slugify(givingBlockProject.name, { remove: /[*+~.,()'"!:@]/g });
     const slug = await getAppropriateSlug(slugBase);
     const qualityScore = getQualityScore(
       description,
       Boolean(givingBlockProject.logo),
     );
 
-    // Find or create giving blocks categories
-    const dbCategories = await findOrCreateCategories(categories);
-
     const project = Project.create({
       title: givingBlockProject.name,
       description,
-      categories: dbCategories,
+      categories: [givingBlocksCategory],
       walletAddress,
       creationDate: new Date(),
       slug,
@@ -102,11 +98,24 @@ const createGivingProject = async (data: {
       totalDonations: 0,
       totalReactions: 0,
       totalProjectUpdates: 0,
+      listed: true,
       verified: true,
       giveBacks: true,
     });
 
     await project.save();
+
+    // create default projectUpdate to allow adding Reactions
+    const update = await ProjectUpdate.create({
+      userId: Number(adminId),
+      projectId: project.id,
+      content: '',
+      title: '',
+      createdAt: new Date(),
+      isMain: true,
+    });
+
+    await ProjectUpdate.save(update);
   } catch (e) {
     // Log Error but keep going with the rest of the projects
     console.log(e);
@@ -138,24 +147,21 @@ const getAppropriateSlug = async (slugBase: string) => {
   return slug;
 };
 
-// Are we creating giving blocks categories on our DB?
+// The GivingBlocks itself will be the category
+// To avoid extra logic bringing external ones.
 type GivingBlocksCategory = {
   id: number;
   name: string;
 };
 
-const findOrCreateCategories = async (categories: [GivingBlocksCategory]) => {
-  const currentCategories = await Promise.all(
-    categories.map(async category => {
-      let [c] = await Category.find({ givingBlocksId: category.id });
-      if (c === undefined) {
-        c = new Category();
-        c.givingBlocksId = category.id;
-        c.name = category.name;
-      }
-      return c;
-    }),
-  );
+const findOrCreateGivingBlocksCategory = async () => {
+  let category = await Category.findOne({ name: givingBlockCategoryName });
 
-  return currentCategories;
+  if (!category) {
+    category = new Category();
+    category.name = givingBlockCategoryName;
+    category.save();
+  }
+
+  return category;
 };

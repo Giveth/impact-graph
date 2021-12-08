@@ -28,10 +28,6 @@ export class Category extends BaseEntity {
   @Column({ nullable: true })
   source: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  givingBlocksId?: number;
-
   @ManyToMany(type => Project, project => project.categories)
   projects: Project[];
 }
