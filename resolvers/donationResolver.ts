@@ -97,8 +97,8 @@ export class DonationResolver {
       .where(`donation.projectId = ${projectId}`);
 
     const [donations, donationsCount] = await query
-      .limit(take)
-      .offset(skip)
+      .take(take)
+      .skip(skip)
       .getManyAndCount();
     const balance = await query
       .select('SUM(donation.valueUsd)', 'usdBalance')
