@@ -1,7 +1,12 @@
+import { extractTraceparentData } from '@sentry/tracing';
 import Axios, { AxiosResponse } from 'axios';
+import axiosRetry from 'axios-retry';
 import config from '../../config';
 
 const apiBaseUrl = config.get('GIVING_BLOCKS_URL') as string;
+
+// Maximum timeout of axios.
+const axiosTimeout = 3000;
 
 // Set high Number to prevent address disposability
 // Doesn't seem to affect api functionality
@@ -9,6 +14,19 @@ const pledgeAmount = '99999999999';
 
 // set it as the base ethereum chain for all ERC20 tokens
 const pledgeCurrenty = 'ETH';
+
+// Handle API timeouts and internal server errors with a retry + delay
+axiosRetry(Axios, {
+  retries: 3,
+  retryDelay: retryCount => {
+    console.log(`Axios Retry attempt: ${retryCount}`);
+    return retryCount * 1000; // time interval between retries
+  },
+  retryCondition: error => {
+    if (!error?.response?.status) return true;
+    return error.response!.status === 500;
+  },
+});
 
 export const loginGivingBlocks = async (): Promise<{
   accessToken: string;
@@ -47,13 +65,16 @@ export interface GivingBlockProject {
   id: number;
   name: string;
   logo: string;
+  allowsAnon: boolean;
 }
+
 export const fetchGivingBlockProjects = async (
   accessToken: string,
 ): Promise<GivingBlockProject[]> => {
   try {
     const result = await Axios.get(`${apiBaseUrl}/v1/organizations/list`, {
       headers: { Authorization: `Bearer ${accessToken}` },
+      timeout: axiosTimeout,
     });
 
     return result?.data?.data?.organizations;
@@ -72,6 +93,7 @@ export const fetchOrganizationById = async (
       `${apiBaseUrl}/v1/organization/${organizationId}`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
+        timeout: axiosTimeout,
       },
     );
 
@@ -86,7 +108,6 @@ export const generateGivingBlockDepositAddress = async (
   accessToken: string,
   organizationId: number,
 ): Promise<string> => {
-  console.log(organizationId);
   try {
     const result = await Axios.post(
       `${apiBaseUrl}/v1/deposit-address`,
@@ -98,6 +119,7 @@ export const generateGivingBlockDepositAddress = async (
       },
       {
         headers: { Authorization: `Bearer ${accessToken}` },
+        timeout: axiosTimeout,
       },
     );
     return result.data.data.depositAddress;

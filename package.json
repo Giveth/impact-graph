@@ -22,6 +22,7 @@
     "@uniswap/sdk": "^3.0.3",
     "abi-decoder": "^2.4.0",
     "admin-bro": "^4.0.1",
+    "axios-retry": "^3.2.4",
     "analytics-node": "^4.0.1",
     "apollo-server": "^2.21.0",
     "apollo-server-express": "^2.21.0",
