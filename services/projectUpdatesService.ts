@@ -6,7 +6,7 @@ export const updateTotalProjectUpdatesOfAProject = async (
 ) => {
   try {
     const totalProjectUpdates = await ProjectUpdate.count({
-      projectId,
+      where: { projectId, isMain: false },
     });
     await Project.update(
       { id: projectId },

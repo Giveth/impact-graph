@@ -254,7 +254,8 @@ class Project extends BaseEntity {
   ) {
     const query = this.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.donations', 'donations')
+      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
+      // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.reactions', 'reactions')
       .leftJoinAndSelect('project.users', 'users')
       .leftJoinAndMapOne(
@@ -273,7 +274,13 @@ class Project extends BaseEntity {
     if (searchTerm) this.addSearchQuery(query, searchTerm);
     if (filter) this.addFilterQuery(query, filter, filterValue);
 
-    query.orderBy(`project.${sortBy}`, direction);
+    if (sortBy == 'traceCampaignId') {
+      // TODO: PRISMA will fix this, temporary fix inverting nulls.
+      let traceableDirection = { 'ASC': 'NULLS FIRST', 'DESC': 'NULLS LAST' }
+      query.orderBy(`project.${sortBy}`, direction, traceableDirection[direction]);
+    } else {
+      query.orderBy(`project.${sortBy}`, direction);
+    }
 
     const projects = query.take(limit).skip(offset).getMany();
     const totalCount = query.getCount();

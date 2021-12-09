@@ -63,7 +63,7 @@ class AllProjects {
   @Field(type => Int)
   totalCount: number;
 
-  @Field(type => [Category])
+  @Field(type => [Category], { nullable: true })
   categories: Category[];
 }
 
@@ -336,7 +336,8 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.reactions', 'reactions')
-      .leftJoinAndSelect('project.donations', 'donations')
+      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
+      //.leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
@@ -966,6 +967,33 @@ export class ProjectResolver {
         address,
       })
       .getOne();
+  }
+
+  @Query(returns => AllProjects, { nullable: true })
+  async projectsByUserId(
+    @Arg('userId', type => Int) userId: number,
+    @Arg('take', { defaultValue: 10 }) take: number,
+    @Arg('skip', { defaultValue: 0 }) skip: number
+  ) {
+    const [projects, projectsCount] = await this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .where("CAST(project.admin AS INTEGER) = :userId", { userId: userId })
+      .orderBy('project.creationDate', 'DESC')
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      projects,
+      totalCount: projectsCount
+    }
   }
 
   async updateProjectStatus(
