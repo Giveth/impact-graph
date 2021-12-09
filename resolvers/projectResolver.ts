@@ -320,7 +320,7 @@ export class ProjectResolver {
   async projectById(@Arg('id') id: number) {
     return await this.projectRepository.findOne({
       where: { id },
-      relations: ['donations', 'reactions'],
+      relations: ['reactions'],
     });
   }
 
