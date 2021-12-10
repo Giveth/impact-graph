@@ -20,11 +20,11 @@ export class Category extends BaseEntity {
   @Column('text', { unique: true, nullable: true })
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   value: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   source: string;
 
