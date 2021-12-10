@@ -90,7 +90,7 @@ const createGivingProject = async (data: {
     const youtube = organization?.websiteBlocks?.youtubeUrl?.value;
     const website = organization?.websiteBlocks?.url?.value;
 
-    // Remove special characters
+    // Remove special characters including ,
     const slugBase = slugify(givingBlockProject.name, {
       remove: /[*+~.,()'"!:@]/g,
     });
