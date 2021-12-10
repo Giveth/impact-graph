@@ -61,79 +61,80 @@ const createGivingProject = async (data: {
     const givethProject = await Project.findOne({
       givingBlocksId: String(givingBlockProject.id),
     });
-    console.log(
-      `GivingBlocksProject ${
-        givingBlockProject.id
-      }. Exists: ${!!givethProject}`,
+    if (givethProject) {
+      console.log(`GivingBlocksProject ${givingBlockProject.id}. Exists`);
+      return;
+    }
+    console.log(`GivingBlocksProject ${givingBlockProject.id}. is not exists`);
+
+    const walletAddress = await generateGivingBlockDepositAddress(
+      accessToken,
+      givingBlockProject.id,
     );
 
-    if (!givethProject) {
-      const walletAddress = await generateGivingBlockDepositAddress(
-        accessToken,
-        givingBlockProject.id,
-      );
+    const organization = await fetchOrganizationById(
+      accessToken,
+      givingBlockProject.id,
+    );
 
-      const organization = await fetchOrganizationById(
-        accessToken,
-        givingBlockProject.id,
-      );
+    // Await enough for full limit to regenerate
+    await sleep(1000);
 
-      // Await enough for full limit to regenerate
-      await sleep(1000);
+    const description = organization?.websiteBlocks?.missionStatement?.value;
+    const youtube = organization?.websiteBlocks?.youtubeUrl?.value;
+    const website = organization?.websiteBlocks?.url?.value;
 
-      const description = organization?.websiteBlocks?.missionStatement?.value;
-      const youtube = organization?.websiteBlocks?.youtubeUrl?.value;
-      const website = organization?.websiteBlocks?.url?.value;
+    // Our Current Validations
+    const slugBase = slugify(givingBlockProject.name, {
+      remove: /[*+~.,()'"!:@]/g,
+    });
+    const slug = await getAppropriateSlug(slugBase);
+    const qualityScore = getQualityScore(
+      description,
+      Boolean(givingBlockProject.logo),
+    );
 
-      // Our Current Validations
-      const slugBase = slugify(givingBlockProject.name, {
-        remove: /[*+~.,()'"!:@]/g,
-      });
-      const slug = await getAppropriateSlug(slugBase);
-      const qualityScore = getQualityScore(
-        description,
-        Boolean(givingBlockProject.logo),
-      );
+    const project = Project.create({
+      title: givingBlockProject.name,
+      description,
+      categories: [givingBlocksCategory],
+      walletAddress,
+      creationDate: new Date(),
+      slug,
+      youtube,
+      website,
+      slugHistory: [],
+      givingBlocksId: String(givingBlockProject.id),
+      admin: adminId,
+      statusId: ProjStatus.active,
+      qualityScore,
+      totalDonations: 0,
+      totalReactions: 0,
+      totalProjectUpdates: 0,
+      listed: true,
+      verified: true,
+      giveBacks: true,
+    });
+    await project.save();
+    console.log(
+      'This giving blocks project has been created in our db givingBlocksId',
+      givingBlockProject.id,
+    );
 
-      const project = Project.create({
-        title: givingBlockProject.name,
-        description,
-        categories: [givingBlocksCategory],
-        walletAddress,
-        creationDate: new Date(),
-        slug,
-        youtube,
-        website,
-        slugHistory: [],
-        givingBlocksId: String(givingBlockProject.id),
-        admin: adminId,
-        statusId: ProjStatus.active,
-        qualityScore,
-        totalDonations: 0,
-        totalReactions: 0,
-        totalProjectUpdates: 0,
-        listed: true,
-        verified: true,
-        giveBacks: true,
-      });
+    // create default projectUpdate to allow adding Reactions
+    const update = ProjectUpdate.create({
+      userId: Number(adminId),
+      projectId: project.id,
+      content: '',
+      title: '',
+      createdAt: new Date(),
+      isMain: true,
+    });
 
-      await project.save();
-
-      // create default projectUpdate to allow adding Reactions
-      const update = ProjectUpdate.create({
-        userId: Number(adminId),
-        projectId: project.id,
-        content: '',
-        title: '',
-        createdAt: new Date(),
-        isMain: true,
-      });
-
-      await ProjectUpdate.save(update);
-    }
+    await ProjectUpdate.save(update);
   } catch (e) {
     // Log Error but keep going with the rest of the projects
-    console.log(e);
+    console.log('createGivingProject error', e);
   }
 };
 
@@ -176,7 +177,7 @@ const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
   if (!category) {
     category = new Category();
     category.name = givingBlockCategoryName;
-    category.save();
+    await category.save();
   }
 
   return category;
