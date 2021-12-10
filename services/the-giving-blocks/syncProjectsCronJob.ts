@@ -179,7 +179,7 @@ type GivingBlocksCategory = {
 };
 
 const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
-  let category = await Category.findOne({ name: givingBlockCategoryName });
+  let category = await Category.findOne({ name: givingBlockHandle });
 
   if (!category) {
     category = new Category();
