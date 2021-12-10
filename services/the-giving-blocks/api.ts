@@ -66,6 +66,17 @@ export interface GivingBlockProject {
   name: string;
   logo: string;
   allowsAnon: boolean;
+  websiteBlocks: WebsiteBlocks;
+}
+
+interface WebsiteBlocks {
+  missionStatement: BlockValue;
+  youtubeUrl: BlockValue;
+  url: BlockValue;
+}
+
+interface BlockValue {
+  value: string;
 }
 
 export const fetchGivingBlockProjects = async (
@@ -87,7 +98,7 @@ export const fetchGivingBlockProjects = async (
 export const fetchOrganizationById = async (
   accessToken: string,
   organizationId: number,
-) => {
+): Promise<GivingBlockProject> => {
   try {
     const result = await Axios.get(
       `${apiBaseUrl}/v1/organization/${organizationId}`,

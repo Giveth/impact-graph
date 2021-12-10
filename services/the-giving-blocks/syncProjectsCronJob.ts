@@ -138,7 +138,7 @@ const createGivingProject = async (data: {
 };
 
 // Current Formula: This will be changed in the future
-const getQualityScore = (description, hasImageUpload) => {
+const getQualityScore = (description, hasImageUpload): number => {
   let qualityScore = 40;
 
   // Some projects have no description
@@ -148,7 +148,7 @@ const getQualityScore = (description, hasImageUpload) => {
   return qualityScore;
 };
 
-const getAppropriateSlug = async (slugBase: string) => {
+const getAppropriateSlug = async (slugBase: string): Promise<string> => {
   let slug = slugBase.toLowerCase();
   const projectCount = await Project.createQueryBuilder('project')
     // check current slug and previous slugs
@@ -170,7 +170,7 @@ type GivingBlocksCategory = {
   name: string;
 };
 
-const findOrCreateGivingBlocksCategory = async () => {
+const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
   let category = await Category.findOne({ name: givingBlockCategoryName });
 
   if (!category) {
