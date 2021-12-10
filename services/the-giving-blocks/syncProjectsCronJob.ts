@@ -177,6 +177,7 @@ const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
   if (!category) {
     category = new Category();
     category.name = givingBlockCategoryName;
+    category.value = givingBlockCategoryName;
     await category.save();
   }
 
