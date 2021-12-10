@@ -15,8 +15,10 @@ import {
 } from '../../utils/validators/projectValidator';
 import config from '../../config';
 import slugify from 'slugify';
+import { ProjectStatus } from '../../entities/projectStatus';
 
 const givingBlockCategoryName = 'The Giving Block';
+const givingBlockHandle = 'the-giving-block';
 
 // Every week once on sunday at 0 hours
 const cronJobTime =
@@ -37,6 +39,8 @@ const exportGivingBlocksProjects = async () => {
   const authResponse = await loginGivingBlocks();
   const accessToken = authResponse.accessToken;
 
+  const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active })
+
   const givingBlocksProjects = await fetchGivingBlockProjects(accessToken);
   const givingBlocksCategory = await findOrCreateGivingBlocksCategory();
 
@@ -45,6 +49,7 @@ const exportGivingBlocksProjects = async () => {
       accessToken,
       givingBlockProject,
       givingBlocksCategory,
+      activeStatus
     });
   }
 };
@@ -53,8 +58,9 @@ const createGivingProject = async (data: {
   accessToken: string;
   givingBlockProject: GivingBlockProject;
   givingBlocksCategory: GivingBlocksCategory;
+  activeStatus?: ProjectStatus
 }) => {
-  const { accessToken, givingBlockProject, givingBlocksCategory } = data;
+  const { accessToken, givingBlockProject, givingBlocksCategory, activeStatus } = data;
   try {
     if (givingBlockProject.allowsAnon === false) return;
 
@@ -106,7 +112,7 @@ const createGivingProject = async (data: {
       slugHistory: [],
       givingBlocksId: String(givingBlockProject.id),
       admin: adminId,
-      statusId: ProjStatus.active,
+      status: activeStatus,
       qualityScore,
       totalDonations: 0,
       totalReactions: 0,
@@ -176,7 +182,7 @@ const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
 
   if (!category) {
     category = new Category();
-    category.name = givingBlockCategoryName;
+    category.name = givingBlockHandle;
     category.value = givingBlockCategoryName;
     await category.save();
   }
