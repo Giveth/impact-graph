@@ -86,6 +86,19 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   traceCampaignId?: string;
 
+  @Index({ unique: true, where: '"givingBlocksId" IS NOT NULL' })
+  @Field({ nullable: true })
+  @Column({ default: null, nullable: true })
+  givingBlocksId?: string;
+
+  @Field({ nullable: true })
+  @Column({ default: null, nullable: true })
+  website?: string;
+
+  @Field({ nullable: true })
+  @Column({ default: null, nullable: true })
+  youtube?: string;
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   organisationId?: number;
@@ -263,8 +276,12 @@ class Project extends BaseEntity {
 
     if (sortBy == 'traceCampaignId') {
       // TODO: PRISMA will fix this, temporary fix inverting nulls.
-      let traceableDirection = { 'ASC': 'NULLS FIRST', 'DESC': 'NULLS LAST' }
-      query.orderBy(`project.${sortBy}`, direction, traceableDirection[direction]);
+      let traceableDirection = { ASC: 'NULLS FIRST', DESC: 'NULLS LAST' };
+      query.orderBy(
+        `project.${sortBy}`,
+        direction,
+        traceableDirection[direction],
+      );
     } else {
       query.orderBy(`project.${sortBy}`, direction);
     }

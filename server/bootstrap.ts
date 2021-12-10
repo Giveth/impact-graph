@@ -28,6 +28,7 @@ import { SegmentEvents } from '../analytics/analytics';
 const AdminBroExpress = require('@admin-bro/express');
 
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
+import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
 
@@ -185,6 +186,11 @@ export async function bootstrap() {
     runCheckPendingProjectListingCronJob();
     processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
+
+    // If we need to deactivate the process use the env var
+    if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
+      runGivingBlocksProjectSynchronization();
+    }
   } catch (err) {
     console.error(err);
   }
