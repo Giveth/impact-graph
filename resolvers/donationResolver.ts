@@ -124,7 +124,7 @@ export class DonationResolver {
     const prices = await this.getMonoSwapTokenPrices(
       symbol,
       ['USDT', 'ETH'],
-      Number(chainId)
+      Number(chainId),
     );
     return prices;
   }
@@ -205,7 +205,7 @@ export class DonationResolver {
       const tokenPrices = await this.getMonoSwapTokenPrices(
         token,
         baseTokens,
-        Number(priceChainId)
+        Number(priceChainId),
       );
 
       if (tokenPrices.length !== 0) {
@@ -292,13 +292,13 @@ export class DonationResolver {
     }
   }
 
-  private async getMonoSwapTokenPrices(token: string, baseTokens: Array<string>, chainId: number): Promise<Array<number>> {
+  private async getMonoSwapTokenPrices(
+    token: string,
+    baseTokens: Array<string>,
+    chainId: number,
+  ): Promise<Array<number>> {
     try {
-      const tokenPrices = await getTokenPrices(
-        token,
-        baseTokens,
-        chainId,
-      );
+      const tokenPrices = await getTokenPrices(token, baseTokens, chainId);
 
       return tokenPrices;
     } catch (e) {
