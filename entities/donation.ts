@@ -65,7 +65,7 @@ export class Donation extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  contractAddress?: string;
+  tokenAddress?: string;
 
   @Field()
   @Column()
