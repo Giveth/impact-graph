@@ -39,7 +39,7 @@ const exportGivingBlocksProjects = async () => {
   const authResponse = await loginGivingBlocks();
   const accessToken = authResponse.accessToken;
 
-  const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active })
+  const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
 
   const givingBlocksProjects = await fetchGivingBlockProjects(accessToken);
   const givingBlocksCategory = await findOrCreateGivingBlocksCategory();
@@ -49,7 +49,7 @@ const exportGivingBlocksProjects = async () => {
       accessToken,
       givingBlockProject,
       givingBlocksCategory,
-      activeStatus
+      activeStatus,
     });
   }
 };
@@ -58,9 +58,14 @@ const createGivingProject = async (data: {
   accessToken: string;
   givingBlockProject: GivingBlockProject;
   givingBlocksCategory: GivingBlocksCategory;
-  activeStatus?: ProjectStatus
+  activeStatus?: ProjectStatus;
 }) => {
-  const { accessToken, givingBlockProject, givingBlocksCategory, activeStatus } = data;
+  const {
+    accessToken,
+    givingBlockProject,
+    givingBlocksCategory,
+    activeStatus,
+  } = data;
   try {
     if (givingBlockProject.allowsAnon === false) return;
 

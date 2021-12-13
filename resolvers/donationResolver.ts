@@ -154,7 +154,7 @@ export class DonationResolver {
     @Arg('transactionId', { nullable: true }) transactionId: string,
     @Arg('transactionNetworkId') transactionNetworkId: number,
     @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
-    @Arg('anonymous', { nullable: true }) anonymous: boolean,
+    @Arg('anonymous', { nullable: true }) anonymous: boolean,
     @Arg('token') token: string,
     @Arg('projectId') projectId: number,
     @Arg('chainId') chainId: number,
@@ -186,7 +186,8 @@ export class DonationResolver {
       }
 
       // ONLY when logged in, allow setting the anonymous boolean
-      const donationAnonymous = (userId && anonymous !== undefined) ? anonymous : !userId;
+      const donationAnonymous =
+        userId && anonymous !== undefined ? anonymous : !userId;
 
       const donation = await Donation.create({
         amount: Number(amount),
