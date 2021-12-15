@@ -913,6 +913,17 @@ export class ProjectResolver {
     return results;
   }
 
+  @Query(returns => [String])
+  async getProjectsRecipients(): Promise<String[]> {
+    const recipients = await Project.query(
+      `
+            SELECT "walletAddress" FROM project
+            WHERE verified=true 
+            `,
+    );
+    return recipients.map(({ walletAddress }) => walletAddress);
+  }
+
   @Query(returns => [Reaction])
   async getProjectReactions(
     @Arg('projectId') projectId: number,
