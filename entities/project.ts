@@ -238,6 +238,11 @@ class Project extends BaseEntity {
   }
 
   static addFilterQuery(query: any, filter: string, filterValue: boolean) {
+    if (filter === 'givingBlocksId') {
+      const acceptGiv = filterValue ? 'IS' : 'IS NOT';
+      return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
+    }
+
     return query.andWhere(`project.${filter} = ${filterValue}`);
   }
 
