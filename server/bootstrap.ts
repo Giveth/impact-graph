@@ -14,20 +14,12 @@ import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
 import { graphqlUploadExpress } from 'graphql-upload';
-import { Database, Resource } from '@admin-bro/typeorm';
+import { Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator';
 
-import { Project, ProjStatus } from '../entities/project';
-import { ProjectStatus } from '../entities/projectStatus';
-import { User } from '../entities/user';
-
-import AdminBro from 'admin-bro';
 import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
-import { SegmentEvents } from '../analytics/analytics';
-
-const AdminBroExpress = require('@admin-bro/express');
 
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
@@ -141,17 +133,15 @@ export async function bootstrap() {
 
     // Express Server
     const app = express();
-
     app.use(cors());
     app.use(bodyParser.json());
     const limiter = new RateLimit({
       store: new RedisStore({
+        prefix: 'rate-limit:',
         // see Configuration
       }),
-      // windowMs: 15 * 60 * 1000, // 15 minutes
-      windowMs: 1 * 60 * 1000, // 15 minutes
-      max: 5, // limit each IP to 100 requests per windowMs
-      delayMs: 0, // disable delaying - full speed until the max limit is reached
+      windowMs: 1 * 60 * 1000, // 1 minutes
+      max: 10, // limit each IP to 100 requests per windowMs
     });
     app.use(limiter);
     app.use(
