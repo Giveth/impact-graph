@@ -1,4 +1,5 @@
 import NotificationPayload from '../entities/notificationPayload';
+import { prisma } from '../prisma/prisma'
 import { Reaction, REACTION_TYPE } from '../entities/reaction';
 import {
   OrderField,
@@ -252,7 +253,7 @@ export class ProjectResolver {
       admin,
     }: GetProjectsArgs,
   ): Promise<AllProjects> {
-    const categories = await Category.find();
+    // const categories = await Category.find();
     const [projects, totalCount] = await Project.searchProjects(
       take,
       skip,
@@ -264,7 +265,9 @@ export class ProjectResolver {
       filterBy?.value,
     );
 
-    return { projects, totalCount, categories };
+    const categories = await prisma.category.findMany();
+
+    return { projects, totalCount, categories: [] };
   }
 
   @Query(returns => TopProjects)

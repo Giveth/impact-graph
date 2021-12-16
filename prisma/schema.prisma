@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TYPEORM_DATABASE_URL")
+}
+
+model account_verification {
+  id          Int      @id(map: "PK_10d9b71b18416f4588df39bf46c") @default(autoincrement())
+  platform    String   @db.VarChar
+  dId         String   @db.VarChar
+  protocol    String   @db.VarChar
+  claim       String   @db.VarChar
+  attestation String   @db.VarChar
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime @default(now()) @db.Timestamp(6)
+  userId      Int?
+  user        user?    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_2d4eff3e8d902988754fde5be03")
+
+  @@index([dId], map: "IDX_1a5dcfc24e8efb92d898d0dd87")
+  @@index([userId], map: "IDX_2d4eff3e8d902988754fde5be0")
+}
+
+model bank_account {
+  id                Int    @id(map: "PK_f3246deb6b79123482c6adb9745") @default(autoincrement())
+  projectId         Int
+  productId         String @db.VarChar
+  bankName          String @db.VarChar
+  accountHolderName String @db.VarChar
+  accountHolderType String @db.VarChar
+  country           String @db.VarChar
+  currency          String @db.VarChar
+  accountId         String @db.VarChar
+  fingerprint       String @db.VarChar
+  last4             String @db.VarChar
+  routingNumber     String @db.VarChar
+  status            String @db.VarChar
+}
+
+model category {
+  id                          Int                           @id(map: "PK_9c4e4a89e3674fc9f382d733f03") @default(autoincrement())
+  name                        String?                       @unique(map: "UQ_23c05c292c439d77b0de816b500")
+  value                       String?                       @db.VarChar
+  source                      String?                       @db.VarChar
+  project_categories_category project_categories_category[]
+}
+
+model donation {
+  id                     Int      @id(map: "PK_25fb5a541964bc5cfc18fb13a82") @default(autoincrement())
+  transactionId          String   @unique(map: "UQ_374306e28e5f707be9fbfc52a0c") @db.VarChar
+  nonce                  Int?
+  transactionNetworkId   Int
+  status                 String   @default("pending")
+  verifyErrorMessage     String?
+  speedup                Boolean  @default(false)
+  isFiat                 Boolean  @default(false)
+  toWalletAddress        String   @db.VarChar
+  fromWalletAddress      String   @db.VarChar
+  currency               String   @db.VarChar
+  anonymous              Boolean?
+  amount                 Float    @db.Real
+  valueEth               Float?   @db.Real
+  valueUsd               Float?   @db.Real
+  priceEth               Float?   @db.Real
+  priceUsd               Float?   @db.Real
+  createdAt              DateTime @db.Timestamp(6)
+  donationType           String?  @db.VarChar
+  transakStatus          String?  @db.VarChar
+  transakTransactionLink String?  @db.VarChar
+  projectId              Int?
+  userId                 Int?
+  tokenAddress           String?  @db.VarChar
+  project                project? @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_284a4db7a442587ef3e3c44ff44")
+  user                   user?    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_063499388657e648418470a439a")
+
+  @@index([userId], map: "IDX_063499388657e648418470a439")
+  @@index([projectId], map: "IDX_284a4db7a442587ef3e3c44ff4")
+}
+
+model organisation {
+  id                                 Int                                  @id(map: "PK_c725ae234ef1b74cce43d2d00c1") @default(autoincrement())
+  title                              String                               @db.VarChar
+  description                        String?                              @db.VarChar
+  organisation_projects_project      organisation_projects_project[]
+  organisation_user                  organisation_user[]
+  organisation_users_user            organisation_users_user[]
+  project_organisations_organisation project_organisations_organisation[]
+}
+
+model organisation_projects_project {
+  organisationId Int
+  projectId      Int
+  organisation   organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade, map: "FK_f94180ef35b0b3e086160f8c3d0")
+  project        project      @relation(fields: [projectId], references: [id], onDelete: Cascade, map: "FK_81b5ffa1019613a987eba29de08")
+
+  @@id([organisationId, projectId], map: "PK_37e55673b86a6716f0187f3d8b1")
+  @@index([projectId], map: "IDX_81b5ffa1019613a987eba29de0")
+  @@index([organisationId], map: "IDX_f94180ef35b0b3e086160f8c3d")
+}
+
+model organisation_user {
+  id             Int           @id(map: "PK_46bb51291b20632fa5018421302") @default(autoincrement())
+  role           String        @db.VarChar
+  organisationId Int?
+  userId         Int?
+  organisation   organisation? @relation(fields: [organisationId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_3aadfb2ed1a445cdc3e4874ac04")
+  user           user?         @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_418cc651e7d5a807d87811b5f62")
+}
+
+model organisation_users_user {
+  organisationId Int
+  userId         Int
+  organisation   organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade, map: "FK_3fd33a53717959eaca3284edc98")
+  user           user         @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_261fa3d243508bfc94e45405e23")
+
+  @@id([organisationId, userId], map: "PK_eac8f9e5df621f9316babe31ff0")
+  @@index([userId], map: "IDX_261fa3d243508bfc94e45405e2")
+  @@index([organisationId], map: "IDX_3fd33a53717959eaca3284edc9")
+}
+
+model project {
+  id                                 Int                                  @id(map: "PK_4d68b1358bb5b766d3e78f32f57") @default(autoincrement())
+  title                              String                               @db.VarChar
+  slug                               String?                              @db.VarChar
+  slugHistory                        String[]
+  admin                              String?                              @db.VarChar
+  description                        String?                              @db.VarChar
+  traceCampaignId                    String?                              @db.VarChar
+  organisationId                     Int?
+  creationDate                       DateTime?                            @db.Timestamp(6)
+  updatedAt                          DateTime?                            @default(now()) @db.Timestamp(6)
+  coOrdinates                        String?                              @db.VarChar
+  image                              String?                              @db.VarChar
+  impactLocation                     String?                              @db.VarChar
+  balance                            Float?
+  stripeAccountId                    String?                              @db.VarChar
+  walletAddress                      String                               @unique(map: "UQ_86cfc79126642910dd3104cdb29") @db.VarChar
+  verified                           Boolean
+  giveBacks                          Boolean
+  qualityScore                       Int?
+  totalDonations                     Float                                @db.Real
+  totalReactions                     Int?
+  totalProjectUpdates                Int?
+  listed                             Boolean?
+  statusId                           Int?
+  givingBlocksId                     String?                              @db.VarChar
+  website                            String?                              @db.VarChar
+  youtube                            String?                              @db.VarChar
+  project_status                     project_status?                      @relation(fields: [statusId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_b6d55aff9b16e061712260da686")
+  donation                           donation[]
+  organisation_projects_project      organisation_projects_project[]
+  project_categories_category        project_categories_category[]
+  project_image                      project_image[]
+  project_organisations_organisation project_organisations_organisation[]
+  project_users_user                 project_users_user[]
+  reaction                           reaction[]
+  user_projects_project              user_projects_project[]
+
+  @@index([slug], map: "IDX_6fce32ddd71197807027be6ad3")
+  @@index([slugHistory], map: "IDX_b567170a13f26c67548fd9d159")
+  @@index([statusId], map: "IDX_b6d55aff9b16e061712260da68")
+}
+
+model project_categories_category {
+  projectId  Int
+  categoryId Int
+  category   category @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_9b47f8b749484ae8bcb6b2550b7")
+  project    project  @relation(fields: [projectId], references: [id], onDelete: Cascade, map: "FK_c69602ecc23990f6c11b1ed4700")
+
+  @@id([projectId, categoryId], map: "PK_284bdc821ce5aa065f75fd92ebb")
+  @@index([categoryId], map: "IDX_9b47f8b749484ae8bcb6b2550b")
+  @@index([projectId], map: "IDX_c69602ecc23990f6c11b1ed470")
+}
+
+model project_image {
+  id        Int      @id(map: "PK_09b0ab9ec6330049e8a59289e32") @default(autoincrement())
+  projectId Int?
+  url       String?  @db.VarChar
+  project   project? @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_7b27cbd4456cc6313d8a476b32d")
+}
+
+model project_organisations_organisation {
+  projectId      Int
+  organisationId Int
+  organisation   organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade, map: "FK_f42db3961a69399813030f223f6")
+  project        project      @relation(fields: [projectId], references: [id], onDelete: Cascade, map: "FK_9059fcd0cee808885a0f59d0a94")
+
+  @@id([projectId, organisationId], map: "PK_e59a44e91c230a3c9abed8bf435")
+  @@index([projectId], map: "IDX_9059fcd0cee808885a0f59d0a9")
+  @@index([organisationId], map: "IDX_f42db3961a69399813030f223f")
+}
+
+model project_status {
+  id          Int       @id(map: "PK_625ed5469429a6b32e34ba9f827") @default(autoincrement())
+  symbol      String    @unique(map: "UQ_0742348e857789fde8cda81a2ce")
+  name        String?   @db.VarChar
+  description String?   @db.VarChar
+  project     project[]
+
+  @@index([name], map: "IDX_9d0a4ed696b85b68a07da85ee8")
+}
+
+model project_update {
+  id        Int      @id(map: "PK_b4f76307d68c3428aa2d555091f") @default(autoincrement())
+  title     String   @db.VarChar
+  projectId Int
+  userId    Int
+  content   String   @db.VarChar
+  createdAt DateTime @db.Timestamp(6)
+  isMain    Boolean?
+}
+
+model project_users_user {
+  projectId Int
+  userId    Int
+  project   project @relation(fields: [projectId], references: [id], onDelete: Cascade, map: "FK_9666c6dcd769c698bed4aa4bf55")
+  user      user    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_f8300efd87679e1e21532be9808")
+
+  @@id([projectId, userId], map: "PK_198c78e84c3bcdb0dc182e6d1e0")
+  @@index([projectId], map: "IDX_9666c6dcd769c698bed4aa4bf5")
+  @@index([userId], map: "IDX_f8300efd87679e1e21532be980")
+}
+
+model query_result_cache {
+  id         Int     @id(map: "PK_6a98f758d8bfd010e7e10ffd3d3") @default(autoincrement())
+  identifier String? @db.VarChar
+  time       BigInt
+  duration   Int
+  query      String
+  result     String
+
+  @@map("query-result-cache")
+}
+
+model reaction {
+  id              Int      @id(map: "PK_41fbb346da22da4df129f14b11e") @default(autoincrement())
+  projectUpdateId Int
+  userId          Int
+  reaction        String   @db.VarChar
+  projectId       Int?
+  project         project? @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c7ad7dffa79f1cfbfa08fe42555")
+
+  @@index([projectId], map: "IDX_c7ad7dffa79f1cfbfa08fe4255")
+  @@index([projectUpdateId], map: "IDX_fa21ddc1cacde7564819e93ce7")
+}
+
+model stripe_transaction {
+  id              Int      @id(map: "PK_845103cb14fe333f976df08d57e") @default(autoincrement())
+  projectId       Int
+  status          String   @db.VarChar
+  sessionId       String?  @db.VarChar
+  donorCustomerId String?  @db.VarChar
+  donorName       String?  @db.VarChar
+  donorEmail      String?  @db.VarChar
+  createdAt       DateTime @db.Timestamp(6)
+  amount          Float?
+  donateToGiveth  Boolean?
+  anonymous       Boolean  @default(false)
+  currency        String   @db.VarChar
+}
+
+model user {
+  id                      Int                       @id(map: "PK_cace4a159ff9f2512dd42373760") @default(autoincrement())
+  role                    user_role_enum            @default(restricted)
+  email                   String?                   @db.VarChar
+  firstName               String?                   @db.VarChar
+  lastName                String?                   @db.VarChar
+  name                    String?                   @db.VarChar
+  walletAddress           String                    @unique(map: "UQ_efbd1135797e451d834bcf88cd2") @db.VarChar
+  password                String?                   @db.VarChar
+  encryptedPassword       String?                   @db.VarChar
+  avatar                  String?                   @db.VarChar
+  url                     String?                   @db.VarChar
+  location                String?                   @db.VarChar
+  loginType               String                    @db.VarChar
+  dId                     String?                   @db.VarChar
+  confirmed               Boolean                   @default(false)
+  segmentIdentified       Boolean                   @default(false)
+  account_verification    account_verification[]
+  donation                donation[]
+  organisation_user       organisation_user[]
+  organisation_users_user organisation_users_user[]
+  project_users_user      project_users_user[]
+  user_projects_project   user_projects_project[]
+  wallet                  wallet[]
+}
+
+model user_projects_project {
+  userId    Int
+  projectId Int
+  project   project @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_936561888bfd63d01c79fe415c3")
+  user      user    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "FK_79daf0d2be103f4c30c77ddd6be")
+
+  @@id([userId, projectId], map: "PK_26a180af1ec7a8550f5c374fcd8")
+  @@index([userId], map: "IDX_79daf0d2be103f4c30c77ddd6b")
+  @@index([projectId], map: "IDX_936561888bfd63d01c79fe415c")
+}
+
+model wallet {
+  id      Int    @id(map: "PK_bec464dd8d54c39c54fd32e2334") @default(autoincrement())
+  address String @unique(map: "UQ_1dcc9f5fd49e3dc52c6d2393c53")
+  userId  Int
+  user    user   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_35472b1fe48b6330cd349709564")
+}
+
+enum user_role_enum {
+  admin
+  restricted
+}
