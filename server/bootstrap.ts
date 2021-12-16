@@ -4,7 +4,7 @@ import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
 import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
-import { json } from 'express';
+import { json, Request, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
@@ -45,7 +45,7 @@ export async function bootstrap() {
     }
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
-    const dbConnection = await TypeORM.createConnection({
+    await TypeORM.createConnection({
       type: 'postgres',
       database: config.get('TYPEORM_DATABASE_NAME') as string,
       username: config.get('TYPEORM_DATABASE_USER') as string,
@@ -141,7 +141,15 @@ export async function bootstrap() {
         // see Configuration
       }),
       windowMs: 1 * 60 * 1000, // 1 minutes
-      max: 10, // limit each IP to 100 requests per windowMs
+      max: 40, // limit each IP to 40 requests per windowMs
+      skip: (req: Request, res: Response) => {
+        const vercelKey = process.env.VERCEL_KEY;
+        if (vercelKey && req.headers.vercel_key === vercelKey) {
+          // Skip rate-limit for Vercel requests because our front is SSR
+          return true;
+        }
+        return false;
+      },
     });
     app.use(limiter);
     app.use(
