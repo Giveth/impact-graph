@@ -87,6 +87,7 @@ class ProjectAndAdmin {
 
 enum FilterField {
   Verified = 'verified',
+  AcceptGiv = 'givingBlocksId',
 }
 
 enum OrderDirection {
@@ -320,7 +321,7 @@ export class ProjectResolver {
   async projectById(@Arg('id') id: number) {
     return await this.projectRepository.findOne({
       where: { id },
-      relations: ['donations', 'reactions'],
+      relations: ['reactions'],
     });
   }
 
@@ -984,7 +985,7 @@ export class ProjectResolver {
   async projectsByUserId(
     @Arg('userId', type => Int) userId: number,
     @Arg('take', { defaultValue: 10 }) take: number,
-    @Arg('skip', { defaultValue: 0 }) skip: number
+    @Arg('skip', { defaultValue: 0 }) skip: number,
   ) {
     const [projects, projectsCount] = await this.projectRepository
       .createQueryBuilder('project')
@@ -995,7 +996,7 @@ export class ProjectResolver {
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       )
-      .where("CAST(project.admin AS INTEGER) = :userId", { userId: userId })
+      .where('CAST(project.admin AS INTEGER) = :userId', { userId: userId })
       .orderBy('project.creationDate', 'DESC')
       .take(take)
       .skip(skip)
@@ -1003,8 +1004,8 @@ export class ProjectResolver {
 
     return {
       projects,
-      totalCount: projectsCount
-    }
+      totalCount: projectsCount,
+    };
   }
 
   async updateProjectStatus(

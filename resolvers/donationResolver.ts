@@ -97,8 +97,8 @@ export class DonationResolver {
       .where(`donation.projectId = ${projectId}`);
 
     const [donations, donationsCount] = await query
-      .limit(take)
-      .offset(skip)
+      .take(take)
+      .skip(skip)
       .getManyAndCount();
     const balance = await query
       .select('SUM(donation.valueUsd)', 'usdBalance')
@@ -121,7 +121,11 @@ export class DonationResolver {
     @Arg('symbol') symbol: string,
     @Arg('chainId') chainId: number,
   ) {
-    const prices = await getTokenPrices(symbol, ['USDT', 'ETH'], chainId);
+    const prices = await this.getMonoSwapTokenPrices(
+      symbol,
+      ['USDT', 'ETH'],
+      Number(chainId),
+    );
     return prices;
   }
 
@@ -149,6 +153,8 @@ export class DonationResolver {
     @Arg('amount') amount: number,
     @Arg('transactionId', { nullable: true }) transactionId: string,
     @Arg('transactionNetworkId') transactionNetworkId: number,
+    @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
+    @Arg('anonymous', { nullable: true }) anonymous: boolean,
     @Arg('token') token: string,
     @Arg('projectId') projectId: number,
     @Arg('chainId') chainId: number,
@@ -179,6 +185,10 @@ export class DonationResolver {
         originUser = null;
       }
 
+      // ONLY when logged in, allow setting the anonymous boolean
+      const donationAnonymous =
+        userId && anonymous !== undefined ? anonymous : !userId;
+
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId?.toLowerCase() || transakId,
@@ -186,26 +196,31 @@ export class DonationResolver {
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         user: originUser,
+        tokenAddress,
         project,
         createdAt: new Date(),
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
-        anonymous: !userId,
+        anonymous: donationAnonymous,
       });
       await donation.save();
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
-      const tokenPrices = await getTokenPrices(
+      const tokenPrices = await this.getMonoSwapTokenPrices(
         token,
         baseTokens,
         Number(priceChainId),
       );
-      donation.priceUsd = Number(tokenPrices[0]);
-      donation.priceEth = Number(tokenPrices[1]);
 
-      donation.valueUsd = Number(amount) * donation.priceUsd;
-      donation.valueEth = Number(amount) * donation.priceEth;
+      if (tokenPrices.length !== 0) {
+        donation.priceUsd = Number(tokenPrices[0]);
+        donation.priceEth = Number(tokenPrices[1]);
+
+        donation.valueUsd = Number(amount) * donation.priceUsd;
+        donation.valueEth = Number(amount) * donation.priceEth;
+      }
+
       await donation.save();
 
       // After updating price we update totalDonations
@@ -279,6 +294,21 @@ export class DonationResolver {
       Logger.captureException(e);
       console.error(e);
       throw new Error(e);
+    }
+  }
+
+  private async getMonoSwapTokenPrices(
+    token: string,
+    baseTokens: Array<string>,
+    chainId: number,
+  ): Promise<Array<number>> {
+    try {
+      const tokenPrices = await getTokenPrices(token, baseTokens, chainId);
+
+      return tokenPrices;
+    } catch (e) {
+      console.log('Unable to fetch monoswap prices: ', e);
+      return [];
     }
   }
 }
