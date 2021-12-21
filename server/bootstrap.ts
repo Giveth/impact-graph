@@ -140,7 +140,7 @@ export async function bootstrap() {
     // Express Server
     const app = express();
 
-    const whitelistHostnames = (
+    const whitelistHostnames: string[] = (
       config.get('HOSTNAME_WHITELIST') as string
     ).split(',');
     const corsOptions = {
@@ -158,7 +158,10 @@ export async function bootstrap() {
 
         for (const allowedOrigin of whitelistHostnames) {
           // passing all subdomains of whitelist hosts, for instance x.vercel.app, x.giveth.io,...
-          if (formattedOrigin.endsWith(allowedOrigin)) {
+          if (
+            formattedOrigin === allowedOrigin ||
+            formattedOrigin.endsWith(`.${allowedOrigin}`)
+          ) {
             return callback(null, true);
           }
         }
