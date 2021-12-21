@@ -131,9 +131,12 @@ export async function bootstrap() {
       engine: {
         reportSchema: true,
       },
-      playground: {
-        endpoint: '/graphql',
-      },
+      playground:
+        process.env.DISABLE_APOLLO_PLAYGROUND === 'true'
+          ? false
+          : {
+              endpoint: '/graphql',
+            },
       introspection: true,
     });
 
