@@ -140,14 +140,31 @@ export async function bootstrap() {
     // Express Server
     const app = express();
 
-    const hostnames = (config.get('HOSTNAME_WHITELIST') as string).split(',');
+    const whitelistHostnames = (
+      config.get('HOSTNAME_WHITELIST') as string
+    ).split(',');
     const corsOptions = {
       origin(origin, callback) {
-        if (hostnames.indexOf(origin) !== -1) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
+        if (!origin) {
+          // allow requests with no origin (like mobile apps, Curl, ...)
+          return callback(null, true);
         }
+
+        // removing http:// , https://, and :port
+        const formattedOrigin = origin
+          .replace('https://', '')
+          .replace('http://', '')
+          .split(':')[0];
+
+        for (const allowedOrigin of whitelistHostnames) {
+          // passing all subdomains of whitelist hosts, for instance x.vercel.app, x.giveth.io,...
+          if (formattedOrigin.endsWith(allowedOrigin)) {
+            return callback(null, true);
+          }
+        }
+
+        console.log('CORS error', { whitelistHostnames, origin });
+        callback(new Error('Not allowed by CORS'));
       },
     };
     app.use(cors(corsOptions));
