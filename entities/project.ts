@@ -195,8 +195,8 @@ class Project extends BaseEntity {
   totalProjectUpdates: number;
 
   @Field(type => Boolean, { nullable: true })
-  @Column({ default: null, nullable: true })
-  listed: boolean;
+  @Column({ type: 'boolean', default: null, nullable: true })
+  listed?: boolean | null;
 
   // Virtual attribute to subquery result into
   @Field(type => User, { nullable: true })
@@ -316,7 +316,7 @@ class Project extends BaseEntity {
       .endOf('day');
 
     return this.createQueryBuilder('project')
-      .where({ creationDate: LessThan(maxDaysForListing) })
+      .where({ updatedAt: LessThan(maxDaysForListing) })
       .andWhere('project.listed IS NULL')
       .getMany();
   }
