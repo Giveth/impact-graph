@@ -434,6 +434,7 @@ export class ProjectResolver {
     }
     project.slug = newSlug;
     project.qualityScore = qualityScore;
+    project.listed = null;
     await project.save();
 
     // We dont wait for trace reponse, because it may increase our response time
