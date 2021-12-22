@@ -141,7 +141,7 @@ export async function bootstrap() {
         // see Configuration
       }),
       windowMs: 1 * 60 * 1000, // 1 minutes
-      max: 40, // limit each IP to 40 requests per windowMs
+      max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
       skip: (req: Request, res: Response) => {
         const vercelKey = process.env.VERCEL_KEY;
         if (vercelKey && req.headers.vercel_key === vercelKey) {

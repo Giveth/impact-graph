@@ -984,7 +984,7 @@ export class ProjectResolver {
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       )
-      .where('CAST(project.admin AS INTEGER) = :userId', { userId: userId })
+      .where('CAST(project.admin AS INTEGER) = :userId', { userId })
       .orderBy('project.creationDate', 'DESC')
       .take(take)
       .skip(skip)
