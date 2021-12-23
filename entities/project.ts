@@ -243,6 +243,11 @@ class Project extends BaseEntity {
       return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
     }
 
+    if (filter === 'traceCampaignId') {
+      const isRequested = filterValue ? 'IS NOT' : 'IS';
+      return query.andWhere(`project.${filter} ${isRequested} NULL`);
+    }
+
     return query.andWhere(`project.${filter} = ${filterValue}`);
   }
 
