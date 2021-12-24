@@ -103,11 +103,15 @@ export class DonationResolver {
     const balance = await query
       .select('SUM(donation.valueUsd)', 'usdBalance')
       .getRawOne();
+    const ethBalance = await query
+      .select('SUM(donation.valueEth)', 'ethBalance')
+      .getRawOne();
 
     return {
       donations,
       totalCount: donationsCount,
       totalUsdBalance: balance.usdBalance,
+      totalEthBalance: ethBalance.ethBalance,
     };
   }
 
