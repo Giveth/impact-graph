@@ -34,6 +34,9 @@ class PaginateDonations {
 
   @Field(type => Number, { nullable: true })
   totalUsdBalance: number;
+
+  @Field(type => Number, { nullable: true })
+  totalEthBalance: number;
 }
 
 @Resolver(of => User)
