@@ -88,6 +88,7 @@ class ProjectAndAdmin {
 enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
+  Traceable = 'traceCampaignId',
 }
 
 enum OrderDirection {
