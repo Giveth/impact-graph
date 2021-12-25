@@ -118,8 +118,8 @@ export class DonationResolver {
     return {
       donations,
       totalCount: donationsCount,
-      totalUsdBalance: balance.usdBalance,
-      totalEthBalance: ethBalance.ethBalance,
+      totalUsdBalance: balance?.usdBalance || 0,
+      totalEthBalance: ethBalance?.ethBalance || 0,
     };
   }
 
