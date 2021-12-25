@@ -109,10 +109,10 @@ export class DonationResolver {
       .getMany();
     const donationsCount = await query.getCount();
     const balance = await query
-      .select('SUM(donation.valueUsd)', 'usdBalance')
+      .select('COALESCE(SUM(donation.valueUsd),0)', 'usdBalance')
       .getRawOne();
     const ethBalance = await query
-      .select('SUM(donation.valueEth)', 'ethBalance')
+      .select('COALESCE(SUM(donation.valueEth),0)', 'ethBalance')
       .getRawOne();
 
     return {
