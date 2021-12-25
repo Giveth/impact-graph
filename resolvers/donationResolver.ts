@@ -99,10 +99,15 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.user', 'user')
       .where(`donation.projectId = ${projectId}`);
 
-    const [donations, donationsCount] = await query
+    const donations = await query
+      .groupBy(
+        'donation.createdAt, donation.id, donation.transactionId, donation.nonce, donation.transactionNetworkId, donation.status, donation.verifyErrorMessage, donation.speedup, donation.isFiat, donation.toWalletAddress, donation.fromWalletAddress, donation.tokenAddress, donation.currency, donation.anonymous, donation.amount, donation.valueEth, donation.valueUsd, donation.priceEth, donation.priceUsd, donation.projectId, donation.userId, donation.donationType, donation.transakStatus, donation.transakTransactionLink, user.id',
+      )
+      .orderBy(`donation.createdAt`, 'DESC')
       .take(take)
       .skip(skip)
-      .getManyAndCount();
+      .getMany();
+    const donationsCount = await query.getCount();
     const balance = await query
       .select('SUM(donation.valueUsd)', 'usdBalance')
       .getRawOne();
