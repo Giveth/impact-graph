@@ -99,27 +99,22 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.user', 'user')
       .where(`donation.projectId = ${projectId}`);
 
-    const donations = await query
-      .groupBy(
-        'donation.createdAt, donation.id, donation.transactionId, donation.nonce, donation.transactionNetworkId, donation.status, donation.verifyErrorMessage, donation.speedup, donation.isFiat, donation.toWalletAddress, donation.fromWalletAddress, donation.tokenAddress, donation.currency, donation.anonymous, donation.amount, donation.valueEth, donation.valueUsd, donation.priceEth, donation.priceUsd, donation.projectId, donation.userId, donation.donationType, donation.transakStatus, donation.transakTransactionLink, user.id',
-      )
-      .orderBy(`donation.createdAt`, 'DESC')
+    const [donations, donationsCount] = await query
       .take(take)
       .skip(skip)
-      .getMany();
-    const donationsCount = await query.getCount();
+      .getManyAndCount();
     const balance = await query
-      .select('COALESCE(SUM(donation.valueUsd),0)', 'usdBalance')
+      .select('SUM(donation.valueUsd)', 'usdBalance')
       .getRawOne();
     const ethBalance = await query
-      .select('COALESCE(SUM(donation.valueEth),0)', 'ethBalance')
+      .select('SUM(donation.valueEth)', 'ethBalance')
       .getRawOne();
 
     return {
       donations,
       totalCount: donationsCount,
-      totalUsdBalance: balance?.usdBalance || 0,
-      totalEthBalance: ethBalance?.ethBalance || 0,
+      totalUsdBalance: balance.usdBalance,
+      totalEthBalance: ethBalance.ethBalance,
     };
   }
 
