@@ -425,6 +425,12 @@ const mainnetTokens = [
     name: 'IDEX',
     decimals: 18,
   },
+  {
+    address: '0xde30da39c46104798bb5aa3fe8b9e0e1f348163f',
+    symbol: 'GTC',
+    name: 'Gitcoin',
+    decimals: 18,
+  },
 ];
 
 const ropstenTokens = [
