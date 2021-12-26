@@ -136,7 +136,7 @@ export async function bootstrap() {
 
     // Express Server
     const app = express();
-const whitelistHostnames: string[] = (
+    const whitelistHostnames: string[] = (
       config.get('HOSTNAME_WHITELIST') as string
     ).split(',');
     const corsOptions = {
