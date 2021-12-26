@@ -87,6 +87,8 @@ class ProjectAndAdmin {
 
 enum FilterField {
   Verified = 'verified',
+  AcceptGiv = 'givingBlocksId',
+  Traceable = 'traceCampaignId',
 }
 
 enum OrderDirection {
@@ -433,6 +435,7 @@ export class ProjectResolver {
     }
     project.slug = newSlug;
     project.qualityScore = qualityScore;
+    project.listed = null;
     await project.save();
 
     // We dont wait for trace reponse, because it may increase our response time
@@ -911,6 +914,17 @@ export class ProjectResolver {
       });
 
     return results;
+  }
+
+  @Query(returns => [String])
+  async getProjectsRecipients(): Promise<String[]> {
+    const recipients = await Project.query(
+      `
+            SELECT "walletAddress" FROM project
+            WHERE verified=true 
+            `,
+    );
+    return recipients.map(({ walletAddress }) => walletAddress);
   }
 
   @Query(returns => [Reaction])

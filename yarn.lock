@@ -9866,10 +9866,10 @@
   "resolved" "https://registry.npmjs.org/moment/-/moment-2.29.1.tgz"
   "version" "2.29.1"
 
-"monoswap@0.3.13":
-  "integrity" "sha512-3SQ30qRw57Hq3q+yVLQn/NrxOglfPkVbYv2br+4MHOesVzsnsF4uUAKdqHD5T717ZQYS/we83JA/rPg3xWGA4A=="
-  "resolved" "https://registry.npmjs.org/monoswap/-/monoswap-0.3.13.tgz"
-  "version" "0.3.13"
+"monoswap@0.3.14":
+  "integrity" "sha512-jQ7cZ91rJF2D8Yzy+t1KBsVYZwRsbw+lKJMIbSWk8uPgCHj3Lv4wweZezBUAoCPTrSHm5GhAaoxgt9NLvR2FCw=="
+  "resolved" "https://registry.npmjs.org/monoswap/-/monoswap-0.3.14.tgz"
+  "version" "0.3.14"
   dependencies:
     "@bscswap/sdk" "^3.0.15"
     "@pancakeswap-libs/sdk" "^1.0.1"
