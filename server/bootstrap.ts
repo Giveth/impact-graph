@@ -1,8 +1,10 @@
 import config from '../config';
+import RateLimit from 'express-rate-limit';
+import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
 import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
-import { json } from 'express';
+import { json, Request, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
@@ -12,20 +14,12 @@ import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
 import { graphqlUploadExpress } from 'graphql-upload';
-import { Database, Resource } from '@admin-bro/typeorm';
+import { Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator';
 
-import { Project, ProjStatus } from '../entities/project';
-import { ProjectStatus } from '../entities/projectStatus';
-import { User } from '../entities/user';
-
-import AdminBro from 'admin-bro';
 import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
-import { SegmentEvents } from '../analytics/analytics';
-
-const AdminBroExpress = require('@admin-bro/express');
 
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
@@ -51,7 +45,7 @@ export async function bootstrap() {
     }
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
-    const dbConnection = await TypeORM.createConnection({
+    await TypeORM.createConnection({
       type: 'postgres',
       database: config.get('TYPEORM_DATABASE_NAME') as string,
       username: config.get('TYPEORM_DATABASE_USER') as string,
@@ -142,7 +136,6 @@ export async function bootstrap() {
 
     // Express Server
     const app = express();
-
     const whitelistHostnames: string[] = (
       config.get('HOSTNAME_WHITELIST') as string
     ).split(',');
@@ -175,6 +168,23 @@ export async function bootstrap() {
     };
     app.use(cors(corsOptions));
     app.use(bodyParser.json());
+    const limiter = new RateLimit({
+      store: new RedisStore({
+        prefix: 'rate-limit:',
+        // see Configuration
+      }),
+      windowMs: 1 * 60 * 1000, // 1 minutes
+      max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
+      skip: (req: Request, res: Response) => {
+        const vercelKey = process.env.VERCEL_KEY;
+        if (vercelKey && req.headers.vercel_key === vercelKey) {
+          // Skip rate-limit for Vercel requests because our front is SSR
+          return true;
+        }
+        return false;
+      },
+    });
+    app.use(limiter);
     app.use(
       '/graphql',
       json({
