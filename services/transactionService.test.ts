@@ -385,6 +385,25 @@ const getTransactionDetailTestCases = () => {
     assert.equal(transactionInfo.currency, 'HNY');
     assert.equal(transactionInfo.amount, amount);
   });
+
+  it('should return transaction detail for GIV token transfer on XDAI', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0xe3b05b89f71b63e385c4971be872a9becd18f696b1e8abaddbc29c1cce59da63
+    const amount = 1500;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xe3b05b89f71b63e385c4971be872a9becd18f696b1e8abaddbc29c1cce59da63',
+      symbol: 'GIV',
+      networkId: NETWORK_IDS.XDAI,
+      fromAddress: '0x89E12F054526B985188b946063dDc874a62fEd45',
+      toAddress: '0xECb179EA5910D652eDa6988E919c7930F5Ffcf11',
+      amount,
+      timestamp: 1640408645,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'GIV');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return transaction detail for USDC token transfer on XDAI', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x00aef89fc40cea0cc0cb7ae5ac18c0e586dccb200b230a9caabca0e08ff7a36b
     const amount = 1;

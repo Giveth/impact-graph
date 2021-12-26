@@ -246,6 +246,10 @@ function validateTransactionWithInputData(
   if (input.timestamp - transaction.timestamp > ONE_HOUR) {
     // because we first create donation, then transaction will be mined, the transaction always should be greater than
     // donation created time, but we set one hour because maybe our server time is different with blockchain time server
+    console.log('errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION', {
+      transaction,
+      input,
+    });
     throw new Error(errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION);
   }
 }
