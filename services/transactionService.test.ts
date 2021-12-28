@@ -24,6 +24,26 @@ const getTransactionDetailTestCases = () => {
     assert.equal(transactionInfo.currency, 'ETH');
     assert.equal(transactionInfo.amount, amount);
   });
+
+  it('should return transaction detail for Gitcoin transfer on mainnet', async () => {
+    // https://etherscan.io/tx/0x860bd7499393a02e0e732bffec4b2cc52ac04220989f053770aa05c63dbf9725
+    const amount = 2;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x860bd7499393a02e0e732bffec4b2cc52ac04220989f053770aa05c63dbf9725',
+      symbol: 'GTC',
+      networkId: NETWORK_IDS.MAIN_NET,
+      fromAddress: '0xed8db37778804a913670d9367aaf4f043aad938b',
+      toAddress: '0x236daa98f115caa9991a3894ae387cdc13eaad1b',
+      timestamp: 1638994045,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'GTC');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+
   it('should return error when transactionHash is wrong on mainnet', async () => {
     const amount = 0.04;
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
@@ -365,6 +385,25 @@ const getTransactionDetailTestCases = () => {
     assert.equal(transactionInfo.currency, 'HNY');
     assert.equal(transactionInfo.amount, amount);
   });
+
+  it('should return transaction detail for GIV token transfer on XDAI', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0xe3b05b89f71b63e385c4971be872a9becd18f696b1e8abaddbc29c1cce59da63
+    const amount = 1500;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xe3b05b89f71b63e385c4971be872a9becd18f696b1e8abaddbc29c1cce59da63',
+      symbol: 'GIV',
+      networkId: NETWORK_IDS.XDAI,
+      fromAddress: '0x89E12F054526B985188b946063dDc874a62fEd45',
+      toAddress: '0xECb179EA5910D652eDa6988E919c7930F5Ffcf11',
+      amount,
+      timestamp: 1640408645,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'GIV');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return transaction detail for USDC token transfer on XDAI', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x00aef89fc40cea0cc0cb7ae5ac18c0e586dccb200b230a9caabca0e08ff7a36b
     const amount = 1;

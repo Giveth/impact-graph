@@ -425,6 +425,18 @@ const mainnetTokens = [
     name: 'IDEX',
     decimals: 18,
   },
+  {
+    address: '0xde30da39c46104798bb5aa3fe8b9e0e1f348163f',
+    symbol: 'GTC',
+    name: 'Gitcoin',
+    decimals: 18,
+  },
+  {
+    address: '0x900dB999074d9277c5DA2A43F252D74366230DA0',
+    symbol: 'GIV',
+    name: 'GIVETH',
+    decimals: 18,
+  },
 ];
 
 const ropstenTokens = [
@@ -513,6 +525,12 @@ const xDaiTokens = [
     address: '0x3a97704a1b25F08aa230ae53B352e2e72ef52843',
     symbol: 'AGVE',
     name: 'Agave Token',
+    decimals: 18,
+  },
+  {
+    address: '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75',
+    symbol: 'GIV',
+    name: 'Giveth',
     decimals: 18,
   },
 ];
