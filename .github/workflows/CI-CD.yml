@@ -9,9 +9,9 @@ jobs:
       postgres:
         image: postgres:12
         env:
-          POSTGRES_USER: giveth_user
-          POSTGRES_PASSWORD: mypass
-          POSTGRES_DB: giveth
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: givethio
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
