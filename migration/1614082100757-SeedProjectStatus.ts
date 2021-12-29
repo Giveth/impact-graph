@@ -3,46 +3,12 @@ import { ProjectStatus } from '../entities/projectStatus';
 
 export class SeedProjectStatus1614082100757 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
-    // const projectStatusRepository = getRepository(ProjectStatus)
-    // const projectStatuses = projectStatusRepository.create([{
-    //     symbol: 'rjt',
-    //     name: `rejected`,
-    //     description: 'This project has been rejected by Giveth or platform owner'
-    //   },
-    //   {
-    //     symbol: 'pen',
-    //     name: 'pending',
-    //     description: 'This project is created, but pending approval'
-    //   },
-    //   {
-    //     symbol: 'clr',
-    //     name: 'clarificaiton',
-    //     description: 'Clarification requested by Giveth or platform owner'
-    //   },
-    //   {
-    //     symbol: 'ver',
-    //     name: 'verification',
-    //     description: 'Verification in progress (including KYC or otherwise)'
-    //   },
-    //   {
-    //     symbol: 'act',
-    //     name: 'active',
-    //     description: 'This is an active project'
-    //   },
-    //   {
-    //     symbol: 'can',
-    //     name: 'cancelled',
-    //     description: 'Cancelled or deactivated (by owner)'
-    //   },
-    //   {
-    //     symbol: 'del',
-    //     name: 'delisted',
-    //     description: 'Delisted by Giveth or platform owner'
-    //   }
-    // ])
-
-    // await projectStatusRepository.save(projectStatuses)
-
+    const projectStatuses = await queryRunner.query(
+      `SELECT * FROM project_status`,
+    );
+    if (projectStatuses.length > 0) {
+      return;
+    }
     await queryRunner.query(`INSERT INTO public.project_status (symbol,"name",description) VALUES 
         ('rjt','rejected','This project has been rejected by Giveth or platform owner')
         ,('pen','pending','This project is created, but pending approval')
