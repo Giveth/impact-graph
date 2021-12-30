@@ -55,7 +55,7 @@ jobs:
         if: github.ref == 'refs/heads/staging'
         uses: garygrossgarten/github-action-ssh@v0.6.4
         with:
-          command: cd impact-graph && git checkout staging && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;
+          command: cd impact-graph && git checkout staging && git pull && npm ci --verbose && npm run typeorm:cli:live -- migration:run && npm run serve;
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USERNAME }}
           privateKey: ${{ secrets.STAGING_PRIVATE_KEY}}
