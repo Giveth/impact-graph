@@ -25,6 +25,7 @@ import { adminBroRootPath, getAdminBroRouter } from './adminBro';
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
+import { redis } from '../redis';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -171,6 +172,7 @@ export async function bootstrap() {
     const limiter = new RateLimit({
       store: new RedisStore({
         prefix: 'rate-limit:',
+        client: redis,
         // see Configuration
       }),
       windowMs: 1 * 60 * 1000, // 1 minutes
