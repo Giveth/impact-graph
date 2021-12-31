@@ -6,7 +6,7 @@ import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
 import { json, Request, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
-import { netlifyDeployed } from '../../netlify/deployed';
+import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
 import { resolvers } from '../resolvers/resolvers';
 import { entities } from '../entities/entities';

@@ -1,7 +1,7 @@
-import config from '../src/config';
+import config from '../config';
 import axios from 'axios';
-import Logger from '../src/logger';
-import { redis } from '../src/redis';
+import Logger from '../logger';
+import { redis } from '../redis';
 
 const deployHook = config.get('NETLIFY_DEPLOY_HOOK');
 const environment = config.get('ENVIRONMENT');
