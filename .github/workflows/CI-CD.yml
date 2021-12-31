@@ -72,7 +72,7 @@ jobs:
           privateKey: ${{ secrets.STAGING_PRIVATE_KEY}}
 
       - name: staging deploy
-        if: github.ref == 'refs/heads/dockerize'
+        if: github.ref == 'refs/heads/staging'
         uses: garygrossgarten/github-action-ssh@v0.6.4
         with:
           command: cd impact-graph && git checkout staging && git pull && npm ci && npm run typeorm:cli:live -- migration:run && npm run serve;
