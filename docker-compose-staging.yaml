@@ -9,7 +9,7 @@ services:
     # 1. docker-compose -f docker-compose-staging.yml pull
     # 2. docker-compose -f docker-compose-staging.yml down
     # 3. docker-compose -f docker-compose-staging.yml up -d
-    image: ghcr.io/giveth/impact-graph:staging
+    image: ghcr.io/giveth/impact-graph:dockerize
     environment:
       - NODE_ENV=production
     volumes:
