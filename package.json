@@ -4,8 +4,8 @@
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
-    "@admin-bro/express": "^3.1.0",
-    "@admin-bro/typeorm": "^1.4.0",
+    "@admin-bro/express": "3.1.0",
+    "@admin-bro/typeorm": "1.4.0",
     "@sentry/node": "^6.2.0",
     "@sentry/tracing": "^6.2.0",
     "@types/bcryptjs": "^2.4.2",
@@ -21,7 +21,7 @@
     "@types/uuid": "^7.0.4",
     "@uniswap/sdk": "^3.0.3",
     "abi-decoder": "^2.4.0",
-    "admin-bro": "^4.0.1",
+    "admin-bro": "4.0.1",
     "analytics-node": "^4.0.1",
     "apollo-server": "^2.21.0",
     "apollo-server-express": "^2.21.0",
@@ -104,11 +104,11 @@
     "tslint-plugin-prettier": "^2.3.0"
   },
   "scripts": {
-    "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register   ./**/**/*.test.ts ./**/*.test.ts src/services/**/*.test.ts",
-    "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn src/index.ts",
+    "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register   ./test/**/**/*.test.ts ./src/**/*.test.ts ./src/services/**/*.test.ts",
+    "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
-    "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f src/ormconfig.ts",
-    "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f src/ormconfig.ts",
+    "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
+    "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "prettify": "prettier --write '**/*.ts*'"
   },
   "husky": {
