@@ -1,10 +1,10 @@
 import { getTypeParameterOwner } from 'typescript';
-import { Project } from '../entities/project';
-import { redis } from '../redis';
+import { Project } from '../src/entities/project';
+import { redis } from '../src/redis';
 import { In } from 'typeorm';
-import { sendEmail } from '../utils/sendEmail';
-import { createConfirmationUrl } from '../utils/createConfirmationUrl';
-import Logger from '../logger';
+import { sendEmail } from '../src/utils/sendEmail';
+import { createConfirmationUrl } from '../src/utils/createConfirmationUrl';
+import Logger from '../src/logger';
 
 async function notifyProject(project) {
   if (project.users && project.users.length) {

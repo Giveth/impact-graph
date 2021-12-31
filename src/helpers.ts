@@ -25,7 +25,7 @@ export async function seedDatabase() {
   const serverEmail = config.get('SERVER_ADMIN_EMAIL').toString();
   const users: User[] = [];
 
-  /** 
+  /**
    * { name: 'sdg-poverty', value: 'End Poverty', source: 'SDG' },
     { name: 'sdg-hunger', value: 'Zero Hunger', source: 'SDG' },
     { name: 'sdg-health', value: 'Good Health and Well-being', source: 'SDG' },

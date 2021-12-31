@@ -15,7 +15,7 @@ import { UserPermissions } from '../permissions';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
-import { triggerBuild } from '../netlify/build';
+import { triggerBuild } from '../../netlify/build';
 import { MyContext } from '../types/MyContext';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';

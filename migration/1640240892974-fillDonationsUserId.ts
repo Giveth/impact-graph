@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { User } from '../entities/user';
-import { Donation } from '../entities/donation';
+import { User } from '../src/entities/user';
+import { Donation } from '../src/entities/donation';
 
 export class fillDonationsUserId1640240892974 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
