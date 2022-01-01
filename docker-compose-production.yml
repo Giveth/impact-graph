@@ -6,10 +6,10 @@ services:
 
     # is sometime you want to rollback you can change the tag manually in server( not commit to git)
     # from master to your desired commit hash and the run command:
-    # 1. docker-compose -f docker-compose-staging.yml pull
-    # 2. docker-compose -f docker-compose-staging.yml down
-    # 3. docker-compose -f docker-compose-staging.yml up -d
-    image: ghcr.io/giveth/impact-graph:staging
+    # 1. docker-compose -f docker-compose-production.yml pull
+    # 2. docker-compose -f docker-compose-production.yml down
+    # 3. docker-compose -f docker-compose-production.yml up -d
+    image: ghcr.io/giveth/impact-graph:latest
     environment:
       - NODE_ENV=production
     volumes:
