@@ -14,5 +14,4 @@ RUN apk add --no-cache  chromium --repository=http://dl-cdn.alpinelinux.org/alpi
 RUN npm ci
 RUN npm i -g ts-node
 CMD npm run typeorm:cli:live -- migration:run && ts-node --project ./tsconfig.json src/index.ts
-CMD  ts-node --project ./tsconfig.json src/index.ts
 EXPOSE 4000
