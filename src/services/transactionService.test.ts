@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import 'mocha';
 import { getTransactionInfoFromNetwork } from './transactionService';
-import { assertThrowsAsync } from '../test/testUtils';
+import { assertThrowsAsync } from '../../test/testUtils';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 const ONE_DAY = 60 * 60 * 24;
