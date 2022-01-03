@@ -3,6 +3,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions';
 import { Repository } from 'typeorm';
 import { Service } from 'typedi';
 import { errorMessages } from '../utils/errorMessages';
+import { logger } from '../utils/logger';
 
 @Service()
 export class UserPermissions {
@@ -12,8 +13,8 @@ export class UserPermissions {
   ) {}
 
   async mayAddProjectToOrganisation(email, organisationId) {
-    console.log(`organisationId ---> : ${organisationId}`);
-    console.log(`email ---> : ${email}`);
+    logger.debug(`organisationId ---> : ${organisationId}`);
+    logger.debug(`email ---> : ${email}`);
     const user = await this.userRepository.findOne({
       relations: ['organisations'],
       where: {

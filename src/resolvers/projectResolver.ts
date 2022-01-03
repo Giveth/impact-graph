@@ -25,7 +25,7 @@ import { Repository } from 'typeorm';
 import { Service } from 'typedi';
 import config from '../config';
 import slugify from 'slugify';
-import Logger from '../logger';
+import SentryLogger from '../sentryLogger';
 import {
   Arg,
   Args,
@@ -52,6 +52,7 @@ import {
 import { updateTotalReactionsOfAProject } from '../services/reactionsService';
 import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
+import { logger } from '../utils/logger';
 
 const analytics = getAnalytics();
 
@@ -123,7 +124,7 @@ async function getLoggedInUser(ctx: MyContext) {
   if (!user) {
     const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`;
     const userMessage = 'Access denied';
-    Logger.captureMessage(errorMessage);
+    SentryLogger.captureMessage(errorMessage);
     console.error(
       `Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`,
     );
@@ -360,8 +361,8 @@ export class ProjectResolver {
     const project = await Project.findOne({ id: projectId });
 
     if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
-    console.log(`project.admin ---> : ${project.admin}`);
-    console.log(`user.userId ---> : ${user.userId}`);
+    logger.debug(`project.admin ---> : ${project.admin}`);
+    logger.debug(`user.userId ---> : ${user.userId}`);
     if (project.admin !== String(user.userId))
       throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
 
@@ -487,7 +488,7 @@ export class ProjectResolver {
           projectId: imageUpload.projectId,
           projectImageId: projectImage.id,
         };
-        console.log(`response : ${JSON.stringify(response, null, 2)}`);
+        logger.debug(`response : ${JSON.stringify(response, null, 2)}`);
 
         return response;
       } catch (e) {
@@ -592,7 +593,7 @@ export class ProjectResolver {
     });
     await ProjectUpdate.save(update);
 
-    console.log(
+    logger.debug(
       `projectInput.projectImageIds : ${JSON.stringify(
         projectInput.projectImageIds,
         null,
@@ -602,7 +603,7 @@ export class ProjectResolver {
 
     // Associate already uploaded images:
     if (projectInput.projectImageIds) {
-      console.log(
+      logger.debug(
         'updating projectInput.projectImageIds',
         projectInput.projectImageIds,
       );
@@ -1071,7 +1072,7 @@ export class ProjectResolver {
       }
       return didDeactivate;
     } catch (error) {
-      Logger.captureException(error);
+      SentryLogger.captureException(error);
       throw error;
       return false;
     }
@@ -1086,7 +1087,7 @@ export class ProjectResolver {
       const user = await getLoggedInUser(ctx);
       return await this.updateProjectStatus(projectId, ProjStatus.active, user);
     } catch (error) {
-      Logger.captureException(error);
+      SentryLogger.captureException(error);
       throw error;
     }
   }

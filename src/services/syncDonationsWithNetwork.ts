@@ -7,6 +7,7 @@ import { schedule } from 'node-cron';
 // everything I used had problem so I had to add ts-ignore https://github.com/OptimalBits/bull/issues/1772
 import Bull from 'bull';
 import config from '../config';
+import { logger } from '../utils/logger';
 
 const verifyDonationsQueue = new Bull('verify-donations-queue');
 
@@ -19,7 +20,7 @@ const cronJobTime =
   (config.get('VERIFY_DONATION_CRONJOB_EXPRESSION') as string) || '0 0 * * * *';
 
 export const runCheckPendingDonationsCronJob = () => {
-  console.log('runCheckPendingDonationsCronJob() has been called');
+  logger.debug('runCheckPendingDonationsCronJob() has been called');
   processVerifyDonationsJobs();
   // https://github.com/node-cron/node-cron#cron-syntax
   schedule(cronJobTime, async () => {
@@ -36,7 +37,7 @@ const addJobToCheckPendingDonationsWithNetwork = async () => {
     select: ['id'],
   });
   if (donations.length === 0) {
-    console.log('There is no pending donation to check with network');
+    logger.debug('There is no pending donation to check with network');
   }
   donations.forEach(donation => {
     verifyDonationsQueue.add({
@@ -50,7 +51,7 @@ function processVerifyDonationsJobs() {
     numberOfVerifyDonationConcurrentJob,
     async (job, done) => {
       const { donationId } = job.data;
-      console.log('job processing', { jobData: job.data });
+      logger.debug('job processing', { jobData: job.data });
       const donation = await Donation.findOne(donationId);
       if (!donation) {
         throw new Error(errorMessages.DONATION_NOT_FOUND);
@@ -82,14 +83,14 @@ function processVerifyDonationsJobs() {
           donation.transactionId = transaction.hash;
         }
         await donation.save();
-        console.log('donation and transaction', {
+        logger.debug('donation and transaction', {
           transaction,
           donationId: donation.id,
         });
         done();
       } catch (e) {
         done();
-        console.log('checkPendingDonations() error', {
+        logger.debug('checkPendingDonations() error', {
           error: e,
           donationId: donation.id,
         });

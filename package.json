@@ -31,6 +31,8 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "bull": "^3.29.3",
+    "bunyan": "^1.8.15",
+    "bunyan-rotating-file-stream": "^2.0.0",
     "chalk": "^4.1.0",
     "class-validator": "^0.12.2",
     "connect": "^3.7.0",

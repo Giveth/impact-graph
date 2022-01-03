@@ -52,8 +52,8 @@ export default class Sdk {
     const route = new Route([pair], token);
     const price = route.midPrice.toSignificant(6);
 
-    // console.log('inv', route.midPrice.invert().toSignificant(6)) // 0.00496756
-    // console.log('price', price) // 201.306
+    // logger.debug('inv', route.midPrice.invert().toSignificant(6)) // 0.00496756
+    // logger.debug('price', price) // 201.306
 
     return Number(price);
   }

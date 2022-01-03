@@ -10,6 +10,7 @@ import {
 
 import Notification from '../entities/notification';
 import NotificationPayload from '../entities/notificationPayload';
+import { logger } from '../utils/logger';
 
 @Resolver(of => Notification)
 export class NotificationResolver {
@@ -18,7 +19,7 @@ export class NotificationResolver {
   })
   newNotification(@Root() { id, message }: NotificationPayload): Notification {
     const newNotification: Notification = { id, message, date: new Date() };
-    console.log(
+    logger.debug(
       `notificationPayload : ${JSON.stringify(newNotification, null, 2)}`,
     );
     return newNotification;

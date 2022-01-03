@@ -91,7 +91,7 @@ class Config {
     envVars.forEach(envVar => {
       if (envFile[envVar]) {
         this[envVar] = envFile[envVar];
-        // console.log(`envVar ---> : ${this[envVar]}`)
+        // logger.debug(`envVar ---> : ${this[envVar]}`)
       } else {
         throw new Error(`Need to provide a ${envVar} in the .env`);
       }

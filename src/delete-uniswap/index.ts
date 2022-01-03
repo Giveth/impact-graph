@@ -2,6 +2,7 @@ import Sdk from './sdk';
 import config from '../config';
 import { allTokens } from './tokenLists';
 import { textSpanIntersectsWith } from 'typescript';
+import { logger } from '../utils/logger';
 
 const INFURA_ID = config.get('ETHEREUM_NODE_ID');
 const ethers = require('ethers');
@@ -120,8 +121,8 @@ export async function getTokenPrice(
 
     if (token.address === baseToken.address) return 1;
 
-    console.log('FIND PAIR');
-    console.log(`{token,
+    logger.debug('FIND PAIR');
+    logger.debug(`{token,
       baseToken,
       getProvider(getNetworkFromChainId(chainId)),
       chainId} : ${JSON.stringify(
@@ -141,10 +142,10 @@ export async function getTokenPrice(
       getProvider(getNetworkFromChainId(chainId)),
       chainId,
     );
-    // console.log(`Found pair : ${JSON.stringify(pair, null, 2)}`)
+    // logger.debug(`Found pair : ${JSON.stringify(pair, null, 2)}`)
 
     const price = sdk.getPrice(pair, token, chainId);
-    // console.log(`price : ${JSON.stringify(price, null, 2)}`)
+    // logger.debug(`price : ${JSON.stringify(price, null, 2)}`)
     return price;
   } catch (error) {
     console.error(error);

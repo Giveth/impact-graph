@@ -19,3 +19,5 @@ config/production.env
 .vscode/settings.json
 
 *.rdb
+
+*.log

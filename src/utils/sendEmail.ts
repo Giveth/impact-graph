@@ -1,5 +1,7 @@
 // import nodemailer from "nodemailer";
 // tslint:disable-next-line:no-var-requires
+import { logger } from './logger';
+
 const nodemailer = require('nodemailer');
 
 export async function sendEmail(email: string, url: string) {
@@ -25,7 +27,7 @@ export async function sendEmail(email: string, url: string) {
 
   const info = await transporter.sendMail(mailOptions);
 
-  console.log('Message sent: %s', info.messageId);
+  logger.debug('Message sent: %s', info.messageId);
   // Preview only available when sending through an Ethereal account
-  console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+  logger.debug('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 }

@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/node';
-import * as Tracing from '@sentry/tracing';
 import config from './config';
 
 const sentryId = config.get('SENTRY_ID').toString();
