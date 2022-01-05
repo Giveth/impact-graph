@@ -124,4 +124,12 @@ export class Donation extends BaseEntity {
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   transakTransactionLink?: string;
+
+  // this are all the donations before monoswap was updated
+  static async initialGivDonations() {
+    return await this.createQueryBuilder('donation')
+      .where("donation.createdAt BETWEEN '2021-12-24' and '2021-12-29'")
+      .andWhere("donation.currency = 'GIV'")
+      .getMany();
+  }
 }
