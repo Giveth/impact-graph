@@ -9,7 +9,9 @@ import Bull from 'bull';
 import config from '../config';
 import { redisConfig } from '../redis';
 
-const verifyDonationsQueue = new Bull('verify-donations-queue', redisConfig);
+const verifyDonationsQueue = new Bull('verify-donations-queue', {
+  redis: redisConfig,
+});
 const TWO_MINUTES = 1000 * 60 * 2;
 setInterval(async () => {
   const verifyDonationsQueueCount = await verifyDonationsQueue.count();
