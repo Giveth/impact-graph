@@ -7,8 +7,9 @@ import { schedule } from 'node-cron';
 // everything I used had problem so I had to add ts-ignore https://github.com/OptimalBits/bull/issues/1772
 import Bull from 'bull';
 import config from '../config';
+import { redisConfig } from '../redis';
 
-const verifyDonationsQueue = new Bull('verify-donations-queue');
+const verifyDonationsQueue = new Bull('verify-donations-queue', redisConfig);
 
 // As etherscan free plan support 5 request per second I think it's better the concurrent jobs should not be
 // more than 5 with free plan https://etherscan.io/apis
@@ -28,6 +29,8 @@ export const runCheckPendingDonationsCronJob = () => {
 };
 
 const addJobToCheckPendingDonationsWithNetwork = async () => {
+  console.log('addJobToCheckPendingDonationsWithNetwork() has been called');
+
   const donations = await Donation.find({
     where: {
       status: DONATION_STATUS.PENDING,
