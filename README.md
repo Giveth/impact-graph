@@ -66,6 +66,7 @@ There are many strategies available for authentication
 
 #### Email address and password
 
+
 ```javascript
 mutation RegisterUser {
   mutation {

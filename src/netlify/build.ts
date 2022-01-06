@@ -71,12 +71,12 @@ export async function triggerBuild(projectId) {
 }
 // triggerBuild(1)
 export function notifyDiscord() {
-  /** 
-   * 
-   * post 
+  /**
+   *
+   * post
    * https://discord.com/api/webhooks/808058993708236821/OxjnuZyCHcqYydtLXNCyriwb7K6iNcde2RSHMam5ndtnpH96D4-XRNv-wkfQL9LT1frk
-   * 
-  
+   *
+
   {
     "name": "test webhook",
     "type": 1,
