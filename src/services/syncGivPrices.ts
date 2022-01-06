@@ -1,14 +1,10 @@
 import { Donation } from '../entities/donation';
 import { schedule } from 'node-cron';
 import { fetchGivHistoricPrice } from './givPriceService';
-
-import { getRepository } from 'typeorm';
-
-import config from '../config';
+import { convertExponentialNumber } from '../utils/utils';
 
 const cronJobTime =
-  (config.get('REVIEW_OLD_GIV_PRICES_CRONJOB_EXPRESSION') as string) ||
-  '0 0 * * *';
+  process.env.REVIEW_OLD_GIV_PRICES_CRONJOB_EXPRESSION || '0 0 * * *';
 
 export const runUpdateHistoricGivPrices = () => {
   console.log('runUpdateHistoricGivPrices() has been called');
@@ -17,24 +13,43 @@ export const runUpdateHistoricGivPrices = () => {
   });
 };
 
+const toFixNumber = (input: number, digits: number): number => {
+  return convertExponentialNumber(Number(input.toFixed(digits)));
+};
+
 const updateOldGivDonationPrice = async () => {
-  const donations = await Donation.initialGivDonations();
+  const donations = await Donation.findXdaiGivDonationsWithoutPrice();
+  console.log('updateOldGivDonationPrice donations count', donations.length);
   for (const donation of donations) {
     console.log(
-      'updateOldGivDonationPrice() updating accurate price:',
+      'updateOldGivDonationPrice() updating accurate price, donationId',
       donation.id,
     );
-    const givHistoricPrices = await fetchGivHistoricPrice(
-      donation.transactionId,
-    );
-
-    const donationRepository = getRepository(Donation);
-    await donationRepository.save({
-      id: donation.id,
-      priceUsd: givHistoricPrices.givPriceInUsd,
-      priceEth: givHistoricPrices.givPriceInEth,
-      valueUsd: donation.amount * givHistoricPrices.givPriceInUsd,
-      valueEth: donation.amount * givHistoricPrices.givPriceInEth,
-    });
+    try {
+      const givHistoricPrices = await fetchGivHistoricPrice(
+        donation.transactionId,
+      );
+      console.log('Update donation usd price ', {
+        donationId: donation.id,
+        ...givHistoricPrices,
+        valueEth: toFixNumber(
+          donation.amount * givHistoricPrices.givPriceInEth,
+          6,
+        ),
+      });
+      donation.priceEth = toFixNumber(givHistoricPrices.ethPriceInUsd, 6);
+      donation.priceUsd = toFixNumber(givHistoricPrices.givPriceInUsd, 3);
+      donation.valueUsd = toFixNumber(
+        donation.amount * givHistoricPrices.givPriceInUsd,
+        3,
+      );
+      donation.valueEth = toFixNumber(
+        donation.amount * givHistoricPrices.givPriceInEth,
+        6,
+      );
+      await donation.save();
+    } catch (e) {
+      console.log('Update GIV donation valueUsd error', e.message);
+    }
   }
 };

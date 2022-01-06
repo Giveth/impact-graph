@@ -2,10 +2,10 @@ import Axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 import config from '../config';
 
-const givPricesUrl = config.get('GIVETH_GIV_PRICES_URL') as string;
+const givPricesUrl = process.env.GIVETH_GIV_PRICES_URL;
 
 // Maximum timeout of axios.
-const axiosTimeout = 3000;
+const axiosTimeout = 20000;
 
 // Handle API timeouts and internal server errors with a retry + delay
 axiosRetry(Axios, {
@@ -16,7 +16,7 @@ axiosRetry(Axios, {
   },
   retryCondition: error => {
     if (!error?.response?.status) return true;
-    return error.response!.status === 500;
+    return error.response?.status === 500;
   },
 });
 
@@ -34,7 +34,6 @@ export const fetchGivHistoricPrice = async (
       headers: { accept: 'application/json' },
       timeout: axiosTimeout,
     });
-
     return result.data;
   } catch (e) {
     console.log('fetching Giv Historic Price fetchGivHistoricPrice() err', e);

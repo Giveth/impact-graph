@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
+import { NETWORK_IDS } from '../provider';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -125,11 +126,14 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true })
   transakTransactionLink?: string;
 
-  // this are all the donations before monoswap was updated
-  static async initialGivDonations() {
-    return await this.createQueryBuilder('donation')
-      .where("donation.createdAt BETWEEN '2021-12-24' and '2021-12-29'")
-      .andWhere("donation.currency = 'GIV'")
-      .getMany();
+  // these are all the donations before monoswap was updated
+  static async findXdaiGivDonationsWithoutPrice() {
+    return (
+      this.createQueryBuilder('donation')
+        .where(
+          `donation.currency = 'GIV' AND donation."valueUsd" IS NULL AND donation."transactionNetworkId" = ${NETWORK_IDS.XDAI}`,
+        )
+        .getMany()
+    );
   }
 }
