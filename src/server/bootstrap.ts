@@ -25,6 +25,7 @@ import { adminBroRootPath, getAdminBroRouter } from './adminBro';
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
+import { runUpdateHistoricGivPrices } from '../services/syncGivPrices';
 import { redis } from '../redis';
 
 // tslint:disable:no-var-requires
@@ -231,6 +232,7 @@ export async function bootstrap() {
     runCheckPendingProjectListingCronJob();
     processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
+    runUpdateHistoricGivPrices();
 
     // If we need to deactivate the process use the env var
     if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
