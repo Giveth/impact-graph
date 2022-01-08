@@ -17,6 +17,7 @@ export enum SegmentEvents {
   PROJECT_UPDATED_OWNER = 'Project updated - owner',
   PROJECT_CREATED = 'Project created',
   UPDATED_PROFILE = 'Updated profile',
+  GET_DONATION_PRICE_FAILED = 'Get Donation Price Failed',
 }
 
 class GraphAnalytics {
