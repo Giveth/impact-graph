@@ -1,7 +1,8 @@
 import Sdk from './sdk';
 import config from '../config';
-import { allTokens } from './tokenLists';
 import { textSpanIntersectsWith } from 'typescript';
+import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
+import { isSymbol } from 'util';
 
 const INFURA_ID = config.get('ETHEREUM_NODE_ID');
 const ethers = require('ethers');
@@ -27,10 +28,6 @@ function getNetworkFromChainId(chainId) {
   } else {
     throw new Error('Invalid chainId');
   }
-}
-
-export function getOurTokenList() {
-  return allTokens;
 }
 
 export async function getTokenPrices(
@@ -68,9 +65,7 @@ export function getTokenFromList(symbol: string, chainId: number) {
 
   inSymbol = symbol.toUpperCase() === 'XDAI' ? 'WXDAI' : inSymbol.toUpperCase();
 
-  const token = allTokens.find(
-    o => o.symbol === inSymbol && o.chainId === chainId,
-  );
+  const token = findTokenByNetworkAndSymbol(chainId, inSymbol);
 
   if (!token)
     throw new Error(`Token ${inSymbol} not found for chainId ${chainId}`);
