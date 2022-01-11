@@ -2,12 +2,17 @@ import { Donation } from '../entities/donation';
 import { schedule } from 'node-cron';
 import { fetchGivHistoricPrice } from './givPriceService';
 import { convertExponentialNumber } from '../utils/utils';
+import config from '../config';
 
 const cronJobTime =
-  process.env.REVIEW_OLD_GIV_PRICES_CRONJOB_EXPRESSION || '0 0 * * *';
+  (config.get('REVIEW_OLD_GIV_PRICES_CRONJOB_EXPRESSION') as string) ||
+  '0 0 * * *';
 
 export const runUpdateHistoricGivPrices = () => {
-  console.log('runUpdateHistoricGivPrices() has been called');
+  console.log(
+    'runUpdateHistoricGivPrices() has been called, cronJobTime',
+    cronJobTime,
+  );
   schedule(cronJobTime, async () => {
     await updateOldGivDonationPrice();
   });
