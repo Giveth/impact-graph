@@ -29,7 +29,10 @@ const cronJobTime =
   (config.get('VERIFY_DONATION_CRONJOB_EXPRESSION') as string) || '0 0 * * * *';
 
 export const runCheckPendingDonationsCronJob = () => {
-  console.log('runCheckPendingDonationsCronJob() has been called');
+  console.log(
+    'runCheckPendingDonationsCronJob() has been called, cronJobTime',
+    cronJobTime,
+  );
   processVerifyDonationsJobs();
   // https://github.com/node-cron/node-cron#cron-syntax
   schedule(cronJobTime, async () => {
