@@ -2,7 +2,14 @@
  * For running this script you should add a production.env in your config folder and run this:
  *  NODE_ENV=production  ts-node src/scripts/findConflicts.ts
  *  after running script a fill will be generated in ./src/scripts with including json
+ *  Then if you want to manually insert these donations to DB you should calculate valueUsd, ethUsd, userId,..
+ *  And after that you use below query:
  */
+//
+// INSERT INTO public.donation ("transactionId", "transactionNetworkId", "toWalletAddress", "fromWalletAddress", currency,
+//   anonymous, amount, "userId", "projectId", "createdAt", "valueUsd", "valuEth", "priceEth", "priceUsd", "status")
+// values (transactionId, transactionNetworkId, toWalletAddress, fromWalletAddress, currency, anonymous, amount,
+//   userId, projectId, createdAt, valueUsd, valuEth, priceEth, priceUsd, status)
 
 import axios from 'axios';
 import { getEtherscanOrBlockScoutUrl, NETWORK_IDS } from '../provider';
@@ -20,10 +27,10 @@ const EXCLUDED_FROM_ADDRESSES = ['0x0000000000000000000000000000000000000000'];
 
 const smartContractAddresses: string[] = [];
 
-// 2021/12/24 16:00:00 GMT
+// 2021/12/24 16:00:00 GMT, beginning of round
 const beginTimestamp = 1640361600;
 
-// 2021/01/07 16:00:00 GMT
+// 2021/01/07 16:00:00 GMT, end of round
 const endTimestamp = 1641571200;
 
 interface Transaction {
