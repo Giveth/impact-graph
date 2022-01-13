@@ -5,8 +5,8 @@ import { textSpanIntersectsWith } from 'typescript';
 import { logger } from '../utils/logger';
 
 const INFURA_ID = config.get('ETHEREUM_NODE_ID');
+// tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
-const network = 'mainnet';
 
 // const provider = new ethers.providers.InfuraProvider(network, INFURA_ID)
 function getProvider(network) {

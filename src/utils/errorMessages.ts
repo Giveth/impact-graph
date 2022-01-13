@@ -31,5 +31,5 @@ export const errorMessages = {
   PROJECT_WITH_THIS_TITLE_EXISTS:
     'There is a project with this title, please use another title',
   INVALID_PROJECT_TITLE:
-    "Your project name isn't valid, please only use letters and numbers",
+    'Your project name isnt valid, please only use letters and numbers',
 };

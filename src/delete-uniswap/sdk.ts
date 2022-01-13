@@ -1,7 +1,8 @@
 import * as UniSdk from '@uniswap/sdk';
 import * as HoneySdk from 'honeyswap-sdk';
 
-interface token {
+// tslint:disable-next-line:class-name
+interface tokenInterface {
   chainId: number;
   address: string;
   symbol: string;
@@ -37,7 +38,7 @@ export default class Sdk {
     }
   }
 
-  getSwapToken(token: token) {
+  getSwapToken(token: tokenInterface) {
     if (!token) throw new Error('Cannot swap a nothing');
     const { chainId, address, decimals, symbol, name } = token;
 

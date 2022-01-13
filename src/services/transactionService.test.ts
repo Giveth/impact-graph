@@ -43,7 +43,6 @@ const getTransactionDetailTestCases = () => {
     assert.equal(transactionInfo.amount, amount);
   });
 
-
   it('should return error when transactionHash is wrong on mainnet', async () => {
     const amount = 0.04;
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a

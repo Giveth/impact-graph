@@ -40,6 +40,7 @@ const envVars = [
   // 'XDAI_NODE_HTTP_URL',
   'SEGMENT_API_KEY',
 ];
+// tslint:disable-next-line:class-name
 interface requiredEnv {
   JWT_SECRET: string;
   JWT_MAX_AGE: string;

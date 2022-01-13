@@ -1,8 +1,12 @@
 import HTMLToPDF from 'html-pdf-node';
 
+// tslint:disable-next-line:no-var-requires
 const Handlebars = require('handlebars');
+// tslint:disable-next-line:no-var-requires
 const path = require('path');
+// tslint:disable-next-line:no-var-requires
 const fs = require('fs');
+// tslint:disable-next-line:no-var-requires
 const util = require('util');
 
 const readFile = util.promisify(fs.readFile);

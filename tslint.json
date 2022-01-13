@@ -15,9 +15,11 @@
         "semi": true,
         "tabWidth": 2,
         "useTabs": false,
-        "trailingComma": "all"
+        "trailingComma": "all",
+        "jsdoc-format": false
       }
     ],
+    "jsdoc-format": false,
     "adjacent-overload-signatures": true,
     "quotemark": [
       true,

@@ -50,7 +50,9 @@ export const loginGivingBlocks = async (): Promise<{
   }
 };
 
-export const refreshToken = (refreshToken: string): Promise<AxiosResponse> => {
+export const getRefreshToken = (
+  refreshToken: string,
+): Promise<AxiosResponse> => {
   return Axios.post(
     `${apiBaseUrl}/v1/refresh-tokens`,
     {
@@ -125,7 +127,7 @@ export const generateGivingBlockDepositAddress = async (
       `${apiBaseUrl}/v1/deposit-address`,
       {
         isAnonymous: true,
-        pledgeAmount: pledgeAmount,
+        pledgeAmount,
         pledgeCurrency: pledgeCurrenty,
         organizationId,
       },

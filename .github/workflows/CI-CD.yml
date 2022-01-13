@@ -29,6 +29,8 @@ jobs:
           node-version: 14.x
       - name: install dependencies
         run: npm ci
+      - name: Run tslint
+        run: npm run tslint
       - name: run tests
         run: npm run test
         env:
