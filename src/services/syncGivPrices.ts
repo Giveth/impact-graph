@@ -28,6 +28,7 @@ const updateOldGivDonationPrice = async () => {
     try {
       const givHistoricPrices = await fetchGivHistoricPrice(
         donation.transactionId,
+        donation.transactionNetworkId,
       );
       console.log('Update donation usd price ', {
         donationId: donation.id,
