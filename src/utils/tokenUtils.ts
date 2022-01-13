@@ -6,6 +6,12 @@ import { NETWORK_IDS } from '../provider';
  */
 const mainnetTokens = [
   {
+    name: 'Giveth Token',
+    symbol: 'GIV',
+    address: '0x900db999074d9277c5da2a43f252d74366230da0',
+    decimals: 18,
+  },
+  {
     address: '0xd56dac73a4d6766464b38ec6d91eb45ce7457c44',
     symbol: 'PAN',
     name: 'Panvala',
@@ -15,6 +21,84 @@ const mainnetTokens = [
     address: '0x6b175474e89094c44da98b954eedeac495271d0f',
     symbol: 'DAI',
     name: 'Dai',
+    decimals: 18,
+  },
+  {
+    address: '0x03ab458634910aad20ef5f1c8ee96f1d6ac54919',
+    symbol: 'RAI',
+    name: 'Rai Reflex Index',
+    decimals: 18,
+  },
+  {
+    address: '0xda007777d86ac6d989cc9f79a73261b3fc5e0da0',
+    symbol: 'NODE',
+    name: 'dAppNode',
+    decimals: 18,
+  },
+  {
+    address: '0x056fd409e1d7a124bd7017459dfea2f387b6d5cd',
+    symbol: 'GUSD',
+    name: 'Gemini Dollar',
+    decimals: 2,
+  },
+  {
+    address: '0xde30da39c46104798bb5aa3fe8b9e0e1f348163f',
+    symbol: 'GTC',
+    name: 'Gitcoin',
+    decimals: 18,
+  },
+  {
+    address: '0xc770eefad204b5180df6a14ee197d99d808ee52d',
+    symbol: 'FOX',
+    name: 'ShapeShift FOX Token (FOX)',
+    decimals: 18,
+  },
+  {
+    address: '0xD533a949740bb3306d119CC777fa900bA034cd52',
+    symbol: 'CRV',
+    name: 'Curve DAO Token',
+    decimals: 18,
+  },
+  {
+    address: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
+    symbol: 'UST',
+    name: 'TerraUSD',
+    decimals: 18,
+  },
+  {
+    address: '0x6b3595068778dd592e39a122f4f5a5cf09c90fe2',
+    symbol: 'SUSHI',
+    name: 'Sushi Token',
+    decimals: 18,
+  },
+  {
+    address: '0xba100000625a3754423978a60c9317c58a424e3d',
+    symbol: 'BAL',
+    name: 'Balancer',
+    decimals: 18,
+  },
+  {
+    address: '0xad32a8e6220741182940c5abf610bde99e737b2d',
+    symbol: 'DOUGH',
+    name: 'PieDAO DOUGH',
+    decimals: 18,
+  },
+  {
+    address: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
+    symbol: 'MIR',
+    name: 'Wrapped MIR Token',
+    decimals: 18,
+  },
+  {
+    address: '0x30cf203b48edaa42c3b4918e955fed26cd012a3f',
+    symbol: 'SEED',
+    name: 'Metagame SEED',
+    decimals: 18,
+  },
+  {
+    address: '0xdd1ad9a21ce722c151a836373babe42c868ce9a4',
+    symbol: 'UBI',
+    name: 'PoH Universal Basic Income',
     decimals: 18,
   },
   {
@@ -92,7 +176,7 @@ const mainnetTokens = [
   {
     address: '0xe41d2489571d322189246dafa5ebde1f4699f498',
     symbol: 'ZRX',
-    name: '0x',
+    name: 'ZRX 0x',
     decimals: 18,
   },
   {
@@ -122,7 +206,7 @@ const mainnetTokens = [
   {
     address: '0x80fb784b7ed66730e8b1dbd9820afd29931aab03',
     symbol: 'LEND',
-    name: 'Aave',
+    name: 'Lend Aave',
     decimals: 18,
   },
   {
@@ -300,7 +384,7 @@ const mainnetTokens = [
     decimals: 18,
   },
   {
-    address: '0x960b236a07cf122663c4303350609a66a7b288c0',
+    address: '0xa117000000f279d81a1d3cc75430faa017fa5a2e',
     symbol: 'ANT',
     name: 'Aragon',
     decimals: 18,
@@ -310,6 +394,30 @@ const mainnetTokens = [
     symbol: 'UBT',
     name: 'Unibright',
     decimals: 8,
+  },
+  {
+    address: '0x5dd57da40e6866c9fcc34f4b6ddc89f1ba740dfe',
+    symbol: 'BRIGHT',
+    name: 'BrightID',
+    decimals: 18,
+  },
+  {
+    address: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+    symbol: 'YFI',
+    name: 'yearn.finance',
+    decimals: 18,
+  },
+  {
+    address: '0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
+    symbol: 'SHIB',
+    name: 'SHIBA INU',
+    decimals: 18,
+  },
+  {
+    address: '0x111111111117dc0aa78b770fa6a738034120c302',
+    symbol: '1INCH',
+    name: '1INCH Token',
+    decimals: 18,
   },
   {
     address: '0xbe428c3867f05dea2a89fc76a102b544eac7f772',
@@ -324,7 +432,7 @@ const mainnetTokens = [
     decimals: 18,
   },
   {
-    address: '0x1c83501478f1320977047008496dacbd60bb15ef',
+    address: '0xc666081073e8dff8d3d1c2292a29ae1a2153ec09',
     symbol: 'DGTX',
     name: 'Digitex Futures',
     decimals: 18,
@@ -425,16 +533,192 @@ const mainnetTokens = [
     name: 'IDEX',
     decimals: 18,
   },
+  // ADD THESE TO MONOSWAP
   {
-    address: '0xde30da39c46104798bb5aa3fe8b9e0e1f348163f',
-    symbol: 'GTC',
-    name: 'Gitcoin',
+    address: '0x4fE83213D56308330EC302a8BD641f1d0113A4Cc',
+    symbol: 'NU',
+    name: 'NuCypher',
     decimals: 18,
   },
   {
-    address: '0x900dB999074d9277c5DA2A43F252D74366230DA0',
-    symbol: 'GIV',
-    name: 'GIVETH',
+    address: '0x875773784Af8135eA0ef43b5a374AaD105c5D39e',
+    symbol: 'IDLE',
+    name: 'Idle Finance',
+    decimals: 18,
+  },
+  {
+    address: '0x25f8087ead173b73d6e8b84329989a8eea16cf73',
+    symbol: 'YGG',
+    name: 'Yield Guild',
+    decimals: 18,
+  },
+  // THESE ARE TAKEN FROM THE GIVING BLOCK LIST
+  {
+    address: '0xdbdb4d16eda451d0503b854cf79d55697f90c8df',
+    symbol: 'ALCX',
+    name: 'Alchemix',
+    decimals: 18,
+  },
+  {
+    address: '0xff20817765cb7f73d4bde2e66e067e58d11095c2',
+    symbol: 'AMP',
+    name: 'Amp',
+    decimals: 18,
+  },
+  {
+    address: '0x8290333cef9e6d528dd5618fb97a76f268f3edd4',
+    symbol: 'ANKR',
+    name: 'Ankr Network',
+    decimals: 18,
+  },
+  {
+    address: '0xbb0e17ef65f82ab018d8edd776e8dd940327b28b',
+    symbol: 'AXS',
+    name: 'Axie Infinity Shard',
+    decimals: 18,
+  },
+  {
+    address: '0x0391D2021f89DC339F60Fff84546EA23E337750f',
+    symbol: 'BOND',
+    name: 'BarnBridge Governance Token',
+    decimals: 18,
+  },
+  {
+    address: '0x321c2fe4446c7c963dc41dd58879af648838f98d',
+    symbol: 'CTX',
+    name: 'Cryptex',
+    decimals: 18,
+  },
+  {
+    address: '0x4e15361fd6b4bb609fa63c81a2be19d873717870',
+    symbol: 'FTM',
+    name: 'Fantom Token',
+    decimals: 18,
+  },
+  {
+    address: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
+    symbol: 'GRT',
+    name: 'Graph Token',
+    decimals: 18,
+  },
+  {
+    address: '0xe28b3B32B6c345A34Ff64674606124Dd5Aceca30',
+    symbol: 'INJ',
+    name: 'Injective Token',
+    decimals: 18,
+  },
+  {
+    address: '0x58b6a8a3302369daec383334672404ee733ab239',
+    symbol: 'LPT',
+    name: 'Livepeer Token',
+    decimals: 18,
+  },
+  {
+    address: '0xfc98e825a2264d890f9a1e68ed50e1526abccacd',
+    symbol: 'MCO2',
+    name: 'Moss Carbon Credit',
+    decimals: 18,
+  },
+  {
+    address: '0x4575f41308EC1483f3d399aa9a2826d74Da13Deb',
+    symbol: 'OXT',
+    name: 'Orchid',
+    decimals: 18,
+  },
+  {
+    address: '0x3845badAde8e6dFF049820680d1F14bD3903a5d0',
+    symbol: 'SAND',
+    name: 'The Sandbox',
+    decimals: 18,
+  },
+  {
+    address: '0x00c83aecc790e8a4453e5dd3b0b4b3680501a7a7',
+    symbol: 'SKALE',
+    name: 'Skale',
+    decimals: 18,
+  },
+  {
+    address: '0xcc8fa225d80b9c7d42f96e9570156c65d6caaa25',
+    symbol: 'SLP',
+    name: 'Smooth Love Potion',
+    decimals: 18,
+  },
+  {
+    address: '0xdf801468a808a32656d2ed2d2d80b72a129739f4',
+    symbol: 'CUBE',
+    name: 'Somnium Space Cubes',
+    decimals: 18,
+  },
+  {
+    address: '0xb64ef51c888972c908cfacf59b47c1afbc0ab8ac',
+    symbol: 'STORJ',
+    name: 'Storj',
+    decimals: 18,
+  },
+  {
+    address: '0xd2877702675e6ceb975b4a1dff9fb7baf4c91ea9',
+    symbol: 'LUNA',
+    name: 'Wrapped LUNA Token',
+    decimals: 18,
+  },
+  {
+    address: '0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828',
+    symbol: 'UMA',
+    name: 'UMA Voting Token v1',
+    decimals: 18,
+  },
+  {
+    address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+    symbol: 'UNI',
+    name: 'Uniswap',
+    decimals: 18,
+  },
+  {
+    address: '0xc221b7e65ffc80de234bbb6667abdd46593d34f0',
+    symbol: 'wCFG',
+    name: 'Wrapped Centrifuge',
+    decimals: 18,
+  },
+  {
+    address: '0x18aAA7115705e8be94bfFEBDE57Af9BFc265B998',
+    symbol: 'AUDIO',
+    name: 'Audius',
+    decimals: 18,
+  },
+  {
+    address: '0x69af81e73a73b40adf4f3d4223cd9b1ece623074',
+    symbol: 'MASK',
+    name: 'Mask Network',
+    decimals: 18,
+  },
+  {
+    address: '0x31c8eacbffdd875c74b94b077895bd78cf1e64a3',
+    symbol: 'RAD',
+    name: 'Radicle',
+    decimals: 18,
+  },
+  {
+    address: '0x0b38210ea11411557c13457D4dA7dC6ea731B88a',
+    symbol: 'API3',
+    name: 'API3',
+    decimals: 18,
+  },
+  {
+    address: '0x71590d4ed14d9cbacb2cff8abf919ac4d22c5b7b',
+    symbol: 'ASH',
+    name: 'The Burn Token',
+    decimals: 18,
+  },
+  {
+    address: '0xba5bde662c17e2adff1075610382b9b691296350',
+    symbol: 'RARE',
+    name: 'SuperRare',
+    decimals: 18,
+  },
+  {
+    address: '0xaea46A60368A7bD060eec7DF8CBa43b7EF41Ad85',
+    symbol: 'FET',
+    name: 'Fetch',
     decimals: 18,
   },
 ];
@@ -461,6 +745,24 @@ const ropstenTokens = [
 ];
 
 const xDaiTokens = [
+  {
+    name: 'Giveth Token',
+    symbol: 'GIV',
+    address: '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75',
+    decimals: 18,
+  },
+  {
+    address: '0x1337BedC9D22ecbe766dF105c9623922A27963EC',
+    symbol: 'CRV',
+    name: 'Curve DAO Token',
+    decimals: 18,
+  },
+  {
+    address: '0xc60e38C6352875c051B481Cbe79Dd0383AdB7817',
+    symbol: 'XNODE',
+    name: 'dAppNode on xDAI',
+    decimals: 18,
+  },
   {
     address: '0x981fb9ba94078a2275a8fc906898ea107b9462a8',
     symbol: 'PAN',
@@ -513,13 +815,13 @@ const xDaiTokens = [
     address: '0x4ECaBa5870353805a9F068101A40E0f32ed605C6',
     symbol: 'USDT',
     name: 'Tether USD on xDai',
-    decimals: 18,
+    decimals: 6,
   },
   {
     address: '0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252',
     symbol: 'WBTC',
     name: 'Wrapped BTC on xDai',
-    decimals: 18,
+    decimals: 8,
   },
   {
     address: '0x3a97704a1b25F08aa230ae53B352e2e72ef52843',
@@ -528,9 +830,27 @@ const xDaiTokens = [
     decimals: 18,
   },
   {
-    address: '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75',
-    symbol: 'GIV',
-    name: 'Giveth',
+    address: '0x38Fb649Ad3d6BA1113Be5F57B927053E97fC5bF7',
+    symbol: 'XCOMB',
+    name: 'xDAI Native Comb',
+    decimals: 18,
+  },
+  {
+    address: '0xb0C5f3100A4d9d9532a4CfD68c55F1AE8da987Eb',
+    symbol: 'HAUS',
+    name: 'DAOhaus',
+    decimals: 18,
+  },
+  {
+    address: '0x21a42669643f45Bc0e086b8Fc2ed70c23D67509d',
+    symbol: 'FOX',
+    name: 'Fox Token',
+    decimals: 18,
+  },
+  {
+    address: '0x83FF60E2f93F8eDD0637Ef669C69D5Fb4f64cA8E',
+    symbol: 'BRIGHT',
+    name: 'Bright on xDAI',
     decimals: 18,
   },
 ];

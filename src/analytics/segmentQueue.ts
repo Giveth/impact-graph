@@ -3,9 +3,12 @@ import Bull from 'bull';
 
 import { getAnalytics } from './analytics';
 import { sleep } from '../utils/utils';
+import { redisConfig } from '../redis';
 const analytics = getAnalytics();
 
-const sendSegmentEventQueue = new Bull('send-segment-event');
+const sendSegmentEventQueue = new Bull('send-segment-event',  {
+  redis: redisConfig,
+});
 
 const numberOfVerifyDonationConcurrentJob = 1;
 

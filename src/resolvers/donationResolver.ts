@@ -22,6 +22,7 @@ import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import { logger } from '../utils/logger';
+import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 
 const analytics = getAnalytics();
 
@@ -215,18 +216,31 @@ export class DonationResolver {
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
-      const tokenPrices = await this.getMonoSwapTokenPrices(
-        token,
-        baseTokens,
-        Number(priceChainId),
-      );
+      try {
+        const tokenPrices = await this.getMonoSwapTokenPrices(
+          token,
+          baseTokens,
+          Number(priceChainId),
+        );
 
-      if (tokenPrices.length !== 0) {
-        donation.priceUsd = Number(tokenPrices[0]);
-        donation.priceEth = Number(tokenPrices[1]);
+        if (tokenPrices.length !== 0) {
+          donation.priceUsd = Number(tokenPrices[0]);
+          donation.priceEth = Number(tokenPrices[1]);
 
-        donation.valueUsd = Number(amount) * donation.priceUsd;
-        donation.valueEth = Number(amount) * donation.priceEth;
+          donation.valueUsd = Number(amount) * donation.priceUsd;
+          donation.valueEth = Number(amount) * donation.priceEth;
+        }
+      } catch (e) {
+        console.log('Error in getting price from monoswap', {
+          error: e,
+          donation,
+        });
+        addSegmentEventToQueue({
+          event: SegmentEvents.GET_DONATION_PRICE_FAILED,
+          analyticsUserId: userId,
+          properties: donation,
+          anonymousId: null,
+        });
       }
 
       await donation.save();
@@ -307,9 +321,9 @@ export class DonationResolver {
 
   private async getMonoSwapTokenPrices(
     token: string,
-    baseTokens: Array<string>,
+    baseTokens: string[],
     chainId: number,
-  ): Promise<Array<number>> {
+  ): Promise<number[]> {
     try {
       const tokenPrices = await getTokenPrices(token, baseTokens, chainId);
 
