@@ -117,7 +117,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "lint-staged"
+      "pre-commit": "npm run tslint"
     }
   },
   "standard": {
