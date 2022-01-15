@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Reaction } from '../entities/reaction';
+import { Reaction } from '../src/entities/reaction';
 
 export class UpdateTotalReactions1636314323228 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {

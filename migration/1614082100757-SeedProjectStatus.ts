@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner, getRepository } from 'typeorm';
-import { ProjectStatus } from '../entities/projectStatus';
+import { ProjectStatus } from '../src/entities/projectStatus';
 
 export class SeedProjectStatus1614082100757 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {

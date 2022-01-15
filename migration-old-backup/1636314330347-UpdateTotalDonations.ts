@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Donation } from '../entities/donation';
+import { Donation } from '../src/entities/donation';
 
 export class UpdateTotalDonations1636314330347 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
