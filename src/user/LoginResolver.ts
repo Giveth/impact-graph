@@ -82,8 +82,8 @@ export class LoginResolver {
     } catch (error) {
       SentryLogger.captureMessage(error);
 
-      console.error(`Apollo Server error : ${JSON.stringify(error, null, 2)}`);
-      console.error(`Error for token ${token}`);
+      logger.error(`Apollo Server error : ${JSON.stringify(error, null, 2)}`);
+      logger.error(`Error for token ${token}`);
       return false;
     }
   }

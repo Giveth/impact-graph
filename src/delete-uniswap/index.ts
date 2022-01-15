@@ -148,7 +148,12 @@ export async function getTokenPrice(
     // logger.debug(`price : ${JSON.stringify(price, null, 2)}`)
     return price;
   } catch (error) {
-    console.error(error);
+    logger.error('getTokenPrice error', {
+      error,
+      symbol,
+      baseSymbol,
+      chainId,
+    });
     throw new Error(error);
   }
 }

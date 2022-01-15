@@ -231,7 +231,7 @@ export class DonationResolver {
           donation.valueEth = Number(amount) * donation.priceEth;
         }
       } catch (e) {
-        console.log('Error in getting price from monoswap', {
+        logger.error('Error in getting price from monoswap', {
           error: e,
           donation,
         });
@@ -314,7 +314,7 @@ export class DonationResolver {
       return donation.id;
     } catch (e) {
       SentryLogger.captureException(e);
-      console.error(e);
+      logger.error('saveDonation() error', e);
       throw new Error(e);
     }
   }

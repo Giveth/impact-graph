@@ -125,7 +125,7 @@ async function getLoggedInUser(ctx: MyContext) {
     const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`;
     const userMessage = 'Access denied';
     SentryLogger.captureMessage(errorMessage);
-    console.error(
+    logger.error(
       `Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`,
     );
     throw new Error(userMessage);
@@ -403,7 +403,7 @@ export class ProjectResolver {
           },
         );
       } catch (e) {
-        console.error(e);
+        logger.error('editProject() error', e);
         throw Error('Upload file failed');
       }
     } else if (imageStatic) {
@@ -539,7 +539,7 @@ export class ProjectResolver {
           },
         );
       } catch (e) {
-        console.error(e);
+        logger.error('addProject() error', e);
         throw Error('Upload file failed');
       }
     } else if (imageStatic) {

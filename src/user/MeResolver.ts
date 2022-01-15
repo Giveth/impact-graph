@@ -8,6 +8,7 @@ import { OrganisationUser } from '../entities/organisationUser';
 import { MyContext } from '../types/MyContext';
 import { Repository, In } from 'typeorm';
 import SentryLogger from '../sentryLogger';
+import { logger } from '../utils/logger';
 
 function checkIfUserInRequest(ctx: MyContext) {
   if (!ctx.req.user) {
@@ -24,7 +25,7 @@ async function getLoggedInUser(ctx: MyContext) {
     const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`;
     const userMessage = 'Access denied';
     SentryLogger.captureMessage(errorMessage);
-    console.error(
+    logger.error(
       `Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`,
     );
     throw new Error(userMessage);

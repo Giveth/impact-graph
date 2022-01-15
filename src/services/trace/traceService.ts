@@ -54,7 +54,7 @@ export const dispatchProjectUpdateEvent = async (
 ): Promise<void> => {
   try {
     if (!project.traceCampaignId) {
-      console.log(
+      logger.debug(
         'updateCampaignInTrace(), the project is not a trace campaign',
         {
           projectId: project.id,
@@ -70,11 +70,11 @@ export const dispatchProjectUpdateEvent = async (
       archived: project.statusId === ProjStatus.cancel,
     };
 
-    console.log('dispatchProjectUpdateEvent() add event to queue', payload);
+    logger.debug('dispatchProjectUpdateEvent() add event to queue', payload);
     // Giveth trace will handle this event
     await updateGivethIoProjectQueue.add(payload);
   } catch (e) {
-    console.log('updateCampaignInTrace() error', {
+    logger.error('updateCampaignInTrace() error', {
       e,
       project,
     });
@@ -89,7 +89,7 @@ export const initHandlingTraceCampaignUpdateEvents = () => {
     try {
       const { givethIoProjectId, campaignId, status, title, description } =
         job.data;
-      console.log('updateGivethIoProjectQueue(), job.data', job.data);
+      logger.debug('updateGivethIoProjectQueue(), job.data', job.data);
       const project = await Project.findOne(givethIoProjectId);
       if (!project) {
         throw new Error(errorMessages.PROJECT_NOT_FOUND);

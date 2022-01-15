@@ -26,9 +26,7 @@
       "single"
     ],
     "ban-types": false,
-    "no-console": [
-      false
-    ],
+    "no-console": true,
     "no-namespace": false,
     "object-literal-sort-keys": false,
     "max-classes-per-file": false,

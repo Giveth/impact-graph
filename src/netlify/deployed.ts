@@ -51,6 +51,6 @@ export async function netlifyDeployed(request, response) {
 
     return response.json({ received: true });
   } catch (error) {
-    console.error(error);
+    logger.error('netlifyDeployed() error', error);
   }
 }

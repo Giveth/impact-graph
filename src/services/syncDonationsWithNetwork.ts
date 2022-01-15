@@ -16,7 +16,7 @@ const verifyDonationsQueue = new Bull('verify-donations-queue', {
 const TWO_MINUTES = 1000 * 60 * 2;
 setInterval(async () => {
   const verifyDonationsQueueCount = await verifyDonationsQueue.count();
-  console.log(`Verify donations job queues count:`, {
+  logger.debug(`Verify donations job queues count:`, {
     verifyDonationsQueueCount,
   });
 }, TWO_MINUTES);
@@ -39,7 +39,7 @@ export const runCheckPendingDonationsCronJob = () => {
 };
 
 const addJobToCheckPendingDonationsWithNetwork = async () => {
-  console.log('addJobToCheckPendingDonationsWithNetwork() has been called');
+  logger.debug('addJobToCheckPendingDonationsWithNetwork() has been called');
 
   const donations = await Donation.find({
     where: {
@@ -50,7 +50,7 @@ const addJobToCheckPendingDonationsWithNetwork = async () => {
   });
   logger.debug('Pending donations to be check', donations.length);
   donations.forEach(donation => {
-    console.log('Add pending donation to queue', { donationId: donation.id });
+    logger.debug('Add pending donation to queue', { donationId: donation.id });
     verifyDonationsQueue.add({
       donationId: donation.id,
     });
@@ -58,7 +58,7 @@ const addJobToCheckPendingDonationsWithNetwork = async () => {
 };
 
 function processVerifyDonationsJobs() {
-  console.log('processVerifyDonationsJobs() has been called');
+  logger.debug('processVerifyDonationsJobs() has been called');
   verifyDonationsQueue.process(
     numberOfVerifyDonationConcurrentJob,
     async (job, done) => {

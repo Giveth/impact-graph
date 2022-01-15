@@ -67,7 +67,7 @@ export async function triggerBuild(projectId) {
     }
   } catch (e) {
     SentryLogger.captureException(e);
-    console.error(`Error while triggering rebuild`, e);
+    logger.error(`Error while triggering rebuild`, e);
   }
 }
 // triggerBuild(1)
