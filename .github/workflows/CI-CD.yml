@@ -41,7 +41,7 @@ jobs:
       - name: Run migrations
         run: npm run typeorm:cli:test -- migration:run
       - name: Run tests
-        run: npm run test
+        run: npm run test:actions
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
