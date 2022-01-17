@@ -126,12 +126,9 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true })
   transakTransactionLink?: string;
 
-  // these are all the donations before monoswap was updated
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')
-      .where(
-        `donation.currency = 'GIV' AND donation."valueUsd" IS NULL AND donation."transactionNetworkId" = ${NETWORK_IDS.XDAI}`,
-      )
+      .where(`donation.currency = 'GIV' AND donation."valueUsd" IS NULL `)
       .getMany();
   }
 }

@@ -2,8 +2,9 @@ import Axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 import config from '../config';
 import { logger } from '../utils/logger';
+import { NETWORK_IDS } from '../provider';
 
-const givPricesUrl = process.env.GIVETH_GIV_PRICES_URL;
+const givPricesUrl = process.env.GIVETH_GIV_PRICES_URL as string;
 
 // Maximum timeout of axios.
 const axiosTimeout = 20000;
@@ -29,10 +30,19 @@ export interface GivPricesResponse {
 
 export const fetchGivHistoricPrice = async (
   txHash: string,
+  networkId: number,
 ): Promise<GivPricesResponse> => {
   try {
-    const result = await Axios.get(`${givPricesUrl}?txHash=${txHash}`, {
+    const network = networkId === NETWORK_IDS.MAIN_NET ? 'mainnet' : 'xdai';
+    /**
+     * @see {@link https://givback.develop.giveth.io/api-docs/#/default/get_givPrice}
+     */
+    const result = await Axios.get(givPricesUrl, {
       headers: { accept: 'application/json' },
+      params: {
+        txHash,
+        network,
+      },
       timeout: axiosTimeout,
     });
     return result.data;
