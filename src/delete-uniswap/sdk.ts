@@ -1,5 +1,6 @@
 import * as UniSdk from '@uniswap/sdk';
 import * as HoneySdk from 'honeyswap-sdk';
+import { logger } from '../utils/logger';
 
 // tslint:disable-next-line:class-name
 interface tokenInterface {

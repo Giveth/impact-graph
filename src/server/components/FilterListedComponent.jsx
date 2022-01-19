@@ -5,7 +5,6 @@ import { FormGroup, filterStyles, Label } from '@admin-bro/design-system'
 
 const FilterListedComponent = props => {
   const { onChange, property, theme } = props;
-  logger.debug(props);
 
   const handleChange = (selected) => {
     onChange(property.path, selected ? selected.value : '')
