@@ -3,6 +3,7 @@ import { errorMessages } from '../../utils/errorMessages';
 import { ProjectStatus } from '../../entities/projectStatus';
 import { RedisOptions } from 'ioredis';
 import { logger } from '../../utils/logger';
+import axios from 'axios';
 // tslint:disable-next-line:no-var-requires
 const Queue = require('bull');
 
@@ -122,4 +123,17 @@ export const initHandlingTraceCampaignUpdateEvents = () => {
       done();
     }
   });
+};
+
+export const getCampaignTotalDonationsInUsd = async (
+  campaignId: string,
+): Promise<number> => {
+  const url = `${process.env.GIVETH_TRACE_BASE_URL}/campaignTotalDonationValue/${campaignId}`;
+  try {
+    const result = await axios.get(url);
+    return result.data.totalUsdValue;
+  } catch (e) {
+    logger.error('getCampaignTotalDonationsInUsd error', e);
+    throw e;
+  }
 };

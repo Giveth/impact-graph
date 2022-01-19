@@ -1,10 +1,10 @@
-import { Project } from '../entities/project';
+import { Project } from '../../entities/project';
 import { schedule } from 'node-cron';
 import { getRepository } from 'typeorm';
 
-import config from '../config';
-import { SegmentEvents } from '../analytics/analytics';
-import { logger } from '../utils/logger';
+import config from '../../config';
+import { SegmentEvents } from '../../analytics/analytics';
+import { logger } from '../../utils/logger';
 
 const cronJobTime =
   (config.get('MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB_EXPRESSION') as string) ||
