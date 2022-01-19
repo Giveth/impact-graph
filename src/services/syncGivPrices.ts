@@ -3,12 +3,13 @@ import { schedule } from 'node-cron';
 import { fetchGivHistoricPrice } from './givPriceService';
 import { convertExponentialNumber } from '../utils/utils';
 import { updateTotalDonationsOfProject } from './donationService';
+import { logger } from '../utils/logger';
 
 const cronJobTime =
   process.env.REVIEW_OLD_GIV_PRICES_CRONJOB_EXPRESSION || '0 0 * * *';
 
 export const runUpdateHistoricGivPrices = () => {
-  console.log('runUpdateHistoricGivPrices() has been called');
+  logger.debug('runUpdateHistoricGivPrices() has been called');
   schedule(cronJobTime, async () => {
     await updateOldGivDonationPrice();
   });
@@ -20,9 +21,9 @@ const toFixNumber = (input: number, digits: number): number => {
 
 const updateOldGivDonationPrice = async () => {
   const donations = await Donation.findXdaiGivDonationsWithoutPrice();
-  console.log('updateOldGivDonationPrice donations count', donations.length);
+  logger.debug('updateOldGivDonationPrice donations count', donations.length);
   for (const donation of donations) {
-    console.log(
+    logger.debug(
       'updateOldGivDonationPrice() updating accurate price, donationId',
       donation.id,
     );
@@ -31,7 +32,7 @@ const updateOldGivDonationPrice = async () => {
         donation.transactionId,
         donation.transactionNetworkId,
       );
-      console.log('Update donation usd price ', {
+      logger.debug('Update donation usd price ', {
         donationId: donation.id,
         ...givHistoricPrices,
         valueEth: toFixNumber(
@@ -52,7 +53,7 @@ const updateOldGivDonationPrice = async () => {
       await donation.save();
       await updateTotalDonationsOfProject(donation.projectId);
     } catch (e) {
-      console.log('Update GIV donation valueUsd error', e.message);
+      logger.error('Update GIV donation valueUsd error', e.message);
     }
   }
 };

@@ -3,6 +3,7 @@ import { GraphQLUpload, FileUpload } from 'graphql-upload';
 import { MyContext } from '../types/MyContext';
 
 import { pinFile } from '../middleware/pinataUtils';
+import { logger } from '../utils/logger';
 
 @Resolver()
 export class UploadResolver {
@@ -17,7 +18,7 @@ export class UploadResolver {
       const response = await pinFile(createReadStream(), filename, encoding);
       return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
     } catch (e) {
-      console.error(e);
+      logger.error('upload() error', e);
       throw Error('Upload file failed');
     }
   }

@@ -17,10 +17,11 @@ import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In } from 'typeorm';
 import { User } from '../entities/user';
-import Logger from '../logger';
+import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import { updateTotalDonationsOfProject } from '../services/donationService';
+import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 
 const analytics = getAnalytics();
@@ -230,7 +231,7 @@ export class DonationResolver {
           donation.valueEth = Number(amount) * donation.priceEth;
         }
       } catch (e) {
-        console.log('Error in getting price from monoswap', {
+        logger.error('Error in getting price from monoswap', {
           error: e,
           donation,
         });
@@ -275,7 +276,7 @@ export class DonationResolver {
         analytics.identifyUser(originUser);
         if (!originUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`);
-        console.log(donation.valueUsd);
+        logger.debug(donation.valueUsd);
 
         const segmentDonationMade = {
           ...segmentDonationInfo,
@@ -312,8 +313,8 @@ export class DonationResolver {
       }
       return donation.id;
     } catch (e) {
-      Logger.captureException(e);
-      console.error(e);
+      SentryLogger.captureException(e);
+      logger.error('saveDonation() error', e);
       throw new Error(e);
     }
   }
@@ -328,7 +329,7 @@ export class DonationResolver {
 
       return tokenPrices;
     } catch (e) {
-      console.log('Unable to fetch monoswap prices: ', e);
+      logger.debug('Unable to fetch monoswap prices: ', e);
       return [];
     }
   }

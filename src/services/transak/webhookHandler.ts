@@ -1,6 +1,7 @@
 import { verify } from 'jsonwebtoken';
 import { updateDonationByTransakData } from '../donationService';
 import { TransakOrder } from './order';
+import { logger } from '../../utils/logger';
 
 /**
  * Returns status 200 always, most providers require this or they will keep sending requests indefinitely
@@ -16,7 +17,7 @@ export async function webhookHandler(request, response) {
     await updateDonationByTransakData(transakData);
     response.status(200).send();
   } catch (error) {
-    console.error(error);
+    logger.error('webhookHandler() error ', error);
     response.status(403).send();
   }
 }

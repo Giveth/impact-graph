@@ -1,7 +1,9 @@
 import * as UniSdk from '@uniswap/sdk';
 import * as HoneySdk from 'honeyswap-sdk';
+import { logger } from '../utils/logger';
 
-interface token {
+// tslint:disable-next-line:class-name
+interface tokenInterface {
   chainId: number;
   address: string;
   symbol: string;
@@ -37,7 +39,7 @@ export default class Sdk {
     }
   }
 
-  getSwapToken(token: token) {
+  getSwapToken(token: tokenInterface) {
     if (!token) throw new Error('Cannot swap a nothing');
     const { chainId, address, decimals, symbol, name } = token;
 
@@ -52,8 +54,8 @@ export default class Sdk {
     const route = new Route([pair], token);
     const price = route.midPrice.toSignificant(6);
 
-    // console.log('inv', route.midPrice.invert().toSignificant(6)) // 0.00496756
-    // console.log('price', price) // 201.306
+    // logger.debug('inv', route.midPrice.invert().toSignificant(6)) // 0.00496756
+    // logger.debug('price', price) // 201.306
 
     return Number(price);
   }

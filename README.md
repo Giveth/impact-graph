@@ -27,7 +27,21 @@ If you don't have redis installed do so, and then start it with:
 redis-server /usr/local/etc/redis.conf
 ```
 
-That's it
+
+## RUN
+```
+npm start
+```
+
+## Log
+In localhost and test we put logs in console and file but in production and staging we just use file for writing logs
+You can see logs beautifully with this command
+
+```
+ tail -f logs/impact-graph.log |bunyan
+
+```
+
 
 ## Features
 

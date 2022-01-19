@@ -27,6 +27,7 @@ import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceSe
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
 import { runUpdateHistoricGivPrices } from '../services/syncGivPrices';
 import { redis } from '../redis';
+import { logger } from '../utils/logger';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -116,7 +117,7 @@ export async function bootstrap() {
           req.auth = {};
           req.auth.token = token;
           req.auth.error = error;
-          // console.log(`ctx.req.auth : ${JSON.stringify(ctx.req.auth, null, 2)}`)
+          // logger.debug(`ctx.req.auth : ${JSON.stringify(ctx.req.auth, null, 2)}`)
         }
 
         return {
@@ -164,7 +165,7 @@ export async function bootstrap() {
           }
         }
 
-        console.log('CORS error', { whitelistHostnames, origin });
+        logger.error('CORS error', { whitelistHostnames, origin });
         callback(new Error('Not allowed by CORS'));
       },
     };
@@ -216,7 +217,7 @@ export async function bootstrap() {
 
     // Start the server
     app.listen({ port: 4000 });
-    console.log(
+    logger.debug(
       `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
     );
 
@@ -239,6 +240,6 @@ export async function bootstrap() {
       runGivingBlocksProjectSynchronization();
     }
   } catch (err) {
-    console.error(err);
+    logger.error(err);
   }
 }

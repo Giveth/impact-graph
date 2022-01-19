@@ -16,6 +16,7 @@ import {
 import config from '../../config';
 import slugify from 'slugify';
 import { ProjectStatus } from '../../entities/projectStatus';
+import { logger } from '../../utils/logger';
 
 const givingBlockCategoryName = 'The Giving Block';
 const givingBlockHandle = 'the-giving-block';
@@ -29,7 +30,7 @@ const cronJobTime =
 const adminId = (config.get('GIVING_BLOCKS_ADMIN_USER_ID') as string) || '1';
 
 export const runGivingBlocksProjectSynchronization = () => {
-  console.log('runGivingBlocksProjectSynchronization() has been called');
+  logger.debug('runGivingBlocksProjectSynchronization() has been called');
   schedule(cronJobTime, async () => {
     await exportGivingBlocksProjects();
   });
@@ -73,10 +74,10 @@ const createGivingProject = async (data: {
       givingBlocksId: String(givingBlockProject.id),
     });
     if (givethProject) {
-      console.log(`GivingBlocksProject ${givingBlockProject.id}. Exists`);
+      logger.debug(`GivingBlocksProject ${givingBlockProject.id}. Exists`);
       return;
     }
-    console.log(`GivingBlocksProject ${givingBlockProject.id}. is not exists`);
+    logger.debug(`GivingBlocksProject ${givingBlockProject.id}. is not exists`);
 
     const walletAddress = await generateGivingBlockDepositAddress(
       accessToken,
@@ -128,7 +129,7 @@ const createGivingProject = async (data: {
       giveBacks: true,
     });
     await project.save();
-    console.log(
+    logger.debug(
       'This giving blocks project has been created in our db givingBlocksId',
       givingBlockProject.id,
     );
@@ -146,7 +147,7 @@ const createGivingProject = async (data: {
     await ProjectUpdate.save(update);
   } catch (e) {
     // Log Error but keep going with the rest of the projects
-    console.log('createGivingProject error', e);
+    logger.error('createGivingProject error', e);
   }
 };
 

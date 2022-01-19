@@ -128,7 +128,7 @@ export class Donation extends BaseEntity {
 
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')
-      .where(`donation.currency = 'GIV' AND donation."valueUsd" IS NULL`)
+      .where(`donation.currency = 'GIV' AND donation."valueUsd" IS NULL `)
       .getMany();
   }
 }

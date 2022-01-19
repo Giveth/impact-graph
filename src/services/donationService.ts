@@ -4,6 +4,7 @@ import { TransakOrder } from './transak/order';
 import { User } from '../entities/user';
 import DonationTracker from './segment/DonationTracker';
 import { SegmentEvents } from '../analytics/analytics';
+import { logger } from '../utils/logger';
 
 const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -98,6 +99,6 @@ export const updateTotalDonationsOfProject = async (projectId: number) => {
       },
     );
   } catch (e) {
-    console.log('updateTotalDonationsOfAProject error', e);
+    logger.error('updateTotalDonationsOfAProject error', e);
   }
 };

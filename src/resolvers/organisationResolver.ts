@@ -20,6 +20,7 @@ import { Project } from '../entities/project';
 import { Repository, In, getManager } from 'typeorm';
 import { MyContext } from '../types/MyContext';
 import { Service } from 'typedi';
+import { logger } from '../utils/logger';
 
 @Service()
 @Resolver(of => OrganisationX)
@@ -81,15 +82,15 @@ export class OrganisationResolver {
     @Arg('organisationId') organisationId: number,
     @Ctx() ctx: MyContext,
   ): Promise<Project[]> {
-    console.log(`organisationId ---> : ${organisationId}`);
+    logger.debug(`organisationId ---> : ${organisationId}`);
 
     if (!ctx.req.user) {
-      console.log(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`);
+      logger.debug(`access denied : ${JSON.stringify(ctx.req.user, null, 2)}`);
       throw new Error('Access denied');
       // return undefined
     }
 
-    console.log(`ctx.req.user.email : ${ctx.req.user.email}`);
+    logger.debug(`ctx.req.user.email : ${ctx.req.user.email}`);
     // const organisations = await this.organisationRepository
     //   .createQueryBuilder('organisation')
     //   .leftJoinAndSelect('organisation.projects', 'projects')
@@ -100,7 +101,7 @@ export class OrganisationResolver {
       where: { id: organisationId },
     });
 
-    console.log(
+    logger.debug(
       `organisations ---> : ${JSON.stringify(
         organisations[0].projects,
         null,
@@ -115,7 +116,7 @@ export class OrganisationResolver {
   async organisationById(
     @Arg('organisationId') organisationId: number,
   ): Promise<OrganisationX[]> {
-    console.log(`organisationId ---> : ${organisationId}`);
+    logger.debug(`organisationId ---> : ${organisationId}`);
     // const organisations = await this.organisationRepository
     //   .createQueryBuilder('organisation')
     //   .leftJoinAndSelect('organisation.projects', 'projects')
@@ -125,8 +126,8 @@ export class OrganisationResolver {
       relations: ['projects'],
       where: { id: organisationId },
     });
-    console.log(`organisations ---> : ${organisations[0].projects}`);
-    console.log(`organisations : ${JSON.stringify(organisations, null, 2)}`);
+    logger.debug(`organisations ---> : ${organisations[0].projects}`);
+    logger.debug(`organisations : ${JSON.stringify(organisations, null, 2)}`);
 
     const OrganisationXs: any = organisations.map(o => {
       const x = new OrganisationX();
@@ -136,7 +137,7 @@ export class OrganisationResolver {
       return x;
     });
 
-    console.log(`OrganisationXs : ${JSON.stringify(OrganisationXs, null, 2)}`);
+    logger.debug(`OrganisationXs : ${JSON.stringify(OrganisationXs, null, 2)}`);
 
     // organisations = organisations.map(o => {
     //   return {

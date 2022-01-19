@@ -1,4 +1,7 @@
 // tslint:disable-next-line:no-var-requires
+import { logger } from '../utils/logger';
+
+// tslint:disable-next-line:no-var-requires
 require('dotenv').config();
 
 import { NETWORK_IDS } from '../provider';
@@ -10,10 +13,11 @@ import { MyContext } from '../types/MyContext';
 import * as jwt from 'jsonwebtoken';
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql';
 import config from '../config';
-import Logger from '../logger';
+import SentryLogger from '../sentryLogger';
 import { getAnalytics } from '../analytics/analytics';
 
 const analytics = getAnalytics();
+// tslint:disable-next-line:no-var-requires
 const sigUtil = require('eth-sig-util');
 
 @ObjectType()
@@ -76,10 +80,10 @@ export class LoginResolver {
       const decodedJwt: any = jwt.verify(token, secret);
       return true;
     } catch (error) {
-      Logger.captureMessage(error);
+      SentryLogger.captureMessage(error);
 
-      console.error(`Apollo Server error : ${JSON.stringify(error, null, 2)}`);
-      console.error(`Error for token ${token}`);
+      logger.error(`Apollo Server error : ${JSON.stringify(error, null, 2)}`);
+      logger.error(`Error for token ${token}`);
       return false;
     }
   }
@@ -96,7 +100,7 @@ export class LoginResolver {
     }
     switch (loginType) {
       case LoginType.SignedMessage:
-        console.log('MESSAGE');
+        logger.debug('MESSAGE');
         loginType = LoginType.SignedMessage;
         break;
       case LoginType.Password:
@@ -113,21 +117,20 @@ export class LoginResolver {
       .getOne();
 
     if (!user) {
-      console.log(`No user with email address ${email}`);
-
+      logger.debug(`No user with email address ${email}`);
       return null;
     }
 
     const valid = await bcrypt.compare(password, user.password);
 
     if (!valid) {
-      // console.log('Invalid password')
+      // logger.debug('Invalid password')
 
       return null;
     }
 
     // if (!user.confirmed) {
-    //   console.log('not confirmed')
+    //   logger.debug('not confirmed')
 
     //   return null
     // }
@@ -219,7 +222,7 @@ export class LoginResolver {
           avatar,
           segmentIdentified: true,
         }).save();
-        console.log(`analytics.identifyUser -> New user`);
+        logger.debug(`analytics.identifyUser -> New user`);
 
         analytics.identifyUser(user);
       } else {
@@ -238,7 +241,7 @@ export class LoginResolver {
         updateUserIfNeeded('avatar', avatar);
         updateUserIfNeeded('walletAddress', publicAddressLowerCase);
         if (user.segmentIdentified === false) {
-          console.log(`analytics.identifyUser -> User was already logged in`);
+          logger.debug(`analytics.identifyUser -> User was already logged in`);
           analytics.identifyUser(user);
           user.segmentIdentified = true;
           modified = true;
@@ -258,7 +261,7 @@ export class LoginResolver {
 
       return response;
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       return null;
     }
   }

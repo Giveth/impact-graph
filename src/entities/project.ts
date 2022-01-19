@@ -284,9 +284,9 @@ class Project extends BaseEntity {
     if (searchTerm) this.addSearchQuery(query, searchTerm);
     if (filter) this.addFilterQuery(query, filter, filterValue);
 
-    if (sortBy == 'traceCampaignId') {
+    if (sortBy === 'traceCampaignId') {
       // TODO: PRISMA will fix this, temporary fix inverting nulls.
-      let traceableDirection = { ASC: 'NULLS FIRST', DESC: 'NULLS LAST' };
+      const traceableDirection = { ASC: 'NULLS FIRST', DESC: 'NULLS LAST' };
       query.orderBy(
         `project.${sortBy}`,
         direction,

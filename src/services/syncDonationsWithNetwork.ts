@@ -8,6 +8,7 @@ import { schedule } from 'node-cron';
 import Bull from 'bull';
 import config from '../config';
 import { redisConfig } from '../redis';
+import { logger } from '../utils/logger';
 
 const verifyDonationsQueue = new Bull('verify-donations-queue', {
   redis: redisConfig,
@@ -15,7 +16,7 @@ const verifyDonationsQueue = new Bull('verify-donations-queue', {
 const TWO_MINUTES = 1000 * 60 * 2;
 setInterval(async () => {
   const verifyDonationsQueueCount = await verifyDonationsQueue.count();
-  console.log(`Verify donations job queues count:`, {
+  logger.debug(`Verify donations job queues count:`, {
     verifyDonationsQueueCount,
   });
 }, TWO_MINUTES);
@@ -29,7 +30,7 @@ const cronJobTime =
   (config.get('VERIFY_DONATION_CRONJOB_EXPRESSION') as string) || '0 0 * * * *';
 
 export const runCheckPendingDonationsCronJob = () => {
-  console.log('runCheckPendingDonationsCronJob() has been called');
+  logger.debug('runCheckPendingDonationsCronJob() has been called');
   processVerifyDonationsJobs();
   // https://github.com/node-cron/node-cron#cron-syntax
   schedule(cronJobTime, async () => {
@@ -38,7 +39,7 @@ export const runCheckPendingDonationsCronJob = () => {
 };
 
 const addJobToCheckPendingDonationsWithNetwork = async () => {
-  console.log('addJobToCheckPendingDonationsWithNetwork() has been called');
+  logger.debug('addJobToCheckPendingDonationsWithNetwork() has been called');
 
   const donations = await Donation.find({
     where: {
@@ -47,9 +48,9 @@ const addJobToCheckPendingDonationsWithNetwork = async () => {
     },
     select: ['id'],
   });
-  console.log('Pending donations to be check', donations.length);
+  logger.debug('Pending donations to be check', donations.length);
   donations.forEach(donation => {
-    console.log('Add pending donation to queue', { donationId: donation.id });
+    logger.debug('Add pending donation to queue', { donationId: donation.id });
     verifyDonationsQueue.add({
       donationId: donation.id,
     });
@@ -57,12 +58,12 @@ const addJobToCheckPendingDonationsWithNetwork = async () => {
 };
 
 function processVerifyDonationsJobs() {
-  console.log('processVerifyDonationsJobs() has been called');
+  logger.debug('processVerifyDonationsJobs() has been called');
   verifyDonationsQueue.process(
     numberOfVerifyDonationConcurrentJob,
     async (job, done) => {
       const { donationId } = job.data;
-      console.log('job processing', { jobData: job.data });
+      logger.debug('job processing', { jobData: job.data });
       const donation = await Donation.findOne(donationId);
       if (!donation) {
         throw new Error(errorMessages.DONATION_NOT_FOUND);
@@ -94,14 +95,14 @@ function processVerifyDonationsJobs() {
           donation.transactionId = transaction.hash;
         }
         await donation.save();
-        console.log('donation and transaction', {
+        logger.debug('donation and transaction', {
           transaction,
           donationId: donation.id,
         });
         done();
       } catch (e) {
         done();
-        console.log('checkPendingDonations() error', {
+        logger.debug('checkPendingDonations() error', {
           error: e,
           donationId: donation.id,
         });

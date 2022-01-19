@@ -1,6 +1,7 @@
 import Axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 import config from '../config';
+import { logger } from '../utils/logger';
 import { NETWORK_IDS } from '../provider';
 
 const givPricesUrl = process.env.GIVETH_GIV_PRICES_URL as string;
@@ -12,7 +13,7 @@ const axiosTimeout = 20000;
 axiosRetry(Axios, {
   retries: 3,
   retryDelay: retryCount => {
-    console.log(`Axios Retry attempt: ${retryCount}`);
+    logger.debug(`Axios Retry attempt: ${retryCount}`);
     return retryCount * 1000; // time interval between retries
   },
   retryCondition: error => {
@@ -46,7 +47,7 @@ export const fetchGivHistoricPrice = async (
     });
     return result.data;
   } catch (e) {
-    console.log('fetching Giv Historic Price fetchGivHistoricPrice() err', e);
+    logger.error('fetching Giv Historic Price fetchGivHistoricPrice() err', e);
     throw e;
   }
 };

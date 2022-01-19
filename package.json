@@ -31,6 +31,8 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "bull": "^3.29.3",
+    "bunyan": "^1.8.15",
+    "bunyan-rotating-file-stream": "^2.0.0",
     "chalk": "^4.1.0",
     "class-validator": "^0.12.2",
     "connect": "^3.7.0",
@@ -104,6 +106,8 @@
     "tslint-plugin-prettier": "^2.3.0"
   },
   "scripts": {
+    "tslint": "tslint -c tslint.json '{src,test}/**/*.ts'",
+    "tslint:fix": "tslint -c tslint.json --fix '{src,test}/**/*.ts'",
     "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
     "typeorm:cli:test": "NODE_ENV=test ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
@@ -114,7 +118,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "lint-staged"
+      "pre-commit": "npm run tslint"
     }
   },
   "standard": {

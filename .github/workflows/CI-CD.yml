@@ -39,6 +39,8 @@ jobs:
           node-version: 14.x
       - name: Install dependencies
         run: npm ci
+      - name: Run tslint
+        run: npm run tslint
       - name: Run migrations
         run: npm run typeorm:cli:test -- migration:run
       - name: Run tests
