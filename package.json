@@ -104,11 +104,12 @@
     "tslint-plugin-prettier": "^2.3.0"
   },
   "scripts": {
-    "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register   ./test/**/**/*.test.ts ./src/**/*.test.ts ./src/services/**/*.test.ts",
-    "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
-    "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
+    "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
+    "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./index.ts",
+    "typeorm:cli:test": "NODE_ENV=test ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
+    "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
     "prettify": "prettier --write '**/*.ts*'"
   },
   "husky": {
