@@ -31,6 +31,8 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "bull": "^3.29.3",
+    "bunyan": "^1.8.15",
+    "bunyan-rotating-file-stream": "^2.0.0",
     "chalk": "^4.1.0",
     "class-validator": "^0.12.2",
     "connect": "^3.7.0",
@@ -104,16 +106,19 @@
     "tslint-plugin-prettier": "^2.3.0"
   },
   "scripts": {
-    "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register   ./test/**/**/*.test.ts ./src/**/*.test.ts ./src/services/**/*.test.ts",
+    "tslint": "tslint -c tslint.json '{src,test}/**/*.ts'",
+    "tslint:fix": "tslint -c tslint.json --fix '{src,test}/**/*.ts'",
+    "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
-    "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
+    "typeorm:cli:test": "NODE_ENV=test ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
+    "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
     "prettify": "prettier --write '**/*.ts*'"
   },
   "husky": {
     "hooks": {
-      "pre-push": "lint-staged"
+      "pre-commit": "npm run tslint"
     }
   },
   "standard": {

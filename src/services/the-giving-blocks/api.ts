@@ -2,6 +2,7 @@ import { extractTraceparentData } from '@sentry/tracing';
 import Axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 import config from '../../config';
+import { logger } from '../../utils/logger';
 
 const apiBaseUrl = config.get('GIVING_BLOCKS_URL') as string;
 
@@ -19,7 +20,7 @@ const pledgeCurrenty = 'ETH';
 axiosRetry(Axios, {
   retries: 3,
   retryDelay: retryCount => {
-    console.log(`Axios Retry attempt: ${retryCount}`);
+    logger.debug(`Axios Retry attempt: ${retryCount}`);
     return retryCount * 1000; // time interval between retries
   },
   retryCondition: error => {
@@ -44,12 +45,14 @@ export const loginGivingBlocks = async (): Promise<{
     );
     return result.data.data;
   } catch (e) {
-    console.log('giving block service login() err', e);
+    logger.error('giving block service login() err', e);
     throw e;
   }
 };
 
-export const refreshToken = (refreshToken: string): Promise<AxiosResponse> => {
+export const getRefreshToken = (
+  refreshToken: string,
+): Promise<AxiosResponse> => {
   return Axios.post(
     `${apiBaseUrl}/v1/refresh-tokens`,
     {
@@ -90,7 +93,7 @@ export const fetchGivingBlockProjects = async (
 
     return result?.data?.data?.organizations;
   } catch (e) {
-    console.log('giving block service fetchGivingBlockProjects() err', e);
+    logger.error('giving block service fetchGivingBlockProjects() err', e);
     throw e;
   }
 };
@@ -110,7 +113,7 @@ export const fetchOrganizationById = async (
 
     return result?.data?.data?.organization;
   } catch (e) {
-    console.log('giving block service fetchOrganizationById() err', e);
+    logger.error('giving block service fetchOrganizationById() err', e);
     throw e;
   }
 };
@@ -124,7 +127,7 @@ export const generateGivingBlockDepositAddress = async (
       `${apiBaseUrl}/v1/deposit-address`,
       {
         isAnonymous: true,
-        pledgeAmount: pledgeAmount,
+        pledgeAmount,
         pledgeCurrency: pledgeCurrenty,
         organizationId,
       },
@@ -135,7 +138,7 @@ export const generateGivingBlockDepositAddress = async (
     );
     return result.data.data.depositAddress;
   } catch (e) {
-    console.log('giving block service depositAddress() err');
+    logger.error('giving block service depositAddress() err');
     throw e;
   }
 };

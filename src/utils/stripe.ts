@@ -6,6 +6,7 @@ import config from '../config';
 import { BankAccount, StripeTransaction } from '../entities/bankAccount';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
+import { logger } from './logger';
 
 const stripe = new Stripe(config.get('STRIPE_SECRET').toString(), {
   apiVersion: '2020-08-27',
@@ -96,7 +97,7 @@ export async function handleStripeWebhook(rq, rs) {
       config.get('STRIPE_WEBHOOK_SECRET').toString(),
     );
   } catch (err) {
-    console.log('Webhook Error:', err);
+    logger.error('Webhook Error:', err);
     return rs.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -107,7 +108,7 @@ export async function handleStripeWebhook(rq, rs) {
       connectedAccountId,
       session.customer,
     )) as Stripe.Customer;
-    console.log(session);
+    logger.debug(session);
 
     await StripeTransaction.update(
       { sessionId: session.id },

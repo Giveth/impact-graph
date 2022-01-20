@@ -1,7 +1,8 @@
 import config from '../config';
 import axios from 'axios';
-import Logger from '../logger';
+import SentryLogger from '../sentryLogger';
 import { redis } from '../redis';
+import { logger } from '../utils/logger';
 
 const deployHook = config.get('NETLIFY_DEPLOY_HOOK');
 const environment = config.get('ENVIRONMENT');
@@ -13,7 +14,7 @@ async function isNetlifyDeploying() {
   const redisNetlifyIsDeploying = await redis.get(
     'impact-graph:netlifyDeploy:isDeploying',
   );
-  console.log(`redisNetlifyIsDeploying ! ---> : ${redisNetlifyIsDeploying}`);
+  logger.debug(`redisNetlifyIsDeploying ! ---> : ${redisNetlifyIsDeploying}`);
   return redisNetlifyIsDeploying === null ||
     redisNetlifyIsDeploying === '' ||
     redisNetlifyIsDeploying === 'false'
@@ -36,7 +37,7 @@ export async function triggerBuild(projectId) {
       projectsToDeploy.push(projectId);
 
       const netlifyIsDeploying = await isNetlifyDeploying();
-      console.log(`netlifyIsDeploying ---> : ${netlifyIsDeploying}`);
+      logger.debug(`netlifyIsDeploying ---> : ${netlifyIsDeploying}`);
       if (!netlifyIsDeploying) {
         await redis.set(
           'impact-graph:netlifyDeploy:projects:deploying',
@@ -45,14 +46,14 @@ export async function triggerBuild(projectId) {
           60 * 60 * 24,
         ); // 1 day expiration
         await redis.set('impact-graph:netlifyDeploy:isDeploying', 'true');
-        console.log('Calling netlify webhook');
-        console.log(
+        logger.debug('Calling netlify webhook');
+        logger.debug(
           `projectsToDeploy : ${JSON.stringify(projectsToDeploy, null, 2)}`,
         );
 
-        console.log(`Posting to netlifyUrl ---> : ${netlifyUrl}`);
+        logger.debug(`Posting to netlifyUrl ---> : ${netlifyUrl}`);
         const response: any = await axios.post(netlifyUrl, {});
-        console.log(
+        logger.debug(
           `response.data : ${JSON.stringify(response.data, null, 2)}`,
         );
       } else {
@@ -65,8 +66,8 @@ export async function triggerBuild(projectId) {
       }
     }
   } catch (e) {
-    Logger.captureException(e);
-    console.error(`Error while triggering rebuild`, e);
+    SentryLogger.captureException(e);
+    logger.error(`Error while triggering rebuild`, e);
   }
 }
 // triggerBuild(1)

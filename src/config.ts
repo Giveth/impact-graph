@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { logger } from './utils/logger';
 
 dotenv.config({
   path: path.resolve(__dirname, `../config/${process.env.NODE_ENV || ''}.env`),
@@ -40,6 +41,7 @@ const envVars = [
   // 'XDAI_NODE_HTTP_URL',
   'SEGMENT_API_KEY',
 ];
+// tslint:disable-next-line:class-name
 interface requiredEnv {
   JWT_SECRET: string;
   JWT_MAX_AGE: string;
@@ -91,7 +93,7 @@ class Config {
     envVars.forEach(envVar => {
       if (envFile[envVar]) {
         this[envVar] = envFile[envVar];
-        // console.log(`envVar ---> : ${this[envVar]}`)
+        // logger.debug(`envVar ---> : ${this[envVar]}`)
       } else {
         throw new Error(`Need to provide a ${envVar} in the .env`);
       }

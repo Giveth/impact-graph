@@ -1,5 +1,6 @@
 import { Project } from '../entities/project';
 import { Reaction } from '../entities/reaction';
+import { logger } from '../utils/logger';
 
 export const updateTotalReactionsOfAProject = async (projectId: number) => {
   try {
@@ -14,6 +15,6 @@ export const updateTotalReactionsOfAProject = async (projectId: number) => {
       },
     );
   } catch (e) {
-    console.log('updateTotalReactionsOfAProject error', e);
+    logger.error('updateTotalReactionsOfAProject error', e);
   }
 };

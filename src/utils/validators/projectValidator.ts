@@ -2,6 +2,7 @@ import { getProvider, NETWORK_IDS } from '../../provider';
 import { Project } from '../../entities/project';
 import Web3 from 'web3';
 import { errorMessages } from '../errorMessages';
+import { logger } from '../logger';
 
 export function isWalletAddressValid(address) {
   return Boolean(
@@ -64,7 +65,7 @@ export const validateProjectTitle = async (title: string): Promise<boolean> => {
     throw new Error(errorMessages.INVALID_PROJECT_TITLE);
   }
   const regex = getSimilarTitleInProjectsRegex(title);
-  console.log('regexSource', {
+  logger.debug('regexSource', {
     title,
     regex,
     query: `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project`,
@@ -72,13 +73,13 @@ export const validateProjectTitle = async (title: string): Promise<boolean> => {
   const projectWithThisTitle = await Project.query(
     `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project`,
   );
-  console.log(
+  logger.debug(
     'validateProjectTitle projectWithThisTitle',
     projectWithThisTitle,
   );
 
   if (projectWithThisTitle.length > 0) {
-    console.log(
+    logger.debug(
       'validateProjectTitle projectWithThisTitle',
       projectWithThisTitle,
     );

@@ -148,7 +148,7 @@ export class UserResolver {
   //   const orgs = await this.userRepository.find({
   //     relations: ['organisations']
   //   })
-  //   console.log(`orgs : ${JSON.stringify(orgs, null, 2)}`)
+  //   logger.debug(`orgs : ${JSON.stringify(orgs, null, 2)}`)
 
   //   process.exit()
   // }

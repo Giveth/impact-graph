@@ -7,6 +7,7 @@ import config from '../config';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
 import { SegmentEvents } from '../analytics/analytics';
+import { logger } from '../utils/logger';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -34,7 +35,7 @@ export const getAdminBroRouter = () => {
         }
         return false;
       } catch (e) {
-        console.log({ e });
+        logger.error({ e });
         return false;
       }
     },
@@ -100,7 +101,7 @@ const getAdminBroInstance = () => {
               },
             },
             slug: {
-              isVisible: { list: false, filter: false, show: true, edit: true },
+              isVisible: { list: false, filter: true, show: true, edit: true },
             },
             organisationId: {
               isVisible: false,
@@ -109,6 +110,15 @@ const getAdminBroInstance = () => {
               isVisible: false,
             },
             image: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            givingBlocksId: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            website: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            youtube: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             balance: {
@@ -140,7 +150,7 @@ const getAdminBroInstance = () => {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             impactLocation: {
-              isVisible: { list: false, filter: true, show: true, edit: true },
+              isVisible: { list: false, filter: false, show: true, edit: true },
             },
             slugHistory: {
               isVisible: false,
@@ -298,7 +308,7 @@ const getAdminBroInstance = () => {
             },
             edit: {
               before: async request => {
-                console.log({ request: request.payload });
+                logger.debug({ request: request.payload });
                 if (request.payload.password) {
                   const bc = await bcrypt.hash(
                     request.payload.password,
@@ -340,7 +350,7 @@ const listDelist = async (context, request, list = true) => {
       dispatchProjectUpdateEvent(project);
     });
   } catch (error) {
-    console.log('listDelist error', error);
+    logger.error('listDelist error', error);
     throw error;
   }
   return {
@@ -376,7 +386,7 @@ const verifyProjects = async (context, request, verified = true) => {
       dispatchProjectUpdateEvent(project);
     });
   } catch (error) {
-    console.log('verifyProjects() error', error);
+    logger.error('verifyProjects() error', error);
     throw error;
   }
   return {

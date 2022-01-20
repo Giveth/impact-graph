@@ -21,3 +21,6 @@ config/production.env
 *.rdb
 
 ./src/scripts/*.json
+
+
+*.log

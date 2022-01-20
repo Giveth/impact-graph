@@ -12,6 +12,7 @@ import {
   getNetworkNativeToken,
   getNetworkWeb3,
 } from '../provider';
+import { logger } from '../utils/logger';
 
 abiDecoder.addABI(erc20ABI);
 
@@ -25,7 +26,7 @@ export async function getTransactionInfoFromNetwork(
     input.fromAddress,
   );
   if (typeof nonce === 'number' && userTransactionsCount <= nonce) {
-    console.log('getTransactionDetail check nonce', {
+    logger.debug('getTransactionDetail check nonce', {
       input,
       userTransactionsCount,
     });
@@ -63,7 +64,7 @@ async function findTransactionByNonce(data: {
   input: TransactionDetailInput;
   page?: number;
 }): Promise<NetworkTransactionInfo | null> {
-  console.log('findTransactionByNonce called', data);
+  logger.debug('findTransactionByNonce called', data);
   const { input, page = 1 } = data;
   const nonce = input.nonce as number;
   const { userRecentTransactions, isTransactionListEmpty } =
@@ -74,10 +75,13 @@ async function findTransactionByNonce(data: {
     });
   if (isTransactionListEmpty) {
     // we know that we reached to end of transactions
-    console.log('findTransactionByNonce, no more found donations for address', {
-      page,
-      address: input.fromAddress,
-    });
+    logger.debug(
+      'findTransactionByNonce, no more found donations for address',
+      {
+        page,
+        address: input.fromAddress,
+      },
+    );
     throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
   }
   const foundTransaction = userRecentTransactions.find(
@@ -97,7 +101,7 @@ async function findTransactionByNonce(data: {
       : undefined;
 
   if (smallestNonce !== undefined && smallestNonce < nonce) {
-    console.log('checkIfTransactionHasBeenSpeedup', {
+    logger.debug('checkIfTransactionHasBeenSpeedup', {
       smallestNonce,
       input,
     });
@@ -189,7 +193,7 @@ async function getTransactionDetailForTokenTransfer(
   const token = findTokenByNetworkAndSymbol(networkId, symbol);
   const web3 = getNetworkWeb3(networkId);
   const transaction = await web3.eth.getTransaction(txHash);
-  console.log('getTransactionDetailForTokenTransfer', { transaction, input });
+  logger.debug('getTransactionDetailForTokenTransfer', { transaction, input });
   if (
     transaction &&
     transaction.to?.toLowerCase() !== token.address.toLowerCase()
@@ -246,7 +250,7 @@ function validateTransactionWithInputData(
   if (input.timestamp - transaction.timestamp > ONE_HOUR) {
     // because we first create donation, then transaction will be mined, the transaction always should be greater than
     // donation created time, but we set one hour because maybe our server time is different with blockchain time server
-    console.log('errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION', {
+    logger.debug('errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION', {
       transaction,
       input,
     });

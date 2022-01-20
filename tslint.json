@@ -15,18 +15,18 @@
         "semi": true,
         "tabWidth": 2,
         "useTabs": false,
-        "trailingComma": "all"
+        "trailingComma": "all",
+        "jsdoc-format": false
       }
     ],
+    "jsdoc-format": false,
     "adjacent-overload-signatures": true,
     "quotemark": [
       true,
       "single"
     ],
     "ban-types": false,
-    "no-console": [
-      false
-    ],
+    "no-console": true,
     "no-namespace": false,
     "object-literal-sort-keys": false,
     "max-classes-per-file": false,
