@@ -185,6 +185,10 @@ export async function bootstrap() {
           // Skip rate-limit for Vercel requests because our front is SSR
           return true;
         }
+        if (req.url.startsWith('/admin')) {
+          // Bypass Admin bro panel request
+          return true;
+        }
         return false;
       },
     });
