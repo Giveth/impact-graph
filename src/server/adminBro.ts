@@ -101,7 +101,7 @@ const getAdminBroInstance = () => {
               },
             },
             slug: {
-              isVisible: { list: false, filter: false, show: true, edit: true },
+              isVisible: { list: false, filter: true, show: true, edit: true },
             },
             organisationId: {
               isVisible: false,
