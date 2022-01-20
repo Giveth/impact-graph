@@ -112,6 +112,15 @@ const getAdminBroInstance = () => {
             image: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
+            givingBlocksId: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            website: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            youtube: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
             balance: {
               isVisible: {
                 list: false,
