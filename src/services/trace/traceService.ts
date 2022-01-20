@@ -4,6 +4,7 @@ import { ProjectStatus } from '../../entities/projectStatus';
 import { RedisOptions } from 'ioredis';
 import { logger } from '../../utils/logger';
 import axios from 'axios';
+import { NETWORK_IDS } from '../../provider';
 // tslint:disable-next-line:no-var-requires
 const Queue = require('bull');
 
@@ -134,6 +135,63 @@ export const getCampaignTotalDonationsInUsd = async (
     return result.data.totalUsdValue;
   } catch (e) {
     logger.error('getCampaignTotalDonationsInUsd error', e);
+    throw e;
+  }
+};
+
+interface TraceDonationInterface {
+  status: string;
+  usdValue: number;
+  giverAddress: string;
+  homeTxHash: string;
+  token: {
+    symbol: string;
+  };
+  campaignId: string;
+  createdAt: string;
+}
+export const getCampaignDonations = async (input: {
+  campaignId: string;
+  take: number;
+  skip: number;
+}): Promise<
+  [
+    {
+      createdAt: string;
+      currency: string;
+      valueUsd: number;
+      transactionId: string;
+      transactionNetworkId: number;
+      fromWalletAddress: string;
+    },
+  ]
+> => {
+  const { campaignId, take, skip } = input;
+  const url = `${process.env.GIVETH_TRACE_BASE_URL}/donations}`;
+  try {
+    const result = await axios.get(url, {
+      params: {
+        '$sort[createdAt]': -1,
+        campaignId,
+        $limit: take,
+        $skip: skip,
+      },
+    });
+    return result.data.data.map((traceDonation: TraceDonationInterface) => {
+      return {
+        createdAt: traceDonation.createdAt,
+        currency: traceDonation.token.symbol,
+        valueUsd: traceDonation.usdValue,
+
+        // Currently trace just support mainnet donations
+        transactionId: NETWORK_IDS.MAIN_NET,
+
+        transactionNetworkId: traceDonation.homeTxHash,
+        fromWalletAddress: traceDonation.giverAddress,
+      };
+    });
+  } catch (e) {
+    logger.error('getCampaignDonations error', e);
     throw e;
   }
 };
