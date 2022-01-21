@@ -1118,7 +1118,7 @@ export class ProjectResolver {
       .getCount();
 
     if (projectCount > 0) {
-      slug = slugBase + '-' + (projectCount - 1);
+      slug = slug + '-' + (projectCount - 1);
     }
     return slug;
   }
