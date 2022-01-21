@@ -377,7 +377,7 @@ export class ProjectResolver {
     if (newProjectData.categories) {
       const categoriesPromise = newProjectData.categories.map(
         async category => {
-          let [c] = await this.categoryRepository.find({ name: category });
+          const [c] = await this.categoryRepository.find({ name: category });
           if (c === undefined) {
             throw new Error(
               errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
@@ -529,7 +529,7 @@ export class ProjectResolver {
     const categoriesPromise = Promise.all(
       projectInput.categories
         ? projectInput.categories.map(async category => {
-            let [c] = await this.categoryRepository.find({ name: category });
+            const [c] = await this.categoryRepository.find({ name: category });
             if (c === undefined) {
               throw new Error(
                 errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
