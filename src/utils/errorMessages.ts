@@ -1,6 +1,8 @@
 export const errorMessages = {
   CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE:
     'Please select no more than 5 categories',
+  CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION:
+    'This category is not valid',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
   PROJECT_NOT_FOUND: 'Project not found.',
   DONATION_NOT_FOUND: 'donation not found',
