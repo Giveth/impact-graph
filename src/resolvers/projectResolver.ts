@@ -367,13 +367,20 @@ export class ProjectResolver {
 
     for (const field in newProjectData) project[field] = newProjectData[field];
 
+    if (!newProjectData.categories) {
+      throw new Error(
+        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+      );
+    }
+
     if (newProjectData.categories) {
       const categoriesPromise = newProjectData.categories.map(
         async category => {
           let [c] = await this.categoryRepository.find({ name: category });
           if (c === undefined) {
-            c = new Category();
-            c.name = category;
+            throw new Error(
+              errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+            );
           }
           return c;
         },
@@ -511,13 +518,21 @@ export class ProjectResolver {
       0,
     );
 
+    if (!projectInput.categories) {
+      throw new Error(
+        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+      );
+    }
+
+    // We do not create categories only use existing ones
     const categoriesPromise = Promise.all(
       projectInput.categories
         ? projectInput.categories.map(async category => {
             let [c] = await this.categoryRepository.find({ name: category });
             if (c === undefined) {
-              c = new Category();
-              c.name = category;
+              throw new Error(
+                errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+              );
             }
             return c;
           })
