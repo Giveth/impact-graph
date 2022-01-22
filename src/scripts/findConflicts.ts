@@ -22,16 +22,17 @@ import { sleep } from '../utils/utils';
 import { writeFileSync } from 'fs';
 import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 import { isWalletAddressSmartContract } from '../utils/validators/projectValidator';
+import { fetchGivHistoricPrice } from '../services/givPriceService';
 
 const EXCLUDED_FROM_ADDRESSES = ['0x0000000000000000000000000000000000000000'];
 
 const smartContractAddresses: string[] = [];
 
-// 2021/12/24 16:00:00 GMT, beginning of round
-const beginTimestamp = 1640361600;
+// 2022/01/07 16:00:00 GMT, beginning of round
+const beginTimestamp = 1641571200;
 
-// 2021/01/07 16:00:00 GMT, end of round
-const endTimestamp = 1641571200;
+// 2022/01/21 16:00:00 GMT, end of round
+const endTimestamp = 1642780800;
 
 interface Transaction {
   hash: string;
@@ -145,7 +146,7 @@ async function getTokenTransfers(input: {
       walletAddress,
       network: networkId === 1 ? 'mainnet' : 'xDai',
     });
-    await sleep(1000);
+    await sleep(500);
     if (userTransactions.isTransactionListEmpty) {
       scanComplete = true;
       break;
@@ -161,10 +162,19 @@ async function getTokenTransfers(input: {
       if (item && item.outOfRange) {
         scanComplete = true;
       } else if (item && item.transaction) {
+        const prices = await fetchGivHistoricPrice(
+          item.transaction.hash,
+          item.transaction.networkId,
+        );
         transactions.push({
           ...item.transaction,
-          isGivingBlockProject: Boolean(project.givingBlocksId),
           projectId: project.id,
+          amount:
+            Number(item.transaction.value) /
+            10 ** Number(item.transaction.tokenDecimal),
+          givPrice: prices.givPriceInUsd,
+          ethPrice: prices.ethPriceInUsd,
+          projectLink: `https://giveth.io/project/${project.slug}`,
         });
       }
     }
@@ -272,6 +282,12 @@ async function getListOfERC20TokenTransfers(input: {
         Cookie: 'network=dai',
       },
     });
+    if (!result.data.result) {
+      throw new Error(
+        'Response of etherscan/blockscout has problem' +
+          JSON.stringify(result.data, null, 4),
+      );
+    }
     const walletTransactions = result.data.result
       .filter(tx => {
         return (
@@ -292,6 +308,7 @@ async function getListOfERC20TokenTransfers(input: {
           value: tx.value,
           tokenSymbol: tx.tokenSymbol,
           tokenDecimal: tx.tokenDecimal,
+          networkId,
           txLink:
             networkId === 1
               ? `https://etherscan.io/tx/${tx.hash}`
@@ -310,7 +327,9 @@ async function getListOfERC20TokenTransfers(input: {
     });
     return {
       walletTransactions: [],
-      isTransactionListEmpty: false,
+
+      // TO not try again
+      isTransactionListEmpty: true,
     };
   }
 }

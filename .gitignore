@@ -20,7 +20,7 @@ config/production.env
 
 *.rdb
 
-./src/scripts/*.json
+src/scripts/*.json
 
 
 *.log
