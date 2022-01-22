@@ -142,10 +142,14 @@ export const getCampaignTotalDonationsInUsd = async (
 interface TraceDonationInterface {
   status: string;
   usdValue: number;
+  amount: string;
   giverAddress: string;
   homeTxHash: string;
   token: {
     symbol: string;
+
+    // It is incorrect value
+    // decimals: number;
   };
   campaignId: string;
   createdAt: string;
@@ -154,42 +158,53 @@ export const getCampaignDonations = async (input: {
   campaignId: string;
   take: number;
   skip: number;
-}): Promise<
-  [
+}): Promise<{
+  total: number;
+  donations: [
     {
-      createdAt: string;
+      createdAt: Date;
+      amount: number;
       currency: string;
       valueUsd: number;
       transactionId: string;
       transactionNetworkId: number;
       fromWalletAddress: string;
     },
-  ]
-> => {
+  ];
+}> => {
   const { campaignId, take, skip } = input;
-  const url = `${process.env.GIVETH_TRACE_BASE_URL}/donations}`;
+  const url = `${process.env.GIVETH_TRACE_BASE_URL}/donations`;
   try {
     const result = await axios.get(url, {
       params: {
         '$sort[createdAt]': -1,
+        status: 'Waiting',
         campaignId,
         $limit: take,
         $skip: skip,
       },
     });
-    return result.data.data.map((traceDonation: TraceDonationInterface) => {
-      return {
-        createdAt: traceDonation.createdAt,
-        currency: traceDonation.token.symbol,
-        valueUsd: traceDonation.usdValue,
+    logger.debug('result.data', JSON.stringify(result.data, null, 4));
+    const donations = result.data.data.map(
+      (traceDonation: TraceDonationInterface) => {
+        return {
+          createdAt: new Date(traceDonation.createdAt),
+          amount: Number(traceDonation.amount) / 10 ** 18,
+          currency: traceDonation.token.symbol,
+          valueUsd: traceDonation.usdValue,
 
-        // Currently trace just support mainnet donations
-        transactionId: NETWORK_IDS.MAIN_NET,
+          // Currently trace just support mainnet donations
+          transactionNetworkId: NETWORK_IDS.MAIN_NET,
 
-        transactionNetworkId: traceDonation.homeTxHash,
-        fromWalletAddress: traceDonation.giverAddress,
-      };
-    });
+          transactionId: traceDonation.homeTxHash,
+          fromWalletAddress: traceDonation.giverAddress,
+        };
+      },
+    );
+    return {
+      total: result.data.total,
+      donations,
+    };
   } catch (e) {
     logger.error('getCampaignDonations error', e);
     throw e;
