@@ -101,7 +101,7 @@ const getAdminBroInstance = () => {
               },
             },
             slug: {
-              isVisible: { list: false, filter: false, show: true, edit: true },
+              isVisible: { list: false, filter: true, show: true, edit: true },
             },
             organisationId: {
               isVisible: false,
@@ -110,6 +110,15 @@ const getAdminBroInstance = () => {
               isVisible: false,
             },
             image: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            givingBlocksId: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            website: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            youtube: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             balance: {
@@ -141,7 +150,7 @@ const getAdminBroInstance = () => {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             impactLocation: {
-              isVisible: { list: false, filter: true, show: true, edit: true },
+              isVisible: { list: false, filter: false, show: true, edit: true },
             },
             slugHistory: {
               isVisible: false,

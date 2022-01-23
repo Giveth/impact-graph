@@ -861,7 +861,9 @@ export const findTokenByNetworkAndSymbol = (
 ): {
   address: string;
   symbol: string;
+  name: string;
   decimals: number;
+  chainId: number;
 } => {
   let token;
   if (networkId === NETWORK_IDS.MAIN_NET) {
@@ -877,7 +879,9 @@ export const findTokenByNetworkAndSymbol = (
     throw new Error(errorMessages.INVALID_TOKEN_SYMBOL);
   }
   return {
+    chainId: networkId,
     address: token.address,
+    name: token.name,
     decimals: token.decimals,
     symbol,
   };
