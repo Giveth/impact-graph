@@ -145,6 +145,7 @@ interface TraceDonationInterface {
   amount: string;
   giverAddress: string;
   homeTxHash: string;
+  txHash: string;
   token: {
     symbol: string;
 
@@ -154,6 +155,7 @@ interface TraceDonationInterface {
   campaignId: string;
   createdAt: string;
 }
+
 export const getCampaignDonations = async (input: {
   campaignId: string;
   take: number;
@@ -174,17 +176,11 @@ export const getCampaignDonations = async (input: {
 }> => {
   const { campaignId, take, skip } = input;
   const url = `${process.env.GIVETH_TRACE_BASE_URL}/donations`;
+  // For see how REST calls of feathers application should be, see https://docs.feathersjs.com/api/client/rest.html#find
+  const urlWithQueryString = `${url}?$sort[createdAt]=-1&status[$in]=Committed&status[$in]=Waiting&ownerTypeId=${campaignId}&$limit=${take}$$skip=${skip}`;
+  // Query inspired by https://github.com/Giveth/feathers-giveth/blob/2d990df8e87087f8da0e70146a5adb4f41ab7f75/src/services/aggregateDonations/aggregateDonations.service.js#L23-L39
   try {
-    const result = await axios.get(url, {
-      params: {
-        '$sort[createdAt]': -1,
-        status: 'Waiting',
-        campaignId,
-        $limit: take,
-        $skip: skip,
-      },
-    });
-    logger.debug('result.data', JSON.stringify(result.data, null, 4));
+    const result = await axios.get(urlWithQueryString);
     const donations = result.data.data.map(
       (traceDonation: TraceDonationInterface) => {
         return {
@@ -196,7 +192,7 @@ export const getCampaignDonations = async (input: {
           // Currently trace just support mainnet donations
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
 
-          transactionId: traceDonation.homeTxHash,
+          transactionId: traceDonation.homeTxHash || traceDonation.txHash,
           fromWalletAddress: traceDonation.giverAddress,
         };
       },
