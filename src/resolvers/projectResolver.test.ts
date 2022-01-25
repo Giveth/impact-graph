@@ -1,8 +1,6 @@
 import { assert, expect } from 'chai';
 import 'mocha';
 import { createServerWithDummyUser } from '../server/testServerFactory';
-import { createTestClient } from 'apollo-server-testing';
-import { ADD_PROJECT } from './graphqlApi/project';
 import {
   generateRandomEtheriumAddress,
   generateTestAccessToken,
@@ -542,8 +540,35 @@ const editProjectTestCases = () => {
     );
   });
 };
+
 describe('addProject test cases --->', addProjectTestCases);
 describe('editProject test cases --->', editProjectTestCases);
+
+// TODO We should implement test cases for below query/mutation
+// describe('projects test cases --->', projectsTestCases);
+// describe('topProjects test cases --->', topProjectsTestCases);
+// describe('project test cases --->', projectTestCases);
+// describe('projectById test cases --->', projectByIdTestCases);
+// describe('projectBySlug test cases --->', projectBySlugTestCases);
+// describe('uploadImage test cases --->', uploadImageTestCases);
+// describe('addProjectUpdate test cases --->', addProjectUpdateTestCases);
+// describe('editProjectUpdate test cases --->', editProjectUpdateTestCases);
+// describe('deleteProjectUpdate test cases --->', deleteProjectUpdateTestCases);
+// describe('toggleReaction test cases --->', toggleReactionTestCases);
+// describe('toggleProjectReaction test cases --->', toggleProjectReactionTestCases);
+// describe('getProjectUpdates test cases --->', getProjectUpdatesTestCases);
+// describe('getProjectsRecipients test cases --->', getProjectsRecipientsTestCases);
+// describe('getProjectReactions test cases --->', getProjectReactionsTestCases);
+// describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
+// describe('isValidTitleForProject test cases --->', isValidTitleForProjectTestCases);
+// describe('projectByAddress test cases --->', projectByAddressTestCases);
+// describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
+
+// We may can delete this query
+// describe('updateProjectStatus test cases --->', updateProjectStatusTestCases);
+
+// describe('deactivateProject test cases --->', deactivateProjectTestCases);
+// describe('activateProject test cases --->', activateProjectTestCases);
 
 before(async () => {
   apolloServer = await createServerWithDummyUser();

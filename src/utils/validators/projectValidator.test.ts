@@ -16,3 +16,8 @@ const isWalletAddressValidTestCases = () => {
   });
 };
 describe('isWalletAddressValid() test cases', isWalletAddressValidTestCases);
+
+// TODO Write test cases
+// describe('validateProjectWalletAddress() test cases', validateProjectWalletAddressTestCases);
+// describe('validateProjectTitleForEdit() test cases', validateProjectTitleForEditTestCases);
+// describe('isWalletAddressSmartContract() test cases', isWalletAddressSmartContractTestCases);

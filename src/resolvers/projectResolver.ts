@@ -962,10 +962,10 @@ export class ProjectResolver {
     });
   }
 
-  @Query(returns => Boolean)
-  async isWalletSmartContract(@Arg('address') address: string) {
-    return isWalletAddressSmartContract(address);
-  }
+  // @Query(returns => Boolean)
+  // async isWalletSmartContract(@Arg('address') address: string) {
+  //   return isWalletAddressSmartContract(address);
+  // }
 
   /**
    * Can a project use this wallet?
