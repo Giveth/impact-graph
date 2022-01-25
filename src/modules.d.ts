@@ -2,7 +2,6 @@ declare namespace NodeJS {
   export interface ProcessEnv {
     JWT_SECRET: string;
     JWT_MAX_AGE: string;
-    ETHEREUM_NODE_ID: string;
     ETHEREUM_NETWORK: string;
     TYPEORM_DATABASE_TYPE: string;
     TYPEORM_DATABASE_NAME: string;
