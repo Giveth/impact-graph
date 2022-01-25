@@ -49,6 +49,7 @@ jobs:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+          ETHEREUM_NODE_ID: ${{ secrets.INFURA_API_KEY }}
 
   publish:
     if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/staging'

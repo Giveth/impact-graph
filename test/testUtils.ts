@@ -42,10 +42,6 @@ export const assertNotThrowsAsync = async fn => {
   }
 };
 
-export const serverErrorMessages = {
-  // ACCESS_DENIED: 'Access denied',
-};
-
 export const generateTestAccessToken = async (id: number): Promise<string> => {
   const user = await User.findOne({ id });
   return jwt.sign(
