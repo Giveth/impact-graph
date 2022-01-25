@@ -64,7 +64,7 @@ export class UserResolver {
     @Arg('url', { nullable: true }) url: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
-    if (!user) throw new Error('Authentication required.');
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
     const dbUser = await User.findOne({ id: user.userId });
     if (!dbUser) {
       return false;
@@ -116,7 +116,7 @@ export class UserResolver {
     verificationsInput: AccountVerificationInput[],
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
-    if (!user) throw new Error('Authentication required.');
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
     const currentUser = await User.findOne({ id: user.userId });
     if (!currentUser) throw new Error(errorMessages.USER_NOT_FOUND);
