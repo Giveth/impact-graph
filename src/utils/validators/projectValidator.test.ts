@@ -1,8 +1,14 @@
 import { isWalletAddressValid } from './projectValidator';
 import { assert } from 'chai';
 
-// TODO add test cases for isWalletAddressSmartContract(), validateProjectWalletAddress() in the future
-const isWalletAddressValidTestCases = () => {
+describe('isWalletAddressValid() test cases', isWalletAddressValidTestCases);
+
+// TODO Write test cases
+// describe('validateProjectWalletAddress() test cases', validateProjectWalletAddressTestCases);
+// describe('validateProjectTitleForEdit() test cases', validateProjectTitleForEditTestCases);
+// describe('isWalletAddressSmartContract() test cases', isWalletAddressSmartContractTestCases);
+
+function isWalletAddressValidTestCases() {
   it('should return true for valid address', () => {
     assert.isTrue(
       isWalletAddressValid('0x5AC583Feb2b1f288C0A51d6Cdca2e8c814BFE93B'),
@@ -14,10 +20,4 @@ const isWalletAddressValidTestCases = () => {
   it('should return false for undefined', () => {
     assert.isFalse(isWalletAddressValid(undefined));
   });
-};
-describe('isWalletAddressValid() test cases', isWalletAddressValidTestCases);
-
-// TODO Write test cases
-// describe('validateProjectWalletAddress() test cases', validateProjectWalletAddressTestCases);
-// describe('validateProjectTitleForEdit() test cases', validateProjectTitleForEditTestCases);
-// describe('isWalletAddressSmartContract() test cases', isWalletAddressSmartContractTestCases);
+}
