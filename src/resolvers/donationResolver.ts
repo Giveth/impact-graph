@@ -23,6 +23,8 @@ import { NETWORK_IDS } from '../provider';
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
+import { bold } from 'chalk';
+import { getCampaignDonations } from '../services/trace/traceService';
 
 const analytics = getAnalytics();
 
@@ -94,30 +96,43 @@ export class DonationResolver {
     @Ctx() ctx: MyContext,
     @Arg('skip', { defaultValue: 0 }) skip: number,
     @Arg('take', { defaultValue: 10 }) take: number,
+    @Arg('traceable', { defaultValue: false }) traceable: boolean,
     @Arg('projectId', type => Number) projectId: number,
   ) {
-    const query = this.donationRepository
-      .createQueryBuilder('donation')
-      .leftJoinAndSelect('donation.user', 'user')
-      .where(`donation.projectId = ${projectId}`);
+    const project = await Project.findOne({
+      id: projectId,
+    });
+    if (!project) {
+      throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    }
 
-    const [donations, donationsCount] = await query
-      .take(take)
-      .skip(skip)
-      .getManyAndCount();
-    const balance = await query
-      .select('SUM(donation.valueUsd)', 'usdBalance')
-      .getRawOne();
-    const ethBalance = await query
-      .select('SUM(donation.valueEth)', 'ethBalance')
-      .getRawOne();
+    if (traceable) {
+      const { total, donations } = await getCampaignDonations({
+        campaignId: project.traceCampaignId as string,
+        take,
+        skip,
+      });
+      return {
+        donations,
+        totalCount: total,
+        totalUsdBalance: project.totalTraceDonations,
+      };
+    } else {
+      const query = this.donationRepository
+        .createQueryBuilder('donation')
+        .leftJoinAndSelect('donation.user', 'user')
+        .where(`donation.projectId = ${projectId}`);
 
-    return {
-      donations,
-      totalCount: donationsCount,
-      totalUsdBalance: balance.usdBalance,
-      totalEthBalance: ethBalance.ethBalance,
-    };
+      const [donations, donationsCount] = await query
+        .take(take)
+        .skip(skip)
+        .getManyAndCount();
+      return {
+        donations,
+        totalCount: donationsCount,
+        totalUsdBalance: project.totalDonations,
+      };
+    }
   }
 
   @Query(returns => [Token], { nullable: true })
