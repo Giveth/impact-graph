@@ -3,7 +3,6 @@ import { Project } from '../../entities/project';
 import Web3 from 'web3';
 import { errorMessages } from '../errorMessages';
 import { logger } from '../logger';
-import { SEED_DATA } from '../../../test/testUtils';
 
 export function isWalletAddressValid(address) {
   return Boolean(
