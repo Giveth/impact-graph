@@ -1,9 +1,9 @@
-import { Donation } from '../entities/donation';
+import { Donation } from '../../entities/donation';
 import { schedule } from 'node-cron';
-import { fetchGivHistoricPrice } from './givPriceService';
-import { convertExponentialNumber } from '../utils/utils';
-import { updateTotalDonationsOfProject } from './donationService';
-import { logger } from '../utils/logger';
+import { fetchGivHistoricPrice } from '../givPriceService';
+import { convertExponentialNumber } from '../../utils/utils';
+import { updateTotalDonationsOfProject } from '../donationService';
+import { logger } from '../../utils/logger';
 
 const cronJobTime =
   process.env.REVIEW_OLD_GIV_PRICES_CRONJOB_EXPRESSION || '0 0 * * *';

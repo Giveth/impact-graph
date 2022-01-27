@@ -17,17 +17,18 @@ import { graphqlUploadExpress } from 'graphql-upload';
 import { Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator';
 
-import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
-import { runCheckPendingProjectListingCronJob } from '../services/syncProjectsRequiredForListing';
+import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
+import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
-import { runUpdateHistoricGivPrices } from '../services/syncGivPrices';
+import { runUpdateHistoricGivPrices } from '../services/cronJobs/syncGivPrices';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
+import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -238,6 +239,7 @@ export async function bootstrap() {
     processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
     runUpdateHistoricGivPrices();
+    runUpdateTraceableProjectsTotalDonations();
 
     // If we need to deactivate the process use the env var
     if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
