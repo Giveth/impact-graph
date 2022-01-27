@@ -3,7 +3,8 @@ import config from '../config';
 import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 import { logger } from '../utils/logger';
 
-const INFURA_ID = config.get('ETHEREUM_NODE_ID');
+const INFURA_API_KEY = config.get('INFURA_API_KEY');
+
 // tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
 
@@ -14,7 +15,7 @@ function getProvider(network) {
       config.get('XDAI_NODE_HTTP_URL'),
     );
   }
-  return new ethers.providers.InfuraProvider(network, INFURA_ID);
+  return new ethers.providers.InfuraProvider(network, INFURA_API_KEY);
 }
 
 function getNetworkFromChainId(chainId) {

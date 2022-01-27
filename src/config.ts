@@ -29,7 +29,6 @@ const envVars = [
   'SERVER_ADMIN_EMAIL',
   'DEFAULT_ORGANISATION',
   'UPLOAD_FILE_MAX_SIZE',
-  'ETHEREUM_NODE_ID',
   'HOSTNAME_WHITELIST',
   'SENTRY_ID',
   'SENTRY_TOKEN',
@@ -45,7 +44,6 @@ const envVars = [
 interface requiredEnv {
   JWT_SECRET: string;
   JWT_MAX_AGE: string;
-  ETHEREUM_NODE_ID: string;
   ETHEREUM_NETWORK: string;
   TYPEORM_DATABASE_TYPE: string;
   TYPEORM_DATABASE_NAME: string;

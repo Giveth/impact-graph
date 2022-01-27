@@ -111,11 +111,13 @@ registerEnumType(OrderDirection, {
   name: 'OrderDirection',
   description: 'Order direction',
 });
+
 function checkIfUserInRequest(ctx: MyContext) {
   if (!ctx.req.user) {
     throw new Error('Access denied');
   }
 }
+
 async function getLoggedInUser(ctx: MyContext) {
   checkIfUserInRequest(ctx);
 
@@ -356,7 +358,7 @@ export class ProjectResolver {
     @Arg('newProjectData') newProjectData: ProjectInput,
     @Ctx() { req: { user } }: MyContext,
   ) {
-    if (!user) throw new Error('Authentication required.');
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
     const project = await Project.findOne({ id: projectId });
 
@@ -374,27 +376,24 @@ export class ProjectResolver {
       );
     }
 
-    if (newProjectData.categories) {
-      const categoriesPromise = newProjectData.categories.map(
-        async category => {
-          const [c] = await this.categoryRepository.find({ name: category });
-          if (c === undefined) {
-            throw new Error(
-              errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-            );
-          }
-          return c;
-        },
-      );
-
-      const categories = await Promise.all(categoriesPromise);
-      if (categories.length > 5) {
+    const categoriesPromise = newProjectData.categories.map(async category => {
+      const [c] = await this.categoryRepository.find({ name: category });
+      if (c === undefined) {
         throw new Error(
-          errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+          errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
         );
       }
-      project.categories = categories;
+      return c;
+    });
+
+    const categories = await Promise.all(categoriesPromise);
+    if (categories.length > 5) {
+      throw new Error(
+        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+      );
     }
+    project.categories = categories;
+
     let imagePromise: Promise<string | undefined> = Promise.resolve(undefined);
 
     const { imageUpload, imageStatic } = newProjectData;
@@ -433,6 +432,12 @@ export class ProjectResolver {
     );
     if (newProjectData.title) {
       await validateProjectTitleForEdit(newProjectData.title, projectId);
+    }
+    if (newProjectData.walletAddress) {
+      await validateProjectWalletAddress(
+        newProjectData.walletAddress,
+        projectId,
+      );
     }
 
     const slugBase = slugify(newProjectData.title);
@@ -570,7 +575,7 @@ export class ProjectResolver {
         errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
       );
     }
-    await validateProjectWalletAddress(projectInput.walletAddress as string);
+    await validateProjectWalletAddress(projectInput.walletAddress);
     await validateProjectTitle(projectInput.title);
     const slugBase = slugify(projectInput.title);
     const slug = await this.getAppropriateSlug(slugBase);
@@ -674,7 +679,7 @@ export class ProjectResolver {
     @Arg('content') content: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdate> {
-    if (!user) throw new Error('Authentication required.');
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
     const owner = await User.findOne({ id: user.userId });
 
@@ -758,7 +763,7 @@ export class ProjectResolver {
     @Arg('content') content: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdate> {
-    if (!user) throw new Error('Authentication required.');
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
     const update = await ProjectUpdate.findOne({ id: updateId });
     if (!update) throw new Error('Project Update not found.');
@@ -779,7 +784,7 @@ export class ProjectResolver {
     @Arg('updateId') updateId: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<Boolean> {
-    if (!user) throw new Error('Authentication required.');
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
     const update = await ProjectUpdate.findOne({ id: updateId });
     if (!update) throw new Error('Project Update not found.');
@@ -806,7 +811,7 @@ export class ProjectResolver {
     @Arg('reaction') reaction: REACTION_TYPE = 'heart',
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
-    if (!user) throw new Error('Authentication required.');
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
     const update = await ProjectUpdate.findOne({ id: updateId });
     if (!update) throw new Error('Update not found.');
@@ -854,7 +859,7 @@ export class ProjectResolver {
     @Arg('reaction') reaction: REACTION_TYPE = 'heart',
     @Ctx() { req: { user } }: MyContext,
   ): Promise<object> {
-    if (!user) throw new Error('Authentication required.');
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
     const project = await Project.findOne({ id: projectId });
 
@@ -957,10 +962,10 @@ export class ProjectResolver {
     });
   }
 
-  @Query(returns => Boolean)
-  async isWalletSmartContract(@Arg('address') address: string) {
-    return isWalletAddressSmartContract(address);
-  }
+  // @Query(returns => Boolean)
+  // async isWalletSmartContract(@Arg('address') address: string) {
+  //   return isWalletAddressSmartContract(address);
+  // }
 
   /**
    * Can a project use this wallet?

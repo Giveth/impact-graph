@@ -48,7 +48,7 @@ export class ProjectInput {
   coOrdinates?: string;
 
   @Field({ nullable: true })
-  walletAddress?: string;
+  walletAddress: string;
 
   @Field({ nullable: true })
   projectImageIds?: string;

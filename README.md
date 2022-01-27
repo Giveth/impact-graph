@@ -20,6 +20,19 @@ cp config/example.env config/development.env
 Edit the config/development.env file in your favorite code editor and the environmental variables
 
 [Create a database](https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e) (we recommend Postgres) on your computer or server, we currently support for for MySQL, MariaDB, Postgres, MongoDB and SQLite).
+Or if you want, you can run the docker-compose like this:
+`docker-compose -f docker-compose-local-postgres.yml up -d`
+and put these to your `developmen.env`
+
+```
+TYPEORM_DATABASE_TYPE=postgres
+TYPEORM_DATABASE_NAME=givethio
+TYPEORM_DATABASE_USER=postgres
+TYPEORM_DATABASE_PASSWORD=postgres
+TYPEORM_DATABASE_HOST=localhost
+TYPEORM_DATABASE_PORT=5442
+```
+
 
 If you don't have redis installed do so, and then start it with:
 

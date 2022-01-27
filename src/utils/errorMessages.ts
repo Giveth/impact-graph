@@ -34,4 +34,6 @@ export const errorMessages = {
     'There is a project with this title, please use another title',
   INVALID_PROJECT_TITLE:
     'Your project name isnt valid, please only use letters and numbers',
+  ACCESS_DENIED: 'Access denied',
+  AUTHENTICATION_REQUIRED: 'Authentication required.',
 };

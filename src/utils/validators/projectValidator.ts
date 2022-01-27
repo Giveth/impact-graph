@@ -3,6 +3,7 @@ import { Project } from '../../entities/project';
 import Web3 from 'web3';
 import { errorMessages } from '../errorMessages';
 import { logger } from '../logger';
+import { SEED_DATA } from '../../../test/testUtils';
 
 export function isWalletAddressValid(address) {
   return Boolean(
@@ -12,6 +13,7 @@ export function isWalletAddressValid(address) {
 
 export const validateProjectWalletAddress = async (
   walletAddress: string,
+  projectId?: number,
 ): Promise<boolean> => {
   if (!isWalletAddressValid(walletAddress)) {
     throw new Error(errorMessages.INVALID_WALLET_ADDRESS);
@@ -29,7 +31,7 @@ export const validateProjectWalletAddress = async (
       walletAddress,
     })
     .getOne();
-  if (projectWithAddress) {
+  if (projectWithAddress && projectWithAddress.id !== projectId) {
     throw new Error(
       `Eth address ${walletAddress} is already being used for a project`,
     );
