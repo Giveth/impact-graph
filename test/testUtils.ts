@@ -68,6 +68,7 @@ export interface CreateProjectData {
   slug: string;
   qualityScore?: number;
   totalDonations?: number;
+  totalTraceDonations?: number;
   totalReactions?: number;
   totalProjectUpdates?: number;
   traceCampaignId?: string;

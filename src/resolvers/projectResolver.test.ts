@@ -454,6 +454,38 @@ function projectsTestCases() {
     });
     assert.equal(result.data.data.projects.projects[0].totalDonations, 0);
   });
+  it('should return projects, sort by totalTraceDonations, DESC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalTraceDonations: 100,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        orderBy: {
+          field: 'TraceDonations',
+          direction: 'DESC',
+        },
+      },
+    });
+    assert.isTrue(
+      result.data.data.projects.projects[0].totalTraceDonations >= 100,
+    );
+  });
+  it('should return projects, sort by totalTraceDonations, ASC', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        orderBy: {
+          field: 'TraceDonations',
+          direction: 'ASC',
+        },
+      },
+    });
+    assert.equal(result.data.data.projects.projects[0].totalTraceDonations, 0);
+  });
 
   // TODO this test doesnt pass now, but we should fix it
   // it('should return projects, find by category', async () => {

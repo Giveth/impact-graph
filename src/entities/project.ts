@@ -54,6 +54,7 @@ export enum OrderField {
   Reactions = 'totalReactions',
   Traceable = 'traceCampaignId',
   Donations = 'totalDonations',
+  TraceDonations = 'totalTraceDonations',
 }
 
 @Entity()

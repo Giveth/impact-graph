@@ -105,6 +105,7 @@ export const fetchAllProjectsQuery = `
         qualityScore
         totalReactions
         totalDonations
+        totalTraceDonations
       }
       totalCount
       categories {
