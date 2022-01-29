@@ -152,7 +152,16 @@ export const SEED_DATA = {
     id: 2,
     admin: '2',
   },
-  CATEGORIES: ['food1', 'food2', 'food3', 'food4', 'food5', 'food6', 'food7'],
+  CATEGORIES: [
+    'food1',
+    'food2',
+    'food3',
+    'food4',
+    'food5',
+    'food6',
+    'food7',
+    'food8',
+  ],
 
   STATUSES: [
     // Orders are important, because id of active status should be 5, I know it's very bad :)
