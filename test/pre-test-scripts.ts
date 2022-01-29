@@ -1,11 +1,11 @@
 import { bootstrap } from '../src/server/bootstrap';
-import { SEED_DATA } from './testUtils';
+import { saveProjectDirectlyToDb, SEED_DATA } from './testUtils';
 import { User } from '../src/entities/user';
 // var pgtools = require('pgtools');
 import { dropdb, createdb } from 'pgtools';
 import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
-import { Project } from '../src/entities/project';
+import { Project, ProjStatus } from '../src/entities/project';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -48,8 +48,8 @@ async function seedUsers() {
   await User.create(SEED_DATA.SECOND_USER).save();
 }
 async function seedProjects() {
-  await Project.create(SEED_DATA.FIRST_PROJECT).save();
-  await Project.create(SEED_DATA.SECOND_PROJECT).save();
+  await saveProjectDirectlyToDb(SEED_DATA.FIRST_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.SECOND_PROJECT);
 }
 async function seedCategories() {
   for (const category of SEED_DATA.CATEGORIES) {
