@@ -9,6 +9,7 @@ import { Database, Resource } from '@admin-bro/typeorm';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
+import { Donation } from '../entities/donation';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -68,6 +69,14 @@ const getAdminBroInstance = () => {
     locale: {
       translations: {
         resources: {
+          // Donation: {
+          //   properties: {
+          //     transactionNetworkId: 'Network',
+          //     'transactionNetworkId.1': 'Mainnet',
+          //     'transactionNetworkId.3': 'Ropsten',
+          //     'transactionNetworkId.100': 'xDai',
+          //   },
+          // },
           Project: {
             properties: {
               listed: 'Listed',
@@ -82,6 +91,91 @@ const getAdminBroInstance = () => {
       language: 'en',
     },
     resources: [
+      {
+        resource: Donation,
+        options: {
+          properties: {
+            projectId: {
+              isVisible: false,
+            },
+            nonce: {
+              isVisible: false,
+            },
+
+            verifyErrorMessage: {
+              isVisible: false,
+            },
+            speedup: {
+              isVisible: false,
+            },
+            isFiat: {
+              isVisible: false,
+            },
+            donationType: {
+              isVisible: false,
+            },
+            transakStatus: {
+              isVisible: false,
+            },
+            transakTransactionLink: {
+              isVisible: false,
+            },
+            anonymous: {
+              isVisible: false,
+            },
+            userId: {
+              isVisible: false,
+            },
+            tokenAddress: {
+              isVisible: false,
+            },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: false,
+            },
+
+            new: {
+              handler: async request => {
+                let message = messages.DONATION_CREATED_SUCCESSFULLY;
+                let type = 'success';
+                try {
+                  // Admin bro assume check method name be post, but when logging I noticed it is POST
+                  request.method = 'post';
+                  // logger.debug('create donation ', request);
+
+                  // TODO Add createdAt, the time of donation, find userId manually
+                  throw new Error('I should get price haahaaaa');
+
+                  // tslint:disable-next-line:no-console
+                } catch (e) {
+                  message = e.message;
+                  type = 'danger';
+                  logger.error('create donation error', e.message);
+                  throw e;
+                }
+
+                // return {
+                //   notice: {
+                //     message,
+                //     type,
+                //   },
+                // };
+
+                return {
+                  redirectUrl: 'Donation',
+                  records: [],
+                  notice: {
+                    message: `Project(s) successfully 'verified' : 'unverified'
+                    }`,
+                    type,
+                  },
+                };
+              },
+            },
+          },
+        },
+      },
       {
         resource: Project,
         options: {

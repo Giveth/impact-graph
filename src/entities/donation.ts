@@ -11,7 +11,6 @@ import {
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
-import { NETWORK_IDS } from '../provider';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
