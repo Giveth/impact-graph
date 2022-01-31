@@ -52,3 +52,65 @@ export const editProjectQuery = `
     }
   }
  `;
+
+export const fetchAllProjectsQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: OrderBy
+    $filterBy: FilterBy
+    $searchTerm: String
+    $category: String
+  ) {
+    projects(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      filterBy: $filterBy
+      searchTerm: $searchTerm
+      category: $category
+    ) {
+      projects {
+        id
+        title
+        balance
+        image
+        slug
+        creationDate
+        updatedAt
+        admin
+        description
+        walletAddress
+        impactLocation
+        qualityScore
+        verified
+        traceCampaignId
+        listed
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        categories {
+          name
+        }
+        reactions {
+          reaction
+          id
+          projectUpdateId
+          userId
+        }
+        qualityScore
+        totalReactions
+        totalDonations
+        totalTraceDonations
+      }
+      totalCount
+      categories {
+        name
+      }
+    }
+  }
+`;

@@ -2,6 +2,9 @@ import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
 import { User } from '../src/entities/user';
+import { Category, Project, ProjStatus } from '../src/entities/project';
+import { errorMessages } from '../src/utils/errorMessages';
+import { ProjectStatus } from '../src/entities/projectStatus';
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
 export const assertThrowsAsync = async (fn, errorMessage) => {
@@ -51,6 +54,74 @@ export const generateTestAccessToken = async (id: number): Promise<string> => {
   );
 };
 
+export interface CreateProjectData {
+  id?: number;
+  title: string;
+  description: string;
+  admin: string;
+  walletAddress: string;
+  categories: string[];
+  verified?: boolean;
+  listed?: boolean;
+  giveBacks?: boolean;
+  creationDate: Date;
+  slug: string;
+  qualityScore?: number;
+  totalDonations?: number;
+  totalTraceDonations?: number;
+  totalReactions?: number;
+  totalProjectUpdates?: number;
+  traceCampaignId?: string;
+}
+export const saveProjectDirectlyToDb = async (
+  projectData: CreateProjectData,
+) => {
+  const status = await ProjectStatus.findOne({
+    id: ProjStatus.active,
+  });
+  const user = (await User.findOne({
+    id: Number(projectData.admin),
+  })) as User;
+  const categoriesPromise = Promise.all(
+    projectData.categories
+      ? projectData.categories.map(async category => {
+          const c = await Category.findOne({ name: category });
+          if (!c) {
+            throw new Error('Invalid category');
+          }
+          return c;
+        })
+      : [],
+  );
+  const categories = await categoriesPromise;
+  return Project.create({
+    ...projectData,
+    status,
+    categories,
+    users: [user],
+  }).save();
+};
+
+export const createProjectData = (): CreateProjectData => {
+  const title = String(new Date().getTime());
+  return {
+    // title: `test project`,
+    title,
+    description: 'test description',
+    walletAddress: generateRandomEtheriumAddress(),
+    categories: ['food1'],
+    verified: true,
+    listed: true,
+    giveBacks: false,
+    creationDate: new Date(),
+    slug: title,
+    admin: '1',
+    qualityScore: 30,
+    totalDonations: 0,
+    totalReactions: 0,
+    totalProjectUpdates: 1,
+  };
+};
 export const SEED_DATA = {
   FIRST_USER: {
     name: 'firstUser',
@@ -67,42 +138,31 @@ export const SEED_DATA = {
     walletAddress: generateRandomEtheriumAddress(),
   },
   FIRST_PROJECT: {
+    ...createProjectData(),
+    title: 'second project',
+    slug: 'second-project',
+    description: 'second description',
     id: 1,
-    title: `first project`,
-    description: 'test description',
     admin: '1',
-    walletAddress: generateRandomEtheriumAddress(),
-    categories: [],
-    verified: true,
-    listed: true,
-    giveBacks: false,
-    creationDate: new Date(),
-    slug: 'first-project',
-    slugHistory: [],
-    qualityScore: 30,
-    totalDonations: 0,
-    totalReactions: 0,
-    totalProjectUpdates: 1,
   },
   SECOND_PROJECT: {
+    ...createProjectData(),
+    title: 'first project',
+    slug: 'first-project',
+    description: 'first description',
     id: 2,
-    title: `second project`,
-    description: 'test description',
     admin: '2',
-    walletAddress: generateRandomEtheriumAddress(),
-    categories: [],
-    verified: true,
-    listed: true,
-    giveBacks: false,
-    creationDate: new Date(),
-    slug: 'second-project',
-    slugHistory: [],
-    qualityScore: 30,
-    totalDonations: 0,
-    totalReactions: 0,
-    totalProjectUpdates: 1,
   },
-  CATEGORIES: ['food1', 'food2', 'food3', 'food4', 'food5', 'food6', 'food7'],
+  CATEGORIES: [
+    'food1',
+    'food2',
+    'food3',
+    'food4',
+    'food5',
+    'food6',
+    'food7',
+    'food8',
+  ],
 
   STATUSES: [
     // Orders are important, because id of active status should be 5, I know it's very bad :)

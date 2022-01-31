@@ -45,12 +45,16 @@ export enum ProjStatus {
 export enum OrderField {
   CreationDate = 'creationDate',
   UpdatedAt = 'updatedAt',
+
+  // TODO We may can delete this sorting
   Balance = 'balance',
+
   QualityScore = 'qualityScore',
   Verified = 'verified',
   Reactions = 'totalReactions',
   Traceable = 'traceCampaignId',
   Donations = 'totalDonations',
+  TraceDonations = 'totalTraceDonations',
 }
 
 @Entity()
