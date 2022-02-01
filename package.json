@@ -129,7 +129,7 @@
     ]
   },
   "engines": {
-    "node": "12.20.0"
+    "node": ">=12.20.0"
   },
   "author": "James Farrell",
   "license": "ISC"
