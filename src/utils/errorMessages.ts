@@ -5,6 +5,7 @@ export const errorMessages = {
     'This category is not valid',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
   PROJECT_NOT_FOUND: 'Project not found.',
+  INVALID_FUCTION: 'Invalid function name of transaction',
   DONATION_NOT_FOUND: 'donation not found',
   TRANSACTION_NOT_FOUND: 'Transaction not found.',
   TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS:

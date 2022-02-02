@@ -1,5 +1,8 @@
 import abiDecoder from 'abi-decoder';
-import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
+import {
+  findTokenByNetworkAndAddress,
+  findTokenByNetworkAndSymbol,
+} from '../utils/tokenUtils';
 import { errorMessages } from '../utils/errorMessages';
 import {
   NetworkTransactionInfo,
@@ -7,12 +10,15 @@ import {
 } from '../types/TransactionInquiry';
 import axios from 'axios';
 import { erc20ABI } from '../assets/erc20ABI';
+import { disperseABI } from '../assets/disperseABI';
 import {
   getEtherscanOrBlockScoutUrl,
   getNetworkNativeToken,
   getNetworkWeb3,
+  NETWORK_IDS,
 } from '../provider';
 import { logger } from '../utils/logger';
+import * as net from 'net';
 
 abiDecoder.addABI(erc20ABI);
 
@@ -51,7 +57,7 @@ export async function getTransactionInfoFromNetwork(
   return transaction;
 }
 
-async function findTransactionByHash(input: TransactionDetailInput) {
+export async function findTransactionByHash(input: TransactionDetailInput) {
   const nativeToken = getNetworkNativeToken(input.networkId);
   if (nativeToken === input.symbol) {
     return getTransactionDetailForNormalTransfer(input);
@@ -257,3 +263,54 @@ function validateTransactionWithInputData(
     throw new Error(errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION);
   }
 }
+
+export const getDisperseTransactions = async (
+  txHash: string,
+  networkId: number,
+): Promise<NetworkTransactionInfo[]> => {
+  const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
+    txHash,
+  );
+  const block = await getNetworkWeb3(networkId).eth.getBlock(
+    transaction.blockNumber as number,
+  );
+  abiDecoder.addABI(disperseABI);
+  const transactionData = abiDecoder.decodeMethod(transaction.input);
+  const transactions: NetworkTransactionInfo[] = [];
+
+  let token;
+  let recipients: string[] = [];
+  let amounts: string[] = [];
+  logger.debug(
+    'getDisperseTransactionDetail() result',
+    JSON.stringify(transactionData, null, 4),
+  );
+  if (transactionData.name === 'disperseEther') {
+    token = {
+      symbol: networkId === NETWORK_IDS.XDAI ? 'XDAI' : 'ETH',
+      decimals: 18,
+    };
+    recipients = transactionData.params[0].value;
+    amounts = transactionData.params[1].value;
+  } else if (transactionData.name === 'disperseToken') {
+    const tokenAddress = transactionData.params[0].value;
+    token = findTokenByNetworkAndAddress(networkId, tokenAddress);
+
+    recipients = transactionData.params[1].value;
+    amounts = transactionData.params[2].value;
+  } else {
+    throw new Error(errorMessages.INVALID_FUCTION);
+  }
+  for (let i = 0; i < recipients.length; i++) {
+    transactions.push({
+      from: transaction.from.toLowerCase(),
+      to: recipients[i].toLowerCase(),
+      amount: normalizeAmount(amounts[i], token.decimals),
+      hash: transaction.hash,
+      currency: token.symbol,
+      timestamp: block.timestamp as number,
+    });
+  }
+
+  return transactions;
+};
