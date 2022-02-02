@@ -8,6 +8,7 @@ import {
   ColumnOptions,
   RelationId,
   Index,
+  Unique,
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
@@ -20,13 +21,15 @@ export const DONATION_STATUS = {
 
 @Entity()
 @ObjectType()
+// https://typeorm.io/#/decorator-reference/unique
+@Unique(['transactionId', 'toWalletAddress'])
 export class Donation extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
   @Field()
-  @Column({ unique: true })
+  @Column()
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string;
 

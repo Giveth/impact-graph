@@ -9,7 +9,13 @@ import { Database, Resource } from '@admin-bro/typeorm';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
-import { Donation } from '../entities/donation';
+import { Donation, DONATION_STATUS } from '../entities/donation';
+import { findTransactionByHash } from '../services/transactionService';
+import { NETWORK_IDS } from '../provider';
+import { TransactionDetailInput } from '../types/TransactionInquiry';
+import { fetchGivHistoricPrice } from '../services/givPriceService';
+import symbols = Mocha.reporters.Base.symbols;
+import { errorMessages } from '../utils/errorMessages';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -26,6 +32,7 @@ interface AdminBroContextInterface {
   currentAdmin: User;
 }
 interface AdminBroRequestInterface {
+  payload?: any;
   query: {
     recordIds: string;
   };
@@ -96,14 +103,26 @@ const getAdminBroInstance = () => {
         options: {
           properties: {
             projectId: {
-              isVisible: false,
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             nonce: {
               isVisible: false,
             },
 
             verifyErrorMessage: {
-              isVisible: false,
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             speedup: {
               isVisible: false,
@@ -115,7 +134,13 @@ const getAdminBroInstance = () => {
               isVisible: false,
             },
             transakStatus: {
-              isVisible: false,
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             transakTransactionLink: {
               isVisible: false,
@@ -124,9 +149,69 @@ const getAdminBroInstance = () => {
               isVisible: false,
             },
             userId: {
-              isVisible: false,
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             tokenAddress: {
+              isVisible: false,
+            },
+            fromWalletAddress: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            toWalletAddress: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            amount: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            priceEth: {
+              isVisible: false,
+            },
+            valueEth: {
+              isVisible: false,
+            },
+            valueUsd: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            status: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            createdAt: {
               isVisible: false,
             },
           },
@@ -136,23 +221,73 @@ const getAdminBroInstance = () => {
             },
 
             new: {
-              handler: async request => {
+              handler: async (
+                request: AdminBroRequestInterface,
+                response,
+                context: AdminBroContextInterface,
+              ) => {
                 let message = messages.DONATION_CREATED_SUCCESSFULLY;
+                const { records } = context;
+
                 let type = 'success';
                 try {
-                  // Admin bro assume check method name be post, but when logging I noticed it is POST
-                  request.method = 'post';
-                  // logger.debug('create donation ', request);
+                  logger.debug('create donation ', request.payload);
+                  const {
+                    transactionNetworkId,
+                    transactionId: txHash,
+                    currency,
+                    priceUsd,
+                  } = request.payload;
+                  if (!priceUsd) {
+                    throw new Error('priceUsd is required');
+                  }
+                  const networkId = Number(transactionNetworkId);
 
-                  // TODO Add createdAt, the time of donation, find userId manually
-                  throw new Error('I should get price haahaaaa');
+                  const transactionInfo = await findTransactionByHash({
+                    networkId,
+                    txHash,
+                    symbol: currency,
+                  } as TransactionDetailInput);
+                  const project = await Project.findOne({
+                    walletAddress: transactionInfo?.to,
+                  });
+                  if (!project) {
+                    throw new Error(
+                      errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
+                    );
+                  }
 
-                  // tslint:disable-next-line:no-console
+                  const donation = Donation.create({
+                    fromWalletAddress: transactionInfo?.from,
+                    toWalletAddress: transactionInfo?.to,
+                    transactionId: txHash,
+                    transactionNetworkId: networkId,
+                    project,
+                    priceUsd,
+                    currency,
+                    amount: transactionInfo?.amount,
+                    valueUsd: (transactionInfo?.amount as number) * priceUsd,
+                    status: DONATION_STATUS.VERIFIED,
+                    createdAt: new Date(transactionInfo?.timestamp as number),
+                    anonymous: true,
+                  });
+                  const donor = await User.findOne({
+                    walletAddress: transactionInfo?.from,
+                  });
+                  if (donor) {
+                    donation.anonymous = false;
+                    donation.user = donor;
+                  }
+                  await donation.save();
+                  logger.debug(
+                    'Donation has been created successfully',
+                    donation.id,
+                  );
                 } catch (e) {
                   message = e.message;
                   type = 'danger';
                   logger.error('create donation error', e.message);
-                  throw e;
+                  // throw e;
                 }
 
                 // return {
@@ -162,15 +297,17 @@ const getAdminBroInstance = () => {
                 //   },
                 // };
 
-                return {
+                response.send({
                   redirectUrl: 'Donation',
-                  records: [],
+                  records: (records || []).map(record => {
+                    record.toJSON(context.currentAdmin);
+                  }),
                   notice: {
                     message: `Project(s) successfully 'verified' : 'unverified'
                     }`,
                     type,
                   },
-                };
+                });
               },
             },
           },
