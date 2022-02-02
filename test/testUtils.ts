@@ -142,6 +142,13 @@ export const SEED_DATA = {
     id: 2,
     walletAddress: generateRandomEtheriumAddress(),
   },
+  ADMIN_USER: {
+    name: 'adminUser',
+    lastName: 'adminUser lastName',
+    loginType: 'wallet',
+    id: 3,
+    walletAddress: generateRandomEtheriumAddress(),
+  },
   FIRST_PROJECT: {
     ...createProjectData(),
     title: 'second project',

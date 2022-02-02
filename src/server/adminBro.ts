@@ -8,6 +8,7 @@ import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
+import { messages } from '../utils/messages';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -16,6 +17,18 @@ const segmentProjectStatusEvents = {
   can: SegmentEvents.PROJECT_DEACTIVATED,
   del: SegmentEvents.PROJECT_CANCELLED,
 };
+
+interface AdminBroContextInterface {
+  h: any;
+  resource: any;
+  records: any[];
+  currentAdmin: User;
+}
+interface AdminBroRequestInterface {
+  query: {
+    recordIds: string;
+  };
+}
 
 AdminBro.registerAdapter({ Database, Resource });
 
@@ -214,7 +227,7 @@ const getAdminBroInstance = () => {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return updateStatuslProjects(
+                return updateStatusOfProjects(
                   context,
                   request,
                   ProjStatus.active,
@@ -226,7 +239,7 @@ const getAdminBroInstance = () => {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return updateStatuslProjects(
+                return updateStatusOfProjects(
                   context,
                   request,
                   ProjStatus.deactive,
@@ -238,7 +251,7 @@ const getAdminBroInstance = () => {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return updateStatuslProjects(
+                return updateStatusOfProjects(
                   context,
                   request,
                   ProjStatus.cancel,
@@ -331,7 +344,11 @@ const getAdminBroInstance = () => {
   });
 };
 
-const listDelist = async (context, request, list = true) => {
+const listDelist = async (
+  context: AdminBroContextInterface,
+  request,
+  list = true,
+) => {
   const { records } = context;
   try {
     const projects = await Project.createQueryBuilder('project')
@@ -365,7 +382,11 @@ const listDelist = async (context, request, list = true) => {
   };
 };
 
-const verifyProjects = async (context, request, verified = true) => {
+const verifyProjects = async (
+  context: AdminBroContextInterface,
+  request: AdminBroRequestInterface,
+  verified = true,
+) => {
   const { records } = context;
   try {
     const projects = await Project.createQueryBuilder('project')
@@ -403,13 +424,22 @@ const verifyProjects = async (context, request, verified = true) => {
   };
 };
 
-const updateStatuslProjects = async (context, request, status) => {
+export const updateStatusOfProjects = async (
+  context: AdminBroContextInterface,
+  request: AdminBroRequestInterface,
+  status,
+) => {
   const { h, resource, records } = context;
   try {
     const projectStatus = await ProjectStatus.findOne({ id: status });
     if (projectStatus) {
+      const updateData: any = { status: projectStatus };
+      if (status === ProjStatus.cancel) {
+        updateData.verified = false;
+        updateData.listed = false;
+      }
       const projects = await Project.createQueryBuilder('project')
-        .update<Project>(Project, { status: projectStatus })
+        .update<Project>(Project, updateData)
         .where('project.id IN (:...ids)')
         .setParameter('ids', request.query.recordIds.split(','))
         .returning('*')
@@ -427,14 +457,13 @@ const updateStatuslProjects = async (context, request, status) => {
   } catch (error) {
     throw error;
   }
-
   return {
     redirectUrl: 'Project',
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
     notice: {
-      message: 'Project(s) status successfully updated',
+      message: messages.PROJECT_STATUS_UPDATED_SUCCESSFULLY,
       type: 'success',
     },
   };
