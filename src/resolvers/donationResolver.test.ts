@@ -1,5 +1,4 @@
-import { assert, expect } from 'chai';
-import { createServerWithDummyUser } from '../server/testServerFactory';
+import { assert } from 'chai';
 import {
   generateTestAccessToken,
   graphqlUrl,
@@ -8,10 +7,7 @@ import {
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation } from '../entities/donation';
-import { User } from '../entities/user';
 import { fetchDonationsByDonorQuery } from '../../test/graphqlQueries';
-
-let apolloServer;
 
 // TODO Write test cases
 // describe('donations() test cases', donationsTestCases);
@@ -89,7 +85,3 @@ function donationsByDonorTestCases() {
     );
   });
 }
-
-before(async () => {
-  apolloServer = await createServerWithDummyUser();
-});
