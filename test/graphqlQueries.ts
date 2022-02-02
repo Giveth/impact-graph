@@ -53,6 +53,28 @@ export const editProjectQuery = `
   }
  `;
 
+export const fetchDonationsByDonorQuery = `
+  query {
+    donationsByDonor {
+      id
+      transactionId
+      transactionNetworkId
+      toWalletAddress
+      fromWalletAddress
+      currency
+      anonymous
+      amount
+      user {
+        id
+      }
+      project {
+        id
+      }
+      createdAt
+    }
+  }
+`;
+
 export const fetchAllProjectsQuery = `
   query (
     $take: Int

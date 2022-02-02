@@ -1,6 +1,5 @@
 import { assert, expect } from 'chai';
 import 'mocha';
-import { createServerWithDummyUser } from '../server/testServerFactory';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -18,8 +17,6 @@ import {
 import { ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
 import { OrderField, Project, ProjStatus } from '../entities/project';
-
-let apolloServer;
 
 describe('addProject test cases --->', addProjectTestCases);
 describe('editProject test cases --->', editProjectTestCases);
@@ -1050,7 +1047,3 @@ function editProjectTestCases() {
     );
   });
 }
-
-before(async () => {
-  apolloServer = await createServerWithDummyUser();
-});
