@@ -1,10 +1,15 @@
 import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
+import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
+import { Donation } from '../src/entities/donation';
 import { Category, Project, ProjStatus } from '../src/entities/project';
 import { errorMessages } from '../src/utils/errorMessages';
 import { ProjectStatus } from '../src/entities/projectStatus';
+
+// tslint:disable-next-line:no-var-requires
+const moment = require('moment');
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
 export const assertThrowsAsync = async (fn, errorMessage) => {
@@ -101,7 +106,6 @@ export const saveProjectDirectlyToDb = async (
     users: [user],
   }).save();
 };
-
 export const createProjectData = (): CreateProjectData => {
   const title = String(new Date().getTime());
   return {
@@ -122,6 +126,7 @@ export const createProjectData = (): CreateProjectData => {
     totalProjectUpdates: 1,
   };
 };
+
 export const SEED_DATA = {
   FIRST_USER: {
     name: 'firstUser',
@@ -163,7 +168,6 @@ export const SEED_DATA = {
     'food7',
     'food8',
   ],
-
   STATUSES: [
     // Orders are important, because id of active status should be 5, I know it's very bad :)
     {
@@ -203,6 +207,63 @@ export const SEED_DATA = {
     },
   ],
   DAI_SMART_CONTRACT_ADDRESS: '0x6b175474e89094c44da98b954eedeac495271d0f',
+};
+
+export const DONATION_SEED_DATA = {
+  FIRST_DONATION: {
+    transactionId: generateRandomEtheriumAddress(),
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+    currency: 'ETH',
+    anonymous: false,
+    amount: 10,
+    userId: SEED_DATA.FIRST_USER.id,
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    createdAt: moment(),
+  },
+  SECOND_DONATION: {
+    transactionId: generateRandomEtheriumAddress(),
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+    currency: 'ETH',
+    anonymous: false,
+    amount: 10,
+    userId: SEED_DATA.FIRST_USER.id,
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    createdAt: moment(),
+  },
+};
+
+export interface CreateDonationData {
+  id?: number;
+  transactionId: string;
+  transactionNetworkId: number;
+  toWalletAddress: string;
+  fromWalletAddress: string;
+  currency: string;
+  anonymous: boolean;
+  amount: number;
+  createdAt: any;
+}
+
+export const saveDonationDirectlyToDb = async (
+  donationData: CreateDonationData,
+  userId: number,
+  projectId: number,
+) => {
+  const user = (await User.findOne({
+    id: userId,
+  })) as User;
+  const project = (await Project.findOne({
+    id: projectId,
+  })) as Project;
+  return Donation.create({
+    ...donationData,
+    user,
+    project,
+  }).save();
 };
 
 export function generateRandomEtheriumAddress(): string {

@@ -156,14 +156,11 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
-      throw new Error(
-        'You must be logged in in order to register project donations',
-      );
-    const userId = ctx.req.user.userId;
+      throw new Error(errorMessages.DONATION_VIEWING_LOGIN_REQUIRED);
 
     const donations = await this.donationRepository.find({
       where: {
-        user: userId,
+        user: ctx.req.user.userId,
       },
     });
 
