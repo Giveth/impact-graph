@@ -218,6 +218,7 @@ export const SEED_DATA = {
 
 export const DONATION_SEED_DATA = {
   FIRST_DONATION: {
+    id: 1,
     transactionId: generateRandomEtheriumAddress(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
@@ -228,8 +229,10 @@ export const DONATION_SEED_DATA = {
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
+    segmentNotified: true,
   },
   SECOND_DONATION: {
+    id: 2,
     transactionId: generateRandomEtheriumAddress(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
@@ -240,6 +243,7 @@ export const DONATION_SEED_DATA = {
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
+    segmentNotified: false,
   },
 };
 
