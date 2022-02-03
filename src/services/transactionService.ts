@@ -11,6 +11,7 @@ import {
 import axios from 'axios';
 import { erc20ABI } from '../assets/erc20ABI';
 import { disperseABI } from '../assets/disperseABI';
+import { csvAirDropABI } from '../assets/csvAirDropABI';
 import {
   getEtherscanOrBlockScoutUrl,
   getNetworkNativeToken,
@@ -283,6 +284,65 @@ export const getDisperseTransactions = async (
   let amounts: string[] = [];
   logger.debug(
     'getDisperseTransactionDetail() result',
+    JSON.stringify(transactionData, null, 4),
+  );
+  if (transactionData.name === 'disperseEther') {
+    token = {
+      symbol: networkId === NETWORK_IDS.XDAI ? 'XDAI' : 'ETH',
+      decimals: 18,
+    };
+    recipients = transactionData.params[0].value;
+    amounts = transactionData.params[1].value;
+  } else if (transactionData.name === 'disperseToken') {
+    const tokenAddress = transactionData.params[0].value;
+    token = findTokenByNetworkAndAddress(networkId, tokenAddress);
+
+    recipients = transactionData.params[1].value;
+    amounts = transactionData.params[2].value;
+  } else {
+    throw new Error(errorMessages.INVALID_FUCTION);
+  }
+  for (let i = 0; i < recipients.length; i++) {
+    transactions.push({
+      from: transaction.from.toLowerCase(),
+      to: recipients[i].toLowerCase(),
+      amount: normalizeAmount(amounts[i], token.decimals),
+      hash: transaction.hash,
+      currency: token.symbol,
+      timestamp: block.timestamp as number,
+    });
+  }
+
+  return transactions;
+};
+
+export const getCsvAirdropTransactions = async (
+  txHash: string,
+  networkId: number,
+): Promise<NetworkTransactionInfo[]> => {
+  const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
+    txHash,
+  );
+  const receipts = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
+    txHash,
+  );
+  logger.debug('getCsvAirdropTransactions transaction', {
+    transaction,
+    receipts,
+    reciptLogs: receipts.logs,
+  });
+  const block = await getNetworkWeb3(networkId).eth.getBlock(
+    transaction.blockNumber as number,
+  );
+  abiDecoder.addABI(csvAirDropABI);
+  const transactionData = abiDecoder.decodeMethod(transaction.input);
+  const transactions: NetworkTransactionInfo[] = [];
+
+  let token;
+  let recipients: string[] = [];
+  let amounts: string[] = [];
+  logger.debug(
+    'getCsvAirdropTransactions() result',
     JSON.stringify(transactionData, null, 4),
   );
   if (transactionData.name === 'disperseEther') {

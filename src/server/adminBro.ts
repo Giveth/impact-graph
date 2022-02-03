@@ -10,9 +10,15 @@ import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
-import { findTransactionByHash } from '../services/transactionService';
+import {
+  findTransactionByHash,
+  getDisperseTransactions,
+} from '../services/transactionService';
 import { NETWORK_IDS } from '../provider';
-import { TransactionDetailInput } from '../types/TransactionInquiry';
+import {
+  NetworkTransactionInfo,
+  TransactionDetailInput,
+} from '../types/TransactionInquiry';
 import { fetchGivHistoricPrice } from '../services/givPriceService';
 import symbols = Mocha.reporters.Base.symbols;
 import { errorMessages } from '../utils/errorMessages';
@@ -31,6 +37,7 @@ interface AdminBroContextInterface {
   records: any[];
   currentAdmin: User;
 }
+
 interface AdminBroRequestInterface {
   payload?: any;
   query: {
@@ -76,14 +83,14 @@ const getAdminBroInstance = () => {
     locale: {
       translations: {
         resources: {
-          // Donation: {
-          //   properties: {
-          //     transactionNetworkId: 'Network',
-          //     'transactionNetworkId.1': 'Mainnet',
-          //     'transactionNetworkId.3': 'Ropsten',
-          //     'transactionNetworkId.100': 'xDai',
-          //   },
-          // },
+          Donation: {
+            properties: {
+              transactionNetworkId: 'Network',
+              transactionId: 'txHash',
+              disperseTxHash:
+                'disperseTxHash, this is optional, just for disperse transactions',
+            },
+          },
           Project: {
             properties: {
               listed: 'Listed',
@@ -214,101 +221,45 @@ const getAdminBroInstance = () => {
             createdAt: {
               isVisible: false,
             },
+            transactionNetworkId: {
+              availableValues: [
+                { value: 1, label: 'Mainnet' },
+                { value: 100, label: 'Xdai' },
+                { value: 3, label: 'Ropsten' },
+              ],
+              isVisible: true,
+            },
+            txType: {
+              availableValues: [
+                { value: 'normalTransfer', label: 'normalTransfer' },
+                { value: 'disperse', label: 'Using disperse app' },
+              ],
+              isVisible: {
+                list: false,
+                show: false,
+                new: true,
+                edit: true,
+              },
+            },
+            priceUsd: {
+              isVisible: true,
+              type: 'number',
+            },
           },
           actions: {
             bulkDelete: {
               isVisible: false,
             },
+            edit: {
+              isVisible: false,
+            },
+            delete: {
+              isVisible: false,
+            },
 
             new: {
-              handler: async (
-                request: AdminBroRequestInterface,
-                response,
-                context: AdminBroContextInterface,
-              ) => {
-                let message = messages.DONATION_CREATED_SUCCESSFULLY;
-                const { records } = context;
-
-                let type = 'success';
-                try {
-                  logger.debug('create donation ', request.payload);
-                  const {
-                    transactionNetworkId,
-                    transactionId: txHash,
-                    currency,
-                    priceUsd,
-                  } = request.payload;
-                  if (!priceUsd) {
-                    throw new Error('priceUsd is required');
-                  }
-                  const networkId = Number(transactionNetworkId);
-
-                  const transactionInfo = await findTransactionByHash({
-                    networkId,
-                    txHash,
-                    symbol: currency,
-                  } as TransactionDetailInput);
-                  const project = await Project.findOne({
-                    walletAddress: transactionInfo?.to,
-                  });
-                  if (!project) {
-                    throw new Error(
-                      errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
-                    );
-                  }
-
-                  const donation = Donation.create({
-                    fromWalletAddress: transactionInfo?.from,
-                    toWalletAddress: transactionInfo?.to,
-                    transactionId: txHash,
-                    transactionNetworkId: networkId,
-                    project,
-                    priceUsd,
-                    currency,
-                    amount: transactionInfo?.amount,
-                    valueUsd: (transactionInfo?.amount as number) * priceUsd,
-                    status: DONATION_STATUS.VERIFIED,
-                    createdAt: new Date(transactionInfo?.timestamp as number),
-                    anonymous: true,
-                  });
-                  const donor = await User.findOne({
-                    walletAddress: transactionInfo?.from,
-                  });
-                  if (donor) {
-                    donation.anonymous = false;
-                    donation.user = donor;
-                  }
-                  await donation.save();
-                  logger.debug(
-                    'Donation has been created successfully',
-                    donation.id,
-                  );
-                } catch (e) {
-                  message = e.message;
-                  type = 'danger';
-                  logger.error('create donation error', e.message);
-                  // throw e;
-                }
-
-                // return {
-                //   notice: {
-                //     message,
-                //     type,
-                //   },
-                // };
-
-                response.send({
-                  redirectUrl: 'Donation',
-                  records: (records || []).map(record => {
-                    record.toJSON(context.currentAdmin);
-                  }),
-                  notice: {
-                    message: `Project(s) successfully 'verified' : 'unverified'
-                    }`,
-                    type,
-                  },
-                });
-              },
+              handler: createDonation,
+              // component: true,
             },
           },
         },
@@ -698,6 +649,90 @@ export const updateStatusOfProjects = async (
       type: 'success',
     },
   };
+};
+
+export const createDonation = async (
+  request: AdminBroRequestInterface,
+  response,
+  context: AdminBroContextInterface,
+) => {
+  let message = messages.DONATION_CREATED_SUCCESSFULLY;
+
+  let type = 'success';
+  try {
+    logger.debug('create donation ', request.payload);
+    const {
+      transactionNetworkId,
+      transactionId: txHash,
+      currency,
+      priceUsd,
+      txType,
+    } = request.payload;
+    if (!priceUsd) {
+      throw new Error('priceUsd is required');
+    }
+    const networkId = Number(transactionNetworkId);
+    let transactions: NetworkTransactionInfo[] = [];
+    if (txType === 'disperse') {
+      transactions = await getDisperseTransactions(txHash, networkId);
+    } else {
+      const transactionInfo2 = await findTransactionByHash({
+        networkId,
+        txHash,
+        symbol: currency,
+      } as TransactionDetailInput);
+      if (!transactionInfo2) {
+        throw new Error(errorMessages.INVALID_TX_HASH);
+      }
+    }
+    const transactionInfo: any = {};
+
+    const project = await Project.findOne({
+      walletAddress: transactionInfo?.to,
+    });
+    if (!project) {
+      throw new Error(
+        errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
+      );
+    }
+
+    const donation = Donation.create({
+      fromWalletAddress: transactionInfo?.from,
+      toWalletAddress: transactionInfo?.to,
+      transactionId: txHash,
+      transactionNetworkId: networkId,
+      project,
+      priceUsd,
+      currency,
+      amount: transactionInfo?.amount,
+      valueUsd: (transactionInfo?.amount as number) * priceUsd,
+      status: DONATION_STATUS.VERIFIED,
+      createdAt: new Date(transactionInfo?.timestamp as number),
+      anonymous: true,
+    });
+    const donor = await User.findOne({
+      walletAddress: transactionInfo?.from,
+    });
+    if (donor) {
+      donation.anonymous = false;
+      donation.user = donor;
+    }
+    await donation.save();
+    logger.debug('Donation has been created successfully', donation.id);
+  } catch (e) {
+    message = e.message;
+    type = 'danger';
+    logger.error('create donation error', e.message);
+  }
+
+  response.send({
+    redirectUrl: 'Donation',
+    record: {},
+    notice: {
+      message,
+      type,
+    },
+  });
 };
 
 export const adminBroRootPath = '/admin';
