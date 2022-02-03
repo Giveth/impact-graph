@@ -5,10 +5,14 @@ import { schedule } from 'node-cron';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import { sleep } from '../../utils/utils';
+import config from '../../config';
 
 const analytics = getAnalytics();
 
-const cronJobTime = '*/17 * * * *';
+const cronJobTime =
+  (config.get(
+    'NOTIFY_SEGMENT_OF_MISSED_DONATIONS_CRONJOB_EXPRESSION',
+  ) as string) || '0 0 * * *';
 
 export const runNotifyMissingDonationsCronJob = () => {
   logger.debug('runNotifyMissingDonationsCronJob() has been called');
