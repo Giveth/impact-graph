@@ -5,13 +5,13 @@ export class setSegmentNotifiedForOlderDonations1643891610952
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `UPDATE "donation" SET "segmentNotified" = true`,
+      `UPDATE donation SET "segmentNotified" = true`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `UPDATE "donation" SET "segmentNotified" = false`,
+      `UPDATE donation SET "segmentNotified" = false`,
     );
   }
 }
