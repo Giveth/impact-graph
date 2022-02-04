@@ -279,6 +279,7 @@ export class DonationResolver {
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         projectWalletAddress: project.walletAddress,
+        segmentNotified: true,
         createdAt: new Date(),
       };
 
