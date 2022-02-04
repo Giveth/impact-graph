@@ -61,7 +61,7 @@ export async function bootstrap() {
       synchronize: true,
       logger: 'advanced-console',
       logging: ['error'],
-      dropSchema,
+      dropSchema: false,
       cache: true,
     });
 
