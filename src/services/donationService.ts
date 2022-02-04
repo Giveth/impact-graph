@@ -48,6 +48,7 @@ export const updateDonationByTransakData = async (
   }
 
   if (TRANSAK_COMPLETED_STATUS === donation.transakStatus) {
+    donation.segmentNotified = true;
     notifyTransakUpdate(donation);
     if (donationProjectIsValid) {
       donation.status = DONATION_STATUS.VERIFIED;
