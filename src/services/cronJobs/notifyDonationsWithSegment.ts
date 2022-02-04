@@ -6,6 +6,7 @@ import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import { sleep } from '../../utils/utils';
 import config from '../../config';
+import { TRANSAK_COMPLETED_STATUS } from '../donationService';
 
 const analytics = getAnalytics();
 
@@ -23,7 +24,13 @@ export const runNotifyMissingDonationsCronJob = () => {
 
 // As Segment sometimes fail, this is a Best Effort service
 export const notifyMissingDonationsWithSegment = async () => {
-  const donations = await Donation.find({ segmentNotified: false });
+  // skip incompleted transak donations
+  const donations = await Donation.find({
+    where: [
+      { segmentNotified: false, transakStatus: null },
+      { segmentNotified: false, transakStatus: TRANSAK_COMPLETED_STATUS },
+    ],
+  });
   logger.debug(
     'notifyMissingDonationsWithSegment donations count',
     donations.length,

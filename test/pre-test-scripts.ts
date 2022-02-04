@@ -58,6 +58,7 @@ async function seedUsers() {
 async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.FIRST_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.SECOND_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.TRANSAK_PROJECT);
 }
 async function seedDonations() {
   await saveDonationDirectlyToDb(
@@ -68,6 +69,16 @@ async function seedDonations() {
   await saveDonationDirectlyToDb(
     DONATION_SEED_DATA.SECOND_DONATION,
     SEED_DATA.FIRST_USER.id,
+    SEED_DATA.FIRST_PROJECT.id,
+  );
+  await saveDonationDirectlyToDb(
+    DONATION_SEED_DATA.INCOMPLETED_TRANSAK_DONATION,
+    SEED_DATA.THIRD_USER.id,
+    SEED_DATA.FIRST_PROJECT.id,
+  );
+  await saveDonationDirectlyToDb(
+    DONATION_SEED_DATA.COMPLETED_TRANSAK_DONATION,
+    SEED_DATA.THIRD_USER.id,
     SEED_DATA.FIRST_PROJECT.id,
   );
 }

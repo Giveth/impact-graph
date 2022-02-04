@@ -6,7 +6,7 @@ import DonationTracker from './segment/DonationTracker';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 
-const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
+export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
 export const updateDonationByTransakData = async (
   transakData: TransakOrder,

@@ -5,6 +5,8 @@ import sinon from 'sinon';
 import { Donation } from '../../entities/donation';
 import { notifyMissingDonationsWithSegment } from './notifyDonationsWithSegment';
 import * as utils from '../../utils/utils';
+import { TRANSAK_COMPLETED_STATUS } from '../../services/donationService';
+import { Not } from 'typeorm';
 
 describe(
   'notifyMissingDonationsWithSegment() test cases',
@@ -24,14 +26,33 @@ function notifyMissingDonationsWithSegmentTestCases() {
     const afterNotifiedDonation = await Donation.findOne({
       id: DONATION_SEED_DATA.SECOND_DONATION.id,
     });
-    const notNotifiedDonations = await Donation.find({
-      segmentNotified: false,
-    });
     assert.notEqual(
       unnotifiedDonation?.segmentNotified,
       afterNotifiedDonation?.segmentNotified,
     );
     assert.equal(afterNotifiedDonation?.segmentNotified, true);
-    assert.equal(notNotifiedDonations?.length, 0);
+  });
+  describe('after the notifyMissingDonationsWithSegment() ran', () => {
+    it('should have not notified incompleted transak donations', async () => {
+      const incompletedTransakDonations = await Donation.find({
+        where: [
+          { segmentNotified: false, transakStatus: Not(null) },
+          {
+            segmentNotified: false,
+            transakStatus: Not(TRANSAK_COMPLETED_STATUS),
+          },
+        ],
+      });
+      const notNotifiedDonations = await Donation.find({
+        where: [
+          { segmentNotified: false, transakStatus: null },
+          { segmentNotified: false, transakStatus: TRANSAK_COMPLETED_STATUS },
+        ],
+      });
+
+      // cronjob ignores incompleted transak donations and they remain unnotified
+      assert.equal(notNotifiedDonations?.length, 0);
+      assert.equal(incompletedTransakDonations?.length, 1);
+    });
   });
 }
