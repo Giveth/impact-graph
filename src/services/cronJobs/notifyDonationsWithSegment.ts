@@ -35,6 +35,9 @@ export const notifyMissingDonationsWithSegment = async () => {
     );
     const project = await Project.findOne({ id: donation.projectId });
     const owner = await User.findOne({ id: Number(project?.admin) });
+    // Notify owner donation was received ( if user and owner and project exist)
+    donation.segmentNotified = true;
+    await donation.save();
     if (project && owner) {
       const receivedDonationAttributes = segmentDonationAttributes(
         project,
@@ -69,9 +72,6 @@ export const notifyMissingDonationsWithSegment = async () => {
     }
     // await enough for segment limit to regen
     await sleep(1000);
-    // Notify owner donation was received
-    donation.segmentNotified = true;
-    await donation.save();
   }
 };
 
