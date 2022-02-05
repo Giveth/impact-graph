@@ -34,21 +34,20 @@ function notifyMissingDonationsWithSegmentTestCases() {
   });
   describe('after the notifyMissingDonationsWithSegment() ran', () => {
     it('should have not notified incompleted transak donations', async () => {
-      const incompletedTransakDonations = await Donation.find({
-        where: [
-          { segmentNotified: false, transakStatus: Not(null) },
-          {
-            segmentNotified: false,
-            transakStatus: Not(TRANSAK_COMPLETED_STATUS),
-          },
-        ],
-      });
-      const notNotifiedDonations = await Donation.find({
-        where: [
-          { segmentNotified: false, transakStatus: null },
-          { segmentNotified: false, transakStatus: TRANSAK_COMPLETED_STATUS },
-        ],
-      });
+      const incompletedTransakDonations = await Donation.createQueryBuilder(
+        'donation',
+      )
+        .where({ segmentNotified: false })
+        .andWhere(
+          `donation.transakStatus != '${TRANSAK_COMPLETED_STATUS}' AND donation.transakStatus IS NOT NULL`,
+        )
+        .getMany();
+      const notNotifiedDonations = await Donation.createQueryBuilder('donation')
+        .where({ segmentNotified: false })
+        .andWhere(
+          `(donation.transakStatus = '${TRANSAK_COMPLETED_STATUS}' OR donation.transakStatus IS NULL)`,
+        )
+        .getMany();
 
       // cronjob ignores incompleted transak donations and they remain unnotified
       assert.equal(notNotifiedDonations?.length, 0);

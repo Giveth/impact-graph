@@ -25,12 +25,12 @@ export const runNotifyMissingDonationsCronJob = () => {
 // As Segment sometimes fail, this is a Best Effort service
 export const notifyMissingDonationsWithSegment = async () => {
   // skip incompleted transak donations
-  const donations = await Donation.find({
-    where: [
-      { segmentNotified: false, transakStatus: null },
-      { segmentNotified: false, transakStatus: TRANSAK_COMPLETED_STATUS },
-    ],
-  });
+  const donations = await Donation.createQueryBuilder('donation')
+    .where({ segmentNotified: false })
+    .andWhere(
+      `(donation.transakStatus = '${TRANSAK_COMPLETED_STATUS}' OR donation.transakStatus IS NULL)`,
+    )
+    .getMany();
   logger.debug(
     'notifyMissingDonationsWithSegment donations count',
     donations.length,
