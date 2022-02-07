@@ -220,6 +220,7 @@ export class DonationResolver {
         tokenAddress,
         project,
         createdAt: new Date(),
+        segmentNotified: true,
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: donationAnonymous,
@@ -279,6 +280,7 @@ export class DonationResolver {
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         projectWalletAddress: project.walletAddress,
+        segmentNotified: true,
         createdAt: new Date(),
       };
 

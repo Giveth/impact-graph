@@ -142,11 +142,18 @@ export const SEED_DATA = {
     id: 2,
     walletAddress: generateRandomEtheriumAddress(),
   },
+  THIRD_USER: {
+    name: 'thirdUser',
+    lastName: 'thirdUser lastName',
+    loginType: 'wallet',
+    id: 3,
+    walletAddress: generateRandomEtheriumAddress(),
+  },
   ADMIN_USER: {
     name: 'adminUser',
     lastName: 'adminUser lastName',
     loginType: 'wallet',
-    id: 3,
+    id: 4,
     walletAddress: generateRandomEtheriumAddress(),
   },
   FIRST_PROJECT: {
@@ -164,6 +171,14 @@ export const SEED_DATA = {
     description: 'first description',
     id: 2,
     admin: '2',
+  },
+  TRANSAK_PROJECT: {
+    ...createProjectData(),
+    title: 'transak project',
+    slug: 'transak-project',
+    description: 'transak description',
+    id: 3,
+    admin: '3',
   },
   CATEGORIES: [
     'food1',
@@ -218,6 +233,7 @@ export const SEED_DATA = {
 
 export const DONATION_SEED_DATA = {
   FIRST_DONATION: {
+    id: 1,
     transactionId: generateRandomEtheriumAddress(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
@@ -228,8 +244,10 @@ export const DONATION_SEED_DATA = {
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
+    segmentNotified: true,
   },
   SECOND_DONATION: {
+    id: 2,
     transactionId: generateRandomEtheriumAddress(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
@@ -240,6 +258,37 @@ export const DONATION_SEED_DATA = {
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
+    segmentNotified: false,
+  },
+  INCOMPLETED_TRANSAK_DONATION: {
+    id: 3,
+    transactionId: generateRandomEtheriumAddress(),
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+    currency: 'ETH',
+    anonymous: false,
+    amount: 10,
+    userId: SEED_DATA.FIRST_USER.id,
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    createdAt: moment(),
+    segmentNotified: false,
+    transakStatus: 'AWAITING_PAYMENT_FROM_USER',
+  },
+  COMPLETED_TRANSAK_DONATION: {
+    id: 4,
+    transactionId: generateRandomEtheriumAddress(),
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+    currency: 'ETH',
+    anonymous: false,
+    amount: 10,
+    userId: SEED_DATA.FIRST_USER.id,
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    createdAt: moment(),
+    segmentNotified: false,
+    transakStatus: 'COMPLETED',
   },
 };
 

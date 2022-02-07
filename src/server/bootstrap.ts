@@ -29,6 +29,7 @@ import { runUpdateHistoricGivPrices } from '../services/cronJobs/syncGivPrices';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
+import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -235,6 +236,7 @@ export async function bootstrap() {
       }),
     );
     runCheckPendingDonationsCronJob();
+    runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
     processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
