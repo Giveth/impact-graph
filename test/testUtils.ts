@@ -70,6 +70,7 @@ export interface CreateProjectData {
   listed?: boolean;
   giveBacks?: boolean;
   creationDate: Date;
+  updatedAt: Date;
   slug: string;
   qualityScore?: number;
   totalDonations?: number;
@@ -118,6 +119,7 @@ export const createProjectData = (): CreateProjectData => {
     listed: true,
     giveBacks: false,
     creationDate: new Date(),
+    updatedAt: new Date(),
     slug: title,
     admin: '1',
     qualityScore: 30,

@@ -107,18 +107,6 @@ function projectsTestCases() {
     assert.isTrue(firstProjectIsOlder);
   });
   it('should return projects, sort by updatedAt, DESC', async () => {
-    const firstProject = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const secondProject = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    firstProject.title = 'Changin title to just update updateAt';
-    await firstProject.save();
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
@@ -128,13 +116,9 @@ function projectsTestCases() {
         },
       },
     });
-    assert.equal(
-      Number(result.data.data.projects.projects[0].id),
-      firstProject.id,
-    );
-    assert.equal(
-      Number(result.data.data.projects.projects[1].id),
-      secondProject.id,
+    assert.isTrue(
+      result.data.data.projects.projects[0].updatedAt >
+        result.data.data.projects.projects[1].updatedAt,
     );
   });
   it('should return projects, sort by updatedAt, ASC', async () => {
