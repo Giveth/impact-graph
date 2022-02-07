@@ -4,8 +4,14 @@ export const errorMessages = {
   CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION:
     'This category is not valid',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
+  PROJECT_STATUS_NOT_FOUND:
+    'No project status found, this should be impossible',
+  YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
+    'You dont have access to deactivate this project',
   PROJECT_NOT_FOUND: 'Project not found.',
   DONATION_NOT_FOUND: 'donation not found',
+  THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY:
+    'This project has been cancelled by an Admin for inappropriate content or a violation of the Terms of Use',
   DONATION_VIEWING_LOGIN_REQUIRED:
     'You must be signed-in in order to register project donations',
   TRANSACTION_NOT_FOUND: 'Transaction not found.',
