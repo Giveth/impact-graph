@@ -41,6 +41,8 @@ export const editProjectQuery = `
       description
       image
       slug
+      listed
+      verified
       slugHistory
       creationDate
       admin

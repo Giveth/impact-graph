@@ -1030,4 +1030,104 @@ function editProjectTestCases() {
       createProjectResult.data.data.addProject.walletAddress,
     );
   });
+  it('Should update successfully and verified(true) field would not change', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: true,
+    });
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: editProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isTrue(editProjectResult.data.data.editProject.verified);
+  });
+  it('Should update successfully and verified(true) field would not change', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: false,
+    });
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: editProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isFalse(editProjectResult.data.data.editProject.verified);
+  });
+  it('Should update successfully listed (true) should becomes null', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      listed: true,
+    });
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: editProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(editProjectResult.data.data.editProject.listed, null);
+  });
+  it('Should update successfully listed (false) should becomes null', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      listed: false,
+    });
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: editProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(editProjectResult.data.data.editProject.listed, null);
+  });
 }
