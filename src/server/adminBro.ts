@@ -416,7 +416,7 @@ const listDelist = async (
   };
 };
 
-const verifyProjects = async (
+export const verifyProjects = async (
   context: AdminBroContextInterface,
   request: AdminBroRequestInterface,
   verified = true,
