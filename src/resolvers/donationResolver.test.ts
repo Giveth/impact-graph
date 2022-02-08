@@ -175,7 +175,9 @@ function donationsByUserIdTestCases() {
       const donations = result.data.data.donationsByUserId.donations;
       const donationsCount = donations.length;
       assert.equal(donationsCount, 1);
-      assert.isTrue(donations[0].id !== String(DONATION_SEED_DATA.FIRST_DONATION.id));
+      assert.isTrue(
+        donations[0].id !== String(DONATION_SEED_DATA.FIRST_DONATION.id),
+      );
     });
   });
 }
