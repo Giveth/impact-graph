@@ -13,9 +13,8 @@ import { Project, ProjectUpdate } from './project';
 
 @Entity()
 @ObjectType()
-@Index(['userId', 'projectId', 'projectUpdateId'], { unique: true })
-@Index(['userId', 'projectId'])
-@Index(['userId', 'projectUpdateId'])
+@Index(['userId', 'projectId'], { unique: true })
+@Index(['userId', 'projectUpdateId'], { unique: true })
 export class Reaction extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -40,7 +39,7 @@ export class Reaction extends BaseEntity {
 
   @Index()
   @Field(type => Project)
-  @ManyToOne(type => Project, { eager: true })
+  @ManyToOne(type => Project)
   project: Project;
   @RelationId((reaction: Reaction) => reaction.project)
   @Column({ nullable: true })
