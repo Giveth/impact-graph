@@ -19,6 +19,12 @@ export const DONATION_STATUS = {
   FAILED: 'failed',
 };
 
+export enum SortField {
+  CreationDate = 'createdAt',
+  TokenAmount = 'amount',
+  UsdAmount = 'valueUsd',
+}
+
 @Entity()
 @ObjectType()
 export class Donation extends BaseEntity {
