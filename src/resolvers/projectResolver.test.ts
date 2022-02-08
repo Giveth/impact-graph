@@ -13,10 +13,17 @@ import {
   addProjectQuery,
   editProjectQuery,
   fetchAllProjectsQuery,
+  fetchLikedProjectsQuery,
 } from '../../test/graphqlQueries';
 import { ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
-import { OrderField, Project, ProjStatus } from '../entities/project';
+import {
+  OrderField,
+  Project,
+  ProjStatus,
+  ProjectUpdate,
+} from '../entities/project';
+import { Reaction } from '../entities/reaction';
 
 describe('addProject test cases --->', addProjectTestCases);
 describe('editProject test cases --->', editProjectTestCases);
@@ -41,6 +48,10 @@ describe('projects test cases --->', projectsTestCases);
 // describe('isValidTitleForProject test cases --->', isValidTitleForProjectTestCases);
 // describe('projectByAddress test cases --->', projectByAddressTestCases);
 // describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
+describe(
+  'likedProjectsByUserId test cases --->',
+  likedProjectsByUserIdTestCases,
+);
 
 // We may can delete this query
 // describe('updateProjectStatus test cases --->', updateProjectStatusTestCases);
@@ -1045,5 +1056,46 @@ function editProjectTestCases() {
       editProjectResult.data.data.editProject.walletAddress,
       createProjectResult.data.data.addProject.walletAddress,
     );
+  });
+}
+
+function likedProjectsByUserIdTestCases() {
+  it('should returns projects liked by the user', async () => {
+    const take = 1;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchLikedProjectsQuery,
+      variables: {
+        userId: SEED_DATA.FIRST_USER.id,
+        take,
+      },
+    });
+
+    const projects = result.data.data.likedProjectsByUserId.projects;
+    assert.equal(projects.length, take);
+
+    // determine is the reaction exists on the Main projectUpdate
+    const projectUpdate = await ProjectUpdate.findOne({
+      isMain: true,
+      projectId: projects[0].id,
+    });
+    const reaction = await Reaction.findOne({
+      userId: SEED_DATA.FIRST_USER.id,
+      projectUpdateId: projectUpdate?.id,
+    });
+
+    assert.equal(projects[0].id, reaction?.projectId);
+  });
+  describe('if the user did not like any project', () => {
+    it('should return an empty list', async () => {
+      const result = await axios.post(graphqlUrl, {
+        query: fetchLikedProjectsQuery,
+        variables: {
+          userId: SEED_DATA.SECOND_USER.id,
+        },
+      });
+
+      const projects = result.data.data.likedProjectsByUserId.projects;
+      assert.equal(projects.length, 0);
+    });
   });
 }

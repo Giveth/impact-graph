@@ -172,3 +172,47 @@ export const fetchAllProjectsQuery = `
     }
   }
 `;
+
+export const fetchLikedProjectsQuery = `
+  query (
+    $userId: Int!
+    $take: Int
+    $skip: Int
+  ) {
+    likedProjectsByUserId(
+      userId: $userId
+      take: $take
+      skip: $skip
+    ) {
+      projects {
+        id
+        title
+        balance
+        image
+        slug
+        creationDate
+        updatedAt
+        admin
+        description
+        walletAddress
+        impactLocation
+        qualityScore
+        verified
+        traceCampaignId
+        listed
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        qualityScore
+        totalReactions
+        totalDonations
+        totalTraceDonations
+      }
+      totalCount
+    }
+  }
+`;

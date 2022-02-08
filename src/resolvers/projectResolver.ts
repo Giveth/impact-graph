@@ -1033,21 +1033,21 @@ export class ProjectResolver {
 
   @Query(returns => AllProjects, { nullable: true })
   async likedProjectsByUserId(
-    @Arg('userId', type => Int) userId: number,
-    @Arg('take', { defaultValue: 10 }) take: number,
-    @Arg('skip', { defaultValue: 0 }) skip: number,
+    @Arg('userId', type => Int, { nullable: false }) userId: number,
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
   ) {
     const [projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
       .innerJoin(
-        'project.projectUpdate',
+        ProjectUpdate,
         'projectUpdate',
-        'project.isMain = true AND projectUpdate.projectId = project.id',
+        'projectUpdate.isMain = true AND projectUpdate.projectId = project.id',
       )
       .innerJoin(
         'project.reactions',
         'reaction',
-        `reaction.userId = ${userId} AND reaction.updateId = projectUpdate.id`,
+        `reaction.userId = ${userId} AND reaction.projectUpdateId = projectUpdate.id`,
       )
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndMapOne(
