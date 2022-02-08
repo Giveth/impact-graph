@@ -55,6 +55,30 @@ export const editProjectQuery = `
   }
  `;
 
+export const deactivateProjectQuery = `
+  mutation ($projectId: Float!, $reasonId: Float) {
+    deactivateProject(projectId: $projectId, reasonId: $reasonId)
+  }
+ `;
+
+export const activateProjectQuery = `
+  mutation ($projectId: Float!) {
+    activateProject(projectId: $projectId)
+  }
+ `;
+
+export const projectStatusReasonsQuery = `
+  query ($statusId: Float) {
+      getStatusReasons(statusId: $statusId) {
+                      description
+                      status {
+                          id
+                          name
+                      }
+      }
+  }
+ `;
+
 export const fetchDonationsByDonorQuery = `
   query {
     donationsByDonor {

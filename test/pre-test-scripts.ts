@@ -12,6 +12,7 @@ import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import { Project, ProjStatus } from '../src/entities/project';
 import { Donation } from '../src/entities/donation';
+import { ProjectStatusReason } from '../src/entities/projectStatusReason';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -49,6 +50,7 @@ async function seedDb() {
   await seedStatuses();
   await seedProjects();
   await seedDonations();
+  await seedStatusReasons();
 }
 async function seedUsers() {
   await User.create(SEED_DATA.FIRST_USER).save();
@@ -94,6 +96,12 @@ async function seedCategories() {
 async function seedStatuses() {
   for (const status of SEED_DATA.STATUSES) {
     await ProjectStatus.create(status).save();
+  }
+}
+async function seedStatusReasons() {
+  for (const { description, statusId } of SEED_DATA.STATUS_REASONS) {
+    const status = await ProjectStatus.findOne({ id: statusId });
+    await ProjectStatusReason.create({ description, status }).save();
   }
 }
 

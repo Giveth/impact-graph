@@ -28,6 +28,9 @@ import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
 import { SegmentEvents } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
+import { ProjectStatusHistory } from './projectStatusHistory';
+import { ProjectStatusReason } from './projectStatusReason';
+import { errorMessages } from '../utils/errorMessages';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -182,6 +185,13 @@ class Project extends BaseEntity {
   @Field(type => ProjectStatus)
   @ManyToOne(type => ProjectStatus, { eager: true })
   status: ProjectStatus;
+
+  @Field(type => [ProjectStatusHistory], { nullable: true })
+  @OneToMany(
+    type => ProjectStatusHistory,
+    projectStatusHistory => projectStatusHistory.project,
+  )
+  statusHistory?: ProjectStatusHistory[];
 
   @RelationId((project: Project) => project.status)
   statusId: number;
@@ -341,13 +351,38 @@ class Project extends BaseEntity {
 
   // Status 7 is deleted status
   mayUpdateStatus(user: User) {
-    if (this.statusId === ProjStatus.cancel) return false;
+    if (this.statusId === ProjStatus.cancel) {
+      throw new Error(
+        errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+      );
+    }
 
     if (this.users.filter(o => o.id === user.id).length > 0) {
       return true;
     } else {
-      return false;
+      throw new Error(
+        errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+      );
     }
+  }
+
+  async addProjectStatusHistoryRecord(inputData: {
+    prevStatus: ProjectStatus;
+    status: ProjectStatus;
+    project: Project;
+    reasonId?: number;
+  }) {
+    const { project, status, prevStatus, reasonId } = inputData;
+    let reason;
+    if (reasonId) {
+      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+    }
+    await ProjectStatusHistory.create({
+      project,
+      status,
+      prevStatus,
+      reason,
+    }).save();
   }
 
   /**

@@ -81,7 +81,7 @@ export interface CreateProjectData {
 }
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
-) => {
+): Promise<Project> => {
   const status = await ProjectStatus.findOne({
     id: ProjStatus.active,
   });
@@ -121,6 +121,8 @@ export const createProjectData = (): CreateProjectData => {
     creationDate: new Date(),
     updatedAt: new Date(),
     slug: title,
+
+    // firstUser's id
     admin: '1',
     qualityScore: 30,
     totalDonations: 0,
@@ -191,6 +193,24 @@ export const SEED_DATA = {
     'food6',
     'food7',
     'food8',
+  ],
+  STATUS_REASONS: [
+    {
+      description: 'The project has completed its goals!',
+      statusId: ProjStatus.deactive,
+    },
+    {
+      description: 'The project is not longer active.',
+      statusId: ProjStatus.deactive,
+    },
+    {
+      description: 'The project was made by mistake.',
+      statusId: ProjStatus.deactive,
+    },
+    {
+      description: 'Other / prefer not to say.',
+      statusId: ProjStatus.deactive,
+    },
   ],
   STATUSES: [
     // Orders are important, because id of active status should be 5, I know it's very bad :)

@@ -10,18 +10,25 @@ import {
 } from '../../test/testUtils';
 import axios from 'axios';
 import {
+  activateProjectQuery,
   addProjectQuery,
+  deactivateProjectQuery,
   editProjectQuery,
   fetchAllProjectsQuery,
 } from '../../test/graphqlQueries';
 import { ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
 import { OrderField, Project, ProjStatus } from '../entities/project';
+import { logger } from '../utils/logger';
+import { ProjectStatus } from '../entities/projectStatus';
+import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 
 describe('addProject test cases --->', addProjectTestCases);
 describe('editProject test cases --->', editProjectTestCases);
 
 describe('projects test cases --->', projectsTestCases);
+describe('deactivateProject test cases --->', deactivateProjectTestCases);
+describe('activateProject test cases --->', activateProjectTestCases);
 
 // TODO We should implement test cases for below query/mutation
 // describe('topProjects test cases --->', topProjectsTestCases);
@@ -45,7 +52,6 @@ describe('projects test cases --->', projectsTestCases);
 // We may can delete this query
 // describe('updateProjectStatus test cases --->', updateProjectStatusTestCases);
 
-// describe('deactivateProject test cases --->', deactivateProjectTestCases);
 // describe('activateProject test cases --->', activateProjectTestCases);
 
 function projectsTestCases() {
@@ -519,7 +525,10 @@ function addProjectTestCases() {
     });
 
     assert.equal(result.status, 200);
-    assert.equal(result.data.errors[0].message, errorMessages.ACCESS_DENIED);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
   });
   it('Should get error, invalid category', async () => {
     const sampleProject: ProjectInput = {
@@ -772,8 +781,7 @@ function editProjectTestCases() {
         query: editProjectQuery,
         variables: {
           // A number that we can be sure there is not a project with this id
-          projectId: 1000_000,
-
+          projectId: 1_000_000,
           newProjectData: {
             title: String(new Date().getTime()),
           },
@@ -1129,5 +1137,344 @@ function editProjectTestCases() {
       },
     );
     assert.equal(editProjectResult.data.data.editProject.listed, null);
+  });
+}
+
+function deactivateProjectTestCases() {
+  it('Deactivate Project should return <<Access denied>>, calling without token', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: deactivateProjectQuery,
+      variables: {
+        projectId: 1,
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
+  });
+  it('Should get error when deactivating someone else project', async () => {
+    const secondUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.SECOND_USER.id,
+    );
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: deactivateProjectQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${secondUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      deactivateProjectResult.data.errors[0].message,
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+    );
+  });
+  it('Should get error when project not found', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: deactivateProjectQuery,
+        variables: {
+          projectId: 1_000_000,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      deactivateProjectResult.data.errors[0].message,
+      errorMessages.PROJECT_NOT_FOUND,
+    );
+  });
+
+  it('Should get error when deactivating cancelled/deactivated project', async () => {
+    const firstUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.FIRST_USER.id,
+    );
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const deactiveStatus = await ProjectStatus.findOne({
+      id: ProjStatus.cancel,
+    });
+    project.status = deactiveStatus as ProjectStatus;
+    await project.save();
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: deactivateProjectQuery,
+        variables: {
+          projectId: Number(project.id),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${firstUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      deactivateProjectResult.data.errors[0].message,
+      errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+    );
+  });
+
+  it('Should deactivate project successfully', async () => {
+    const firstUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.FIRST_USER.id,
+    );
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: deactivateProjectQuery,
+        variables: {
+          projectId: Number(project.id),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${firstUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
+    const updatedProject = await Project.findOne({
+      id: project.id,
+    });
+    assert.equal(updatedProject?.statusId, ProjStatus.deactive);
+  });
+
+  it('Should deactivate project successfully and create projectStatusHistory', async () => {
+    const firstUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.FIRST_USER.id,
+    );
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: deactivateProjectQuery,
+        variables: {
+          projectId: Number(project.id),
+          reasonId: 1,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${firstUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
+    const updatedProject = await Project.findOne({
+      id: project.id,
+    });
+    assert.equal(updatedProject?.statusId, ProjStatus.deactive);
+    const projectStatusHistory = await ProjectStatusHistory.findOne({
+      project,
+    });
+    assert.isOk(projectStatusHistory);
+    assert.equal(projectStatusHistory?.reasonId, 1);
+  });
+  it('Should deactivate project successfully and create projectStatusHistory without reasonId', async () => {
+    const firstUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.FIRST_USER.id,
+    );
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: deactivateProjectQuery,
+        variables: {
+          projectId: Number(project.id),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${firstUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
+    const updatedProject = await Project.findOne({
+      id: project.id,
+    });
+    assert.equal(updatedProject?.statusId, ProjStatus.deactive);
+    const projectStatusHistory = await ProjectStatusHistory.findOne({
+      project,
+    });
+    assert.isOk(projectStatusHistory);
+    assert.isNotOk(projectStatusHistory?.reasonId);
+  });
+}
+
+function activateProjectTestCases() {
+  it('Ativate Project should return <<Access denied>>, calling without token', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: activateProjectQuery,
+      variables: {
+        projectId: 1,
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
+  });
+  it('Should get error when activating someone else project', async () => {
+    const secondUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.SECOND_USER.id,
+    );
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: activateProjectQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${secondUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      deactivateProjectResult.data.errors[0].message,
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+    );
+  });
+  it('Should get error when project not found', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: activateProjectQuery,
+        variables: {
+          projectId: 1_000_000,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      deactivateProjectResult.data.errors[0].message,
+      errorMessages.PROJECT_NOT_FOUND,
+    );
+  });
+
+  it('Should get error when Activating cancelled/deactivated project', async () => {
+    const firstUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.FIRST_USER.id,
+    );
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const deactiveStatus = await ProjectStatus.findOne({
+      id: ProjStatus.cancel,
+    });
+    project.status = deactiveStatus as ProjectStatus;
+    await project.save();
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: activateProjectQuery,
+        variables: {
+          projectId: Number(project.id),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${firstUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      deactivateProjectResult.data.errors[0].message,
+      errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+    );
+  });
+
+  it('Should activate project successfully', async () => {
+    const firstUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.FIRST_USER.id,
+    );
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const deactiveStatus = await ProjectStatus.findOne({
+      id: ProjStatus.pen,
+    });
+    project.status = deactiveStatus as ProjectStatus;
+    await project.save();
+    const activateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: activateProjectQuery,
+        variables: {
+          projectId: Number(project.id),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${firstUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(activateProjectResult.data.data.activateProject, true);
+    const updatedProject = await Project.findOne({
+      id: project.id,
+    });
+    assert.equal(updatedProject?.statusId, ProjStatus.active);
+  });
+
+  it('Should activate project successfully and create projectStatusHistory', async () => {
+    const firstUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.FIRST_USER.id,
+    );
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const deactiveStatus = await ProjectStatus.findOne({
+      id: ProjStatus.pen,
+    });
+    project.status = deactiveStatus as ProjectStatus;
+    await project.save();
+    const deactivateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: activateProjectQuery,
+        variables: {
+          projectId: Number(project.id),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${firstUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(deactivateProjectResult.data.data.activateProject, true);
+    const updatedProject = await Project.findOne({
+      id: project.id,
+    });
+    assert.equal(updatedProject?.statusId, ProjStatus.active);
+    const projectStatusHistory = await ProjectStatusHistory.findOne({
+      project,
+    });
+    assert.isOk(projectStatusHistory);
+    assert.isNotOk(projectStatusHistory?.reasonId);
   });
 }
