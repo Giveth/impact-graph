@@ -12,6 +12,10 @@ const FETCH_PROJECTS = gql`
         creationDate
         admin
         walletAddress
+        reaction {
+          id
+        }
+        totalReactions
         categories {
           name
         }
