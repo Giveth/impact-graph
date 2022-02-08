@@ -1040,14 +1040,9 @@ export class ProjectResolver {
     const [projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
       .innerJoin(
-        ProjectUpdate,
-        'projectUpdate',
-        'projectUpdate.isMain = true AND projectUpdate.projectId = project.id',
-      )
-      .innerJoin(
         'project.reactions',
         'reaction',
-        `reaction.userId = ${userId} AND reaction.projectUpdateId = projectUpdate.id`,
+        `reaction.projectId = project.id AND reaction.userId = ${userId}`,
       )
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndMapOne(
