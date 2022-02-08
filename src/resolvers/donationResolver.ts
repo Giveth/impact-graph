@@ -238,6 +238,7 @@ export class DonationResolver {
     const [donations, totalCount] = await this.donationRepository
       .createQueryBuilder('donation')
       .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('donation.user', 'user')
       .where(`donation.userId = ${userId}`)
       .orderBy(`donation.${orderBy.field}`, orderBy.direction)
       .take(take)
