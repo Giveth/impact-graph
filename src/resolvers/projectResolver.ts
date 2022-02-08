@@ -21,7 +21,7 @@ import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import { Context } from '../context';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
 import config from '../config';
 import slugify from 'slugify';
@@ -53,6 +53,7 @@ import { updateTotalReactionsOfAProject } from '../services/reactionsService';
 import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
+import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 
 const analytics = getAnalytics();
 
@@ -201,18 +202,6 @@ class GetProjectArgs {
 class GetProjectUpdatesResult {
   @Field(type => ProjectUpdate)
   projectUpdate: ProjectUpdate;
-
-  @Field(type => [Reaction])
-  reactions: Reaction[];
-}
-
-@ObjectType()
-class ToggleResponse {
-  @Field(type => Boolean)
-  reaction: boolean;
-
-  @Field(type => Number)
-  reactionCount: number;
 }
 
 @ObjectType()
@@ -229,9 +218,81 @@ class ImageResponse {
 
 @Resolver(of => Project)
 export class ProjectResolver {
+  static addCategoryQuery(
+    query: SelectQueryBuilder<Project>,
+    category: string,
+  ) {
+    if (!category) return query;
+
+    return query.innerJoin(
+      'project.categories',
+      'category',
+      'category.name = :category',
+      { category },
+    );
+  }
+  static addSearchQuery(
+    query: SelectQueryBuilder<Project>,
+    searchTerm: string,
+  ) {
+    if (!searchTerm) return query;
+
+    return query.andWhere(
+      new Brackets(qb => {
+        qb.where('project.title ILIKE :searchTerm', {
+          searchTerm: `%${searchTerm}%`,
+        })
+          .orWhere('project.description ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
+          })
+          .orWhere('project.impactLocation ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
+          });
+      }),
+    );
+  }
+
+  static addFilterQuery(
+    query: SelectQueryBuilder<Project>,
+    filter: string,
+    filterValue: boolean,
+  ) {
+    if (!filter) return query;
+
+    if (filter === 'givingBlocksId') {
+      const acceptGiv = filterValue ? 'IS' : 'IS NOT';
+      return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
+    }
+
+    if (filter === 'traceCampaignId') {
+      const isRequested = filterValue ? 'IS NOT' : 'IS';
+      return query.andWhere(`project.${filter} ${isRequested} NULL`);
+    }
+
+    return query.andWhere(`project.${filter} = ${filterValue}`);
+  }
+
+  private static addUserReaction<T>(
+    query: SelectQueryBuilder<T>,
+    authenticatedUser: any,
+  ): SelectQueryBuilder<T> {
+    if (authenticatedUser?.userId) {
+      return query.leftJoinAndMapOne(
+        'project.reaction',
+        Reaction,
+        'reaction',
+        'reaction.projectId = CAST(project.id AS INTEGER) AND reaction.userId = :authenticatedUserId',
+        { authenticatedUserId: authenticatedUser.userId },
+      );
+    }
+
+    return query;
+  }
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    @InjectRepository(ProjectUpdate)
+    private readonly projectUpdateRepository: Repository<ProjectUpdate>,
     @InjectRepository(ProjectStatus)
     private readonly projectStatusRepository: Repository<ProjectStatus>,
     @InjectRepository(Category)
@@ -244,6 +305,7 @@ export class ProjectResolver {
     private readonly projectImageRepository: Repository<ProjectImage>,
   ) {}
 
+  // Backward Compatible Projects Query with added pagination, frontend sorts and category search
   @Query(returns => AllProjects)
   async projects(
     @Args()
@@ -256,18 +318,62 @@ export class ProjectResolver {
       filterBy,
       admin,
     }: GetProjectsArgs,
+    @Ctx() { req: { user } }: MyContext,
   ): Promise<AllProjects> {
     const categories = await Category.find();
-    const [projects, totalCount] = await Project.searchProjects(
-      take,
-      skip,
-      orderBy.field,
-      orderBy.direction,
-      category,
-      searchTerm,
+    let query = this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
+      // .leftJoinAndSelect('project.donations', 'donations')
+      .leftJoinAndSelect('project.users', 'users')
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .leftJoinAndMapOne(
+        'project.reaction',
+        Reaction,
+        'reaction',
+        'reaction.projectId = CAST(project.id AS INTEGER) AND reaction.userId = 2',
+      )
+      .innerJoinAndSelect('project.categories', 'c')
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      );
+
+    // Filters
+    query = ProjectResolver.addCategoryQuery(query, category);
+    query = ProjectResolver.addSearchQuery(query, searchTerm);
+    query = ProjectResolver.addFilterQuery(
+      query,
       filterBy?.field,
       filterBy?.value,
     );
+    query = ProjectResolver.addUserReaction(query, user);
+
+    if (orderBy.field === 'traceCampaignId') {
+      // TODO: PRISMA will fix this, temporary fix inverting nulls.
+      const traceableDirection = {
+        ASC: 'NULLS FIRST',
+        DESC: 'NULLS LAST',
+      };
+      query.orderBy(
+        `project.${orderBy.field}`,
+        orderBy.direction,
+        // @ts-ignore
+        traceableDirection[orderBy.direction],
+      );
+    } else {
+      query.orderBy(`project.${orderBy.field}`, orderBy.direction);
+    }
+
+    const [projects, totalCount] = await query
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
 
     return { projects, totalCount, categories };
   }
@@ -275,43 +381,35 @@ export class ProjectResolver {
   @Query(returns => TopProjects)
   async topProjects(
     @Args() { take, skip, orderBy, category }: GetProjectsArgs,
+    @Ctx() { req: { user } }: MyContext,
   ): Promise<TopProjects> {
     const { field, direction } = orderBy;
     const order = {};
     order[field] = direction;
 
-    let projects;
-    let totalCount;
-
-    if (!category) {
-      [projects, totalCount] = await this.projectRepository.findAndCount({
-        take,
-        skip,
-        order,
-        relations: ['reactions'],
-        where: {
-          status: {
-            id: ProjStatus.active,
-          },
-        },
-      });
-    } else {
-      [projects, totalCount] = await this.projectRepository
-        .createQueryBuilder('project')
-        .innerJoin(
-          'project.categories',
-          'category',
-          'category.name = :category',
-          { category },
-        )
-        .innerJoin('project.reactions', 'reaction')
-        .where('project.statusId = 5 AND project.listed = true')
-        .orderBy(`project.${field}`, direction)
-        .limit(skip)
-        .take(take)
-        .innerJoinAndSelect('project.categories', 'c')
-        .getManyAndCount();
+    let query = this.projectRepository.createQueryBuilder('project');
+    // .innerJoin('project.reactions', 'reaction')
+    if (category) {
+      query = query.innerJoin(
+        'project.categories',
+        'category',
+        'category.name = :category',
+        { category },
+      );
     }
+    query = query
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      )
+      .orderBy(`project.${field}`, direction)
+      .limit(skip)
+      .take(take)
+      .innerJoinAndSelect('project.categories', 'c');
+
+    query = ProjectResolver.addUserReaction(query, user);
+
+    const [projects, totalCount] = await query.getManyAndCount();
+
     return { projects, totalCount };
   }
 
@@ -331,8 +429,11 @@ export class ProjectResolver {
 
   // Move this to it's own resolver later
   @Query(returns => Project)
-  async projectBySlug(@Arg('slug') slug: string) {
-    return await this.projectRepository
+  async projectBySlug(
+    @Arg('slug') slug: string,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    let query = this.projectRepository
       .createQueryBuilder('project')
       // check current slug and previous slugs
       .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
@@ -340,7 +441,6 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
-      .leftJoinAndSelect('project.reactions', 'reactions')
       // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
       // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndMapOne(
@@ -348,8 +448,9 @@ export class ProjectResolver {
         User,
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
-      )
-      .getOne();
+      );
+    query = ProjectResolver.addUserReaction(query, user);
+    return await query.getOne();
   }
 
   @Mutation(returns => Project)
@@ -805,136 +906,31 @@ export class ProjectResolver {
     return true;
   }
 
-  @Mutation(returns => Boolean)
-  async toggleReaction(
-    @Arg('updateId') updateId: number,
-    @Arg('reaction') reaction: REACTION_TYPE = 'heart',
-    @Ctx() { req: { user } }: MyContext,
-  ): Promise<boolean> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-
-    const update = await ProjectUpdate.findOne({ id: updateId });
-    if (!update) throw new Error('Update not found.');
-
-    // if there is one, then delete it
-    const currentReaction = await Reaction.findOne({
-      projectUpdateId: update.id,
-      userId: user.userId,
-    });
-
-    const project = await Project.findOne({ id: update.projectId });
-    if (!project) throw new Error('Project not found');
-
-    if (currentReaction && currentReaction.reaction === reaction) {
-      await Reaction.delete({
-        projectUpdateId: update.id,
-        userId: user.userId,
-      });
-
-      // increment qualityScore
-      project.updateQualityScoreHeart(false);
-      project.save();
-      return false;
-    } else {
-      // if there wasn't one, then create it
-      const newReaction = await Reaction.create({
-        userId: user.userId,
-        projectUpdateId: update.id,
-        reaction,
-      });
-
-      project.updateQualityScoreHeart(true);
-      project.save();
-
-      await Reaction.save(newReaction);
-    }
-    await updateTotalReactionsOfAProject(update.projectId);
-
-    return true;
-  }
-
-  @Mutation(returns => ToggleResponse)
-  async toggleProjectReaction(
-    @Arg('projectId') projectId: number,
-    @Arg('reaction') reaction: REACTION_TYPE = 'heart',
-    @Ctx() { req: { user } }: MyContext,
-  ): Promise<object> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-
-    const project = await Project.findOne({ id: projectId });
-
-    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
-
-    let update = await ProjectUpdate.findOne({ projectId, isMain: true });
-    if (!update) {
-      update = await ProjectUpdate.save(
-        await ProjectUpdate.create({
-          userId:
-            project && project.admin && +project.admin ? +project.admin : 0,
-          projectId,
-          content: '',
-          title: '',
-          createdAt: new Date(),
-          isMain: true,
-        }),
-      );
-    }
-
-    const usersReaction = await Reaction.findOne({
-      projectUpdateId: update.id,
-      userId: user.userId,
-    });
-    const [, reactionCount] = await Reaction.findAndCount({
-      projectUpdateId: update.id,
-    });
-
-    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId });
-    const response = new ToggleResponse();
-    response.reactionCount = reactionCount;
-
-    if (usersReaction && usersReaction.reaction === reaction) {
-      response.reaction = false;
-      response.reactionCount = response.reactionCount - 1;
-    } else {
-      const newReaction = await Reaction.create({
-        userId: user.userId,
-        projectUpdateId: update.id,
-        reaction,
-        project,
-      });
-
-      await Reaction.save(newReaction);
-      response.reactionCount = response.reactionCount + 1;
-      response.reaction = true;
-    }
-    await updateTotalReactionsOfAProject(projectId);
-    return response;
-  }
-
-  @Query(returns => [GetProjectUpdatesResult])
+  @Query(returns => [ProjectUpdate])
   async getProjectUpdates(
     @Arg('projectId') projectId: number,
     @Arg('skip') skip: number,
     @Arg('take') take: number,
-    @Ctx() { user }: Context,
-  ): Promise<GetProjectUpdatesResult[]> {
-    const updates = await ProjectUpdate.find({
-      where: { projectId, isMain: false },
-      skip,
-      take,
-    });
+    @Ctx() { req: { user } }: MyContext,
+  ): Promise<ProjectUpdate[]> {
+    let query = this.projectUpdateRepository
+      .createQueryBuilder('projectUpdate')
+      .where('projectUpdate.projectId = :projectId and isMain = false', {
+        projectId,
+      })
+      .take(take)
+      .skip(skip);
 
-    const results: GetProjectUpdatesResult[] = [];
-
-    for (const update of updates)
-      results.push({
-        projectUpdate: update,
-        reactions: await Reaction.find({
-          where: { projectUpdateId: update.id },
-        }),
-      });
-
-    return results;
+    if (user?.userId) {
+      query = query.leftJoinAndMapOne(
+        'project.reaction',
+        Reaction,
+        'reaction',
+        'reaction.projectId = CAST(project.id AS INTEGER) AND reaction.userId = :authenticatedUserId',
+        { authenticatedUserId: user?.userId },
+      );
+    }
+    return query.getMany();
   }
 
   @Query(returns => [String])
@@ -995,13 +991,17 @@ export class ProjectResolver {
   }
 
   @Query(returns => Project, { nullable: true })
-  projectByAddress(@Arg('address', type => String) address: string) {
-    return this.projectRepository
+  projectByAddress(
+    @Arg('address', type => String) address: string,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    let query = this.projectRepository
       .createQueryBuilder('project')
       .where(`lower("walletAddress")=lower(:address)`, {
         address,
-      })
-      .getOne();
+      });
+    query = ProjectResolver.addUserReaction(query, user);
+    return query.getOne();
   }
 
   @Query(returns => AllProjects, { nullable: true })
@@ -1009,17 +1009,23 @@ export class ProjectResolver {
     @Arg('userId', type => Int) userId: number,
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,
+    @Ctx() { req: { user } }: MyContext,
   ) {
-    const [projects, projectsCount] = await this.projectRepository
+    let query = this.projectRepository
       .createQueryBuilder('project')
+      .where('CAST(project.admin AS INTEGER) = :userId', { userId })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
-      )
-      .where('CAST(project.admin AS INTEGER) = :userId', { userId })
+      );
+    // .loadRelationCountAndMap('project.liked', 'project.reactions')
+
+    query = ProjectResolver.addUserReaction(query, user);
+
+    const [projects, projectsCount] = await query
       .orderBy('project.creationDate', 'DESC')
       .take(take)
       .skip(skip)
@@ -1097,7 +1103,6 @@ export class ProjectResolver {
       return false;
     }
   }
-
   @Mutation(returns => Boolean)
   async activateProject(
     @Arg('projectId') projectId: number,

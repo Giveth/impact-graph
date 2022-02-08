@@ -206,105 +206,13 @@ class Project extends BaseEntity {
   @Field(type => User, { nullable: true })
   adminUser?: User;
 
+  // Virtual attribute to subquery result into
+  @Field(type => Reaction, { nullable: true })
+  // @Field(type => Int, { nullable: true })
+  reaction?: Reaction;
   /**
    * Custom Query Builders to chain together
    */
-
-  static addCategoryQuery(
-    query: SelectQueryBuilder<Project>,
-    category: string,
-  ) {
-    return query.innerJoin(
-      'project.categories',
-      'category',
-      'category.name = :category',
-      { category },
-    );
-  }
-
-  static addSearchQuery(
-    query: SelectQueryBuilder<Project>,
-    searchTerm: string,
-  ) {
-    return query.andWhere(
-      new Brackets(qb => {
-        qb.where('project.title ILIKE :searchTerm', {
-          searchTerm: `%${searchTerm}%`,
-        })
-          .orWhere('project.description ILIKE :searchTerm', {
-            searchTerm: `%${searchTerm}%`,
-          })
-          .orWhere('project.impactLocation ILIKE :searchTerm', {
-            searchTerm: `%${searchTerm}%`,
-          });
-      }),
-    );
-  }
-
-  static addFilterQuery(query: any, filter: string, filterValue: boolean) {
-    if (filter === 'givingBlocksId') {
-      const acceptGiv = filterValue ? 'IS' : 'IS NOT';
-      return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
-    }
-
-    if (filter === 'traceCampaignId') {
-      const isRequested = filterValue ? 'IS NOT' : 'IS';
-      return query.andWhere(`project.${filter} ${isRequested} NULL`);
-    }
-
-    return query.andWhere(`project.${filter} = ${filterValue}`);
-  }
-
-  // Backward Compatible Projects Query with added pagination, frontend sorts and category search
-  static searchProjects(
-    limit: number,
-    offset: number,
-    sortBy: string,
-    direction: any,
-    category: string,
-    searchTerm: string,
-    filter: string,
-    filterValue: boolean,
-  ) {
-    const query = this.createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
-      // .leftJoinAndSelect('project.donations', 'donations')
-      .leftJoinAndSelect('project.reactions', 'reactions')
-      .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
-      .innerJoinAndSelect('project.categories', 'c')
-      .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      );
-
-    // Filters
-    if (category) this.addCategoryQuery(query, category);
-    if (searchTerm) this.addSearchQuery(query, searchTerm);
-    if (filter) this.addFilterQuery(query, filter, filterValue);
-
-    if (sortBy === 'traceCampaignId') {
-      // TODO: PRISMA will fix this, temporary fix inverting nulls.
-      const traceableDirection = { ASC: 'NULLS FIRST', DESC: 'NULLS LAST' };
-      query.orderBy(
-        `project.${sortBy}`,
-        direction,
-        traceableDirection[direction],
-      );
-    } else {
-      query.orderBy(`project.${sortBy}`, direction);
-    }
-
-    const projects = query.take(limit).skip(offset).getMany();
-    const totalCount = query.getCount();
-
-    return Promise.all([projects, totalCount]);
-  }
 
   static notifySegment(project: Project, eventName: SegmentEvents) {
     new ProjectTracker(project, eventName).track();
@@ -328,11 +236,6 @@ class Project extends BaseEntity {
       .where({ updatedAt: LessThan(maxDaysForListing) })
       .andWhere('project.listed IS NULL')
       .getMany();
-  }
-
-  @Field(type => Float, { nullable: true })
-  reactionsCount() {
-    return this.reactions ? this.reactions.length : 0;
   }
 
   // Status 7 is deleted status
@@ -400,13 +303,19 @@ class ProjectUpdate extends BaseEntity {
   @Column({ nullable: true })
   isMain: boolean;
 
+  @Field(type => Int, { nullable: true })
+  @Column({ type: 'integer', nullable: true })
+  totalReactions: number;
+
   @AfterInsert()
   async updateProjectStampOnCreation() {
+    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
+    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 }

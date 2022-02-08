@@ -9,18 +9,25 @@ import {
   ManyToOne,
   Index,
 } from 'typeorm';
-import { Project } from './project';
+import { Project, ProjectUpdate } from './project';
 
 @Entity()
 @ObjectType()
+@Index(['userId', 'projectId', 'projectUpdateId'], { unique: true })
+@Index(['userId', 'projectId'])
+@Index(['userId', 'projectUpdateId'])
 export class Reaction extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
   @Index()
+  @Field(type => ProjectUpdate)
+  @ManyToOne(type => ProjectUpdate, { eager: true })
+  projectUpdate: ProjectUpdate;
+  @RelationId((reaction: Reaction) => reaction.projectUpdate)
   @Field(type => ID)
-  @Column()
+  @Column({ nullable: true })
   projectUpdateId: number;
 
   @Field(type => ID)
