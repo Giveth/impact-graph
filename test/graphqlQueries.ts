@@ -75,6 +75,42 @@ export const fetchDonationsByDonorQuery = `
   }
 `;
 
+export const fetchDonationsByUserIdQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: SortBy
+    $userId: Int!
+  ) {
+    donationsByUserId(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      userId: $userId
+    ) {
+      donations {
+        id
+        transactionId
+        transactionNetworkId
+        toWalletAddress
+        fromWalletAddress
+        currency
+        anonymous
+        valueUsd
+        amount
+        user {
+          id
+        }
+        project {
+          id
+        }
+        createdAt
+      }
+      totalCount
+    }
+  }
+`;
+
 export const fetchAllProjectsQuery = `
   query (
     $take: Int
