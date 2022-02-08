@@ -378,7 +378,7 @@ const getAdminBroInstance = () => {
   });
 };
 
-const listDelist = async (
+export const listDelist = async (
   context: AdminBroContextInterface,
   request,
   list = true,
