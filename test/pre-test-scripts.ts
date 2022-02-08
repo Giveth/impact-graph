@@ -4,6 +4,7 @@ import {
   saveDonationDirectlyToDb,
   SEED_DATA,
   DONATION_SEED_DATA,
+  REACTION_SEED_DATA,
 } from './testUtils';
 import { User } from '../src/entities/user';
 // var pgtools = require('pgtools');
@@ -11,6 +12,7 @@ import { dropdb, createdb } from 'pgtools';
 import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import { Project, ProjStatus } from '../src/entities/project';
+import { Reaction } from '../src/entities/reaction';
 import { Donation } from '../src/entities/donation';
 import { ProjectStatusReason } from '../src/entities/projectStatusReason';
 
@@ -49,6 +51,7 @@ async function seedDb() {
   await seedCategories();
   await seedStatuses();
   await seedProjects();
+  await seedProjectLikes();
   await seedDonations();
   await seedStatusReasons();
 }
@@ -60,6 +63,11 @@ async function seedUsers() {
 async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.FIRST_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.SECOND_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.TRANSAK_PROJECT);
+}
+// item's the same as reactions but on the default ProjectUpdate
+async function seedProjectLikes() {
+  await Reaction.create(REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION).save();
 }
 async function seedDonations() {
   await saveDonationDirectlyToDb(
@@ -70,6 +78,16 @@ async function seedDonations() {
   await saveDonationDirectlyToDb(
     DONATION_SEED_DATA.SECOND_DONATION,
     SEED_DATA.FIRST_USER.id,
+    SEED_DATA.FIRST_PROJECT.id,
+  );
+  await saveDonationDirectlyToDb(
+    DONATION_SEED_DATA.INCOMPLETED_TRANSAK_DONATION,
+    SEED_DATA.THIRD_USER.id,
+    SEED_DATA.FIRST_PROJECT.id,
+  );
+  await saveDonationDirectlyToDb(
+    DONATION_SEED_DATA.COMPLETED_TRANSAK_DONATION,
+    SEED_DATA.THIRD_USER.id,
     SEED_DATA.FIRST_PROJECT.id,
   );
 }

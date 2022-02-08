@@ -1032,6 +1032,42 @@ export class ProjectResolver {
     };
   }
 
+  @Query(returns => AllProjects, { nullable: true })
+  async likedProjectsByUserId(
+    @Arg('userId', type => Int, { nullable: false }) userId: number,
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+  ) {
+    const [projects, totalCount] = await this.projectRepository
+      .createQueryBuilder('project')
+      .innerJoin(
+        ProjectUpdate,
+        'projectUpdate',
+        'projectUpdate.isMain = true AND projectUpdate.projectId = project.id',
+      )
+      .innerJoin(
+        'project.reactions',
+        'reaction',
+        `reaction.userId = ${userId} AND reaction.projectUpdateId = projectUpdate.id`,
+      )
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .orderBy('project.creationDate', 'DESC')
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      projects,
+      totalCount,
+    };
+  }
+
   async updateProjectStatus(inputData: {
     projectId: number;
     statusId: number;

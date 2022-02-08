@@ -4,7 +4,12 @@ import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
 import { Donation } from '../src/entities/donation';
-import { Category, Project, ProjStatus } from '../src/entities/project';
+import {
+  Category,
+  Project,
+  ProjStatus,
+  ProjectUpdate,
+} from '../src/entities/project';
 import { errorMessages } from '../src/utils/errorMessages';
 import { ProjectStatus } from '../src/entities/projectStatus';
 
@@ -99,12 +104,25 @@ export const saveProjectDirectlyToDb = async (
       : [],
   );
   const categories = await categoriesPromise;
-  return Project.create({
+  const project = await Project.create({
     ...projectData,
     status,
     categories,
     users: [user],
   }).save();
+
+  // default projectUpdate for liking projects
+  // this was breaking updateAt tests as it was running update hooks sometime in the future.
+  // Found no other way to avoid triggering the hooks.
+  await ProjectUpdate.query(`
+    INSERT INTO public.project_update (
+      "userId","projectId",content,title,"createdAt","isMain"
+    ) VALUES (
+      ${user.id}, ${project.id}, '', '', '${
+    new Date().toISOString().split('T')[0]
+  }', true
+    )`);
+  return project;
 };
 export const createProjectData = (): CreateProjectData => {
   const title = String(new Date().getTime());
@@ -144,11 +162,18 @@ export const SEED_DATA = {
     id: 2,
     walletAddress: generateRandomEtheriumAddress(),
   },
+  THIRD_USER: {
+    name: 'thirdUser',
+    lastName: 'thirdUser lastName',
+    loginType: 'wallet',
+    id: 3,
+    walletAddress: generateRandomEtheriumAddress(),
+  },
   ADMIN_USER: {
     name: 'adminUser',
     lastName: 'adminUser lastName',
     loginType: 'wallet',
-    id: 3,
+    id: 4,
     walletAddress: generateRandomEtheriumAddress(),
   },
   FIRST_PROJECT: {
@@ -166,6 +191,14 @@ export const SEED_DATA = {
     description: 'first description',
     id: 2,
     admin: '2',
+  },
+  TRANSAK_PROJECT: {
+    ...createProjectData(),
+    title: 'transak project',
+    slug: 'transak-project',
+    description: 'transak description',
+    id: 3,
+    admin: '3',
   },
   CATEGORIES: [
     'food1',
@@ -236,20 +269,49 @@ export const SEED_DATA = {
   DAI_SMART_CONTRACT_ADDRESS: '0x6b175474e89094c44da98b954eedeac495271d0f',
 };
 
+export const REACTION_SEED_DATA = {
+  FIRST_LIKED_PROJECT_REACTION: {
+    id: 1,
+    projectUpdateId: 1,
+    userId: 1,
+    reaction: 'heart',
+    projectId: 1,
+  },
+};
+
 export const DONATION_SEED_DATA = {
   FIRST_DONATION: {
+    id: 1,
     transactionId: generateRandomEtheriumAddress(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
     currency: 'ETH',
     anonymous: false,
-    amount: 10,
+    amount: 15,
+    valueUsd: 15,
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
+    segmentNotified: true,
   },
   SECOND_DONATION: {
+    id: 2,
+    transactionId: generateRandomEtheriumAddress(),
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+    currency: 'ETH',
+    anonymous: false,
+    amount: 10,
+    valueUsd: 135,
+    userId: SEED_DATA.FIRST_USER.id,
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    createdAt: moment().subtract(2, 'days'),
+    segmentNotified: false,
+  },
+  INCOMPLETED_TRANSAK_DONATION: {
+    id: 3,
     transactionId: generateRandomEtheriumAddress(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
@@ -260,6 +322,23 @@ export const DONATION_SEED_DATA = {
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
+    segmentNotified: false,
+    transakStatus: 'AWAITING_PAYMENT_FROM_USER',
+  },
+  COMPLETED_TRANSAK_DONATION: {
+    id: 4,
+    transactionId: generateRandomEtheriumAddress(),
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+    currency: 'ETH',
+    anonymous: false,
+    amount: 10,
+    userId: SEED_DATA.FIRST_USER.id,
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    createdAt: moment(),
+    segmentNotified: false,
+    transakStatus: 'COMPLETED',
   },
 };
 
