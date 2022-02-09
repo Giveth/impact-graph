@@ -12,6 +12,8 @@ import { ProjectImage } from './projectImage';
 import Notification from './notification';
 import { BankAccount, StripeTransaction } from './bankAccount';
 import { AccountVerification } from './accountVerification';
+import { ProjectStatusReason } from './projectStatusReason';
+import { ProjectStatusHistory } from './projectStatusHistory';
 
 export const entities: any = [
   Organisation,
@@ -28,6 +30,8 @@ export const entities: any = [
   Token,
   Wallet,
   ProjectStatus,
+  ProjectStatusReason,
+  ProjectStatusHistory,
   AccountVerification,
   ProjectImage,
 ];

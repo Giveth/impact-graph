@@ -53,6 +53,7 @@ import { updateTotalReactionsOfAProject } from '../services/reactionsService';
 import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
+import { ProjectStatusReason } from '../entities/projectStatusReason';
 
 const analytics = getAnalytics();
 
@@ -114,7 +115,7 @@ registerEnumType(OrderDirection, {
 
 function checkIfUserInRequest(ctx: MyContext) {
   if (!ctx.req.user) {
-    throw new Error('Access denied');
+    throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
   }
 }
 
@@ -1062,67 +1063,69 @@ export class ProjectResolver {
     };
   }
 
-  async updateProjectStatus(
-    projectId: number,
-    status: number,
-    user: User,
-  ): Promise<Boolean> {
+  async updateProjectStatus(inputData: {
+    projectId: number;
+    statusId: number;
+    user: User;
+    reasonId?: number;
+  }): Promise<Project> {
+    const { projectId, statusId, user, reasonId } = inputData;
     const project = await Project.findOne({ id: projectId });
-
-    if (project) {
-      if (project.mayUpdateStatus(user)) {
-        const projectStatus = await ProjectStatus.findOne({ id: status });
-        if (projectStatus) {
-          project.status = projectStatus;
-          await project.save();
-          return true;
-        } else {
-          throw new Error('No project status found, this should be impossible');
-        }
-      } else {
-        throw new Error(
-          'This project has been cancelled by an Admin for inappropriate content or a violation of the Terms of Use',
-        );
-      }
-    } else {
-      throw new Error('You tried to deactivate a non existant project');
+    if (!project) {
+      throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
+
+    project.mayUpdateStatus(user);
+    const status = await ProjectStatus.findOne({ id: statusId });
+    if (!status) {
+      throw new Error(errorMessages.PROJECT_STATUS_NOT_FOUND);
+    }
+    const prevStatus = project.status;
+    project.status = status;
+    await project.save();
+
+    await project.addProjectStatusHistoryRecord({
+      reasonId,
+      project,
+      status,
+      prevStatus,
+    });
+    return project;
   }
 
   @Mutation(returns => Boolean)
   async deactivateProject(
     @Arg('projectId') projectId: number,
     @Ctx() ctx: MyContext,
+    @Arg('reasonId', { nullable: true }) reasonId?: number,
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx);
-      const didDeactivate = await this.updateProjectStatus(
+      const project = await this.updateProjectStatus({
         projectId,
-        ProjStatus.deactive,
+        statusId: ProjStatus.deactive,
         user,
-      );
-      if (didDeactivate) {
-        const project = await Project.findOne({ id: projectId });
-        if (project) {
-          const segmentProject = {
-            email: user.email,
-            title: project.title,
-            LastName: user.lastName,
-            FirstName: user.firstName,
-            OwnerId: project.admin,
-            slug: project.slug,
-          };
+        reasonId,
+      });
 
-          analytics.track(
-            SegmentEvents.PROJECT_DEACTIVATED,
-            `givethId-${ctx.req.user.userId}`,
-            segmentProject,
-            null,
-          );
-        }
-      }
-      return didDeactivate;
+      const segmentProject = {
+        email: user.email,
+        title: project.title,
+        LastName: user.lastName,
+        FirstName: user.firstName,
+        OwnerId: project.admin,
+        slug: project.slug,
+      };
+
+      analytics.track(
+        SegmentEvents.PROJECT_DEACTIVATED,
+        `givethId-${ctx.req.user.userId}`,
+        segmentProject,
+        null,
+      );
+      return true;
     } catch (error) {
+      logger.error('projectResolver.deactivateProject() error', error);
       SentryLogger.captureException(error);
       throw error;
       return false;
@@ -1136,8 +1139,28 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx);
-      return await this.updateProjectStatus(projectId, ProjStatus.active, user);
+      const project = await this.updateProjectStatus({
+        projectId,
+        statusId: ProjStatus.active,
+        user,
+      });
+      const segmentProject = {
+        email: user.email,
+        title: project.title,
+        LastName: user.lastName,
+        FirstName: user.firstName,
+        OwnerId: project.admin,
+        slug: project.slug,
+      };
+      analytics.track(
+        SegmentEvents.PROJECT_ACTIVATED,
+        `givethId-${ctx.req.user.userId}`,
+        segmentProject,
+        null,
+      );
+      return true;
     } catch (error) {
+      logger.error('projectResolver.activateProject() error', error);
       SentryLogger.captureException(error);
       throw error;
     }

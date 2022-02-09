@@ -9,6 +9,8 @@ import { Database, Resource } from '@admin-bro/typeorm';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
+import { ProjectStatusReason } from '../entities/projectStatusReason';
+import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -267,6 +269,38 @@ const getAdminBroInstance = () => {
         options: {
           actions: {
             delete: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+        },
+      },
+      {
+        resource: ProjectStatusReason,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+        },
+      },
+      {
+        resource: ProjectStatusHistory,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            edit: {
+              isVisible: false,
+            },
+            new: {
               isVisible: false,
             },
             bulkDelete: {
