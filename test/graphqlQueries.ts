@@ -101,6 +101,42 @@ export const fetchDonationsByDonorQuery = `
   }
 `;
 
+export const fetchDonationsByUserIdQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: SortBy
+    $userId: Int!
+  ) {
+    donationsByUserId(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      userId: $userId
+    ) {
+      donations {
+        id
+        transactionId
+        transactionNetworkId
+        toWalletAddress
+        fromWalletAddress
+        currency
+        anonymous
+        valueUsd
+        amount
+        user {
+          id
+        }
+        project {
+          id
+        }
+        createdAt
+      }
+      totalCount
+    }
+  }
+`;
+
 export const fetchAllProjectsQuery = `
   query (
     $take: Int
@@ -159,6 +195,50 @@ export const fetchAllProjectsQuery = `
       categories {
         name
       }
+    }
+  }
+`;
+
+export const fetchLikedProjectsQuery = `
+  query (
+    $userId: Int!
+    $take: Int
+    $skip: Int
+  ) {
+    likedProjectsByUserId(
+      userId: $userId
+      take: $take
+      skip: $skip
+    ) {
+      projects {
+        id
+        title
+        balance
+        image
+        slug
+        creationDate
+        updatedAt
+        admin
+        description
+        walletAddress
+        impactLocation
+        qualityScore
+        verified
+        traceCampaignId
+        listed
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        qualityScore
+        totalReactions
+        totalDonations
+        totalTraceDonations
+      }
+      totalCount
     }
   }
 `;
