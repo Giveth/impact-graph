@@ -16,6 +16,5 @@ export class seedProjectStatusreasons1643962364050
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DELETE FROM project_status_reason`);
   }
 }
