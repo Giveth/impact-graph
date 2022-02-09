@@ -44,16 +44,13 @@ import {
 } from 'type-graphql';
 import { errorMessages } from '../utils/errorMessages';
 import {
-  isWalletAddressSmartContract,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
-import { updateTotalReactionsOfAProject } from '../services/reactionsService';
 import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
-import { ProjectStatusReason } from '../entities/projectStatusReason';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 
 const analytics = getAnalytics();
