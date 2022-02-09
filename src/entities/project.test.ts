@@ -18,7 +18,9 @@ function addProjectStatusHistoryRecord() {
   it('Should create a history entity without reason', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
-    const cancelStatus = await ProjectStatus.findOne({ id: ProjStatus.cancel });
+    const cancelStatus = await ProjectStatus.findOne({
+      id: ProjStatus.cancelled,
+    });
     await project?.addProjectStatusHistoryRecord({
       project,
       status: cancelStatus as ProjectStatus,

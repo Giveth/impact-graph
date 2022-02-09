@@ -39,7 +39,7 @@ function updateStatusOfProjectsTestCases() {
           recordIds: String(project.id),
         },
       },
-      ProjStatus.cancel,
+      ProjStatus.cancelled,
     );
     assert.equal(
       result.notice.message,
@@ -48,7 +48,7 @@ function updateStatusOfProjectsTestCases() {
 
     const updatedProject = await Project.findOne({ id: project.id });
     assert.isOk(updatedProject);
-    assert.equal(updatedProject?.statusId, ProjStatus.cancel);
+    assert.equal(updatedProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedProject?.verified);
     assert.isNotTrue(updatedProject?.listed);
   });
@@ -81,7 +81,7 @@ function updateStatusOfProjectsTestCases() {
           recordIds: `${firstProject.id},${secondProject.id}`,
         },
       },
-      ProjStatus.cancel,
+      ProjStatus.cancelled,
     );
     assert.equal(
       result.notice.message,
@@ -90,7 +90,7 @@ function updateStatusOfProjectsTestCases() {
 
     const updatedFirstProject = await Project.findOne({ id: firstProject.id });
     assert.isOk(updatedFirstProject);
-    assert.equal(updatedFirstProject?.statusId, ProjStatus.cancel);
+    assert.equal(updatedFirstProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedFirstProject?.verified);
     assert.isNotTrue(updatedFirstProject?.listed);
 
@@ -98,7 +98,7 @@ function updateStatusOfProjectsTestCases() {
       id: secondProject.id,
     });
     assert.isOk(updatedSecondProject);
-    assert.equal(updatedSecondProject?.statusId, ProjStatus.cancel);
+    assert.equal(updatedSecondProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedSecondProject?.verified);
     assert.isNotTrue(updatedSecondProject?.listed);
   });
