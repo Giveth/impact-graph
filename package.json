@@ -116,6 +116,8 @@
     "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
+    "db:migrate:run": "NODE_ENV=development npm run typeorm:cli -- migration:run",
+    "db:migrate:revert": "NODE_ENV=development npm run typeorm:cli -- migration:revert",
     "prettify": "prettier --write '**/*.ts*'"
   },
   "husky": {
