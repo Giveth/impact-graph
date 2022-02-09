@@ -6,7 +6,7 @@ export const errorMessages = {
   INVALID_TX_HASH: 'Invalid txHash',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
   PROJECT_NOT_FOUND: 'Project not found.',
-  INVALID_FUCTION: 'Invalid function name of transaction',
+  INVALID_FUNCTION: 'Invalid function name of transaction',
   DONATION_NOT_FOUND: 'donation not found',
   DONATION_VIEWING_LOGIN_REQUIRED:
     'You must be signed-in in order to register project donations',

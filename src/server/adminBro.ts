@@ -12,6 +12,7 @@ import { messages } from '../utils/messages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
   findTransactionByHash,
+  getCsvAirdropTransactions,
   getDisperseTransactions,
 } from '../services/transactionService';
 import { NETWORK_IDS } from '../provider';
@@ -232,7 +233,7 @@ const getAdminBroInstance = () => {
             txType: {
               availableValues: [
                 { value: 'normalTransfer', label: 'normalTransfer' },
-                { value: 'disperse', label: 'Using disperse app' },
+                { value: 'csvAirDrop', label: 'Using csv airdrop app' },
               ],
               isVisible: {
                 list: false,
@@ -673,52 +674,60 @@ export const createDonation = async (
     }
     const networkId = Number(transactionNetworkId);
     let transactions: NetworkTransactionInfo[] = [];
-    if (txType === 'disperse') {
-      transactions = await getDisperseTransactions(txHash, networkId);
+    if (txType === 'csvAirDrop') {
+      // transactions = await getDisperseTransactions(txHash, networkId);
+      transactions = await getCsvAirdropTransactions(txHash, networkId);
     } else {
-      const transactionInfo2 = await findTransactionByHash({
+      const txInfo = await findTransactionByHash({
         networkId,
         txHash,
         symbol: currency,
       } as TransactionDetailInput);
-      if (!transactionInfo2) {
+      if (!txInfo) {
         throw new Error(errorMessages.INVALID_TX_HASH);
       }
-    }
-    const transactionInfo: any = {};
-
-    const project = await Project.findOne({
-      walletAddress: transactionInfo?.to,
-    });
-    if (!project) {
-      throw new Error(
-        errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
-      );
+      transactions.push(txInfo);
     }
 
-    const donation = Donation.create({
-      fromWalletAddress: transactionInfo?.from,
-      toWalletAddress: transactionInfo?.to,
-      transactionId: txHash,
-      transactionNetworkId: networkId,
-      project,
-      priceUsd,
-      currency,
-      amount: transactionInfo?.amount,
-      valueUsd: (transactionInfo?.amount as number) * priceUsd,
-      status: DONATION_STATUS.VERIFIED,
-      createdAt: new Date(transactionInfo?.timestamp as number),
-      anonymous: true,
-    });
-    const donor = await User.findOne({
-      walletAddress: transactionInfo?.from,
-    });
-    if (donor) {
-      donation.anonymous = false;
-      donation.user = donor;
+    for (const transactionInfo of transactions) {
+      const project = await Project.findOne({
+        walletAddress: transactionInfo?.to,
+      });
+      if (!project) {
+        logger.error(
+          'Creating donation by admin bro, csv airdrop error ' +
+            errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
+          {
+            hash: txHash,
+            networkId,
+          },
+        );
+      }
+
+      const donation = Donation.create({
+        fromWalletAddress: transactionInfo?.from,
+        toWalletAddress: transactionInfo?.to,
+        transactionId: txHash,
+        transactionNetworkId: networkId,
+        project,
+        priceUsd,
+        currency,
+        amount: transactionInfo?.amount,
+        valueUsd: (transactionInfo?.amount as number) * priceUsd,
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date(transactionInfo?.timestamp as number),
+        anonymous: true,
+      });
+      const donor = await User.findOne({
+        walletAddress: transactionInfo?.from,
+      });
+      if (donor) {
+        donation.anonymous = false;
+        donation.user = donor;
+      }
+      await donation.save();
+      logger.debug('Donation has been created successfully', donation.id);
     }
-    await donation.save();
-    logger.debug('Donation has been created successfully', donation.id);
   } catch (e) {
     message = e.message;
     type = 'danger';

@@ -19,8 +19,9 @@ import {
   NETWORK_IDS,
 } from '../provider';
 import { logger } from '../utils/logger';
-import * as net from 'net';
 
+// tslint:disable-next-line:no-var-requires
+const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 
 export async function getTransactionInfoFromNetwork(
@@ -300,7 +301,7 @@ export const getDisperseTransactions = async (
     recipients = transactionData.params[1].value;
     amounts = transactionData.params[2].value;
   } else {
-    throw new Error(errorMessages.INVALID_FUCTION);
+    throw new Error(errorMessages.INVALID_FUNCTION);
   }
   for (let i = 0; i < recipients.length; i++) {
     transactions.push({
@@ -323,54 +324,46 @@ export const getCsvAirdropTransactions = async (
   const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
     txHash,
   );
+
+  // You can hash Transfer(address,address,uint256) with https://emn178.github.io/online-tools/keccak_256.html
+  // would return ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
+  const transferTopic =
+    '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
   const receipts = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
     txHash,
   );
-  logger.debug('getCsvAirdropTransactions transaction', {
-    transaction,
-    receipts,
-    reciptLogs: receipts.logs,
+  const transferLogs = receipts.logs.filter(
+    log =>
+      log.topics[0] === transferTopic &&
+      findTokenByNetworkAndAddress(networkId, log.address.toLowerCase()),
+  );
+
+  // https://github.com/ethers-io/ethers.js/issues/487#issuecomment-481881691
+  const abi = [
+    'event Transfer(address indexed from, address indexed to, uint value)',
+  ];
+  const iface = new ethers.utils.Interface(abi);
+  const transfers = transferLogs.map(log => {
+    const transferData = iface.parseLog(log);
+    const tokenAddress = log.address;
+    const token = findTokenByNetworkAndAddress(networkId, tokenAddress);
+    return {
+      to: transferData.args[1].toLowerCase(),
+      amount:
+        Number(transferData.args[2].toString()) / 10 ** (token.decimals || 18),
+      currency: token.symbol,
+    };
   });
   const block = await getNetworkWeb3(networkId).eth.getBlock(
     transaction.blockNumber as number,
   );
-  abiDecoder.addABI(csvAirDropABI);
-  const transactionData = abiDecoder.decodeMethod(transaction.input);
-  const transactions: NetworkTransactionInfo[] = [];
-
-  let token;
-  let recipients: string[] = [];
-  let amounts: string[] = [];
-  logger.debug(
-    'getCsvAirdropTransactions() result',
-    JSON.stringify(transactionData, null, 4),
-  );
-  if (transactionData.name === 'disperseEther') {
-    token = {
-      symbol: networkId === NETWORK_IDS.XDAI ? 'XDAI' : 'ETH',
-      decimals: 18,
-    };
-    recipients = transactionData.params[0].value;
-    amounts = transactionData.params[1].value;
-  } else if (transactionData.name === 'disperseToken') {
-    const tokenAddress = transactionData.params[0].value;
-    token = findTokenByNetworkAndAddress(networkId, tokenAddress);
-
-    recipients = transactionData.params[1].value;
-    amounts = transactionData.params[2].value;
-  } else {
-    throw new Error(errorMessages.INVALID_FUCTION);
-  }
-  for (let i = 0; i < recipients.length; i++) {
-    transactions.push({
+  return transfers.map(transfer => {
+    return {
+      ...transfer,
       from: transaction.from.toLowerCase(),
-      to: recipients[i].toLowerCase(),
-      amount: normalizeAmount(amounts[i], token.decimals),
       hash: transaction.hash,
-      currency: token.symbol,
       timestamp: block.timestamp as number,
-    });
-  }
-
-  return transactions;
+    };
+  });
 };
