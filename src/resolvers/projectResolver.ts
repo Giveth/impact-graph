@@ -1165,6 +1165,7 @@ export class ProjectResolver {
       );
       return true;
     } catch (error) {
+      logger.error('projectResolver.activateProject() error', error);
       SentryLogger.captureException(error);
       throw error;
     }
