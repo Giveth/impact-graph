@@ -18,11 +18,5 @@ export class addProjectStatusReasonTable1643957749780
     );
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
-    try {
-      await queryRunner.query(`DROP TABLE "project_status_reason"`);
-    } catch (e) {
-      console.log('addProjectStatusReasonTable1643957749780 error', e);
-    }
-  }
+  async down(queryRunner: QueryRunner): Promise<void> {}
 }

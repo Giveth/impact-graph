@@ -218,7 +218,7 @@ export const SEED_DATA = {
       statusId: ProjStatus.deactive,
     },
     {
-      description: 'The project is not longer active.',
+      description: 'The project is no longer active.',
       statusId: ProjStatus.deactive,
     },
     {

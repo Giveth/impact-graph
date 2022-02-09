@@ -9,13 +9,11 @@ export class seedProjectStatusreasons1643962364050
     await queryRunner.query(`INSERT INTO public.project_status_reason ("statusId", description ) VALUES 
                     (${ProjStatus.deactive},'The project has completed its goals!'),
                     (${ProjStatus.deactive},'The project is no longer in need of funding.'),
-                    (${ProjStatus.deactive},'The project is not longer active.'),
+                    (${ProjStatus.deactive},'The project is no longer active.'),
                     (${ProjStatus.deactive},'The project was made by mistake.'),
                     (${ProjStatus.deactive},'Other / prefer not to say.')
                     ;`);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DELETE FROM project_status_reason`);
-  }
+  async down(queryRunner: QueryRunner): Promise<void> {}
 }
