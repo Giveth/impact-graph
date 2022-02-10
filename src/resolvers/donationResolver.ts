@@ -28,6 +28,10 @@ import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import { updateTotalDonationsOfProject } from '../services/donationService';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../services/userService';
 import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 import { bold } from 'chalk';
@@ -341,6 +345,10 @@ export class DonationResolver {
       }
 
       await donation.save();
+
+      // After updating, recalculate user total donated and owner total received
+      await updateUserTotalDonated(originUser.id);
+      await updateUserTotalReceived(Number(project.admin));
 
       // After updating price we update totalDonations
       await updateTotalDonationsOfProject(projectId);
