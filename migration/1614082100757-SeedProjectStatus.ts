@@ -10,15 +10,16 @@ export class SeedProjectStatus1614082100757 implements MigrationInterface {
       return;
     }
     await queryRunner.query(`INSERT INTO public.project_status (symbol,"name",description) VALUES 
-        ('rjt','rejected','This project has been rejected by Giveth or platform owner')
-        ,('pen','pending','This project is created, but pending approval')
-        ,('clr','clarificaiton','Clarification requested by Giveth or platform owner')
-        ,('ver','verification','Verification in progress (including KYC or otherwise)')
-        ,('act','active','This is an active project')
-        ,('can','cancelled','Cancelled or deactivated (by owner)')
-        ,('del','delisted','Delisted by Giveth or platform owner')
+        ('rejected','rejected','This project has been rejected by Giveth or platform owner, We dont use it now')
+        ,('pending','pending','This project is created, but pending approval, We dont use it now')
+        ,('clarification','clarification','Clarification requested by Giveth or platform owner, We dont use it now')
+        ,('verification','verification','Verification in progress (including KYC or otherwise), We dont use it now')
+        ,('activated','activated','This is an active project')
+        ,('deactivated','deactivated','Deactivated with user or Giveth Admin')
+        ,('cancelled','cancelled','Cancelled by Giveth Admin')
         ;`);
   }
+  x;
 
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
