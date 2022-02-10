@@ -68,6 +68,10 @@ async function seedProjects() {
 // item's the same as reactions but on the default ProjectUpdate
 async function seedProjectLikes() {
   await Reaction.create(REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION).save();
+  await Project.update(
+    { id: SEED_DATA.FIRST_PROJECT.id },
+    { totalReactions: 1, qualityScore: 10 },
+  );
 }
 async function seedDonations() {
   await saveDonationDirectlyToDb(

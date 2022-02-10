@@ -272,7 +272,6 @@ export const SEED_DATA = {
 export const REACTION_SEED_DATA = {
   FIRST_LIKED_PROJECT_REACTION: {
     id: 1,
-    projectUpdateId: 1,
     userId: 1,
     reaction: 'heart',
     projectId: 1,

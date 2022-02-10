@@ -26,7 +26,6 @@ import {
   ProjectUpdate,
 } from '../entities/project';
 import { Reaction } from '../entities/reaction';
-import { logger } from '../utils/logger';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 
@@ -46,8 +45,6 @@ describe('activateProject test cases --->', activateProjectTestCases);
 // describe('addProjectUpdate test cases --->', addProjectUpdateTestCases);
 // describe('editProjectUpdate test cases --->', editProjectUpdateTestCases);
 // describe('deleteProjectUpdate test cases --->', deleteProjectUpdateTestCases);
-// describe('toggleReaction test cases --->', toggleReactionTestCases);
-// describe('toggleProjectReaction test cases --->', toggleProjectReactionTestCases);
 // describe('getProjectUpdates test cases --->', getProjectUpdatesTestCases);
 // describe('getProjectsRecipients test cases --->', getProjectsRecipientsTestCases);
 // describe('getProjectReactions test cases --->', getProjectReactionsTestCases);

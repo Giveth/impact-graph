@@ -240,3 +240,19 @@ export const fetchLikedProjectsQuery = `
     }
   }
 `;
+
+export const likeProjectQuery = `
+  mutation ($projectId: Float!) {
+    likeProject(projectId: $projectId) {
+      id
+      projectId
+      reaction
+    }
+  }
+`;
+
+export const unlikeProjectQuery = `
+  mutation ($reactionId: Float!) {
+    unlikeProject(reactionId: $reactionId)
+  }
+`;

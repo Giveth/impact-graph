@@ -20,10 +20,10 @@ export class Reaction extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Index()
-  @Field(type => ProjectUpdate)
-  @ManyToOne(type => ProjectUpdate, { eager: true })
+  @ManyToOne(type => ProjectUpdate)
   projectUpdate: ProjectUpdate;
+
+  @Index()
   @RelationId((reaction: Reaction) => reaction.projectUpdate)
   @Field(type => ID)
   @Column({ nullable: true })
@@ -37,10 +37,11 @@ export class Reaction extends BaseEntity {
   @Column()
   reaction: string;
 
-  @Index()
-  @Field(type => Project)
   @ManyToOne(type => Project)
   project: Project;
+
+  @Index()
+  @Field(type => ID)
   @RelationId((reaction: Reaction) => reaction.project)
   @Column({ nullable: true })
   projectId: number;

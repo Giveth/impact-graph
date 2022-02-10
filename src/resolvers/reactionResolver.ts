@@ -38,11 +38,11 @@ export class ReactionResolver {
     });
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(returns => Reaction)
   async likeProjectUpdate(
     @Arg('projectUpdateId') projectUpdateId: number,
     @Ctx() { req: { user } }: MyContext,
-  ): Promise<boolean> {
+  ): Promise<Reaction> {
     if (!user || !user?.userId)
       throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
@@ -52,15 +52,15 @@ export class ReactionResolver {
 
     await queryRunner.startTransaction();
 
+    const projectUpdate = await queryRunner.manager.findOne(
+      ProjectUpdate,
+      { id: projectUpdateId },
+      { select: ['projectId'] },
+    );
+
+    if (!projectUpdate) throw Error(errorMessages.PROJECT_UPDATE_NOT_FOUND);
+
     try {
-      const projectUpdate = await queryRunner.manager.findOne(
-        ProjectUpdate,
-        { id: projectUpdateId },
-        { select: ['projectId'] },
-      );
-
-      if (!projectUpdate) return false;
-
       const reaction = await queryRunner.manager.create(Reaction, {
         userId: user?.userId,
         projectUpdateId,
@@ -84,13 +84,13 @@ export class ReactionResolver {
 
       // commit transaction now:
       await queryRunner.commitTransaction();
-      return true;
+      return reaction;
     } catch (e) {
       logger.error('like project update error', e);
 
       // since we have errors let's rollback changes we made
       await queryRunner.rollbackTransaction();
-      return false;
+      throw Error(errorMessages.SOMETHING_WENT_WRONG);
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
@@ -155,11 +155,11 @@ export class ReactionResolver {
     }
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(returns => Reaction)
   async likeProject(
     @Arg('projectId') projectId: number,
     @Ctx() { req: { user } }: MyContext,
-  ): Promise<boolean> {
+  ): Promise<Reaction> {
     if (!user || !user?.userId)
       throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
@@ -194,13 +194,13 @@ export class ReactionResolver {
 
       // commit transaction now:
       await queryRunner.commitTransaction();
-      return true;
+      return reaction;
     } catch (e) {
       logger.error('like project error', e);
 
       // since we have errors let's rollback changes we made
       await queryRunner.rollbackTransaction();
-      return false;
+      throw new Error(errorMessages.SOMETHING_WENT_WRONG);
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
@@ -255,53 +255,5 @@ export class ReactionResolver {
       // you need to release query runner which is manually created:
       await queryRunner.release();
     }
-  }
-
-  @Mutation(returns => Boolean)
-  async toggleProjectUpdateReaction(
-    @Arg('updateId') updateId: number,
-    @Arg('reaction') reaction: REACTION_TYPE = 'heart',
-    @Ctx() { req: { user } }: MyContext,
-  ): Promise<boolean> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-
-    const update = await ProjectUpdate.findOne({ id: updateId });
-    if (!update) throw new Error('Update not found.');
-
-    // if there is one, then delete it
-    const currentReaction = await Reaction.findOne({
-      projectUpdateId: update.id,
-      userId: user.userId,
-    });
-
-    const project = await Project.findOne({ id: update.projectId });
-    if (!project) throw new Error('Project not found');
-
-    if (currentReaction && currentReaction.reaction === reaction) {
-      await Reaction.delete({
-        projectUpdateId: update.id,
-        userId: user.userId,
-      });
-
-      // increment qualityScore
-      project.updateQualityScoreHeart(false);
-      project.save();
-      return false;
-    } else {
-      // if there wasn't one, then create it
-      const newReaction = await Reaction.create({
-        userId: user.userId,
-        projectUpdateId: update.id,
-        reaction,
-      });
-
-      project.updateQualityScoreHeart(true);
-      project.save();
-
-      await Reaction.save(newReaction);
-    }
-    await updateTotalReactionsOfAProject(update.projectId);
-
-    return true;
   }
 }
