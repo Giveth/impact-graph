@@ -256,7 +256,7 @@ const getAdminBroInstance = () => {
                 return updateStatusOfProjects(
                   context,
                   request,
-                  ProjStatus.cancel,
+                  ProjStatus.cancelled,
                 );
               },
               component: false,
@@ -378,7 +378,7 @@ const getAdminBroInstance = () => {
   });
 };
 
-const listDelist = async (
+export const listDelist = async (
   context: AdminBroContextInterface,
   request,
   list = true,
@@ -416,7 +416,7 @@ const listDelist = async (
   };
 };
 
-const verifyProjects = async (
+export const verifyProjects = async (
   context: AdminBroContextInterface,
   request: AdminBroRequestInterface,
   verified = true,
@@ -468,7 +468,7 @@ export const updateStatusOfProjects = async (
     const projectStatus = await ProjectStatus.findOne({ id: status });
     if (projectStatus) {
       const updateData: any = { status: projectStatus };
-      if (status === ProjStatus.cancel) {
+      if (status === ProjStatus.cancelled) {
         updateData.verified = false;
         updateData.listed = false;
       }

@@ -36,13 +36,13 @@ import { errorMessages } from '../utils/errorMessages';
 const moment = require('moment');
 
 export enum ProjStatus {
-  rjt = 1,
-  pen = 2,
-  clr = 3,
-  ver = 4,
+  rejected = 1,
+  pending = 2,
+  clarification = 3,
+  verification = 4,
   active = 5,
   deactive = 6,
-  cancel = 7,
+  cancelled = 7,
 }
 
 export enum OrderField {
@@ -351,7 +351,7 @@ class Project extends BaseEntity {
 
   // Status 7 is deleted status
   mayUpdateStatus(user: User) {
-    if (this.statusId === ProjStatus.cancel) {
+    if (this.statusId === ProjStatus.cancelled) {
       throw new Error(
         errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
       );

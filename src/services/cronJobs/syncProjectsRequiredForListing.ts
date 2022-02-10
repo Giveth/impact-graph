@@ -20,7 +20,7 @@ export const runCheckPendingProjectListingCronJob = () => {
   });
 };
 
-const updateProjectListing = async () => {
+export const updateProjectListing = async () => {
   const projects = await Project.pendingReviewSince(maximumDaysForListing);
   for (const project of projects) {
     logger.debug(
