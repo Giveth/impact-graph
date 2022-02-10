@@ -244,7 +244,7 @@ export const fetchLikedProjectsQuery = `
 `;
 
 export const likeProjectQuery = `
-  mutation ($projectId: Float!) {
+  mutation ($projectId: Int!) {
     likeProject(projectId: $projectId) {
       id
       projectId
@@ -254,13 +254,13 @@ export const likeProjectQuery = `
 `;
 
 export const unlikeProjectQuery = `
-  mutation ($reactionId: Float!) {
+  mutation ($reactionId: Int!) {
     unlikeProject(reactionId: $reactionId)
   }
 `;
 
 export const likeProjectUpdateQuery = `
-  mutation ($projectUpdateId: Float!) {
+  mutation ($projectUpdateId: Int!) {
     likeProjectUpdate(projectUpdateId: $projectUpdateId) {
       id
       projectUpdateId
@@ -270,7 +270,37 @@ export const likeProjectUpdateQuery = `
 `;
 
 export const unlikeProjectUpdateQuery = `
-  mutation ($reactionId: Float!) {
+  mutation ($reactionId: Int!) {
     unlikeProjectUpdate(reactionId: $reactionId)
+  }
+`;
+
+export const fetchProjectUpdatesQuery = `
+  query (
+    $projectId: Int!, 
+    $take: Int, 
+    $skip: Int,
+    $connectedWalletUserId: Int,
+  ) {
+    getProjectUpdates(
+      projectId: $projectId, 
+      take: $take, 
+      skip: $skip,
+      connectedWalletUserId: $connectedWalletUserId,
+    ) {
+      id
+      title
+      projectId
+      userId
+      content
+      isMain
+      totalReactions
+      reaction {
+        id
+        userId
+        reaction
+        projectUpdateId
+      }
+    }
   }
 `;

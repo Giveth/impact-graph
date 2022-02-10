@@ -278,6 +278,22 @@ export const PROJECT_UPDATE_SEED_DATA = {
     content: 'First project update content',
     isMain: false,
   },
+  SECOND_PROJECT_UPDATE: {
+    id: 2,
+    title: 'second project update',
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    userId: SEED_DATA.FIRST_USER.id,
+    content: 'Second project update content',
+    isMain: false,
+  },
+  THIRD_PROJECT_UPDATE: {
+    id: 3,
+    title: 'third project update',
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    userId: SEED_DATA.FIRST_USER.id,
+    content: 'Third project update content',
+    isMain: false,
+  },
 };
 
 export const REACTION_SEED_DATA = {
@@ -286,6 +302,13 @@ export const REACTION_SEED_DATA = {
     userId: 1,
     reaction: 'heart',
     projectId: 1,
+  },
+
+  FIRST_LIKED_PROJECT_UPDATE_REACTION: {
+    id: 2,
+    userId: 1,
+    reaction: 'heart',
+    projectUpdateId: 1,
   },
 };
 

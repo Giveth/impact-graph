@@ -3,6 +3,7 @@ import {
   Args,
   Ctx,
   Field,
+  Int,
   Mutation,
   ObjectType,
   Query,
@@ -40,7 +41,7 @@ export class ReactionResolver {
 
   @Mutation(returns => Reaction)
   async likeProjectUpdate(
-    @Arg('projectUpdateId') projectUpdateId: number,
+    @Arg('projectUpdateId', type => Int) projectUpdateId: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
@@ -99,7 +100,7 @@ export class ReactionResolver {
 
   @Mutation(returns => Boolean)
   async unlikeProjectUpdate(
-    @Arg('reactionId') reactionId: number,
+    @Arg('reactionId', type => Int) reactionId: number,
     @Ctx()
     { req: { user } }: MyContext,
   ): Promise<boolean> {
@@ -157,7 +158,7 @@ export class ReactionResolver {
 
   @Mutation(returns => Reaction)
   async likeProject(
-    @Arg('projectId') projectId: number,
+    @Arg('projectId', type => Int) projectId: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
@@ -209,7 +210,7 @@ export class ReactionResolver {
 
   @Mutation(returns => Boolean)
   async unlikeProject(
-    @Arg('reactionId') reactionId: number,
+    @Arg('reactionId', type => Int) reactionId: number,
     @Ctx()
     { req: { user } }: MyContext,
   ): Promise<boolean> {

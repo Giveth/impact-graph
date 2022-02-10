@@ -909,26 +909,32 @@ export class ProjectResolver {
 
   @Query(returns => [ProjectUpdate])
   async getProjectUpdates(
-    @Arg('projectId') projectId: number,
-    @Arg('skip') skip: number,
-    @Arg('take') take: number,
+    @Arg('projectId', type => Int) projectId: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdate[]> {
     let query = this.projectUpdateRepository
       .createQueryBuilder('projectUpdate')
-      .where('projectUpdate.projectId = :projectId and isMain = false', {
-        projectId,
-      })
+      .where(
+        'projectUpdate.projectId = :projectId and projectUpdate.isMain = false',
+        {
+          projectId,
+        },
+      )
       .take(take)
       .skip(skip);
 
-    if (user?.userId) {
+    const viewerUserId = connectedWalletUserId || user?.userId;
+    if (viewerUserId) {
       query = query.leftJoinAndMapOne(
-        'project.reaction',
+        'projectUpdate.reaction',
         Reaction,
         'reaction',
-        'reaction.projectId = CAST(project.id AS INTEGER) AND reaction.userId = :authenticatedUserId',
-        { authenticatedUserId: user?.userId },
+        'reaction.projectUpdateId = CAST(projectUpdate.id AS INTEGER) AND reaction.userId = :viewerUserId',
+        { viewerUserId },
       );
     }
     return query.getMany();

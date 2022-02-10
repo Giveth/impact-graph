@@ -53,7 +53,7 @@ async function seedDb() {
   await seedStatuses();
   await seedProjects();
   await seedProjectUpdates();
-  await seedProjectLikes();
+  await seedLikes();
   await seedDonations();
   await seedStatusReasons();
 }
@@ -72,13 +72,27 @@ async function seedProjectUpdates() {
   await ProjectUpdate.create(
     PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE,
   ).save();
+  await ProjectUpdate.create(
+    PROJECT_UPDATE_SEED_DATA.SECOND_PROJECT_UPDATE,
+  ).save();
+  await ProjectUpdate.create(
+    PROJECT_UPDATE_SEED_DATA.THIRD_PROJECT_UPDATE,
+  ).save();
 }
 
-async function seedProjectLikes() {
+async function seedLikes() {
   await Reaction.create(REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION).save();
   await Project.update(
     { id: SEED_DATA.FIRST_PROJECT.id },
     { totalReactions: 1, qualityScore: 10 },
+  );
+
+  await Reaction.create(
+    REACTION_SEED_DATA.FIRST_LIKED_PROJECT_UPDATE_REACTION,
+  ).save();
+  await ProjectUpdate.update(
+    { id: SEED_DATA.FIRST_PROJECT.id },
+    { totalReactions: 1 },
   );
 }
 async function seedDonations() {

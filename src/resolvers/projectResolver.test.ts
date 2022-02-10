@@ -5,6 +5,7 @@ import {
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
+  PROJECT_UPDATE_SEED_DATA,
   REACTION_SEED_DATA,
   saveProjectDirectlyToDb,
   SEED_DATA,
@@ -17,6 +18,7 @@ import {
   editProjectQuery,
   fetchAllProjectsQuery,
   fetchLikedProjectsQuery,
+  fetchProjectUpdatesQuery,
 } from '../../test/graphqlQueries';
 import { ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
@@ -37,6 +39,8 @@ describe('projects test cases --->', projectsTestCases);
 describe('deactivateProject test cases --->', deactivateProjectTestCases);
 describe('activateProject test cases --->', activateProjectTestCases);
 
+describe('getProjectUpdates test cases --->', getProjectUpdatesTestCases);
+
 // TODO We should implement test cases for below query/mutation
 // describe('topProjects test cases --->', topProjectsTestCases);
 // describe('project test cases --->', projectTestCases);
@@ -46,7 +50,6 @@ describe('activateProject test cases --->', activateProjectTestCases);
 // describe('addProjectUpdate test cases --->', addProjectUpdateTestCases);
 // describe('editProjectUpdate test cases --->', editProjectUpdateTestCases);
 // describe('deleteProjectUpdate test cases --->', deleteProjectUpdateTestCases);
-// describe('getProjectUpdates test cases --->', getProjectUpdatesTestCases);
 // describe('getProjectsRecipients test cases --->', getProjectsRecipientsTestCases);
 // describe('getProjectReactions test cases --->', getProjectReactionsTestCases);
 // describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
@@ -1490,5 +1493,48 @@ function likedProjectsByUserIdTestCases() {
       const projects = result.data.data.likedProjectsByUserId.projects;
       assert.equal(projects.length, 0);
     });
+  });
+}
+
+function getProjectUpdatesTestCases() {
+  it('should return project updates with current take', async () => {
+    const take = 2;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectUpdatesQuery,
+      variables: {
+        projectId: SEED_DATA.FIRST_PROJECT.id,
+        take,
+      },
+    });
+    assert.isOk(result);
+    const projectUpdates = result.data.data.getProjectUpdates;
+    assert.equal(projectUpdates.length, take);
+  });
+
+  it('should return correct reaction', async () => {
+    const take = 3;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectUpdatesQuery,
+      variables: {
+        projectId: SEED_DATA.FIRST_PROJECT.id,
+        take,
+        connectedWalletUserId: SEED_DATA.FIRST_USER.id,
+      },
+    });
+    assert.isOk(result);
+    const projectUpdates: ProjectUpdate[] = result.data.data.getProjectUpdates;
+
+    const likedProject = projectUpdates.find(
+      pu => +pu.id === PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
+    );
+    const noLikedProject = projectUpdates.find(
+      pu => +pu.id !== PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
+    );
+
+    assert.equal(
+      likedProject?.reaction?.id,
+      REACTION_SEED_DATA.FIRST_LIKED_PROJECT_UPDATE_REACTION.id,
+    );
+    assert.isNull(noLikedProject?.reaction);
   });
 }

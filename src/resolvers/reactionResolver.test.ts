@@ -90,7 +90,6 @@ function likeUnlikeProjectTestCases() {
       1,
       'Only one reaction should exists against the user and the project',
     );
-
     const unlikeResp = await sendUnlikeProjectQuery(
       reaction!.id,
       firstUserAccessToken,
@@ -150,7 +149,7 @@ function likeUnlikeProjectTestCases() {
 
 function likeUnlikeProjectUpdateTestCases() {
   const USER_DATA = SEED_DATA.FIRST_USER;
-  const PROJECT_UPDATE_DATA = PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE;
+  const PROJECT_UPDATE_DATA = PROJECT_UPDATE_SEED_DATA.SECOND_PROJECT_UPDATE;
 
   let projectUpdateBefore;
   let firstUserAccessToken;
