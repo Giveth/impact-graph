@@ -1074,7 +1074,7 @@ function editProjectTestCases() {
     );
     assert.isTrue(editProjectResult.data.data.editProject.verified);
   });
-  it('Should update successfully and verified(true) field would not change', async () => {
+  it('Should update successfully and verified(false) field would not change', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
