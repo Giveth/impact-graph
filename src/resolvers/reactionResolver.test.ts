@@ -75,6 +75,7 @@ function likeUnlikeProjectTestCases() {
 
     let [, count] = await Reaction.findAndCount({
       where: { userId: USER_DATA.id, projectId: PROJECT_DATA.id },
+      take: 0,
     });
 
     assert.equal(
@@ -92,6 +93,7 @@ function likeUnlikeProjectTestCases() {
 
     [, count] = await Reaction.findAndCount({
       where: { userId: USER_DATA.id, projectId: PROJECT_DATA.id },
+      take: 0,
     });
 
     assert.equal(count, 0, 'Reaction should has been removed');

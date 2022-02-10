@@ -1417,14 +1417,9 @@ function likedProjectsByUserIdTestCases() {
     const projects = result.data.data.likedProjectsByUserId.projects;
     assert.equal(projects.length, take);
 
-    // determine is the reaction exists on the Main projectUpdate
-    const projectUpdate = await ProjectUpdate.findOne({
-      isMain: true,
-      projectId: projects[0].id,
-    });
     const reaction = await Reaction.findOne({
       userId: SEED_DATA.FIRST_USER.id,
-      projectUpdateId: projectUpdate?.id,
+      projectId: SEED_DATA.FIRST_PROJECT.id,
     });
 
     assert.equal(projects[0].id, reaction?.projectId);
