@@ -177,7 +177,6 @@ class Project extends BaseEntity {
   @Field(type => [User], { nullable: true })
   users: User[];
 
-  @Field(type => [Reaction], { nullable: true })
   @OneToMany(type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
 
@@ -204,8 +203,8 @@ class Project extends BaseEntity {
   @Column({ type: 'real', default: 0 })
   totalTraceDonations: number;
 
-  @Field(type => Int, { nullable: true })
-  @Column({ type: 'integer', nullable: true })
+  @Field(type => Int, { defaultValue: 0 })
+  @Column({ type: 'integer', default: 0 })
   totalReactions: number;
 
   @Field(type => Int, { nullable: true })
@@ -220,9 +219,8 @@ class Project extends BaseEntity {
   @Field(type => User, { nullable: true })
   adminUser?: User;
 
-  // Virtual attribute to subquery result into
+  // User reaction to the project
   @Field(type => Reaction, { nullable: true })
-  // @Field(type => Int, { nullable: true })
   reaction?: Reaction;
   /**
    * Custom Query Builders to chain together
@@ -345,9 +343,13 @@ class ProjectUpdate extends BaseEntity {
   @Column({ nullable: true })
   isMain: boolean;
 
-  @Field(type => Int, { nullable: true })
-  @Column({ type: 'integer', nullable: true })
+  @Field(type => Int, { defaultValue: 0 })
+  @Column({ type: 'integer', default: 0 })
   totalReactions: number;
+
+  // User reaction to the project update
+  @Field(type => Reaction, { nullable: true })
+  reaction?: Reaction;
 
   @AfterInsert()
   async updateProjectStampOnCreation() {

@@ -187,6 +187,9 @@ class GetProjectsArgs {
 
   @Field({ nullable: true })
   admin?: number;
+
+  @Field(type => Int, { nullable: true })
+  connectedWalletUserId?: number;
 }
 
 @Service()
@@ -272,15 +275,17 @@ export class ProjectResolver {
 
   private static addUserReaction<T>(
     query: SelectQueryBuilder<T>,
-    authenticatedUser: any,
+    connectedWalletUserId?: number,
+    authenticatedUser?: any,
   ): SelectQueryBuilder<T> {
-    if (authenticatedUser?.userId) {
+    const userId = connectedWalletUserId || authenticatedUser?.userId;
+    if (userId) {
       return query.leftJoinAndMapOne(
         'project.reaction',
         Reaction,
         'reaction',
-        'reaction.projectId = CAST(project.id AS INTEGER) AND reaction.userId = :authenticatedUserId',
-        { authenticatedUserId: authenticatedUser.userId },
+        'reaction.projectId = CAST(project.id AS INTEGER) AND reaction.userId = :viewerUserId',
+        { viewerUserId: userId },
       );
     }
 
@@ -315,6 +320,7 @@ export class ProjectResolver {
       category,
       filterBy,
       admin,
+      connectedWalletUserId,
     }: GetProjectsArgs,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<AllProjects> {
@@ -331,12 +337,6 @@ export class ProjectResolver {
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       )
-      .leftJoinAndMapOne(
-        'project.reaction',
-        Reaction,
-        'reaction',
-        'reaction.projectId = CAST(project.id AS INTEGER) AND reaction.userId = 2',
-      )
       .innerJoinAndSelect('project.categories', 'c')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -350,7 +350,7 @@ export class ProjectResolver {
       filterBy?.field,
       filterBy?.value,
     );
-    query = ProjectResolver.addUserReaction(query, user);
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     if (orderBy.field === 'traceCampaignId') {
       // TODO: PRISMA will fix this, temporary fix inverting nulls.
@@ -378,7 +378,8 @@ export class ProjectResolver {
 
   @Query(returns => TopProjects)
   async topProjects(
-    @Args() { take, skip, orderBy, category }: GetProjectsArgs,
+    @Args()
+    { take, skip, orderBy, category, connectedWalletUserId }: GetProjectsArgs,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<TopProjects> {
     const { field, direction } = orderBy;
@@ -404,7 +405,7 @@ export class ProjectResolver {
       .take(take)
       .innerJoinAndSelect('project.categories', 'c');
 
-    query = ProjectResolver.addUserReaction(query, user);
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     const [projects, totalCount] = await query.getManyAndCount();
 
@@ -429,6 +430,8 @@ export class ProjectResolver {
   @Query(returns => Project)
   async projectBySlug(
     @Arg('slug') slug: string,
+    @Arg('connectedWalletUserId', { nullable: true })
+    connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ) {
     let query = this.projectRepository
@@ -447,7 +450,7 @@ export class ProjectResolver {
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       );
-    query = ProjectResolver.addUserReaction(query, user);
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     return await query.getOne();
   }
 
@@ -991,6 +994,8 @@ export class ProjectResolver {
   @Query(returns => Project, { nullable: true })
   projectByAddress(
     @Arg('address', type => String) address: string,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ) {
     let query = this.projectRepository
@@ -998,7 +1003,7 @@ export class ProjectResolver {
       .where(`lower("walletAddress")=lower(:address)`, {
         address,
       });
-    query = ProjectResolver.addUserReaction(query, user);
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     return query.getOne();
   }
 
@@ -1007,6 +1012,8 @@ export class ProjectResolver {
     @Arg('userId', type => Int) userId: number,
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ) {
     let query = this.projectRepository
@@ -1021,7 +1028,7 @@ export class ProjectResolver {
       );
     // .loadRelationCountAndMap('project.liked', 'project.reactions')
 
-    query = ProjectResolver.addUserReaction(query, user);
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     const [projects, projectsCount] = await query
       .orderBy('project.creationDate', 'DESC')
@@ -1043,10 +1050,12 @@ export class ProjectResolver {
   ) {
     const [projects, totalCount] = await this.projectRepository
       .createQueryBuilder('project')
-      .innerJoin(
-        'project.reactions',
+      .innerJoinAndMapOne(
+        'project.reaction',
+        Reaction,
         'reaction',
-        `reaction.projectId = project.id AND reaction.userId = ${userId}`,
+        `reaction.projectId = project.id AND reaction.userId = :userId`,
+        { userId },
       )
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndMapOne(

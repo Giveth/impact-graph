@@ -178,17 +178,17 @@ export const SEED_DATA = {
   },
   FIRST_PROJECT: {
     ...createProjectData(),
-    title: 'second project',
-    slug: 'second-project',
-    description: 'second description',
+    title: 'first project',
+    slug: 'first-project',
+    description: 'first description',
     id: 1,
     admin: '1',
   },
   SECOND_PROJECT: {
     ...createProjectData(),
-    title: 'first project',
-    slug: 'first-project',
-    description: 'first description',
+    title: 'second project',
+    slug: 'second-project',
+    description: 'second description',
     id: 2,
     admin: '2',
   },
@@ -267,6 +267,17 @@ export const SEED_DATA = {
     },
   ],
   DAI_SMART_CONTRACT_ADDRESS: '0x6b175474e89094c44da98b954eedeac495271d0f',
+};
+
+export const PROJECT_UPDATE_SEED_DATA = {
+  FIRST_PROJECT_UPDATE: {
+    id: 1,
+    title: 'first project update',
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    userId: SEED_DATA.FIRST_USER.id,
+    content: 'First project update content',
+    isMain: false,
+  },
 };
 
 export const REACTION_SEED_DATA = {

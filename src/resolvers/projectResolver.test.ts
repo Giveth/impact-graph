@@ -5,6 +5,7 @@ import {
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
+  REACTION_SEED_DATA,
   saveProjectDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
@@ -71,8 +72,60 @@ function projectsTestCases() {
         take,
       },
     });
-    assert.equal(result.data.data.projects.projects.length, take);
+    const projects = result.data.data.projects.projects;
+    assert.equal(projects.length, take);
+    assert.isNull(projects[0]?.reaction);
   });
+
+  it('should return projects with correct reaction', async () => {
+    const take = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+
+    // Project has not been liked
+    let result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        take,
+        searchTerm: SEED_DATA.SECOND_PROJECT.title,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    let projects = result.data.data.projects.projects;
+    assert.equal(projects.length, take);
+    assert.isNull(projects[0]?.reaction);
+
+    // Project has been liked, but connectedWalletUserIs is not filled
+    result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        take,
+        searchTerm: SEED_DATA.FIRST_PROJECT.title,
+      },
+    });
+
+    projects = result.data.data.projects.projects;
+    assert.equal(projects.length, take);
+    assert.isNull(projects[0]?.reaction);
+
+    // Project has been liked
+    result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        take,
+        searchTerm: SEED_DATA.FIRST_PROJECT.title,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    projects = result.data.data.projects.projects;
+    assert.equal(projects.length, take);
+    assert.equal(
+      projects[0]?.reaction?.id,
+      REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION.id,
+    );
+  });
+
   it('should return projects, sort by creationDate, DESC', async () => {
     const firstProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1423,6 +1476,7 @@ function likedProjectsByUserIdTestCases() {
     });
 
     assert.equal(projects[0].id, reaction?.projectId);
+    assert.equal(projects[0]?.reaction?.id, reaction?.id);
   });
   describe('if the user did not like any project', () => {
     it('should return an empty list', async () => {

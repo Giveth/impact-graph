@@ -1,18 +1,25 @@
 import {
   generateTestAccessToken,
   graphqlUrl,
+  PROJECT_UPDATE_SEED_DATA,
   SEED_DATA,
 } from '../../test/testUtils';
 import axios from 'axios';
 import {
   likeProjectQuery,
+  likeProjectUpdateQuery,
   unlikeProjectQuery,
+  unlikeProjectUpdateQuery,
 } from '../../test/graphqlQueries';
 import { assert } from 'chai';
-import { Project } from '../entities/project';
+import { Project, ProjectUpdate } from '../entities/project';
 import { Reaction } from '../entities/reaction';
 
 describe('like and unlike project test cases --->', likeUnlikeProjectTestCases);
+describe(
+  'like and unlike project update test cases --->',
+  likeUnlikeProjectUpdateTestCases,
+);
 
 function likeUnlikeProjectTestCases() {
   const USER_DATA = SEED_DATA.FIRST_USER;
@@ -63,7 +70,7 @@ function likeUnlikeProjectTestCases() {
     projectBefore = await Project.findOne({ id: PROJECT_DATA.id });
   });
 
-  it('should create/delete reaction on like/unlike', async () => {
+  it('should create/delete reaction on like/unlike project', async () => {
     const likeResp = await sendLikeProjectQuery(
       PROJECT_DATA.id,
       firstUserAccessToken,
@@ -99,7 +106,7 @@ function likeUnlikeProjectTestCases() {
     assert.equal(count, 0, 'Reaction should has been removed');
   });
 
-  it('should increase/decrease project total reactions and score on like/unlike', async () => {
+  it('should increase/decrease project total reactions and score on like/unlike project', async () => {
     const likeResp = await sendLikeProjectQuery(
       PROJECT_DATA.id,
       firstUserAccessToken,
@@ -137,6 +144,132 @@ function likeUnlikeProjectTestCases() {
       projectAfterUnlike!.qualityScore - projectBefore!.qualityScore,
       0,
       'Project quality score should be as before',
+    );
+  });
+}
+
+function likeUnlikeProjectUpdateTestCases() {
+  const USER_DATA = SEED_DATA.FIRST_USER;
+  const PROJECT_UPDATE_DATA = PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE;
+
+  let projectUpdateBefore;
+  let firstUserAccessToken;
+
+  const sendLikeProjectUpdateQuery = (
+    projectUpdateId: number | string,
+    authenticationToken: string,
+  ) =>
+    axios.post(
+      graphqlUrl,
+      {
+        query: likeProjectUpdateQuery,
+        variables: {
+          projectUpdateId: +projectUpdateId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${authenticationToken}`,
+        },
+      },
+    );
+
+  const sendUnlikeProjectUpdateQuery = (
+    reactionId: number | string,
+    authenticationToken: string,
+  ) =>
+    axios.post(
+      graphqlUrl,
+      {
+        query: unlikeProjectUpdateQuery,
+        variables: {
+          reactionId: +reactionId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${authenticationToken}`,
+        },
+      },
+    );
+
+  beforeEach(async () => {
+    firstUserAccessToken = await generateTestAccessToken(USER_DATA.id);
+    projectUpdateBefore = await ProjectUpdate.findOne({
+      id: PROJECT_UPDATE_DATA.id,
+    });
+  });
+
+  it('should create/delete reaction on like/unlike project update', async () => {
+    const likeResp = await sendLikeProjectUpdateQuery(
+      PROJECT_UPDATE_DATA.id,
+      firstUserAccessToken,
+    );
+
+    assert.isOk(likeResp);
+    const reaction = likeResp?.data?.data?.likeProjectUpdate;
+    assert.isOk(reaction?.id);
+
+    let [, count] = await Reaction.findAndCount({
+      where: { userId: USER_DATA.id, projectUpdateId: PROJECT_UPDATE_DATA.id },
+      take: 0,
+    });
+
+    assert.equal(
+      count,
+      1,
+      'Only one reaction should exists against the user and the project update',
+    );
+
+    const unlikeResp = await sendUnlikeProjectUpdateQuery(
+      reaction!.id,
+      firstUserAccessToken,
+    );
+
+    assert.isOk(unlikeResp);
+
+    [, count] = await Reaction.findAndCount({
+      where: { userId: USER_DATA.id, projectUpdateId: PROJECT_UPDATE_DATA.id },
+      take: 0,
+    });
+
+    assert.equal(count, 0, 'Reaction should has been removed');
+  });
+
+  it('should increase/decrease project total reactions and score on like/unlike project update', async () => {
+    const likeResp = await sendLikeProjectUpdateQuery(
+      PROJECT_UPDATE_DATA.id,
+      firstUserAccessToken,
+    );
+
+    const reaction = likeResp?.data?.data?.likeProjectUpdate;
+
+    const projectUpdateAfterLike = await ProjectUpdate.findOne({
+      id: PROJECT_UPDATE_DATA.id,
+    });
+
+    assert.equal(
+      projectUpdateAfterLike!.totalReactions -
+        projectUpdateBefore!.totalReactions,
+      1,
+      'Project update total reaction should be increased by 1',
+    );
+
+    const unlikeResp = await sendUnlikeProjectUpdateQuery(
+      reaction!.id,
+      firstUserAccessToken,
+    );
+
+    assert.isOk(unlikeResp);
+    const projectUpdateAfterUnlike = await ProjectUpdate.findOne({
+      id: PROJECT_UPDATE_DATA.id,
+    });
+
+    assert.equal(
+      projectUpdateAfterUnlike!.totalReactions -
+        projectUpdateBefore!.totalReactions,
+      0,
+      'Project update total reaction should be as before',
     );
   });
 }

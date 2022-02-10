@@ -143,6 +143,7 @@ export const fetchAllProjectsQuery = `
     $filterBy: FilterBy
     $searchTerm: String
     $category: String
+    $connectedWalletUserId: Int
   ) {
     projects(
       take: $take
@@ -151,6 +152,7 @@ export const fetchAllProjectsQuery = `
       filterBy: $filterBy
       searchTerm: $searchTerm
       category: $category
+      connectedWalletUserId: $connectedWalletUserId
     ) {
       projects {
         id
@@ -178,13 +180,9 @@ export const fetchAllProjectsQuery = `
         categories {
           name
         }
-        reactions {
-          reaction
+        reaction {
           id
-          projectUpdateId
-          userId
         }
-        qualityScore
         totalReactions
         totalDonations
         totalTraceDonations
@@ -231,7 +229,11 @@ export const fetchLikedProjectsQuery = `
           name
           description
         }
-        qualityScore
+        reaction {
+          id
+          userId
+          reaction
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -254,5 +256,21 @@ export const likeProjectQuery = `
 export const unlikeProjectQuery = `
   mutation ($reactionId: Float!) {
     unlikeProject(reactionId: $reactionId)
+  }
+`;
+
+export const likeProjectUpdateQuery = `
+  mutation ($projectUpdateId: Float!) {
+    likeProjectUpdate(projectUpdateId: $projectUpdateId) {
+      id
+      projectUpdateId
+      reaction
+    }
+  }
+`;
+
+export const unlikeProjectUpdateQuery = `
+  mutation ($reactionId: Float!) {
+    unlikeProjectUpdate(reactionId: $reactionId)
   }
 `;

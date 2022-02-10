@@ -25,7 +25,7 @@ export class Reaction extends BaseEntity {
 
   @Index()
   @RelationId((reaction: Reaction) => reaction.projectUpdate)
-  @Field(type => ID)
+  @Field(type => ID, { nullable: true })
   @Column({ nullable: true })
   projectUpdateId: number;
 
@@ -41,7 +41,7 @@ export class Reaction extends BaseEntity {
   project: Project;
 
   @Index()
-  @Field(type => ID)
+  @Field(type => ID, { nullable: true })
   @RelationId((reaction: Reaction) => reaction.project)
   @Column({ nullable: true })
   projectId: number;
