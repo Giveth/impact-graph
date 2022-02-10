@@ -4,12 +4,11 @@ export class setUserTotalDonated1644467038020 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // To run the update query SUM I should check table existance
     // UPDATE clause doesn't have a IF EXISTS conditional
-    const userTableExists = await queryRunner.query(`
-      SELECT EXISTS (SELECT FROM pg_tables WHERE  schemaname = 'public' AND tablename = 'user');`);
+    const userTableExists = await queryRunner.hasTable('user');
 
-    if (userTableExists[0].exists) {
+    if (userTableExists) {
       await queryRunner.query(
-        `ALTER TABLE "user" ADD "totalDonated" integer DEFAULT 0`,
+        `ALTER TABLE "user" ADD IF NOT EXISTS "totalDonated" integer DEFAULT 0`,
       );
 
       await queryRunner.query(`
