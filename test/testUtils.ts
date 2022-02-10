@@ -143,7 +143,8 @@ export const createProjectData = (): CreateProjectData => {
     // firstUser's id
     admin: '1',
     qualityScore: 30,
-    totalDonations: 0,
+    // just need the initial value to be different than 0
+    totalDonations: 10,
     totalReactions: 0,
     totalProjectUpdates: 1,
   };

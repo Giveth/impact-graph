@@ -5,7 +5,7 @@ export class setSegmentNotifiedForOlderDonations1643891610952
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE IF EXISTS  "donation" ADD  "segmentNotified" boolean DEFAULT true`,
+      `ALTER TABLE IF EXISTS  "donation" ADD COLUMN IF NOT EXISTS "segmentNotified" boolean DEFAULT true`,
     );
   }
 
