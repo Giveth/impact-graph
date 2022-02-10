@@ -11,7 +11,7 @@ export const updateUserTotalDonated = async (userId: number) => {
     await User.update(
       { id: userId },
       {
-        totalDonated: userDonated[0].totalDonated,
+        totalDonated: userDonated[0].total,
       },
     );
   } catch (e) {
@@ -27,7 +27,7 @@ export const updateUserTotalReceived = async (userId: number) => {
     await User.update(
       { id: userId },
       {
-        totalReceived: userReceived[0].totalReceived,
+        totalReceived: userReceived[0].total,
       },
     );
   } catch (e) {
