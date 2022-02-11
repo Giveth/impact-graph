@@ -24,7 +24,7 @@ function getStatusReasonsTestCases() {
   });
 
   it('should return filtered result when sending sending statusId', async () => {
-    const statusId = ProjStatus.pen;
+    const statusId = ProjStatus.pending;
     const status = await ProjectStatus.findOne({ id: statusId });
     await ProjectStatusReason.create({
       status,

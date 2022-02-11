@@ -1161,6 +1161,8 @@ export class ProjectResolver {
         statusId: ProjStatus.active,
         user,
       });
+      project.listed = null;
+      await project.save();
       const segmentProject = {
         email: user.email,
         title: project.title,

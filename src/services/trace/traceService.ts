@@ -69,7 +69,7 @@ export const dispatchProjectUpdateEvent = async (
       title: project.title,
       description: project.description as string,
       verified: project.verified,
-      archived: project.statusId === ProjStatus.cancel,
+      archived: project.statusId === ProjStatus.cancelled,
     };
 
     logger.debug('dispatchProjectUpdateEvent() add event to queue', payload);
@@ -101,10 +101,10 @@ export const initHandlingTraceCampaignUpdateEvents = () => {
       project.description = description;
       let statusId;
       if (status === 'Archived') {
-        statusId = ProjStatus.cancel;
+        statusId = ProjStatus.cancelled;
       } else if (
         status === 'Active' &&
-        project.status.id === ProjStatus.cancel
+        project.status.id === ProjStatus.cancelled
       ) {
         // Maybe project status is deactive in giveth.io, so we should not
         // change to active in this case, we just change the cancel status to active with this endpoint

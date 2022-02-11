@@ -252,7 +252,7 @@ npm run typeorm:cli -- migration:revert
 ### TEST
 For running tests you need to register infura and etherscan api-key, and you should pass this environment variables
 
-`ETHERSCAN_API_KEY=0000000000000000000000000000000000 XDAI_NODE_HTTP_URL=https://xxxxxx.xdai.quiknode.pro INFURA_API_KEY=0000000000000000000000000000000000 npm run test` 
+`ETHERSCAN_API_KEY=0000000000000000000000000000000000 XDAI_NODE_HTTP_URL=https://xxxxxx.xdai.quiknode.pro INFURA_API_KEY=0000000000000000000000000000000000 ETHEREUM_NODE_ID=INFURA_API_KEY npm run test` 
 
 ### PRE_COMMITS
 Please before committing your changes run
@@ -260,6 +260,24 @@ Please before committing your changes run
 
 You will need to add the above command to your build process so that all database migrations are run upon deployments.
 
+### Statuses 
+You can generate table with this site
+https://www.tablesgenerator.com/markdown_tables
+
+| id | symbol        | name          | description                                                                   | who can change to |
+|----|---------------|---------------|-------------------------------------------------------------------------------|-------------------|
+| 1  | rejected      | rejected      | his project has been rejected by Giveth or platform owner, We dont use it now |                   |
+| 2  | pending       | pending       | This project is created, but pending approval, We dont use it now             |                   |
+| 3  | clarification | clarification | Clarification requested by Giveth or platform owner, We dont use it now       |                   |
+| 4  | verification  | verification  | Verification in progress (including KYC or otherwise), We dont use it now     |                   |
+| 5  | activate      | activate      | This is an active project                                                     | user and admin    |
+| 6  | deactivate    | deactivate    | Deactivated with user or Giveth Admin                                         | user and admin    |
+| 7  | cancelled     | cancelled     | Cancelled by Giveth Admin                                                     | admin             |
+
+**PS** 
+* If a project is **cancelled** just admin can activate that
+* If project is **deactive** both admins and project owner can activate it
+* Both admins and project owner can deactivate an **active** project
 ### Diagrams
 
 #### Donation Flow

@@ -75,6 +75,7 @@ export interface CreateProjectData {
   listed?: boolean;
   giveBacks?: boolean;
   creationDate: Date;
+  updatedAt: Date;
   slug: string;
   qualityScore?: number;
   totalDonations?: number;
@@ -136,12 +137,14 @@ export const createProjectData = (): CreateProjectData => {
     listed: true,
     giveBacks: false,
     creationDate: new Date(),
+    updatedAt: new Date(),
     slug: title,
 
     // firstUser's id
     admin: '1',
     qualityScore: 30,
-    totalDonations: 0,
+    // just need the initial value to be different than 0
+    totalDonations: 10,
     totalReactions: 0,
     totalProjectUpdates: 1,
   };
@@ -231,38 +234,38 @@ export const SEED_DATA = {
   STATUSES: [
     // Orders are important, because id of active status should be 5, I know it's very bad :)
     {
-      symbol: 'rjt',
+      symbol: 'rejected',
       name: 'rejected',
       description: 'rejected description',
     },
     {
-      symbol: 'pen',
+      symbol: 'pending',
       name: 'pending',
       description: 'pending description',
     },
     {
-      symbol: 'clr',
-      name: 'clarificaiton',
-      description: 'clarificaiton description',
+      symbol: 'clarification',
+      name: 'clarification',
+      description: 'clarification description',
     },
     {
-      symbol: 'ver',
+      symbol: 'verification',
       name: 'verification',
       description: 'verification description',
     },
     {
-      symbol: 'act',
+      symbol: 'active',
       name: 'active',
       description: 'active description',
     },
     {
-      symbol: 'can',
-      name: 'cancelled',
+      symbol: 'deactive',
+      name: 'deactive',
       description: 'cancelled description',
     },
     {
-      symbol: 'del',
-      name: 'delisted',
+      symbol: 'cancelled',
+      name: 'cancelled',
       description: 'delisted description',
     },
   ],
