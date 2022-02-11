@@ -1025,7 +1025,6 @@ export class ProjectResolver {
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       );
-    // .loadRelationCountAndMap('project.liked', 'project.reactions')
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
