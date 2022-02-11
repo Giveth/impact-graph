@@ -926,7 +926,7 @@ export class ProjectResolver {
         'projectUpdate.reaction',
         Reaction,
         'reaction',
-        'reaction.projectUpdateId = CAST(projectUpdate.id AS INTEGER) AND reaction.userId = :viewerUserId',
+        'reaction.projectUpdateId = projectUpdate.id AND reaction.userId = :viewerUserId',
         { viewerUserId },
       );
     }
