@@ -5,13 +5,14 @@ import {
   SEED_DATA,
   DONATION_SEED_DATA,
   REACTION_SEED_DATA,
+  PROJECT_UPDATE_SEED_DATA,
 } from './testUtils';
 import { User } from '../src/entities/user';
 // var pgtools = require('pgtools');
 import { dropdb, createdb } from 'pgtools';
 import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
-import { Project, ProjStatus } from '../src/entities/project';
+import { Project, ProjectUpdate, ProjStatus } from '../src/entities/project';
 import { Reaction } from '../src/entities/reaction';
 import { Donation } from '../src/entities/donation';
 import { ProjectStatusReason } from '../src/entities/projectStatusReason';
@@ -51,7 +52,8 @@ async function seedDb() {
   await seedCategories();
   await seedStatuses();
   await seedProjects();
-  await seedProjectLikes();
+  await seedProjectUpdates();
+  await seedLikes();
   await seedDonations();
   await seedStatusReasons();
 }
@@ -65,9 +67,33 @@ async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.SECOND_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.TRANSAK_PROJECT);
 }
-// item's the same as reactions but on the default ProjectUpdate
-async function seedProjectLikes() {
+
+async function seedProjectUpdates() {
+  await ProjectUpdate.create(
+    PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE,
+  ).save();
+  await ProjectUpdate.create(
+    PROJECT_UPDATE_SEED_DATA.SECOND_PROJECT_UPDATE,
+  ).save();
+  await ProjectUpdate.create(
+    PROJECT_UPDATE_SEED_DATA.THIRD_PROJECT_UPDATE,
+  ).save();
+}
+
+async function seedLikes() {
   await Reaction.create(REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION).save();
+  await Project.update(
+    { id: SEED_DATA.FIRST_PROJECT.id },
+    { totalReactions: 1, qualityScore: 10 },
+  );
+
+  await Reaction.create(
+    REACTION_SEED_DATA.FIRST_LIKED_PROJECT_UPDATE_REACTION,
+  ).save();
+  await ProjectUpdate.update(
+    { id: SEED_DATA.FIRST_PROJECT.id },
+    { totalReactions: 1 },
+  );
 }
 async function seedDonations() {
   await saveDonationDirectlyToDb(

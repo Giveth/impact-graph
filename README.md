@@ -19,9 +19,9 @@ cp config/example.env config/development.env
 
 Edit the config/development.env file in your favorite code editor and the environmental variables
 
-[Create a database](https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e) (we recommend Postgres) on your computer or server, we currently support for for MySQL, MariaDB, Postgres, MongoDB and SQLite).
+[Create a database](https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e) (we recommend Postgres) on your computer or server, we currently support for MySQL, MariaDB, Postgres, MongoDB and SQLite.
 Or if you want, you can run the docker-compose like this:
-`docker-compose -f docker-compose-local-postgres.yml up -d`
+`docker-compose -f docker-compose-local-postgres-redis.yml up -d`
 and put these to your `developmen.env`
 
 ```

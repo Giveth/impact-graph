@@ -9,6 +9,7 @@ export const errorMessages = {
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'You dont have access to deactivate this project',
   PROJECT_NOT_FOUND: 'Project not found.',
+  PROJECT_UPDATE_NOT_FOUND: 'Project update not found.',
   DONATION_NOT_FOUND: 'donation not found',
   THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY:
     'This project has been cancelled by an Admin for inappropriate content or a violation of the Terms of Use',
@@ -44,4 +45,5 @@ export const errorMessages = {
     'Your project name isnt valid, please only use letters and numbers',
   ACCESS_DENIED: 'Access denied',
   AUTHENTICATION_REQUIRED: 'Authentication required.',
+  SOMETHING_WENT_WRONG: 'Something went wrong.',
 };

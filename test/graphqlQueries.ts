@@ -145,6 +145,7 @@ export const fetchAllProjectsQuery = `
     $filterBy: FilterBy
     $searchTerm: String
     $category: String
+    $connectedWalletUserId: Int
   ) {
     projects(
       take: $take
@@ -153,6 +154,7 @@ export const fetchAllProjectsQuery = `
       filterBy: $filterBy
       searchTerm: $searchTerm
       category: $category
+      connectedWalletUserId: $connectedWalletUserId
     ) {
       projects {
         id
@@ -180,13 +182,9 @@ export const fetchAllProjectsQuery = `
         categories {
           name
         }
-        reactions {
-          reaction
+        reaction {
           id
-          projectUpdateId
-          userId
         }
-        qualityScore
         totalReactions
         totalDonations
         totalTraceDonations
@@ -233,12 +231,78 @@ export const fetchLikedProjectsQuery = `
           name
           description
         }
-        qualityScore
+        reaction {
+          id
+          userId
+          reaction
+        }
         totalReactions
         totalDonations
         totalTraceDonations
       }
       totalCount
+    }
+  }
+`;
+
+export const likeProjectQuery = `
+  mutation ($projectId: Int!) {
+    likeProject(projectId: $projectId) {
+      id
+      projectId
+      reaction
+    }
+  }
+`;
+
+export const unlikeProjectQuery = `
+  mutation ($reactionId: Int!) {
+    unlikeProject(reactionId: $reactionId)
+  }
+`;
+
+export const likeProjectUpdateQuery = `
+  mutation ($projectUpdateId: Int!) {
+    likeProjectUpdate(projectUpdateId: $projectUpdateId) {
+      id
+      projectUpdateId
+      reaction
+    }
+  }
+`;
+
+export const unlikeProjectUpdateQuery = `
+  mutation ($reactionId: Int!) {
+    unlikeProjectUpdate(reactionId: $reactionId)
+  }
+`;
+
+export const fetchProjectUpdatesQuery = `
+  query (
+    $projectId: Int!, 
+    $take: Int, 
+    $skip: Int,
+    $connectedWalletUserId: Int,
+  ) {
+    getProjectUpdates(
+      projectId: $projectId, 
+      take: $take, 
+      skip: $skip,
+      connectedWalletUserId: $connectedWalletUserId,
+    ) {
+      id
+      title
+      projectId
+      userId
+      content
+      isMain
+      totalReactions
+      reaction {
+        id
+        userId
+        reaction
+        projectUpdateId
+      }
     }
   }
 `;
