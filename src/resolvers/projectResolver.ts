@@ -388,14 +388,7 @@ export class ProjectResolver {
 
     let query = this.projectRepository.createQueryBuilder('project');
     // .innerJoin('project.reactions', 'reaction')
-    if (category) {
-      query = query.innerJoin(
-        'project.categories',
-        'category',
-        'category.name = :category',
-        { category },
-      );
-    }
+    query = ProjectResolver.addCategoryQuery(query, category);
     query = query
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
