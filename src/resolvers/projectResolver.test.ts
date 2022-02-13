@@ -8,6 +8,7 @@ import {
   PROJECT_UPDATE_SEED_DATA,
   REACTION_SEED_DATA,
   saveProjectDirectlyToDb,
+  saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
 import axios from 'axios';
@@ -19,6 +20,7 @@ import {
   fetchAllProjectsQuery,
   fetchLikedProjectsQuery,
   fetchProjectUpdatesQuery,
+  projectByIdQuery,
 } from '../../test/graphqlQueries';
 import { ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
@@ -31,6 +33,7 @@ import {
 import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
+import { User } from '../entities/user';
 
 describe('addProject test cases --->', addProjectTestCases);
 describe('editProject test cases --->', editProjectTestCases);
@@ -40,11 +43,15 @@ describe('deactivateProject test cases --->', deactivateProjectTestCases);
 describe('activateProject test cases --->', activateProjectTestCases);
 
 describe('getProjectUpdates test cases --->', getProjectUpdatesTestCases);
+describe(
+  'likedProjectsByUserId test cases --->',
+  likedProjectsByUserIdTestCases,
+);
+describe('projectById test cases --->', projectByIdTestCases);
 
 // TODO We should implement test cases for below query/mutation
 // describe('topProjects test cases --->', topProjectsTestCases);
 // describe('project test cases --->', projectTestCases);
-// describe('projectById test cases --->', projectByIdTestCases);
 // describe('projectBySlug test cases --->', projectBySlugTestCases);
 // describe('uploadImage test cases --->', uploadImageTestCases);
 // describe('addProjectUpdate test cases --->', addProjectUpdateTestCases);
@@ -56,10 +63,6 @@ describe('getProjectUpdates test cases --->', getProjectUpdatesTestCases);
 // describe('isValidTitleForProject test cases --->', isValidTitleForProjectTestCases);
 // describe('projectByAddress test cases --->', projectByAddressTestCases);
 // describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
-describe(
-  'likedProjectsByUserId test cases --->',
-  likedProjectsByUserIdTestCases,
-);
 
 // We may can delete this query
 // describe('updateProjectStatus test cases --->', updateProjectStatusTestCases);
@@ -1827,6 +1830,82 @@ function likedProjectsByUserIdTestCases() {
       const projects = result.data.data.likedProjectsByUserId.projects;
       assert.equal(projects.length, 0);
     });
+  });
+}
+
+function projectByIdTestCases() {
+  it('should return project with id', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+      },
+    });
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.equal(result.data.data.projectById.slug, project.slug);
+  });
+
+  it('should return project null with invalid id', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        // To make use id is invalid
+        id: 9999999,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      'Cannot return null for non-nullable field Query.projectById.',
+    );
+  });
+
+  it('should return reaction when user liked the project', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const reaction = await Reaction.create({
+      userId: user.id,
+      projectId: project.id,
+      reaction: 'heart',
+    }).save();
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        connectedWalletUserId: user.id,
+      },
+    });
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.equal(result.data.data.projectById.reaction.id, reaction.id);
+  });
+
+  it('should not return reaction when user doesnt exist', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+
+        // To make sure there is no user with that Id
+        connectedWalletUserId: 9999999,
+      },
+    });
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isNotOk(result.data.data.projectById.reaction);
+  });
+  it('should not return reaction when user didnt like the project', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        connectedWalletUserId: user.id,
+      },
+    });
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isNotOk(result.data.data.projectById.reaction);
   });
 }
 
