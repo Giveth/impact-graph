@@ -1866,6 +1866,7 @@ function projectByIdTestCases() {
     const reaction = await Reaction.create({
       userId: user.id,
       projectId: project.id,
+      reaction: 'heart',
     }).save();
     const result = await axios.post(graphqlUrl, {
       query: projectByIdQuery,
