@@ -698,6 +698,7 @@ export const createDonation = async (
       currency,
       priceUsd,
       txType,
+      segmentNotified,
     } = request.payload;
     if (!priceUsd) {
       throw new Error('priceUsd is required');
@@ -742,6 +743,7 @@ export const createDonation = async (
         project,
         priceUsd,
         currency,
+        segmentNotified,
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
