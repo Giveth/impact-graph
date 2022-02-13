@@ -54,9 +54,12 @@ class GraphAnalytics {
   }
 }
 
+// Enable property defines if it calls segment api or not
+// Disabled on tests for time optimization
 export function getAnalytics() {
   const segmentAnalytics = new Analytics(config.get('SEGMENT_API_KEY'), {
     flushAt: 1,
+    enable: config.get('NODE_ENV') !== 'test',
   });
   return new GraphAnalytics(segmentAnalytics);
 }

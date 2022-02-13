@@ -1,4 +1,4 @@
-import { updateStatusOfProjects } from './adminBro';
+import { listDelist, updateStatusOfProjects, verifyProjects } from './adminBro';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
@@ -13,6 +13,9 @@ describe(
   'updateStatusOfProjects() test cases',
   updateStatusOfProjectsTestCases,
 );
+
+describe('verifyProjects() test cases', verifyProjectsTestCases);
+describe('listDelist() test cases', listDelistTestCases);
 
 function updateStatusOfProjectsTestCases() {
   it('should deList and unverified project, when changing status of one project to cancelled', async () => {
@@ -36,7 +39,7 @@ function updateStatusOfProjectsTestCases() {
           recordIds: String(project.id),
         },
       },
-      ProjStatus.cancel,
+      ProjStatus.cancelled,
     );
     assert.equal(
       result.notice.message,
@@ -45,7 +48,7 @@ function updateStatusOfProjectsTestCases() {
 
     const updatedProject = await Project.findOne({ id: project.id });
     assert.isOk(updatedProject);
-    assert.equal(updatedProject?.statusId, ProjStatus.cancel);
+    assert.equal(updatedProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedProject?.verified);
     assert.isNotTrue(updatedProject?.listed);
   });
@@ -78,7 +81,7 @@ function updateStatusOfProjectsTestCases() {
           recordIds: `${firstProject.id},${secondProject.id}`,
         },
       },
-      ProjStatus.cancel,
+      ProjStatus.cancelled,
     );
     assert.equal(
       result.notice.message,
@@ -87,7 +90,7 @@ function updateStatusOfProjectsTestCases() {
 
     const updatedFirstProject = await Project.findOne({ id: firstProject.id });
     assert.isOk(updatedFirstProject);
-    assert.equal(updatedFirstProject?.statusId, ProjStatus.cancel);
+    assert.equal(updatedFirstProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedFirstProject?.verified);
     assert.isNotTrue(updatedFirstProject?.listed);
 
@@ -95,8 +98,252 @@ function updateStatusOfProjectsTestCases() {
       id: secondProject.id,
     });
     assert.isOk(updatedSecondProject);
-    assert.equal(updatedSecondProject?.statusId, ProjStatus.cancel);
+    assert.equal(updatedSecondProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedSecondProject?.verified);
     assert.isNotTrue(updatedSecondProject?.listed);
+  });
+}
+
+function verifyProjectsTestCases() {
+  it('should not change listed(true) status when verifying project', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      listed: true,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await verifyProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      true,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isTrue(updatedProject?.verified);
+    assert.isTrue(updatedProject?.listed);
+  });
+
+  it('should not change listed(false) status when verifying project', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      listed: false,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await verifyProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      true,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isTrue(updatedProject?.verified);
+    assert.isFalse(updatedProject?.listed);
+  });
+
+  it('should not change listed(true) status when unVerifying project', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: true,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await verifyProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      false,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isFalse(updatedProject?.verified);
+    assert.isTrue(updatedProject?.listed);
+  });
+
+  it('should not change listed(false) status when unVerifying project', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: false,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await verifyProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      false,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isFalse(updatedProject?.verified);
+    assert.isFalse(updatedProject?.listed);
+  });
+}
+
+function listDelistTestCases() {
+  it('should not change verified(true) status when listing project', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: false,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await listDelist(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      true,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isTrue(updatedProject?.listed);
+    assert.isTrue(updatedProject?.listed);
+  });
+
+  it('should not change verified(false) status when listing project', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      listed: false,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await listDelist(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      true,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isFalse(updatedProject?.verified);
+    assert.isTrue(updatedProject?.listed);
+  });
+
+  it('should not change verified(true) status when deListing project', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: true,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await listDelist(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      false,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isTrue(updatedProject?.verified);
+    assert.isFalse(updatedProject?.listed);
+  });
+
+  it('should not change verified(false) status when deListing project', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      listed: true,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await listDelist(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      false,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isFalse(updatedProject?.verified);
+    assert.isFalse(updatedProject?.listed);
   });
 }

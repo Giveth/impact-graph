@@ -9,18 +9,24 @@ import {
   ManyToOne,
   Index,
 } from 'typeorm';
-import { Project } from './project';
+import { Project, ProjectUpdate } from './project';
 
 @Entity()
 @ObjectType()
+@Index(['userId', 'projectId'], { unique: true })
+@Index(['userId', 'projectUpdateId'], { unique: true })
 export class Reaction extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
+  @ManyToOne(type => ProjectUpdate)
+  projectUpdate: ProjectUpdate;
+
   @Index()
-  @Field(type => ID)
-  @Column()
+  @RelationId((reaction: Reaction) => reaction.projectUpdate)
+  @Field(type => ID, { nullable: true })
+  @Column({ nullable: true })
   projectUpdateId: number;
 
   @Field(type => ID)
@@ -31,10 +37,11 @@ export class Reaction extends BaseEntity {
   @Column()
   reaction: string;
 
-  @Index()
-  @Field(type => Project)
-  @ManyToOne(type => Project, { eager: true })
+  @ManyToOne(type => Project)
   project: Project;
+
+  @Index()
+  @Field(type => ID, { nullable: true })
   @RelationId((reaction: Reaction) => reaction.project)
   @Column({ nullable: true })
   projectId: number;

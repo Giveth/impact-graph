@@ -6,11 +6,18 @@ import {
   Ctx,
   ObjectType,
   Field,
+  Args,
+  ArgsType,
+  InputType,
+  registerEnumType,
+  Int,
 } from 'type-graphql';
+import { Service } from 'typedi';
+import { Max, Min } from 'class-validator';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 // import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
-import { Donation } from '../entities/donation';
+import { Donation, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
@@ -21,6 +28,10 @@ import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import { updateTotalDonationsOfProject } from '../services/donationService';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../services/userService';
 import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 import { bold } from 'chalk';
@@ -41,6 +52,63 @@ class PaginateDonations {
 
   @Field(type => Number, { nullable: true })
   totalEthBalance: number;
+}
+
+enum SortDirection {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
+
+registerEnumType(SortField, {
+  name: 'SortField',
+  description: 'Sort by field',
+});
+
+registerEnumType(SortDirection, {
+  name: 'SortDirection',
+  description: 'Sort direction',
+});
+
+@InputType()
+class SortBy {
+  @Field(type => SortField)
+  field: SortField;
+
+  @Field(type => SortDirection)
+  direction: SortDirection;
+}
+
+@Service()
+@ArgsType()
+class UserDonationsArgs {
+  @Field(type => Int, { defaultValue: 0 })
+  @Min(0)
+  skip: number;
+
+  @Field(type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  take: number;
+
+  @Field(type => SortBy, {
+    defaultValue: {
+      field: SortField.CreationDate,
+      direction: SortDirection.DESC,
+    },
+  })
+  orderBy: SortBy;
+
+  @Field(type => Int, { nullable: false })
+  userId: number;
+}
+
+@ObjectType()
+class UserDonations {
+  @Field(type => [Donation])
+  donations: Donation[];
+
+  @Field(type => Int)
+  totalCount: number;
 }
 
 @Resolver(of => User)
@@ -167,6 +235,26 @@ export class DonationResolver {
     return donations;
   }
 
+  @Query(returns => UserDonations, { nullable: true })
+  async donationsByUserId(
+    @Args() { take, skip, orderBy, userId }: UserDonationsArgs,
+  ) {
+    const [donations, totalCount] = await this.donationRepository
+      .createQueryBuilder('donation')
+      .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('donation.user', 'user')
+      .where(`donation.userId = ${userId}`)
+      .orderBy(`donation.${orderBy.field}`, orderBy.direction)
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      donations,
+      totalCount,
+    };
+  }
+
   @Mutation(returns => Number)
   async saveDonation(
     @Arg('fromAddress') fromAddress: string,
@@ -220,6 +308,7 @@ export class DonationResolver {
         tokenAddress,
         project,
         createdAt: new Date(),
+        segmentNotified: true,
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: donationAnonymous,
@@ -257,6 +346,10 @@ export class DonationResolver {
 
       await donation.save();
 
+      // After updating, recalculate user total donated and owner total received
+      await updateUserTotalDonated(originUser.id);
+      await updateUserTotalReceived(Number(project.admin));
+
       // After updating price we update totalDonations
       await updateTotalDonationsOfProject(projectId);
 
@@ -279,6 +372,7 @@ export class DonationResolver {
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         projectWalletAddress: project.walletAddress,
+        segmentNotified: true,
         createdAt: new Date(),
       };
 

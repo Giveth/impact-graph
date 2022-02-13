@@ -9,10 +9,13 @@ import { BankAccountResolver } from './bankAccountResolver';
 import { UploadResolver } from './uploadResolver';
 import { CategoryResolver } from './categoryResolver';
 import { DonationResolver } from './donationResolver';
+import { ReactionResolver } from './reactionResolver';
+import { StatusReasonResolver } from './statusReasonResolver';
 
 export const resolvers: any = [
   UserResolver,
   ProjectResolver,
+  StatusReasonResolver,
   OrganisationResolver,
   NotificationResolver,
   LoginResolver,
@@ -22,4 +25,5 @@ export const resolvers: any = [
   UploadResolver,
   CategoryResolver,
   DonationResolver,
+  ReactionResolver,
 ];

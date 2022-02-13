@@ -13,16 +13,14 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
   findTransactionByHash,
   getCsvAirdropTransactions,
-  getDisperseTransactions,
 } from '../services/transactionService';
-import { NETWORK_IDS } from '../provider';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../types/TransactionInquiry';
-import { fetchGivHistoricPrice } from '../services/givPriceService';
-import symbols = Mocha.reporters.Base.symbols;
 import { errorMessages } from '../utils/errorMessages';
+import { ProjectStatusReason } from '../entities/projectStatusReason';
+import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -437,7 +435,7 @@ const getAdminBroInstance = () => {
                 return updateStatusOfProjects(
                   context,
                   request,
-                  ProjStatus.cancel,
+                  ProjStatus.cancelled,
                 );
               },
               component: false,
@@ -450,6 +448,38 @@ const getAdminBroInstance = () => {
         options: {
           actions: {
             delete: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+        },
+      },
+      {
+        resource: ProjectStatusReason,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+        },
+      },
+      {
+        resource: ProjectStatusHistory,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            edit: {
+              isVisible: false,
+            },
+            new: {
               isVisible: false,
             },
             bulkDelete: {
@@ -527,7 +557,7 @@ const getAdminBroInstance = () => {
   });
 };
 
-const listDelist = async (
+export const listDelist = async (
   context: AdminBroContextInterface,
   request,
   list = true,
@@ -565,7 +595,7 @@ const listDelist = async (
   };
 };
 
-const verifyProjects = async (
+export const verifyProjects = async (
   context: AdminBroContextInterface,
   request: AdminBroRequestInterface,
   verified = true,
@@ -617,7 +647,7 @@ export const updateStatusOfProjects = async (
     const projectStatus = await ProjectStatus.findOne({ id: status });
     if (projectStatus) {
       const updateData: any = { status: projectStatus };
-      if (status === ProjStatus.cancel) {
+      if (status === ProjStatus.cancelled) {
         updateData.verified = false;
         updateData.listed = false;
       }

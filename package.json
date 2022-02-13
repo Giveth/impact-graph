@@ -99,6 +99,7 @@
     "node-fetch": ">=2.6.1",
     "object-path": ">=0.11.5",
     "prettier": "^2.4.1",
+    "sinon": "^13.0.1",
     "ts-node": "^8.10.2",
     "ts-node-dev": "^1.1.6",
     "tslint": "^6.1.3",
@@ -110,11 +111,15 @@
     "tslint": "tslint -c tslint.json '{src,test}/**/*.ts'",
     "tslint:fix": "tslint -c tslint.json --fix '{src,test}/**/*.ts'",
     "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
+    "test:reactionResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/reactionResolver.test.ts",
+    "test:projectResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/projectResolver.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
     "typeorm:cli:test": "NODE_ENV=test ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
+    "db:migrate:run": "NODE_ENV=development npm run typeorm:cli -- migration:run",
+    "db:migrate:revert": "NODE_ENV=development npm run typeorm:cli -- migration:revert",
     "prettify": "prettier --write '**/*.ts*'"
   },
   "husky": {
@@ -128,7 +133,7 @@
     ]
   },
   "engines": {
-    "node": "12.20.0"
+    "node": ">=12.20.0"
   },
   "author": "James Farrell",
   "license": "ISC"

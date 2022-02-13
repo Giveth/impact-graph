@@ -21,7 +21,7 @@ import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import { Context } from '../context';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
 import config from '../config';
 import slugify from 'slugify';
@@ -44,15 +44,14 @@ import {
 } from 'type-graphql';
 import { errorMessages } from '../utils/errorMessages';
 import {
-  isWalletAddressSmartContract,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
-import { updateTotalReactionsOfAProject } from '../services/reactionsService';
 import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
+import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 
 const analytics = getAnalytics();
 
@@ -114,7 +113,7 @@ registerEnumType(OrderDirection, {
 
 function checkIfUserInRequest(ctx: MyContext) {
   if (!ctx.req.user) {
-    throw new Error('Access denied');
+    throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
   }
 }
 
@@ -188,6 +187,9 @@ class GetProjectsArgs {
 
   @Field({ nullable: true })
   admin?: number;
+
+  @Field(type => Int, { nullable: true })
+  connectedWalletUserId?: number;
 }
 
 @Service()
@@ -201,18 +203,6 @@ class GetProjectArgs {
 class GetProjectUpdatesResult {
   @Field(type => ProjectUpdate)
   projectUpdate: ProjectUpdate;
-
-  @Field(type => [Reaction])
-  reactions: Reaction[];
-}
-
-@ObjectType()
-class ToggleResponse {
-  @Field(type => Boolean)
-  reaction: boolean;
-
-  @Field(type => Number)
-  reactionCount: number;
 }
 
 @ObjectType()
@@ -229,9 +219,83 @@ class ImageResponse {
 
 @Resolver(of => Project)
 export class ProjectResolver {
+  static addCategoryQuery(
+    query: SelectQueryBuilder<Project>,
+    category: string,
+  ) {
+    if (!category) return query;
+
+    return query.innerJoin(
+      'project.categories',
+      'category',
+      'category.name = :category',
+      { category },
+    );
+  }
+  static addSearchQuery(
+    query: SelectQueryBuilder<Project>,
+    searchTerm: string,
+  ) {
+    if (!searchTerm) return query;
+
+    return query.andWhere(
+      new Brackets(qb => {
+        qb.where('project.title ILIKE :searchTerm', {
+          searchTerm: `%${searchTerm}%`,
+        })
+          .orWhere('project.description ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
+          })
+          .orWhere('project.impactLocation ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
+          });
+      }),
+    );
+  }
+
+  static addFilterQuery(
+    query: SelectQueryBuilder<Project>,
+    filter: string,
+    filterValue: boolean,
+  ) {
+    if (!filter) return query;
+
+    if (filter === 'givingBlocksId') {
+      const acceptGiv = filterValue ? 'IS' : 'IS NOT';
+      return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
+    }
+
+    if (filter === 'traceCampaignId') {
+      const isRequested = filterValue ? 'IS NOT' : 'IS';
+      return query.andWhere(`project.${filter} ${isRequested} NULL`);
+    }
+
+    return query.andWhere(`project.${filter} = ${filterValue}`);
+  }
+
+  private static addUserReaction<T>(
+    query: SelectQueryBuilder<T>,
+    connectedWalletUserId?: number,
+    authenticatedUser?: any,
+  ): SelectQueryBuilder<T> {
+    const userId = connectedWalletUserId || authenticatedUser?.userId;
+    if (userId) {
+      return query.leftJoinAndMapOne(
+        'project.reaction',
+        Reaction,
+        'reaction',
+        'reaction.projectId = CAST(project.id AS INTEGER) AND reaction.userId = :viewerUserId',
+        { viewerUserId: userId },
+      );
+    }
+
+    return query;
+  }
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    @InjectRepository(ProjectUpdate)
+    private readonly projectUpdateRepository: Repository<ProjectUpdate>,
     @InjectRepository(ProjectStatus)
     private readonly projectStatusRepository: Repository<ProjectStatus>,
     @InjectRepository(Category)
@@ -244,6 +308,7 @@ export class ProjectResolver {
     private readonly projectImageRepository: Repository<ProjectImage>,
   ) {}
 
+  // Backward Compatible Projects Query with added pagination, frontend sorts and category search
   @Query(returns => AllProjects)
   async projects(
     @Args()
@@ -255,63 +320,88 @@ export class ProjectResolver {
       category,
       filterBy,
       admin,
+      connectedWalletUserId,
     }: GetProjectsArgs,
+    @Ctx() { req: { user } }: MyContext,
   ): Promise<AllProjects> {
     const categories = await Category.find();
-    const [projects, totalCount] = await Project.searchProjects(
-      take,
-      skip,
-      orderBy.field,
-      orderBy.direction,
-      category,
-      searchTerm,
+    let query = this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
+      // .leftJoinAndSelect('project.donations', 'donations')
+      .leftJoinAndSelect('project.users', 'users')
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .innerJoinAndSelect('project.categories', 'c')
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      );
+
+    // Filters
+    query = ProjectResolver.addCategoryQuery(query, category);
+    query = ProjectResolver.addSearchQuery(query, searchTerm);
+    query = ProjectResolver.addFilterQuery(
+      query,
       filterBy?.field,
       filterBy?.value,
     );
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+    if (orderBy.field === 'traceCampaignId') {
+      // TODO: PRISMA will fix this, temporary fix inverting nulls.
+      const traceableDirection = {
+        ASC: 'NULLS FIRST',
+        DESC: 'NULLS LAST',
+      };
+      query.orderBy(
+        `project.${orderBy.field}`,
+        orderBy.direction,
+        // @ts-ignore
+        traceableDirection[orderBy.direction],
+      );
+    } else {
+      query.orderBy(`project.${orderBy.field}`, orderBy.direction);
+    }
+
+    const [projects, totalCount] = await query
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
 
     return { projects, totalCount, categories };
   }
 
   @Query(returns => TopProjects)
   async topProjects(
-    @Args() { take, skip, orderBy, category }: GetProjectsArgs,
+    @Args()
+    { take, skip, orderBy, category, connectedWalletUserId }: GetProjectsArgs,
+    @Ctx() { req: { user } }: MyContext,
   ): Promise<TopProjects> {
     const { field, direction } = orderBy;
     const order = {};
     order[field] = direction;
 
-    let projects;
-    let totalCount;
+    let query = this.projectRepository.createQueryBuilder('project');
+    // .innerJoin('project.reactions', 'reaction')
+    query = ProjectResolver.addCategoryQuery(query, category);
+    query = query
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      )
+      .orderBy(`project.${field}`, direction)
+      .limit(skip)
+      .take(take)
+      .innerJoinAndSelect('project.categories', 'c');
 
-    if (!category) {
-      [projects, totalCount] = await this.projectRepository.findAndCount({
-        take,
-        skip,
-        order,
-        relations: ['reactions'],
-        where: {
-          status: {
-            id: ProjStatus.active,
-          },
-        },
-      });
-    } else {
-      [projects, totalCount] = await this.projectRepository
-        .createQueryBuilder('project')
-        .innerJoin(
-          'project.categories',
-          'category',
-          'category.name = :category',
-          { category },
-        )
-        .innerJoin('project.reactions', 'reaction')
-        .where('project.statusId = 5 AND project.listed = true')
-        .orderBy(`project.${field}`, direction)
-        .limit(skip)
-        .take(take)
-        .innerJoinAndSelect('project.categories', 'c')
-        .getManyAndCount();
-    }
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+    const [projects, totalCount] = await query.getManyAndCount();
+
     return { projects, totalCount };
   }
 
@@ -331,8 +421,13 @@ export class ProjectResolver {
 
   // Move this to it's own resolver later
   @Query(returns => Project)
-  async projectBySlug(@Arg('slug') slug: string) {
-    return await this.projectRepository
+  async projectBySlug(
+    @Arg('slug') slug: string,
+    @Arg('connectedWalletUserId', { nullable: true })
+    connectedWalletUserId: number,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    let query = this.projectRepository
       .createQueryBuilder('project')
       // check current slug and previous slugs
       .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
@@ -340,7 +435,6 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
-      .leftJoinAndSelect('project.reactions', 'reactions')
       // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
       // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndMapOne(
@@ -348,8 +442,9 @@ export class ProjectResolver {
         User,
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
-      )
-      .getOne();
+      );
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+    return await query.getOne();
   }
 
   @Mutation(returns => Project)
@@ -805,136 +900,37 @@ export class ProjectResolver {
     return true;
   }
 
-  @Mutation(returns => Boolean)
-  async toggleReaction(
-    @Arg('updateId') updateId: number,
-    @Arg('reaction') reaction: REACTION_TYPE = 'heart',
+  @Query(returns => [ProjectUpdate])
+  async getProjectUpdates(
+    @Arg('projectId', type => Int) projectId: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
-  ): Promise<boolean> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-
-    const update = await ProjectUpdate.findOne({ id: updateId });
-    if (!update) throw new Error('Update not found.');
-
-    // if there is one, then delete it
-    const currentReaction = await Reaction.findOne({
-      projectUpdateId: update.id,
-      userId: user.userId,
-    });
-
-    const project = await Project.findOne({ id: update.projectId });
-    if (!project) throw new Error('Project not found');
-
-    if (currentReaction && currentReaction.reaction === reaction) {
-      await Reaction.delete({
-        projectUpdateId: update.id,
-        userId: user.userId,
-      });
-
-      // increment qualityScore
-      project.updateQualityScoreHeart(false);
-      project.save();
-      return false;
-    } else {
-      // if there wasn't one, then create it
-      const newReaction = await Reaction.create({
-        userId: user.userId,
-        projectUpdateId: update.id,
-        reaction,
-      });
-
-      project.updateQualityScoreHeart(true);
-      project.save();
-
-      await Reaction.save(newReaction);
-    }
-    await updateTotalReactionsOfAProject(update.projectId);
-
-    return true;
-  }
-
-  @Mutation(returns => ToggleResponse)
-  async toggleProjectReaction(
-    @Arg('projectId') projectId: number,
-    @Arg('reaction') reaction: REACTION_TYPE = 'heart',
-    @Ctx() { req: { user } }: MyContext,
-  ): Promise<object> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-
-    const project = await Project.findOne({ id: projectId });
-
-    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
-
-    let update = await ProjectUpdate.findOne({ projectId, isMain: true });
-    if (!update) {
-      update = await ProjectUpdate.save(
-        await ProjectUpdate.create({
-          userId:
-            project && project.admin && +project.admin ? +project.admin : 0,
+  ): Promise<ProjectUpdate[]> {
+    let query = this.projectUpdateRepository
+      .createQueryBuilder('projectUpdate')
+      .where(
+        'projectUpdate.projectId = :projectId and projectUpdate.isMain = false',
+        {
           projectId,
-          content: '',
-          title: '',
-          createdAt: new Date(),
-          isMain: true,
-        }),
+        },
+      )
+      .take(take)
+      .skip(skip);
+
+    const viewerUserId = connectedWalletUserId || user?.userId;
+    if (viewerUserId) {
+      query = query.leftJoinAndMapOne(
+        'projectUpdate.reaction',
+        Reaction,
+        'reaction',
+        'reaction.projectUpdateId = projectUpdate.id AND reaction.userId = :viewerUserId',
+        { viewerUserId },
       );
     }
-
-    const usersReaction = await Reaction.findOne({
-      projectUpdateId: update.id,
-      userId: user.userId,
-    });
-    const [, reactionCount] = await Reaction.findAndCount({
-      projectUpdateId: update.id,
-    });
-
-    await Reaction.delete({ projectUpdateId: update.id, userId: user.userId });
-    const response = new ToggleResponse();
-    response.reactionCount = reactionCount;
-
-    if (usersReaction && usersReaction.reaction === reaction) {
-      response.reaction = false;
-      response.reactionCount = response.reactionCount - 1;
-    } else {
-      const newReaction = await Reaction.create({
-        userId: user.userId,
-        projectUpdateId: update.id,
-        reaction,
-        project,
-      });
-
-      await Reaction.save(newReaction);
-      response.reactionCount = response.reactionCount + 1;
-      response.reaction = true;
-    }
-    await updateTotalReactionsOfAProject(projectId);
-    return response;
-  }
-
-  @Query(returns => [GetProjectUpdatesResult])
-  async getProjectUpdates(
-    @Arg('projectId') projectId: number,
-    @Arg('skip') skip: number,
-    @Arg('take') take: number,
-    @Ctx() { user }: Context,
-  ): Promise<GetProjectUpdatesResult[]> {
-    const updates = await ProjectUpdate.find({
-      where: { projectId, isMain: false },
-      skip,
-      take,
-    });
-
-    const results: GetProjectUpdatesResult[] = [];
-
-    for (const update of updates)
-      results.push({
-        projectUpdate: update,
-        reactions: await Reaction.find({
-          where: { projectUpdateId: update.id },
-        }),
-      });
-
-    return results;
+    return query.getMany();
   }
 
   @Query(returns => [String])
@@ -995,13 +991,19 @@ export class ProjectResolver {
   }
 
   @Query(returns => Project, { nullable: true })
-  projectByAddress(@Arg('address', type => String) address: string) {
-    return this.projectRepository
+  projectByAddress(
+    @Arg('address', type => String) address: string,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    let query = this.projectRepository
       .createQueryBuilder('project')
       .where(`lower("walletAddress")=lower(:address)`, {
         address,
-      })
-      .getOne();
+      });
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+    return query.getOne();
   }
 
   @Query(returns => AllProjects, { nullable: true })
@@ -1009,17 +1011,24 @@ export class ProjectResolver {
     @Arg('userId', type => Int) userId: number,
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
+    @Ctx() { req: { user } }: MyContext,
   ) {
-    const [projects, projectsCount] = await this.projectRepository
+    let query = this.projectRepository
       .createQueryBuilder('project')
+      .where('CAST(project.admin AS INTEGER) = :userId', { userId })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
-      )
-      .where('CAST(project.admin AS INTEGER) = :userId', { userId })
+      );
+
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+    const [projects, projectsCount] = await query
       .orderBy('project.creationDate', 'DESC')
       .take(take)
       .skip(skip)
@@ -1031,73 +1040,107 @@ export class ProjectResolver {
     };
   }
 
-  async updateProjectStatus(
-    projectId: number,
-    status: number,
-    user: User,
-  ): Promise<Boolean> {
-    const project = await Project.findOne({ id: projectId });
+  @Query(returns => AllProjects, { nullable: true })
+  async likedProjectsByUserId(
+    @Arg('userId', type => Int, { nullable: false }) userId: number,
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+  ) {
+    const [projects, totalCount] = await this.projectRepository
+      .createQueryBuilder('project')
+      .innerJoinAndMapOne(
+        'project.reaction',
+        Reaction,
+        'reaction',
+        `reaction.projectId = project.id AND reaction.userId = :userId`,
+        { userId },
+      )
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .orderBy('project.creationDate', 'DESC')
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
 
-    if (project) {
-      if (project.mayUpdateStatus(user)) {
-        const projectStatus = await ProjectStatus.findOne({ id: status });
-        if (projectStatus) {
-          project.status = projectStatus;
-          await project.save();
-          return true;
-        } else {
-          throw new Error('No project status found, this should be impossible');
-        }
-      } else {
-        throw new Error(
-          'This project has been cancelled by an Admin for inappropriate content or a violation of the Terms of Use',
-        );
-      }
-    } else {
-      throw new Error('You tried to deactivate a non existant project');
+    return {
+      projects,
+      totalCount,
+    };
+  }
+
+  async updateProjectStatus(inputData: {
+    projectId: number;
+    statusId: number;
+    user: User;
+    reasonId?: number;
+  }): Promise<Project> {
+    const { projectId, statusId, user, reasonId } = inputData;
+    const project = await Project.findOne({ id: projectId });
+    if (!project) {
+      throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
+
+    project.mayUpdateStatus(user);
+    const status = await ProjectStatus.findOne({ id: statusId });
+    if (!status) {
+      throw new Error(errorMessages.PROJECT_STATUS_NOT_FOUND);
+    }
+    const prevStatus = project.status;
+    project.status = status;
+    await project.save();
+
+    await project.addProjectStatusHistoryRecord({
+      reasonId,
+      project,
+      status,
+      prevStatus,
+    });
+    return project;
   }
 
   @Mutation(returns => Boolean)
   async deactivateProject(
     @Arg('projectId') projectId: number,
     @Ctx() ctx: MyContext,
+    @Arg('reasonId', { nullable: true }) reasonId?: number,
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx);
-      const didDeactivate = await this.updateProjectStatus(
+      const project = await this.updateProjectStatus({
         projectId,
-        ProjStatus.deactive,
+        statusId: ProjStatus.deactive,
         user,
-      );
-      if (didDeactivate) {
-        const project = await Project.findOne({ id: projectId });
-        if (project) {
-          const segmentProject = {
-            email: user.email,
-            title: project.title,
-            LastName: user.lastName,
-            FirstName: user.firstName,
-            OwnerId: project.admin,
-            slug: project.slug,
-          };
+        reasonId,
+      });
 
-          analytics.track(
-            SegmentEvents.PROJECT_DEACTIVATED,
-            `givethId-${ctx.req.user.userId}`,
-            segmentProject,
-            null,
-          );
-        }
-      }
-      return didDeactivate;
+      const segmentProject = {
+        email: user.email,
+        title: project.title,
+        LastName: user.lastName,
+        FirstName: user.firstName,
+        OwnerId: project.admin,
+        slug: project.slug,
+      };
+
+      analytics.track(
+        SegmentEvents.PROJECT_DEACTIVATED,
+        `givethId-${ctx.req.user.userId}`,
+        segmentProject,
+        null,
+      );
+      return true;
     } catch (error) {
+      logger.error('projectResolver.deactivateProject() error', error);
       SentryLogger.captureException(error);
       throw error;
       return false;
     }
   }
-
   @Mutation(returns => Boolean)
   async activateProject(
     @Arg('projectId') projectId: number,
@@ -1105,8 +1148,30 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx);
-      return await this.updateProjectStatus(projectId, ProjStatus.active, user);
+      const project = await this.updateProjectStatus({
+        projectId,
+        statusId: ProjStatus.active,
+        user,
+      });
+      project.listed = null;
+      await project.save();
+      const segmentProject = {
+        email: user.email,
+        title: project.title,
+        LastName: user.lastName,
+        FirstName: user.firstName,
+        OwnerId: project.admin,
+        slug: project.slug,
+      };
+      analytics.track(
+        SegmentEvents.PROJECT_ACTIVATED,
+        `givethId-${ctx.req.user.userId}`,
+        segmentProject,
+        null,
+      );
+      return true;
     } catch (error) {
+      logger.error('projectResolver.activateProject() error', error);
       SentryLogger.captureException(error);
       throw error;
     }

@@ -19,6 +19,12 @@ export const DONATION_STATUS = {
   FAILED: 'failed',
 };
 
+export enum SortField {
+  CreationDate = 'createdAt',
+  TokenAmount = 'amount',
+  UsdAmount = 'valueUsd',
+}
+
 @Entity()
 @ObjectType()
 // https://typeorm.io/#/decorator-reference/unique
@@ -127,6 +133,10 @@ export class Donation extends BaseEntity {
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   transakTransactionLink?: string;
+
+  @Field(type => Boolean, { nullable: true })
+  @Column({ nullable: true, default: false })
+  segmentNotified: boolean;
 
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')

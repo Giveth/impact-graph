@@ -41,6 +41,8 @@ export const editProjectQuery = `
       description
       image
       slug
+      listed
+      verified
       slugHistory
       creationDate
       admin
@@ -50,6 +52,30 @@ export const editProjectQuery = `
         name
       }
     }
+  }
+ `;
+
+export const deactivateProjectQuery = `
+  mutation ($projectId: Float!, $reasonId: Float) {
+    deactivateProject(projectId: $projectId, reasonId: $reasonId)
+  }
+ `;
+
+export const activateProjectQuery = `
+  mutation ($projectId: Float!) {
+    activateProject(projectId: $projectId)
+  }
+ `;
+
+export const projectStatusReasonsQuery = `
+  query ($statusId: Float) {
+      getStatusReasons(statusId: $statusId) {
+                      description
+                      status {
+                          id
+                          name
+                      }
+      }
   }
  `;
 
@@ -75,6 +101,42 @@ export const fetchDonationsByDonorQuery = `
   }
 `;
 
+export const fetchDonationsByUserIdQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: SortBy
+    $userId: Int!
+  ) {
+    donationsByUserId(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      userId: $userId
+    ) {
+      donations {
+        id
+        transactionId
+        transactionNetworkId
+        toWalletAddress
+        fromWalletAddress
+        currency
+        anonymous
+        valueUsd
+        amount
+        user {
+          id
+        }
+        project {
+          id
+        }
+        createdAt
+      }
+      totalCount
+    }
+  }
+`;
+
 export const fetchAllProjectsQuery = `
   query (
     $take: Int
@@ -83,6 +145,7 @@ export const fetchAllProjectsQuery = `
     $filterBy: FilterBy
     $searchTerm: String
     $category: String
+    $connectedWalletUserId: Int
   ) {
     projects(
       take: $take
@@ -91,6 +154,7 @@ export const fetchAllProjectsQuery = `
       filterBy: $filterBy
       searchTerm: $searchTerm
       category: $category
+      connectedWalletUserId: $connectedWalletUserId
     ) {
       projects {
         id
@@ -118,13 +182,9 @@ export const fetchAllProjectsQuery = `
         categories {
           name
         }
-        reactions {
-          reaction
+        reaction {
           id
-          projectUpdateId
-          userId
         }
-        qualityScore
         totalReactions
         totalDonations
         totalTraceDonations
@@ -132,6 +192,116 @@ export const fetchAllProjectsQuery = `
       totalCount
       categories {
         name
+      }
+    }
+  }
+`;
+
+export const fetchLikedProjectsQuery = `
+  query (
+    $userId: Int!
+    $take: Int
+    $skip: Int
+  ) {
+    likedProjectsByUserId(
+      userId: $userId
+      take: $take
+      skip: $skip
+    ) {
+      projects {
+        id
+        title
+        balance
+        image
+        slug
+        creationDate
+        updatedAt
+        admin
+        description
+        walletAddress
+        impactLocation
+        qualityScore
+        verified
+        traceCampaignId
+        listed
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        reaction {
+          id
+          userId
+          reaction
+        }
+        totalReactions
+        totalDonations
+        totalTraceDonations
+      }
+      totalCount
+    }
+  }
+`;
+
+export const likeProjectQuery = `
+  mutation ($projectId: Int!) {
+    likeProject(projectId: $projectId) {
+      id
+      projectId
+      reaction
+    }
+  }
+`;
+
+export const unlikeProjectQuery = `
+  mutation ($reactionId: Int!) {
+    unlikeProject(reactionId: $reactionId)
+  }
+`;
+
+export const likeProjectUpdateQuery = `
+  mutation ($projectUpdateId: Int!) {
+    likeProjectUpdate(projectUpdateId: $projectUpdateId) {
+      id
+      projectUpdateId
+      reaction
+    }
+  }
+`;
+
+export const unlikeProjectUpdateQuery = `
+  mutation ($reactionId: Int!) {
+    unlikeProjectUpdate(reactionId: $reactionId)
+  }
+`;
+
+export const fetchProjectUpdatesQuery = `
+  query (
+    $projectId: Int!, 
+    $take: Int, 
+    $skip: Int,
+    $connectedWalletUserId: Int,
+  ) {
+    getProjectUpdates(
+      projectId: $projectId, 
+      take: $take, 
+      skip: $skip,
+      connectedWalletUserId: $connectedWalletUserId,
+    ) {
+      id
+      title
+      projectId
+      userId
+      content
+      isMain
+      totalReactions
+      reaction {
+        id
+        userId
+        reaction
+        projectUpdateId
       }
     }
   }

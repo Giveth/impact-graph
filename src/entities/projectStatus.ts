@@ -8,6 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import { Project } from './project';
+import { ProjectStatusReason } from './projectStatusReason';
 
 @Entity()
 @ObjectType()
@@ -32,4 +33,18 @@ export class ProjectStatus extends BaseEntity {
   @Field(type => [Project], { nullable: true })
   @OneToMany(type => Project, project => project.status)
   projects?: Project[];
+
+  @Field(type => [ProjectStatusReason], { nullable: true })
+  @OneToMany(
+    type => ProjectStatusReason,
+    projectStatusReason => projectStatusReason.status,
+  )
+  reasons?: ProjectStatusReason[];
+
+  @Field(type => [ProjectStatusReason], { nullable: true })
+  @OneToMany(
+    type => ProjectStatusReason,
+    projectStatusReason => projectStatusReason.status,
+  )
+  projectStatusHistories?: ProjectStatusReason[];
 }
