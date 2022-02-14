@@ -21,6 +21,7 @@ import {
   fetchLikedProjectsQuery,
   fetchProjectUpdatesQuery,
   projectByIdQuery,
+  walletAddressIsValid,
 } from '../../test/graphqlQueries';
 import { ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
@@ -48,6 +49,7 @@ describe(
   likedProjectsByUserIdTestCases,
 );
 describe('projectById test cases --->', projectByIdTestCases);
+describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 
 // TODO We should implement test cases for below query/mutation
 // describe('topProjects test cases --->', topProjectsTestCases);
@@ -59,7 +61,6 @@ describe('projectById test cases --->', projectByIdTestCases);
 // describe('deleteProjectUpdate test cases --->', deleteProjectUpdateTestCases);
 // describe('getProjectsRecipients test cases --->', getProjectsRecipientsTestCases);
 // describe('getProjectReactions test cases --->', getProjectReactionsTestCases);
-// describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // describe('isValidTitleForProject test cases --->', isValidTitleForProjectTestCases);
 // describe('projectByAddress test cases --->', projectByAddressTestCases);
 // describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
@@ -1830,6 +1831,104 @@ function likedProjectsByUserIdTestCases() {
       const projects = result.data.data.likedProjectsByUserId.projects;
       assert.equal(projects.length, 0);
     });
+  });
+}
+
+function walletAddressIsValidTestCases() {
+  it('should return true for new ethereum address', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: generateRandomEtheriumAddress(),
+      },
+    });
+    assert.equal(result.data.data.walletAddressIsValid, true);
+  });
+
+  it('should throw error for invalid ethereum address', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: '4297urofklshnforp2',
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.INVALID_WALLET_ADDRESS,
+    );
+  });
+
+  it('should throw error for existing walletAddress', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: SEED_DATA.FIRST_PROJECT.walletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
+    );
+  });
+  it('should throw error walletAddress is smart contract address in mainnet', async () => {
+    // DAI address https://etherscan.io/token/0x6b175474e89094c44da98b954eedeac495271d0f
+    const walletAddress = '0x6b175474e89094c44da98b954eedeac495271d0f';
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+    );
+  });
+
+  it('should throw error walletAddress is smart contract address in xdai', async () => {
+    // GIV address https://blockscout.com/xdai/mainnet/token/0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75/token-transfers
+    const walletAddress = '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75';
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+    );
+  });
+
+  it('should throw error for existing walletAddress - upperCase', async () => {
+    const upperCaseWalletAddress = SEED_DATA.FIRST_PROJECT.walletAddress
+      ?.toUpperCase()
+      // This replace is because ethereum wallet address should begin with 0x ad toUpperCase make it corrupted
+      .replace('0X', '0x') as string;
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: upperCaseWalletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${upperCaseWalletAddress} is already being used for a project`,
+    );
+  });
+  it('should throw error for existing walletAddress - lowerCase', async () => {
+    const lowerCaseWalletAddress =
+      SEED_DATA.FIRST_PROJECT.walletAddress?.toLowerCase();
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: lowerCaseWalletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${lowerCaseWalletAddress} is already being used for a project`,
+    );
   });
 }
 

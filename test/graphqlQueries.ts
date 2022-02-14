@@ -332,3 +332,9 @@ export const projectByIdQuery = `
     }
   }
 `;
+
+export const walletAddressIsValid = `
+  query WalletAddressIsValid($address: String!) {
+    walletAddressIsValid(address: $address)
+  }
+`;
