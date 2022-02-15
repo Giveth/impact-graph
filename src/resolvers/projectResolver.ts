@@ -21,7 +21,7 @@ import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import { Context } from '../context';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, QueryBuilder, Repository } from 'typeorm';
 import { Service } from 'typedi';
 import config from '../config';
 import slugify from 'slugify';
@@ -251,6 +251,121 @@ export class ProjectResolver {
           });
       }),
     );
+  }
+
+  static addReactionToProjectsQuery(
+    query: SelectQueryBuilder<Project>,
+    userId: number,
+  ) {
+    return query.leftJoinAndMapOne(
+      'project.reaction',
+      Reaction,
+      'reaction',
+      `reaction.projectId = project.id AND reaction.userId = :userId`,
+      { userId },
+    );
+  }
+
+  static similarProjectsBaseQuery(
+    take: number,
+    skip: number,
+    userId?: number,
+    currentProject?: Project,
+  ): SelectQueryBuilder<Project> {
+    const query = Project.createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .where('project.id != :id', { id: currentProject?.id });
+
+    // if loggedIn get his reactions
+    if (userId) this.addReactionToProjectsQuery(query, userId);
+
+    return query;
+  }
+
+  static async matchExactProjectCategories(
+    allProjects: AllProjects,
+    query: SelectQueryBuilder<Project>,
+    categoriesIds: number[],
+    take: number,
+    skip: number,
+  ): Promise<AllProjects> {
+    query.andWhere(
+      new Brackets(innerQuery => {
+        innerQuery.where(
+          // Get Projects with the exact same categories
+          new Brackets(subQuery => {
+            for (const categoryId of categoriesIds) {
+              subQuery.where(
+                `project.id IN (
+                  SELECT "projectId"
+                  FROM project_categories_category
+                  WHERE "categoryId" = :category
+                )`,
+                { category: categoryId },
+              );
+            }
+          }),
+        );
+      }),
+    );
+
+    const [projects, totalCount] = await query
+      .orderBy('project.creationDate', 'DESC')
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    allProjects.projects = projects;
+    allProjects.totalCount = totalCount;
+
+    return allProjects;
+  }
+
+  static async matchAnyProjectCategory(
+    allProjects: AllProjects,
+    query: SelectQueryBuilder<Project>,
+    categoriesIds: number[],
+    take: number,
+    skip: number,
+  ): Promise<AllProjects> {
+    query.andWhere('categories.id IN (:...ids)', { ids: categoriesIds });
+    const [projects, totalCount] = await query
+      .orderBy('project.creationDate', 'DESC')
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    allProjects.projects = projects;
+    allProjects.totalCount = totalCount;
+
+    return allProjects;
+  }
+
+  static async matchOwnerProjects(
+    allProjects: AllProjects,
+    query: SelectQueryBuilder<Project>,
+    take: number,
+    skip: number,
+    ownerId?: string,
+  ): Promise<AllProjects> {
+    query.andWhere('project.admin = :ownerId', { ownerId });
+    const [projects, totalCount] = await query
+      .orderBy('project.creationDate', 'DESC')
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    allProjects.projects = projects;
+    allProjects.totalCount = totalCount;
+
+    return allProjects;
   }
 
   static addFilterQuery(
@@ -1038,6 +1153,84 @@ export class ProjectResolver {
       projects,
       totalCount: projectsCount,
     };
+  }
+
+  @Query(returns => AllProjects, { nullable: true })
+  async similarProjectsBySlug(
+    @Arg('slug', type => String, { nullable: false }) slug: string,
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    const viewedProject = await this.projectRepository
+      .createQueryBuilder('project')
+      .innerJoinAndSelect('project.categories', 'categories')
+      .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
+        slug,
+      })
+      .getOne();
+
+    const categoriesIds = viewedProject!.categories.map(
+      (category: Category) => {
+        return category.id;
+      },
+    );
+
+    // exclude the viewed project from the result set
+    let query = ProjectResolver.similarProjectsBaseQuery(
+      take,
+      skip,
+      user?.userId,
+      viewedProject,
+    );
+
+    const allProjects: AllProjects = {
+      projects: [],
+      totalCount: 0,
+      categories: [],
+    };
+    await ProjectResolver.matchExactProjectCategories(
+      allProjects,
+      query,
+      categoriesIds,
+      take,
+      skip,
+    );
+
+    if (allProjects.totalCount === 0) {
+      // overwrite previous query
+      query = ProjectResolver.similarProjectsBaseQuery(
+        take,
+        skip,
+        user?.userId,
+        viewedProject,
+      );
+      await ProjectResolver.matchAnyProjectCategory(
+        allProjects,
+        query,
+        categoriesIds,
+        take,
+        skip,
+      );
+
+      if (allProjects.totalCount === 0) {
+        query = ProjectResolver.similarProjectsBaseQuery(
+          take,
+          skip,
+          user?.userId,
+          viewedProject,
+        );
+        await ProjectResolver.matchOwnerProjects(
+          allProjects,
+          query,
+          take,
+          skip,
+          viewedProject?.admin,
+        );
+      }
+    }
+
+    return allProjects;
   }
 
   @Query(returns => AllProjects, { nullable: true })
