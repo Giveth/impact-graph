@@ -33,7 +33,6 @@ import {
   ProjectUpdate,
 } from '../entities/project';
 import { Category } from '../entities/category';
-import { User } from '../entities/user';
 import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
@@ -2152,7 +2151,9 @@ function similarProjectsBySlugTestCases() {
     const [_, relatedCount] = await Project.createQueryBuilder('project')
       .innerJoinAndSelect('project.categories', 'categories')
       .where('project.id != :id', { id: viewedProject?.id })
-      .andWhere('project.admin = :ownerId', { ownerId: '1' })
+      .andWhere('project.admin = :ownerId', {
+        ownerId: String(SEED_DATA.FIRST_USER.id),
+      })
       .take(1)
       .skip(0)
       .getManyAndCount();
