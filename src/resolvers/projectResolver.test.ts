@@ -20,6 +20,7 @@ import {
   fetchAllProjectsQuery,
   fetchLikedProjectsQuery,
   fetchProjectUpdatesQuery,
+  fetchSimilarProjectsBySlugQuery,
   projectByIdQuery,
   walletAddressIsValid,
 } from '../../test/graphqlQueries';
@@ -31,6 +32,7 @@ import {
   ProjStatus,
   ProjectUpdate,
 } from '../entities/project';
+import { Category } from '../entities/category';
 import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
@@ -64,6 +66,14 @@ describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // describe('isValidTitleForProject test cases --->', isValidTitleForProjectTestCases);
 // describe('projectByAddress test cases --->', projectByAddressTestCases);
 // describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
+describe(
+  'likedProjectsByUserId test cases --->',
+  likedProjectsByUserIdTestCases,
+);
+describe(
+  'similarProjectsBySlug test cases --->',
+  similarProjectsBySlugTestCases,
+);
 
 // We may can delete this query
 // describe('updateProjectStatus test cases --->', updateProjectStatusTestCases);
@@ -2048,5 +2058,114 @@ function getProjectUpdatesTestCases() {
       REACTION_SEED_DATA.FIRST_LIKED_PROJECT_UPDATE_REACTION.id,
     );
     assert.isNull(noLikedProject?.reaction);
+  });
+}
+
+function similarProjectsBySlugTestCases() {
+  it('should return related projects with the exact same categories', async () => {
+    const viewedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      categories: ['food2', 'food3'],
+    });
+    const secondProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      categories: ['food2', 'food3'],
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchSimilarProjectsBySlugQuery,
+      variables: {
+        slug: viewedProject.slug,
+      },
+    });
+
+    const projects = result.data.data.similarProjectsBySlug.projects;
+    const totalCount = result.data.data.similarProjectsBySlug.totalCount;
+
+    // excludes viewed project
+    assert.equal(totalCount, 1);
+    assert.equal(projects[0].id, secondProject.id);
+  });
+  it('should return projects with at least one matching category, if not all matched', async () => {
+    const viewedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      categories: ['food4', 'food8'],
+    });
+    const secondProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      categories: ['food5', 'food8'],
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchSimilarProjectsBySlugQuery,
+      variables: {
+        slug: viewedProject.slug,
+        take: 3,
+        skip: 0,
+      },
+    });
+
+    const c = await Category.findOne({ name: 'food8' });
+    const [_, relatedCount] = await Project.createQueryBuilder('project')
+      .innerJoinAndSelect('project.categories', 'categories')
+      .where('categories.id IN (:...ids)', { ids: [c?.id] })
+      .andWhere('project.id != :id', { id: viewedProject.id })
+      .take(1)
+      .skip(0)
+      .getManyAndCount();
+
+    const projects = result.data.data.similarProjectsBySlug.projects;
+    const totalCount = result.data.data.similarProjectsBySlug.totalCount;
+
+    // matched food 8 category and returns related projects
+    assert.equal(projects[0].id, secondProject.id);
+    assert.equal(totalCount, relatedCount);
+    assert.equal(totalCount, 1);
+  });
+  it('should return projects with the same admin, if no category matches', async () => {
+    const viewedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      categories: ['food6'],
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchSimilarProjectsBySlugQuery,
+      variables: {
+        slug: viewedProject.slug,
+      },
+    });
+
+    const projects = result.data.data.similarProjectsBySlug.projects;
+    const totalCount = result.data.data.similarProjectsBySlug.totalCount;
+
+    const [_, relatedCount] = await Project.createQueryBuilder('project')
+      .innerJoinAndSelect('project.categories', 'categories')
+      .where('project.id != :id', { id: viewedProject?.id })
+      .andWhere('project.admin = :ownerId', {
+        ownerId: String(SEED_DATA.FIRST_USER.id),
+      })
+      .take(1)
+      .skip(0)
+      .getManyAndCount();
+
+    // since no project matched the food6 category it will return all admin projects
+    // all projects belong to admin '1' by default
+    assert.equal(totalCount, relatedCount);
+
+    // viewed project should not be present in the result set
+    const currentViewedProject = projects.find(
+      project => project.id === viewedProject.id,
+    );
+    assert.isUndefined(currentViewedProject);
   });
 }
