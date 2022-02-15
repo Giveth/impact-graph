@@ -197,6 +197,54 @@ export const fetchAllProjectsQuery = `
   }
 `;
 
+export const fetchSimilarProjectsBySlugQuery = `
+  query (
+    $slug: String!
+    $take: Int
+    $skip: Int
+  ) {
+    similarProjectsBySlug(
+      slug: $slug
+      take: $take
+      skip: $skip
+    ) {
+      projects {
+        id
+        title
+        balance
+        image
+        slug
+        creationDate
+        updatedAt
+        admin
+        description
+        walletAddress
+        impactLocation
+        qualityScore
+        verified
+        traceCampaignId
+        listed
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        reaction {
+          id
+          userId
+          reaction
+        }
+        totalReactions
+        totalDonations
+        totalTraceDonations
+      }
+      totalCount
+    }
+  }
+`;
+
 export const fetchLikedProjectsQuery = `
   query (
     $userId: Int!
