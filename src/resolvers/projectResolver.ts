@@ -267,8 +267,6 @@ export class ProjectResolver {
   }
 
   static similarProjectsBaseQuery(
-    take: number,
-    skip: number,
     userId?: number,
     currentProject?: Project,
   ): SelectQueryBuilder<Project> {
@@ -1186,8 +1184,6 @@ export class ProjectResolver {
 
     // exclude the viewed project from the result set
     let query = ProjectResolver.similarProjectsBaseQuery(
-      take,
-      skip,
       user?.userId,
       viewedProject,
     );
@@ -1208,8 +1204,6 @@ export class ProjectResolver {
     if (allProjects.totalCount === 0) {
       // overwrite previous query
       query = ProjectResolver.similarProjectsBaseQuery(
-        take,
-        skip,
         user?.userId,
         viewedProject,
       );
@@ -1223,8 +1217,6 @@ export class ProjectResolver {
 
       if (allProjects.totalCount === 0) {
         query = ProjectResolver.similarProjectsBaseQuery(
-          take,
-          skip,
           user?.userId,
           viewedProject,
         );
