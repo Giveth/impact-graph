@@ -354,3 +354,35 @@ export const fetchProjectUpdatesQuery = `
     }
   }
 `;
+
+export const projectByIdQuery = `
+  query(
+      $id: Float!, 
+      $connectedWalletUserId: Int, 
+  ){
+    projectById(
+     id:$id,
+     connectedWalletUserId: $connectedWalletUserId){
+      id
+      slug,
+      verified
+      title,
+      listed,
+      description,
+      walletAddress
+      admin
+      categories{
+          name
+      }
+      reaction {
+        id
+      }
+    }
+  }
+`;
+
+export const walletAddressIsValid = `
+  query WalletAddressIsValid($address: String!) {
+    walletAddressIsValid(address: $address)
+  }
+`;

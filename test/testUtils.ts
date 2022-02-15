@@ -84,6 +84,13 @@ export interface CreateProjectData {
   totalProjectUpdates?: number;
   traceCampaignId?: string;
 }
+
+export const saveUserDirectlyToDb = async (walletAddress: string) => {
+  return User.create({
+    loginType: 'wallet',
+    walletAddress,
+  }).save();
+};
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
 ): Promise<Project> => {

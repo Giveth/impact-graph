@@ -527,18 +527,26 @@ export class ProjectResolver {
 
   // Move this to it's own resolver latere
   @Query(returns => Project)
-  async projectById(@Arg('id') id: number) {
-    return await this.projectRepository.findOne({
-      where: { id },
-      relations: ['reactions'],
-    });
+  async projectById(
+    @Arg('id') id: number,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    let query = this.projectRepository
+      .createQueryBuilder('project')
+      .where(`project.id=:id`, {
+        id,
+      });
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+    return query.getOne();
   }
 
   // Move this to it's own resolver later
   @Query(returns => Project)
   async projectBySlug(
     @Arg('slug') slug: string,
-    @Arg('connectedWalletUserId', { nullable: true })
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ) {

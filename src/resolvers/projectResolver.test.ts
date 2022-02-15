@@ -8,6 +8,7 @@ import {
   PROJECT_UPDATE_SEED_DATA,
   REACTION_SEED_DATA,
   saveProjectDirectlyToDb,
+  saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
 import axios from 'axios';
@@ -20,6 +21,8 @@ import {
   fetchLikedProjectsQuery,
   fetchProjectUpdatesQuery,
   fetchSimilarProjectsBySlugQuery,
+  projectByIdQuery,
+  walletAddressIsValid,
 } from '../../test/graphqlQueries';
 import { ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
@@ -34,6 +37,7 @@ import { User } from '../entities/user';
 import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
+import { User } from '../entities/user';
 
 describe('addProject test cases --->', addProjectTestCases);
 describe('editProject test cases --->', editProjectTestCases);
@@ -43,11 +47,16 @@ describe('deactivateProject test cases --->', deactivateProjectTestCases);
 describe('activateProject test cases --->', activateProjectTestCases);
 
 describe('getProjectUpdates test cases --->', getProjectUpdatesTestCases);
+describe(
+  'likedProjectsByUserId test cases --->',
+  likedProjectsByUserIdTestCases,
+);
+describe('projectById test cases --->', projectByIdTestCases);
+describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 
 // TODO We should implement test cases for below query/mutation
 // describe('topProjects test cases --->', topProjectsTestCases);
 // describe('project test cases --->', projectTestCases);
-// describe('projectById test cases --->', projectByIdTestCases);
 // describe('projectBySlug test cases --->', projectBySlugTestCases);
 // describe('uploadImage test cases --->', uploadImageTestCases);
 // describe('addProjectUpdate test cases --->', addProjectUpdateTestCases);
@@ -55,7 +64,6 @@ describe('getProjectUpdates test cases --->', getProjectUpdatesTestCases);
 // describe('deleteProjectUpdate test cases --->', deleteProjectUpdateTestCases);
 // describe('getProjectsRecipients test cases --->', getProjectsRecipientsTestCases);
 // describe('getProjectReactions test cases --->', getProjectReactionsTestCases);
-// describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // describe('isValidTitleForProject test cases --->', isValidTitleForProjectTestCases);
 // describe('projectByAddress test cases --->', projectByAddressTestCases);
 // describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
@@ -1834,6 +1842,180 @@ function likedProjectsByUserIdTestCases() {
       const projects = result.data.data.likedProjectsByUserId.projects;
       assert.equal(projects.length, 0);
     });
+  });
+}
+
+function walletAddressIsValidTestCases() {
+  it('should return true for new ethereum address', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: generateRandomEtheriumAddress(),
+      },
+    });
+    assert.equal(result.data.data.walletAddressIsValid, true);
+  });
+
+  it('should throw error for invalid ethereum address', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: '4297urofklshnforp2',
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.INVALID_WALLET_ADDRESS,
+    );
+  });
+
+  it('should throw error for existing walletAddress', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: SEED_DATA.FIRST_PROJECT.walletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
+    );
+  });
+  it('should throw error walletAddress is smart contract address in mainnet', async () => {
+    // DAI address https://etherscan.io/token/0x6b175474e89094c44da98b954eedeac495271d0f
+    const walletAddress = '0x6b175474e89094c44da98b954eedeac495271d0f';
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+    );
+  });
+
+  it('should throw error walletAddress is smart contract address in xdai', async () => {
+    // GIV address https://blockscout.com/xdai/mainnet/token/0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75/token-transfers
+    const walletAddress = '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75';
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+    );
+  });
+
+  it('should throw error for existing walletAddress - upperCase', async () => {
+    const upperCaseWalletAddress = SEED_DATA.FIRST_PROJECT.walletAddress
+      ?.toUpperCase()
+      // This replace is because ethereum wallet address should begin with 0x ad toUpperCase make it corrupted
+      .replace('0X', '0x') as string;
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: upperCaseWalletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${upperCaseWalletAddress} is already being used for a project`,
+    );
+  });
+  it('should throw error for existing walletAddress - lowerCase', async () => {
+    const lowerCaseWalletAddress =
+      SEED_DATA.FIRST_PROJECT.walletAddress?.toLowerCase();
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsValid,
+      variables: {
+        address: lowerCaseWalletAddress,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      `Eth address ${lowerCaseWalletAddress} is already being used for a project`,
+    );
+  });
+}
+
+function projectByIdTestCases() {
+  it('should return project with id', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+      },
+    });
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.equal(result.data.data.projectById.slug, project.slug);
+  });
+
+  it('should return project null with invalid id', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        // To make use id is invalid
+        id: 9999999,
+      },
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      'Cannot return null for non-nullable field Query.projectById.',
+    );
+  });
+
+  it('should return reaction when user liked the project', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const reaction = await Reaction.create({
+      userId: user.id,
+      projectId: project.id,
+      reaction: 'heart',
+    }).save();
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        connectedWalletUserId: user.id,
+      },
+    });
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.equal(result.data.data.projectById.reaction.id, reaction.id);
+  });
+
+  it('should not return reaction when user doesnt exist', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+
+        // To make sure there is no user with that Id
+        connectedWalletUserId: 9999999,
+      },
+    });
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isNotOk(result.data.data.projectById.reaction);
+  });
+  it('should not return reaction when user didnt like the project', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: project.id,
+        connectedWalletUserId: user.id,
+      },
+    });
+    assert.equal(result.data.data.projectById.id, project.id);
+    assert.isNotOk(result.data.data.projectById.reaction);
   });
 }
 
