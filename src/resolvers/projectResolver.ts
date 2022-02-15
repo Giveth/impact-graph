@@ -1201,6 +1201,7 @@ export class ProjectResolver {
       skip,
     );
 
+    // if not all categories match, match ANY of them
     if (allProjects.totalCount === 0) {
       // overwrite previous query
       query = ProjectResolver.similarProjectsBaseQuery(
@@ -1215,6 +1216,7 @@ export class ProjectResolver {
         skip,
       );
 
+      // if none match, just grab project owners projects
       if (allProjects.totalCount === 0) {
         query = ProjectResolver.similarProjectsBaseQuery(
           user?.userId,
