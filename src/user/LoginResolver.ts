@@ -75,9 +75,7 @@ export class LoginResolver {
   allowHostnameForDevelopment(hostname): boolean {
     if ((config.get('ENVIRONMENT') as string) === 'production') return false;
 
-    const regex = new RegExp(
-      config.get('DEVELOPMENT_HOSTNAME_REGEX') as string,
-    );
+    const regex = config.get('DEVELOPMENT_HOSTNAME_REGEX') as string;
     if (hostname.match(regex)) return true;
 
     return false;
