@@ -54,7 +54,7 @@ export class LoginResolver {
     if (cache[hostname]) return cache[hostname];
 
     if (
-      !this.hostnameWhitelist.has(hostname) ||
+      !this.hostnameWhitelist.has(hostname) &&
       !this.allowHostnameForDevelopment(hostname)
     )
       return null;
