@@ -53,7 +53,11 @@ export class LoginResolver {
     const cache = this.hostnameSignedMessageHashCache;
     if (cache[hostname]) return cache[hostname];
 
-    if (!this.hostnameWhitelist.has(hostname)) return null;
+    if (
+      !this.hostnameWhitelist.has(hostname) ||
+      !this.allowHostnameForDevelopment(hostname)
+    )
+      return null;
 
     const message = config.get('OUR_SECRET') as string;
     const customPrefix = `\u0019${hostname} Signed Message:\n`;
@@ -66,6 +70,17 @@ export class LoginResolver {
     );
     cache[hostname] = hashedMsg;
     return hashedMsg;
+  }
+
+  allowHostnameForDevelopment(hostname): boolean {
+    if ((config.get('ENVIRONMENT') as string) === 'production') return false;
+
+    const regex = new RegExp(
+      config.get('DEVELOPMENT_HOSTNAME_REGEX') as string,
+    );
+    if (hostname.match(regex)) return true;
+
+    return false;
   }
 
   // James: We don't need this right now, maybe in the future
