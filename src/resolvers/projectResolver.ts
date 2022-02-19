@@ -795,9 +795,17 @@ export class ProjectResolver {
     await validateProjectTitle(projectInput.title);
     const slugBase = slugify(projectInput.title);
     const slug = await this.getAppropriateSlug(slugBase);
-    const status = await this.projectStatusRepository.findOne({
-      id: ProjStatus.active,
-    });
+
+    let status: ProjectStatus | undefined;
+    if (projectInput.isDraft) {
+      status = await this.projectStatusRepository.findOne({
+        id: ProjStatus.drafted,
+      });
+    } else {
+      status = await this.projectStatusRepository.findOne({
+        id: ProjStatus.active,
+      });
+    }
 
     const project = this.projectRepository.create({
       ...projectInput,

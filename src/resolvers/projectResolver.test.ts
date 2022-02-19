@@ -802,6 +802,56 @@ function addProjectTestCases() {
       sampleProject.walletAddress,
     );
   });
+  it('Should create draft successfully', async () => {
+    const sampleProject: ProjectInput = {
+      title: 'draftTitle1',
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      isDraft: true,
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data);
+    assert.exists(result.data.data);
+    assert.exists(result.data.data.addProject);
+    assert.equal(result.data.data.addProject.title, sampleProject.title);
+
+    // When creating project, listed is null by default
+    assert.equal(result.data.data.addProject.listed, null);
+
+    assert.equal(
+      result.data.data.addProject.admin,
+      String(SEED_DATA.FIRST_USER.id),
+    );
+    assert.equal(result.data.data.addProject.verified, false);
+    assert.equal(
+      result.data.data.addProject.status.id,
+      String(ProjStatus.drafted),
+    );
+    assert.equal(
+      result.data.data.addProject.description,
+      sampleProject.description,
+    );
+    assert.equal(
+      result.data.data.addProject.walletAddress,
+      sampleProject.walletAddress,
+    );
+  });
 }
 
 function editProjectTestCases() {

@@ -17,6 +17,7 @@ export class SeedProjectStatus1614082100757 implements MigrationInterface {
         ,('activated','activated','This is an active project')
         ,('deactivated','deactivated','Deactivated with user or Giveth Admin')
         ,('cancelled','cancelled','Cancelled by Giveth Admin')
+        ,('drafted', 'drafted', 'This project is created as a draft for a potential new project, but can be discarded')
         ;`);
   }
   x;
