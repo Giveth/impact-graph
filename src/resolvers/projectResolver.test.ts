@@ -2154,6 +2154,9 @@ function similarProjectsBySlugTestCases() {
       .andWhere('project.admin = :ownerId', {
         ownerId: String(SEED_DATA.FIRST_USER.id),
       })
+      .andWhere(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      )
       .take(1)
       .skip(0)
       .getManyAndCount();

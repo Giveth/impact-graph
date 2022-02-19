@@ -279,7 +279,10 @@ export class ProjectResolver {
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       )
-      .where('project.id != :id', { id: currentProject?.id });
+      .where('project.id != :id', { id: currentProject?.id })
+      .andWhere(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      );
 
     // if loggedIn get his reactions
     if (userId) this.addReactionToProjectsQuery(query, userId);
