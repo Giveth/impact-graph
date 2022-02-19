@@ -1260,6 +1260,9 @@ export class ProjectResolver {
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       )
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      )
       .orderBy('project.creationDate', 'DESC')
       .take(take)
       .skip(skip)
