@@ -21,6 +21,7 @@ import {
   fetchLikedProjectsQuery,
   fetchProjectUpdatesQuery,
   fetchSimilarProjectsBySlugQuery,
+  fetchProjectsBySlugQuery,
   projectByIdQuery,
   walletAddressIsValid,
 } from '../../test/graphqlQueries';
@@ -56,7 +57,7 @@ describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // TODO We should implement test cases for below query/mutation
 // describe('topProjects test cases --->', topProjectsTestCases);
 // describe('project test cases --->', projectTestCases);
-// describe('projectBySlug test cases --->', projectBySlugTestCases);
+describe('projectBySlug test cases --->', projectBySlugTestCases);
 // describe('uploadImage test cases --->', uploadImageTestCases);
 // describe('addProjectUpdate test cases --->', addProjectUpdateTestCases);
 // describe('editProjectUpdate test cases --->', editProjectUpdateTestCases);
@@ -2066,6 +2067,55 @@ function projectByIdTestCases() {
     assert.equal(result.data.data.projectById.id, project.id);
     assert.isNotOk(result.data.data.projectById.reaction);
   });
+  it('should not return drafted projects if not logged in', async () => {
+    const draftedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.drafted,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: draftedProject.id,
+      },
+    });
+
+    assert.equal(
+      result.data.errors[0].message,
+      'Cannot return null for non-nullable field Query.projectById.',
+    );
+  });
+  it('should return drafted projects of logged in user', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+
+    const draftedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.drafted,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: projectByIdQuery,
+        variables: {
+          id: draftedProject.id,
+          connectedWalletUserId: SEED_DATA.FIRST_USER.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.projectById;
+    assert.equal(Number(project.id), draftedProject.id);
+  });
 }
 
 function getProjectUpdatesTestCases() {
@@ -2108,6 +2158,74 @@ function getProjectUpdatesTestCases() {
       REACTION_SEED_DATA.FIRST_LIKED_PROJECT_UPDATE_REACTION.id,
     );
     assert.isNull(noLikedProject?.reaction);
+  });
+}
+
+function projectBySlugTestCases() {
+  it('should return projects with indicated slug', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: project1.slug,
+      },
+    });
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), project1.id);
+  });
+  it('should not return drafted if not logged in', async () => {
+    const draftedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.drafted,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: draftedProject.slug,
+      },
+    });
+
+    assert.equal(
+      result.data.errors[0].message,
+      'Cannot return null for non-nullable field Query.projectBySlug.',
+    );
+  });
+  it('should return drafted if logged in', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+
+    const draftedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.drafted,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchProjectsBySlugQuery,
+        variables: {
+          slug: draftedProject.slug,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), draftedProject.id);
   });
 }
 

@@ -150,7 +150,6 @@ export const createProjectData = (): CreateProjectData => {
     creationDate: new Date(),
     updatedAt: new Date(),
     slug: title,
-
     // firstUser's id
     admin: '1',
     qualityScore: 30,

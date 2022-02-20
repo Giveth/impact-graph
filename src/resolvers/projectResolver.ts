@@ -537,7 +537,17 @@ export class ProjectResolver {
         id,
       });
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-    return query.getOne();
+    const project = await query.getOne();
+    const userId = connectedWalletUserId || user?.userId;
+
+    if (
+      project?.statusId === ProjStatus.drafted &&
+      (!userId || project?.admin !== String(userId))
+    ) {
+      return null;
+    }
+
+    return project;
   }
 
   // Move this to it's own resolver later
@@ -565,7 +575,17 @@ export class ProjectResolver {
         'user.id = CAST(project.admin AS INTEGER)',
       );
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-    return await query.getOne();
+    const project = await query.getOne();
+    const userId = connectedWalletUserId || user?.userId;
+
+    if (
+      project?.statusId === ProjStatus.drafted &&
+      (!userId || project?.admin !== String(userId))
+    ) {
+      return null;
+    }
+
+    return project;
   }
 
   @Mutation(returns => Project)
