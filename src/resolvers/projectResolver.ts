@@ -538,11 +538,11 @@ export class ProjectResolver {
       });
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
-    const userId = connectedWalletUserId || user?.userId;
 
     if (
       project?.statusId === ProjStatus.drafted &&
-      (!userId || project?.admin !== String(userId))
+      // If project is draft, just owner can view it
+      project?.admin !== String(user?.userId)
     ) {
       return null;
     }
@@ -576,11 +576,11 @@ export class ProjectResolver {
       );
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
-    const userId = connectedWalletUserId || user?.userId;
 
     if (
       project?.statusId === ProjStatus.drafted &&
-      (!userId || project?.admin !== String(userId))
+      // If project is draft, just owner can view it
+      project?.admin !== String(user?.userId)
     ) {
       return null;
     }
@@ -816,16 +816,9 @@ export class ProjectResolver {
     const slugBase = slugify(projectInput.title);
     const slug = await this.getAppropriateSlug(slugBase);
 
-    let status: ProjectStatus | undefined;
-    if (projectInput.isDraft) {
-      status = await this.projectStatusRepository.findOne({
-        id: ProjStatus.drafted,
-      });
-    } else {
-      status = await this.projectStatusRepository.findOne({
-        id: ProjStatus.active,
-      });
-    }
+    const status = await this.projectStatusRepository.findOne({
+      id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
+    });
 
     const project = this.projectRepository.create({
       ...projectInput,
@@ -1173,7 +1166,6 @@ export class ProjectResolver {
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       )
-      .where('CAST(project.admin AS INTEGER) = :userId', { userId })
       .andWhere(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
