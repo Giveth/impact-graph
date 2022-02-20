@@ -1166,13 +1166,16 @@ export class ProjectResolver {
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
-      .where('CAST(project.admin AS INTEGER) = :userId', { userId })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .where('CAST(project.admin AS INTEGER) = :userId', { userId })
+      .andWhere(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
@@ -1284,6 +1287,9 @@ export class ProjectResolver {
         User,
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       )
       .orderBy('project.creationDate', 'DESC')
       .take(take)
