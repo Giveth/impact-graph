@@ -396,6 +396,38 @@ export const fetchProjectUpdatesQuery = `
   }
 `;
 
+export const projectsByUserIdQuery = `
+  query ($take: Float, $skip: Float, $userId: Int!) {
+      projectsByUserId(take: $take, skip: $skip, userId: $userId) {
+        projects {
+          id
+          title
+          balance
+          description
+          image
+          slug
+          creationDate
+          admin
+          walletAddress
+          impactLocation
+          listed
+          givingBlocksId
+          categories {
+            name
+          }
+          reaction {
+            reaction
+            id
+            projectUpdateId
+            userId
+          }
+          qualityScore
+        }
+        totalCount
+      }
+    }
+  `;
+
 export const projectByIdQuery = `
   query(
       $id: Float!, 

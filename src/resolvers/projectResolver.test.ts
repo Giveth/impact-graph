@@ -24,6 +24,7 @@ import {
   fetchProjectsBySlugQuery,
   projectByIdQuery,
   walletAddressIsValid,
+  projectsByUserIdQuery,
 } from '../../test/graphqlQueries';
 import { ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
@@ -43,6 +44,8 @@ describe('addProject test cases --->', addProjectTestCases);
 describe('editProject test cases --->', editProjectTestCases);
 
 describe('projects test cases --->', projectsTestCases);
+describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
+
 describe('deactivateProject test cases --->', deactivateProjectTestCases);
 describe('activateProject test cases --->', activateProjectTestCases);
 
@@ -66,7 +69,6 @@ describe('projectBySlug test cases --->', projectBySlugTestCases);
 // describe('getProjectReactions test cases --->', getProjectReactionsTestCases);
 // describe('isValidTitleForProject test cases --->', isValidTitleForProjectTestCases);
 // describe('projectByAddress test cases --->', projectByAddressTestCases);
-// describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
 describe(
   'likedProjectsByUserId test cases --->',
   likedProjectsByUserIdTestCases,
@@ -589,6 +591,91 @@ function projectsTestCases() {
   //   assert.equal(result.data.data.projects.projects.length, 1);
   //   assert.equal(result.data.data.projects.projects[0].title, title);
   // });
+}
+
+function projectsByUserIdTestCases() {
+  it('should return projects with specific admin', async () => {
+    const userId = SEED_DATA.FIRST_USER.id;
+    const result = await axios.post(graphqlUrl, {
+      query: projectsByUserIdQuery,
+      variables: {
+        userId,
+      },
+    });
+    const projects = result.data.data.projectsByUserId.projects;
+    const projectWithAnotherOwner = projects.find(
+      project => Number(project.admin) !== userId,
+    );
+    assert.isNotOk(projectWithAnotherOwner);
+  });
+
+  it('should return projects with current take', async () => {
+    const take = 1;
+    const userId = SEED_DATA.FIRST_USER.id;
+    const result = await axios.post(graphqlUrl, {
+      query: projectsByUserIdQuery,
+      variables: {
+        take,
+        userId,
+      },
+    });
+    const projects = result.data.data.projectsByUserId.projects;
+    assert.equal(projects.length, take);
+  });
+
+  it('should not return draft projects', async () => {
+    const take = 1;
+    const userId = SEED_DATA.FIRST_USER.id;
+    const draftProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(SEED_DATA.FIRST_USER.id),
+      statusId: ProjStatus.drafted,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: projectsByUserIdQuery,
+      variables: {
+        take,
+        userId,
+      },
+    });
+    const projects = result.data.data.projectsByUserId.projects;
+    assert.equal(projects.length, take);
+    assert.isNotOk(projects.find(project => project.id === draftProject.id));
+  });
+
+  it('should not return not listed projects', async () => {
+    const userId = SEED_DATA.FIRST_USER.id;
+    const notListedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(SEED_DATA.FIRST_USER.id),
+      listed: false,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: projectsByUserIdQuery,
+      variables: {
+        userId,
+      },
+    });
+    const projects = result.data.data.projectsByUserId.projects;
+    assert.isNotOk(
+      projects.find(project => project.id === notListedProject.id),
+    );
+  });
+
+  it('should not return new created active project', async () => {
+    const userId = SEED_DATA.FIRST_USER.id;
+    const activeProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: projectsByUserIdQuery,
+      variables: {
+        userId,
+      },
+    });
+    const projects = result.data.data.projectsByUserId.projects;
+    assert.equal(projects[0].id, activeProject.id);
+  });
 }
 
 function addProjectTestCases() {
@@ -1664,12 +1751,39 @@ function activateProjectTestCases() {
     const firstUserAccessToken = await generateTestAccessToken(
       SEED_DATA.FIRST_USER.id,
     );
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const deactiveStatus = await ProjectStatus.findOne({
-      id: ProjStatus.deactive,
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
     });
-    project.status = deactiveStatus as ProjectStatus;
-    await project.save();
+    const activateProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: activateProjectQuery,
+        variables: {
+          projectId: Number(project.id),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${firstUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(activateProjectResult.data.data.activateProject, true);
+    const updatedProject = await Project.findOne({
+      id: project.id,
+    });
+    assert.equal(updatedProject?.statusId, ProjStatus.active);
+  });
+
+  it('Should activate draft project successfully', async () => {
+    const firstUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.FIRST_USER.id,
+    );
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.drafted,
+    });
     const activateProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -1695,12 +1809,10 @@ function activateProjectTestCases() {
     const firstUserAccessToken = await generateTestAccessToken(
       SEED_DATA.FIRST_USER.id,
     );
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const deactiveStatus = await ProjectStatus.findOne({
-      id: ProjStatus.deactive,
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
     });
-    project.status = deactiveStatus as ProjectStatus;
-    await project.save();
     const deactivateProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -1733,13 +1845,10 @@ function activateProjectTestCases() {
     );
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
+      statusId: ProjStatus.deactive,
       listed: true,
     });
-    const deactiveStatus = await ProjectStatus.findOne({
-      id: ProjStatus.deactive,
-    });
-    project.status = deactiveStatus as ProjectStatus;
-    await project.save();
+
     const activateProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -1769,12 +1878,8 @@ function activateProjectTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: false,
+      statusId: ProjStatus.deactive,
     });
-    const deactiveStatus = await ProjectStatus.findOne({
-      id: ProjStatus.deactive,
-    });
-    project.status = deactiveStatus as ProjectStatus;
-    await project.save();
     const activateProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -2005,7 +2110,6 @@ function projectByIdTestCases() {
     assert.equal(result.data.data.projectById.id, project.id);
     assert.equal(result.data.data.projectById.slug, project.slug);
   });
-
   it('should return project null with invalid id', async () => {
     const result = await axios.post(graphqlUrl, {
       query: projectByIdQuery,
@@ -2019,7 +2123,6 @@ function projectByIdTestCases() {
       'Cannot return null for non-nullable field Query.projectById.',
     );
   });
-
   it('should return reaction when user liked the project', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -2038,7 +2141,6 @@ function projectByIdTestCases() {
     assert.equal(result.data.data.projectById.id, project.id);
     assert.equal(result.data.data.projectById.reaction.id, reaction.id);
   });
-
   it('should not return reaction when user doesnt exist', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const result = await axios.post(graphqlUrl, {
@@ -2115,6 +2217,37 @@ function projectByIdTestCases() {
 
     const project = result.data.data.projectById;
     assert.equal(Number(project.id), draftedProject.id);
+  });
+  it('should not return drafted project is user is loggedIn but is not owner of project', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
+
+    const draftedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.drafted,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: projectByIdQuery,
+        variables: {
+          id: draftedProject.id,
+          connectedWalletUserId: SEED_DATA.FIRST_USER.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      'Cannot return null for non-nullable field Query.projectById.',
+    );
   });
 }
 
@@ -2199,6 +2332,38 @@ function projectBySlugTestCases() {
       'Cannot return null for non-nullable field Query.projectBySlug.',
     );
   });
+  it('should not return drafted project is user is loggedIn but is not owner of project', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
+
+    const draftedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.drafted,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchProjectsBySlugQuery,
+        variables: {
+          slug: draftedProject.slug,
+          connectedWalletUserId: SEED_DATA.FIRST_USER.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      'Cannot return null for non-nullable field Query.projectBySlug.',
+    );
+  });
+
   it('should return drafted if logged in', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
 
