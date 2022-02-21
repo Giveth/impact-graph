@@ -43,6 +43,7 @@ export enum ProjStatus {
   active = 5,
   deactive = 6,
   cancelled = 7,
+  drafted = 8,
 }
 
 export enum OrderField {
@@ -239,6 +240,7 @@ class Project extends BaseEntity {
     }
   }
 
+  // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: Number) {
     const maxDaysForListing = moment()
       .subtract(maximumDaysForListing, 'days')
@@ -247,6 +249,7 @@ class Project extends BaseEntity {
     return this.createQueryBuilder('project')
       .where({ updatedAt: LessThan(maxDaysForListing) })
       .andWhere('project.listed IS NULL')
+      .andWhere('project.statusId = :statusId', { statusId: ProjStatus.active })
       .getMany();
   }
 

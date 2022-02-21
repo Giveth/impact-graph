@@ -52,4 +52,7 @@ export class ProjectInput {
 
   @Field({ nullable: true })
   projectImageIds?: string;
+
+  @Field(tyoe => Boolean, { nullable: true, defaultValue: false })
+  isDraft?: boolean;
 }

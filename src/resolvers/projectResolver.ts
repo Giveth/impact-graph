@@ -540,7 +540,17 @@ export class ProjectResolver {
         id,
       });
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-    return query.getOne();
+    const project = await query.getOne();
+
+    if (
+      project?.statusId === ProjStatus.drafted &&
+      // If project is draft, just owner can view it
+      project?.admin !== String(user?.userId)
+    ) {
+      return null;
+    }
+
+    return project;
   }
 
   // Move this to it's own resolver later
@@ -568,7 +578,17 @@ export class ProjectResolver {
         'user.id = CAST(project.admin AS INTEGER)',
       );
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-    return await query.getOne();
+    const project = await query.getOne();
+
+    if (
+      project?.statusId === ProjStatus.drafted &&
+      // If project is draft, just owner can view it
+      project?.admin !== String(user?.userId)
+    ) {
+      return null;
+    }
+
+    return project;
   }
 
   @Mutation(returns => Project)
@@ -798,8 +818,9 @@ export class ProjectResolver {
     await validateProjectTitle(projectInput.title);
     const slugBase = slugify(projectInput.title);
     const slug = await this.getAppropriateSlug(slugBase);
+
     const status = await this.projectStatusRepository.findOne({
-      id: ProjStatus.active,
+      id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
     });
 
     const project = this.projectRepository.create({
@@ -1141,13 +1162,15 @@ export class ProjectResolver {
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
-      .where('CAST(project.admin AS INTEGER) = :userId', { userId })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
+      )
+      .andWhere(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);

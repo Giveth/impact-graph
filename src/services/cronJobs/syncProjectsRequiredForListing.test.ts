@@ -3,7 +3,7 @@ import {
   createProjectData,
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
-import { Project } from '../../entities/project';
+import { Project, ProjStatus } from '../../entities/project';
 import { updateProjectListing } from './syncProjectsRequiredForListing';
 
 // tslint:disable-next-line:no-var-requires
@@ -28,6 +28,18 @@ function updateProjectListingTestCases() {
     const projectData = createProjectData();
     projectData.listed = undefined;
     projectData.creationDate = moment().subtract(12, 'days');
+    const project = await saveProjectDirectlyToDb(projectData);
+
+    await updateProjectListing();
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isNotOk(updatedProject?.listed);
+  });
+
+  it('should not make project listed if its a draft project', async () => {
+    const projectData = createProjectData();
+    projectData.listed = undefined;
+    projectData.creationDate = moment().subtract(12, 'days');
+    projectData.statusId = ProjStatus.drafted;
     const project = await saveProjectDirectlyToDb(projectData);
 
     await updateProjectListing();

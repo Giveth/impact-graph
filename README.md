@@ -264,15 +264,16 @@ You will need to add the above command to your build process so that all databas
 You can generate table with this site
 https://www.tablesgenerator.com/markdown_tables
 
-| id | symbol        | name          | description                                                                   | who can change to |
-|----|---------------|---------------|-------------------------------------------------------------------------------|-------------------|
-| 1  | rejected      | rejected      | his project has been rejected by Giveth or platform owner, We dont use it now |                   |
-| 2  | pending       | pending       | This project is created, but pending approval, We dont use it now             |                   |
-| 3  | clarification | clarification | Clarification requested by Giveth or platform owner, We dont use it now       |                   |
-| 4  | verification  | verification  | Verification in progress (including KYC or otherwise), We dont use it now     |                   |
-| 5  | activate      | activate      | This is an active project                                                     | user and admin    |
-| 6  | deactivate    | deactivate    | Deactivated with user or Giveth Admin                                         | user and admin    |
-| 7  | cancelled     | cancelled     | Cancelled by Giveth Admin                                                     | admin             |
+| id | symbol        | name          | description                                                                          | Who can change to       |
+|----|---------------|---------------|--------------------------------------------------------------------------------------|-------------------------|
+| 1  | rejected      | rejected      | his project has been rejected by Giveth or platform owner, We dont use it now        |                         |
+| 2  | pending       | pending       | This project is created, but pending approval, We dont use it now                    |                         |
+| 3  | clarification | clarification | Clarification requested by Giveth or platform owner, We dont use it now              |                         |
+| 4  | verification  | verification  | Verification in progress (including KYC or otherwise), We dont use it now            |                         |
+| 5  | activated     | activated     | This is an active project                                                            | project owner and admin |
+| 6  | deactivated   | deactivated   | Deactivated with user or Giveth Admin                                                | project owner and admin |
+| 7  | cancelled     | cancelled     | Cancelled by Giveth Admin                                                            | admin                   |
+| 8  | drafted       | drafted       | This project is created as a draft for a potential new project, but can be discarded | project owner           |
 
 **PS** 
 * If a project is **cancelled** just admin can activate that

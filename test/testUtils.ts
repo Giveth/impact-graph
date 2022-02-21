@@ -77,6 +77,7 @@ export interface CreateProjectData {
   creationDate: Date;
   updatedAt: Date;
   slug: string;
+  statusId?: number;
   qualityScore?: number;
   totalDonations?: number;
   totalTraceDonations?: number;
@@ -94,8 +95,11 @@ export const saveUserDirectlyToDb = async (walletAddress: string) => {
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
 ): Promise<Project> => {
+  const statusId = projectData?.statusId
+    ? projectData.statusId
+    : ProjStatus.active;
   const status = await ProjectStatus.findOne({
-    id: ProjStatus.active,
+    id: statusId,
   });
   const user = (await User.findOne({
     id: Number(projectData.admin),
@@ -146,7 +150,6 @@ export const createProjectData = (): CreateProjectData => {
     creationDate: new Date(),
     updatedAt: new Date(),
     slug: title,
-
     // firstUser's id
     admin: '1',
     qualityScore: 30,
@@ -274,6 +277,11 @@ export const SEED_DATA = {
       symbol: 'cancelled',
       name: 'cancelled',
       description: 'delisted description',
+    },
+    {
+      symbol: 'drafted',
+      name: 'drafted',
+      description: 'drafted description',
     },
   ],
   DAI_SMART_CONTRACT_ADDRESS: '0x6b175474e89094c44da98b954eedeac495271d0f',

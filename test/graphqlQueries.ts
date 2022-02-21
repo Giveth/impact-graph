@@ -197,6 +197,47 @@ export const fetchAllProjectsQuery = `
   }
 `;
 
+export const fetchProjectsBySlugQuery = `
+  query (
+    $slug: String!
+  ) {
+    projectBySlug(
+      slug: $slug
+    ) {
+      id
+      title
+      balance
+      image
+      slug
+      creationDate
+      updatedAt
+      admin
+      description
+      walletAddress
+      impactLocation
+      qualityScore
+      verified
+      traceCampaignId
+      listed
+      givingBlocksId
+      status {
+        id
+        symbol
+        name
+        description
+      }
+      reaction {
+        id
+        userId
+        reaction
+      }
+      totalReactions
+      totalDonations
+      totalTraceDonations
+    }
+  }
+`;
+
 export const fetchSimilarProjectsBySlugQuery = `
   query (
     $slug: String!
@@ -354,6 +395,38 @@ export const fetchProjectUpdatesQuery = `
     }
   }
 `;
+
+export const projectsByUserIdQuery = `
+  query ($take: Float, $skip: Float, $userId: Int!) {
+      projectsByUserId(take: $take, skip: $skip, userId: $userId) {
+        projects {
+          id
+          title
+          balance
+          description
+          image
+          slug
+          creationDate
+          admin
+          walletAddress
+          impactLocation
+          listed
+          givingBlocksId
+          categories {
+            name
+          }
+          reaction {
+            reaction
+            id
+            projectUpdateId
+            userId
+          }
+          qualityScore
+        }
+        totalCount
+      }
+    }
+  `;
 
 export const projectByIdQuery = `
   query(
