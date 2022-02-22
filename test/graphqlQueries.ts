@@ -344,6 +344,12 @@ export const likeProjectQuery = `
   }
 `;
 
+export const uploadImageToIpfsQuery = `
+  mutation ($image: FileUpload!) {
+    upload(image: $image)
+  }
+`;
+
 export const unlikeProjectQuery = `
   mutation ($reactionId: Int!) {
     unlikeProject(reactionId: $reactionId)
