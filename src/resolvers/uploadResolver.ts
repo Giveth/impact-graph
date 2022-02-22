@@ -4,6 +4,8 @@ import { MyContext } from '../types/MyContext';
 
 import { pinFile } from '../middleware/pinataUtils';
 import { logger } from '../utils/logger';
+import { getLoggedInUser } from '../services/authorizationServices';
+import { errorMessages } from '../utils/errorMessages';
 
 @Resolver()
 export class UploadResolver {
@@ -12,6 +14,7 @@ export class UploadResolver {
     @Arg('image', () => GraphQLUpload) image: FileUpload,
     @Ctx() ctx: MyContext,
   ): Promise<String> {
+    await getLoggedInUser(ctx);
     const { filename, createReadStream, encoding } = image;
 
     try {
@@ -19,7 +22,7 @@ export class UploadResolver {
       return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
     } catch (e) {
       logger.error('upload() error', e);
-      throw Error('Upload file failed');
+      throw Error(errorMessages.IPFS_IMAGE_UPLOAD_FAILED);
     }
   }
 }

@@ -52,6 +52,7 @@ import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesS
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
+import { getLoggedInUser } from '../services/authorizationServices';
 
 const analytics = getAnalytics();
 
@@ -110,30 +111,6 @@ registerEnumType(OrderDirection, {
   name: 'OrderDirection',
   description: 'Order direction',
 });
-
-function checkIfUserInRequest(ctx: MyContext) {
-  if (!ctx.req.user) {
-    throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-  }
-}
-
-async function getLoggedInUser(ctx: MyContext) {
-  checkIfUserInRequest(ctx);
-
-  const user = await User.findOne({ id: ctx.req.user.userId });
-
-  if (!user) {
-    const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`;
-    const userMessage = 'Access denied';
-    SentryLogger.captureMessage(errorMessage);
-    logger.error(
-      `Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`,
-    );
-    throw new Error(userMessage);
-  }
-
-  return user;
-}
 
 @InputType()
 class OrderBy {
