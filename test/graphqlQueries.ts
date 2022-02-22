@@ -345,8 +345,8 @@ export const likeProjectQuery = `
 `;
 
 export const uploadImageToIpfsQuery = `
-  mutation ($image: FileUpload!) {
-    upload(image: $image)
+  mutation ($fileUpload: FileUploadInputType!) {
+    upload(fileUpload: $fileUpload)
   }
 `;
 
