@@ -2,6 +2,7 @@ import { Length, IsEmail } from 'class-validator';
 import { Field, InputType } from 'type-graphql';
 import { IsEmailAlreadyExist } from './isEmailAlreadyExist';
 import { PasswordMixin } from '../../types/PasswordInput';
+import { GraphQLUpload, FileUpload } from 'graphql-upload';
 
 @InputType()
 export class RegisterInput extends PasswordMixin(class {}) {
@@ -17,4 +18,9 @@ export class RegisterInput extends PasswordMixin(class {}) {
   @IsEmail()
   @IsEmailAlreadyExist({ message: 'email already in use' })
   email: string;
+}
+
+export class ProfileImageInput {
+  @Field(type => GraphQLUpload, { nullable: false })
+  image: FileUpload;
 }
