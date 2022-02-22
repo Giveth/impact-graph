@@ -1,4 +1,5 @@
 export const errorMessages = {
+  IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE:
     'Please select no more than 5 categories',
   CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION:
