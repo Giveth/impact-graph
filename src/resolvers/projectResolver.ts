@@ -1140,15 +1140,16 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndMapOne(
+      .innerJoinAndMapOne(
         'project.adminUser',
         User,
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       )
-      .andWhere(
+      .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      );
+      )
+      .andWhere('project.admin = :userId', { userId: String(userId) });
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
