@@ -18,15 +18,14 @@ export class FileUploadInputType {
 export class UploadResolver {
   @Mutation(() => String, { nullable: true })
   async upload(
-    @Arg('fileUpload') image: FileUpload,
+    @Arg('fileUpload') fileUpload: FileUploadInputType,
     @Ctx() ctx: MyContext,
   ): Promise<String> {
     await getLoggedInUser(ctx);
     // if (!fileUpload.image) {
     //   throw Error('Upload file failed');
     // }
-    // const { filename, createReadStream, encoding } = fileUpload.image;
-    const { filename, createReadStream, encoding } = image;
+    const { filename, createReadStream, encoding } = fileUpload.image;
 
     try {
       const response = await pinFile(createReadStream(), filename, encoding);
