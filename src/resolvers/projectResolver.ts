@@ -1149,7 +1149,7 @@ export class ProjectResolver {
       .where('project.admin = :userId', { userId: String(userId) });
 
     if (userId !== user?.userId) {
-      query = query.where(
+      query = query.andWhere(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
     }
