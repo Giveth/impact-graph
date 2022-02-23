@@ -746,12 +746,6 @@ const ropstenTokens = [
 
 const xDaiTokens = [
   {
-    name: 'Giveth TEST Token',
-    symbol: 'DRGIV',
-    address: '0x7aAde4907a8e2412BEACbE42E51aaeE5B6085f24',
-    decimals: 18,
-  },
-  {
     name: 'Giveth Token',
     symbol: 'GIV',
     address: '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75',
