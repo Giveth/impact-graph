@@ -1146,10 +1146,12 @@ export class ProjectResolver {
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       )
-      .where(
+      .where('project.admin = :userId', { userId: String(userId) });
+
+    if (userId !== user?.userId)
+      query.where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      )
-      .andWhere('project.admin = :userId', { userId: String(userId) });
+      );
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
