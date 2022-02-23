@@ -1134,9 +1134,17 @@ export class ProjectResolver {
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    @Arg('orderBy', type => OrderBy, {
+      defaultValue: {
+        field: OrderField.CreationDate,
+        direction: OrderDirection.DESC,
+      },
+    })
+    orderBy: OrderBy,
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ) {
+    const { field, direction } = orderBy;
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
@@ -1157,7 +1165,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     const [projects, projectsCount] = await query
-      .orderBy('project.creationDate', 'DESC')
+      .orderBy(`project.${field}`, direction)
       .take(take)
       .skip(skip)
       .getManyAndCount();
