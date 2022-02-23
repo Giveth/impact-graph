@@ -1148,10 +1148,11 @@ export class ProjectResolver {
       )
       .where('project.admin = :userId', { userId: String(userId) });
 
-    if (userId !== user?.userId)
-      query.where(
+    if (userId !== user?.userId) {
+      query = query.where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
+    }
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
