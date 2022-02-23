@@ -25,7 +25,7 @@ export class UploadResolver {
     // if (!fileUpload.image) {
     //   throw Error('Upload file failed');
     // }
-    const { filename, createReadStream, encoding } = fileUpload.image;
+    const { filename, createReadStream, encoding } = await fileUpload.image;
 
     try {
       const response = await pinFile(createReadStream(), filename, encoding);
