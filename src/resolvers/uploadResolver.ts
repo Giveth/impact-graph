@@ -11,7 +11,7 @@ import { errorMessages } from '../utils/errorMessages';
 export class UploadResolver {
   @Mutation(() => String, { nullable: true })
   async upload(
-    @Arg('image', () => GraphQLUpload) image: FileUpload,
+    @Arg('image', type => GraphQLUpload) image: FileUpload,
     @Ctx() ctx: MyContext,
   ): Promise<String> {
     await getLoggedInUser(ctx);
