@@ -441,9 +441,9 @@ export const verifyProjects = async (
   revokeBadge: boolean = false,
 ) => {
   const { records } = context;
+  // prioritize revokeBadge
+  const verificationStatus = revokeBadge ? false : verified;
   try {
-    const verificationStatus = revokeBadge ? false : verified;
-
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, { verified: verificationStatus })
       .where('project.id IN (:...ids)')
@@ -475,7 +475,7 @@ export const verifyProjects = async (
     }),
     notice: {
       message: `Project(s) successfully ${
-        verified ? 'verified' : 'unverified'
+        verificationStatus ? 'verified' : 'unverified'
       }`,
       type: 'success',
     },
