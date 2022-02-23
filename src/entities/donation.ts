@@ -8,10 +8,10 @@ import {
   ColumnOptions,
   RelationId,
   Index,
+  Unique,
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
-import { NETWORK_IDS } from '../provider';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -27,13 +27,15 @@ export enum SortField {
 
 @Entity()
 @ObjectType()
+// https://typeorm.io/#/decorator-reference/unique
+@Unique(['transactionId', 'toWalletAddress'])
 export class Donation extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
   @Field()
-  @Column({ unique: true })
+  @Column()
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string;
 

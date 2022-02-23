@@ -886,3 +886,41 @@ export const findTokenByNetworkAndSymbol = (
     symbol,
   };
 };
+
+export const findTokenByNetworkAndAddress = (
+  networkId: number,
+  address: string,
+): {
+  address: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  chainId: number;
+} => {
+  let token;
+  if (networkId === NETWORK_IDS.MAIN_NET) {
+    token = mainnetTokens.find(
+      item => item.address.toLowerCase() === address.toLowerCase(),
+    );
+  } else if (networkId === NETWORK_IDS.XDAI) {
+    token = xDaiTokens.find(
+      item => item.address.toLowerCase() === address.toLowerCase(),
+    );
+  } else if (networkId === NETWORK_IDS.ROPSTEN) {
+    token = ropstenTokens.find(
+      item => item.address.toLowerCase() === address.toLowerCase(),
+    );
+  } else {
+    throw new Error(errorMessages.INVALID_NETWORK_ID);
+  }
+  if (!token) {
+    throw new Error(errorMessages.INVALID_TOKEN_SYMBOL);
+  }
+  return {
+    chainId: networkId,
+    address: token.address.toLowerCase(),
+    name: token.name,
+    decimals: token.decimals,
+    symbol: token.symbol,
+  };
+};
