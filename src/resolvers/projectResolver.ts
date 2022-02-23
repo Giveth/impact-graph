@@ -1247,14 +1247,15 @@ export class ProjectResolver {
     @Arg('userId', type => Int, { nullable: false }) userId: number,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Ctx() { req: { user } }: MyContext,
   ) {
-    const [projects, totalCount] = await this.projectRepository
+    let query = this.projectRepository
       .createQueryBuilder('project')
       .innerJoinAndMapOne(
         'project.reaction',
-        Reaction,
-        'reaction',
-        `reaction.projectId = project.id AND reaction.userId = :userId`,
+        Reaction, // viewedUser liked projects join
+        'ownerReaction',
+        `ownerReaction.projectId = project.id AND ownerReaction.userId = :userId`,
         { userId },
       )
       .leftJoinAndSelect('project.status', 'status')
@@ -1266,7 +1267,11 @@ export class ProjectResolver {
       )
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      )
+      );
+
+    // if user viewing viewedUser liked projects has any liked
+    query = ProjectResolver.addUserReaction(query, undefined, user);
+    const [projects, totalCount] = await query
       .orderBy('project.creationDate', 'DESC')
       .take(take)
       .skip(skip)
