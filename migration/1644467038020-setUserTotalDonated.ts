@@ -15,7 +15,7 @@ export class setUserTotalDonated1644467038020 implements MigrationInterface {
         UPDATE "user"
         SET "totalDonated" = d."totalDonationsDonated"
         FROM (
-            SELECT "userId", SUM("valueUsd") AS "totalDonationsDonated"
+            SELECT "userId", COALESCE(SUM("valueUsd"),0) AS "totalDonationsDonated"
             FROM donation
             GROUP BY "userId"
         ) AS d

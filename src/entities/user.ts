@@ -128,7 +128,7 @@ export class User extends BaseEntity {
 
   @Field(type => Int, { nullable: true })
   async donationsCount() {
-    const donationsCount = await Donation.createQueryBuilder('project')
+    const donationsCount = await Donation.createQueryBuilder('donation')
       .where(`"userId" = :id`, { id: this.id })
       .getCount();
 
