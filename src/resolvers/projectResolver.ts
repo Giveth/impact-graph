@@ -1134,6 +1134,7 @@ export class ProjectResolver {
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
     @Arg('orderBy', type => OrderBy, {
       defaultValue: {
         field: OrderField.CreationDate,
@@ -1141,7 +1142,6 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
-    connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ) {
     const { field, direction } = orderBy;
