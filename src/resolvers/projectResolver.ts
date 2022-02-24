@@ -513,6 +513,7 @@ export class ProjectResolver {
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
       .where(`project.id=:id`, {
         id,
       });
