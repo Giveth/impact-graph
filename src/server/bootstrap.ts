@@ -62,7 +62,7 @@ export async function bootstrap() {
       synchronize: true,
       logger: 'advanced-console',
       logging: ['error'],
-      dropSchema,
+      dropSchema: false,
       cache: true,
     });
 
@@ -140,8 +140,34 @@ export async function bootstrap() {
       introspection: true,
     });
 
+    // middleware to save query of search
+    const adminBroQueryCache = async (req, res, next) => {
+      // console.log('LOGGED');
+      // if (req.headers.cookie) {
+      //   const session = require('express-session');
+      //   const MemoryStore = new session.MemoryStore();
+      //   const cookie = require('cookie');
+      //   const cookieParser = require('cookie-parser');
+      //   const cookieHeader = req.headers.cookie;
+      //   const parsedCookies = cookie.parse(cookieHeader);
+      //   const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
+      //   const unsignedCookie = cookieParser.signedCookie(parsedCookies['adminbro'], secret);
+      //   const userData = await MemoryStore.get(unsignedCookie, (err, session) => {
+      //     if (err) throw err;
+      //     console.log('user session data:', JSON.stringify(session));
+      //     // const { userId, name } = session;
+      //     // console.log('userId: ', userId);
+      //     // console.log('name: ', name);
+      //     return session;
+      //   });
+      //   console.log(userData);
+      // }
+      next();
+    };
+
     // Express Server
     const app = express();
+    app.use(adminBroQueryCache);
     const whitelistHostnames: string[] = (
       config.get('HOSTNAME_WHITELIST') as string
     ).split(',');
