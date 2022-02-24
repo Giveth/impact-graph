@@ -62,6 +62,7 @@ export class UserResolver {
     @Arg('email', { nullable: true }) email: string,
     @Arg('name', { nullable: true }) name: string,
     @Arg('url', { nullable: true }) url: string,
+    @Arg('avatar', { nullable: true }) avatar: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
@@ -87,6 +88,7 @@ export class UserResolver {
     idUser.location = location;
     idUser.email = email;
     idUser.url = url;
+    idUser.avatar = avatar;
     await idUser.save();
 
     const segmentUpdateProfile = {
