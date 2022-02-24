@@ -10,7 +10,10 @@ import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
-import { ProjectStatusHistory } from '../entities/projectStatusHistory';
+import {
+  HISTORY_DESCRIPTIONS,
+  ProjectStatusHistory,
+} from '../entities/projectStatusHistory';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -409,7 +412,7 @@ export const listDelist = async (
   request,
   list = true,
 ) => {
-  const { records } = context;
+  const { records, currentAdmin } = context;
   try {
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, { listed: list })
@@ -425,6 +428,14 @@ export const listDelist = async (
     );
     projects.raw.forEach(project => {
       dispatchProjectUpdateEvent(project);
+      Project.addProjectStatusHistoryRecord({
+        project,
+        status: project.status,
+        userId: currentAdmin.id,
+        description: list
+          ? HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED
+          : HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
+      });
     });
   } catch (error) {
     logger.error('listDelist error', error);
@@ -447,7 +458,7 @@ export const verifyProjects = async (
   request: AdminBroRequestInterface,
   verified = true,
 ) => {
-  const { records } = context;
+  const { records, currentAdmin } = context;
   try {
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, { verified })
@@ -463,8 +474,16 @@ export const verifyProjects = async (
         ? SegmentEvents.PROJECT_VERIFIED
         : SegmentEvents.PROJECT_UNVERIFIED,
     );
-    projects.raw.forEach(project => {
+    projects.raw.forEach((project: Project) => {
       dispatchProjectUpdateEvent(project);
+      Project.addProjectStatusHistoryRecord({
+        project,
+        status: project.status,
+        userId: currentAdmin.id,
+        description: verified
+          ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
+          : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
+      });
     });
   } catch (error) {
     logger.error('verifyProjects() error', error);
@@ -489,7 +508,7 @@ export const updateStatusOfProjects = async (
   request: AdminBroRequestInterface,
   status,
 ) => {
-  const { h, resource, records } = context;
+  const { h, resource, records, currentAdmin } = context;
   try {
     const projectStatus = await ProjectStatus.findOne({ id: status });
     if (projectStatus) {
@@ -512,6 +531,11 @@ export const updateStatusOfProjects = async (
       );
       projects.raw.forEach(project => {
         dispatchProjectUpdateEvent(project);
+        Project.addProjectStatusHistoryRecord({
+          project,
+          status: projectStatus,
+          userId: currentAdmin.id,
+        });
       });
     }
   } catch (error) {

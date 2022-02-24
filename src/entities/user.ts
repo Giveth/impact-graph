@@ -13,6 +13,8 @@ import { Organisation } from './organisation';
 import { Project } from './project';
 import { Donation } from './donation';
 import { AccountVerification } from './accountVerification';
+import { ProjectStatusReason } from './projectStatusReason';
+import { ProjectStatusHistory } from './projectStatusHistory';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -117,6 +119,13 @@ export class User extends BaseEntity {
   @Field(type => Int, { nullable: true })
   @Column({ type: 'integer', nullable: true, default: 0 })
   totalReceived: number;
+
+  @Field(type => [ProjectStatusHistory], { nullable: true })
+  @OneToMany(
+    type => ProjectStatusHistory,
+    projectStatusHistory => projectStatusHistory.user,
+  )
+  projectStatusHistories?: ProjectStatusHistory[];
 
   @Field(type => Int, { nullable: true })
   async projectsCount() {

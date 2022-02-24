@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { ProjStatus } from './project';
+import { Project, ProjStatus } from './project';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
@@ -21,10 +21,11 @@ function addProjectStatusHistoryRecord() {
     const cancelStatus = await ProjectStatus.findOne({
       id: ProjStatus.cancelled,
     });
-    await project?.addProjectStatusHistoryRecord({
+    await Project.addProjectStatusHistoryRecord({
       project,
       status: cancelStatus as ProjectStatus,
       prevStatus: activeStatus as ProjectStatus,
+      userId: SEED_DATA.ADMIN_USER.id,
     });
     const history = await ProjectStatusHistory.findOne({
       project,
@@ -41,11 +42,12 @@ function addProjectStatusHistoryRecord() {
     const cancelStatus = await ProjectStatus.findOne({
       id: ProjStatus.deactive,
     });
-    await project?.addProjectStatusHistoryRecord({
+    await Project.addProjectStatusHistoryRecord({
       project,
       status: cancelStatus as ProjectStatus,
       prevStatus: activeStatus as ProjectStatus,
       reasonId: reason?.id,
+      userId: SEED_DATA.ADMIN_USER.id,
     });
     const history = await ProjectStatusHistory.findOne({
       project,
