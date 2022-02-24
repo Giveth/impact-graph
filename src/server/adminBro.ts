@@ -275,6 +275,15 @@ const getAdminBroInstance = () => {
                 edit: false,
               },
             },
+            qualityScore: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            totalDonations: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            totalTraceDonations: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
             traceCampaignId: {
               isVisible: {
                 list: false,
@@ -396,11 +405,20 @@ const getAdminBroInstance = () => {
               },
               component: false,
             },
-            unverifyProject: {
+            rejectProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
                 return verifyProjects(context, request, false);
+              },
+              component: false,
+            },
+            // the difference is that it sends another segment event
+            revokeBadge: {
+              actionType: 'bulk',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifyProjects(context, request, false, true);
               },
               component: false,
             },
@@ -598,24 +616,30 @@ export const listDelist = async (
 export const verifyProjects = async (
   context: AdminBroContextInterface,
   request: AdminBroRequestInterface,
-  verified = true,
+  verified: boolean = true,
+  revokeBadge: boolean = false,
 ) => {
   const { records } = context;
+  // prioritize revokeBadge
+  const verificationStatus = revokeBadge ? false : verified;
   try {
     const projects = await Project.createQueryBuilder('project')
-      .update<Project>(Project, { verified })
+      .update<Project>(Project, { verified: verificationStatus })
       .where('project.id IN (:...ids)')
       .setParameter('ids', request.query.recordIds.split(','))
       .returning('*')
       .updateEntity(true)
       .execute();
 
-    Project.sendBulkEventsToSegment(
-      projects.raw,
-      verified
-        ? SegmentEvents.PROJECT_VERIFIED
-        : SegmentEvents.PROJECT_UNVERIFIED,
-    );
+    let segmentEvent = verified
+      ? SegmentEvents.PROJECT_VERIFIED
+      : SegmentEvents.PROJECT_UNVERIFIED;
+
+    segmentEvent = revokeBadge
+      ? SegmentEvents.PROJECT_BADGE_REVOKED
+      : segmentEvent;
+
+    Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
     projects.raw.forEach(project => {
       dispatchProjectUpdateEvent(project);
     });
@@ -630,7 +654,7 @@ export const verifyProjects = async (
     }),
     notice: {
       message: `Project(s) successfully ${
-        verified ? 'verified' : 'unverified'
+        verificationStatus ? 'verified' : 'unverified'
       }`,
       type: 'success',
     },

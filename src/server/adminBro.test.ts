@@ -105,6 +105,36 @@ function updateStatusOfProjectsTestCases() {
 }
 
 function verifyProjectsTestCases() {
+  it('should unverify projects when the badge is revoked', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: true,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await verifyProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      true, // give priority to revoke badge
+      true, // revoke badge
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isFalse(updatedProject?.verified);
+    assert.isTrue(updatedProject?.listed);
+  });
   it('should not change listed(true) status when verifying project', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
