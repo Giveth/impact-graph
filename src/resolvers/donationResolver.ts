@@ -166,6 +166,13 @@ export class DonationResolver {
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('traceable', { defaultValue: false }) traceable: boolean,
     @Arg('projectId', type => Number) projectId: number,
+    @Arg('orderBy', type => SortBy, {
+      defaultValue: {
+        field: SortField.CreationDate,
+        direction: SortDirection.DESC,
+      },
+    })
+    orderBy: SortBy,
   ) {
     const project = await Project.findOne({
       id: projectId,
@@ -189,7 +196,8 @@ export class DonationResolver {
       const query = this.donationRepository
         .createQueryBuilder('donation')
         .leftJoinAndSelect('donation.user', 'user')
-        .where(`donation.projectId = ${projectId}`);
+        .where(`donation.projectId = ${projectId}`)
+        .orderBy(`donation.${orderBy.field}`, orderBy.direction);
 
       const [donations, donationsCount] = await query
         .take(take)
