@@ -10,8 +10,9 @@ import {
 } from 'typeorm';
 import { OrganisationUser } from './organisationUser';
 import { Organisation } from './organisation';
-import { Project } from './project';
+import { Project, ProjStatus } from './project';
 import { Donation } from './donation';
+import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
 
 export enum UserRole {
@@ -133,6 +134,19 @@ export class User extends BaseEntity {
       .getCount();
 
     return donationsCount;
+  }
+
+  @Field(type => Int, { nullable: true })
+  async likedProjectsCount() {
+    const likedProjectsCount = await Reaction.createQueryBuilder('reaction')
+      .innerJoinAndSelect('reaction.project', 'project')
+      .where('reaction.userId = :id', { id: this.id })
+      .andWhere(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      )
+      .getCount();
+
+    return likedProjectsCount;
   }
 
   segmentUserId() {
