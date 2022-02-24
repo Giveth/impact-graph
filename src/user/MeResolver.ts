@@ -9,30 +9,7 @@ import { MyContext } from '../types/MyContext';
 import { Repository, In } from 'typeorm';
 import SentryLogger from '../sentryLogger';
 import { logger } from '../utils/logger';
-
-function checkIfUserInRequest(ctx: MyContext) {
-  if (!ctx.req.user) {
-    throw new Error('Access denied');
-  }
-}
-
-async function getLoggedInUser(ctx: MyContext) {
-  checkIfUserInRequest(ctx);
-
-  const user = await User.findOne({ id: ctx.req.user.userId });
-
-  if (!user) {
-    const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`;
-    const userMessage = 'Access denied';
-    SentryLogger.captureMessage(errorMessage);
-    logger.error(
-      `Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`,
-    );
-    throw new Error(userMessage);
-  }
-
-  return user;
-}
+import { getLoggedInUser } from '../services/authorizationServices';
 
 @Resolver()
 export class MeResolver {

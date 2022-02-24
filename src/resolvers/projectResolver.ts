@@ -52,6 +52,7 @@ import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesS
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
+import { getLoggedInUser } from '../services/authorizationServices';
 
 const analytics = getAnalytics();
 
@@ -110,30 +111,6 @@ registerEnumType(OrderDirection, {
   name: 'OrderDirection',
   description: 'Order direction',
 });
-
-function checkIfUserInRequest(ctx: MyContext) {
-  if (!ctx.req.user) {
-    throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-  }
-}
-
-async function getLoggedInUser(ctx: MyContext) {
-  checkIfUserInRequest(ctx);
-
-  const user = await User.findOne({ id: ctx.req.user.userId });
-
-  if (!user) {
-    const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`;
-    const userMessage = 'Access denied';
-    SentryLogger.captureMessage(errorMessage);
-    logger.error(
-      `Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`,
-    );
-    throw new Error(userMessage);
-  }
-
-  return user;
-}
 
 @InputType()
 class OrderBy {
@@ -1158,25 +1135,37 @@ export class ProjectResolver {
     @Arg('skip', { defaultValue: 0 }) skip: number,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId: number,
+    @Arg('orderBy', type => OrderBy, {
+      defaultValue: {
+        field: OrderField.CreationDate,
+        direction: OrderDirection.DESC,
+      },
+    })
+    orderBy: OrderBy,
     @Ctx() { req: { user } }: MyContext,
   ) {
+    const { field, direction } = orderBy;
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndMapOne(
+      .innerJoinAndMapOne(
         'project.adminUser',
         User,
         'user',
         'user.id = CAST(project.admin AS INTEGER)',
       )
-      .andWhere(
+      .where('project.admin = :userId', { userId: String(userId) });
+
+    if (userId !== user?.userId) {
+      query = query.andWhere(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
+    }
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     const [projects, projectsCount] = await query
-      .orderBy('project.creationDate', 'DESC')
+      .orderBy(`project.${field}`, direction)
       .take(take)
       .skip(skip)
       .getManyAndCount();
@@ -1266,14 +1255,15 @@ export class ProjectResolver {
     @Arg('userId', type => Int, { nullable: false }) userId: number,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Ctx() { req: { user } }: MyContext,
   ) {
-    const [projects, totalCount] = await this.projectRepository
+    let query = this.projectRepository
       .createQueryBuilder('project')
       .innerJoinAndMapOne(
         'project.reaction',
-        Reaction,
-        'reaction',
-        `reaction.projectId = project.id AND reaction.userId = :userId`,
+        Reaction, // viewedUser liked projects join
+        'ownerReaction',
+        `ownerReaction.projectId = project.id AND ownerReaction.userId = :userId`,
         { userId },
       )
       .leftJoinAndSelect('project.status', 'status')
@@ -1285,7 +1275,11 @@ export class ProjectResolver {
       )
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      )
+      );
+
+    // if user viewing viewedUser liked projects has any liked
+    query = ProjectResolver.addUserReaction(query, undefined, user);
+    const [projects, totalCount] = await query
       .orderBy('project.creationDate', 'DESC')
       .take(take)
       .skip(skip)

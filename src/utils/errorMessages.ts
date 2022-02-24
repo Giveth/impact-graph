@@ -1,14 +1,17 @@
 export const errorMessages = {
+  IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE:
     'Please select no more than 5 categories',
   CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION:
     'This category is not valid',
+  INVALID_TX_HASH: 'Invalid txHash',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
   PROJECT_STATUS_NOT_FOUND:
     'No project status found, this should be impossible',
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'You dont have access to deactivate this project',
   PROJECT_NOT_FOUND: 'Project not found.',
+  INVALID_FUNCTION: 'Invalid function name of transaction',
   PROJECT_UPDATE_NOT_FOUND: 'Project update not found.',
   DONATION_NOT_FOUND: 'donation not found',
   THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY:

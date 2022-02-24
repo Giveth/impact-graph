@@ -15,7 +15,7 @@ export class setUserTotalReceived1644467298829 implements MigrationInterface {
         UPDATE "user"
         SET "totalReceived" = p."totalProjectReceived"
         FROM (
-            SELECT "admin", SUM("totalDonations") AS "totalProjectReceived"
+            SELECT "admin", COALESCE(SUM("totalDonations"),0) AS "totalProjectReceived"
             FROM project
             GROUP BY "admin"
         ) AS p

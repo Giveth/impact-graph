@@ -9,6 +9,16 @@ import { Database, Resource } from '@admin-bro/typeorm';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
+import { Donation, DONATION_STATUS } from '../entities/donation';
+import {
+  findTransactionByHash,
+  getCsvAirdropTransactions,
+} from '../services/transactionService';
+import {
+  NetworkTransactionInfo,
+  TransactionDetailInput,
+} from '../types/TransactionInquiry';
+import { errorMessages } from '../utils/errorMessages';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
 import {
   HISTORY_DESCRIPTIONS,
@@ -30,7 +40,9 @@ interface AdminBroContextInterface {
   records: any[];
   currentAdmin: User;
 }
+
 interface AdminBroRequestInterface {
+  payload?: any;
   query: {
     recordIds: string;
   };
@@ -74,6 +86,14 @@ const getAdminBroInstance = () => {
     locale: {
       translations: {
         resources: {
+          Donation: {
+            properties: {
+              transactionNetworkId: 'Network',
+              transactionId: 'txHash',
+              disperseTxHash:
+                'disperseTxHash, this is optional, just for disperse transactions',
+            },
+          },
           Project: {
             properties: {
               listed: 'Listed',
@@ -89,6 +109,165 @@ const getAdminBroInstance = () => {
     },
     resources: [
       {
+        resource: Donation,
+        options: {
+          properties: {
+            projectId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            nonce: {
+              isVisible: false,
+            },
+
+            verifyErrorMessage: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            speedup: {
+              isVisible: false,
+            },
+            isFiat: {
+              isVisible: false,
+            },
+            donationType: {
+              isVisible: false,
+            },
+            transakStatus: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            transakTransactionLink: {
+              isVisible: false,
+            },
+            anonymous: {
+              isVisible: false,
+            },
+            userId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            tokenAddress: {
+              isVisible: false,
+            },
+            fromWalletAddress: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            toWalletAddress: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            amount: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            priceEth: {
+              isVisible: false,
+            },
+            valueEth: {
+              isVisible: false,
+            },
+            valueUsd: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            status: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            createdAt: {
+              isVisible: false,
+            },
+            transactionNetworkId: {
+              availableValues: [
+                { value: 1, label: 'Mainnet' },
+                { value: 100, label: 'Xdai' },
+                { value: 3, label: 'Ropsten' },
+              ],
+              isVisible: true,
+            },
+            txType: {
+              availableValues: [
+                { value: 'normalTransfer', label: 'normalTransfer' },
+                { value: 'csvAirDrop', label: 'Using csv airdrop app' },
+              ],
+              isVisible: {
+                list: false,
+                show: false,
+                new: true,
+                edit: true,
+              },
+            },
+            priceUsd: {
+              isVisible: true,
+              type: 'number',
+            },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: false,
+            },
+            edit: {
+              isVisible: false,
+            },
+            delete: {
+              isVisible: false,
+            },
+
+            new: {
+              handler: createDonation,
+              // component: true,
+            },
+          },
+        },
+      },
+      {
         resource: Project,
         options: {
           properties: {
@@ -99,6 +278,15 @@ const getAdminBroInstance = () => {
                 show: true,
                 edit: false,
               },
+            },
+            qualityScore: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            totalDonations: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            totalTraceDonations: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
             },
             traceCampaignId: {
               isVisible: {
@@ -226,11 +414,20 @@ const getAdminBroInstance = () => {
               },
               component: false,
             },
-            unverifyProject: {
+            rejectProject: {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
                 return verifyProjects(context, request, false);
+              },
+              component: false,
+            },
+            // the difference is that it sends another segment event
+            revokeBadge: {
+              actionType: 'bulk',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifyProjects(context, request, false, true);
               },
               component: false,
             },
@@ -456,24 +653,30 @@ export const listDelist = async (
 export const verifyProjects = async (
   context: AdminBroContextInterface,
   request: AdminBroRequestInterface,
-  verified = true,
+  verified: boolean = true,
+  revokeBadge: boolean = false,
 ) => {
   const { records, currentAdmin } = context;
+  // prioritize revokeBadge
+  const verificationStatus = revokeBadge ? false : verified;
   try {
     const projects = await Project.createQueryBuilder('project')
-      .update<Project>(Project, { verified })
+      .update<Project>(Project, { verified: verificationStatus })
       .where('project.id IN (:...ids)')
       .setParameter('ids', request.query.recordIds.split(','))
       .returning('*')
       .updateEntity(true)
       .execute();
 
-    Project.sendBulkEventsToSegment(
-      projects.raw,
-      verified
-        ? SegmentEvents.PROJECT_VERIFIED
-        : SegmentEvents.PROJECT_UNVERIFIED,
-    );
+    let segmentEvent = verified
+      ? SegmentEvents.PROJECT_VERIFIED
+      : SegmentEvents.PROJECT_UNVERIFIED;
+
+    segmentEvent = revokeBadge
+      ? SegmentEvents.PROJECT_BADGE_REVOKED
+      : segmentEvent;
+
+    Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
     projects.raw.forEach((project: Project) => {
       dispatchProjectUpdateEvent(project);
       Project.addProjectStatusHistoryRecord({
@@ -496,7 +699,7 @@ export const verifyProjects = async (
     }),
     notice: {
       message: `Project(s) successfully ${
-        verified ? 'verified' : 'unverified'
+        verificationStatus ? 'verified' : 'unverified'
       }`,
       type: 'success',
     },
@@ -551,6 +754,100 @@ export const updateStatusOfProjects = async (
       type: 'success',
     },
   };
+};
+
+export const createDonation = async (
+  request: AdminBroRequestInterface,
+  response,
+  context: AdminBroContextInterface,
+) => {
+  let message = messages.DONATION_CREATED_SUCCESSFULLY;
+
+  let type = 'success';
+  try {
+    logger.debug('create donation ', request.payload);
+    const {
+      transactionNetworkId,
+      transactionId: txHash,
+      currency,
+      priceUsd,
+      txType,
+      segmentNotified,
+    } = request.payload;
+    if (!priceUsd) {
+      throw new Error('priceUsd is required');
+    }
+    const networkId = Number(transactionNetworkId);
+    let transactions: NetworkTransactionInfo[] = [];
+    if (txType === 'csvAirDrop') {
+      // transactions = await getDisperseTransactions(txHash, networkId);
+      transactions = await getCsvAirdropTransactions(txHash, networkId);
+    } else {
+      const txInfo = await findTransactionByHash({
+        networkId,
+        txHash,
+        symbol: currency,
+      } as TransactionDetailInput);
+      if (!txInfo) {
+        throw new Error(errorMessages.INVALID_TX_HASH);
+      }
+      transactions.push(txInfo);
+    }
+
+    for (const transactionInfo of transactions) {
+      const project = await Project.findOne({
+        walletAddress: transactionInfo?.to,
+      });
+      if (!project) {
+        logger.error(
+          'Creating donation by admin bro, csv airdrop error ' +
+            errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
+          {
+            hash: txHash,
+            networkId,
+          },
+        );
+      }
+
+      const donation = Donation.create({
+        fromWalletAddress: transactionInfo?.from,
+        toWalletAddress: transactionInfo?.to,
+        transactionId: txHash,
+        transactionNetworkId: networkId,
+        project,
+        priceUsd,
+        currency,
+        segmentNotified,
+        amount: transactionInfo?.amount,
+        valueUsd: (transactionInfo?.amount as number) * priceUsd,
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date(transactionInfo?.timestamp as number),
+        anonymous: true,
+      });
+      const donor = await User.findOne({
+        walletAddress: transactionInfo?.from,
+      });
+      if (donor) {
+        donation.anonymous = false;
+        donation.user = donor;
+      }
+      await donation.save();
+      logger.debug('Donation has been created successfully', donation.id);
+    }
+  } catch (e) {
+    message = e.message;
+    type = 'danger';
+    logger.error('create donation error', e.message);
+  }
+
+  response.send({
+    redirectUrl: 'Donation',
+    record: {},
+    notice: {
+      message,
+      type,
+    },
+  });
 };
 
 export const adminBroRootPath = '/admin';

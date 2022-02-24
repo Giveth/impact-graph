@@ -207,8 +207,22 @@ mutation LoginWallet {
 We use [Admin Bro](https://github.com/SoftwareBrothers/adminjs) for Admin dashboard
 You should navigate to `/admin` for browsing admin panel.
 in your local database you can hash a desired password with `BCRYPT_SALT` that is in your `config/development.env` with 
-[bcrypt](https://github.com/kelektiv/node.bcrypt.js) then you set that value in `encryptedPassword` of your user in DB, 
+[bcrypt](https://github.com/kelektiv/node.bcrypt.js) then you set that value in `encryptedPassword` of your user in DB and
+change `role` of user to `admin` in db
 Now you can login in admin dashboard with your user's `email` and the `password` you already set 
+
+**PS**:
+A simple script for create encryptedPassword
+```
+const bcrypt = require('bcrypt');
+
+bcrypt.hash(
+  'yourPassword',
+  Number('yourSalt'),
+).then(hash => {console.log('hash',hash)}).catch(e=>{console.log("error", e)});
+
+```
+
 
 ### Logging:
 
@@ -252,7 +266,7 @@ npm run typeorm:cli -- migration:revert
 ### TEST
 For running tests you need to register infura and etherscan api-key, and you should pass this environment variables
 
-`ETHERSCAN_API_KEY=0000000000000000000000000000000000 XDAI_NODE_HTTP_URL=https://xxxxxx.xdai.quiknode.pro INFURA_API_KEY=0000000000000000000000000000000000 ETHEREUM_NODE_ID=INFURA_API_KEY npm run test` 
+`PINATA_API_KEY=0000000000000 PINATA_SECRET_API_KEY=00000000000000000000000000000000000000000000000000000000  ETHERSCAN_API_KEY=0000000000000000000000000000000000 XDAI_NODE_HTTP_URL=https://xxxxxx.xdai.quiknode.pro INFURA_API_KEY=0000000000000000000000000000000000 ETHEREUM_NODE_ID=INFURA_API_KEY npm run test` 
 
 ### PRE_COMMITS
 Please before committing your changes run
