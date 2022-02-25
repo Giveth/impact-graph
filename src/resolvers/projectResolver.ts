@@ -513,6 +513,7 @@ export class ProjectResolver {
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
+      .innerJoinAndSelect('project.categories', 'c')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndMapOne(
         'project.adminUser',
