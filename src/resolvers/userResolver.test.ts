@@ -325,7 +325,6 @@ function updateUserTestCases() {
     });
     assert.equal(updatedUser?.firstName, updateUserData.firstName);
     assert.equal(updatedUser?.lastName, updateUserData.lastName);
-    assert.equal(updatedUser?.email, updateUserData.email);
     assert.equal(updatedUser?.avatar, updateUserData.avatar);
     assert.equal(updatedUser?.url, updateUserData.url);
     assert.equal(updatedUser?.name, updateUserData.firstName);
