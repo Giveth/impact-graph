@@ -21,6 +21,7 @@ import { MyContext } from '../types/MyContext';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { errorMessages } from '../utils/errorMessages';
 import { Project } from '../entities/project';
+import { validateEmail } from '../utils/validators/commonValidators';
 
 const analytics = getAnalytics();
 
@@ -85,6 +86,10 @@ export class UserResolver {
       dbUser.location = location;
     }
     if (email !== undefined) {
+      // User can unset his email by putting empty string
+      if (email !== '' && !validateEmail(email)) {
+        throw new Error(errorMessages.INVALID_EMAIL);
+      }
       dbUser.email = email;
     }
     if (url !== undefined) {

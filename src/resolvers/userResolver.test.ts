@@ -175,6 +175,54 @@ function updateUserTestCases() {
       errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
     );
   });
+  it('should fail when email is invalid', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const updateUserData = {
+      firstName: 'firstName',
+      email: 'giveth',
+      avatar: 'pinata address',
+      url: 'website url',
+    };
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateUser,
+        variables: updateUserData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
+  });
+  it('should fail when email is invalid', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const updateUserData = {
+      firstName: 'firstName',
+      email: 'giveth @ giveth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+    };
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateUser,
+        variables: updateUserData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
+  });
 
   it('should update user and name of user when sending just lastName', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
