@@ -138,6 +138,9 @@ function updateStatusOfProjectsTestCases() {
     assert.isOk(updatedProject);
     assert.equal(updatedProject?.statusId, ProjStatus.cancelled);
     const status = await ProjectStatus.findOne({ id: ProjStatus.cancelled });
+
+    // We should wait to history be created because creating histories use fire and forget strategy
+    await sleep(50);
     const history = await ProjectStatusHistory.findOne({
       project,
       user: adminUser,
@@ -529,7 +532,7 @@ function listDelistTestCases() {
     assert.isTrue(updatedProject?.listed);
 
     // because we didn't put await before creating history item
-    await sleep(10);
+    await sleep(50);
 
     const history = await ProjectStatusHistory.findOne({
       project,
