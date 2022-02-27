@@ -87,7 +87,7 @@ export class UserResolver {
     }
     if (email !== undefined) {
       // User can unset his email by putting empty string
-      if (email !== '' && !validateEmail(email)) {
+      if (!validateEmail(email)) {
         throw new Error(errorMessages.INVALID_EMAIL);
       }
       dbUser.email = email;

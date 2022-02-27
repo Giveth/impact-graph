@@ -298,13 +298,12 @@ function updateUserTestCases() {
     assert.equal(updatedUser?.lastName, lastName);
   });
 
-  it('should accept empty string for all fields', async () => {
+  it('should accept empty string for all fields except email', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
       firstName: 'test firstName',
       lastName: '',
-      email: '',
       avatar: '',
       url: '',
     };
