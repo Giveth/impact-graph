@@ -1,6 +1,5 @@
 // TODO Write test cases
-// describe('user() test cases', userTestCases);
-// describe('userByAddress() test cases', userByAddressTestCases);
+
 import { User } from '../entities/user';
 import {
   generateRandomEtheriumAddress,
@@ -9,14 +8,45 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import axios from 'axios';
-import { updateUser } from '../../test/graphqlQueries';
+import { updateUser, userByAddress } from '../../test/graphqlQueries';
 import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 
 describe('updateUser() test cases', updateUserTestCases);
-
+// describe('user() test cases', userTestCases);
+describe('userByAddress() test cases', userByAddressTestCases);
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
+
+function userByAddressTestCases() {
+  it('Get all fields of a user', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    await User.create(userData).save();
+    const result = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: userData.walletAddress,
+      },
+    });
+    assert.equal(
+      result.data.data.userByAddress.walletAddress,
+      userData.walletAddress,
+    );
+    assert.equal(result.data.data.userByAddress.avatar, userData.avatar);
+    assert.equal(result.data.data.userByAddress.firstName, userData.firstName);
+    assert.equal(result.data.data.userByAddress.lastName, userData.lastName);
+    assert.equal(result.data.data.userByAddress.email, userData.email);
+    assert.equal(result.data.data.userByAddress.url, userData.url);
+  });
+}
 
 function updateUserTestCases() {
   it('should update user with sending all data', async () => {
@@ -53,6 +83,69 @@ function updateUserTestCases() {
     assert.equal(
       updatedUser?.name,
       updateUserData.firstName + ' ' + updateUserData.lastName,
+    );
+  });
+  it('should update user with sending all data and then call userByAddress query', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const updateUserData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+    };
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateUser,
+        variables: updateUserData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isTrue(result.data.data.updateUser);
+    const updatedUser = await User.findOne({
+      id: user.id,
+    });
+    assert.equal(updatedUser?.firstName, updateUserData.firstName);
+    assert.equal(updatedUser?.lastName, updateUserData.lastName);
+    assert.equal(updatedUser?.email, updateUserData.email);
+    assert.equal(updatedUser?.avatar, updateUserData.avatar);
+    assert.equal(updatedUser?.url, updateUserData.url);
+    assert.equal(
+      updatedUser?.name,
+      updateUserData.firstName + ' ' + updateUserData.lastName,
+    );
+
+    const userByAddressResult = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: user.walletAddress,
+      },
+    });
+    assert.equal(
+      userByAddressResult.data.data.userByAddress.avatar,
+      updateUserData.avatar,
+    );
+    assert.equal(
+      userByAddressResult.data.data.userByAddress.firstName,
+      updateUserData.firstName,
+    );
+    assert.equal(
+      userByAddressResult.data.data.userByAddress.lastName,
+      updateUserData.lastName,
+    );
+    assert.equal(
+      userByAddressResult.data.data.userByAddress.url,
+      updateUserData.url,
+    );
+    assert.equal(
+      userByAddressResult.data.data.userByAddress.email,
+      updateUserData.email,
     );
   });
 

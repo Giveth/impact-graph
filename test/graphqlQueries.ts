@@ -363,6 +363,22 @@ export const updateUser = `
     )
   }
 `;
+
+export const userByAddress = `
+  query ($address: String!) {
+    userByAddress(address: $address) {
+      id
+      firstName
+      lastName
+      name
+      email
+      avatar
+      walletAddress
+      url
+      location
+    }
+  }
+`;
 export const uploadImageToIpfsQuery = `
   mutation ($fileUpload: FileUploadInputType!) {
     upload(fileUpload: $fileUpload)
