@@ -60,7 +60,6 @@ export class UserResolver {
     @Arg('lastName', { nullable: true }) lastName: string,
     @Arg('location', { nullable: true }) location: string,
     @Arg('email', { nullable: true }) email: string,
-    @Arg('name', { nullable: true }) name: string,
     @Arg('url', { nullable: true }) url: string,
     @Arg('avatar', { nullable: true }) avatar: string,
     @Ctx() { req: { user } }: MyContext,
@@ -70,36 +69,43 @@ export class UserResolver {
     if (!dbUser) {
       return false;
     }
-    if (!firstName && !lastName) {
+    if (!dbUser.name && !firstName && !lastName) {
       throw new Error(
         errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
       );
     }
-    let fullName: string = '';
-    if (!name) {
-      fullName = firstName + ' ' + lastName;
-    } else {
-      fullName = name;
+
+    if (firstName !== undefined) {
+      dbUser.firstName = firstName;
     }
-    const idUser = dbUser;
-    idUser.firstName = firstName;
-    idUser.lastName = lastName;
-    idUser.name = fullName;
-    idUser.location = location;
-    idUser.email = email;
-    idUser.url = url;
-    idUser.avatar = avatar;
-    await idUser.save();
+    if (lastName !== undefined) {
+      dbUser.lastName = lastName;
+    }
+    if (location !== undefined) {
+      dbUser.location = location;
+    }
+    if (email !== undefined) {
+      dbUser.email = email;
+    }
+    if (url !== undefined) {
+      dbUser.url = url;
+    }
+    if (avatar !== undefined) {
+      dbUser.avatar = avatar;
+    }
+
+    dbUser.name = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim();
+    await dbUser.save();
 
     const segmentUpdateProfile = {
-      firstName: idUser.firstName,
-      lastName: idUser.lastName,
-      location: idUser.location,
-      email: idUser.email,
-      url: idUser.url,
+      firstName: dbUser.firstName,
+      lastName: dbUser.lastName,
+      location: dbUser.location,
+      email: dbUser.email,
+      url: dbUser.url,
     };
 
-    analytics.identifyUser(idUser);
+    analytics.identifyUser(dbUser);
     analytics.track(
       SegmentEvents.UPDATED_PROFILE,
       dbUser.segmentUserId(),

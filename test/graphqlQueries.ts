@@ -344,6 +344,25 @@ export const likeProjectQuery = `
   }
 `;
 
+export const updateUser = `
+  mutation(
+    $url: String
+    $location: String
+    $email: String
+    $lastName: String
+    $firstName: String
+    $avatar: String
+  ) {
+    updateUser(
+      url: $url
+      location: $location
+      email: $email
+      firstName: $firstName
+      lastName: $lastName
+      avatar: $avatar
+    )
+  }
+`;
 export const uploadImageToIpfsQuery = `
   mutation ($fileUpload: FileUploadInputType!) {
     upload(fileUpload: $fileUpload)
