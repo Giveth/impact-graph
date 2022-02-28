@@ -59,6 +59,11 @@ enum SortDirection {
   DESC = 'DESC',
 }
 
+const nullDirection = {
+  ASC: 'NULLS FIRST',
+  DESC: 'NULLS LAST',
+};
+
 registerEnumType(SortField, {
   name: 'SortField',
   description: 'Sort by field',
@@ -166,6 +171,13 @@ export class DonationResolver {
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('traceable', { defaultValue: false }) traceable: boolean,
     @Arg('projectId', type => Number) projectId: number,
+    @Arg('orderBy', type => SortBy, {
+      defaultValue: {
+        field: SortField.CreationDate,
+        direction: SortDirection.DESC,
+      },
+    })
+    orderBy: SortBy,
   ) {
     const project = await Project.findOne({
       id: projectId,
@@ -189,7 +201,12 @@ export class DonationResolver {
       const query = this.donationRepository
         .createQueryBuilder('donation')
         .leftJoinAndSelect('donation.user', 'user')
-        .where(`donation.projectId = ${projectId}`);
+        .where(`donation.projectId = ${projectId}`)
+        .orderBy(
+          `donation.${orderBy.field}`,
+          orderBy.direction,
+          nullDirection[orderBy.direction as string],
+        );
 
       const [donations, donationsCount] = await query
         .take(take)
@@ -244,7 +261,11 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
       .where(`donation.userId = ${userId}`)
-      .orderBy(`donation.${orderBy.field}`, orderBy.direction)
+      .orderBy(
+        `donation.${orderBy.field}`,
+        orderBy.direction,
+        nullDirection[orderBy.direction as string],
+      )
       .take(take)
       .skip(skip)
       .getManyAndCount();

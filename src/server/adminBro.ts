@@ -795,18 +795,26 @@ export const createDonation = async (
     }
 
     for (const transactionInfo of transactions) {
-      const project = await Project.findOne({
-        walletAddress: transactionInfo?.to,
-      });
+      // const project = await Project.findOne({
+      //   walletAddress: transactionInfo?.to,
+      // });
+      const project = await Project.createQueryBuilder('project')
+        .where(`lower("walletAddress")=lower(:address)`, {
+          address: transactionInfo?.to,
+        })
+        .getOne();
+
       if (!project) {
         logger.error(
           'Creating donation by admin bro, csv airdrop error ' +
             errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
           {
             hash: txHash,
+            toAddress: transactionInfo?.to,
             networkId,
           },
         );
+        continue;
       }
 
       const donation = Donation.create({
@@ -821,6 +829,7 @@ export const createDonation = async (
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
+        donationType: 'csvAirDrop',
         createdAt: new Date(transactionInfo?.timestamp as number),
         anonymous: true,
       });

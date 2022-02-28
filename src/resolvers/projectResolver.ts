@@ -515,7 +515,15 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .where(`project.id=:id`, {
         id,
-      });
+      })
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndMapOne(
+        'project.adminUser',
+        User,
+        'user',
+        'user.id = CAST(project.admin AS INTEGER)',
+      );
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 

@@ -201,7 +201,11 @@ async function getTransactionDetailForTokenTransfer(
   const token = findTokenByNetworkAndSymbol(networkId, symbol);
   const web3 = getNetworkWeb3(networkId);
   const transaction = await web3.eth.getTransaction(txHash);
-  logger.debug('getTransactionDetailForTokenTransfer', { transaction, input });
+  logger.debug('getTransactionDetailForTokenTransfer', {
+    transaction,
+    input,
+    token,
+  });
   if (
     transaction &&
     transaction.to?.toLowerCase() !== token.address.toLowerCase()
