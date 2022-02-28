@@ -1,7 +1,7 @@
 import { Project, ProjStatus } from '../entities/project';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro from 'admin-bro';
-import { User } from '../entities/user';
+import { User, UserRole } from '../entities/user';
 import AdminBroExpress from '@admin-bro/express';
 import config from '../config';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
@@ -24,6 +24,7 @@ import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
+
 const segmentProjectStatusEvents = {
   act: SegmentEvents.PROJECT_ACTIVATED,
   can: SegmentEvents.PROJECT_DEACTIVATED,
@@ -369,10 +370,15 @@ const getAdminBroInstance = () => {
             delete: {
               isVisible: false,
             },
+            new: {
+              isVisible: false,
+            },
             bulkDelete: {
               isVisible: false,
             },
             edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
               after: async request => {
                 const project = await Project.findOne(request?.record?.id);
                 if (project) {
@@ -468,6 +474,13 @@ const getAdminBroInstance = () => {
             delete: {
               isVisible: false,
             },
+            new: {
+              isVisible: false,
+            },
+            edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
             bulkDelete: {
               isVisible: false,
             },
@@ -478,6 +491,14 @@ const getAdminBroInstance = () => {
         resource: ProjectStatusReason,
         options: {
           actions: {
+            new: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
             delete: {
               isVisible: false,
             },
@@ -535,6 +556,8 @@ const getAdminBroInstance = () => {
               isVisible: false,
             },
             new: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
               before: async request => {
                 if (request.payload.password) {
                   const bc = await bcrypt.hash(
@@ -543,6 +566,7 @@ const getAdminBroInstance = () => {
                   );
                   request.payload = {
                     ...request.payload,
+                    // For making an backoffice user admin, we should just use changing it directly in DB
                     encryptedPassword: bc,
                     password: null,
                   };
@@ -551,6 +575,8 @@ const getAdminBroInstance = () => {
               },
             },
             edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
               before: async request => {
                 logger.debug({ request: request.payload });
                 if (request.payload.password) {
