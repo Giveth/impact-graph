@@ -1036,6 +1036,7 @@ export class ProjectResolver {
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
     @Arg('orderBy', type => OrderBy, {
       defaultValue: {
         field: OrderField.CreationAt,
@@ -1043,7 +1044,6 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
-    connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdate[]> {
     const { field, direction } = orderBy;
