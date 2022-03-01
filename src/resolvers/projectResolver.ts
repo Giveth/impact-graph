@@ -1055,7 +1055,7 @@ export class ProjectResolver {
           projectId,
         },
       )
-      .orderBy(field, direction)
+      .orderBy(`projectUpdate.${field}`, direction)
       .take(take)
       .skip(skip);
 
