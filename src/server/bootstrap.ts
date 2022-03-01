@@ -21,7 +21,11 @@ import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonati
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
-import { adminBroRootPath, getAdminBroRouter } from './adminBro';
+import {
+  adminBroRootPath,
+  getAdminBroRouter,
+  adminBroQueryCache,
+} from './adminBro';
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
@@ -62,7 +66,7 @@ export async function bootstrap() {
       synchronize: true,
       logger: 'advanced-console',
       logging: ['error'],
-      dropSchema: false,
+      dropSchema,
       cache: true,
     });
 
@@ -140,34 +144,8 @@ export async function bootstrap() {
       introspection: true,
     });
 
-    // middleware to save query of search
-    const adminBroQueryCache = async (req, res, next) => {
-      // console.log('LOGGED');
-      // if (req.headers.cookie) {
-      //   const session = require('express-session');
-      //   const MemoryStore = new session.MemoryStore();
-      //   const cookie = require('cookie');
-      //   const cookieParser = require('cookie-parser');
-      //   const cookieHeader = req.headers.cookie;
-      //   const parsedCookies = cookie.parse(cookieHeader);
-      //   const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
-      //   const unsignedCookie = cookieParser.signedCookie(parsedCookies['adminbro'], secret);
-      //   const userData = await MemoryStore.get(unsignedCookie, (err, session) => {
-      //     if (err) throw err;
-      //     console.log('user session data:', JSON.stringify(session));
-      //     // const { userId, name } = session;
-      //     // console.log('userId: ', userId);
-      //     // console.log('name: ', name);
-      //     return session;
-      //   });
-      //   console.log(userData);
-      // }
-      next();
-    };
-
     // Express Server
     const app = express();
-    app.use(adminBroQueryCache);
     const whitelistHostnames: string[] = (
       config.get('HOSTNAME_WHITELIST') as string
     ).split(',');
@@ -255,6 +233,7 @@ export async function bootstrap() {
     );
 
     // Admin Bruh!
+    app.use(adminBroQueryCache);
     app.use(adminBroRootPath, getAdminBroRouter());
 
     app.use(

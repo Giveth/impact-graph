@@ -4,6 +4,7 @@ import AdminBro from 'admin-bro';
 import { User } from '../entities/user';
 import AdminBroExpress from '@admin-bro/express';
 import config from '../config';
+import { redis } from '../redis';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
 import { SegmentEvents } from '../analytics/analytics';
@@ -21,9 +22,22 @@ import {
 import { errorMessages } from '../utils/errorMessages';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
+import { IncomingMessage } from 'connect';
 
+// use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
+// tslint:disable-next-line:no-var-requires
+const session = require('express-session');
+// tslint:disable-next-line:no-var-requires
+const RedisStore = require('connect-redis')(session);
+// tslint:disable-next-line:no-var-requires
+const cookie = require('cookie');
+// tslint:disable-next-line:no-var-requires
+const cookieParser = require('cookie-parser');
+const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
+const adminBroCookie = 'adminbro';
+
 const segmentProjectStatusEvents = {
   act: SegmentEvents.PROJECT_ACTIVATED,
   can: SegmentEvents.PROJECT_DEACTIVATED,
@@ -47,27 +61,103 @@ interface AdminBroRequestInterface {
 AdminBro.registerAdapter({ Database, Resource });
 
 export const getAdminBroRouter = () => {
-  return AdminBroExpress.buildAuthenticatedRouter(getAdminBroInstance(), {
-    authenticate: async (email, password) => {
-      try {
-        const user = await User.findOne({ email });
-        if (user) {
-          const matched = await bcrypt.compare(
-            password,
-            user.encryptedPassword,
-          );
-          if (matched) {
-            return user;
+  return AdminBroExpress.buildAuthenticatedRouter(
+    getAdminBroInstance(),
+    {
+      authenticate: async (email, password) => {
+        try {
+          const user = await User.findOne({ email });
+          if (user) {
+            const matched = await bcrypt.compare(
+              password,
+              user.encryptedPassword,
+            );
+            if (matched) {
+              return user;
+            }
           }
+          return false;
+        } catch (e) {
+          logger.error({ e });
+          return false;
         }
-        return false;
-      } catch (e) {
-        logger.error({ e });
-        return false;
-      }
+      },
+      cookiePassword: secret,
     },
-    cookiePassword: config.get('ADMIN_BRO_COOKIE_SECRET') as string,
-  });
+    // custom router to save admin in req.session for express middlewares
+    null,
+    {
+      // default values that will be deprecated, need to define them manually
+      resave: true,
+      saveUninitialized: true,
+      rolling: true,
+      secret,
+      store: new RedisStore({
+        client: redis,
+      }),
+    },
+  );
+};
+
+// Express Middleware to save query of a search
+export const adminBroQueryCache = async (req, res, next) => {
+  if (
+    req.url.startsWith('/admin/api/resources/Project/actions/list') &&
+    req.headers.cookie.includes('adminbro')
+  ) {
+    const admin = await getCurrentAdminBroSession(req);
+    if (!admin) return next(); // skip saving queries
+
+    const queryStrings = {};
+    // get URL query strings
+    for (const key of Object.keys(req.query)) {
+      const [_, filter] = key.split('.');
+      if (!filter) continue;
+
+      queryStrings[filter] = req.query[key];
+    }
+    // save query string for later use with an expiration
+    await redis.set(
+      `adminbro_${admin.id}_qs`,
+      JSON.stringify(queryStrings),
+      'ex',
+      1800,
+    );
+  }
+  next();
+};
+
+// Get CurrentSession for external express middlewares
+export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
+  const cookieHeader = request.headers.cookie;
+  const parsedCookies = cookie.parse(cookieHeader);
+  const sessionStore = new RedisStore({ client: redis });
+  const unsignedCookie = cookieParser.signedCookie(
+    parsedCookies[adminBroCookie],
+    secret,
+  );
+
+  let adminUser;
+  try {
+    adminUser = await new Promise((success, failure) => {
+      sessionStore.get(unsignedCookie, (err, sessionObject) => {
+        // console.log(session);
+        if (err) {
+          failure(err);
+        } else {
+          success(sessionObject.adminUser);
+        }
+      });
+    });
+  } catch (e) {
+    // console.log(e);
+  }
+  if (!adminUser) return false;
+
+  const dbUser = await User.findOne({ id: adminUser.id });
+  if (!dbUser) return false;
+
+  return dbUser;
 };
 
 const getAdminBroInstance = () => {
@@ -380,6 +470,58 @@ const getAdminBroInstance = () => {
                 }
                 return request;
               },
+            },
+            exportSelectedToCsv: {
+              actionType: 'bulk',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                const { records } = context;
+
+                return {
+                  redirectUrl: 'Project',
+                  records: records.map(record => {
+                    record.toJSON(context.currentAdmin);
+                  }),
+                  notice: {
+                    message: `Project(s) successfully`,
+                    type: 'success',
+                  },
+                };
+              },
+              component: false,
+            },
+            exportAllToCsv: {
+              actionType: 'bulk',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                const { records } = context;
+
+                const queryStrings = await new Promise((success, failure) => {
+                  redis.get(
+                    `adminbro_${context.currentAdmin.id}_qs`,
+                    (err, result) => {
+                      if (err) {
+                        // console.error(err);
+                        return null;
+                      } else {
+                        return success(JSON.parse(result)); // Promise resolves to "bar"
+                      }
+                    },
+                  );
+                });
+
+                return {
+                  redirectUrl: 'Project',
+                  records: records.map(record => {
+                    record.toJSON(context.currentAdmin);
+                  }),
+                  notice: {
+                    message: `Project(s) successfully`,
+                    type: 'success',
+                  },
+                };
+              },
+              component: false,
             },
             listProject: {
               actionType: 'bulk',
