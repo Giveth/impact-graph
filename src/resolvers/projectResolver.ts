@@ -1036,9 +1036,17 @@ export class ProjectResolver {
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    @Arg('orderBy', type => OrderBy, {
+      defaultValue: {
+        field: OrderField.CreationAt,
+        direction: OrderDirection.DESC,
+      },
+    })
+    orderBy: OrderBy,
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdate[]> {
+    const { field, direction } = orderBy;
     let query = this.projectUpdateRepository
       .createQueryBuilder('projectUpdate')
       .where(
@@ -1047,6 +1055,7 @@ export class ProjectResolver {
           projectId,
         },
       )
+      .orderBy(field, direction)
       .take(take)
       .skip(skip);
 
