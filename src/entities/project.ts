@@ -254,6 +254,37 @@ class Project extends BaseEntity {
       .getMany();
   }
 
+  static async addProjectStatusHistoryRecord(inputData: {
+    prevStatus?: ProjectStatus;
+    status: ProjectStatus;
+    project: Project;
+    reasonId?: number;
+    description?: string;
+    userId: number;
+  }) {
+    const { project, status, prevStatus, description, reasonId, userId } =
+      inputData;
+    let reason;
+    const user = await User.findOne({ id: userId });
+
+    if (reasonId) {
+      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+    }
+    if (reasonId) {
+      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+    }
+
+    await ProjectStatusHistory.create({
+      project,
+      status,
+      prevStatus,
+      reason,
+      user,
+      description,
+      createdAt: new Date(),
+    }).save();
+  }
+
   // Status 7 is deleted status
   mayUpdateStatus(user: User) {
     if (this.statusId === ProjStatus.cancelled) {
@@ -272,25 +303,6 @@ class Project extends BaseEntity {
         errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
       );
     }
-  }
-
-  async addProjectStatusHistoryRecord(inputData: {
-    prevStatus: ProjectStatus;
-    status: ProjectStatus;
-    project: Project;
-    reasonId?: number;
-  }) {
-    const { project, status, prevStatus, reasonId } = inputData;
-    let reason;
-    if (reasonId) {
-      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
-    }
-    await ProjectStatusHistory.create({
-      project,
-      status,
-      prevStatus,
-      reason,
-    }).save();
   }
 
   /**

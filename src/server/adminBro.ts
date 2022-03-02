@@ -20,7 +20,10 @@ import {
 } from '../types/TransactionInquiry';
 import { errorMessages } from '../utils/errorMessages';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
-import { ProjectStatusHistory } from '../entities/projectStatusHistory';
+import {
+  HISTORY_DESCRIPTIONS,
+  ProjectStatusHistory,
+} from '../entities/projectStatusHistory';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -40,6 +43,7 @@ interface AdminBroContextInterface {
 
 interface AdminBroRequestInterface {
   payload?: any;
+  record?: any;
   query: {
     recordIds: string;
   };
@@ -394,11 +398,25 @@ const getAdminBroInstance = () => {
             edit: {
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
-              after: async request => {
+              after: async (
+                request: AdminBroRequestInterface,
+                response,
+                context: AdminBroContextInterface,
+              ) => {
+                const { currentAdmin } = context;
                 const project = await Project.findOne(request?.record?.id);
                 if (project) {
                   await dispatchProjectUpdateEvent(project);
+
+                  // As we dont what fields has changed (listed, verified, ..), I just added new status and a description that project has been edited
+                  await Project.addProjectStatusHistoryRecord({
+                    project,
+                    status: project.status,
+                    userId: currentAdmin.id,
+                    description: HISTORY_DESCRIPTIONS.HAS_BEEN_EDITED,
+                  });
                 }
+
                 return request;
               },
             },
@@ -621,7 +639,7 @@ export const listDelist = async (
   request,
   list = true,
 ) => {
-  const { records } = context;
+  const { records, currentAdmin } = context;
   try {
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, { listed: list })
@@ -637,6 +655,14 @@ export const listDelist = async (
     );
     projects.raw.forEach(project => {
       dispatchProjectUpdateEvent(project);
+      Project.addProjectStatusHistoryRecord({
+        project,
+        status: project.status,
+        userId: currentAdmin.id,
+        description: list
+          ? HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED
+          : HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
+      });
     });
   } catch (error) {
     logger.error('listDelist error', error);
@@ -660,7 +686,7 @@ export const verifyProjects = async (
   verified: boolean = true,
   revokeBadge: boolean = false,
 ) => {
-  const { records } = context;
+  const { records, currentAdmin } = context;
   // prioritize revokeBadge
   const verificationStatus = revokeBadge ? false : verified;
   try {
@@ -681,8 +707,16 @@ export const verifyProjects = async (
       : segmentEvent;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
-    projects.raw.forEach(project => {
+    projects.raw.forEach((project: Project) => {
       dispatchProjectUpdateEvent(project);
+      Project.addProjectStatusHistoryRecord({
+        project,
+        status: project.status,
+        userId: currentAdmin.id,
+        description: verified
+          ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
+          : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
+      });
     });
   } catch (error) {
     logger.error('verifyProjects() error', error);
@@ -707,7 +741,7 @@ export const updateStatusOfProjects = async (
   request: AdminBroRequestInterface,
   status,
 ) => {
-  const { h, resource, records } = context;
+  const { h, resource, records, currentAdmin } = context;
   try {
     const projectStatus = await ProjectStatus.findOne({ id: status });
     if (projectStatus) {
@@ -730,6 +764,11 @@ export const updateStatusOfProjects = async (
       );
       projects.raw.forEach(project => {
         dispatchProjectUpdateEvent(project);
+        Project.addProjectStatusHistoryRecord({
+          project,
+          status: projectStatus,
+          userId: currentAdmin.id,
+        });
       });
     }
   } catch (error) {

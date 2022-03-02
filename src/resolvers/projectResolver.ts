@@ -1329,11 +1329,12 @@ export class ProjectResolver {
     project.status = status;
     await project.save();
 
-    await project.addProjectStatusHistoryRecord({
+    await Project.addProjectStatusHistoryRecord({
       reasonId,
       project,
       status,
       prevStatus,
+      userId: user.id,
     });
     return project;
   }

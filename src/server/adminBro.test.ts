@@ -8,11 +8,17 @@ import {
   createProjectData,
   saveProjectDirectlyToDb,
   SEED_DATA,
+  sleep,
 } from '../../test/testUtils';
 import { Project, ProjStatus } from '../entities/project';
 import { User } from '../entities/user';
 import { assert } from 'chai';
 import { messages } from '../utils/messages';
+import {
+  HISTORY_DESCRIPTIONS,
+  ProjectStatusHistory,
+} from '../entities/projectStatusHistory';
+import { ProjectStatus } from '../entities/projectStatus';
 import { NETWORK_IDS } from '../provider';
 import { Donation } from '../entities/donation';
 
@@ -20,7 +26,6 @@ describe(
   'updateStatusOfProjects() test cases',
   updateStatusOfProjectsTestCases,
 );
-
 describe('verifyProjects() test cases', verifyProjectsTestCases);
 describe('listDelist() test cases', listDelistTestCases);
 describe('createDonation() test cases', createDonationTestCases);
@@ -235,6 +240,47 @@ function updateStatusOfProjectsTestCases() {
     assert.isNotTrue(updatedSecondProject?.verified);
     assert.isNotTrue(updatedSecondProject?.listed);
   });
+
+  it('should create history item, when changing status of one project to cancelled', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const result = await updateStatusOfProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      ProjStatus.cancelled,
+    );
+    assert.equal(
+      result.notice.message,
+      messages.PROJECT_STATUS_UPDATED_SUCCESSFULLY,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.equal(updatedProject?.statusId, ProjStatus.cancelled);
+    const status = await ProjectStatus.findOne({ id: ProjStatus.cancelled });
+
+    // We should wait to history be created because creating histories use fire and forget strategy
+    await sleep(50);
+    const history = await ProjectStatusHistory.findOne({
+      project,
+      user: adminUser,
+      status,
+    });
+    assert.isOk(history);
+  });
 }
 
 function verifyProjectsTestCases() {
@@ -387,6 +433,86 @@ function verifyProjectsTestCases() {
     assert.isFalse(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
   });
+
+  it('should create history when make project verified', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await verifyProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      true,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isTrue(updatedProject?.verified);
+
+    // because we didn't put await before creating history item
+    await sleep(10);
+
+    const history = await ProjectStatusHistory.findOne({
+      project,
+      user: adminUser,
+    });
+    assert.equal(
+      history?.description,
+      HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED,
+    );
+  });
+
+  it('should create history when make project unverified', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await verifyProjects(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      false,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isFalse(updatedProject?.verified);
+
+    // because we didn't put await before creating history item
+    await sleep(10);
+
+    const history = await ProjectStatusHistory.findOne({
+      project,
+      user: adminUser,
+    });
+    assert.equal(
+      history?.description,
+      HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
+    );
+  });
 }
 
 function listDelistTestCases() {
@@ -486,7 +612,7 @@ function listDelistTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: false,
-      listed: true,
+      listed: false,
     });
     const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
     await listDelist(
@@ -508,5 +634,84 @@ function listDelistTestCases() {
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
+  });
+
+  it('should create history when make project listed', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      listed: true,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await listDelist(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      true,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isTrue(updatedProject?.listed);
+
+    // because we didn't put await before creating history item
+    await sleep(50);
+
+    const history = await ProjectStatusHistory.findOne({
+      project,
+      user: adminUser,
+    });
+    assert.equal(history?.description, HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED);
+  });
+
+  it('should create history when make project unlisted', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      listed: true,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await listDelist(
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      false,
+    );
+
+    const updatedProject = await Project.findOne({ id: project.id });
+    assert.isOk(updatedProject);
+    assert.isFalse(updatedProject?.listed);
+
+    // because we didn't put await before creating history item
+    await sleep(10);
+
+    const history = await ProjectStatusHistory.findOne({
+      project,
+      user: adminUser,
+    });
+    assert.equal(
+      history?.description,
+      HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
+    );
   });
 }
