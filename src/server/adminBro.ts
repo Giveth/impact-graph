@@ -219,11 +219,13 @@ const getAdminBroInstance = () => {
               },
             },
             createdAt: {
-              list: true,
-              filter: true,
-              show: true,
-              edit: false,
-              new: false,
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             currency: {
               isVisible: {
