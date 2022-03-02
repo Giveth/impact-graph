@@ -780,7 +780,7 @@ export const createDonation = async (
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
         donationType: 'csvAirDrop',
-        createdAt: new Date(transactionInfo?.timestamp as number),
+        createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
       });
       const donor = await User.findOne({
