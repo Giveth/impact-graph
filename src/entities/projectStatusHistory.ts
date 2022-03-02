@@ -19,6 +19,7 @@ export const HISTORY_DESCRIPTIONS = {
   CHANGED_TO_UNVERIFIED: 'Changed to unverified',
   CHANGED_TO_LISTED: 'Changed to listed',
   CHANGED_TO_UNLISTED: 'Changed to unlisted',
+  HAS_BEEN_EDITED: 'Has been edited',
 };
 
 @Entity()
@@ -78,4 +79,8 @@ export class ProjectStatusHistory extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   description?: string;
+
+  @Field(type => Date)
+  @Column()
+  createdAt: Date;
 }

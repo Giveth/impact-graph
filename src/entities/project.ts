@@ -280,6 +280,7 @@ class Project extends BaseEntity {
       reason,
       user,
       description,
+      createdAt: new Date(),
     }).save();
   }
 
