@@ -219,7 +219,20 @@ const getAdminBroInstance = () => {
               },
             },
             createdAt: {
-              isVisible: false,
+              list: true,
+              filter: true,
+              show: true,
+              edit: false,
+              new: false,
+            },
+            currency: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             transactionNetworkId: {
               availableValues: [
@@ -800,7 +813,7 @@ export const createDonation = async (
         transactionNetworkId: networkId,
         project,
         priceUsd,
-        currency,
+        currency: transactionInfo?.currency,
         segmentNotified,
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,

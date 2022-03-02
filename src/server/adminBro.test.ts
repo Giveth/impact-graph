@@ -71,7 +71,6 @@ function createDonationTestCases() {
         payload: {
           transactionNetworkId: NETWORK_IDS.XDAI,
           transactionId: txHash,
-          currency: 'WETH',
           priceUsd: ethPrice,
           txType: 'csvAirDrop',
           segmentNotified: true,
@@ -142,6 +141,7 @@ function createDonationTestCases() {
       assert.equal(donation.priceUsd, ethPrice);
       assert.equal(donation.segmentNotified, true);
       assert.equal(donation.amount, 0.0001);
+      assert.equal(donation.currency, 'WETH');
       assert.equal(
         donation.createdAt.getTime(),
         new Date('2022-02-28T00:05:35.000Z').getTime(),
