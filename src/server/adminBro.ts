@@ -43,6 +43,7 @@ interface AdminBroContextInterface {
 
 interface AdminBroRequestInterface {
   payload?: any;
+  record?: any;
   query: {
     recordIds: string;
   };
@@ -382,11 +383,25 @@ const getAdminBroInstance = () => {
             edit: {
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
-              after: async request => {
+              after: async (
+                request: AdminBroRequestInterface,
+                response,
+                context: AdminBroContextInterface,
+              ) => {
+                const { currentAdmin } = context;
                 const project = await Project.findOne(request?.record?.id);
                 if (project) {
                   await dispatchProjectUpdateEvent(project);
+
+                  // As we dont what fields has changed (listed, verified, ..), I just added new status and a description that project has been edited
+                  await Project.addProjectStatusHistoryRecord({
+                    project,
+                    status: project.status,
+                    userId: currentAdmin.id,
+                    description: HISTORY_DESCRIPTIONS.HAS_BEEN_EDITED,
+                  });
                 }
+
                 return request;
               },
             },
