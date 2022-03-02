@@ -18,6 +18,7 @@ import { AccountVerification } from './accountVerification';
 export enum UserRole {
   ADMIN = 'admin',
   RESTRICTED = 'restricted',
+  OPERATOR = 'operator',
 }
 
 @ObjectType()

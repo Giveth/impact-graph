@@ -48,6 +48,7 @@ export enum ProjStatus {
 
 export enum OrderField {
   CreationDate = 'creationDate',
+  CreationAt = 'createdAt',
   UpdatedAt = 'updatedAt',
 
   // TODO We may can delete this sorting
