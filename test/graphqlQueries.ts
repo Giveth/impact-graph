@@ -29,6 +29,12 @@ export const addProjectQuery = `
             categories {
               name
             }
+            adminUser{
+              id
+              name
+              email
+              walletAddress
+            }
           }
       }
   `;
@@ -50,6 +56,12 @@ export const editProjectQuery = `
       impactLocation
       categories {
         name
+      }
+      adminUser{
+        id
+        name
+        email
+        walletAddress
       }
     }
   }

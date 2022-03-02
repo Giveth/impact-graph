@@ -674,6 +674,7 @@ export class ProjectResolver {
     project.qualityScore = qualityScore;
     project.listed = null;
     await project.save();
+    project.adminUser = await User.findOne({ id: Number(project.admin) });
 
     // We dont wait for trace reponse, because it may increase our response time
     dispatchProjectUpdateEvent(project);
@@ -827,6 +828,7 @@ export class ProjectResolver {
     });
 
     const newProject = await this.projectRepository.save(project);
+    newProject.adminUser = await User.findOne({ id: Number(newProject.admin) });
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,

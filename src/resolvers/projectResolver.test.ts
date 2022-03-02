@@ -889,6 +889,10 @@ function addProjectTestCases() {
       result.data.data.addProject.walletAddress,
       sampleProject.walletAddress,
     );
+    assert.equal(
+      result.data.data.addProject.adminUser.walletAddress,
+      SEED_DATA.FIRST_USER.walletAddress,
+    );
   });
   it('Should create draft successfully', async () => {
     const sampleProject: ProjectInput = {
@@ -1156,6 +1160,10 @@ function editProjectTestCases() {
       },
     );
     assert.equal(editProjectResult.data.data.editProject.title, newTitle);
+    assert.equal(
+      editProjectResult.data.data.editProject.adminUser.walletAddress,
+      SEED_DATA.FIRST_USER.walletAddress,
+    );
   });
   it('Should update successfully and slugHistory would contain last slug', async () => {
     const title = 'test 123456';
