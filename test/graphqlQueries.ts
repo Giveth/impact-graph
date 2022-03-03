@@ -98,6 +98,34 @@ export const editProjectQuery = `
   }
  `;
 
+export const updateProjectQuery = `
+  mutation ($projectId: Float!, $newProjectData: CreateProjectInput!) {
+    updateProject(projectId: $projectId, newProjectData: $newProjectData) {
+      id
+      title
+      description
+      image
+      slug
+      listed
+      verified
+      slugHistory
+      creationDate
+      admin
+      walletAddress
+      impactLocation
+      categories {
+        name
+      }
+      adminUser{
+        id
+        name
+        email
+        walletAddress
+      }
+    }
+  }
+ `;
+
 export const deactivateProjectQuery = `
   mutation ($projectId: Float!, $reasonId: Float) {
     deactivateProject(projectId: $projectId, reasonId: $reasonId)

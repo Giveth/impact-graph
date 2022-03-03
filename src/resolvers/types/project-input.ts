@@ -75,7 +75,6 @@ export class CreateProjectInput {
   @Field(type => [String], { nullable: true, defaultValue: [] })
   categories?: string[];
 
-  // One of static image of website is used as the picture
   @Field({ nullable: true })
   image?: string;
 
