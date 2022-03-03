@@ -11,7 +11,6 @@ import { ProjectStatus } from '../entities/projectStatus';
 import { ImageUpload, ProjectInput } from './types/project-input';
 import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
-import { UserPermissions } from '../permissions';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
@@ -394,7 +393,6 @@ export class ProjectResolver {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private userPermissions: UserPermissions,
     @InjectRepository(Donation)
     private readonly donationRepository: Repository<Donation>,
     @InjectRepository(ProjectImage)

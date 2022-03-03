@@ -11,12 +11,10 @@ import {
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { Repository, In } from 'typeorm';
 
-import { OrganisationUser } from '../entities/organisationUser';
 import { User } from '../entities/user';
 import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerification } from '../entities/accountVerification';
 import { AccountVerificationInput } from './types/accountVerificationInput';
-import { Organisation } from '../entities/organisation';
 import { MyContext } from '../types/MyContext';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { errorMessages } from '../utils/errorMessages';
@@ -29,10 +27,6 @@ const analytics = getAnalytics();
 export class UserResolver {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(OrganisationUser)
-    private readonly organisationUserRepository: Repository<OrganisationUser>,
-    @InjectRepository(Organisation)
-    private readonly organisationRepository: Repository<Organisation>, // , // @InjectRepository(OrganisationUser) // private readonly organisationUserRepository: Repository<OrganisationUser>
     @InjectRepository(AccountVerification)
     @InjectRepository(Project)
     private readonly accountVerificationRepository: Repository<AccountVerification>,

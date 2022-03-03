@@ -1,5 +1,4 @@
-import { Organisation } from './organisation';
-import { OrganisationUser } from './organisationUser';
+import { Organization } from './organization';
 import { User } from './user';
 import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
@@ -16,8 +15,7 @@ import { ProjectStatusReason } from './projectStatusReason';
 import { ProjectStatusHistory } from './projectStatusHistory';
 
 export const entities: any = [
-  Organisation,
-  OrganisationUser,
+  Organization,
   User,
   Project,
   Notification,
