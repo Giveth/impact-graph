@@ -25,8 +25,9 @@ import {
   projectByIdQuery,
   walletAddressIsValid,
   projectsByUserIdQuery,
+  createProjectQuery,
 } from '../../test/graphqlQueries';
-import { ProjectInput } from './types/project-input';
+import { CreateProjectInput, ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
 import {
   OrderField,
@@ -41,6 +42,7 @@ import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { User } from '../entities/user';
 
 describe('addProject test cases --->', addProjectTestCases);
+describe('createProject test cases --->', createProjectTestCases);
 describe('editProject test cases --->', editProjectTestCases);
 
 describe('projects test cases --->', projectsTestCases);
@@ -941,6 +943,278 @@ function addProjectTestCases() {
     );
     assert.equal(
       result.data.data.addProject.walletAddress,
+      sampleProject.walletAddress,
+    );
+  });
+}
+
+function createProjectTestCases() {
+  it('Create Project should return <<Access denied>>, calling without token', async () => {
+    const sampleProject = {
+      title: 'title1',
+    };
+    const result = await axios.post(graphqlUrl, {
+      query: createProjectQuery,
+      variables: {
+        project: sampleProject,
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
+  });
+  it('Should get error, invalid category', async () => {
+    const sampleProject: ProjectInput = {
+      title: String(new Date().getTime()),
+      categories: ['invalid category'],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    );
+  });
+  it('Should get error, when more than 5 categories sent', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: SEED_DATA.CATEGORIES,
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+    );
+  });
+  it('Should get error, when walletAddress of project is repetitive', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const addProjectResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: { ...sampleProject, title: String(new Date().getTime()) },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      addProjectResponse.data.errors[0].message,
+      `Eth address ${sampleProject.walletAddress} is already being used for a project`,
+    );
+  });
+  it('Should get error, when walletAddress of project is a smart contract address', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const addProjectResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: { ...sampleProject, title: String(new Date().getTime()) },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      addProjectResponse.data.errors[0].message,
+      `Eth address ${SEED_DATA.DAI_SMART_CONTRACT_ADDRESS} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+    );
+  });
+  it('Should get error, when title of project is repetitive', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: SEED_DATA.FIRST_PROJECT.title,
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const addProjectResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: {
+            ...sampleProject,
+            walletAddress: generateRandomEtheriumAddress(),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      addProjectResponse.data.errors[0].message,
+      errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS,
+    );
+  });
+  it('Should create successfully', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: 'title ' + new Date().getTime(),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      image:
+        'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data);
+    assert.exists(result.data.data);
+    assert.exists(result.data.data.createProject);
+    assert.equal(result.data.data.createProject.title, sampleProject.title);
+
+    // When creating project, listed is null by default
+    assert.equal(result.data.data.createProject.listed, null);
+
+    assert.equal(
+      result.data.data.createProject.admin,
+      String(SEED_DATA.FIRST_USER.id),
+    );
+    assert.equal(result.data.data.createProject.verified, false);
+    assert.equal(
+      result.data.data.createProject.status.id,
+      String(ProjStatus.active),
+    );
+    assert.equal(
+      result.data.data.createProject.description,
+      sampleProject.description,
+    );
+    assert.equal(
+      result.data.data.createProject.walletAddress,
+      sampleProject.walletAddress,
+    );
+    assert.equal(
+      result.data.data.createProject.adminUser.walletAddress,
+      SEED_DATA.FIRST_USER.walletAddress,
+    );
+    assert.equal(result.data.data.createProject.image, sampleProject.image);
+  });
+
+  it('Should create draft successfully', async () => {
+    const sampleProject: ProjectInput = {
+      title: 'draftTitle1 ' + new Date().getTime(),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      isDraft: true,
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data);
+    assert.exists(result.data.data);
+    assert.exists(result.data.data.createProject);
+    assert.equal(result.data.data.createProject.title, sampleProject.title);
+
+    // When creating project, listed is null by default
+    assert.equal(result.data.data.createProject.listed, null);
+
+    assert.equal(
+      result.data.data.createProject.admin,
+      String(SEED_DATA.FIRST_USER.id),
+    );
+    assert.equal(result.data.data.createProject.verified, false);
+    assert.equal(
+      result.data.data.createProject.status.id,
+      String(ProjStatus.drafted),
+    );
+    assert.equal(
+      result.data.data.createProject.description,
+      sampleProject.description,
+    );
+    assert.equal(
+      result.data.data.createProject.walletAddress,
       sampleProject.walletAddress,
     );
   });
