@@ -580,6 +580,7 @@ export class ProjectResolver {
     return project;
   }
 
+  // After finalizing new UI, we should remove this mutation and just use updateProject
   @Mutation(returns => Project)
   async editProject(
     @Arg('projectId') projectId: number,
@@ -673,6 +674,89 @@ export class ProjectResolver {
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
       // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
       project.slugHistory?.push(project.slug as string);
+    }
+    project.slug = newSlug;
+    project.qualityScore = qualityScore;
+    project.listed = null;
+    await project.save();
+    project.adminUser = await User.findOne({ id: Number(project.admin) });
+
+    // We dont wait for trace reponse, because it may increase our response time
+    dispatchProjectUpdateEvent(project);
+    return project;
+  }
+
+  @Mutation(returns => Project)
+  async updateProject(
+    @Arg('projectId') projectId: number,
+    @Arg('newProjectData') newProjectData: CreateProjectInput,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    const { image } = newProjectData;
+
+    const project = await Project.findOne({ id: projectId });
+
+    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    logger.debug(`project.admin ---> : ${project.admin}`);
+    logger.debug(`user.userId ---> : ${user.userId}`);
+    logger.debug(`updateProject, inputData :`, newProjectData);
+    if (project.admin !== String(user.userId))
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+
+    for (const field in newProjectData) project[field] = newProjectData[field];
+
+    if (!newProjectData.categories) {
+      throw new Error(
+        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+      );
+    }
+
+    const categoriesPromise = newProjectData.categories.map(async category => {
+      const [c] = await this.categoryRepository.find({ name: category });
+      if (c === undefined) {
+        throw new Error(
+          errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        );
+      }
+      return c;
+    });
+
+    const categories = await Promise.all(categoriesPromise);
+    if (categories.length > 5) {
+      throw new Error(
+        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+      );
+    }
+    project.categories = categories;
+
+    const [hearts, heartCount] = await Reaction.findAndCount({
+      projectId,
+    });
+
+    const qualityScore = this.getQualityScore(
+      project.description,
+      Boolean(image),
+      heartCount,
+    );
+    if (newProjectData.title) {
+      await validateProjectTitleForEdit(newProjectData.title, projectId);
+    }
+    if (newProjectData.walletAddress) {
+      await validateProjectWalletAddress(
+        newProjectData.walletAddress,
+        projectId,
+      );
+    }
+
+    const slugBase = slugify(newProjectData.title);
+    const newSlug = await this.getAppropriateSlug(slugBase);
+    if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
+      // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
+      project.slugHistory?.push(project.slug as string);
+    }
+    if (image !== undefined) {
+      project.image = image;
     }
     project.slug = newSlug;
     project.qualityScore = qualityScore;

@@ -84,6 +84,7 @@ export interface CreateProjectData {
   totalReactions?: number;
   totalProjectUpdates?: number;
   traceCampaignId?: string;
+  image?: string;
 }
 
 export const saveUserDirectlyToDb = async (walletAddress: string) => {
