@@ -39,6 +39,37 @@ export const addProjectQuery = `
       }
   `;
 
+export const createProjectQuery = `
+       mutation ($project: CreateProjectInput!) {
+          createProject(project: $project) {
+            id
+            title
+            description
+            admin
+            image
+            impactLocation
+            slug
+            walletAddress
+            listed
+            verified
+            status {
+              name
+              id
+              symbol
+            }
+            categories {
+              name
+            }
+            adminUser{
+              id
+              name
+              email
+              walletAddress
+            }
+          }
+      }
+  `;
+
 export const editProjectQuery = `
   mutation ($projectId: Float!, $newProjectData: ProjectInput!) {
     editProject(projectId: $projectId, newProjectData: $newProjectData) {
