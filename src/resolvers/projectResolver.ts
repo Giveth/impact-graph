@@ -632,9 +632,7 @@ export class ProjectResolver {
       try {
         imagePromise = pinFile(createReadStream(), filename, encoding).then(
           response => {
-            return (
-              'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash
-            );
+            return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.data.IpfsHash}`;
           },
         );
       } catch (e) {
@@ -800,7 +798,7 @@ export class ProjectResolver {
           filename,
           encoding,
         );
-        url = 'https://gateway.pinata.cloud/ipfs/' + pinResponse.data.IpfsHash;
+        url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.data.IpfsHash}`;
 
         const projectImage = this.projectImageRepository.create({
           url,
@@ -867,9 +865,7 @@ export class ProjectResolver {
       try {
         imagePromise = pinFile(createReadStream(), filename, encoding).then(
           response => {
-            return (
-              'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash
-            );
+            return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.data.IpfsHash}`;
           },
         );
       } catch (e) {

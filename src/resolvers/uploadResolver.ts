@@ -29,7 +29,7 @@ export class UploadResolver {
 
     try {
       const response = await pinFile(createReadStream(), filename, encoding);
-      return 'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash;
+      return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.data.IpfsHash}`;
     } catch (e) {
       logger.error('upload() error', e);
       throw Error(errorMessages.IPFS_IMAGE_UPLOAD_FAILED);
