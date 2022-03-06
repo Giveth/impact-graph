@@ -4,8 +4,11 @@ export class changePinataGatewayOfImages1646573865245
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `UPDATE
+    const projectTableExists = await queryRunner.hasTable('project');
+    if (projectTableExists) {
+      await queryRunner.query(
+        `
+        UPDATE
         project
         SET
         image = REPLACE (
@@ -14,9 +17,13 @@ export class changePinataGatewayOfImages1646573865245
           'giveth.mypinata.cloud'
         );
 `,
-    );
-    await queryRunner.query(
-      `UPDATE
+      );
+    }
+
+    const userTableExists = await queryRunner.hasTable('user');
+    if (userTableExists) {
+      await queryRunner.query(
+        `UPDATE
         public."user"
         SET
         avatar = REPLACE (
@@ -25,7 +32,8 @@ export class changePinataGatewayOfImages1646573865245
         'giveth.mypinata.cloud'
 );
 `,
-    );
+      );
+    }
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {}
