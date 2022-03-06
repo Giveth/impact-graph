@@ -228,7 +228,7 @@ function updateUserTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
       firstName: '',
-      lastName:"test lastName",
+      lastName: 'test lastName',
       email: 'giveth @ giveth.com',
       avatar: 'pinata address',
       url: 'website url',
@@ -256,7 +256,7 @@ function updateUserTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
       lastName: '',
-      firstName:"firstName",
+      firstName: 'firstName',
       email: 'giveth @ giveth.com',
       avatar: 'pinata address',
       url: 'website url',
@@ -276,7 +276,7 @@ function updateUserTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-    errorMessages.LASTNAME_CANT_BE_EMPTY_STRING,
+      errorMessages.LASTNAME_CANT_BE_EMPTY_STRING,
     );
   });
 
