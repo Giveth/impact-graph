@@ -5,7 +5,7 @@ export class createOrganisationTable1646301273835
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-                    CREATE TABLE IF NOT EXISTS public.organization
+                    CREATE TABLE IF NOT EXISTS organization
             (
                 id SERIAL NOT NULL,
                 name text COLLATE pg_catalog."default" NOT NULL,

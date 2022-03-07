@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class seedTokes1646303882607 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`INSERT INTO public.token (name,symbol,address, decimals, "networkId") VALUES 
+    await queryRunner.query(`INSERT INTO token (name,symbol,address, decimals, "networkId") VALUES 
          ('Giveth Token','GIV','0x900db999074d9277c5da2a43f252d74366230da0',18, 1),
          ('Panvala','PAN','0xd56dac73a4d6766464b38ec6d91eb45ce7457c44',18, 1),
          ('Dai','DAI','0x6b175474e89094c44da98b954eedeac495271d0f',18, 1),
