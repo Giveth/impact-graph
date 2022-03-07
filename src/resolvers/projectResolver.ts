@@ -451,31 +451,42 @@ export class ProjectResolver {
 
     switch (orderBy.field) {
       case OrderField.Traceable: // TODO: PRISMA will fix this, temporary fix inverting nulls.
-        const traceableDirection: {
-          [key: string]: 'NULLS FIRST' | 'NULLS LAST';
-        } = {
-          ASC: 'NULLS FIRST',
-          DESC: 'NULLS LAST',
-        };
+        // const traceableDirection: {
+        //   [key: string]: 'NULLS FIRST' | 'NULLS LAST';
+        // } = {
+        //   ASC: 'NULLS FIRST',
+        //   DESC: 'NULLS LAST',
+        // };
+        //
+        // query.orderBy(
+        //   `project.${orderBy.field}`,
+        //   orderBy.direction,
+        //   traceableDirection[orderBy.direction],
+        // );
 
-        query.orderBy(
-          `project.${orderBy.field}`,
-          orderBy.direction,
-          traceableDirection[orderBy.direction],
+        query.where(
+          `project.${orderBy.field} IS${
+            orderBy.direction === OrderDirection.ASC ? '' : ' NOT'
+          } NULL`,
         );
         break;
       case OrderField.AcceptGiv:
-        const acceptGivDirection: {
-          [key: string]: 'NULLS FIRST' | 'NULLS LAST';
-        } = {
-          ASC: 'NULLS LAST',
-          DESC: 'NULLS FIRST',
-        };
-
-        query.orderBy(
-          `project.${orderBy.field}`,
-          orderBy.direction,
-          acceptGivDirection[orderBy.direction],
+        // const acceptGivDirection: {
+        //   [key: string]: 'NULLS FIRST' | 'NULLS LAST';
+        // } = {
+        //   ASC: 'NULLS LAST',
+        //   DESC: 'NULLS FIRST',
+        // };
+        //
+        // query.orderBy(
+        //   `project.${orderBy.field}`,
+        //   orderBy.direction,
+        //   acceptGivDirection[orderBy.direction],
+        // );
+        query.where(
+          `project.${orderBy.field} IS${
+            orderBy.direction === OrderDirection.DESC ? '' : ' NOT'
+          } NULL`,
         );
         break;
       default:
