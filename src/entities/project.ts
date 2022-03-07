@@ -162,6 +162,10 @@ class Project extends BaseEntity {
   @Column()
   verified: boolean;
 
+  @Field(type => Boolean, { nullable: true })
+  @Column({ default: 0 })
+  isImported: boolean;
+
   @Field(type => Boolean)
   @Column()
   giveBacks: boolean;
@@ -196,6 +200,13 @@ class Project extends BaseEntity {
 
   @RelationId((project: Project) => project.status)
   statusId: number;
+
+  @Field(type => [ProjectUpdate], { nullable: true })
+  @OneToMany(type => ProjectUpdate, projectUpdate => projectUpdate.project)
+  projectUpdates: ProjectUpdate[];
+
+  @RelationId((project: Project) => project.projectUpdates)
+  project: number;
 
   @Field(type => Float)
   @Column({ type: 'real' })
