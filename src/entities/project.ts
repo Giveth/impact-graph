@@ -201,13 +201,6 @@ class Project extends BaseEntity {
   @RelationId((project: Project) => project.status)
   statusId: number;
 
-  @Field(type => [ProjectUpdate], { nullable: true })
-  @OneToMany(type => ProjectUpdate, projectUpdate => projectUpdate.project)
-  projectUpdates: ProjectUpdate[];
-
-  @RelationId((project: Project) => project.projectUpdates)
-  project: number;
-
   @Field(type => Float)
   @Column({ type: 'real' })
   totalDonations: number;
