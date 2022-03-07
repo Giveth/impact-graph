@@ -1,5 +1,5 @@
 import NotificationPayload from '../entities/notificationPayload';
-import { Reaction, REACTION_TYPE } from '../entities/reaction';
+import { Reaction } from '../entities/reaction';
 import {
   OrderField,
   Project,
@@ -25,7 +25,7 @@ import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { User } from '../entities/user';
 import { Context } from '../context';
-import { Brackets, QueryBuilder, Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
 import config from '../config';
 import slugify from 'slugify';
@@ -449,20 +449,38 @@ export class ProjectResolver {
     );
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
-    if (orderBy.field === 'traceCampaignId') {
-      // TODO: PRISMA will fix this, temporary fix inverting nulls.
-      const traceableDirection = {
-        ASC: 'NULLS FIRST',
-        DESC: 'NULLS LAST',
-      };
-      query.orderBy(
-        `project.${orderBy.field}`,
-        orderBy.direction,
-        // @ts-ignore
-        traceableDirection[orderBy.direction],
-      );
-    } else {
-      query.orderBy(`project.${orderBy.field}`, orderBy.direction);
+    switch (orderBy.field) {
+      case OrderField.Traceable: // TODO: PRISMA will fix this, temporary fix inverting nulls.
+        const traceableDirection: {
+          [key: string]: 'NULLS FIRST' | 'NULLS LAST';
+        } = {
+          ASC: 'NULLS FIRST',
+          DESC: 'NULLS LAST',
+        };
+
+        query.orderBy(
+          `project.${orderBy.field}`,
+          orderBy.direction,
+          traceableDirection[orderBy.direction],
+        );
+        break;
+      case OrderField.AcceptGiv:
+        const acceptGivDirection: {
+          [key: string]: 'NULLS FIRST' | 'NULLS LAST';
+        } = {
+          ASC: 'NULLS LAST',
+          DESC: 'NULLS FIRST',
+        };
+
+        query.orderBy(
+          `project.${orderBy.field}`,
+          orderBy.direction,
+          acceptGivDirection[orderBy.direction],
+        );
+        break;
+      default:
+        query.orderBy(`project.${orderBy.field}`, orderBy.direction);
+        break;
     }
 
     const [projects, totalCount] = await query
