@@ -38,16 +38,15 @@ const checkProjectVerificationStatus = async () => {
       'projectUpdate',
       'project.id = projectUpdate.projectId',
     )
-    .innerJoin(
+    .innerJoinAndSelect(
       ProjectUpdate,
       'nextUpdate',
-      'projectUpdate.createdAt < nextUpdate.createdAt',
+      'project.id = nextUpdate.projectId AND projectUpdate.createdAt < nextUpdate.createdAt',
     )
-    .where('project.isImported = true')
+    .where('project.isImported = true AND nextUpdate.id IS NULL')
     .andWhere('projectUpdate.createdAt < :badgeRevokingDate', {
       badgeRevokingDate: maxDaysForRevokingBadge,
     })
-    .andWhere('nextUpdate.id IS NULL')
     .getMany();
 
   for (const project of projects) {
