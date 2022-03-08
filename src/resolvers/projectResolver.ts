@@ -469,7 +469,10 @@ export class ProjectResolver {
             orderBy.direction === OrderDirection.ASC ? '' : ' NOT'
           } NULL`,
         );
-        query.orderBy(`project.${OrderField.CreationAt}`, OrderDirection.DESC);
+        query.orderBy(
+          `project.${OrderField.CreationDate}`,
+          OrderDirection.DESC,
+        );
         break;
       case OrderField.AcceptGiv:
         // const acceptGivDirection: {
@@ -489,7 +492,10 @@ export class ProjectResolver {
             orderBy.direction === OrderDirection.DESC ? '' : ' NOT'
           } NULL`,
         );
-        query.orderBy(`project.${OrderField.CreationAt}`, OrderDirection.DESC);
+        query.orderBy(
+          `project.${OrderField.CreationDate}`,
+          OrderDirection.DESC,
+        );
         break;
       default:
         query.orderBy(`project.${orderBy.field}`, orderBy.direction);
