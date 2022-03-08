@@ -418,7 +418,9 @@ function projectsTestCases() {
         },
       },
     });
-    assert.exists(result.data.data.projects.projects[0].traceCampaignId);
+    assert.isFalse(
+      result.data.data.projects.projects.some(p => !p.traceCampaignId),
+    );
   });
   it('should return projects, sort by traceable, ASC', async () => {
     await saveProjectDirectlyToDb({
@@ -436,7 +438,9 @@ function projectsTestCases() {
         },
       },
     });
-    assert.notExists(result.data.data.projects.projects[0].traceCampaignId);
+    assert.isFalse(
+      result.data.data.projects.projects.some(p => !!p.traceCampaignId),
+    );
   });
   it('should return projects, filter by traceable, true', async () => {
     await saveProjectDirectlyToDb({
