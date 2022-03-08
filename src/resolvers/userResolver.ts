@@ -69,11 +69,16 @@ export class UserResolver {
         errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
       );
     }
-
-    if (firstName !== undefined) {
+    if (firstName === '') {
+      throw new Error(errorMessages.FIRSTNAME_CANT_BE_EMPTY_STRING);
+    }
+    if (lastName === '') {
+      throw new Error(errorMessages.LASTNAME_CANT_BE_EMPTY_STRING);
+    }
+    if (firstName) {
       dbUser.firstName = firstName;
     }
-    if (lastName !== undefined) {
+    if (lastName) {
       dbUser.lastName = lastName;
     }
     if (location !== undefined) {

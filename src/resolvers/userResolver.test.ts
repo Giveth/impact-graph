@@ -223,6 +223,62 @@ function updateUserTestCases() {
 
     assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
   });
+  it('should fail when sending empty string for firstName', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const updateUserData = {
+      firstName: '',
+      lastName: 'test lastName',
+      email: 'giveth @ giveth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+    };
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateUser,
+        variables: updateUserData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.FIRSTNAME_CANT_BE_EMPTY_STRING,
+    );
+  });
+  it('should fail when sending empty string for lastName', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const updateUserData = {
+      lastName: '',
+      firstName: 'firstName',
+      email: 'giveth @ giveth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+    };
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateUser,
+        variables: updateUserData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.LASTNAME_CANT_BE_EMPTY_STRING,
+    );
+  });
 
   it('should update user and name of user when sending just lastName', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -303,7 +359,7 @@ function updateUserTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const updateUserData = {
       firstName: 'test firstName',
-      lastName: '',
+      lastName: 'test lastName',
       avatar: '',
       url: '',
     };
@@ -327,6 +383,5 @@ function updateUserTestCases() {
     assert.equal(updatedUser?.lastName, updateUserData.lastName);
     assert.equal(updatedUser?.avatar, updateUserData.avatar);
     assert.equal(updatedUser?.url, updateUserData.url);
-    assert.equal(updatedUser?.name, updateUserData.firstName);
   });
 }

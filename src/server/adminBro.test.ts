@@ -146,6 +146,10 @@ function createDonationTestCases() {
       assert.equal(donation.priceUsd, ethPrice);
       assert.equal(donation.segmentNotified, true);
       assert.equal(donation.amount, 0.0001);
+      assert.equal(
+        donation.fromWalletAddress.toLowerCase(),
+        '0xB6D8D84CA33C2e8fE3be1f1B4B0B7dE57cCf4a3c'.toLowerCase(),
+      );
       assert.equal(donation.currency, 'WETH');
       assert.equal(
         donation.createdAt.getTime(),

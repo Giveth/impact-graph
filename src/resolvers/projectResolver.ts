@@ -8,7 +8,11 @@ import {
 } from '../entities/project';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
-import { ImageUpload, ProjectInput } from './types/project-input';
+import {
+  CreateProjectInput,
+  ImageUpload,
+  ProjectInput,
+} from './types/project-input';
 import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
 import { Category } from '../entities/category';
@@ -225,6 +229,9 @@ export class ProjectResolver {
           })
           .orWhere('project.impactLocation ILIKE :searchTerm', {
             searchTerm: `%${searchTerm}%`,
+          })
+          .orWhere('user.name ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
           });
       }),
     );
@@ -423,7 +430,7 @@ export class ProjectResolver {
       // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
       // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndMapOne(
+      .innerJoinAndMapOne(
         'project.adminUser',
         User,
         'user',
@@ -575,6 +582,7 @@ export class ProjectResolver {
     return project;
   }
 
+  // After finalizing new UI, we should remove this mutation and just use updateProject
   @Mutation(returns => Project)
   async editProject(
     @Arg('projectId') projectId: number,
@@ -626,9 +634,7 @@ export class ProjectResolver {
       try {
         imagePromise = pinFile(createReadStream(), filename, encoding).then(
           response => {
-            return (
-              'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash
-            );
+            return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.data.IpfsHash}`;
           },
         );
       } catch (e) {
@@ -680,6 +686,89 @@ export class ProjectResolver {
     return project;
   }
 
+  @Mutation(returns => Project)
+  async updateProject(
+    @Arg('projectId') projectId: number,
+    @Arg('newProjectData') newProjectData: CreateProjectInput,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    const { image } = newProjectData;
+
+    const project = await Project.findOne({ id: projectId });
+
+    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    logger.debug(`project.admin ---> : ${project.admin}`);
+    logger.debug(`user.userId ---> : ${user.userId}`);
+    logger.debug(`updateProject, inputData :`, newProjectData);
+    if (project.admin !== String(user.userId))
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+
+    for (const field in newProjectData) project[field] = newProjectData[field];
+
+    if (!newProjectData.categories) {
+      throw new Error(
+        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+      );
+    }
+
+    const categoriesPromise = newProjectData.categories.map(async category => {
+      const [c] = await this.categoryRepository.find({ name: category });
+      if (c === undefined) {
+        throw new Error(
+          errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        );
+      }
+      return c;
+    });
+
+    const categories = await Promise.all(categoriesPromise);
+    if (categories.length > 5) {
+      throw new Error(
+        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+      );
+    }
+    project.categories = categories;
+
+    const [hearts, heartCount] = await Reaction.findAndCount({
+      projectId,
+    });
+
+    const qualityScore = this.getQualityScore(
+      project.description,
+      Boolean(image),
+      heartCount,
+    );
+    if (newProjectData.title) {
+      await validateProjectTitleForEdit(newProjectData.title, projectId);
+    }
+    if (newProjectData.walletAddress) {
+      await validateProjectWalletAddress(
+        newProjectData.walletAddress,
+        projectId,
+      );
+    }
+
+    const slugBase = slugify(newProjectData.title);
+    const newSlug = await this.getAppropriateSlug(slugBase);
+    if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
+      // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
+      project.slugHistory?.push(project.slug as string);
+    }
+    if (image !== undefined) {
+      project.image = image;
+    }
+    project.slug = newSlug;
+    project.qualityScore = qualityScore;
+    project.listed = null;
+    await project.save();
+    project.adminUser = await User.findOne({ id: Number(project.admin) });
+
+    // We dont wait for trace reponse, because it may increase our response time
+    dispatchProjectUpdateEvent(project);
+    return project;
+  }
+
   // getQualityScore (projectInput) {
   getQualityScore(description, hasImageUpload, heartCount) {
     const heartScore = 10;
@@ -711,7 +800,7 @@ export class ProjectResolver {
           filename,
           encoding,
         );
-        url = 'https://gateway.pinata.cloud/ipfs/' + pinResponse.data.IpfsHash;
+        url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.data.IpfsHash}`;
 
         const projectImage = this.projectImageRepository.create({
           url,
@@ -734,6 +823,7 @@ export class ProjectResolver {
     throw Error('Upload file failed');
   }
 
+  // We would use createProject mutation in future, after release giveth-typescript front we can remove this one
   @Mutation(returns => Project)
   async addProject(
     @Arg('project') projectInput: ProjectInput,
@@ -777,9 +867,7 @@ export class ProjectResolver {
       try {
         imagePromise = pinFile(createReadStream(), filename, encoding).then(
           response => {
-            return (
-              'https://gateway.pinata.cloud/ipfs/' + response.data.IpfsHash
-            );
+            return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.data.IpfsHash}`;
           },
         );
       } catch (e) {
@@ -865,6 +953,118 @@ export class ProjectResolver {
         .where(`project_image.id IN (${projectInput.projectImageIds})`)
         .execute();
     }
+
+    const payload: NotificationPayload = {
+      id: 1,
+      message: 'A new project was created',
+    };
+    const segmentProject = {
+      email: user.email,
+      title: project.title,
+      lastName: user.lastName,
+      firstName: user.firstName,
+      OwnerId: user.id,
+      slug: project.slug,
+      walletAddress: project.walletAddress,
+    };
+    // -Mitch I'm not sure why formattedProject was added in here, the object is missing a few important pieces of
+    // information into the analytics
+
+    const formattedProject = {
+      ...projectInput,
+      description: projectInput?.description?.replace(/<img .*?>/g, ''),
+    };
+    analytics.track(
+      SegmentEvents.PROJECT_CREATED,
+      `givethId-${ctx.req.user.userId}`,
+      segmentProject,
+      null,
+    );
+
+    await pubSub.publish('NOTIFICATIONS', payload);
+
+    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
+      triggerBuild(newProject.id);
+
+    return newProject;
+  }
+
+  @Mutation(returns => Project)
+  async createProject(
+    @Arg('project') projectInput: CreateProjectInput,
+    @Ctx() ctx: MyContext,
+    @PubSub() pubSub: PubSubEngine,
+  ): Promise<Project> {
+    const user = await getLoggedInUser(ctx);
+    const { image, description } = projectInput;
+
+    const qualityScore = this.getQualityScore(description, Boolean(image), 0);
+
+    if (!projectInput.categories) {
+      throw new Error(
+        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+      );
+    }
+
+    // We do not create categories only use existing ones
+    const categories = await Promise.all(
+      projectInput.categories
+        ? projectInput.categories.map(async category => {
+            const [c] = await this.categoryRepository.find({ name: category });
+            if (c === undefined) {
+              throw new Error(
+                errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+              );
+            }
+            return c;
+          })
+        : [],
+    );
+
+    if (categories.length > 5) {
+      throw new Error(
+        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+      );
+    }
+    await validateProjectWalletAddress(projectInput.walletAddress);
+    await validateProjectTitle(projectInput.title);
+    const slugBase = slugify(projectInput.title);
+    const slug = await this.getAppropriateSlug(slugBase);
+
+    const status = await this.projectStatusRepository.findOne({
+      id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
+    });
+
+    const project = this.projectRepository.create({
+      ...projectInput,
+      categories,
+      image,
+      creationDate: new Date(),
+      slug: slug.toLowerCase(),
+      slugHistory: [],
+      admin: ctx.req.user.userId,
+      users: [user],
+      status,
+      qualityScore,
+      totalDonations: 0,
+      totalReactions: 0,
+      totalProjectUpdates: 1,
+      verified: false,
+      giveBacks: false,
+    });
+
+    const newProject = await this.projectRepository.save(project);
+    newProject.adminUser = await User.findOne({ id: Number(newProject.admin) });
+
+    const update = await ProjectUpdate.create({
+      userId: ctx.req.user.userId,
+      projectId: newProject.id,
+      content: '',
+      title: '',
+      createdAt: new Date(),
+      isMain: true,
+    });
+    await ProjectUpdate.save(update);
 
     const payload: NotificationPayload = {
       id: 1,
