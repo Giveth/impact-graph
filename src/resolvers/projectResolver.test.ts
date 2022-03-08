@@ -89,6 +89,23 @@ describe(
 // describe('activateProject test cases --->', activateProjectTestCases);
 
 function projectsTestCases() {
+  it('should return projects search by owner', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        searchTerm: SEED_DATA.SECOND_USER.name,
+      },
+    });
+
+    const projects = result.data.data.projects.projects;
+    const secondUserProjects = await Project.find({
+      admin: String(SEED_DATA.SECOND_USER.id),
+    });
+
+    assert.equal(projects.length, secondUserProjects.length);
+    assert.equal(Number(projects[0]?.admin), SEED_DATA.SECOND_USER.id);
+  });
+
   it('should return projects with current take', async () => {
     const take = 1;
     const result = await axios.post(graphqlUrl, {
