@@ -4,7 +4,7 @@ export class createTokensTable1646295724658 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `      
-       CREATE TABLE IF NOT EXISTS public.token
+       CREATE TABLE IF NOT EXISTS token
          (
           id SERIAL NOT NULL,
           name text COLLATE pg_catalog."default" NOT NULL,
@@ -13,7 +13,7 @@ export class createTokensTable1646295724658 implements MigrationInterface {
           "networkId" integer NOT NULL,
           decimals integer NOT NULL,
           CONSTRAINT "PK_82fae97f905930df5d62a702fc9" PRIMARY KEY (id)
-           )`,
+           )`
     );
   }
 

@@ -9,6 +9,7 @@ import {
   OneToMany,
   JoinTable,
 } from 'typeorm';
+import { Organization } from './organization';
 
 @Entity()
 @ObjectType()
@@ -36,9 +37,10 @@ export class Token extends BaseEntity {
   @Field()
   @Column()
   decimals: number;
-  //
+
   // @Field(type => [Organization])
-  // @ManyToMany(type => Organization)
   // @JoinTable()
-  // organizations: Organization[];
+
+  @ManyToMany(type => Organization, organization => organization.tokens)
+  organizations: Organization[];
 }

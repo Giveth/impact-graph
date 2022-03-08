@@ -19,7 +19,7 @@ export class createOrganisatioTokenTable1646302349926
                 ON UPDATE CASCADE
                 ON DELETE CASCADE
         )
-        `);
+        ;`);
 
     // await queryRunner.query(`
     //     CREATE TABLE IF NOT EXISTS public.token_organizations_organization
