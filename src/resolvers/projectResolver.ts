@@ -52,6 +52,7 @@ import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { getLoggedInUser } from '../services/authorizationServices';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 
 const analytics = getAnalytics();
 
@@ -806,11 +807,14 @@ export class ProjectResolver {
     const status = await this.projectStatusRepository.findOne({
       id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
     });
-
+    const organization = await Organization.findOne({
+      label: ORGANIZATION_LABELS.GIVETH,
+    });
     const project = this.projectRepository.create({
       ...projectInput,
       categories,
       image,
+      organization,
       creationDate: new Date(),
       slug: slug.toLowerCase(),
       slugHistory: [],

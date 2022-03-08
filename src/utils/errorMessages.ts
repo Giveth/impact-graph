@@ -32,6 +32,7 @@ export const errorMessages = {
   USER_NOT_FOUND: 'User not found.',
   INVALID_NETWORK_ID: 'Network Id is invalid',
   INVALID_TOKEN_SYMBOL: 'Token symbol is invalid',
+  TOKEN_NOT_FOUND: 'Token Not found',
   TRANSACTION_NOT_FOUNT_IN_USER_HISTORY:
     'TRANSACTION_NOT_FOUNT_IN_USER_HISTORY',
   TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY:

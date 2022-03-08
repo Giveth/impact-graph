@@ -10,8 +10,11 @@ import {
   ProjStatus,
   ProjectUpdate,
 } from '../src/entities/project';
-import { errorMessages } from '../src/utils/errorMessages';
 import { ProjectStatus } from '../src/entities/projectStatus';
+import {
+  Organization,
+  ORGANIZATION_LABELS,
+} from '../src/entities/organization';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -78,6 +81,7 @@ export interface CreateProjectData {
   updatedAt: Date;
   slug: string;
   statusId?: number;
+  organizationLabel?: string;
   qualityScore?: number;
   totalDonations?: number;
   totalTraceDonations?: number;
@@ -95,11 +99,14 @@ export const saveUserDirectlyToDb = async (walletAddress: string) => {
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
 ): Promise<Project> => {
-  const statusId = projectData?.statusId
-    ? projectData.statusId
-    : ProjStatus.active;
+  const statusId = projectData?.statusId || ProjStatus.active;
   const status = await ProjectStatus.findOne({
     id: statusId,
+  });
+  const organizationLabel =
+    projectData.organizationLabel || ORGANIZATION_LABELS.GIVETH;
+  const organization = await Organization.findOne({
+    label: organizationLabel,
   });
   const user = (await User.findOne({
     id: Number(projectData.admin),
@@ -119,6 +126,7 @@ export const saveProjectDirectlyToDb = async (
   const project = await Project.create({
     ...projectData,
     status,
+    organization,
     categories,
     users: [user],
   }).save();
@@ -285,6 +293,28 @@ export const SEED_DATA = {
     },
   ],
   DAI_SMART_CONTRACT_ADDRESS: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  ORGANIZATIONS: [
+    {
+      name: 'Giveth',
+      label: ORGANIZATION_LABELS.GIVETH,
+      website: 'https://giveth.io',
+    },
+    {
+      name: 'Trace',
+      label: ORGANIZATION_LABELS.TRACE,
+      website: 'https://trace.giveth.io',
+    },
+    {
+      name: 'Giving Block',
+      label: ORGANIZATION_LABELS.GIVING_BLOCK,
+      website: 'https://thegivingblock.com',
+    },
+    {
+      name: 'CHANGE',
+      label: ORGANIZATION_LABELS.CHANGE,
+      website: 'https://getchange.io',
+    },
+  ],
   TOKENS: {
     mainnet: [
       {
