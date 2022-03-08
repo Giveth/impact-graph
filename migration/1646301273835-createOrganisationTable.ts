@@ -9,6 +9,7 @@ export class createOrganisationTable1646301273835
             (
                 id SERIAL NOT NULL,
                 name text COLLATE pg_catalog."default" NOT NULL,
+                label text COLLATE pg_catalog."default" NOT NULL,
                 website text COLLATE pg_catalog."default",
                 CONSTRAINT "PK_472c1f99a32def1b0abb219cd67" PRIMARY KEY (id)
             )
