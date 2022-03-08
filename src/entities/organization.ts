@@ -24,6 +24,11 @@ export class Organization extends BaseEntity {
   @Column('text')
   name: string;
 
+  // It should not change during the time, because we are assuming they are readonly
+  @Field()
+  @Column('text')
+  label: string;
+
   @Field()
   @Column('text', { nullable: true })
   website?: string;
@@ -41,3 +46,10 @@ export class Organization extends BaseEntity {
   @JoinTable()
   tokens: Token[];
 }
+
+export const ORGANIZATION_LABELS = {
+  GIVETH: 'giveth',
+  TRACE: 'trace',
+  CHANGE: 'change',
+  GIVING_BLOCK: 'givingBlock',
+};

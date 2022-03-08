@@ -21,16 +21,22 @@ export class relateExistingProjectsToOrganizations1646306281286
         WHERE name='Giving Block'`)
     )[0];
 
-    const projects = await Project.find({});
+    const projects = await queryRunner.query(`SELECT * FROM project`);
     for (const project of projects) {
+      let organizationId;
       if (project.traceCampaignId) {
-        project.organization = traceOrganization;
+        organizationId = traceOrganization.id;
       } else if (project.givingBlocksId) {
-        project.organization = givingBlockOrganization;
+        organizationId = givingBlockOrganization.id;
       } else {
-        project.organization = givethOrganization;
+        organizationId = givethOrganization.id;
       }
-      await project.save();
+      await queryRunner.query(
+        `
+                UPDATE project SET "organizationId" = ${organizationId}
+                WHERE id=${project.id}
+              `,
+      );
     }
   }
 
