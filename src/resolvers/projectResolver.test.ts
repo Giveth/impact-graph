@@ -42,6 +42,7 @@ import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { User } from '../entities/user';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 
 describe('addProject test cases --->', addProjectTestCases);
 describe('createProject test cases --->', createProjectTestCases);
@@ -890,7 +891,10 @@ function addProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.addProject);
     assert.equal(result.data.data.addProject.title, sampleProject.title);
-
+    assert.equal(
+      result.data.data.addProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
     // When creating project, listed is null by default
     assert.equal(result.data.data.addProject.listed, null);
 
@@ -944,6 +948,10 @@ function addProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.addProject);
     assert.equal(result.data.data.addProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.addProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
 
     // When creating project, listed is null by default
     assert.equal(result.data.data.addProject.listed, null);
@@ -1160,6 +1168,10 @@ function createProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.createProject);
     assert.equal(result.data.data.createProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.createProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
 
     // When creating project, listed is null by default
     assert.equal(result.data.data.createProject.listed, null);
@@ -1216,6 +1228,10 @@ function createProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.createProject);
     assert.equal(result.data.data.createProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.createProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
 
     // When creating project, listed is null by default
     assert.equal(result.data.data.createProject.listed, null);

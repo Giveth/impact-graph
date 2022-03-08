@@ -21,6 +21,11 @@ export const addProjectQuery = `
             walletAddress
             listed
             verified
+            organization {
+              id
+              name
+              label
+            }
             status {
               name
               id
@@ -52,6 +57,11 @@ export const createProjectQuery = `
             walletAddress
             listed
             verified
+            organization {
+              id
+              name
+              label
+            }
             status {
               name
               id

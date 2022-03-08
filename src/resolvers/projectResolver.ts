@@ -1035,9 +1035,14 @@ export class ProjectResolver {
       id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
     });
 
+    const organization = await Organization.findOne({
+      label: ORGANIZATION_LABELS.GIVETH,
+    });
+
     const project = this.projectRepository.create({
       ...projectInput,
       categories,
+      organization,
       image,
       creationDate: new Date(),
       slug: slug.toLowerCase(),
