@@ -17,5 +17,9 @@ export class createTokensTable1646295724658 implements MigrationInterface {
     );
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(queryRunner: QueryRunner): Promise<void> {
+    if (await queryRunner.hasTable('token')) {
+      await queryRunner.query(`DROP TABLE "token"`);
+    }
+  }
 }

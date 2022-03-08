@@ -3,6 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class seedTokes1646303882607 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`INSERT INTO token (name,symbol,address, decimals, "networkId") VALUES 
+         ('Ethereum native token','ETH','0x0000000000000000000000000000000000000000',18, 1),
          ('Giveth Token','GIV','0x900db999074d9277c5da2a43f252d74366230da0',18, 1),
          ('Panvala','PAN','0xd56dac73a4d6766464b38ec6d91eb45ce7457c44',18, 1),
          ('Dai','DAI','0x6b175474e89094c44da98b954eedeac495271d0f',18, 1),
@@ -124,12 +125,13 @@ export class seedTokes1646303882607 implements MigrationInterface {
          ('Fetch','FET','0xaea46A60368A7bD060eec7DF8CBa43b7EF41Ad85',18, 1),
 
         
+         ('Ethereum native token','ETH','0x0000000000000000000000000000000000000000',18, 3),
          ('DAI Ropsten','DAI','0xad6d458402f60fd3bd25163575031acdce07538d',18, 3),
          ('Giveth Ropsten Test','YAY','0x067eA48882E6D728A37acfd1535ec03f8E33794a',18, 3),
          ('UNI Ropsten','UNI','0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',18, 3),
          
          
-         
+         ('Xdai native token','XDAI','0x0000000000000000000000000000000000000000',18, 100),
          ('Giveth Token','GIV','0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75',18, 100),
          ('Curve DAO Token','CRV','0x1337BedC9D22ecbe766dF105c9623922A27963EC',18, 100),
          ('dAppNode on xDAI','XNODE','0xc60e38C6352875c051B481Cbe79Dd0383AdB7817',18, 100),

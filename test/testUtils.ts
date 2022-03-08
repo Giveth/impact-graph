@@ -319,6 +319,12 @@ export const SEED_DATA = {
   TOKENS: {
     mainnet: [
       {
+        name: 'Ethereum native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+      {
         name: 'Giveth Token',
         symbol: 'GIV',
         address: '0x900db999074d9277c5da2a43f252d74366230da0',
@@ -1037,6 +1043,12 @@ export const SEED_DATA = {
     ],
     ropsten: [
       {
+        name: 'Ethereum native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+      {
         address: '0xad6d458402f60fd3bd25163575031acdce07538d',
         symbol: 'DAI',
         name: 'DAI Ropsten',
@@ -1056,6 +1068,12 @@ export const SEED_DATA = {
       },
     ],
     xdai: [
+      {
+        name: 'XDAI native token',
+        symbol: 'XDAI',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
       {
         name: 'Giveth Token',
         symbol: 'GIV',

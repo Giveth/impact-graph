@@ -20,25 +20,11 @@ export class createOrganisatioTokenTable1646302349926
                 ON DELETE CASCADE
         )
         ;`);
-
-    // await queryRunner.query(`
-    //     CREATE TABLE IF NOT EXISTS public.token_organizations_organization
-    //     (
-    //         "tokenId" integer NOT NULL,
-    //         "organizationId" integer NOT NULL,
-    //         CONSTRAINT "PK_6b2c247d62517df75382916cda3" PRIMARY KEY ("tokenId", "organizationId"),
-    //         CONSTRAINT "FK_1c28a8f33b20f099ab63d7b22e4" FOREIGN KEY ("tokenId")
-    //             REFERENCES public.token (id) MATCH SIMPLE
-    //             ON UPDATE CASCADE
-    //             ON DELETE CASCADE,
-    //         CONSTRAINT "FK_764af26b49daec8ab1620ceb66c" FOREIGN KEY ("organizationId")
-    //             REFERENCES public.organization (id) MATCH SIMPLE
-    //             ON UPDATE CASCADE
-    //             ON DELETE CASCADE
-    //     )
-    //
-    // `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(queryRunner: QueryRunner): Promise<void> {
+    if (await queryRunner.hasTable('organization_tokens_token')) {
+      await queryRunner.query(`DROP TABLE "organization_tokens_token"`);
+    }
+  }
 }
