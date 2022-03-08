@@ -171,6 +171,7 @@ export class DonationResolver {
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('traceable', { defaultValue: false }) traceable: boolean,
     @Arg('projectId', type => Number) projectId: number,
+    @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
     @Arg('orderBy', type => SortBy, {
       defaultValue: {
         field: SortField.CreationDate,
@@ -207,6 +208,12 @@ export class DonationResolver {
           orderBy.direction,
           nullDirection[orderBy.direction as string],
         );
+
+      if (searchTerm) {
+        query.andWhere('user.name ILIKE :searchTerm', {
+          searchTerm,
+        });
+      }
 
       const [donations, donationsCount] = await query
         .take(take)

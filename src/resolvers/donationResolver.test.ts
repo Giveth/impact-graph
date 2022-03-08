@@ -11,6 +11,7 @@ import { Donation } from '../entities/donation';
 import {
   fetchDonationsByUserIdQuery,
   fetchDonationsByDonorQuery,
+  fetchDonationsByProjectIdQuery,
 } from '../../test/graphqlQueries';
 
 // TODO Write test cases
@@ -25,6 +26,17 @@ describe('donationsByDonor() test cases', donationsByDonorTestCases);
 
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
+
+// function donationsByProjectIdTestCases() {
+//   it('should paginate correctly', async () => {});
+//   it('should sort by the createdAt DESC', async () => {});
+//   it('should sort by createdAt ASC', async () => {});
+//   it('should sort by amount DESC', async () => {});
+//   it('should sort by amount ASC', async () => {});
+//   it('should sort by valueUsd DESC', async () => {});
+//   it('should sort by valueUsd ASC', async () => {});
+//   it('should sort by user searched', async () => {});
+// }
 
 function donationsByUserIdTestCases() {
   it('should sort by tokens donated DESC', async () => {

@@ -172,6 +172,46 @@ export const fetchDonationsByDonorQuery = `
   }
 `;
 
+export const fetchDonationsByProjectIdQuery = `
+  query (
+    $skip: Int
+    $take: Int
+    $traceable: Boolean
+    $projectId: Int!
+    $searchTerm: String
+    $orderBy: SortBy
+  ) {
+    donationsByUserId(
+      skip: $skip
+      take: $take
+      traceable: $traceable
+      projectId: $projectId
+      searchTerm: $searchTerm
+      orderBy: $orderBy
+    ) {
+      donations {
+        id
+        transactionId
+        transactionNetworkId
+        toWalletAddress
+        fromWalletAddress
+        currency
+        anonymous
+        valueUsd
+        amount
+        user {
+          id
+        }
+        project {
+          id
+        }
+        createdAt
+      }
+      totalCount
+    }
+  }
+`;
+
 export const fetchDonationsByUserIdQuery = `
   query (
     $take: Int
