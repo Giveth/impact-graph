@@ -8,6 +8,14 @@ export class relateExistingProjectsToOrganizations1646306281286
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
+    const projectTableExists = await queryRunner.hasTable('project');
+    if (!projectTableExists) {
+      // tslint:disable-next-line:no-console
+      console.log(
+        'The project table doesnt exist, so there is no need to relate it to organizations',
+      );
+      return;
+    }
     const givethOrganization = (
       await queryRunner.query(`SELECT * FROM organization
         WHERE name='Giveth'`)
