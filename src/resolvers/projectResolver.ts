@@ -229,6 +229,9 @@ export class ProjectResolver {
           })
           .orWhere('project.impactLocation ILIKE :searchTerm', {
             searchTerm: `%${searchTerm}%`,
+          })
+          .orWhere('user.name ILIKE :searchTerm', {
+            searchTerm: `%${searchTerm}%`,
           });
       }),
     );
@@ -428,7 +431,7 @@ export class ProjectResolver {
       // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
       // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndMapOne(
+      .innerJoinAndMapOne(
         'project.adminUser',
         User,
         'user',
