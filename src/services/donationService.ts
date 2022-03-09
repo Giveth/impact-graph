@@ -5,6 +5,7 @@ import { User } from '../entities/user';
 import DonationTracker from './segment/DonationTracker';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
+import { Organization } from '../entities/organization';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -101,5 +102,34 @@ export const updateTotalDonationsOfProject = async (projectId: number) => {
     );
   } catch (e) {
     logger.error('updateTotalDonationsOfAProject error', e);
+  }
+};
+
+export const isProjectAcceptToken = async (inputData: {
+  projectId: number;
+  tokenId: number;
+}): Promise<boolean> => {
+  try {
+    const { projectId, tokenId } = inputData;
+    const project = await Project.createQueryBuilder('project')
+      .where(`project.id = ${projectId}`)
+      .getOne();
+    if (!project) {
+      return false;
+    }
+    const organizationToken = await Organization.query(
+      `
+        SELECT * FROM organization_tokens_token
+        WHERE "tokenId" = ${tokenId} AND "organizationId" = ${project.organizationId}
+        LIMIT 1
+      `,
+    );
+    return organizationToken.length > 0;
+  } catch (e) {
+    logger.error('isProjectAcceptToken() error', {
+      inputData,
+      error: e,
+    });
+    return false;
   }
 };

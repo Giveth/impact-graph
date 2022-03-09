@@ -15,7 +15,11 @@ import { Project, ProjectUpdate } from '../src/entities/project';
 import { Reaction } from '../src/entities/reaction';
 import { Token } from '../src/entities/token';
 import { ProjectStatusReason } from '../src/entities/projectStatusReason';
-import { Organization } from '../src/entities/organization';
+import {
+  Organization,
+  ORGANIZATION_LABELS,
+} from '../src/entities/organization';
+import { NETWORK_IDS } from '../src/provider';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -58,6 +62,7 @@ async function seedDb() {
   await seedStatusReasons();
   await seedTokens();
   await seedOrganizations();
+  await relateOrganizationsToTokens();
 }
 
 async function seedTokens() {
@@ -87,6 +92,28 @@ async function seedOrganizations() {
   }
 }
 
+async function relateOrganizationsToTokens() {
+  const tokens = await Token.find({});
+  const giveth = (await Organization.findOne({
+    label: ORGANIZATION_LABELS.GIVETH,
+  })) as Organization;
+  const trace = (await Organization.findOne({
+    label: ORGANIZATION_LABELS.TRACE,
+  })) as Organization;
+  const givingBlock = (await Organization.findOne({
+    label: ORGANIZATION_LABELS.GIVING_BLOCK,
+  })) as Organization;
+  giveth.tokens = tokens;
+  await giveth.save();
+  trace.tokens = tokens;
+  await trace.save();
+  const etherMainnetToken = (await Token.findOne({
+    symbol: 'ETH',
+    networkId: NETWORK_IDS.MAIN_NET,
+  })) as Token;
+  givingBlock.tokens = [etherMainnetToken];
+  await givingBlock?.save();
+}
 async function seedUsers() {
   await User.create(SEED_DATA.FIRST_USER).save();
   await User.create(SEED_DATA.SECOND_USER).save();

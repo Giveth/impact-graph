@@ -53,4 +53,5 @@ export const errorMessages = {
   ACCESS_DENIED: 'Access denied',
   AUTHENTICATION_REQUIRED: 'Authentication required.',
   SOMETHING_WENT_WRONG: 'Something went wrong.',
+  PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
 };

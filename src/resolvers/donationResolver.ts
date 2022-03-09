@@ -27,7 +27,10 @@ import { User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
-import { updateTotalDonationsOfProject } from '../services/donationService';
+import {
+  isProjectAcceptToken,
+  updateTotalDonationsOfProject,
+} from '../services/donationService';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
@@ -303,6 +306,18 @@ export class DonationResolver {
       const project = await Project.findOne({ id: Number(projectId) });
 
       if (!project) throw new Error('Transaction project was not found.');
+      const tokenInDb = await Token.findOne({
+        networkId: chainId,
+        symbol: token,
+      });
+      if (!tokenInDb) throw new Error(errorMessages.TOKEN_NOT_FOUND);
+      const doesProjectSupportToken = await isProjectAcceptToken({
+        projectId,
+        tokenId: tokenInDb.id,
+      });
+      if (!doesProjectSupportToken) {
+        throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+      }
       if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
         throw new Error(
           errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
