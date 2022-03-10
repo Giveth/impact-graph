@@ -167,10 +167,12 @@ export class DonationResolver {
   @Query(returns => PaginateDonations, { nullable: true })
   async donationsByProjectId(
     @Ctx() ctx: MyContext,
-    @Arg('skip', { defaultValue: 0 }) skip: number,
-    @Arg('take', { defaultValue: 10 }) take: number,
-    @Arg('traceable', { defaultValue: false }) traceable: boolean,
-    @Arg('projectId', type => Number) projectId: number,
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('traceable', type => Boolean, { defaultValue: false })
+    traceable: boolean,
+    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
+    @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
     @Arg('orderBy', type => SortBy, {
       defaultValue: {
         field: SortField.CreationDate,
@@ -207,6 +209,12 @@ export class DonationResolver {
           orderBy.direction,
           nullDirection[orderBy.direction as string],
         );
+
+      if (searchTerm) {
+        query.andWhere('user.name ILIKE :searchTerm', {
+          searchTerm: `%${searchTerm}%`,
+        });
+      }
 
       const [donations, donationsCount] = await query
         .take(take)
