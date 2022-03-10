@@ -174,16 +174,16 @@ export const fetchDonationsByDonorQuery = `
 
 export const fetchDonationsByProjectIdQuery = `
   query (
-    $skip: Int
     $take: Int
+    $skip: Int
     $traceable: Boolean
     $projectId: Int!
     $searchTerm: String
     $orderBy: SortBy
   ) {
-    donationsByUserId(
-      skip: $skip
+    donationsByProjectId(
       take: $take
+      skip: $skip
       traceable: $traceable
       projectId: $projectId
       searchTerm: $searchTerm
@@ -202,12 +202,10 @@ export const fetchDonationsByProjectIdQuery = `
         user {
           id
         }
-        project {
-          id
-        }
         createdAt
       }
       totalCount
+      totalUsdBalance
     }
   }
 `;
