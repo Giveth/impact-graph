@@ -117,7 +117,9 @@ async function relateOrganizationsToTokens() {
 async function seedUsers() {
   await User.create(SEED_DATA.FIRST_USER).save();
   await User.create(SEED_DATA.SECOND_USER).save();
+  await User.create(SEED_DATA.THIRD_USER).save();
   await User.create(SEED_DATA.ADMIN_USER).save();
+  await User.create(SEED_DATA.PROJECT_OWNER_USER).save();
 }
 async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.FIRST_PROJECT);

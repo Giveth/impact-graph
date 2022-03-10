@@ -198,6 +198,13 @@ export const SEED_DATA = {
     id: 4,
     walletAddress: generateRandomEtheriumAddress(),
   },
+  PROJECT_OWNER_USER: {
+    name: 'project owner user',
+    lastName: 'projectOwner lastName',
+    loginType: 'wallet',
+    id: 5,
+    walletAddress: generateRandomEtheriumAddress(),
+  },
   FIRST_PROJECT: {
     ...createProjectData(),
     title: 'first project',
@@ -1324,6 +1331,9 @@ export const saveDonationDirectlyToDb = async (
 
 export function generateRandomEtheriumAddress(): string {
   return `0x${generateHexNumber(40)}`;
+}
+export function generateRandomTxHash(): string {
+  return `0x${generateHexNumber(64)}`;
 }
 
 function generateHexNumber(len) {

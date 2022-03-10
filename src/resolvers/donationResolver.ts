@@ -457,7 +457,7 @@ export class DonationResolver {
     } catch (e) {
       SentryLogger.captureException(e);
       logger.error('saveDonation() error', e);
-      throw new Error(e);
+      throw e;
     }
   }
 

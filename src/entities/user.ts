@@ -102,10 +102,12 @@ export class User extends BaseEntity {
   accountVerifications?: AccountVerification[];
 
   @Field(type => Int, { nullable: true })
+  // TODO Carlos please check this, I think it should be float
   @Column({ type: 'integer', nullable: true, default: 0 })
   totalDonated: number;
 
   @Field(type => Int, { nullable: true })
+  // TODO Carlos please check this, I think it should be float
   @Column({ type: 'integer', nullable: true, default: 0 })
   totalReceived: number;
 

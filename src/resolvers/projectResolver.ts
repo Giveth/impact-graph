@@ -57,6 +57,7 @@ import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { getLoggedInUser } from '../services/authorizationServices';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import { Token } from '../entities/token';
 
 const analytics = getAnalytics();
 
@@ -1290,6 +1291,34 @@ export class ProjectResolver {
             `,
     );
     return recipients.map(({ walletAddress }) => walletAddress);
+  }
+
+  @Query(returns => [Token])
+  async getProjectAcceptTokens(
+    @Arg('projectId') projectId: number,
+  ): Promise<Token[]> {
+    try {
+      const projects = await Project.query(
+        `
+              SELECT * FROM project
+              WHERE id=${projectId}
+              LIMIT 1
+              `,
+      );
+      if (projects.length === 0) {
+        throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      }
+      const organization = await Organization.createQueryBuilder('organization')
+        .leftJoinAndSelect('organization.tokens', 'tokens')
+        .where('organization.id = :organizationId', {
+          organizationId: projects[0].organizationId,
+        })
+        .getOne();
+      return organization?.tokens as Token[];
+    } catch (e) {
+      logger.error('getProjectAcceptTokens error', e);
+      throw e;
+    }
   }
 
   @Query(returns => [Reaction])
