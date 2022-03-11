@@ -471,27 +471,8 @@ const getAdminBroInstance = () => {
                 return request;
               },
             },
-            exportSelectedToCsv: {
-              actionType: 'bulk',
-              isVisible: true,
-              handler: async (request, response, context) => {
-                const { records } = context;
-
-                return {
-                  redirectUrl: 'Project',
-                  records: records.map(record => {
-                    record.toJSON(context.currentAdmin);
-                  }),
-                  notice: {
-                    message: `Project(s) successfully`,
-                    type: 'success',
-                  },
-                };
-              },
-              component: false,
-            },
-            exportAllToCsv: {
-              actionType: 'bulk',
+            exportFilterToCsv: {
+              actionType: 'resource',
               isVisible: true,
               handler: async (request, response, context) => {
                 const { records } = context;
@@ -512,11 +493,9 @@ const getAdminBroInstance = () => {
 
                 return {
                   redirectUrl: 'Project',
-                  records: records.map(record => {
-                    record.toJSON(context.currentAdmin);
-                  }),
+                  records: [],
                   notice: {
-                    message: `Project(s) successfully`,
+                    message: `Project(s) successfully exported`,
                     type: 'success',
                   },
                 };
