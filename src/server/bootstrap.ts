@@ -17,6 +17,7 @@ import { graphqlUploadExpress } from 'graphql-upload';
 import { Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator';
 
+import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
@@ -243,6 +244,7 @@ export async function bootstrap() {
     initHandlingTraceCampaignUpdateEvents();
     runUpdateHistoricGivPrices();
     runUpdateTraceableProjectsTotalDonations();
+    runCheckProjectVerificationStatus();
 
     // If we need to deactivate the process use the env var
     if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {

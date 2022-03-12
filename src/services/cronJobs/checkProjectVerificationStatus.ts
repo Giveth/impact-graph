@@ -17,39 +17,32 @@ const cronJobTime =
     'CHECK_PROJECT_VERIFICATION_STATUS_CRONJOB_EXPRESSION',
   ) as string) || '0 0 * * 0';
 
-const cronJobStartingDay = config.get(
-  'CHECK_PROJECT_VERIFICATION_STATUS_START_DATE',
-) as string;
+const verifiedBadgeProjectUpdatesExpiryDays =
+  Number(config.get('PROJECT_UPDATES_VERIFIED_BADGE_EXPIRATION_DAYS')) || 300;
 
-const maxDaysForRevokingBadge = moment().subtract(90, 'days').endOf('day');
+const maxDaysForRevokingBadge = moment()
+  .subtract(verifiedBadgeProjectUpdatesExpiryDays, 'days')
+  .endOf('day');
 
 export const runCheckProjectVerificationStatus = () => {
   logger.debug('runCheckProjectVerificationStatus() has been called');
-  if (cronJobStartingDay && new Date(cronJobStartingDay) <= new Date()) {
-    schedule(cronJobTime, async () => {
-      await checkProjectVerificationStatus();
-    });
-  }
+  schedule(cronJobTime, async () => {
+    await checkProjectVerificationStatus();
+  });
 };
 
-const checkProjectVerificationStatus = async () => {
+export const checkProjectVerificationStatus = async () => {
   const projects = await Project.createQueryBuilder('project')
     .innerJoinAndSelect(
       ProjectUpdate,
       'projectUpdate',
-      'project.id = projectUpdate.projectId',
-    )
-    .innerJoinAndSelect(
-      ProjectUpdate,
-      'nextUpdate',
-      'project.id = nextUpdate.projectId AND projectUpdate.createdAt < nextUpdate.createdAt',
+      'project.id = projectUpdate.projectId AND projectUpdate.id = (SELECT project_update.id FROM project_update WHERE project_update."projectId" = project.id ORDER BY project_update.id DESC LIMIT 1)',
     )
     .where('project.isImported = false')
     .andWhere('project.verified = true')
     .andWhere('projectUpdate.createdAt < :badgeRevokingDate', {
       badgeRevokingDate: maxDaysForRevokingBadge,
     })
-    .andWhere('AND nextUpdate.id IS NULL')
     .getMany();
 
   for (const project of projects) {
