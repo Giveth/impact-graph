@@ -163,7 +163,7 @@ class Project extends BaseEntity {
   verified: boolean;
 
   @Field(type => Boolean, { nullable: true })
-  @Column({ default: 0 })
+  @Column({ default: false })
   isImported: boolean;
 
   @Field(type => Boolean)

@@ -36,7 +36,13 @@ export const checkProjectVerificationStatus = async () => {
     .innerJoinAndSelect(
       ProjectUpdate,
       'projectUpdate',
-      'project.id = projectUpdate.projectId AND projectUpdate.id = (SELECT project_update.id FROM project_update WHERE project_update."projectId" = project.id ORDER BY project_update.id DESC LIMIT 1)',
+      `project.id = projectUpdate.projectId AND projectUpdate.id = (
+          SELECT project_update.id
+          FROM project_update
+          WHERE project_update."projectId" = project.id
+          ORDER BY project_update.id DESC
+          LIMIT 1
+        )`,
     )
     .where('project.isImported = false')
     .andWhere('project.verified = true')

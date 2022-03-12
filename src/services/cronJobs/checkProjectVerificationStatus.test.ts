@@ -1,5 +1,9 @@
-import { Project, ProjStatus, ProjectUpdate } from '../../entities/project';
-import { assert, expect } from 'chai';
+import { Project } from '../../entities/project';
+import {
+  ProjectStatusHistory,
+  HISTORY_DESCRIPTIONS,
+} from '../../entities/projectStatusHistory';
+import { assert } from 'chai';
 import { checkProjectVerificationStatus } from './checkProjectVerificationStatus';
 import {
   createProjectData,
@@ -42,5 +46,19 @@ function checkProjectVerificationStatusTestCases() {
 
     assert.isFalse(revokableProjectUpdated!.verified);
     assert.isTrue(nonRevokableProjectUpdated!.verified);
+
+    const revokableProjectHistory =
+      await ProjectStatusHistory.createQueryBuilder('project_status_history')
+        .where('project_status_history.projectId = :projectId', {
+          projectId: revokableProjectUpdated!.id,
+        })
+        .getOne();
+
+    // test history was created
+    assert.isNotEmpty(revokableProjectHistory);
+    assert.equal(
+      revokableProjectHistory!.description,
+      HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED_BY_CRONJOB,
+    );
   });
 }
