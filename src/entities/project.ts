@@ -264,7 +264,7 @@ class Project extends BaseEntity {
     project: Project;
     reasonId?: number;
     description?: string;
-    userId: number;
+    userId?: number;
   }) {
     const { project, status, prevStatus, description, reasonId, userId } =
       inputData;

@@ -1,6 +1,7 @@
 import { schedule } from 'node-cron';
 import { Project, ProjStatus, ProjectUpdate } from '../../entities/project';
 import { getAnalytics, SegmentEvents } from '../../analytics/analytics';
+import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
 import { User } from '../../entities/user';
 import config from '../../config';
 import { logger } from '../../utils/logger';
@@ -43,10 +44,12 @@ const checkProjectVerificationStatus = async () => {
       'nextUpdate',
       'project.id = nextUpdate.projectId AND projectUpdate.createdAt < nextUpdate.createdAt',
     )
-    .where('project.isImported = true AND nextUpdate.id IS NULL')
+    .where('project.isImported = false')
+    .andWhere('project.verified = true')
     .andWhere('projectUpdate.createdAt < :badgeRevokingDate', {
       badgeRevokingDate: maxDaysForRevokingBadge,
     })
+    .andWhere('AND nextUpdate.id IS NULL')
     .getMany();
 
   for (const project of projects) {
@@ -59,6 +62,14 @@ const revokeBadge = async (project: Project) => {
   project.verified = false;
   await project.save();
 
+  // save status changes history
+  Project.addProjectStatusHistoryRecord({
+    project,
+    status: project.status,
+    description: HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED_BY_CRONJOB,
+  });
+
+  // segment notifications
   const segmentProject = {
     email: user?.email,
     title: project.title,
