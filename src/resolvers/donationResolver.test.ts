@@ -16,6 +16,7 @@ import {
   fetchDonationsByUserIdQuery,
   fetchDonationsByDonorQuery,
   saveDonation,
+  fetchDonationsByProjectIdQuery,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -25,7 +26,7 @@ import { ORGANIZATION_LABELS } from '../entities/organization';
 // describe('donations() test cases', donationsTestCases);
 // describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
 // describe('donationsToWallets() test cases', donationsToWalletsTestCases);
-// describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
+describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
 describe('donationByUserId() test cases', donationsByUserIdTestCases);
 // describe('tokens() test cases', tokensTestCases);
 describe('donationsByDonor() test cases', donationsByDonorTestCases);
@@ -275,6 +276,151 @@ function saveDonationTestCases() {
   });
 }
 
+function donationsByProjectIdTestCases() {
+  it('should sort by the createdAt DESC', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'DESC',
+          },
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(Number(donations[0].id), DONATION_SEED_DATA.FIFTH_DONATION.id);
+  });
+  it('should sort by createdAt ASC', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'ASC',
+          },
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(
+      Number(donations[0].id),
+      DONATION_SEED_DATA.SECOND_DONATION.id,
+    );
+  });
+  it('should sort by amount DESC', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          orderBy: {
+            field: 'TokenAmount',
+            direction: 'DESC',
+          },
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(
+      Number(donations[0].id),
+      DONATION_SEED_DATA.SECOND_DONATION.id,
+    );
+  });
+  it('should sort by amount ASC', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          orderBy: {
+            field: 'TokenAmount',
+            direction: 'ASC',
+          },
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(Number(donations[0].id), DONATION_SEED_DATA.FIFTH_DONATION.id);
+  });
+  it('should sort by valueUsd DESC', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          orderBy: {
+            field: 'UsdAmount',
+            direction: 'DESC',
+          },
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(
+      Number(donations[0].id),
+      DONATION_SEED_DATA.SECOND_DONATION.id,
+    );
+  });
+  it('should sort by valueUsd ASC', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          orderBy: {
+            field: 'UsdAmount',
+            direction: 'ASC',
+          },
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(Number(donations[0].id), DONATION_SEED_DATA.FIFTH_DONATION.id);
+  });
+  it('should search by user name', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          searchTerm: 'third',
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(
+      Number(donations[0]?.id),
+      DONATION_SEED_DATA.FIFTH_DONATION.id,
+    );
+  });
+}
+
 function donationsByUserIdTestCases() {
   it('should sort by tokens donated DESC', async () => {
     const result = await axios.post(
@@ -425,7 +571,7 @@ function donationsByUserIdTestCases() {
       const donationsCount = donations.length;
       assert.equal(donationsCount, 1);
       assert.isTrue(
-        donations[0].id !== String(DONATION_SEED_DATA.FIRST_DONATION.id),
+        donations[0].id !== String(DONATION_SEED_DATA.FIFTH_DONATION.id),
       );
     });
   });

@@ -175,6 +175,11 @@ async function seedDonations() {
     SEED_DATA.THIRD_USER.id,
     SEED_DATA.FIRST_PROJECT.id,
   );
+  await saveDonationDirectlyToDb(
+    DONATION_SEED_DATA.FIFTH_DONATION,
+    SEED_DATA.THIRD_USER.id,
+    SEED_DATA.FIRST_PROJECT.id,
+  );
 }
 async function seedCategories() {
   for (const category of SEED_DATA.CATEGORIES) {
