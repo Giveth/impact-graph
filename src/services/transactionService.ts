@@ -328,7 +328,6 @@ export const getCsvAirdropTransactions = async (
   const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
     txHash,
   );
-
   // You can hash Transfer(address,address,uint256) with https://emn178.github.io/online-tools/keccak_256.html
   // would return ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
   const transferTopic =
@@ -365,7 +364,10 @@ export const getCsvAirdropTransactions = async (
   return transfers.map(transfer => {
     return {
       ...transfer,
-      from: transaction.from.toLowerCase(),
+      // Based on this comment the from address of csvAirDrop transactions should be toAddress of transaction , because
+      // from is the one who initiated the transaction but we should consider multi sig wallet address
+      // https://github.com/Giveth/impact-graph/issues/342#issuecomment-1056952221
+      from: (transaction.to as string).toLowerCase(),
       hash: transaction.hash,
       timestamp: block.timestamp as number,
     };

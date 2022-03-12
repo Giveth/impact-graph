@@ -39,9 +39,68 @@ export const addProjectQuery = `
       }
   `;
 
+export const createProjectQuery = `
+       mutation ($project: CreateProjectInput!) {
+          createProject(project: $project) {
+            id
+            title
+            description
+            admin
+            image
+            impactLocation
+            slug
+            walletAddress
+            listed
+            verified
+            status {
+              name
+              id
+              symbol
+            }
+            categories {
+              name
+            }
+            adminUser{
+              id
+              name
+              email
+              walletAddress
+            }
+          }
+      }
+  `;
+
 export const editProjectQuery = `
   mutation ($projectId: Float!, $newProjectData: ProjectInput!) {
     editProject(projectId: $projectId, newProjectData: $newProjectData) {
+      id
+      title
+      description
+      image
+      slug
+      listed
+      verified
+      slugHistory
+      creationDate
+      admin
+      walletAddress
+      impactLocation
+      categories {
+        name
+      }
+      adminUser{
+        id
+        name
+        email
+        walletAddress
+      }
+    }
+  }
+ `;
+
+export const updateProjectQuery = `
+  mutation ($projectId: Float!, $newProjectData: CreateProjectInput!) {
+    updateProject(projectId: $projectId, newProjectData: $newProjectData) {
       id
       title
       description
@@ -109,6 +168,44 @@ export const fetchDonationsByDonorQuery = `
         id
       }
       createdAt
+    }
+  }
+`;
+
+export const fetchDonationsByProjectIdQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $traceable: Boolean
+    $projectId: Int!
+    $searchTerm: String
+    $orderBy: SortBy
+  ) {
+    donationsByProjectId(
+      take: $take
+      skip: $skip
+      traceable: $traceable
+      projectId: $projectId
+      searchTerm: $searchTerm
+      orderBy: $orderBy
+    ) {
+      donations {
+        id
+        transactionId
+        transactionNetworkId
+        toWalletAddress
+        fromWalletAddress
+        currency
+        anonymous
+        valueUsd
+        amount
+        user {
+          id
+        }
+        createdAt
+      }
+      totalCount
+      totalUsdBalance
     }
   }
 `;

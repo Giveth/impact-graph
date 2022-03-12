@@ -85,6 +85,7 @@ export interface CreateProjectData {
   totalProjectUpdates?: number;
   traceCampaignId?: string;
   projectUpdateCreationDate: Date;
+  image?: string;
 }
 
 export const saveUserDirectlyToDb = async (walletAddress: string) => {
@@ -357,7 +358,7 @@ export const DONATION_SEED_DATA = {
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
     currency: 'ETH',
     anonymous: false,
-    amount: 10,
+    amount: 100,
     valueUsd: 135,
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
@@ -373,6 +374,7 @@ export const DONATION_SEED_DATA = {
     currency: 'ETH',
     anonymous: false,
     amount: 10,
+    valueUsd: 3,
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
@@ -388,9 +390,26 @@ export const DONATION_SEED_DATA = {
     currency: 'ETH',
     anonymous: false,
     amount: 10,
+    valueUsd: 2,
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
+    segmentNotified: false,
+    transakStatus: 'COMPLETED',
+  },
+  FIFTH_DONATION: {
+    id: 5,
+    transactionId: generateRandomEtheriumAddress(),
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    fromWalletAddress: SEED_DATA.THIRD_USER.walletAddress,
+    currency: 'ETH',
+    anonymous: false,
+    amount: 1,
+    valueUsd: 1,
+    userId: SEED_DATA.THIRD_USER.id,
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    createdAt: moment().add(2, 'days'),
     segmentNotified: false,
     transakStatus: 'COMPLETED',
   },

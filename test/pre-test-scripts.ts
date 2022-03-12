@@ -60,6 +60,7 @@ async function seedDb() {
 async function seedUsers() {
   await User.create(SEED_DATA.FIRST_USER).save();
   await User.create(SEED_DATA.SECOND_USER).save();
+  await User.create(SEED_DATA.THIRD_USER).save();
   await User.create(SEED_DATA.ADMIN_USER).save();
 }
 async function seedProjects() {
@@ -113,6 +114,11 @@ async function seedDonations() {
   );
   await saveDonationDirectlyToDb(
     DONATION_SEED_DATA.COMPLETED_TRANSAK_DONATION,
+    SEED_DATA.THIRD_USER.id,
+    SEED_DATA.FIRST_PROJECT.id,
+  );
+  await saveDonationDirectlyToDb(
+    DONATION_SEED_DATA.FIFTH_DONATION,
     SEED_DATA.THIRD_USER.id,
     SEED_DATA.FIRST_PROJECT.id,
   );

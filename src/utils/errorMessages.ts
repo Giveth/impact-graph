@@ -43,6 +43,8 @@ export const errorMessages = {
   UN_AUTHORIZED: 'unAuthorized',
   BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY:
     'Both firstName and lastName cant be empty',
+  FIRSTNAME_CANT_BE_EMPTY_STRING: 'firstName cant be empty string',
+  LASTNAME_CANT_BE_EMPTY_STRING: 'lastName cant be empty string',
   PROJECT_WITH_THIS_TITLE_EXISTS:
     'There is a project with this title, please use another title',
   INVALID_PROJECT_TITLE:

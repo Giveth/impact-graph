@@ -60,6 +60,7 @@ export enum OrderField {
   Traceable = 'traceCampaignId',
   Donations = 'totalDonations',
   TraceDonations = 'totalTraceDonations',
+  AcceptGiv = 'givingBlocksId',
 }
 
 @Entity()
