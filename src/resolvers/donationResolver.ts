@@ -309,7 +309,7 @@ export class DonationResolver {
       if (!chainId) chainId = NETWORK_IDS.MAIN_NET;
       const priceChainId =
         chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
-      let originUser;
+      let donorUser;
 
       const project = await Project.findOne({ id: Number(projectId) });
 
@@ -333,9 +333,9 @@ export class DonationResolver {
       }
 
       if (userId) {
-        originUser = await User.findOne({ id: ctx.req.user.userId });
+        donorUser = await User.findOne({ id: ctx.req.user.userId });
       } else {
-        originUser = null;
+        donorUser = null;
       }
 
       // ONLY when logged in, allow setting the anonymous boolean
@@ -348,7 +348,7 @@ export class DonationResolver {
         isFiat: Boolean(transakId),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
-        user: originUser,
+        user: donorUser,
         tokenAddress,
         project,
         createdAt: new Date(),
@@ -390,8 +390,10 @@ export class DonationResolver {
 
       await donation.save();
 
-      // After updating, recalculate user total donated and owner total received
-      await updateUserTotalDonated(originUser.id);
+      if (donorUser) {
+        // After updating, recalculate user total donated and owner total received
+        await updateUserTotalDonated(donorUser.id);
+      }
       await updateUserTotalReceived(Number(project.admin));
 
       // After updating price we update totalDonations
@@ -422,24 +424,24 @@ export class DonationResolver {
 
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId;
-        originUser = await User.findOne({ id: userId });
-        analytics.identifyUser(originUser);
-        if (!originUser)
+        donorUser = await User.findOne({ id: userId });
+        analytics.identifyUser(donorUser);
+        if (!donorUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`);
         logger.debug(donation.valueUsd);
 
         const segmentDonationMade = {
           ...segmentDonationInfo,
-          email: originUser != null ? originUser.email : '',
-          firstName: originUser != null ? originUser.firstName : '',
+          email: donorUser != null ? donorUser.email : '',
+          firstName: donorUser != null ? donorUser.firstName : '',
           anonymous: !userId,
         };
 
         analytics.track(
           SegmentEvents.MADE_DONATION,
-          originUser.segmentUserId(),
+          donorUser.segmentUserId(),
           segmentDonationMade,
-          originUser.segmentUserId(),
+          donorUser.segmentUserId(),
         );
       }
 
