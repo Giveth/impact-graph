@@ -313,7 +313,7 @@ export class DonationResolver {
 
       const project = await Project.findOne({ id: Number(projectId) });
 
-      if (!project) throw new Error('Transaction project was not found.');
+      if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
       const tokenInDb = await Token.findOne({
         networkId: chainId,
         symbol: token,

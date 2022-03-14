@@ -472,7 +472,7 @@ function saveDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      errorMessages.PROJECT_NOT_FOUND,
+      errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
     );
   });
   it('should throw exception when toWalletAddress and projectId dont match', async () => {
@@ -506,7 +506,7 @@ function saveDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      errorMessages.PROJECT_NOT_FOUND,
+      errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
     );
   });
 }
