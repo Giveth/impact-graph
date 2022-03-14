@@ -302,7 +302,7 @@ function projectsTestCases() {
     });
     const projectsCount = result.data.data.projects.projects.length;
     assert.isTrue(
-      new Date(result.data.data.projects.projects[0].updatedAt) <
+      new Date(result.data.data.projects.projects[0].updatedAt) <=
         new Date(
           result.data.data.projects.projects[projectsCount - 1].updatedAt,
         ),
@@ -310,7 +310,7 @@ function projectsTestCases() {
     assert.isTrue(
       new Date(
         result.data.data.projects.projects[projectsCount - 2].updatedAt,
-      ) <
+      ) <=
         new Date(
           result.data.data.projects.projects[projectsCount - 1].updatedAt,
         ),
