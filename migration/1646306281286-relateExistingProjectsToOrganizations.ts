@@ -16,6 +16,11 @@ export class relateExistingProjectsToOrganizations1646306281286
       );
       return;
     }
+    await queryRunner.query(
+      `
+            ALTER TABLE project 
+            ADD IF NOT EXISTS "organizationId" Integer`,
+    );
     const givethOrganization = (
       await queryRunner.query(`SELECT * FROM organization
         WHERE name='Giveth'`)
