@@ -7,6 +7,7 @@ import config from '../config';
 import { redis } from '../redis';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
+import { SelectQueryBuilder } from 'typeorm';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
@@ -141,7 +142,6 @@ export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
   try {
     adminUser = await new Promise((success, failure) => {
       sessionStore.get(unsignedCookie, (err, sessionObject) => {
-        // console.log(session);
         if (err) {
           failure(err);
         } else {
@@ -150,7 +150,7 @@ export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
       });
     });
   } catch (e) {
-    // console.log(e);
+    logger.error(e);
   }
   if (!adminUser) return false;
 
@@ -476,19 +476,12 @@ const getAdminBroInstance = () => {
               isVisible: true,
               handler: async (request, response, context) => {
                 const { records } = context;
-
-                const queryStrings = await new Promise((success, failure) => {
-                  redis.get(
-                    `adminbro_${context.currentAdmin.id}_qs`,
-                    (err, result) => {
-                      if (err) {
-                        return failure(err);
-                      } else {
-                        return success(JSON.parse(result)); // Promise resolves to "bar"
-                      }
-                    },
-                  );
-                });
+                const queryStrings = JSON.parse(
+                  await redis.get(`adminbro_${context.currentAdmin.id}_qs`),
+                );
+                const projectsQuery = buildProjectQuery(queryStrings);
+                const sql = projectsQuery.getSql();
+                const projects = await projectsQuery.getMany();
 
                 // console.log(queryStrings);
 
@@ -695,6 +688,45 @@ const getAdminBroInstance = () => {
     ],
     rootPath: adminBroRootPath,
   });
+};
+
+interface AdminBroProjectsQuery {
+  statusId?: string;
+  title?: string;
+  slug?: string;
+  verified?: string;
+  listed?: string;
+}
+
+export const buildProjectQuery = (
+  queryStrings: AdminBroProjectsQuery,
+): SelectQueryBuilder<Project> => {
+  const query = Project.createQueryBuilder('project');
+
+  if (queryStrings.title)
+    query.andWhere('project.title ILIKE :title', {
+      title: `%${queryStrings.title}%`,
+    });
+
+  if (queryStrings.slug)
+    query.andWhere('project.slug ILIKE :slug', { title: queryStrings.slug });
+
+  if (queryStrings.verified)
+    query.andWhere('project.verified = :verified', {
+      verified: queryStrings.verified === 'true',
+    });
+
+  if (queryStrings.listed)
+    query.andWhere('project.listed = :listed', {
+      listed: queryStrings.listed === 'true',
+    });
+
+  if (queryStrings.statusId)
+    query.andWhere('project."statusId" = :statusId', {
+      statusId: queryStrings.statusId,
+    });
+
+  return query;
 };
 
 export const listDelist = async (
