@@ -633,6 +633,25 @@ const getAdminBroInstance = () => {
           },
         },
       },
+      {
+        resource: Organization,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: false,
+            },
+            edit: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+        },
+      },
     ],
     rootPath: adminBroRootPath,
   });
