@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { isProjectAcceptToken } from './donationService';
+import { isTokenAcceptableForProject } from './donationService';
 import { NETWORK_IDS } from '../provider';
 import {
   createProjectData,
@@ -17,7 +17,7 @@ function isProjectAcceptTokenTestCases() {
       networkId: NETWORK_IDS.XDAI,
     });
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });
@@ -29,7 +29,7 @@ function isProjectAcceptTokenTestCases() {
       networkId: NETWORK_IDS.MAIN_NET,
     });
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });
@@ -41,7 +41,7 @@ function isProjectAcceptTokenTestCases() {
       networkId: NETWORK_IDS.XDAI,
     });
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });
@@ -56,7 +56,7 @@ function isProjectAcceptTokenTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.TRACE,
     });
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });
@@ -71,7 +71,7 @@ function isProjectAcceptTokenTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.TRACE,
     });
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });
@@ -86,7 +86,7 @@ function isProjectAcceptTokenTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.TRACE,
     });
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });
@@ -101,7 +101,7 @@ function isProjectAcceptTokenTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
     });
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });
@@ -116,7 +116,7 @@ function isProjectAcceptTokenTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
     });
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });
@@ -131,7 +131,7 @@ function isProjectAcceptTokenTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
     });
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });
@@ -146,7 +146,7 @@ function isProjectAcceptTokenTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
     });
-    const result = await isProjectAcceptToken({
+    const result = await isTokenAcceptableForProject({
       projectId: project.id,
       tokenId: token?.id as number,
     });

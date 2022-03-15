@@ -38,7 +38,6 @@ export const findTokenByNetworkAndAddress = async (
   decimals: number;
   chainId: number;
 }> => {
-  logger.info('findTokenByNetworkAndAddress', { address, networkId });
   const token = await Token.createQueryBuilder('token')
     .where(`lower("address")=lower(:address) and "networkId"=:networkId`, {
       address,
