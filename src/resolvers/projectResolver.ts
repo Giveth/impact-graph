@@ -572,8 +572,9 @@ export class ProjectResolver {
     const project = await query.getOne();
 
     if (
-      project?.statusId === ProjStatus.drafted &&
-      // If project is draft, just owner can view it
+      (project?.statusId === ProjStatus.drafted ||
+        project?.statusId === ProjStatus.cancelled) &&
+      // If project is draft or cancelled, just owner can view it
       project?.admin !== String(user?.userId)
     ) {
       return null;
@@ -610,8 +611,9 @@ export class ProjectResolver {
     const project = await query.getOne();
 
     if (
-      project?.statusId === ProjStatus.drafted &&
-      // If project is draft, just owner can view it
+      (project?.statusId === ProjStatus.drafted ||
+        project?.statusId === ProjStatus.cancelled) &&
+      // If project is draft or cancelled, just owner can view it
       project?.admin !== String(user?.userId)
     ) {
       return null;
