@@ -482,8 +482,7 @@ const getAdminBroInstance = () => {
                     `adminbro_${context.currentAdmin.id}_qs`,
                     (err, result) => {
                       if (err) {
-                        // console.error(err);
-                        return null;
+                        return failure(err);
                       } else {
                         return success(JSON.parse(result)); // Promise resolves to "bar"
                       }
@@ -491,9 +490,11 @@ const getAdminBroInstance = () => {
                   );
                 });
 
+                // console.log(queryStrings);
+
                 return {
                   redirectUrl: 'Project',
-                  records: [],
+                  records,
                   notice: {
                     message: `Project(s) successfully exported`,
                     type: 'success',
