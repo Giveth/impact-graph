@@ -114,6 +114,7 @@
     "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
     "test:reactionResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/reactionResolver.test.ts",
     "test:projectResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/projectResolver.test.ts",
+    "test:donationService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/donationService.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
     "typeorm:cli:test": "NODE_ENV=test ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",

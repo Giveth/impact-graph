@@ -1336,7 +1336,12 @@ export class ProjectResolver {
   ): Promise<Token[]> {
     try {
       const organization = await Organization.createQueryBuilder('organization')
-        .innerJoin(Project, 'project', 'project.id = :projectId', { projectId })
+        .innerJoin(
+          'organization.projects',
+          'project',
+          'project.id = :projectId',
+          { projectId },
+        )
         .leftJoinAndSelect('organization.tokens', 'tokens')
         .getOne();
       return organization?.tokens as Token[];

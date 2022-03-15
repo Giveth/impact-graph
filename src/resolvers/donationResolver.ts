@@ -28,7 +28,7 @@ import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
-  isProjectAcceptToken,
+  isTokenAcceptableForProject,
   updateTotalDonationsOfProject,
 } from '../services/donationService';
 import {
@@ -319,11 +319,11 @@ export class DonationResolver {
         symbol: token,
       });
       if (!tokenInDb) throw new Error(errorMessages.TOKEN_NOT_FOUND);
-      const doesProjectSupportToken = await isProjectAcceptToken({
+      const acceptsToken = await isTokenAcceptableForProject({
         projectId,
         tokenId: tokenInDb.id,
       });
-      if (!doesProjectSupportToken) {
+      if (!acceptsToken) {
         throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
       }
       if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {

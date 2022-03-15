@@ -38,7 +38,7 @@ export class Organization extends BaseEntity {
   projects?: Project[];
 
   @Field(type => [Token], { nullable: true })
-  @ManyToMany(type => Token, {
+  @ManyToMany(type => Token, token => token.organizations, {
     nullable: true,
     eager: true,
     cascade: true,
