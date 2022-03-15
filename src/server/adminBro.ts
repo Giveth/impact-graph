@@ -24,6 +24,7 @@ import {
   HISTORY_DESCRIPTIONS,
   ProjectStatusHistory,
 } from '../entities/projectStatusHistory';
+import { Organization } from '../entities/organization';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -342,6 +343,9 @@ const getAdminBroInstance = () => {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             youtube: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            relatedAddresses: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             balance: {

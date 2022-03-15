@@ -162,6 +162,11 @@ class Project extends BaseEntity {
   @Column({ unique: true })
   walletAddress?: string;
 
+  @Field(type => [String])
+  @Column('text', { array: true, default: '{}' })
+  // We use this addresses to get purple list
+  relatedAddresses?: string[];
+
   @Field(type => Boolean)
   @Column()
   verified: boolean;
