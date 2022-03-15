@@ -3,11 +3,17 @@ import 'mocha';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { Donation } from '../entities/donation';
-import { SEED_DATA } from '../../test/testUtils';
+import {
+  createProjectData,
+  generateRandomEtheriumAddress,
+  saveProjectDirectlyToDb,
+  SEED_DATA,
+} from '../../test/testUtils';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../services/userService';
+import { ORGANIZATION_LABELS } from '../entities/organization';
 
 describe(
   'updateUserTotalDonated() test cases',
@@ -39,19 +45,25 @@ function updateUserTotalDonatedTestCases() {
 
 function updateUserTotalReceivedTestCases() {
   it('should update total received of a owner', async () => {
-    const owner = await User.findOne({ id: SEED_DATA.FIRST_USER.id });
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'test name',
+    }).save();
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+      totalDonations: 180,
+    });
+    const owner = await User.findOne({ id: user.id });
     owner!.totalReceived = 0;
-    owner!.save();
+    await owner!.save();
 
-    await updateUserTotalReceived(SEED_DATA.FIRST_USER.id);
+    await updateUserTotalReceived(user.id);
 
-    const updatedOwner = await User.findOne({ id: SEED_DATA.FIRST_USER.id });
-    const totalReceived = await Project.createQueryBuilder('project')
-      .select('SUM(project.totalDonations)', 'sum')
-      .where(`project.admin = '${SEED_DATA.FIRST_USER.id}'`)
-      .getRawOne();
-
+    const updatedOwner = await User.findOne({ id: user.id });
     assert.notEqual(owner!.totalReceived, updatedOwner!.totalReceived);
-    assert.equal(updatedOwner!.totalReceived, totalReceived.sum);
+    assert.equal(updatedOwner!.totalReceived, 180);
   });
 }

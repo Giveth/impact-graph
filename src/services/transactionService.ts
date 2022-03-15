@@ -11,7 +11,6 @@ import {
 import axios from 'axios';
 import { erc20ABI } from '../assets/erc20ABI';
 import { disperseABI } from '../assets/disperseABI';
-import { csvAirDropABI } from '../assets/csvAirDropABI';
 import {
   getEtherscanOrBlockScoutUrl,
   getNetworkNativeToken,
@@ -198,7 +197,7 @@ async function getTransactionDetailForTokenTransfer(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId } = input;
-  const token = findTokenByNetworkAndSymbol(networkId, symbol);
+  const token = await findTokenByNetworkAndSymbol(networkId, symbol);
   const web3 = getNetworkWeb3(networkId);
   const transaction = await web3.eth.getTransaction(txHash);
   logger.debug('getTransactionDetailForTokenTransfer', {
@@ -300,7 +299,7 @@ export const getDisperseTransactions = async (
     amounts = transactionData.params[1].value;
   } else if (transactionData.name === 'disperseToken') {
     const tokenAddress = transactionData.params[0].value;
-    token = findTokenByNetworkAndAddress(networkId, tokenAddress);
+    token = await findTokenByNetworkAndAddress(networkId, tokenAddress);
 
     recipients = transactionData.params[1].value;
     amounts = transactionData.params[2].value;
@@ -336,21 +335,29 @@ export const getCsvAirdropTransactions = async (
   const receipts = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
     txHash,
   );
-  const transferLogs = receipts.logs.filter(
-    log =>
-      log.topics[0] === transferTopic &&
-      findTokenByNetworkAndAddress(networkId, log.address.toLowerCase()),
-  );
+  const transferLogs: any[] = [];
+  for (const receiptLog of receipts.logs) {
+    if (receiptLog.topics[0] !== transferTopic) {
+      continue;
+    }
+    const token = await findTokenByNetworkAndAddress(
+      networkId,
+      receiptLog.address.toLowerCase(),
+    );
+    if (token) {
+      transferLogs.push(receiptLog);
+    }
+  }
 
   // https://github.com/ethers-io/ethers.js/issues/487#issuecomment-481881691
   const abi = [
     'event Transfer(address indexed from, address indexed to, uint value)',
   ];
   const iface = new ethers.utils.Interface(abi);
-  const transfers = transferLogs.map(log => {
+  const transfersPromises = transferLogs.map(async log => {
     const transferData = iface.parseLog(log);
     const tokenAddress = log.address;
-    const token = findTokenByNetworkAndAddress(networkId, tokenAddress);
+    const token = await findTokenByNetworkAndAddress(networkId, tokenAddress);
     return {
       to: transferData.args[1].toLowerCase(),
       amount:
@@ -358,6 +365,7 @@ export const getCsvAirdropTransactions = async (
       currency: token.symbol,
     };
   });
+  const transfers = await Promise.all(transfersPromises);
   const block = await getNetworkWeb3(networkId).eth.getBlock(
     transaction.blockNumber as number,
   );

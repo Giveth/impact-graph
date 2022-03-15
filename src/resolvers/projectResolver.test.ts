@@ -28,6 +28,7 @@ import {
   projectsByUserIdQuery,
   createProjectQuery,
   updateProjectQuery,
+  getProjectsAcceptTokensQuery,
 } from '../../test/graphqlQueries';
 import { CreateProjectInput, ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
@@ -42,6 +43,8 @@ import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { User } from '../entities/user';
+import { ORGANIZATION_LABELS } from '../entities/organization';
+import { Token } from '../entities/token';
 
 describe('addProject test cases --->', addProjectTestCases);
 describe('createProject test cases --->', createProjectTestCases);
@@ -59,13 +62,13 @@ describe(
   'likedProjectsByUserId test cases --->',
   likedProjectsByUserIdTestCases,
 );
+describe('projectBySlug test cases --->', projectBySlugTestCases);
 describe('projectById test cases --->', projectByIdTestCases);
-describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 
+describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // TODO We should implement test cases for below query/mutation
 // describe('topProjects test cases --->', topProjectsTestCases);
 // describe('project test cases --->', projectTestCases);
-describe('projectBySlug test cases --->', projectBySlugTestCases);
 // describe('uploadImage test cases --->', uploadImageTestCases);
 // describe('addProjectUpdate test cases --->', addProjectUpdateTestCases);
 // describe('editProjectUpdate test cases --->', editProjectUpdateTestCases);
@@ -83,10 +86,67 @@ describe(
   similarProjectsBySlugTestCases,
 );
 
+describe(
+  'getProjectsAcceptTokens() test cases --->',
+  getProjectsAcceptTokensTestCases,
+);
 // We may can delete this query
 // describe('updateProjectStatus test cases --->', updateProjectStatusTestCases);
 
 // describe('activateProject test cases --->', activateProjectTestCases);
+
+function getProjectsAcceptTokensTestCases() {
+  it('should return all tokens for giveth projects', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const allTokens = await Token.find({});
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isOk(result.data.data.getProjectAcceptTokens);
+    assert.equal(
+      result.data.data.getProjectAcceptTokens.length,
+      allTokens.length,
+    );
+  });
+  it('should return all tokens for trace projects', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.TRACE,
+    });
+    const allTokens = await Token.find({});
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isOk(result.data.data.getProjectAcceptTokens);
+    assert.equal(
+      result.data.data.getProjectAcceptTokens.length,
+      allTokens.length,
+    );
+  });
+  it('should just return ETH token for givingBlock projects', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+    });
+    const allTokens = await Token.find({});
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isOk(result.data.data.getProjectAcceptTokens);
+    assert.equal(result.data.data.getProjectAcceptTokens.length, 1);
+    assert.equal(result.data.data.getProjectAcceptTokens[0].symbol, 'ETH');
+    assert.equal(result.data.data.getProjectAcceptTokens[0].networkId, 1);
+  });
+}
 
 function projectsTestCases() {
   it('should return projects search by owner', async () => {
@@ -242,7 +302,7 @@ function projectsTestCases() {
     });
     const projectsCount = result.data.data.projects.projects.length;
     assert.isTrue(
-      new Date(result.data.data.projects.projects[0].updatedAt) <
+      new Date(result.data.data.projects.projects[0].updatedAt) <=
         new Date(
           result.data.data.projects.projects[projectsCount - 1].updatedAt,
         ),
@@ -250,7 +310,7 @@ function projectsTestCases() {
     assert.isTrue(
       new Date(
         result.data.data.projects.projects[projectsCount - 2].updatedAt,
-      ) <
+      ) <=
         new Date(
           result.data.data.projects.projects[projectsCount - 1].updatedAt,
         ),
@@ -537,6 +597,12 @@ function projectsTestCases() {
     assert.isTrue(result.data.data.projects.projects[0].totalDonations >= 100);
   });
   it('should return projects, sort by donations, ASC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalDonations: 0,
+      qualityScore: 0,
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
@@ -546,7 +612,7 @@ function projectsTestCases() {
         },
       },
     });
-    assert.equal(result.data.data.projects.projects[0].totalDonations, 10);
+    assert.equal(result.data.data.projects.projects[0].totalDonations, 0);
   });
   it('should return projects, sort by totalTraceDonations, DESC', async () => {
     await saveProjectDirectlyToDb({
@@ -894,7 +960,10 @@ function addProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.addProject);
     assert.equal(result.data.data.addProject.title, sampleProject.title);
-
+    assert.equal(
+      result.data.data.addProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
     // When creating project, listed is null by default
     assert.equal(result.data.data.addProject.listed, null);
 
@@ -948,6 +1017,10 @@ function addProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.addProject);
     assert.equal(result.data.data.addProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.addProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
 
     // When creating project, listed is null by default
     assert.equal(result.data.data.addProject.listed, null);
@@ -1164,6 +1237,10 @@ function createProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.createProject);
     assert.equal(result.data.data.createProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.createProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
 
     // When creating project, listed is null by default
     assert.equal(result.data.data.createProject.listed, null);
@@ -1220,6 +1297,10 @@ function createProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.createProject);
     assert.equal(result.data.data.createProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.createProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
 
     // When creating project, listed is null by default
     assert.equal(result.data.data.createProject.listed, null);

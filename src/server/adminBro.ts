@@ -24,6 +24,7 @@ import {
   HISTORY_DESCRIPTIONS,
   ProjectStatusHistory,
 } from '../entities/projectStatusHistory';
+import { Organization } from '../entities/organization';
 
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
@@ -625,6 +626,25 @@ const getAdminBroInstance = () => {
                 }
                 return request;
               },
+            },
+          },
+        },
+      },
+      {
+        resource: Organization,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: false,
+            },
+            edit: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
             },
           },
         },

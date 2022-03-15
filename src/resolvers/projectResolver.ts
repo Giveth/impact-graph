@@ -15,7 +15,6 @@ import {
 } from './types/project-input';
 import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
-import { UserPermissions } from '../permissions';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
@@ -57,6 +56,8 @@ import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { getLoggedInUser } from '../services/authorizationServices';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import { Token } from '../entities/token';
 
 const analytics = getAnalytics();
 
@@ -401,7 +402,6 @@ export class ProjectResolver {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private userPermissions: UserPermissions,
     @InjectRepository(Donation)
     private readonly donationRepository: Repository<Donation>,
     @InjectRepository(ProjectImage)
@@ -933,11 +933,14 @@ export class ProjectResolver {
     const status = await this.projectStatusRepository.findOne({
       id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
     });
-
+    const organization = await Organization.findOne({
+      label: ORGANIZATION_LABELS.GIVETH,
+    });
     const project = this.projectRepository.create({
       ...projectInput,
       categories,
       image,
+      organization,
       creationDate: new Date(),
       slug: slug.toLowerCase(),
       slugHistory: [],
@@ -1070,9 +1073,14 @@ export class ProjectResolver {
       id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
     });
 
+    const organization = await Organization.findOne({
+      label: ORGANIZATION_LABELS.GIVETH,
+    });
+
     const project = this.projectRepository.create({
       ...projectInput,
       categories,
+      organization,
       image,
       creationDate: new Date(),
       slug: slug.toLowerCase(),
@@ -1320,6 +1328,27 @@ export class ProjectResolver {
             `,
     );
     return recipients.map(({ walletAddress }) => walletAddress);
+  }
+
+  @Query(returns => [Token])
+  async getProjectAcceptTokens(
+    @Arg('projectId') projectId: number,
+  ): Promise<Token[]> {
+    try {
+      const organization = await Organization.createQueryBuilder('organization')
+        .innerJoin(
+          'organization.projects',
+          'project',
+          'project.id = :projectId',
+          { projectId },
+        )
+        .leftJoinAndSelect('organization.tokens', 'tokens')
+        .getOne();
+      return organization?.tokens as Token[];
+    } catch (e) {
+      logger.error('getProjectAcceptTokens error', e);
+      throw e;
+    }
   }
 
   @Query(returns => [Reaction])

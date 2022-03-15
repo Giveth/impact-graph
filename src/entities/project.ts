@@ -19,7 +19,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Organisation } from './organisation';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { Category } from './category';
@@ -31,6 +30,7 @@ import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
 import { errorMessages } from '../utils/errorMessages';
+import { Organization } from './organization';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -121,10 +121,13 @@ class Project extends BaseEntity {
   @UpdateDateColumn({ nullable: true })
   updatedAt: Date;
 
-  @Field(type => [Organisation])
-  @ManyToMany(type => Organisation)
+  @Field(type => Organization)
+  @ManyToOne(type => Organization)
   @JoinTable()
-  organisations: Organisation[];
+  organization: Organization;
+
+  @RelationId((project: Project) => project.organization)
+  organizationId: number;
 
   @Field({ nullable: true })
   @Column({ nullable: true })

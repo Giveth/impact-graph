@@ -8,8 +8,6 @@ import {
   BaseEntity,
   JoinTable,
 } from 'typeorm';
-import { OrganisationUser } from './organisationUser';
-import { Organisation } from './organisation';
 import { Project, ProjStatus } from './project';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
@@ -88,16 +86,6 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   confirmed: boolean;
 
-  @OneToMany(
-    type => OrganisationUser,
-    organisationUser => organisationUser.user,
-  )
-  organisationUsers?: OrganisationUser[];
-
-  @Field(type => Organisation)
-  @ManyToMany(type => Organisation, organisation => organisation.users)
-  organisations: Organisation[];
-
   @Field(type => [Project])
   @ManyToMany(type => Project, project => project.users)
   @JoinTable()
@@ -114,10 +102,12 @@ export class User extends BaseEntity {
   accountVerifications?: AccountVerification[];
 
   @Field(type => Int, { nullable: true })
+  // TODO Carlos please check this, I think it should be float
   @Column({ type: 'integer', nullable: true, default: 0 })
   totalDonated: number;
 
   @Field(type => Int, { nullable: true })
+  // TODO Carlos please check this, I think it should be float
   @Column({ type: 'integer', nullable: true, default: 0 })
   totalReceived: number;
 

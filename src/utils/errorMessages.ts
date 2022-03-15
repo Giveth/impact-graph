@@ -32,6 +32,7 @@ export const errorMessages = {
   USER_NOT_FOUND: 'User not found.',
   INVALID_NETWORK_ID: 'Network Id is invalid',
   INVALID_TOKEN_SYMBOL: 'Token symbol is invalid',
+  TOKEN_NOT_FOUND: 'Token Not found',
   TRANSACTION_NOT_FOUNT_IN_USER_HISTORY:
     'TRANSACTION_NOT_FOUNT_IN_USER_HISTORY',
   TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY:
@@ -52,4 +53,5 @@ export const errorMessages = {
   ACCESS_DENIED: 'Access denied',
   AUTHENTICATION_REQUIRED: 'Authentication required.',
   SOMETHING_WENT_WRONG: 'Something went wrong.',
+  PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
 };
