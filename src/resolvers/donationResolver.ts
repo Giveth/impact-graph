@@ -351,6 +351,7 @@ export class DonationResolver {
         user: donorUser,
         tokenAddress,
         project,
+        isProjectVerified: project.verified,
         createdAt: new Date(),
         segmentNotified: true,
         toWalletAddress: toAddress.toString().toLowerCase(),
