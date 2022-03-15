@@ -122,7 +122,7 @@ export const isTokenAcceptableForProject = async (inputData: {
         { projectId },
       )
       .getCount();
-    return !!tokenCount;
+    return tokenCount > 0;
   } catch (e) {
     logger.error('isProjectAcceptToken() error', {
       inputData,
