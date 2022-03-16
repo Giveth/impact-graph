@@ -3,7 +3,6 @@ import { ethers } from 'ethers';
 import Web3 from 'web3';
 import { errorMessages } from './utils/errorMessages';
 
-const INFURA_ID = config.get('ETHEREUM_NODE_ID');
 const INFURA_API_KEY = config.get('INFURA_API_KEY');
 
 export const NETWORK_IDS = {
@@ -102,7 +101,7 @@ export function getProvider(networkId: number) {
       { name: NETWORK_NAMES.BSC, chainId: NETWORK_IDS.BSC },
     );
   }
-  return new ethers.providers.InfuraProvider(network, INFURA_ID);
+  return new ethers.providers.InfuraProvider(network, INFURA_API_KEY);
 }
 
 export function getEtherscanOrBlockScoutUrl(networkId: number): string {

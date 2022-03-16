@@ -12,6 +12,10 @@ const FETCH_PROJECTS = gql`
         creationDate
         admin
         walletAddress
+        reaction {
+          id
+        }
+        totalReactions
         categories {
           name
         }
@@ -189,8 +193,18 @@ const ADD_PROJECT_UPDATE = gql`
 `;
 
 const GET_PROJECT_UPDATES = gql`
-  query GetProjectUpdates($projectId: Float!, $take: Float!, $skip: Float!) {
-    getProjectUpdates(projectId: $projectId, take: $take, skip: $skip) {
+  query GetProjectUpdates(
+    $projectId: Float!
+    $take: Float!
+    $skip: Float!
+    $orderBy: OrderBy
+  ) {
+    getProjectUpdates(
+      projectId: $projectId
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+    ) {
       projectUpdate {
         id
         title

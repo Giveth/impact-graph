@@ -1,5 +1,6 @@
 import { Project } from '../entities/project';
 import { ProjectUpdate } from '../entities/project';
+import { logger } from '../utils/logger';
 
 export const updateTotalProjectUpdatesOfAProject = async (
   projectId: number,
@@ -15,6 +16,6 @@ export const updateTotalProjectUpdatesOfAProject = async (
       },
     );
   } catch (e) {
-    console.log('updateTotalProjectUpdatesOfAProject error', e);
+    logger.error('updateTotalProjectUpdatesOfAProject error', e);
   }
 };

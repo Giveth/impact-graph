@@ -8,10 +8,10 @@ import {
   ColumnOptions,
   RelationId,
   Index,
+  Unique,
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
-import { NETWORK_IDS } from '../provider';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -19,15 +19,23 @@ export const DONATION_STATUS = {
   FAILED: 'failed',
 };
 
+export enum SortField {
+  CreationDate = 'createdAt',
+  TokenAmount = 'amount',
+  UsdAmount = 'valueUsd',
+}
+
 @Entity()
 @ObjectType()
+// https://typeorm.io/#/decorator-reference/unique
+@Unique(['transactionId', 'toWalletAddress'])
 export class Donation extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
   @Field()
-  @Column({ unique: true })
+  @Column()
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string;
 
@@ -39,6 +47,11 @@ export class Donation extends BaseEntity {
   @Field()
   @Column({ nullable: false })
   transactionNetworkId: number;
+
+  @Field()
+  @Column('boolean', { default: false })
+  // https://github.com/Giveth/impact-graph/issues/407#issuecomment-1066892258
+  isProjectVerified: boolean;
 
   @Field()
   @Column('text', { default: 'pending' })
@@ -126,14 +139,13 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true })
   transakTransactionLink?: string;
 
-  // these are all the donations before monoswap was updated
+  @Field(type => Boolean, { nullable: true })
+  @Column({ nullable: true, default: false })
+  segmentNotified: boolean;
+
   static async findXdaiGivDonationsWithoutPrice() {
-    return (
-      this.createQueryBuilder('donation')
-        .where(
-          `donation.currency = 'GIV' AND donation."valueUsd" IS NULL AND donation."transactionNetworkId" = ${NETWORK_IDS.XDAI}`,
-        )
-        .getMany()
-    );
+    return this.createQueryBuilder('donation')
+      .where(`donation.currency = 'GIV' AND donation."valueUsd" IS NULL `)
+      .getMany();
   }
 }

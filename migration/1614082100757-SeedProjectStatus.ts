@@ -3,56 +3,24 @@ import { ProjectStatus } from '../src/entities/projectStatus';
 
 export class SeedProjectStatus1614082100757 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
-    // const projectStatusRepository = getRepository(ProjectStatus)
-    // const projectStatuses = projectStatusRepository.create([{
-    //     symbol: 'rjt',
-    //     name: `rejected`,
-    //     description: 'This project has been rejected by Giveth or platform owner'
-    //   },
-    //   {
-    //     symbol: 'pen',
-    //     name: 'pending',
-    //     description: 'This project is created, but pending approval'
-    //   },
-    //   {
-    //     symbol: 'clr',
-    //     name: 'clarificaiton',
-    //     description: 'Clarification requested by Giveth or platform owner'
-    //   },
-    //   {
-    //     symbol: 'ver',
-    //     name: 'verification',
-    //     description: 'Verification in progress (including KYC or otherwise)'
-    //   },
-    //   {
-    //     symbol: 'act',
-    //     name: 'active',
-    //     description: 'This is an active project'
-    //   },
-    //   {
-    //     symbol: 'can',
-    //     name: 'cancelled',
-    //     description: 'Cancelled or deactivated (by owner)'
-    //   },
-    //   {
-    //     symbol: 'del',
-    //     name: 'delisted',
-    //     description: 'Delisted by Giveth or platform owner'
-    //   }
-    // ])
-
-    // await projectStatusRepository.save(projectStatuses)
-
+    const projectStatuses = await queryRunner.query(
+      `SELECT * FROM project_status`,
+    );
+    if (projectStatuses.length > 0) {
+      return;
+    }
     await queryRunner.query(`INSERT INTO public.project_status (symbol,"name",description) VALUES 
-        ('rjt','rejected','This project has been rejected by Giveth or platform owner')
-        ,('pen','pending','This project is created, but pending approval')
-        ,('clr','clarificaiton','Clarification requested by Giveth or platform owner')
-        ,('ver','verification','Verification in progress (including KYC or otherwise)')
-        ,('act','active','This is an active project')
-        ,('can','cancelled','Cancelled or deactivated (by owner)')
-        ,('del','delisted','Delisted by Giveth or platform owner')
+        ('rejected','rejected','This project has been rejected by Giveth or platform owner, We dont use it now')
+        ,('pending','pending','This project is created, but pending approval, We dont use it now')
+        ,('clarification','clarification','Clarification requested by Giveth or platform owner, We dont use it now')
+        ,('verification','verification','Verification in progress (including KYC or otherwise), We dont use it now')
+        ,('activated','activated','This is an active project')
+        ,('deactivated','deactivated','Deactivated with user or Giveth Admin')
+        ,('cancelled','cancelled','Cancelled by Giveth Admin')
+        ,('drafted', 'drafted', 'This project is created as a draft for a potential new project, but can be discarded')
         ;`);
   }
+  x;
 
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

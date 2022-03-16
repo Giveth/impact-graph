@@ -1,0 +1,47 @@
+version: '3.3'
+
+services:
+  impact-graph-postgress:
+    image: postgres
+    container_name: impact-graph-postgress
+    environment:
+      - POSTGRES_DB=givethio
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "5442:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  impact-graph-postgress-test:
+    # CAUTION: Running tests will delete all records of this db, so just use this container for test
+    # For running application use above container port: 5442
+    image: postgres
+    container_name: impact-graph-postgress-test
+    environment:
+      - POSTGRES_DB=givethio
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data-test:/var/lib/postgresql/data
+
+  redis-giveth:
+    # it's better to not using latest tag, maybe latest tag have some breaking changes
+    image: bitnami/redis:5.0.9-debian-10-r142
+    container_name: redis-giveth
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/bitnami/redis/data
+
+volumes:
+  db-data:
+  db-data-test:
+  redis-data:

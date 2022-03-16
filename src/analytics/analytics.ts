@@ -6,6 +6,7 @@ export enum SegmentEvents {
   PROJECT_LISTED = 'Project listed',
   PROJECT_UNLISTED = 'Project unlisted',
   PROJECT_EDITED = 'Project edited',
+  PROJECT_BADGE_REVOKED = 'Project badge revoked',
   PROJECT_VERIFIED = 'Project verified',
   PROJECT_UNVERIFIED = 'Project unverified',
   PROJECT_ACTIVATED = 'Project activated',
@@ -54,9 +55,12 @@ class GraphAnalytics {
   }
 }
 
+// Enable property defines if it calls segment api or not
+// Disabled on tests for time optimization
 export function getAnalytics() {
   const segmentAnalytics = new Analytics(config.get('SEGMENT_API_KEY'), {
     flushAt: 1,
+    enable: config.get('NODE_ENV') !== 'test',
   });
   return new GraphAnalytics(segmentAnalytics);
 }

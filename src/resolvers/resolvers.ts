@@ -1,6 +1,5 @@
 import { UserResolver } from './userResolver';
 import { ProjectResolver } from './projectResolver';
-import { OrganisationResolver } from './organisationResolver';
 import { NotificationResolver } from './notificationResolver';
 import { LoginResolver } from '../user/LoginResolver';
 import { RegisterResolver } from '../user/register/RegisterResolver';
@@ -9,11 +8,13 @@ import { BankAccountResolver } from './bankAccountResolver';
 import { UploadResolver } from './uploadResolver';
 import { CategoryResolver } from './categoryResolver';
 import { DonationResolver } from './donationResolver';
+import { ReactionResolver } from './reactionResolver';
+import { StatusReasonResolver } from './statusReasonResolver';
 
 export const resolvers: any = [
   UserResolver,
   ProjectResolver,
-  OrganisationResolver,
+  StatusReasonResolver,
   NotificationResolver,
   LoginResolver,
   RegisterResolver,
@@ -22,4 +23,5 @@ export const resolvers: any = [
   UploadResolver,
   CategoryResolver,
   DonationResolver,
+  ReactionResolver,
 ];

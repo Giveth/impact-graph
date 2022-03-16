@@ -1,11 +1,12 @@
 import Sdk from './sdk';
 import config from '../config';
-import { allTokens } from './tokenLists';
-import { textSpanIntersectsWith } from 'typescript';
+import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
+import { logger } from '../utils/logger';
 
-const INFURA_ID = config.get('ETHEREUM_NODE_ID');
+const INFURA_API_KEY = config.get('INFURA_API_KEY');
+
+// tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
-const network = 'mainnet';
 
 // const provider = new ethers.providers.InfuraProvider(network, INFURA_ID)
 function getProvider(network) {
@@ -14,7 +15,7 @@ function getProvider(network) {
       config.get('XDAI_NODE_HTTP_URL'),
     );
   }
-  return new ethers.providers.InfuraProvider(network, INFURA_ID);
+  return new ethers.providers.InfuraProvider(network, INFURA_API_KEY);
 }
 
 function getNetworkFromChainId(chainId) {
@@ -27,10 +28,6 @@ function getNetworkFromChainId(chainId) {
   } else {
     throw new Error('Invalid chainId');
   }
-}
-
-export function getOurTokenList() {
-  return allTokens;
 }
 
 export async function getTokenPrices(
@@ -68,9 +65,7 @@ export function getTokenFromList(symbol: string, chainId: number) {
 
   inSymbol = symbol.toUpperCase() === 'XDAI' ? 'WXDAI' : inSymbol.toUpperCase();
 
-  const token = allTokens.find(
-    o => o.symbol === inSymbol && o.chainId === chainId,
-  );
+  const token = findTokenByNetworkAndSymbol(chainId, inSymbol);
 
   if (!token)
     throw new Error(`Token ${inSymbol} not found for chainId ${chainId}`);
@@ -120,8 +115,8 @@ export async function getTokenPrice(
 
     if (token.address === baseToken.address) return 1;
 
-    console.log('FIND PAIR');
-    console.log(`{token,
+    logger.debug('FIND PAIR');
+    logger.debug(`{token,
       baseToken,
       getProvider(getNetworkFromChainId(chainId)),
       chainId} : ${JSON.stringify(
@@ -141,13 +136,18 @@ export async function getTokenPrice(
       getProvider(getNetworkFromChainId(chainId)),
       chainId,
     );
-    // console.log(`Found pair : ${JSON.stringify(pair, null, 2)}`)
+    // logger.debug(`Found pair : ${JSON.stringify(pair, null, 2)}`)
 
     const price = sdk.getPrice(pair, token, chainId);
-    // console.log(`price : ${JSON.stringify(price, null, 2)}`)
+    // logger.debug(`price : ${JSON.stringify(price, null, 2)}`)
     return price;
   } catch (error) {
-    console.error(error);
+    logger.error('getTokenPrice error', {
+      error,
+      symbol,
+      baseSymbol,
+      chainId,
+    });
     throw new Error(error);
   }
 }

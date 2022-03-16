@@ -1,7 +1,8 @@
 import { getProvider, NETWORK_IDS } from '../../provider';
-import { Project } from '../../entities/project';
+import { Project, ProjStatus } from '../../entities/project';
 import Web3 from 'web3';
 import { errorMessages } from '../errorMessages';
+import { logger } from '../logger';
 
 export function isWalletAddressValid(address) {
   return Boolean(
@@ -11,6 +12,7 @@ export function isWalletAddressValid(address) {
 
 export const validateProjectWalletAddress = async (
   walletAddress: string,
+  projectId?: number,
 ): Promise<boolean> => {
   if (!isWalletAddressValid(walletAddress)) {
     throw new Error(errorMessages.INVALID_WALLET_ADDRESS);
@@ -28,7 +30,7 @@ export const validateProjectWalletAddress = async (
       walletAddress,
     })
     .getOne();
-  if (projectWithAddress) {
+  if (projectWithAddress && projectWithAddress.id !== projectId) {
     throw new Error(
       `Eth address ${walletAddress} is already being used for a project`,
     );
@@ -64,7 +66,7 @@ export const validateProjectTitle = async (title: string): Promise<boolean> => {
     throw new Error(errorMessages.INVALID_PROJECT_TITLE);
   }
   const regex = getSimilarTitleInProjectsRegex(title);
-  console.log('regexSource', {
+  logger.debug('regexSource', {
     title,
     regex,
     query: `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project`,
@@ -72,13 +74,13 @@ export const validateProjectTitle = async (title: string): Promise<boolean> => {
   const projectWithThisTitle = await Project.query(
     `SELECT title , REGEXP_MATCHES(title, '${regex.source}','i') FROM project`,
   );
-  console.log(
+  logger.debug(
     'validateProjectTitle projectWithThisTitle',
     projectWithThisTitle,
   );
 
   if (projectWithThisTitle.length > 0) {
-    console.log(
+    logger.debug(
       'validateProjectTitle projectWithThisTitle',
       projectWithThisTitle,
     );
@@ -110,3 +112,17 @@ function isSmartContract(provider) {
     return code !== '0x';
   };
 }
+
+export const canUserVisitProject = (project?: Project, userId?: string) => {
+  if (!project) {
+    throw new Error(errorMessages.PROJECT_NOT_FOUND);
+  }
+  if (
+    (project.status.id === ProjStatus.drafted ||
+      project.status.id === ProjStatus.cancelled) &&
+    // If project is draft or cancelled, just owner can view it
+    project.admin !== userId
+  ) {
+    throw new Error(errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT);
+  }
+};

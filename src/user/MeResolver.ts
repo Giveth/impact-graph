@@ -2,47 +2,14 @@ import { Resolver, Query, Ctx, Authorized } from 'type-graphql';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 
 import { User } from '../entities/user';
-import { Organisation } from '../entities/organisation';
 import { Project } from '../entities/project';
-// import { OrganisationProject } from '../entities/organisationProject'
-import { OrganisationUser } from '../entities/organisationUser';
 import { MyContext } from '../types/MyContext';
 import { Repository, In } from 'typeorm';
-import Logger from '../logger';
-
-function checkIfUserInRequest(ctx: MyContext) {
-  if (!ctx.req.user) {
-    throw new Error('Access denied');
-  }
-}
-
-async function getLoggedInUser(ctx: MyContext) {
-  checkIfUserInRequest(ctx);
-
-  const user = await User.findOne({ id: ctx.req.user.userId });
-
-  if (!user) {
-    const errorMessage = `No user with userId ${ctx.req.user.userId} found. This userId comes from the token. Please check the pm2 logs for the token. Search for 'Non-existant userToken' to see the token`;
-    const userMessage = 'Access denied';
-    Logger.captureMessage(errorMessage);
-    console.error(
-      `Non-existant userToken for userId ${ctx.req.user.userId}. Token is ${ctx.req.user.token}`,
-    );
-    throw new Error(userMessage);
-  }
-
-  return user;
-}
+import { getLoggedInUser } from '../services/authorizationServices';
 
 @Resolver()
 export class MeResolver {
   constructor(
-    @InjectRepository(OrganisationUser)
-    private readonly organisationUserRepository: Repository<OrganisationUser>,
-
-    @InjectRepository(Organisation)
-    private readonly organisationRepository: Repository<Organisation>,
-
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>, // @InjectRepository(OrganisationProject) // private readonly organisationProjectRepository: Repository< //   OrganisationProject // >
   ) {}

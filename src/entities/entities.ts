@@ -1,5 +1,4 @@
-import { Organisation } from './organisation';
-import { OrganisationUser } from './organisationUser';
+import { Organization } from './organization';
 import { User } from './user';
 import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
@@ -12,10 +11,11 @@ import { ProjectImage } from './projectImage';
 import Notification from './notification';
 import { BankAccount, StripeTransaction } from './bankAccount';
 import { AccountVerification } from './accountVerification';
+import { ProjectStatusReason } from './projectStatusReason';
+import { ProjectStatusHistory } from './projectStatusHistory';
 
 export const entities: any = [
-  Organisation,
-  OrganisationUser,
+  Organization,
   User,
   Project,
   Notification,
@@ -28,6 +28,8 @@ export const entities: any = [
   Token,
   Wallet,
   ProjectStatus,
+  ProjectStatusReason,
+  ProjectStatusHistory,
   AccountVerification,
   ProjectImage,
 ];

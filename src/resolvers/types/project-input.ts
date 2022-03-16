@@ -48,8 +48,48 @@ export class ProjectInput {
   coOrdinates?: string;
 
   @Field({ nullable: true })
-  walletAddress?: string;
+  walletAddress: string;
 
   @Field({ nullable: true })
   projectImageIds?: string;
+
+  @Field(tyoe => Boolean, { nullable: true, defaultValue: false })
+  isDraft?: boolean;
+}
+
+@InputType()
+export class CreateProjectInput {
+  @Field()
+  @MaxLength(70)
+  title: string;
+
+  @Field({ nullable: true })
+  admin?: string;
+
+  @Field({ nullable: true })
+  // @Length(0, 2000)
+  description?: string;
+  // Removing this as rich texts are longer
+  // We can consider making this check without img or video tags
+
+  @Field(type => [String], { nullable: true, defaultValue: [] })
+  categories?: string[];
+
+  @Field({ nullable: true })
+  image?: string;
+
+  @Field({ nullable: true })
+  impactLocation?: string;
+
+  @Field({ nullable: true })
+  organisationId?: number;
+
+  @Field({ nullable: true })
+  coOrdinates?: string;
+
+  @Field({ nullable: true })
+  walletAddress: string;
+
+  @Field(tyoe => Boolean, { nullable: true, defaultValue: false })
+  isDraft?: boolean;
 }

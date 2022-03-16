@@ -19,7 +19,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Organisation } from './organisation';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { Category } from './category';
@@ -28,29 +27,40 @@ import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
 import { SegmentEvents } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
+import { ProjectStatusHistory } from './projectStatusHistory';
+import { ProjectStatusReason } from './projectStatusReason';
+import { errorMessages } from '../utils/errorMessages';
+import { Organization } from './organization';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
 export enum ProjStatus {
-  rjt = 1,
-  pen = 2,
-  clr = 3,
-  ver = 4,
+  rejected = 1,
+  pending = 2,
+  clarification = 3,
+  verification = 4,
   active = 5,
   deactive = 6,
-  cancel = 7,
+  cancelled = 7,
+  drafted = 8,
 }
 
 export enum OrderField {
   CreationDate = 'creationDate',
+  CreationAt = 'createdAt',
   UpdatedAt = 'updatedAt',
+
+  // TODO We may can delete this sorting
   Balance = 'balance',
+
   QualityScore = 'qualityScore',
   Verified = 'verified',
   Reactions = 'totalReactions',
   Traceable = 'traceCampaignId',
   Donations = 'totalDonations',
+  TraceDonations = 'totalTraceDonations',
+  AcceptGiv = 'givingBlocksId',
 }
 
 @Entity()
@@ -111,10 +121,13 @@ class Project extends BaseEntity {
   @UpdateDateColumn({ nullable: true })
   updatedAt: Date;
 
-  @Field(type => [Organisation])
-  @ManyToMany(type => Organisation)
+  @Field(type => Organization)
+  @ManyToOne(type => Organization)
   @JoinTable()
-  organisations: Organisation[];
+  organization: Organization;
+
+  @RelationId((project: Project) => project.organization)
+  organizationId: number;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -170,7 +183,6 @@ class Project extends BaseEntity {
   @Field(type => [User], { nullable: true })
   users: User[];
 
-  @Field(type => [Reaction], { nullable: true })
   @OneToMany(type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
 
@@ -179,6 +191,13 @@ class Project extends BaseEntity {
   @ManyToOne(type => ProjectStatus, { eager: true })
   status: ProjectStatus;
 
+  @Field(type => [ProjectStatusHistory], { nullable: true })
+  @OneToMany(
+    type => ProjectStatusHistory,
+    projectStatusHistory => projectStatusHistory.project,
+  )
+  statusHistory?: ProjectStatusHistory[];
+
   @RelationId((project: Project) => project.status)
   statusId: number;
 
@@ -186,8 +205,12 @@ class Project extends BaseEntity {
   @Column({ type: 'real' })
   totalDonations: number;
 
-  @Field(type => Int, { nullable: true })
-  @Column({ type: 'integer', nullable: true })
+  @Field(type => Float)
+  @Column({ type: 'real', default: 0 })
+  totalTraceDonations: number;
+
+  @Field(type => Int, { defaultValue: 0 })
+  @Column({ type: 'integer', default: 0 })
   totalReactions: number;
 
   @Field(type => Int, { nullable: true })
@@ -202,105 +225,12 @@ class Project extends BaseEntity {
   @Field(type => User, { nullable: true })
   adminUser?: User;
 
+  // User reaction to the project
+  @Field(type => Reaction, { nullable: true })
+  reaction?: Reaction;
   /**
    * Custom Query Builders to chain together
    */
-
-  static addCategoryQuery(
-    query: SelectQueryBuilder<Project>,
-    category: string,
-  ) {
-    return query.innerJoin(
-      'project.categories',
-      'category',
-      'category.name = :category',
-      { category },
-    );
-  }
-
-  static addSearchQuery(
-    query: SelectQueryBuilder<Project>,
-    searchTerm: string,
-  ) {
-    return query.andWhere(
-      new Brackets(qb => {
-        qb.where('project.title ILIKE :searchTerm', {
-          searchTerm: `%${searchTerm}%`,
-        })
-          .orWhere('project.description ILIKE :searchTerm', {
-            searchTerm: `%${searchTerm}%`,
-          })
-          .orWhere('project.impactLocation ILIKE :searchTerm', {
-            searchTerm: `%${searchTerm}%`,
-          });
-      }),
-    );
-  }
-
-  static addFilterQuery(query: any, filter: string, filterValue: boolean) {
-    if (filter === 'givingBlocksId') {
-      const acceptGiv = filterValue ? 'IS' : 'IS NOT';
-      return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
-    }
-
-    if (filter === 'traceCampaignId') {
-      const isRequested = filterValue ? 'IS NOT' : 'IS';
-      return query.andWhere(`project.${filter} ${isRequested} NULL`);
-    }
-
-    return query.andWhere(`project.${filter} = ${filterValue}`);
-  }
-
-  // Backward Compatible Projects Query with added pagination, frontend sorts and category search
-  static searchProjects(
-    limit: number,
-    offset: number,
-    sortBy: string,
-    direction: any,
-    category: string,
-    searchTerm: string,
-    filter: string,
-    filterValue: boolean,
-  ) {
-    const query = this.createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
-      // .leftJoinAndSelect('project.donations', 'donations')
-      .leftJoinAndSelect('project.reactions', 'reactions')
-      .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
-      .innerJoinAndSelect('project.categories', 'c')
-      .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      );
-
-    // Filters
-    if (category) this.addCategoryQuery(query, category);
-    if (searchTerm) this.addSearchQuery(query, searchTerm);
-    if (filter) this.addFilterQuery(query, filter, filterValue);
-
-    if (sortBy == 'traceCampaignId') {
-      // TODO: PRISMA will fix this, temporary fix inverting nulls.
-      let traceableDirection = { ASC: 'NULLS FIRST', DESC: 'NULLS LAST' };
-      query.orderBy(
-        `project.${sortBy}`,
-        direction,
-        traceableDirection[direction],
-      );
-    } else {
-      query.orderBy(`project.${sortBy}`, direction);
-    }
-
-    const projects = query.take(limit).skip(offset).getMany();
-    const totalCount = query.getCount();
-
-    return Promise.all([projects, totalCount]);
-  }
 
   static notifySegment(project: Project, eventName: SegmentEvents) {
     new ProjectTracker(project, eventName).track();
@@ -315,6 +245,7 @@ class Project extends BaseEntity {
     }
   }
 
+  // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: Number) {
     const maxDaysForListing = moment()
       .subtract(maximumDaysForListing, 'days')
@@ -323,22 +254,58 @@ class Project extends BaseEntity {
     return this.createQueryBuilder('project')
       .where({ updatedAt: LessThan(maxDaysForListing) })
       .andWhere('project.listed IS NULL')
+      .andWhere('project.statusId = :statusId', { statusId: ProjStatus.active })
       .getMany();
   }
 
-  @Field(type => Float, { nullable: true })
-  reactionsCount() {
-    return this.reactions ? this.reactions.length : 0;
+  static async addProjectStatusHistoryRecord(inputData: {
+    prevStatus?: ProjectStatus;
+    status: ProjectStatus;
+    project: Project;
+    reasonId?: number;
+    description?: string;
+    userId: number;
+  }) {
+    const { project, status, prevStatus, description, reasonId, userId } =
+      inputData;
+    let reason;
+    const user = await User.findOne({ id: userId });
+
+    if (reasonId) {
+      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+    }
+    if (reasonId) {
+      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+    }
+
+    await ProjectStatusHistory.create({
+      project,
+      status,
+      prevStatus,
+      reason,
+      user,
+      description,
+      createdAt: new Date(),
+    }).save();
   }
 
   // Status 7 is deleted status
   mayUpdateStatus(user: User) {
-    if (this.statusId === ProjStatus.cancel) return false;
+    if (this.statusId === ProjStatus.cancelled) {
+      throw new Error(
+        errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+      );
+    }
 
-    if (this.users.filter(o => o.id === user.id).length > 0) {
+    if (
+      this.users.filter(o => o.id === user.id).length > 0 ||
+      user.id === Number(this.admin)
+    ) {
       return true;
     } else {
-      return false;
+      throw new Error(
+        errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+      );
     }
   }
 
@@ -396,13 +363,23 @@ class ProjectUpdate extends BaseEntity {
   @Column({ nullable: true })
   isMain: boolean;
 
+  @Field(type => Int, { defaultValue: 0 })
+  @Column({ type: 'integer', default: 0 })
+  totalReactions: number;
+
+  // User reaction to the project update
+  @Field(type => Reaction, { nullable: true })
+  reaction?: Reaction;
+
   @AfterInsert()
   async updateProjectStampOnCreation() {
+    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
+    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 }

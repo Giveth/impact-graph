@@ -6,22 +6,39 @@ import {
   Ctx,
   ObjectType,
   Field,
+  Args,
+  ArgsType,
+  InputType,
+  registerEnumType,
+  Int,
 } from 'type-graphql';
+import { Service } from 'typedi';
+import { Max, Min } from 'class-validator';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 // import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
-import { Donation } from '../entities/donation';
+import { Donation, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
-import { Project } from '../entities/project';
+import { Project, ProjStatus } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In } from 'typeorm';
 import { User } from '../entities/user';
-import Logger from '../logger';
+import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
-import { updateTotalDonationsOfProject } from '../services/donationService';
+import {
+  isTokenAcceptableForProject,
+  updateTotalDonationsOfProject,
+} from '../services/donationService';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../services/userService';
+import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
+import { bold } from 'chalk';
+import { getCampaignDonations } from '../services/trace/traceService';
 
 const analytics = getAnalytics();
 
@@ -38,6 +55,68 @@ class PaginateDonations {
 
   @Field(type => Number, { nullable: true })
   totalEthBalance: number;
+}
+
+enum SortDirection {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
+
+const nullDirection = {
+  ASC: 'NULLS FIRST',
+  DESC: 'NULLS LAST',
+};
+
+registerEnumType(SortField, {
+  name: 'SortField',
+  description: 'Sort by field',
+});
+
+registerEnumType(SortDirection, {
+  name: 'SortDirection',
+  description: 'Sort direction',
+});
+
+@InputType()
+class SortBy {
+  @Field(type => SortField)
+  field: SortField;
+
+  @Field(type => SortDirection)
+  direction: SortDirection;
+}
+
+@Service()
+@ArgsType()
+class UserDonationsArgs {
+  @Field(type => Int, { defaultValue: 0 })
+  @Min(0)
+  skip: number;
+
+  @Field(type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  take: number;
+
+  @Field(type => SortBy, {
+    defaultValue: {
+      field: SortField.CreationDate,
+      direction: SortDirection.DESC,
+    },
+  })
+  orderBy: SortBy;
+
+  @Field(type => Int, { nullable: false })
+  userId: number;
+}
+
+@ObjectType()
+class UserDonations {
+  @Field(type => [Donation])
+  donations: Donation[];
+
+  @Field(type => Int)
+  totalCount: number;
 }
 
 @Resolver(of => User)
@@ -91,32 +170,65 @@ export class DonationResolver {
   @Query(returns => PaginateDonations, { nullable: true })
   async donationsByProjectId(
     @Ctx() ctx: MyContext,
-    @Arg('skip', { defaultValue: 0 }) skip: number,
-    @Arg('take', { defaultValue: 10 }) take: number,
-    @Arg('projectId', type => Number) projectId: number,
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('traceable', type => Boolean, { defaultValue: false })
+    traceable: boolean,
+    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
+    @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
+    @Arg('orderBy', type => SortBy, {
+      defaultValue: {
+        field: SortField.CreationDate,
+        direction: SortDirection.DESC,
+      },
+    })
+    orderBy: SortBy,
   ) {
-    const query = this.donationRepository
-      .createQueryBuilder('donation')
-      .leftJoinAndSelect('donation.user', 'user')
-      .where(`donation.projectId = ${projectId}`);
+    const project = await Project.findOne({
+      id: projectId,
+    });
+    if (!project) {
+      throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    }
 
-    const [donations, donationsCount] = await query
-      .take(take)
-      .skip(skip)
-      .getManyAndCount();
-    const balance = await query
-      .select('SUM(donation.valueUsd)', 'usdBalance')
-      .getRawOne();
-    const ethBalance = await query
-      .select('SUM(donation.valueEth)', 'ethBalance')
-      .getRawOne();
+    if (traceable) {
+      const { total, donations } = await getCampaignDonations({
+        campaignId: project.traceCampaignId as string,
+        take,
+        skip,
+      });
+      return {
+        donations,
+        totalCount: total,
+        totalUsdBalance: project.totalTraceDonations,
+      };
+    } else {
+      const query = this.donationRepository
+        .createQueryBuilder('donation')
+        .leftJoinAndSelect('donation.user', 'user')
+        .where(`donation.projectId = ${projectId}`)
+        .orderBy(
+          `donation.${orderBy.field}`,
+          orderBy.direction,
+          nullDirection[orderBy.direction as string],
+        );
 
-    return {
-      donations,
-      totalCount: donationsCount,
-      totalUsdBalance: balance.usdBalance,
-      totalEthBalance: ethBalance.ethBalance,
-    };
+      if (searchTerm) {
+        query.andWhere('user.name ILIKE :searchTerm', {
+          searchTerm: `%${searchTerm}%`,
+        });
+      }
+
+      const [donations, donationsCount] = await query
+        .take(take)
+        .skip(skip)
+        .getManyAndCount();
+      return {
+        donations,
+        totalCount: donationsCount,
+        totalUsdBalance: project.totalDonations,
+      };
+    }
   }
 
   @Query(returns => [Token], { nullable: true })
@@ -140,18 +252,39 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
-      throw new Error(
-        'You must be logged in in order to register project donations',
-      );
-    const userId = ctx.req.user.userId;
+      throw new Error(errorMessages.DONATION_VIEWING_LOGIN_REQUIRED);
 
     const donations = await this.donationRepository.find({
       where: {
-        user: userId,
+        user: ctx.req.user.userId,
       },
     });
 
     return donations;
+  }
+
+  @Query(returns => UserDonations, { nullable: true })
+  async donationsByUserId(
+    @Args() { take, skip, orderBy, userId }: UserDonationsArgs,
+  ) {
+    const [donations, totalCount] = await this.donationRepository
+      .createQueryBuilder('donation')
+      .leftJoinAndSelect('donation.project', 'project')
+      .leftJoinAndSelect('donation.user', 'user')
+      .where(`donation.userId = ${userId}`)
+      .orderBy(
+        `donation.${orderBy.field}`,
+        orderBy.direction,
+        nullDirection[orderBy.direction as string],
+      )
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      donations,
+      totalCount,
+    };
   }
 
   @Mutation(returns => Number)
@@ -176,11 +309,26 @@ export class DonationResolver {
       if (!chainId) chainId = NETWORK_IDS.MAIN_NET;
       const priceChainId =
         chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
-      let originUser;
+      let donorUser;
 
       const project = await Project.findOne({ id: Number(projectId) });
 
-      if (!project) throw new Error('Transaction project was not found.');
+      if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      if (project.status.id !== ProjStatus.active) {
+        throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
+      }
+      const tokenInDb = await Token.findOne({
+        networkId: chainId,
+        symbol: token,
+      });
+      if (!tokenInDb) throw new Error(errorMessages.TOKEN_NOT_FOUND);
+      const acceptsToken = await isTokenAcceptableForProject({
+        projectId,
+        tokenId: tokenInDb.id,
+      });
+      if (!acceptsToken) {
+        throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+      }
       if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
         throw new Error(
           errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
@@ -188,9 +336,9 @@ export class DonationResolver {
       }
 
       if (userId) {
-        originUser = await User.findOne({ id: ctx.req.user.userId });
+        donorUser = await User.findOne({ id: ctx.req.user.userId });
       } else {
-        originUser = null;
+        donorUser = null;
       }
 
       // ONLY when logged in, allow setting the anonymous boolean
@@ -203,10 +351,12 @@ export class DonationResolver {
         isFiat: Boolean(transakId),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
-        user: originUser,
+        user: donorUser,
         tokenAddress,
         project,
+        isProjectVerified: project.verified,
         createdAt: new Date(),
+        segmentNotified: true,
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: donationAnonymous,
@@ -230,7 +380,7 @@ export class DonationResolver {
           donation.valueEth = Number(amount) * donation.priceEth;
         }
       } catch (e) {
-        console.log('Error in getting price from monoswap', {
+        logger.error('Error in getting price from monoswap', {
           error: e,
           donation,
         });
@@ -243,6 +393,12 @@ export class DonationResolver {
       }
 
       await donation.save();
+
+      if (donorUser) {
+        // After updating, recalculate user total donated and owner total received
+        await updateUserTotalDonated(donorUser.id);
+      }
+      await updateUserTotalReceived(Number(project.admin));
 
       // After updating price we update totalDonations
       await updateTotalDonationsOfProject(projectId);
@@ -266,29 +422,30 @@ export class DonationResolver {
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
         projectWalletAddress: project.walletAddress,
+        segmentNotified: true,
         createdAt: new Date(),
       };
 
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId;
-        originUser = await User.findOne({ id: userId });
-        analytics.identifyUser(originUser);
-        if (!originUser)
+        donorUser = await User.findOne({ id: userId });
+        analytics.identifyUser(donorUser);
+        if (!donorUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`);
-        console.log(donation.valueUsd);
+        logger.debug(donation.valueUsd);
 
         const segmentDonationMade = {
           ...segmentDonationInfo,
-          email: originUser != null ? originUser.email : '',
-          firstName: originUser != null ? originUser.firstName : '',
+          email: donorUser != null ? donorUser.email : '',
+          firstName: donorUser != null ? donorUser.firstName : '',
           anonymous: !userId,
         };
 
         analytics.track(
           SegmentEvents.MADE_DONATION,
-          originUser.segmentUserId(),
+          donorUser.segmentUserId(),
           segmentDonationMade,
-          originUser.segmentUserId(),
+          donorUser.segmentUserId(),
         );
       }
 
@@ -312,9 +469,9 @@ export class DonationResolver {
       }
       return donation.id;
     } catch (e) {
-      Logger.captureException(e);
-      console.error(e);
-      throw new Error(e);
+      SentryLogger.captureException(e);
+      logger.error('saveDonation() error', e);
+      throw e;
     }
   }
 
@@ -328,7 +485,7 @@ export class DonationResolver {
 
       return tokenPrices;
     } catch (e) {
-      console.log('Unable to fetch monoswap prices: ', e);
+      logger.debug('Unable to fetch monoswap prices: ', e);
       return [];
     }
   }

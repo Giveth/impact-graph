@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { logger } from './utils/logger';
 
 dotenv.config({
   path: path.resolve(__dirname, `../config/${process.env.NODE_ENV || ''}.env`),
@@ -28,7 +29,6 @@ const envVars = [
   'SERVER_ADMIN_EMAIL',
   'DEFAULT_ORGANISATION',
   'UPLOAD_FILE_MAX_SIZE',
-  'ETHEREUM_NODE_ID',
   'HOSTNAME_WHITELIST',
   'SENTRY_ID',
   'SENTRY_TOKEN',
@@ -40,10 +40,10 @@ const envVars = [
   // 'XDAI_NODE_HTTP_URL',
   'SEGMENT_API_KEY',
 ];
+// tslint:disable-next-line:class-name
 interface requiredEnv {
   JWT_SECRET: string;
   JWT_MAX_AGE: string;
-  ETHEREUM_NODE_ID: string;
   ETHEREUM_NETWORK: string;
   TYPEORM_DATABASE_TYPE: string;
   TYPEORM_DATABASE_NAME: string;
@@ -91,7 +91,7 @@ class Config {
     envVars.forEach(envVar => {
       if (envFile[envVar]) {
         this[envVar] = envFile[envVar];
-        // console.log(`envVar ---> : ${this[envVar]}`)
+        // logger.debug(`envVar ---> : ${this[envVar]}`)
       } else {
         throw new Error(`Need to provide a ${envVar} in the .env`);
       }

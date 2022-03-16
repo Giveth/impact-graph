@@ -1,10 +1,9 @@
-import { getTypeParameterOwner } from 'typescript';
 import { Project } from '../entities/project';
 import { redis } from '../redis';
-import { In } from 'typeorm';
 import { sendEmail } from '../utils/sendEmail';
 import { createConfirmationUrl } from '../utils/createConfirmationUrl';
-import Logger from '../logger';
+import SentryLogger from '../sentryLogger';
+import { logger } from '../utils/logger';
 
 async function notifyProject(project) {
   if (project.users && project.users.length) {
@@ -12,8 +11,8 @@ async function notifyProject(project) {
     await sendEmail(email, await createConfirmationUrl(userId));
   } else {
     const errorMessage = `Netlify deployed - Project no email for projectID  ---> : ${project.id}`;
-    console.error(errorMessage);
-    Logger.captureMessage(errorMessage);
+    logger.error(errorMessage);
+    SentryLogger.captureMessage(errorMessage);
   }
 }
 
@@ -42,7 +41,7 @@ export async function netlifyDeployed(request, response) {
       'impact-graph:netlifyDeploy:projects:deploying',
     );
 
-    console.log(
+    logger.debug(
       `deployedProjects : ${JSON.stringify(deployedProjects, null, 2)}`,
     );
 
@@ -52,6 +51,6 @@ export async function netlifyDeployed(request, response) {
 
     return response.json({ received: true });
   } catch (error) {
-    console.error(error);
+    logger.error('netlifyDeployed() error', error);
   }
 }

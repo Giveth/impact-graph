@@ -12,11 +12,15 @@ services:
     image: ghcr.io/giveth/impact-graph:develop
     environment:
       - NODE_ENV=production
+      - LOG_PATH=/usr/src/app/logs/impact-graph.log
     volumes:
       # You should have a production.env file in the config folder
       - type: bind
         source: ./config
         target: /usr/src/app/config
+      - type: bind
+        source: ./logs
+        target: /usr/src/app/logs
     ports:
       - "4000:4000"
     depends_on:

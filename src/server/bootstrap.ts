@@ -17,16 +17,20 @@ import { graphqlUploadExpress } from 'graphql-upload';
 import { Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator';
 
-import { runCheckPendingDonationsCronJob } from '../services/syncDonationsWithNetwork';
-import { runCheckPendingProjectListingCronJob } from '../services/syncProjectsRequiredForListing';
+import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
+import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 import { adminBroRootPath, getAdminBroRouter } from './adminBro';
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
-import { runUpdateHistoricGivPrices } from '../services/syncGivPrices';
+import { runUpdateHistoricGivPrices } from '../services/cronJobs/syncGivPrices';
 import { redis } from '../redis';
+import { logger } from '../utils/logger';
+import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
+import { getCsvAirdropTransactions } from '../services/transactionService';
+import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -116,7 +120,7 @@ export async function bootstrap() {
           req.auth = {};
           req.auth.token = token;
           req.auth.error = error;
-          // console.log(`ctx.req.auth : ${JSON.stringify(ctx.req.auth, null, 2)}`)
+          // logger.debug(`ctx.req.auth : ${JSON.stringify(ctx.req.auth, null, 2)}`)
         }
 
         return {
@@ -164,7 +168,7 @@ export async function bootstrap() {
           }
         }
 
-        console.log('CORS error', { whitelistHostnames, origin });
+        logger.error('CORS error', { whitelistHostnames, origin });
         callback(new Error('Not allowed by CORS'));
       },
     };
@@ -182,6 +186,10 @@ export async function bootstrap() {
         const vercelKey = process.env.VERCEL_KEY;
         if (vercelKey && req.headers.vercel_key === vercelKey) {
           // Skip rate-limit for Vercel requests because our front is SSR
+          return true;
+        }
+        if (req.url.startsWith('/admin')) {
+          // Bypass Admin bro panel request
           return true;
         }
         return false;
@@ -216,7 +224,7 @@ export async function bootstrap() {
 
     // Start the server
     app.listen({ port: 4000 });
-    console.log(
+    logger.debug(
       `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
     );
 
@@ -229,16 +237,22 @@ export async function bootstrap() {
       }),
     );
     runCheckPendingDonationsCronJob();
+    runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
     processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
     runUpdateHistoricGivPrices();
+    runUpdateTraceableProjectsTotalDonations();
 
     // If we need to deactivate the process use the env var
     if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
       runGivingBlocksProjectSynchronization();
     }
+    await getCsvAirdropTransactions(
+      '0x0c452a7c116adb6162390f342cee84175f34e3c1bc0015e6f82773a54ace3061',
+      100,
+    );
   } catch (err) {
-    console.error(err);
+    logger.error(err);
   }
 }
