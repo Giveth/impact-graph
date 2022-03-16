@@ -2994,7 +2994,7 @@ function projectByIdTestCases() {
     assert.equal(result.data.data.projectById.id, project.id);
     assert.equal(result.data.data.projectById.slug, project.slug);
   });
-  it('should return project null with invalid id', async () => {
+  it('should return error for invalid id', async () => {
     const result = await axios.post(graphqlUrl, {
       query: projectByIdQuery,
       variables: {
@@ -3004,7 +3004,7 @@ function projectByIdTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      'Cannot return null for non-nullable field Query.projectById.',
+      errorMessages.PROJECT_NOT_FOUND,
     );
   });
   it('should return reaction when user liked the project', async () => {
@@ -3070,7 +3070,7 @@ function projectByIdTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      'Cannot return null for non-nullable field Query.projectById.',
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
   it('should return drafted projects of logged in user', async () => {
@@ -3102,7 +3102,7 @@ function projectByIdTestCases() {
     const project = result.data.data.projectById;
     assert.equal(Number(project.id), draftedProject.id);
   });
-  it('should not return drafted project is user is loggedIn but is not owner of project', async () => {
+  it('should not return drafted project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
 
     const draftedProject = await saveProjectDirectlyToDb({
@@ -3130,7 +3130,88 @@ function projectByIdTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      'Cannot return null for non-nullable field Query.projectById.',
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
+    );
+  });
+
+  it('should not return cancelled projects if not logged in', async () => {
+    const cancelledProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.cancelled,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: projectByIdQuery,
+      variables: {
+        id: cancelledProject.id,
+      },
+    });
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
+    );
+  });
+  it('should return cancelled projects of logged in user', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+
+    const cancelledProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.cancelled,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: projectByIdQuery,
+        variables: {
+          id: cancelledProject.id,
+          connectedWalletUserId: SEED_DATA.FIRST_USER.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.projectById;
+    assert.equal(Number(project.id), cancelledProject.id);
+  });
+  it('should not return cancelled project is user is logged in but is not owner of project', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
+
+    const cancelledProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.cancelled,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: projectByIdQuery,
+        variables: {
+          id: cancelledProject.id,
+          connectedWalletUserId: SEED_DATA.FIRST_USER.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
 }
@@ -3213,10 +3294,10 @@ function projectBySlugTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      'Cannot return null for non-nullable field Query.projectBySlug.',
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
-  it('should not return drafted project is user is loggedIn but is not owner of project', async () => {
+  it('should not return drafted project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
 
     const draftedProject = await saveProjectDirectlyToDb({
@@ -3244,10 +3325,9 @@ function projectBySlugTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      'Cannot return null for non-nullable field Query.projectBySlug.',
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
-
   it('should return drafted if logged in', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
 
@@ -3275,6 +3355,86 @@ function projectBySlugTestCases() {
 
     const project = result.data.data.projectBySlug;
     assert.equal(Number(project.id), draftedProject.id);
+  });
+
+  it('should not return cancelled if not logged in', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.cancelled,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: project.slug,
+      },
+    });
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
+    );
+  });
+  it('should not return cancelled project is user is logged in but is not owner of project', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.cancelled,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchProjectsBySlugQuery,
+        variables: {
+          slug: project.slug,
+          connectedWalletUserId: SEED_DATA.FIRST_USER.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
+    );
+  });
+  it('should return cancelled if logged in', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+
+    const cancelledProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      statusId: ProjStatus.cancelled,
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchProjectsBySlugQuery,
+        variables: {
+          slug: cancelledProject.slug,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), cancelledProject.id);
   });
 }
 

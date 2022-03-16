@@ -1,5 +1,8 @@
 export const errorMessages = {
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
+  YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT:
+    'You dont have access to view this project',
+  JUST_ACTIVE_PROJECTS_ACCEPT_DONATION: 'Just active projects accept donation',
   CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE:
     'Please select no more than 5 categories',
   CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION:

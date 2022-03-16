@@ -21,6 +21,7 @@ import {
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
 import { ORGANIZATION_LABELS } from '../entities/organization';
+import { ProjStatus } from '../entities/project';
 
 // TODO Write test cases
 // describe('donations() test cases', donationsTestCases);
@@ -548,7 +549,6 @@ function saveDonationTestCases() {
     assert.isOk(donation);
     assert.isTrue(donation?.isProjectVerified);
   });
-
   it('should isProjectVerified be true after create donation for unVerified projects', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -587,6 +587,118 @@ function saveDonationTestCases() {
     });
     assert.isOk(donation);
     assert.isFalse(donation?.isProjectVerified);
+  });
+
+  it('should throw exception when donating to draft projects', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.drafted,
+    });
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: generateRandomEtheriumAddress(),
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
+    );
+  });
+  it('should throw exception when donating to cancelled projects', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.cancelled,
+    });
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: generateRandomEtheriumAddress(),
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
+    );
+  });
+  it('should throw exception when donating to deactivated projects', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+    });
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: generateRandomEtheriumAddress(),
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
+    );
   });
 }
 
