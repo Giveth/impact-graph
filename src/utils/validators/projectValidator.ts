@@ -1,5 +1,5 @@
 import { getProvider, NETWORK_IDS } from '../../provider';
-import { Project } from '../../entities/project';
+import { Project, ProjStatus } from '../../entities/project';
 import Web3 from 'web3';
 import { errorMessages } from '../errorMessages';
 import { logger } from '../logger';
@@ -112,3 +112,20 @@ function isSmartContract(provider) {
     return code !== '0x';
   };
 }
+
+export const checkUserAccessToVisitProject = (
+  project?: Project,
+  userId?: string,
+) => {
+  if (!project) {
+    throw new Error(errorMessages.PROJECT_NOT_FOUND);
+  }
+  if (
+    (project.statusId === ProjStatus.drafted ||
+      project.statusId === ProjStatus.cancelled) &&
+    // If project is draft or cancelled, just owner can view it
+    project.admin !== userId
+  ) {
+    throw new Error(errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT);
+  }
+};

@@ -47,6 +47,7 @@ import {
 } from 'type-graphql';
 import { errorMessages } from '../utils/errorMessages';
 import {
+  checkUserAccessToVisitProject,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
@@ -571,14 +572,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
-    if (
-      (project?.statusId === ProjStatus.drafted ||
-        project?.statusId === ProjStatus.cancelled) &&
-      // If project is draft or cancelled, just owner can view it
-      project?.admin !== String(user?.userId)
-    ) {
-      return null;
-    }
+    await checkUserAccessToVisitProject(project, String(user?.userId));
 
     return project;
   }
@@ -610,14 +604,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
-    if (
-      (project?.statusId === ProjStatus.drafted ||
-        project?.statusId === ProjStatus.cancelled) &&
-      // If project is draft or cancelled, just owner can view it
-      project?.admin !== String(user?.userId)
-    ) {
-      return null;
-    }
+    await checkUserAccessToVisitProject(project, String(user?.userId));
 
     return project;
   }
