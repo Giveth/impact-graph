@@ -535,38 +535,7 @@ const getAdminBroInstance = () => {
             exportFilterToCsv: {
               actionType: 'resource',
               isVisible: true,
-              handler: async (request, response, context) => {
-                try {
-                  const { records } = context;
-                  const rawQueryStrings =
-                    (await redis.get(
-                      `adminbro_${context.currentAdmin.id}_qs`,
-                    )) || {};
-                  const queryStrings = JSON.parse(rawQueryStrings);
-                  const projectsQuery = buildProjectsQuery(queryStrings);
-                  const projects = await projectsQuery.getMany();
-
-                  await sendProjectsToGoogleSheet(projects);
-
-                  return {
-                    redirectUrl: 'Project',
-                    records,
-                    notice: {
-                      message: `Project(s) successfully exported`,
-                      type: 'success',
-                    },
-                  };
-                } catch (e) {
-                  return {
-                    redirectUrl: 'Project',
-                    record: {},
-                    notice: {
-                      message: e.message,
-                      type: 'danger',
-                    },
-                  };
-                }
-              },
+              handler: exportProjectsWithFiltersToCsv,
               component: false,
             },
             listProject: {
@@ -862,7 +831,43 @@ export const buildProjectsQuery = (
   return query;
 };
 
-export const sendProjectsToGoogleSheet = async (
+export const exportProjectsWithFiltersToCsv = async (
+  _request: AdminBroRequestInterface,
+  _response,
+  context: AdminBroContextInterface,
+) => {
+  try {
+    const { records } = context;
+    const rawQueryStrings = await redis.get(
+      `adminbro_${context.currentAdmin.id}_qs`,
+    );
+    const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
+    const projectsQuery = buildProjectsQuery(queryStrings);
+    const projects = await projectsQuery.getMany();
+
+    await sendProjectsToGoogleSheet(projects);
+
+    return {
+      redirectUrl: 'Project',
+      records,
+      notice: {
+        message: `Project(s) successfully exported`,
+        type: 'success',
+      },
+    };
+  } catch (e) {
+    return {
+      redirectUrl: 'Project',
+      record: {},
+      notice: {
+        message: e.message,
+        type: 'danger',
+      },
+    };
+  }
+};
+
+const sendProjectsToGoogleSheet = async (
   projects: Project[],
 ): Promise<void> => {
   const spreadsheet = await projectExportSpreadsheet();
@@ -880,8 +885,8 @@ export const sendProjectsToGoogleSheet = async (
       walletAddress: project.walletAddress,
       statusId: project.statusId,
       qualityScore: project.qualityScore,
-      verified: project.verified,
-      listed: project.listed,
+      verified: Boolean(project.verified),
+      listed: Boolean(project.listed),
       totalDonations: project.totalDonations,
       totalProjectUpdates: project.totalProjectUpdates,
     };
