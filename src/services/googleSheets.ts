@@ -9,7 +9,7 @@ export const projectExportSpreadsheet = async (): Promise<
 > => {
   // Initialize the sheet - document ID is the long id in the sheets URL
   const spreadSheet = new GoogleSpreadsheet(
-    config.get('PROJECT_EXPORTS_SPREADSHEET_ID'),
+    config.get('GOOGLE_PROJECT_EXPORTS_SPREADSHEET_ID'),
   );
 
   // Initialize Auth - see https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication
@@ -23,12 +23,16 @@ export const projectExportSpreadsheet = async (): Promise<
   return spreadSheet;
 };
 
-export const addSheetWithRows = async (spreadSheet, headers, rows) => {
-  const currentDate = moment().toUTCString();
+export const addSheetWithRows = async (
+  spreadSheet,
+  headers,
+  rows,
+): Promise<void> => {
+  const currentDate = moment().toDate();
 
   const sheet = await spreadSheet.addSheet({
     headerValues: headers,
-    title: `export: ${currentDate}`,
+    title: `export ${currentDate.toDateString()} ${currentDate.getTime()}`,
   });
 
   // Array of objects with entity data, example:

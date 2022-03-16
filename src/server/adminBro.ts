@@ -17,6 +17,10 @@ import {
   getCsvAirdropTransactions,
 } from '../services/transactionService';
 import {
+  projectExportSpreadsheet,
+  addSheetWithRows,
+} from '../services/googleSheets';
+import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../types/TransactionInquiry';
@@ -44,6 +48,24 @@ const segmentProjectStatusEvents = {
   can: SegmentEvents.PROJECT_DEACTIVATED,
   del: SegmentEvents.PROJECT_CANCELLED,
 };
+
+// headers defined by the verification team for exporting
+const headers = [
+  'id',
+  'title',
+  'slug',
+  'admin',
+  'creationDate',
+  'updatedAt',
+  'impactLocation',
+  'walletAddress',
+  'statusId',
+  'qualityScore',
+  'verified',
+  'listed',
+  'totalDonations',
+  'totalProjectUpdates',
+];
 
 interface AdminBroContextInterface {
   h: any;
@@ -89,9 +111,9 @@ export const getAdminBroRouter = () => {
     null,
     {
       // default values that will be deprecated, need to define them manually
-      resave: true,
+      resave: false,
       saveUninitialized: true,
-      rolling: true,
+      rolling: false,
       secret,
       store: new RedisStore({
         client: redis,
@@ -476,14 +498,14 @@ const getAdminBroInstance = () => {
               isVisible: true,
               handler: async (request, response, context) => {
                 const { records } = context;
-                const queryStrings = JSON.parse(
-                  await redis.get(`adminbro_${context.currentAdmin.id}_qs`),
-                );
-                const projectsQuery = buildProjectQuery(queryStrings);
-                const sql = projectsQuery.getSql();
+                const rawQueryStrings =
+                  (await redis.get(`adminbro_${context.currentAdmin.id}_qs`)) ||
+                  {};
+                const queryStrings = JSON.parse(rawQueryStrings);
+                const projectsQuery = buildProjectsQuery(queryStrings);
                 const projects = await projectsQuery.getMany();
 
-                // console.log(queryStrings);
+                await sendProjectsToGoogleSheet(projects);
 
                 return {
                   redirectUrl: 'Project',
@@ -698,7 +720,8 @@ interface AdminBroProjectsQuery {
   listed?: string;
 }
 
-export const buildProjectQuery = (
+// add queries depending on which filters were selected
+export const buildProjectsQuery = (
   queryStrings: AdminBroProjectsQuery,
 ): SelectQueryBuilder<Project> => {
   const query = Project.createQueryBuilder('project');
@@ -726,7 +749,55 @@ export const buildProjectQuery = (
       statusId: queryStrings.statusId,
     });
 
+  if (queryStrings['creationDate~~from'])
+    query.andWhere('project."creationDate" >= :createdFrom', {
+      createdFrom: queryStrings['creationDate~~from'],
+    });
+
+  if (queryStrings['creationDate~~to'])
+    query.andWhere('project."creationDate" <= :createdTo', {
+      createdTo: queryStrings['creationDate~~to'],
+    });
+
+  if (queryStrings['updatedAt~~from'])
+    query.andWhere('project."updatedAt" >= :updatedFrom', {
+      updatedFrom: queryStrings['updatedAt~~from'],
+    });
+
+  if (queryStrings['updatedAt~~to'])
+    query.andWhere('project."updatedAt" <= :updatedTo', {
+      updatedTo: queryStrings['updatedAt~~to'],
+    });
+
   return query;
+};
+
+export const sendProjectsToGoogleSheet = async (
+  projects: Project[],
+): Promise<void> => {
+  const spreadsheet = await projectExportSpreadsheet();
+
+  // parse data and set headers
+  const projectRows = projects.map((project: Project) => {
+    return {
+      id: project.id,
+      title: project.title,
+      slug: project.slug,
+      admin: project.admin,
+      creationDate: project.creationDate,
+      updatedAt: project.updatedAt,
+      impactLocation: project.impactLocation,
+      walletAddress: project.walletAddress,
+      statusId: project.statusId,
+      qualityScore: project.qualityScore,
+      verified: project.verified,
+      listed: project.listed,
+      totalDonations: project.totalDonations,
+      totalProjectUpdates: project.totalProjectUpdates,
+    };
+  });
+
+  await addSheetWithRows(spreadsheet, headers, projectRows);
 };
 
 export const listDelist = async (
