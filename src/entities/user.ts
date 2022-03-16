@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, Int } from 'type-graphql';
+import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -101,14 +101,12 @@ export class User extends BaseEntity {
   )
   accountVerifications?: AccountVerification[];
 
-  @Field(type => Int, { nullable: true })
-  // TODO Carlos please check this, I think it should be float
-  @Column({ type: 'integer', nullable: true, default: 0 })
+  @Field(type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true, default: 0 })
   totalDonated: number;
 
-  @Field(type => Int, { nullable: true })
-  // TODO Carlos please check this, I think it should be float
-  @Column({ type: 'integer', nullable: true, default: 0 })
+  @Field(type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true, default: 0 })
   totalReceived: number;
 
   @Field(type => [ProjectStatusHistory], { nullable: true })
