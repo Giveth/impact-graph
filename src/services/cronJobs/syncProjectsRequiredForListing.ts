@@ -14,7 +14,10 @@ const maximumDaysForListing =
   Number(config.get('MAXIMUM_DAYS_FOR_LISTING_PROJECTS')) || 21;
 
 export const runCheckPendingProjectListingCronJob = () => {
-  logger.debug('runCheckPendingProjectListingCronJob() has been called');
+  logger.debug(
+    'runCheckPendingProjectListingCronJob() has been called, cronJobTime',
+    cronJobTime,
+  );
   schedule(cronJobTime, async () => {
     await updateProjectListing();
   });
