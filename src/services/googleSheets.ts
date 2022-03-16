@@ -1,5 +1,6 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import config from '../config';
+import { logger } from '../utils/logger';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -24,21 +25,35 @@ export const projectExportSpreadsheet = async (): Promise<
 };
 
 export const addSheetWithRows = async (
-  spreadSheet,
-  headers,
-  rows,
+  spreadSheet: GoogleSpreadsheet,
+  headers: string[],
+  rows: {
+    id: number;
+    title: string;
+    slug?: string;
+    admin?: string;
+    creationDate: Date;
+    updatedAt: Date;
+    impactLocation?: string;
+    walletAddress?: string;
+    statusId: number;
+    qualityScore: number;
+    verified: boolean;
+    listed: boolean;
+    totalDonations: number;
+    totalProjectUpdates: number;
+  }[],
 ): Promise<void> => {
-  const currentDate = moment().toDate();
+  try {
+    const currentDate = moment().toDate();
 
-  const sheet = await spreadSheet.addSheet({
-    headerValues: headers,
-    title: `export ${currentDate.toDateString()} ${currentDate.getTime()}`,
-  });
-
-  // Array of objects with entity data, example:
-  // [
-  //   { title: 'test', ... },
-  //   { title: 'awesome project', ... },
-  // ]
-  const appendRows = await sheet.addRows(rows);
+    const sheet = await spreadSheet.addSheet({
+      headerValues: headers,
+      title: `export ${currentDate.toDateString()} ${currentDate.getTime()}`,
+    });
+    await sheet.addRows(rows);
+  } catch (e) {
+    logger.error('addSheetWithRows error', e);
+    throw e;
+  }
 };

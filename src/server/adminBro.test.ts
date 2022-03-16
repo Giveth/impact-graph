@@ -1,5 +1,6 @@
 import {
   createDonation,
+  exportProjectsWithFiltersToCsv,
   listDelist,
   updateStatusOfProjects,
   verifyProjects,
@@ -29,6 +30,10 @@ describe(
 describe('verifyProjects() test cases', verifyProjectsTestCases);
 describe('listDelist() test cases', listDelistTestCases);
 describe('createDonation() test cases', createDonationTestCases);
+describe(
+  'exportProjectsWithFiltersToCsv() test cases',
+  exportProjectsWithFiltersToCsvTestCases,
+);
 
 function createDonationTestCases() {
   it('Should create donations for csv airDrop', async () => {
@@ -516,6 +521,44 @@ function verifyProjectsTestCases() {
       history?.description,
       HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
     );
+  });
+}
+
+function exportProjectsWithFiltersToCsvTestCases() {
+  it('should  return error because google api key is mot set', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: false,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const result = await exportProjectsWithFiltersToCsv(
+      {
+        query: {
+          recordIds: '',
+        },
+        payload: {},
+        record: {},
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+    );
+
+    assert.equal(result?.notice.type, 'danger');
+    // If we set GOOGLE_SPREADSHEETS_PRIVATE_KEY,GOOGLE_SPREADSHEETS_CLIENT_EMAIL,GOOGLE_PROJECT_EXPORTS_SPREADSHEET_ID
+    // to .env.test we would not get this error anymore
+    assert.equal(result?.notice.message, 'No key or keyFile set.');
   });
 }
 
