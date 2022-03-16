@@ -66,6 +66,7 @@ There are many strategies available for authentication
 
 #### Email address and password
 
+
 ```javascript
 mutation RegisterUser {
   mutation {
@@ -221,6 +222,13 @@ If you want to revert last migration :
 npm run typeorm:cli -- migration:revert
 ```
 
+### TEST
+For running tests you need to register infura and etherscan api-key, and you should pass this environment variables
 
+`ETHERSCAN_API_KEY=0000000000000000000000000000000000 XDAI_NODE_HTTP_URL=https://xxxxxx.xdai.quiknode.pro INFURA_API_KEY=0000000000000000000000000000000000 npm run test` 
+
+### PRE_COMMITS
+Please before committing your changes run
+`npm run prettify` to fix eslint and prettify warnings
 
 You will need to add the above command to your build process so that all database migrations are run upon deployments.
