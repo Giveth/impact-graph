@@ -47,7 +47,7 @@ import {
 } from 'type-graphql';
 import { errorMessages } from '../utils/errorMessages';
 import {
-  checkUserAccessToVisitProject,
+  canUserVisitProject,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
@@ -572,7 +572,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
-    await checkUserAccessToVisitProject(project, String(user?.userId));
+    await canUserVisitProject(project, String(user?.userId));
 
     return project;
   }
@@ -604,7 +604,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
-    await checkUserAccessToVisitProject(project, String(user?.userId));
+    await canUserVisitProject(project, String(user?.userId));
 
     return project;
   }

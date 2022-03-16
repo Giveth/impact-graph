@@ -113,16 +113,13 @@ function isSmartContract(provider) {
   };
 }
 
-export const checkUserAccessToVisitProject = (
-  project?: Project,
-  userId?: string,
-) => {
+export const canUserVisitProject = (project?: Project, userId?: string) => {
   if (!project) {
     throw new Error(errorMessages.PROJECT_NOT_FOUND);
   }
   if (
-    (project.statusId === ProjStatus.drafted ||
-      project.statusId === ProjStatus.cancelled) &&
+    (project.status.id === ProjStatus.drafted ||
+      project.status.id === ProjStatus.cancelled) &&
     // If project is draft or cancelled, just owner can view it
     project.admin !== userId
   ) {
