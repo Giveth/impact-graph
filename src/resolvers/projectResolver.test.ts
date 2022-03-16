@@ -3102,7 +3102,7 @@ function projectByIdTestCases() {
     const project = result.data.data.projectById;
     assert.equal(Number(project.id), draftedProject.id);
   });
-  it('should not return drafted project is user is loggedIn but is not owner of project', async () => {
+  it('should not return drafted project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
 
     const draftedProject = await saveProjectDirectlyToDb({
@@ -3183,7 +3183,7 @@ function projectByIdTestCases() {
     const project = result.data.data.projectById;
     assert.equal(Number(project.id), cancelledProject.id);
   });
-  it('should not return cancelled project is user is loggedIn but is not owner of project', async () => {
+  it('should not return cancelled project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
 
     const cancelledProject = await saveProjectDirectlyToDb({
@@ -3297,7 +3297,7 @@ function projectBySlugTestCases() {
       errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
-  it('should not return drafted project is user is loggedIn but is not owner of project', async () => {
+  it('should not return drafted project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
 
     const draftedProject = await saveProjectDirectlyToDb({
@@ -3377,7 +3377,7 @@ function projectBySlugTestCases() {
       errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
-  it('should not return cancelled project is user is loggedIn but is not owner of project', async () => {
+  it('should not return cancelled project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
 
     const project = await saveProjectDirectlyToDb({

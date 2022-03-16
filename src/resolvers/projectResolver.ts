@@ -572,7 +572,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
-    await canUserVisitProject(project, String(user?.userId));
+    canUserVisitProject(project, String(user?.userId));
 
     return project;
   }
@@ -604,7 +604,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
-    await canUserVisitProject(project, String(user?.userId));
+    canUserVisitProject(project, String(user?.userId));
 
     return project;
   }
