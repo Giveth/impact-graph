@@ -2,9 +2,9 @@ import { Donation } from '../../entities/donation';
 import { schedule } from 'node-cron';
 import { updateTotalDonationsOfProject } from '../donationService';
 import { logger } from '../../utils/logger';
-import { fetchGivHistoricPrice } from './givPriceService';
-import { convertExponentialNumber } from '../utils/utils';
-import config from '../config';
+import { fetchGivHistoricPrice } from '../givPriceService';
+import config from '../../config';
+import { convertExponentialNumber } from '../../utils/utils';
 
 const cronJobTime =
   (config.get('REVIEW_OLD_GIV_PRICES_CRONJOB_EXPRESSION') as string) ||
