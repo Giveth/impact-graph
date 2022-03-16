@@ -640,6 +640,12 @@ export class ProjectResolver {
       );
     }
 
+    if (!newProjectData.categories) {
+      throw new Error(
+        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+      );
+    }
+
     const categoriesPromise = newProjectData.categories.map(async category => {
       const [c] = await this.categoryRepository.find({ name: category });
       if (c === undefined) {
