@@ -4,10 +4,7 @@ import {
   Column,
   Entity,
   BaseEntity,
-  Index,
   ManyToMany,
-  OneToMany,
-  JoinTable,
 } from 'typeorm';
 import { Organization } from './organization';
 

@@ -597,6 +597,12 @@ function projectsTestCases() {
     assert.isTrue(result.data.data.projects.projects[0].totalDonations >= 100);
   });
   it('should return projects, sort by donations, ASC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalDonations: 0,
+      qualityScore: 0,
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {

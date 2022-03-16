@@ -1,4 +1,5 @@
 import { Project } from '../entities/project';
+import { Token } from '../entities/token';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { TransakOrder } from './transak/order';
 import { User } from '../entities/user';
@@ -105,26 +106,23 @@ export const updateTotalDonationsOfProject = async (projectId: number) => {
   }
 };
 
-export const isProjectAcceptToken = async (inputData: {
+export const isTokenAcceptableForProject = async (inputData: {
   projectId: number;
   tokenId: number;
 }): Promise<boolean> => {
   try {
     const { projectId, tokenId } = inputData;
-    const project = await Project.createQueryBuilder('project')
-      .where(`project.id = ${projectId}`)
-      .getOne();
-    if (!project) {
-      return false;
-    }
-    const organizationToken = await Organization.query(
-      `
-        SELECT * FROM organization_tokens_token
-        WHERE "tokenId" = ${tokenId} AND "organizationId" = ${project.organizationId}
-        LIMIT 1
-      `,
-    );
-    return organizationToken.length > 0;
+    const tokenCount = await Token.createQueryBuilder('token')
+      .where('token.id = :tokenId', { tokenId })
+      .innerJoinAndSelect('token.organizations', 'organization')
+      .innerJoinAndSelect(
+        'organization.projects',
+        'project',
+        'project.id = :projectId',
+        { projectId },
+      )
+      .getCount();
+    return tokenCount > 0;
   } catch (e) {
     logger.error('isProjectAcceptToken() error', {
       inputData,

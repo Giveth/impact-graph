@@ -1335,21 +1335,14 @@ export class ProjectResolver {
     @Arg('projectId') projectId: number,
   ): Promise<Token[]> {
     try {
-      const projects = await Project.query(
-        `
-              SELECT * FROM project
-              WHERE id=${projectId}
-              LIMIT 1
-              `,
-      );
-      if (projects.length === 0) {
-        throw new Error(errorMessages.PROJECT_NOT_FOUND);
-      }
       const organization = await Organization.createQueryBuilder('organization')
+        .innerJoin(
+          'organization.projects',
+          'project',
+          'project.id = :projectId',
+          { projectId },
+        )
         .leftJoinAndSelect('organization.tokens', 'tokens')
-        .where('organization.id = :organizationId', {
-          organizationId: projects[0].organizationId,
-        })
         .getOne();
       return organization?.tokens as Token[];
     } catch (e) {
