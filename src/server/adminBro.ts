@@ -536,24 +536,36 @@ const getAdminBroInstance = () => {
               actionType: 'resource',
               isVisible: true,
               handler: async (request, response, context) => {
-                const { records } = context;
-                const rawQueryStrings =
-                  (await redis.get(`adminbro_${context.currentAdmin.id}_qs`)) ||
-                  {};
-                const queryStrings = JSON.parse(rawQueryStrings);
-                const projectsQuery = buildProjectsQuery(queryStrings);
-                const projects = await projectsQuery.getMany();
+                try {
+                  const { records } = context;
+                  const rawQueryStrings =
+                    (await redis.get(
+                      `adminbro_${context.currentAdmin.id}_qs`,
+                    )) || {};
+                  const queryStrings = JSON.parse(rawQueryStrings);
+                  const projectsQuery = buildProjectsQuery(queryStrings);
+                  const projects = await projectsQuery.getMany();
 
-                await sendProjectsToGoogleSheet(projects);
+                  await sendProjectsToGoogleSheet(projects);
 
-                return {
-                  redirectUrl: 'Project',
-                  records,
-                  notice: {
-                    message: `Project(s) successfully exported`,
-                    type: 'success',
-                  },
-                };
+                  return {
+                    redirectUrl: 'Project',
+                    records,
+                    notice: {
+                      message: `Project(s) successfully exported`,
+                      type: 'success',
+                    },
+                  };
+                } catch (e) {
+                  return {
+                    redirectUrl: 'Project',
+                    record: {},
+                    notice: {
+                      message: e.message,
+                      type: 'danger',
+                    },
+                  };
+                }
               },
               component: false,
             },
