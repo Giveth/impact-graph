@@ -525,7 +525,7 @@ function verifyProjectsTestCases() {
 }
 
 function exportProjectsWithFiltersToCsvTestCases() {
-  it('should  return error because google api key is mot set', async () => {
+  it('should  return error because google api key is not set', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
