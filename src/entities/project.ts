@@ -19,7 +19,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Organisation } from './organisation';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { Category } from './category';
@@ -31,6 +30,7 @@ import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
 import { errorMessages } from '../utils/errorMessages';
+import { Organization } from './organization';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -48,6 +48,7 @@ export enum ProjStatus {
 
 export enum OrderField {
   CreationDate = 'creationDate',
+  CreationAt = 'createdAt',
   UpdatedAt = 'updatedAt',
 
   // TODO We may can delete this sorting
@@ -59,6 +60,7 @@ export enum OrderField {
   Traceable = 'traceCampaignId',
   Donations = 'totalDonations',
   TraceDonations = 'totalTraceDonations',
+  AcceptGiv = 'givingBlocksId',
 }
 
 @Entity()
@@ -119,10 +121,13 @@ class Project extends BaseEntity {
   @UpdateDateColumn({ nullable: true })
   updatedAt: Date;
 
-  @Field(type => [Organisation])
-  @ManyToMany(type => Organisation)
+  @Field(type => Organization)
+  @ManyToOne(type => Organization)
   @JoinTable()
-  organisations: Organisation[];
+  organization: Organization;
+
+  @RelationId((project: Project) => project.organization)
+  organizationId: number;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -253,6 +258,37 @@ class Project extends BaseEntity {
       .getMany();
   }
 
+  static async addProjectStatusHistoryRecord(inputData: {
+    prevStatus?: ProjectStatus;
+    status: ProjectStatus;
+    project: Project;
+    reasonId?: number;
+    description?: string;
+    userId: number;
+  }) {
+    const { project, status, prevStatus, description, reasonId, userId } =
+      inputData;
+    let reason;
+    const user = await User.findOne({ id: userId });
+
+    if (reasonId) {
+      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+    }
+    if (reasonId) {
+      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+    }
+
+    await ProjectStatusHistory.create({
+      project,
+      status,
+      prevStatus,
+      reason,
+      user,
+      description,
+      createdAt: new Date(),
+    }).save();
+  }
+
   // Status 7 is deleted status
   mayUpdateStatus(user: User) {
     if (this.statusId === ProjStatus.cancelled) {
@@ -271,25 +307,6 @@ class Project extends BaseEntity {
         errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
       );
     }
-  }
-
-  async addProjectStatusHistoryRecord(inputData: {
-    prevStatus: ProjectStatus;
-    status: ProjectStatus;
-    project: Project;
-    reasonId?: number;
-  }) {
-    const { project, status, prevStatus, reasonId } = inputData;
-    let reason;
-    if (reasonId) {
-      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
-    }
-    await ProjectStatusHistory.create({
-      project,
-      status,
-      prevStatus,
-      reason,
-    }).save();
   }
 
   /**

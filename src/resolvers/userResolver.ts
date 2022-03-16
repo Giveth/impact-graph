@@ -11,16 +11,15 @@ import {
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { Repository, In } from 'typeorm';
 
-import { OrganisationUser } from '../entities/organisationUser';
 import { User } from '../entities/user';
 import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerification } from '../entities/accountVerification';
 import { AccountVerificationInput } from './types/accountVerificationInput';
-import { Organisation } from '../entities/organisation';
 import { MyContext } from '../types/MyContext';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { errorMessages } from '../utils/errorMessages';
 import { Project } from '../entities/project';
+import { validateEmail } from '../utils/validators/commonValidators';
 
 const analytics = getAnalytics();
 
@@ -28,10 +27,6 @@ const analytics = getAnalytics();
 export class UserResolver {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(OrganisationUser)
-    private readonly organisationUserRepository: Repository<OrganisationUser>,
-    @InjectRepository(Organisation)
-    private readonly organisationRepository: Repository<Organisation>, // , // @InjectRepository(OrganisationUser) // private readonly organisationUserRepository: Repository<OrganisationUser>
     @InjectRepository(AccountVerification)
     @InjectRepository(Project)
     private readonly accountVerificationRepository: Repository<AccountVerification>,
@@ -60,8 +55,8 @@ export class UserResolver {
     @Arg('lastName', { nullable: true }) lastName: string,
     @Arg('location', { nullable: true }) location: string,
     @Arg('email', { nullable: true }) email: string,
-    @Arg('name', { nullable: true }) name: string,
     @Arg('url', { nullable: true }) url: string,
+    @Arg('avatar', { nullable: true }) avatar: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
@@ -69,35 +64,52 @@ export class UserResolver {
     if (!dbUser) {
       return false;
     }
-    if (!firstName && !lastName) {
+    if (!dbUser.name && !firstName && !lastName) {
       throw new Error(
         errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
       );
     }
-    let fullName: string = '';
-    if (!name) {
-      fullName = firstName + ' ' + lastName;
-    } else {
-      fullName = name;
+    if (firstName === '') {
+      throw new Error(errorMessages.FIRSTNAME_CANT_BE_EMPTY_STRING);
     }
-    const idUser = dbUser;
-    idUser.firstName = firstName;
-    idUser.lastName = lastName;
-    idUser.name = fullName;
-    idUser.location = location;
-    idUser.email = email;
-    idUser.url = url;
-    await idUser.save();
+    if (lastName === '') {
+      throw new Error(errorMessages.LASTNAME_CANT_BE_EMPTY_STRING);
+    }
+    if (firstName) {
+      dbUser.firstName = firstName;
+    }
+    if (lastName) {
+      dbUser.lastName = lastName;
+    }
+    if (location !== undefined) {
+      dbUser.location = location;
+    }
+    if (email !== undefined) {
+      // User can unset his email by putting empty string
+      if (!validateEmail(email)) {
+        throw new Error(errorMessages.INVALID_EMAIL);
+      }
+      dbUser.email = email;
+    }
+    if (url !== undefined) {
+      dbUser.url = url;
+    }
+    if (avatar !== undefined) {
+      dbUser.avatar = avatar;
+    }
+
+    dbUser.name = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim();
+    await dbUser.save();
 
     const segmentUpdateProfile = {
-      firstName: idUser.firstName,
-      lastName: idUser.lastName,
-      location: idUser.location,
-      email: idUser.email,
-      url: idUser.url,
+      firstName: dbUser.firstName,
+      lastName: dbUser.lastName,
+      location: dbUser.location,
+      email: dbUser.email,
+      url: dbUser.url,
     };
 
-    analytics.identifyUser(idUser);
+    analytics.identifyUser(dbUser);
     analytics.track(
       SegmentEvents.UPDATED_PROFILE,
       dbUser.segmentUserId(),

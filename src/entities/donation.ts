@@ -49,6 +49,11 @@ export class Donation extends BaseEntity {
   transactionNetworkId: number;
 
   @Field()
+  @Column('boolean', { default: false })
+  // https://github.com/Giveth/impact-graph/issues/407#issuecomment-1066892258
+  isProjectVerified: boolean;
+
+  @Field()
   @Column('text', { default: 'pending' })
   status: string;
 

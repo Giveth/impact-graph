@@ -32,6 +32,7 @@ export const errorMessages = {
   USER_NOT_FOUND: 'User not found.',
   INVALID_NETWORK_ID: 'Network Id is invalid',
   INVALID_TOKEN_SYMBOL: 'Token symbol is invalid',
+  TOKEN_NOT_FOUND: 'Token Not found',
   TRANSACTION_NOT_FOUNT_IN_USER_HISTORY:
     'TRANSACTION_NOT_FOUNT_IN_USER_HISTORY',
   TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY:
@@ -39,9 +40,12 @@ export const errorMessages = {
   TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS:
     'toAddress of donation should be equal to project wallet address',
   INVALID_WALLET_ADDRESS: 'Eth address not valid',
+  INVALID_EMAIL: 'Email not valid',
   UN_AUTHORIZED: 'unAuthorized',
   BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY:
     'Both firstName and lastName cant be empty',
+  FIRSTNAME_CANT_BE_EMPTY_STRING: 'firstName cant be empty string',
+  LASTNAME_CANT_BE_EMPTY_STRING: 'lastName cant be empty string',
   PROJECT_WITH_THIS_TITLE_EXISTS:
     'There is a project with this title, please use another title',
   INVALID_PROJECT_TITLE:
@@ -49,4 +53,5 @@ export const errorMessages = {
   ACCESS_DENIED: 'Access denied',
   AUTHENTICATION_REQUIRED: 'Authentication required.',
   SOMETHING_WENT_WRONG: 'Something went wrong.',
+  PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
 };

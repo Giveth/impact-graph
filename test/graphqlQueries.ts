@@ -21,6 +21,11 @@ export const addProjectQuery = `
             walletAddress
             listed
             verified
+            organization {
+              id
+              name
+              label
+            }
             status {
               name
               id
@@ -28,6 +33,80 @@ export const addProjectQuery = `
             }
             categories {
               name
+            }
+            adminUser{
+              id
+              name
+              email
+              walletAddress
+            }
+          }
+      }
+  `;
+
+export const saveDonation = `
+  mutation (
+    $chainId: Float!
+    $fromAddress: String!
+    $toAddress: String!
+    $transactionId: String
+    $transactionNetworkId: Float!
+    $amount: Float!
+    $token: String!
+    $projectId: Float!
+    $transakId: String
+    $transakStatus: String
+    $tokenAddress: String
+    $anonymous: Boolean
+  ) {
+    saveDonation(
+      chainId: $chainId
+      fromAddress: $fromAddress
+      toAddress: $toAddress
+      transactionId: $transactionId
+      transactionNetworkId: $transactionNetworkId
+      amount: $amount
+      token: $token
+      projectId: $projectId
+      transakId: $transakId
+      transakStatus: $transakStatus
+      tokenAddress: $tokenAddress
+      anonymous: $anonymous
+    )
+  }
+`;
+
+export const createProjectQuery = `
+       mutation ($project: CreateProjectInput!) {
+          createProject(project: $project) {
+            id
+            title
+            description
+            admin
+            image
+            impactLocation
+            slug
+            walletAddress
+            listed
+            verified
+            organization {
+              id
+              name
+              label
+            }
+            status {
+              name
+              id
+              symbol
+            }
+            categories {
+              name
+            }
+            adminUser{
+              id
+              name
+              email
+              walletAddress
             }
           }
       }
@@ -50,6 +129,40 @@ export const editProjectQuery = `
       impactLocation
       categories {
         name
+      }
+      adminUser{
+        id
+        name
+        email
+        walletAddress
+      }
+    }
+  }
+ `;
+
+export const updateProjectQuery = `
+  mutation ($projectId: Float!, $newProjectData: CreateProjectInput!) {
+    updateProject(projectId: $projectId, newProjectData: $newProjectData) {
+      id
+      title
+      description
+      image
+      slug
+      listed
+      verified
+      slugHistory
+      creationDate
+      admin
+      walletAddress
+      impactLocation
+      categories {
+        name
+      }
+      adminUser{
+        id
+        name
+        email
+        walletAddress
       }
     }
   }
@@ -97,6 +210,44 @@ export const fetchDonationsByDonorQuery = `
         id
       }
       createdAt
+    }
+  }
+`;
+
+export const fetchDonationsByProjectIdQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $traceable: Boolean
+    $projectId: Int!
+    $searchTerm: String
+    $orderBy: SortBy
+  ) {
+    donationsByProjectId(
+      take: $take
+      skip: $skip
+      traceable: $traceable
+      projectId: $projectId
+      searchTerm: $searchTerm
+      orderBy: $orderBy
+    ) {
+      donations {
+        id
+        transactionId
+        transactionNetworkId
+        toWalletAddress
+        fromWalletAddress
+        currency
+        anonymous
+        valueUsd
+        amount
+        user {
+          id
+        }
+        createdAt
+      }
+      totalCount
+      totalUsdBalance
     }
   }
 `;
@@ -344,6 +495,41 @@ export const likeProjectQuery = `
   }
 `;
 
+export const updateUser = `
+  mutation(
+    $url: String
+    $location: String
+    $email: String
+    $lastName: String
+    $firstName: String
+    $avatar: String
+  ) {
+    updateUser(
+      url: $url
+      location: $location
+      email: $email
+      firstName: $firstName
+      lastName: $lastName
+      avatar: $avatar
+    )
+  }
+`;
+
+export const userByAddress = `
+  query ($address: String!) {
+    userByAddress(address: $address) {
+      id
+      firstName
+      lastName
+      name
+      email
+      avatar
+      walletAddress
+      url
+      location
+    }
+  }
+`;
 export const uploadImageToIpfsQuery = `
   mutation ($fileUpload: FileUploadInputType!) {
     upload(fileUpload: $fileUpload)
@@ -378,12 +564,14 @@ export const fetchProjectUpdatesQuery = `
     $take: Int, 
     $skip: Int,
     $connectedWalletUserId: Int,
+    $orderBy: OrderBy
   ) {
     getProjectUpdates(
       projectId: $projectId, 
       take: $take, 
       skip: $skip,
       connectedWalletUserId: $connectedWalletUserId,
+      orderBy: $orderBy
     ) {
       id
       title
@@ -456,6 +644,19 @@ export const projectByIdQuery = `
       reaction {
         id
       }
+    }
+  }
+`;
+export const getProjectsAcceptTokensQuery = `
+  query(
+      $projectId: Float!, 
+  ){
+    getProjectAcceptTokens(
+     projectId:$projectId){
+      id
+      symbol
+      networkId
+      name
     }
   }
 `;

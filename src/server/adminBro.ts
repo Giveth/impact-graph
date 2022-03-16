@@ -1,7 +1,7 @@
 import { Project, ProjStatus } from '../entities/project';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro from 'admin-bro';
-import { User } from '../entities/user';
+import { User, UserRole } from '../entities/user';
 import AdminBroExpress from '@admin-bro/express';
 import config from '../config';
 import { redis } from '../redis';
@@ -26,8 +26,12 @@ import {
 } from '../types/TransactionInquiry';
 import { errorMessages } from '../utils/errorMessages';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
-import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { IncomingMessage } from 'connect';
+import {
+  HISTORY_DESCRIPTIONS,
+  ProjectStatusHistory,
+} from '../entities/projectStatusHistory';
+import { Organization } from '../entities/organization';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -76,6 +80,7 @@ interface AdminBroContextInterface {
 
 interface AdminBroRequestInterface {
   payload?: any;
+  record?: any;
   query: {
     recordIds: string;
   };
@@ -330,7 +335,22 @@ const getAdminBroInstance = () => {
               },
             },
             createdAt: {
-              isVisible: false,
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            currency: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             transactionNetworkId: {
               availableValues: [
@@ -481,15 +501,34 @@ const getAdminBroInstance = () => {
             delete: {
               isVisible: false,
             },
+            new: {
+              isVisible: false,
+            },
             bulkDelete: {
               isVisible: false,
             },
             edit: {
-              after: async request => {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              after: async (
+                request: AdminBroRequestInterface,
+                response,
+                context: AdminBroContextInterface,
+              ) => {
+                const { currentAdmin } = context;
                 const project = await Project.findOne(request?.record?.id);
                 if (project) {
                   await dispatchProjectUpdateEvent(project);
+
+                  // As we dont what fields has changed (listed, verified, ..), I just added new status and a description that project has been edited
+                  await Project.addProjectStatusHistoryRecord({
+                    project,
+                    status: project.status,
+                    userId: currentAdmin.id,
+                    description: HISTORY_DESCRIPTIONS.HAS_BEEN_EDITED,
+                  });
                 }
+
                 return request;
               },
             },
@@ -605,6 +644,13 @@ const getAdminBroInstance = () => {
             delete: {
               isVisible: false,
             },
+            new: {
+              isVisible: false,
+            },
+            edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
             bulkDelete: {
               isVisible: false,
             },
@@ -615,6 +661,14 @@ const getAdminBroInstance = () => {
         resource: ProjectStatusReason,
         options: {
           actions: {
+            new: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
             delete: {
               isVisible: false,
             },
@@ -672,6 +726,8 @@ const getAdminBroInstance = () => {
               isVisible: false,
             },
             new: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
               before: async request => {
                 if (request.payload.password) {
                   const bc = await bcrypt.hash(
@@ -680,6 +736,7 @@ const getAdminBroInstance = () => {
                   );
                   request.payload = {
                     ...request.payload,
+                    // For making an backoffice user admin, we should just use changing it directly in DB
                     encryptedPassword: bc,
                     password: null,
                   };
@@ -688,6 +745,8 @@ const getAdminBroInstance = () => {
               },
             },
             edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
               before: async request => {
                 logger.debug({ request: request.payload });
                 if (request.payload.password) {
@@ -703,6 +762,25 @@ const getAdminBroInstance = () => {
                 }
                 return request;
               },
+            },
+          },
+        },
+      },
+      {
+        resource: Organization,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: false,
+            },
+            edit: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
             },
           },
         },
@@ -805,7 +883,7 @@ export const listDelist = async (
   request,
   list = true,
 ) => {
-  const { records } = context;
+  const { records, currentAdmin } = context;
   try {
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, { listed: list })
@@ -821,6 +899,14 @@ export const listDelist = async (
     );
     projects.raw.forEach(project => {
       dispatchProjectUpdateEvent(project);
+      Project.addProjectStatusHistoryRecord({
+        project,
+        status: project.status,
+        userId: currentAdmin.id,
+        description: list
+          ? HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED
+          : HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
+      });
     });
   } catch (error) {
     logger.error('listDelist error', error);
@@ -844,7 +930,7 @@ export const verifyProjects = async (
   verified: boolean = true,
   revokeBadge: boolean = false,
 ) => {
-  const { records } = context;
+  const { records, currentAdmin } = context;
   // prioritize revokeBadge
   const verificationStatus = revokeBadge ? false : verified;
   try {
@@ -865,8 +951,16 @@ export const verifyProjects = async (
       : segmentEvent;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
-    projects.raw.forEach(project => {
+    projects.raw.forEach((project: Project) => {
       dispatchProjectUpdateEvent(project);
+      Project.addProjectStatusHistoryRecord({
+        project,
+        status: project.status,
+        userId: currentAdmin.id,
+        description: verified
+          ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
+          : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
+      });
     });
   } catch (error) {
     logger.error('verifyProjects() error', error);
@@ -891,7 +985,7 @@ export const updateStatusOfProjects = async (
   request: AdminBroRequestInterface,
   status,
 ) => {
-  const { h, resource, records } = context;
+  const { h, resource, records, currentAdmin } = context;
   try {
     const projectStatus = await ProjectStatus.findOne({ id: status });
     if (projectStatus) {
@@ -914,6 +1008,11 @@ export const updateStatusOfProjects = async (
       );
       projects.raw.forEach(project => {
         dispatchProjectUpdateEvent(project);
+        Project.addProjectStatusHistoryRecord({
+          project,
+          status: projectStatus,
+          userId: currentAdmin.id,
+        });
       });
     }
   } catch (error) {
@@ -970,18 +1069,26 @@ export const createDonation = async (
     }
 
     for (const transactionInfo of transactions) {
-      const project = await Project.findOne({
-        walletAddress: transactionInfo?.to,
-      });
+      // const project = await Project.findOne({
+      //   walletAddress: transactionInfo?.to,
+      // });
+      const project = await Project.createQueryBuilder('project')
+        .where(`lower("walletAddress")=lower(:address)`, {
+          address: transactionInfo?.to,
+        })
+        .getOne();
+
       if (!project) {
         logger.error(
           'Creating donation by admin bro, csv airdrop error ' +
             errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
           {
             hash: txHash,
+            toAddress: transactionInfo?.to,
             networkId,
           },
         );
+        continue;
       }
 
       const donation = Donation.create({
@@ -991,12 +1098,13 @@ export const createDonation = async (
         transactionNetworkId: networkId,
         project,
         priceUsd,
-        currency,
+        currency: transactionInfo?.currency,
         segmentNotified,
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
-        createdAt: new Date(transactionInfo?.timestamp as number),
+        donationType: 'csvAirDrop',
+        createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
       });
       const donor = await User.findOne({

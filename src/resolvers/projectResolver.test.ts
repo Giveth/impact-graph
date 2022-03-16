@@ -10,6 +10,7 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
+  sleep,
 } from '../../test/testUtils';
 import axios from 'axios';
 import {
@@ -25,8 +26,11 @@ import {
   projectByIdQuery,
   walletAddressIsValid,
   projectsByUserIdQuery,
+  createProjectQuery,
+  updateProjectQuery,
+  getProjectsAcceptTokensQuery,
 } from '../../test/graphqlQueries';
-import { ProjectInput } from './types/project-input';
+import { CreateProjectInput, ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
 import {
   OrderField,
@@ -39,9 +43,13 @@ import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { User } from '../entities/user';
+import { ORGANIZATION_LABELS } from '../entities/organization';
+import { Token } from '../entities/token';
 
 describe('addProject test cases --->', addProjectTestCases);
+describe('createProject test cases --->', createProjectTestCases);
 describe('editProject test cases --->', editProjectTestCases);
+describe('updateProject test cases --->', updateProjectTestCases);
 
 describe('projects test cases --->', projectsTestCases);
 describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
@@ -54,13 +62,13 @@ describe(
   'likedProjectsByUserId test cases --->',
   likedProjectsByUserIdTestCases,
 );
+describe('projectBySlug test cases --->', projectBySlugTestCases);
 describe('projectById test cases --->', projectByIdTestCases);
-describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 
+describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // TODO We should implement test cases for below query/mutation
 // describe('topProjects test cases --->', topProjectsTestCases);
 // describe('project test cases --->', projectTestCases);
-describe('projectBySlug test cases --->', projectBySlugTestCases);
 // describe('uploadImage test cases --->', uploadImageTestCases);
 // describe('addProjectUpdate test cases --->', addProjectUpdateTestCases);
 // describe('editProjectUpdate test cases --->', editProjectUpdateTestCases);
@@ -78,12 +86,86 @@ describe(
   similarProjectsBySlugTestCases,
 );
 
+describe(
+  'getProjectsAcceptTokens() test cases --->',
+  getProjectsAcceptTokensTestCases,
+);
 // We may can delete this query
 // describe('updateProjectStatus test cases --->', updateProjectStatusTestCases);
 
 // describe('activateProject test cases --->', activateProjectTestCases);
 
+function getProjectsAcceptTokensTestCases() {
+  it('should return all tokens for giveth projects', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const allTokens = await Token.find({});
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isOk(result.data.data.getProjectAcceptTokens);
+    assert.equal(
+      result.data.data.getProjectAcceptTokens.length,
+      allTokens.length,
+    );
+  });
+  it('should return all tokens for trace projects', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.TRACE,
+    });
+    const allTokens = await Token.find({});
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isOk(result.data.data.getProjectAcceptTokens);
+    assert.equal(
+      result.data.data.getProjectAcceptTokens.length,
+      allTokens.length,
+    );
+  });
+  it('should just return ETH token for givingBlock projects', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
+    });
+    const allTokens = await Token.find({});
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isOk(result.data.data.getProjectAcceptTokens);
+    assert.equal(result.data.data.getProjectAcceptTokens.length, 1);
+    assert.equal(result.data.data.getProjectAcceptTokens[0].symbol, 'ETH');
+    assert.equal(result.data.data.getProjectAcceptTokens[0].networkId, 1);
+  });
+}
+
 function projectsTestCases() {
+  it('should return projects search by owner', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        searchTerm: SEED_DATA.SECOND_USER.name,
+      },
+    });
+
+    const projects = result.data.data.projects.projects;
+    const secondUserProjects = await Project.find({
+      admin: String(SEED_DATA.SECOND_USER.id),
+    });
+
+    assert.equal(projects.length, secondUserProjects.length);
+    assert.equal(Number(projects[0]?.admin), SEED_DATA.SECOND_USER.id);
+  });
+
   it('should return projects with current take', async () => {
     const take = 1;
     const result = await axios.post(graphqlUrl, {
@@ -220,7 +302,7 @@ function projectsTestCases() {
     });
     const projectsCount = result.data.data.projects.projects.length;
     assert.isTrue(
-      new Date(result.data.data.projects.projects[0].updatedAt) <
+      new Date(result.data.data.projects.projects[0].updatedAt) <=
         new Date(
           result.data.data.projects.projects[projectsCount - 1].updatedAt,
         ),
@@ -228,7 +310,7 @@ function projectsTestCases() {
     assert.isTrue(
       new Date(
         result.data.data.projects.projects[projectsCount - 2].updatedAt,
-      ) <
+      ) <=
         new Date(
           result.data.data.projects.projects[projectsCount - 1].updatedAt,
         ),
@@ -396,7 +478,9 @@ function projectsTestCases() {
         },
       },
     });
-    assert.exists(result.data.data.projects.projects[0].traceCampaignId);
+    assert.isFalse(
+      result.data.data.projects.projects.some(p => !p.traceCampaignId),
+    );
   });
   it('should return projects, sort by traceable, ASC', async () => {
     await saveProjectDirectlyToDb({
@@ -414,7 +498,9 @@ function projectsTestCases() {
         },
       },
     });
-    assert.notExists(result.data.data.projects.projects[0].traceCampaignId);
+    assert.isFalse(
+      result.data.data.projects.projects.some(p => !!p.traceCampaignId),
+    );
   });
   it('should return projects, filter by traceable, true', async () => {
     await saveProjectDirectlyToDb({
@@ -511,6 +597,12 @@ function projectsTestCases() {
     assert.isTrue(result.data.data.projects.projects[0].totalDonations >= 100);
   });
   it('should return projects, sort by donations, ASC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalDonations: 0,
+      qualityScore: 0,
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
@@ -520,7 +612,7 @@ function projectsTestCases() {
         },
       },
     });
-    assert.equal(result.data.data.projects.projects[0].totalDonations, 10);
+    assert.equal(result.data.data.projects.projects[0].totalDonations, 0);
   });
   it('should return projects, sort by totalTraceDonations, DESC', async () => {
     await saveProjectDirectlyToDb({
@@ -868,7 +960,10 @@ function addProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.addProject);
     assert.equal(result.data.data.addProject.title, sampleProject.title);
-
+    assert.equal(
+      result.data.data.addProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
     // When creating project, listed is null by default
     assert.equal(result.data.data.addProject.listed, null);
 
@@ -888,6 +983,10 @@ function addProjectTestCases() {
     assert.equal(
       result.data.data.addProject.walletAddress,
       sampleProject.walletAddress,
+    );
+    assert.equal(
+      result.data.data.addProject.adminUser.walletAddress,
+      SEED_DATA.FIRST_USER.walletAddress,
     );
   });
   it('Should create draft successfully', async () => {
@@ -918,6 +1017,10 @@ function addProjectTestCases() {
     assert.exists(result.data.data);
     assert.exists(result.data.data.addProject);
     assert.equal(result.data.data.addProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.addProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
 
     // When creating project, listed is null by default
     assert.equal(result.data.data.addProject.listed, null);
@@ -937,6 +1040,286 @@ function addProjectTestCases() {
     );
     assert.equal(
       result.data.data.addProject.walletAddress,
+      sampleProject.walletAddress,
+    );
+  });
+}
+
+function createProjectTestCases() {
+  it('Create Project should return <<Access denied>>, calling without token', async () => {
+    const sampleProject = {
+      title: 'title1',
+    };
+    const result = await axios.post(graphqlUrl, {
+      query: createProjectQuery,
+      variables: {
+        project: sampleProject,
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
+  });
+  it('Should get error, invalid category', async () => {
+    const sampleProject: ProjectInput = {
+      title: String(new Date().getTime()),
+      categories: ['invalid category'],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    );
+  });
+  it('Should get error, when more than 5 categories sent', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: SEED_DATA.CATEGORIES,
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+    );
+  });
+  it('Should get error, when walletAddress of project is repetitive', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const addProjectResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: { ...sampleProject, title: String(new Date().getTime()) },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      addProjectResponse.data.errors[0].message,
+      `Eth address ${sampleProject.walletAddress} is already being used for a project`,
+    );
+  });
+  it('Should get error, when walletAddress of project is a smart contract address', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const addProjectResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: { ...sampleProject, title: String(new Date().getTime()) },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      addProjectResponse.data.errors[0].message,
+      `Eth address ${SEED_DATA.DAI_SMART_CONTRACT_ADDRESS} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+    );
+  });
+  it('Should get error, when title of project is repetitive', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: SEED_DATA.FIRST_PROJECT.title,
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const addProjectResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: {
+            ...sampleProject,
+            walletAddress: generateRandomEtheriumAddress(),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      addProjectResponse.data.errors[0].message,
+      errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS,
+    );
+  });
+  it('Should create successfully', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: 'title ' + new Date().getTime(),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      image:
+        'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data);
+    assert.exists(result.data.data);
+    assert.exists(result.data.data.createProject);
+    assert.equal(result.data.data.createProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.createProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
+
+    // When creating project, listed is null by default
+    assert.equal(result.data.data.createProject.listed, null);
+
+    assert.equal(
+      result.data.data.createProject.admin,
+      String(SEED_DATA.FIRST_USER.id),
+    );
+    assert.equal(result.data.data.createProject.verified, false);
+    assert.equal(
+      result.data.data.createProject.status.id,
+      String(ProjStatus.active),
+    );
+    assert.equal(
+      result.data.data.createProject.description,
+      sampleProject.description,
+    );
+    assert.equal(
+      result.data.data.createProject.walletAddress,
+      sampleProject.walletAddress,
+    );
+    assert.equal(
+      result.data.data.createProject.adminUser.walletAddress,
+      SEED_DATA.FIRST_USER.walletAddress,
+    );
+    assert.equal(result.data.data.createProject.image, sampleProject.image);
+  });
+
+  it('Should create draft successfully', async () => {
+    const sampleProject: ProjectInput = {
+      title: 'draftTitle1 ' + new Date().getTime(),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      isDraft: true,
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data);
+    assert.exists(result.data.data);
+    assert.exists(result.data.data.createProject);
+    assert.equal(result.data.data.createProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.createProject.organization.label,
+      ORGANIZATION_LABELS.GIVETH,
+    );
+
+    // When creating project, listed is null by default
+    assert.equal(result.data.data.createProject.listed, null);
+
+    assert.equal(
+      result.data.data.createProject.admin,
+      String(SEED_DATA.FIRST_USER.id),
+    );
+    assert.equal(result.data.data.createProject.verified, false);
+    assert.equal(
+      result.data.data.createProject.status.id,
+      String(ProjStatus.drafted),
+    );
+    assert.equal(
+      result.data.data.createProject.description,
+      sampleProject.description,
+    );
+    assert.equal(
+      result.data.data.createProject.walletAddress,
       sampleProject.walletAddress,
     );
   });
@@ -1156,10 +1539,14 @@ function editProjectTestCases() {
       },
     );
     assert.equal(editProjectResult.data.data.editProject.title, newTitle);
+    assert.equal(
+      editProjectResult.data.data.editProject.adminUser.walletAddress,
+      SEED_DATA.FIRST_USER.walletAddress,
+    );
   });
   it('Should update successfully and slugHistory would contain last slug', async () => {
-    const title = 'test 123456';
-    const slug = 'test-123456';
+    const title = 'test' + new Date().getTime().toString();
+    const slug = title;
     const sampleProject: ProjectInput = {
       title,
       categories: [SEED_DATA.CATEGORIES[0]],
@@ -1182,8 +1569,9 @@ function editProjectTestCases() {
         },
       },
     );
-    const newTitle = `test 1234567`;
-    const newSlug = `test-1234567`;
+    await sleep(10);
+    const newTitle = 'title' + new Date().getTime().toString();
+    const newSlug = newTitle;
     const editProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -1353,6 +1741,502 @@ function editProjectTestCases() {
       },
     );
     assert.equal(editProjectResult.data.data.editProject.listed, null);
+  });
+}
+
+function updateProjectTestCases() {
+  it('Update Project should return <<Access denied>>, calling without token', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: updateProjectQuery,
+      variables: {
+        projectId: 1,
+        newProjectData: {
+          title: String(new Date().getTime()),
+        },
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
+  });
+  it('Should get error when updating someone else project', async () => {
+    const secondUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.SECOND_USER.id,
+    );
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: Number(SEED_DATA.FIRST_PROJECT.id),
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${secondUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      editProjectResult.data.errors[0].message,
+      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
+    );
+  });
+  it('Should get error when project not found', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          // A number that we can be sure there is not a project with this id
+          projectId: 1_000_000,
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      editProjectResult.data.errors[0].message,
+      errorMessages.PROJECT_NOT_FOUND,
+    );
+  });
+  it('Should get error when sending more than 5 categories', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: Number(SEED_DATA.FIRST_PROJECT.id),
+          newProjectData: {
+            title: String(new Date().getTime()),
+            categories: SEED_DATA.CATEGORIES,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      editProjectResult.data.errors[0].message,
+      errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+    );
+  });
+  it('Should get error when sent walletAddress is repetitive', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: Number(SEED_DATA.FIRST_PROJECT.id),
+          newProjectData: {
+            walletAddress: SEED_DATA.SECOND_PROJECT.walletAddress,
+            title: SEED_DATA.FIRST_PROJECT.title,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      editProjectResult.data.errors[0].message,
+      `Eth address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
+    );
+  });
+  it('Should get error when sent walletAddress is smartContractAddress', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: Number(SEED_DATA.FIRST_PROJECT.id),
+          newProjectData: {
+            walletAddress: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
+            title: SEED_DATA.FIRST_PROJECT.title,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      editProjectResult.data.errors[0].message,
+      `Eth address ${SEED_DATA.DAI_SMART_CONTRACT_ADDRESS} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+    );
+  });
+  it('Should get error when sent title is repetitive', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: Number(SEED_DATA.FIRST_PROJECT.id),
+          newProjectData: {
+            title: SEED_DATA.SECOND_PROJECT.title,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      editProjectResult.data.errors[0].message,
+      errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS,
+    );
+  });
+  it('Should update successfully when updating with old title', async () => {
+    const sampleProject: ProjectInput = {
+      title: 'test ' + String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const createProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const newTitle = sampleProject.title.toUpperCase();
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: Number(createProjectResult.data.data.addProject.id),
+          newProjectData: {
+            title: newTitle,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(editProjectResult.data.data.updateProject.title, newTitle);
+    assert.equal(
+      editProjectResult.data.data.updateProject.adminUser.walletAddress,
+      SEED_DATA.FIRST_USER.walletAddress,
+    );
+  });
+  it('Should update successfully and slugHistory would contain last slug', async () => {
+    const title = 'test 123456';
+    const slug = 'test-123456';
+    const sampleProject: ProjectInput = {
+      title,
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const createProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const newTitle = `test` + new Date().getTime().toString();
+    const newSlug = newTitle;
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: Number(createProjectResult.data.data.addProject.id),
+          newProjectData: {
+            title: newTitle,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(editProjectResult.data.data.updateProject.title, newTitle);
+    assert.equal(editProjectResult.data.data.updateProject.slug, newSlug);
+    assert.isTrue(
+      editProjectResult.data.data.updateProject.slugHistory.includes(slug),
+    );
+  });
+  it('Should update successfully when sending current walletAddress', async () => {
+    const sampleProject: ProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const createProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: Number(createProjectResult.data.data.addProject.id),
+          newProjectData: {
+            title: String(new Date().getTime()),
+            walletAddress:
+              createProjectResult.data.data.addProject.walletAddress,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      editProjectResult.data.data.updateProject.walletAddress,
+      createProjectResult.data.data.addProject.walletAddress,
+    );
+  });
+  it('Should update successfully and verified(true) field would not change', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: true,
+    });
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isTrue(editProjectResult.data.data.updateProject.verified);
+  });
+  it('Should update successfully and verified(false) field would not change', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: false,
+    });
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isFalse(editProjectResult.data.data.updateProject.verified);
+  });
+  it('Should update successfully listed (true) should becomes null', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      listed: true,
+    });
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(editProjectResult.data.data.updateProject.listed, null);
+  });
+  it('Should update successfully listed (false) should becomes null', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      listed: false,
+    });
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: String(new Date().getTime()),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(editProjectResult.data.data.updateProject.listed, null);
+  });
+  it('Should update image successfully', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const image =
+      'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS';
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            image,
+            title: new Date().getTime().toString(),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(editProjectResult.data.data.updateProject.image, image);
+  });
+  it('Should update image successfully when sending empty string', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      image:
+        'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
+    });
+    const image = '';
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            image,
+            title: new Date().getTime().toString(),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(editProjectResult.data.data.updateProject.image, image);
+  });
+  it('Should not update image when not sending it', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const image =
+      'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS';
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      image,
+    });
+    const newTitle = new Date().getTime().toString();
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: newTitle,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(editProjectResult.data.data.updateProject.image, image);
   });
 }
 

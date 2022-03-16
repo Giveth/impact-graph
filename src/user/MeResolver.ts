@@ -2,24 +2,14 @@ import { Resolver, Query, Ctx, Authorized } from 'type-graphql';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 
 import { User } from '../entities/user';
-import { Organisation } from '../entities/organisation';
 import { Project } from '../entities/project';
-import { OrganisationUser } from '../entities/organisationUser';
 import { MyContext } from '../types/MyContext';
 import { Repository, In } from 'typeorm';
-import SentryLogger from '../sentryLogger';
-import { logger } from '../utils/logger';
 import { getLoggedInUser } from '../services/authorizationServices';
 
 @Resolver()
 export class MeResolver {
   constructor(
-    @InjectRepository(OrganisationUser)
-    private readonly organisationUserRepository: Repository<OrganisationUser>,
-
-    @InjectRepository(Organisation)
-    private readonly organisationRepository: Repository<Organisation>,
-
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>, // @InjectRepository(OrganisationProject) // private readonly organisationProjectRepository: Repository< //   OrganisationProject // >
   ) {}

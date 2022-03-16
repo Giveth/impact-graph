@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 COPY tsconfig.json .
 COPY package*.json ./
 COPY src ./src
+COPY test ./test
 COPY migration ./migration
 
 

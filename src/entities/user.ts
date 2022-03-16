@@ -8,15 +8,17 @@ import {
   BaseEntity,
   JoinTable,
 } from 'typeorm';
-import { OrganisationUser } from './organisationUser';
-import { Organisation } from './organisation';
-import { Project } from './project';
+import { Project, ProjStatus } from './project';
 import { Donation } from './donation';
+import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
+import { ProjectStatusReason } from './projectStatusReason';
+import { ProjectStatusHistory } from './projectStatusHistory';
 
 export enum UserRole {
   ADMIN = 'admin',
   RESTRICTED = 'restricted',
+  OPERATOR = 'operator',
 }
 
 @ObjectType()
@@ -84,16 +86,6 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   confirmed: boolean;
 
-  @OneToMany(
-    type => OrganisationUser,
-    organisationUser => organisationUser.user,
-  )
-  organisationUsers?: OrganisationUser[];
-
-  @Field(type => Organisation)
-  @ManyToMany(type => Organisation, organisation => organisation.users)
-  organisations: Organisation[];
-
   @Field(type => [Project])
   @ManyToMany(type => Project, project => project.users)
   @JoinTable()
@@ -110,12 +102,21 @@ export class User extends BaseEntity {
   accountVerifications?: AccountVerification[];
 
   @Field(type => Int, { nullable: true })
+  // TODO Carlos please check this, I think it should be float
   @Column({ type: 'integer', nullable: true, default: 0 })
   totalDonated: number;
 
   @Field(type => Int, { nullable: true })
+  // TODO Carlos please check this, I think it should be float
   @Column({ type: 'integer', nullable: true, default: 0 })
   totalReceived: number;
+
+  @Field(type => [ProjectStatusHistory], { nullable: true })
+  @OneToMany(
+    type => ProjectStatusHistory,
+    projectStatusHistory => projectStatusHistory.user,
+  )
+  projectStatusHistories?: ProjectStatusHistory[];
 
   @Field(type => Int, { nullable: true })
   async projectsCount() {
@@ -133,6 +134,19 @@ export class User extends BaseEntity {
       .getCount();
 
     return donationsCount;
+  }
+
+  @Field(type => Int, { nullable: true })
+  async likedProjectsCount() {
+    const likedProjectsCount = await Reaction.createQueryBuilder('reaction')
+      .innerJoinAndSelect('reaction.project', 'project')
+      .where('reaction.userId = :id', { id: this.id })
+      .andWhere(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      )
+      .getCount();
+
+    return likedProjectsCount;
   }
 
   segmentUserId() {
