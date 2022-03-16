@@ -22,7 +22,7 @@ import { MyContext } from '../types/MyContext';
 import { Project } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Brackets } from 'typeorm';
 import { User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
@@ -203,6 +203,7 @@ export class DonationResolver {
       const query = this.donationRepository
         .createQueryBuilder('donation')
         .leftJoinAndSelect('donation.user', 'user')
+        .innerJoinAndSelect('donation.project', 'project')
         .where(`donation.projectId = ${projectId}`)
         .orderBy(
           `donation.${orderBy.field}`,
@@ -211,9 +212,24 @@ export class DonationResolver {
         );
 
       if (searchTerm) {
-        query.andWhere('user.name ILIKE :searchTerm', {
-          searchTerm: `%${searchTerm}%`,
-        });
+        const amount = Number(searchTerm);
+
+        query.andWhere(
+          new Brackets(qb => {
+            qb.where('user.name ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            })
+              .orWhere('project.walletAddress ILIKE :searchTerm2', {
+                searchTerm2: `%${searchTerm}%`,
+              })
+              .orWhere('project.currency ILIKE :searchTerm3', {
+                searchTerm3: `%${searchTerm}%`,
+              })
+              .orWhere('project.amount = :searchTerm4', {
+                searchTerm4: amount,
+              });
+          }),
+        );
       }
 
       const [donations, donationsCount] = await query
