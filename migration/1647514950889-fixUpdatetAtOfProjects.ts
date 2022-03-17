@@ -1,5 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { Project, ProjectUpdate } from '../src/entities/project';
+// tslint:disable-next-line:no-var-requires
+const moment = require('moment');
 
 export class fixUpdatetAtOfProjects1647514950889 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -17,24 +19,14 @@ export class fixUpdatetAtOfProjects1647514950889 implements MigrationInterface {
             ORDER BY "createdAt" DESC
             `,
       );
-
-      // const projectUpdate = await ProjectUpdate.findOne(
-      //   {
-      //     projectId: project.id,
-      //   },
-      //   {
-      //     order: {
-      //       createdAt: 'DESC',
-      //     },
-      //   },
-      // );
-
       if (projectUpdates.length === 0) {
         continue;
       }
       await queryRunner.query(`
             UPDATE project 
-            SET "updatedAt" =${projectUpdates[0].createdAt}
+            SET "updatedAt" ='${moment(projectUpdates[0].createdAt).format(
+              'YYYY-MM-DD',
+            )}'
             WHERE id=${project.id}
             `);
     }
