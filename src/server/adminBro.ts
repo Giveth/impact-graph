@@ -296,6 +296,9 @@ const getAdminBroInstance = () => {
                 edit: false,
               },
             },
+            organizationId: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
             qualityScore: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -325,7 +328,7 @@ const getAdminBroInstance = () => {
               },
             },
             slug: {
-              isVisible: { list: false, filter: true, show: true, edit: true },
+              isVisible: { list: true, filter: true, show: true, edit: true },
             },
             organisationId: {
               isVisible: false,
