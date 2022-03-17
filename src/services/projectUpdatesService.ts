@@ -13,6 +13,7 @@ export const updateTotalProjectUpdatesOfAProject = async (
       { id: projectId },
       {
         totalProjectUpdates,
+        updatedAt: () => '"updatedAt"',
       },
     );
   } catch (e) {
