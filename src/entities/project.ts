@@ -81,7 +81,7 @@ class Project extends BaseEntity {
 
   @Index()
   @Field(type => [String], { nullable: true })
-  @Column('text', { array: true, nullable: true })
+  @Column('text', { array: true, default: '{}' })
   slugHistory?: string[];
 
   @Field({ nullable: true })

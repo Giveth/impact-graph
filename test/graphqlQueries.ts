@@ -8,42 +8,6 @@ export const saveDonationQuery = `
                      toAddress: $toAddress fromAddress: $fromAddress) 
          }`;
 
-export const addProjectQuery = `
-       mutation ($project: ProjectInput!) {
-          addProject(project: $project) {
-            id
-            title
-            description
-            admin
-            image
-            impactLocation
-            slug
-            walletAddress
-            listed
-            verified
-            organization {
-              id
-              name
-              label
-            }
-            status {
-              name
-              id
-              symbol
-            }
-            categories {
-              name
-            }
-            adminUser{
-              id
-              name
-              email
-              walletAddress
-            }
-          }
-      }
-  `;
-
 export const saveDonation = `
   mutation (
     $chainId: Float!
@@ -111,34 +75,6 @@ export const createProjectQuery = `
           }
       }
   `;
-
-export const editProjectQuery = `
-  mutation ($projectId: Float!, $newProjectData: ProjectInput!) {
-    editProject(projectId: $projectId, newProjectData: $newProjectData) {
-      id
-      title
-      description
-      image
-      slug
-      listed
-      verified
-      slugHistory
-      creationDate
-      admin
-      walletAddress
-      impactLocation
-      categories {
-        name
-      }
-      adminUser{
-        id
-        name
-        email
-        walletAddress
-      }
-    }
-  }
- `;
 
 export const updateProjectQuery = `
   mutation ($projectId: Float!, $newProjectData: CreateProjectInput!) {
