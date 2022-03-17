@@ -119,7 +119,7 @@ export class User extends BaseEntity {
   @Field(type => Int, { nullable: true })
   async projectsCount() {
     const projectsCount = await Project.createQueryBuilder('project')
-      .where('admin = :id', { id: String(this.id) })
+      .where('project."admin" = :id', { id: String(this.id) })
       .getCount();
 
     return projectsCount;
@@ -128,7 +128,7 @@ export class User extends BaseEntity {
   @Field(type => Int, { nullable: true })
   async donationsCount() {
     const donationsCount = await Donation.createQueryBuilder('donation')
-      .where(`"userId" = :id`, { id: this.id })
+      .where(`donation."userId" = :id`, { id: this.id })
       .getCount();
 
     return donationsCount;
