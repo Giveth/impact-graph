@@ -1267,6 +1267,10 @@ function createProjectTestCases() {
       SEED_DATA.FIRST_USER.walletAddress,
     );
     assert.equal(result.data.data.createProject.image, sampleProject.image);
+    assert.equal(
+      result.data.data.createProject.creationDate,
+      result.data.data.createProject.updatedAt,
+    );
   });
 
   it('Should create draft successfully', async () => {
@@ -2209,6 +2213,35 @@ function updateProjectTestCases() {
       },
     );
     assert.equal(editProjectResult.data.data.updateProject.image, image);
+  });
+  it('Should change updatedAt when updating project', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
+    const image = '';
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            title: new Date().getTime().toString(),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(editProjectResult.data.data.updateProject);
+    assert.notEqual(
+      editProjectResult.data.data.updateProject.updatedAt,
+      project.updatedAt,
+    );
   });
   it('Should not update image when not sending it', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);

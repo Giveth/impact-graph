@@ -20,6 +20,7 @@ export class fixUpdatetAtOfProjects1647514950889 implements MigrationInterface {
             `,
       );
       if (projectUpdates.length === 0) {
+        // projects always have at least 1 projectUpdate which is the main. In theory this shouldn't happen.
         continue;
       }
       await queryRunner.query(`

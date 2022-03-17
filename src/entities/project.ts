@@ -118,7 +118,6 @@ class Project extends BaseEntity {
   creationDate: Date;
 
   @Field({ nullable: true })
-  @UpdateDateColumn({ nullable: true })
   updatedAt: Date;
 
   @Field(type => Organization)

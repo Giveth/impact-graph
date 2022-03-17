@@ -12,7 +12,6 @@ export const updateTotalReactionsOfAProject = async (projectId: number) => {
       { id: projectId },
       {
         totalReactions,
-        updatedAt: () => '"updatedAt"',
       },
     );
   } catch (e) {
