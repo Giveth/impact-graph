@@ -15,8 +15,6 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   RelationId,
-  SelectQueryBuilder,
-  UpdateDateColumn,
 } from 'typeorm';
 
 import { Donation } from './donation';
@@ -118,6 +116,7 @@ class Project extends BaseEntity {
   creationDate: Date;
 
   @Field({ nullable: true })
+  @Column({ nullable: true })
   updatedAt: Date;
 
   @Field(type => Organization)
