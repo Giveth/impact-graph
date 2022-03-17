@@ -99,6 +99,7 @@ export const updateTotalDonationsOfProject = async (projectId: number) => {
       { id: projectId },
       {
         totalDonations: donationsAmount[0].total,
+        updatedAt: () => '"updatedAt"',
       },
     );
   } catch (e) {
