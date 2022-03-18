@@ -21,7 +21,11 @@ import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonati
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
-import { adminBroRootPath, getAdminBroRouter } from './adminBro';
+import {
+  adminBroRootPath,
+  getAdminBroRouter,
+  adminBroQueryCache,
+} from './adminBro';
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
@@ -229,6 +233,7 @@ export async function bootstrap() {
     );
 
     // Admin Bruh!
+    app.use(adminBroQueryCache);
     app.use(adminBroRootPath, getAdminBroRouter());
 
     app.use(
