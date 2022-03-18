@@ -684,6 +684,7 @@ export class ProjectResolver {
     }
     project.slug = newSlug;
     project.qualityScore = qualityScore;
+    project.updatedAt = new Date();
     project.listed = null;
     await project.save();
     project.adminUser = await User.findOne({ id: Number(project.admin) });
@@ -796,13 +797,14 @@ export class ProjectResolver {
     const organization = await Organization.findOne({
       label: ORGANIZATION_LABELS.GIVETH,
     });
-
+    const now = new Date();
     const project = this.projectRepository.create({
       ...projectInput,
       categories,
       organization,
       image,
-      creationDate: new Date(),
+      creationDate: now,
+      updatedAt: now,
       slug: slug.toLowerCase(),
       slugHistory: [],
       admin: ctx.req.user.userId,
