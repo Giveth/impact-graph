@@ -36,6 +36,7 @@ import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 import { bold } from 'chalk';
 import { getCampaignDonations } from '../services/trace/traceService';
+import Web3 from 'web3';
 
 const analytics = getAnalytics();
 
@@ -203,7 +204,6 @@ export class DonationResolver {
       const query = this.donationRepository
         .createQueryBuilder('donation')
         .leftJoinAndSelect('donation.user', 'user')
-        .innerJoinAndSelect('donation.project', 'project')
         .where(`donation.projectId = ${projectId}`)
         .orderBy(
           `donation.${orderBy.field}`,
@@ -212,22 +212,27 @@ export class DonationResolver {
         );
 
       if (searchTerm) {
-        const amount = Number(searchTerm);
-
         query.andWhere(
           new Brackets(qb => {
             qb.where('user.name ILIKE :searchTerm', {
               searchTerm: `%${searchTerm}%`,
             })
-              .orWhere('project.walletAddress ILIKE :searchTerm2', {
-                searchTerm2: `%${searchTerm}%`,
+              .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
               })
-              .orWhere('project.currency ILIKE :searchTerm3', {
-                searchTerm3: `%${searchTerm}%`,
-              })
-              .orWhere('project.amount = :searchTerm4', {
-                searchTerm4: amount,
+              .orWhere('donation.currency ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
               });
+
+            // WalletAddresses are translanted to huge integers
+            // this breaks postgresql query integer limit
+            if (!Web3.utils.isAddress(searchTerm)) {
+              const amount = Number(searchTerm);
+
+              qb.orWhere('donation.amount = :number', {
+                number: amount,
+              });
+            }
           }),
         );
       }

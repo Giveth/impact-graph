@@ -338,7 +338,7 @@ export const DONATION_SEED_DATA = {
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
-    currency: 'ETH',
+    currency: 'GIV',
     anonymous: false,
     amount: 15,
     valueUsd: 15,

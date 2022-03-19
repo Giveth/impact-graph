@@ -170,6 +170,63 @@ function donationsByProjectIdTestCases() {
       DONATION_SEED_DATA.FIFTH_DONATION.id,
     );
   });
+  it('should search by donation amount', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          searchTerm: '100',
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(
+      Number(donations[0]?.id),
+      DONATION_SEED_DATA.SECOND_DONATION.id,
+    );
+  });
+  it('should search by donation currency', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          searchTerm: 'GIV',
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(
+      Number(donations[0]?.id),
+      DONATION_SEED_DATA.FIRST_DONATION.id,
+    );
+  });
+  it('should search by donation ToWalletAddress', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          searchTerm: DONATION_SEED_DATA.FIRST_DONATION.toWalletAddress,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.equal(
+      donations[0]?.toWalletAddress,
+      SEED_DATA.FIRST_PROJECT.walletAddress,
+    );
+  });
 }
 
 function donationsByUserIdTestCases() {
