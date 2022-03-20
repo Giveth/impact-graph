@@ -70,6 +70,7 @@ export const generateTestAccessToken = async (id: number): Promise<string> => {
 export interface CreateProjectData {
   id?: number;
   title: string;
+  slug: string;
   description: string;
   admin: string;
   walletAddress: string;
@@ -79,7 +80,6 @@ export interface CreateProjectData {
   giveBacks?: boolean;
   creationDate: Date;
   updatedAt: Date;
-  slug: string;
   statusId?: number;
   organizationLabel?: string;
   qualityScore?: number;

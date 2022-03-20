@@ -19,7 +19,7 @@ import { InjectRepository } from 'typeorm-typedi-extensions';
 import { getTokenPrices, getOurTokenList } from 'monoswap';
 import { Donation, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
-import { Project } from '../entities/project';
+import { Project, ProjStatus } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In } from 'typeorm';
@@ -314,6 +314,9 @@ export class DonationResolver {
       const project = await Project.findOne({ id: Number(projectId) });
 
       if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      if (project.status.id !== ProjStatus.active) {
+        throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
+      }
       const tokenInDb = await Token.findOne({
         networkId: chainId,
         symbol: token,

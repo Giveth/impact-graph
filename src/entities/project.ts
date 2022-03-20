@@ -15,8 +15,6 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   RelationId,
-  SelectQueryBuilder,
-  UpdateDateColumn,
 } from 'typeorm';
 
 import { Donation } from './donation';
@@ -81,7 +79,7 @@ class Project extends BaseEntity {
 
   @Index()
   @Field(type => [String], { nullable: true })
-  @Column('text', { array: true, nullable: true })
+  @Column('text', { array: true, default: '{}' })
   slugHistory?: string[];
 
   @Field({ nullable: true })
@@ -118,7 +116,7 @@ class Project extends BaseEntity {
   creationDate: Date;
 
   @Field({ nullable: true })
-  @UpdateDateColumn({ nullable: true })
+  @Column({ nullable: true })
   updatedAt: Date;
 
   @Field(type => Organization)

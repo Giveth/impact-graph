@@ -4,8 +4,10 @@ import AdminBro from 'admin-bro';
 import { User, UserRole } from '../entities/user';
 import AdminBroExpress from '@admin-bro/express';
 import config from '../config';
+import { redis } from '../redis';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
+import { SelectQueryBuilder } from 'typeorm';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
@@ -15,25 +17,59 @@ import {
   getCsvAirdropTransactions,
 } from '../services/transactionService';
 import {
+  projectExportSpreadsheet,
+  addSheetWithRows,
+} from '../services/googleSheets';
+import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../types/TransactionInquiry';
 import { errorMessages } from '../utils/errorMessages';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
+import { IncomingMessage } from 'connect';
 import {
   HISTORY_DESCRIPTIONS,
   ProjectStatusHistory,
 } from '../entities/projectStatusHistory';
 import { Organization } from '../entities/organization';
 
+// use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
+// tslint:disable-next-line:no-var-requires
+const session = require('express-session');
+// tslint:disable-next-line:no-var-requires
+const RedisStore = require('connect-redis')(session);
+// tslint:disable-next-line:no-var-requires
+const cookie = require('cookie');
+// tslint:disable-next-line:no-var-requires
+const cookieParser = require('cookie-parser');
+const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
+const adminBroCookie = 'adminbro';
 
 const segmentProjectStatusEvents = {
   act: SegmentEvents.PROJECT_ACTIVATED,
   can: SegmentEvents.PROJECT_DEACTIVATED,
   del: SegmentEvents.PROJECT_CANCELLED,
 };
+
+// headers defined by the verification team for exporting
+const headers = [
+  'id',
+  'title',
+  'slug',
+  'admin',
+  'creationDate',
+  'updatedAt',
+  'impactLocation',
+  'walletAddress',
+  'statusId',
+  'qualityScore',
+  'verified',
+  'listed',
+  'totalDonations',
+  'totalProjectUpdates',
+];
 
 interface AdminBroContextInterface {
   h: any;
@@ -53,27 +89,102 @@ interface AdminBroRequestInterface {
 AdminBro.registerAdapter({ Database, Resource });
 
 export const getAdminBroRouter = () => {
-  return AdminBroExpress.buildAuthenticatedRouter(getAdminBroInstance(), {
-    authenticate: async (email, password) => {
-      try {
-        const user = await User.findOne({ email });
-        if (user) {
-          const matched = await bcrypt.compare(
-            password,
-            user.encryptedPassword,
-          );
-          if (matched) {
-            return user;
+  return AdminBroExpress.buildAuthenticatedRouter(
+    getAdminBroInstance(),
+    {
+      authenticate: async (email, password) => {
+        try {
+          const user = await User.findOne({ email });
+          if (user) {
+            const matched = await bcrypt.compare(
+              password,
+              user.encryptedPassword,
+            );
+            if (matched) {
+              return user;
+            }
           }
+          return false;
+        } catch (e) {
+          logger.error({ e });
+          return false;
         }
-        return false;
-      } catch (e) {
-        logger.error({ e });
-        return false;
-      }
+      },
+      cookiePassword: secret,
     },
-    cookiePassword: config.get('ADMIN_BRO_COOKIE_SECRET') as string,
-  });
+    // custom router to save admin in req.session for express middlewares
+    null,
+    {
+      // default values that will be deprecated, need to define them manually
+      resave: false,
+      saveUninitialized: true,
+      rolling: false,
+      secret,
+      store: new RedisStore({
+        client: redis,
+      }),
+    },
+  );
+};
+
+// Express Middleware to save query of a search
+export const adminBroQueryCache = async (req, res, next) => {
+  if (
+    req.url.startsWith('/admin/api/resources/Project/actions/list') &&
+    req.headers.cookie.includes('adminbro')
+  ) {
+    const admin = await getCurrentAdminBroSession(req);
+    if (!admin) return next(); // skip saving queries
+
+    const queryStrings = {};
+    // get URL query strings
+    for (const key of Object.keys(req.query)) {
+      const [_, filter] = key.split('.');
+      if (!filter) continue;
+
+      queryStrings[filter] = req.query[key];
+    }
+    // save query string for later use with an expiration
+    await redis.set(
+      `adminbro_${admin.id}_qs`,
+      JSON.stringify(queryStrings),
+      'ex',
+      1800,
+    );
+  }
+  next();
+};
+
+// Get CurrentSession for external express middlewares
+export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
+  const cookieHeader = request.headers.cookie;
+  const parsedCookies = cookie.parse(cookieHeader);
+  const sessionStore = new RedisStore({ client: redis });
+  const unsignedCookie = cookieParser.signedCookie(
+    parsedCookies[adminBroCookie],
+    secret,
+  );
+
+  let adminUser;
+  try {
+    adminUser = await new Promise((success, failure) => {
+      sessionStore.get(unsignedCookie, (err, sessionObject) => {
+        if (err) {
+          failure(err);
+        } else {
+          success(sessionObject.adminUser);
+        }
+      });
+    });
+  } catch (e) {
+    logger.error(e);
+  }
+  if (!adminUser) return false;
+
+  const dbUser = await User.findOne({ id: adminUser.id });
+  if (!dbUser) return false;
+
+  return dbUser;
 };
 
 const getAdminBroInstance = () => {
@@ -296,6 +407,9 @@ const getAdminBroInstance = () => {
                 edit: false,
               },
             },
+            organizationId: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
             qualityScore: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -325,7 +439,7 @@ const getAdminBroInstance = () => {
               },
             },
             slug: {
-              isVisible: { list: false, filter: true, show: true, edit: true },
+              isVisible: { list: true, filter: true, show: true, edit: true },
             },
             organisationId: {
               isVisible: false,
@@ -423,6 +537,12 @@ const getAdminBroInstance = () => {
 
                 return request;
               },
+            },
+            exportFilterToCsv: {
+              actionType: 'resource',
+              isVisible: true,
+              handler: exportProjectsWithFiltersToCsv,
+              component: false,
             },
             listProject: {
               actionType: 'bulk',
@@ -655,6 +775,130 @@ const getAdminBroInstance = () => {
     ],
     rootPath: adminBroRootPath,
   });
+};
+
+interface AdminBroProjectsQuery {
+  statusId?: string;
+  title?: string;
+  slug?: string;
+  verified?: string;
+  listed?: string;
+}
+
+// add queries depending on which filters were selected
+export const buildProjectsQuery = (
+  queryStrings: AdminBroProjectsQuery,
+): SelectQueryBuilder<Project> => {
+  const query = Project.createQueryBuilder('project');
+
+  if (queryStrings.title)
+    query.andWhere('project.title ILIKE :title', {
+      title: `%${queryStrings.title}%`,
+    });
+
+  if (queryStrings.slug)
+    query.andWhere('project.slug ILIKE :slug', { title: queryStrings.slug });
+
+  if (queryStrings.verified)
+    query.andWhere('project.verified = :verified', {
+      verified: queryStrings.verified === 'true',
+    });
+
+  if (queryStrings.listed)
+    query.andWhere('project.listed = :listed', {
+      listed: queryStrings.listed === 'true',
+    });
+
+  if (queryStrings.statusId)
+    query.andWhere('project."statusId" = :statusId', {
+      statusId: queryStrings.statusId,
+    });
+
+  if (queryStrings['creationDate~~from'])
+    query.andWhere('project."creationDate" >= :createdFrom', {
+      createdFrom: queryStrings['creationDate~~from'],
+    });
+
+  if (queryStrings['creationDate~~to'])
+    query.andWhere('project."creationDate" <= :createdTo', {
+      createdTo: queryStrings['creationDate~~to'],
+    });
+
+  if (queryStrings['updatedAt~~from'])
+    query.andWhere('project."updatedAt" >= :updatedFrom', {
+      updatedFrom: queryStrings['updatedAt~~from'],
+    });
+
+  if (queryStrings['updatedAt~~to'])
+    query.andWhere('project."updatedAt" <= :updatedTo', {
+      updatedTo: queryStrings['updatedAt~~to'],
+    });
+
+  return query;
+};
+
+export const exportProjectsWithFiltersToCsv = async (
+  _request: AdminBroRequestInterface,
+  _response,
+  context: AdminBroContextInterface,
+) => {
+  try {
+    const { records } = context;
+    const rawQueryStrings = await redis.get(
+      `adminbro_${context.currentAdmin.id}_qs`,
+    );
+    const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
+    const projectsQuery = buildProjectsQuery(queryStrings);
+    const projects = await projectsQuery.getMany();
+
+    await sendProjectsToGoogleSheet(projects);
+
+    return {
+      redirectUrl: 'Project',
+      records,
+      notice: {
+        message: `Project(s) successfully exported`,
+        type: 'success',
+      },
+    };
+  } catch (e) {
+    return {
+      redirectUrl: 'Project',
+      record: {},
+      notice: {
+        message: e.message,
+        type: 'danger',
+      },
+    };
+  }
+};
+
+const sendProjectsToGoogleSheet = async (
+  projects: Project[],
+): Promise<void> => {
+  const spreadsheet = await projectExportSpreadsheet();
+
+  // parse data and set headers
+  const projectRows = projects.map((project: Project) => {
+    return {
+      id: project.id,
+      title: project.title,
+      slug: project.slug,
+      admin: project.admin,
+      creationDate: project.creationDate,
+      updatedAt: project.updatedAt,
+      impactLocation: project.impactLocation,
+      walletAddress: project.walletAddress,
+      statusId: project.statusId,
+      qualityScore: project.qualityScore,
+      verified: Boolean(project.verified),
+      listed: Boolean(project.listed),
+      totalDonations: project.totalDonations,
+      totalProjectUpdates: project.totalProjectUpdates,
+    };
+  });
+
+  await addSheetWithRows(spreadsheet, headers, projectRows);
 };
 
 export const listDelist = async (
