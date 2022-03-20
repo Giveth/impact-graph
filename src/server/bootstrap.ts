@@ -144,7 +144,7 @@ export async function bootstrap() {
           err?.message?.includes(process.env.TYPEORM_DATABASE_HOST as string)
         ) {
           logger.error('DB connection error', err);
-          return new Error(errorMessages.INTERNAL_SERVER_ERROR);
+          return new Error(errorMessages.ERROR_CONNECTING_DB);
         } else if (err?.message?.startsWith('connect ECONNREFUSED')) {
           // It could be error connecting DB, Redis, ...
           logger.error('Apollo server client error', err);
