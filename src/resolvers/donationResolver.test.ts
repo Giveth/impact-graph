@@ -183,11 +183,12 @@ function donationsByProjectIdTestCases() {
       {},
     );
 
+    const amountDonationsCount = await Donation.createQueryBuilder('donation')
+      .where('donation.amount = :amount', { amount: 100 })
+      .getCount();
     const donations = result.data.data.donationsByProjectId.donations;
-    assert.equal(
-      Number(donations[0]?.id),
-      DONATION_SEED_DATA.SECOND_DONATION.id,
-    );
+    assert.equal(donations[0]?.amount, 100);
+    assert.equal(donations.length, amountDonationsCount);
   });
   it('should search by donation currency', async () => {
     const result = await axios.post(
@@ -196,17 +197,24 @@ function donationsByProjectIdTestCases() {
         query: fetchDonationsByProjectIdQuery,
         variables: {
           projectId: SEED_DATA.FIRST_PROJECT.id,
-          searchTerm: 'GIV',
+          searchTerm: DONATION_SEED_DATA.FIRST_DONATION.currency, // GIV
         },
       },
       {},
     );
 
+    const GivDonationsCount = await Donation.createQueryBuilder('donation')
+      .where('donation.currency = :currency', {
+        currency: DONATION_SEED_DATA.FIRST_DONATION.currency,
+      })
+      .getCount();
+
     const donations = result.data.data.donationsByProjectId.donations;
     assert.equal(
-      Number(donations[0]?.id),
-      DONATION_SEED_DATA.FIRST_DONATION.id,
+      donations[0]?.currency,
+      DONATION_SEED_DATA.FIRST_DONATION.currency,
     );
+    assert.equal(donations.length, GivDonationsCount);
   });
   it('should search by donation ToWalletAddress', async () => {
     const result = await axios.post(
@@ -221,11 +229,17 @@ function donationsByProjectIdTestCases() {
       {},
     );
 
+    const walletDonationsCount = await Donation.createQueryBuilder('donation')
+      .where('donation.toWalletAddress = :address', {
+        address: DONATION_SEED_DATA.FIRST_DONATION.toWalletAddress,
+      })
+      .getCount();
     const donations = result.data.data.donationsByProjectId.donations;
     assert.equal(
       donations[0]?.toWalletAddress,
       SEED_DATA.FIRST_PROJECT.walletAddress,
     );
+    assert.equal(donations.length, walletDonationsCount);
   });
 }
 
