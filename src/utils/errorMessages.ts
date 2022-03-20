@@ -1,5 +1,7 @@
 export const errorMessages = {
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
+  INTERNAL_SERVER_ERROR: 'Internal server error',
+  ERROR_CONNECTING_DB: 'Error in connecting DB',
   YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT:
     'You dont have access to view this project',
   JUST_ACTIVE_PROJECTS_ACCEPT_DONATION: 'Just active projects accept donation',
