@@ -8,6 +8,7 @@ import {
   createProjectData,
   generateRandomTxHash,
   generateRandomEtheriumAddress,
+  saveDonationDirectlyToDb,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
@@ -17,14 +18,18 @@ import {
   fetchDonationsByDonorQuery,
   saveDonation,
   fetchDonationsByProjectIdQuery,
+  fetchAllDonationsQuery,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjStatus } from '../entities/project';
 
+// tslint:disable-next-line:no-var-requires
+const moment = require('moment');
+
 // TODO Write test cases
-// describe('donations() test cases', donationsTestCases);
+describe('donations() test cases', donationsTestCases);
 // describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
 // describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
@@ -35,6 +40,83 @@ describe('saveDonation() test cases', saveDonationTestCases);
 
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
+
+function donationsTestCases() {
+  it('should throw error if send invalid fromDate format', async () => {
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchAllDonationsQuery,
+      variables: {
+        fromDate: '20221203 10:12:30 and status=verified',
+      },
+    });
+
+    assert.equal(
+      donationsResponse.data.errors[0].message,
+      errorMessages.INVALID_DATE_FORMAT,
+    );
+  });
+  it('should throw error if send invalid toDate format', async () => {
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchAllDonationsQuery,
+      variables: {
+        toDate: 'invalid date format',
+      },
+    });
+
+    assert.equal(
+      donationsResponse.data.errors[0].message,
+      errorMessages.INVALID_DATE_FORMAT,
+    );
+  });
+  it('should get result without sending time filters', async () => {
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchAllDonationsQuery,
+      variables: {},
+    });
+    assert.isOk(donationsResponse.data.data.donations);
+    const allDonationsCount = await Donation.count();
+    assert.equal(
+      donationsResponse.data.data.donations.length,
+      allDonationsCount,
+    );
+  });
+  it('should get result when sending fromDate', async () => {
+    const oldDonation = await saveDonationDirectlyToDb(
+      DONATION_SEED_DATA.FIRST_DONATION,
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    oldDonation.createdAt = moment('20220212 00:00:00', 'YYYYMMDD HH:mm:ss');
+    await oldDonation.save();
+
+    const newDonation = await saveDonationDirectlyToDb(
+      DONATION_SEED_DATA.FIRST_DONATION,
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    newDonation.createdAt = moment('20220312 00:00:00', 'YYYYMMDD HH:mm:ss');
+    await newDonation.save();
+
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchAllDonationsQuery,
+      variables: {
+        fromDate: '20220212 00:00:01',
+      },
+    });
+    assert.isOk(donationsResponse.data.data.donations);
+    const allDonationsCount = await Donation.count();
+    assert.notEqual(
+      donationsResponse.data.data.donations.length,
+      allDonationsCount,
+    );
+    assert.notOk(
+      donationsResponse.data.data.donations.find(d => d.id === oldDonation.id),
+    );
+    assert.notOk(
+      donationsResponse.data.data.donations.find(d => d.id === newDonation.id),
+    );
+  });
+}
 
 function saveDonationTestCases() {
   it('should save GIV donation for giveth project on xdai successfully', async () => {

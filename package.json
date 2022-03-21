@@ -6,6 +6,7 @@
   "dependencies": {
     "@admin-bro/express": "3.1.0",
     "@admin-bro/typeorm": "1.4.0",
+    "@hapi/joi": "^17.1.1",
     "@sentry/node": "6.16.1",
     "@sentry/tracing": "^6.2.0",
     "@types/bcryptjs": "^2.4.2",

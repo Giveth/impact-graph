@@ -39,6 +39,11 @@ import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 import { bold } from 'chalk';
 import { getCampaignDonations } from '../services/trace/traceService';
+import { from } from 'form-data';
+import {
+  getDonationsQueryValidator,
+  validateWithJoiSchema,
+} from '../utils/validators/graphqlQueryValidators';
 
 const analytics = getAnalytics();
 
@@ -127,10 +132,30 @@ export class DonationResolver {
   ) {}
 
   @Query(returns => [Donation], { nullable: true })
-  async donations() {
-    const donation = await this.donationRepository.find();
+  async donations(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ) {
+    try {
+      validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
+      const query = this.donationRepository
+        .createQueryBuilder('donation')
+        .where('')
+        .leftJoinAndSelect('donation.user', 'user')
+        .leftJoinAndSelect('donation.project', 'project');
 
-    return donation;
+      if (fromDate) {
+        query.andWhere(`"createdAt" >= ${fromDate}`);
+      }
+      if (toDate) {
+        query.andWhere(`"createdAt" <= ${toDate}`);
+      }
+      return await query.getMany();
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
   }
 
   @Query(returns => [Donation], { nullable: true })

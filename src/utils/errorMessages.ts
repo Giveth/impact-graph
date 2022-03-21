@@ -1,5 +1,8 @@
 export const errorMessages = {
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
+  INVALID_FROM_DATE: 'Invalid fromDate',
+  INVALID_TO_DATE: 'Invalid toDate',
+  INVALID_DATE_FORMAT: 'Date format should be YYYYMMDD HH:mm:ss',
   YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT:
     'You dont have access to view this project',
   JUST_ACTIVE_PROJECTS_ACCEPT_DONATION: 'Just active projects accept donation',
