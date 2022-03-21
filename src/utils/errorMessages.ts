@@ -3,6 +3,8 @@ export const errorMessages = {
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',
   INVALID_DATE_FORMAT: 'Date format should be YYYYMMDD HH:mm:ss',
+  INTERNAL_SERVER_ERROR: 'Internal server error',
+  ERROR_CONNECTING_DB: 'Error in connecting DB',
   YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT:
     'You dont have access to view this project',
   JUST_ACTIVE_PROJECTS_ACCEPT_DONATION: 'Just active projects accept donation',

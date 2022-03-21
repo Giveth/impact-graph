@@ -22,7 +22,7 @@ import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Brackets } from 'typeorm';
 import { User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
@@ -44,6 +44,7 @@ import {
   getDonationsQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
+import Web3 from 'web3';
 
 const analytics = getAnalytics();
 
@@ -239,9 +240,29 @@ export class DonationResolver {
         );
 
       if (searchTerm) {
-        query.andWhere('user.name ILIKE :searchTerm', {
-          searchTerm: `%${searchTerm}%`,
-        });
+        query.andWhere(
+          new Brackets(qb => {
+            qb.where('user.name ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            })
+              .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
+              })
+              .orWhere('donation.currency ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
+              });
+
+            // WalletAddresses are translanted to huge integers
+            // this breaks postgresql query integer limit
+            if (!Web3.utils.isAddress(searchTerm)) {
+              const amount = Number(searchTerm);
+
+              qb.orWhere('donation.amount = :number', {
+                number: amount,
+              });
+            }
+          }),
+        );
       }
 
       const [donations, donationsCount] = await query
