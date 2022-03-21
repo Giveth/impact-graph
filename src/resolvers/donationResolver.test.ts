@@ -1104,15 +1104,19 @@ function donationsByProjectIdTestCases() {
     );
 
     const walletDonationsCount = await Donation.createQueryBuilder('donation')
-      .where('donation.toWalletAddress = :address', {
-        address: DONATION_SEED_DATA.FIRST_DONATION.toWalletAddress,
-      })
+      .where(
+        'donation.toWalletAddress = :address AND donation.projectId = :projectId',
+        {
+          address: DONATION_SEED_DATA.FIRST_DONATION.toWalletAddress,
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+        },
+      )
       .getCount();
     const donations = result.data.data.donationsByProjectId.donations;
-    assert.equal(
-      donations[0]?.toWalletAddress,
-      SEED_DATA.FIRST_PROJECT.walletAddress,
+    donations.forEach(d =>
+      assert.equal(d.toWalletAddress, SEED_DATA.FIRST_PROJECT.walletAddress),
     );
+
     assert.equal(donations.length, walletDonationsCount);
   });
 }
