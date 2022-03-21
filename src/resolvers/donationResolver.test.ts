@@ -9,6 +9,7 @@ import {
   generateRandomTxHash,
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
+  createDonationData,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
@@ -82,25 +83,31 @@ function donationsTestCases() {
   });
   it('should get result when sending fromDate', async () => {
     const oldDonation = await saveDonationDirectlyToDb(
-      DONATION_SEED_DATA.FIRST_DONATION,
+      createDonationData(),
       SEED_DATA.FIRST_USER.id,
       SEED_DATA.FIRST_PROJECT.id,
     );
-    oldDonation.createdAt = moment('20220212 00:00:00', 'YYYYMMDD HH:mm:ss');
+    oldDonation.createdAt = moment(
+      '20220212 00:00:00',
+      'YYYYMMDD HH:mm:ss',
+    ).toDate();
     await oldDonation.save();
 
     const newDonation = await saveDonationDirectlyToDb(
-      DONATION_SEED_DATA.FIRST_DONATION,
+      createDonationData(),
       SEED_DATA.FIRST_USER.id,
       SEED_DATA.FIRST_PROJECT.id,
     );
-    newDonation.createdAt = moment('20220312 00:00:00', 'YYYYMMDD HH:mm:ss');
+    newDonation.createdAt = moment(
+      '20220312 00:00:00',
+      'YYYYMMDD HH:mm:ss',
+    ).toDate();
     await newDonation.save();
 
     const donationsResponse = await axios.post(graphqlUrl, {
       query: fetchAllDonationsQuery,
       variables: {
-        fromDate: '20220212 00:00:01',
+        fromDate: '20220215 00:00:01',
       },
     });
     assert.isOk(donationsResponse.data.data.donations);
@@ -110,10 +117,123 @@ function donationsTestCases() {
       allDonationsCount,
     );
     assert.notOk(
-      donationsResponse.data.data.donations.find(d => d.id === oldDonation.id),
+      donationsResponse.data.data.donations.find(
+        d => Number(d.id) === oldDonation.id,
+      ),
+    );
+    assert.isOk(
+      donationsResponse.data.data.donations.find(
+        d => Number(d.id) === newDonation.id,
+      ),
+    );
+  });
+  it('should get result when sending toDate', async () => {
+    const oldDonation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    oldDonation.createdAt = moment(
+      '20220212 00:00:00',
+      'YYYYMMDD HH:mm:ss',
+    ).toDate();
+    await oldDonation.save();
+
+    const newDonation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    newDonation.createdAt = moment(
+      '20220312 00:00:00',
+      'YYYYMMDD HH:mm:ss',
+    ).toDate();
+    await newDonation.save();
+
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchAllDonationsQuery,
+      variables: {
+        toDate: '20220215 00:00:01',
+      },
+    });
+    assert.isOk(donationsResponse.data.data.donations);
+    const allDonationsCount = await Donation.count();
+    assert.notEqual(
+      donationsResponse.data.data.donations.length,
+      allDonationsCount,
+    );
+    assert.isOk(
+      donationsResponse.data.data.donations.find(
+        d => Number(d.id) === oldDonation.id,
+      ),
     );
     assert.notOk(
-      donationsResponse.data.data.donations.find(d => d.id === newDonation.id),
+      donationsResponse.data.data.donations.find(
+        d => Number(d.id) === newDonation.id,
+      ),
+    );
+  });
+  it('should get result when sending toDate and fromDate', async () => {
+    const oldDonation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    oldDonation.createdAt = moment(
+      '20220212 00:00:00',
+      'YYYYMMDD HH:mm:ss',
+    ).toDate();
+    await oldDonation.save();
+
+    const newDonation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    newDonation.createdAt = moment(
+      '20220312 00:00:00',
+      'YYYYMMDD HH:mm:ss',
+    ).toDate();
+    await newDonation.save();
+    const veryNewDonation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    veryNewDonation.createdAt = moment(
+      '20220320 00:00:00',
+      'YYYYMMDD HH:mm:ss',
+    ).toDate();
+    await veryNewDonation.save();
+
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchAllDonationsQuery,
+      variables: {
+        fromDate: '20220310 00:00:01',
+        toDate: '20220315 00:00:01',
+      },
+    });
+    assert.isOk(donationsResponse.data.data.donations);
+    const allDonationsCount = await Donation.count();
+    assert.notEqual(
+      donationsResponse.data.data.donations.length,
+      allDonationsCount,
+    );
+    assert.isOk(
+      donationsResponse.data.data.donations.find(
+        d => Number(d.id) === newDonation.id,
+      ),
+    );
+
+    assert.notOk(
+      donationsResponse.data.data.donations.find(
+        d => Number(d.id) === oldDonation.id,
+      ),
+    );
+    assert.notOk(
+      donationsResponse.data.data.donations.find(
+        d => Number(d.id) === veryNewDonation.id,
+      ),
     );
   });
 }
@@ -821,10 +941,7 @@ function donationsByProjectIdTestCases() {
     );
 
     const donations = result.data.data.donationsByProjectId.donations;
-    assert.equal(
-      Number(donations[0].id),
-      DONATION_SEED_DATA.SECOND_DONATION.id,
-    );
+    assert.isTrue(donations[1].createdAt >= donations[0].createdAt);
   });
   it('should sort by amount DESC', async () => {
     const result = await axios.post(

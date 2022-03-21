@@ -1,7 +1,7 @@
 import Joi, { CustomHelpers, ObjectSchema, ValidationResult } from '@hapi/joi';
 import { errorMessages } from '../errorMessages';
 
-const filterDateRegex = new RegExp('$[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
+const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
   const validationResult = schema.validate(data);
