@@ -142,7 +142,6 @@ export class DonationResolver {
       validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
       const query = this.donationRepository
         .createQueryBuilder('donation')
-        .where('')
         .leftJoinAndSelect('donation.user', 'user')
         .leftJoinAndSelect('donation.project', 'project');
 
