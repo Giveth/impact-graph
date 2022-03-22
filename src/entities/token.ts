@@ -27,6 +27,12 @@ export class Token extends BaseEntity {
   @Column('text')
   address: string;
 
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  // Some tokens like PAN, XNODE, CRV dont have price on coingecko for gnosis network, So frontend guys suggested
+  // add  mainnetAddress field for those tokens, then client can get price of these tokens in mainnet
+  mainnetAddress: string;
+
   @Field()
   @Column()
   networkId: number;
