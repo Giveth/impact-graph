@@ -16,6 +16,7 @@ import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
 import { graphqlUploadExpress } from 'graphql-upload';
 import { Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator';
+import SentryLogger from '../sentryLogger';
 
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
@@ -35,6 +36,7 @@ import { logger } from '../utils/logger';
 import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
 import { getCsvAirdropTransactions } from '../services/transactionService';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
+import { errorMessages } from '../utils/errorMessages';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -44,6 +46,7 @@ const cors = require('cors');
 // register 3rd party IOC container
 
 Resource.validate = validate;
+
 // AdminBro.registerAdapter({ Database, Resource });
 
 export async function bootstrap() {
@@ -131,6 +134,29 @@ export async function bootstrap() {
           req,
           res,
         };
+      },
+      formatError: err => {
+        /**
+         * @see {@link https://www.apollographql.com/docs/apollo-server/data/errors/#for-client-responses}
+         */
+        // Don't give the specific errors to the client.
+
+        if (
+          err?.message?.includes(process.env.TYPEORM_DATABASE_HOST as string)
+        ) {
+          logger.error('DB connection error', err);
+          SentryLogger.captureException(err);
+          return new Error(errorMessages.INTERNAL_SERVER_ERROR);
+        } else if (err?.message?.startsWith('connect ECONNREFUSED')) {
+          // It could be error connecting DB, Redis, ...
+          logger.error('Apollo server client error', err);
+          SentryLogger.captureException(err);
+          return new Error(errorMessages.INTERNAL_SERVER_ERROR);
+        }
+
+        // Otherwise return the original error. The error can also
+        // be manipulated in other ways, as long as it's returned.
+        return err;
       },
       engine: {
         reportSchema: true,

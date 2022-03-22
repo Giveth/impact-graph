@@ -188,6 +188,41 @@ export const fetchDonationsByProjectIdQuery = `
   }
 `;
 
+export const fetchAllDonationsQuery = `
+  query (
+    $fromDate: String
+    $toDate: String
+  ) {
+    donations(
+      fromDate: $fromDate
+      toDate: $toDate
+    ) {
+        id
+        transactionId
+        transactionNetworkId
+        toWalletAddress
+        fromWalletAddress
+        currency
+        anonymous
+        valueUsd
+        amount
+        user {
+          id
+          email
+        }
+        project {
+          listed
+          verified
+          slug
+          admin
+          title
+        }
+        createdAt
+        status
+    }
+  }
+`;
+
 export const fetchDonationsByUserIdQuery = `
   query (
     $take: Int
@@ -592,6 +627,8 @@ export const getProjectsAcceptTokensQuery = `
       id
       symbol
       networkId
+      decimals
+      mainnetAddress
       name
     }
   }

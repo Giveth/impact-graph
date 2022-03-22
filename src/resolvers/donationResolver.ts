@@ -22,7 +22,7 @@ import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Brackets } from 'typeorm';
 import { User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
@@ -39,6 +39,12 @@ import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 import { bold } from 'chalk';
 import { getCampaignDonations } from '../services/trace/traceService';
+import { from } from 'form-data';
+import {
+  getDonationsQueryValidator,
+  validateWithJoiSchema,
+} from '../utils/validators/graphqlQueryValidators';
+import Web3 from 'web3';
 
 const analytics = getAnalytics();
 
@@ -127,10 +133,29 @@ export class DonationResolver {
   ) {}
 
   @Query(returns => [Donation], { nullable: true })
-  async donations() {
-    const donation = await this.donationRepository.find();
+  async donations(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ) {
+    try {
+      validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
+      const query = this.donationRepository
+        .createQueryBuilder('donation')
+        .leftJoinAndSelect('donation.user', 'user')
+        .leftJoinAndSelect('donation.project', 'project');
 
-    return donation;
+      if (fromDate) {
+        query.andWhere(`"createdAt" >= '${fromDate}'`);
+      }
+      if (toDate) {
+        query.andWhere(`"createdAt" <= '${toDate}'`);
+      }
+      return await query.getMany();
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
   }
 
   @Query(returns => [Donation], { nullable: true })
@@ -214,9 +239,29 @@ export class DonationResolver {
         );
 
       if (searchTerm) {
-        query.andWhere('user.name ILIKE :searchTerm', {
-          searchTerm: `%${searchTerm}%`,
-        });
+        query.andWhere(
+          new Brackets(qb => {
+            qb.where('user.name ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            })
+              .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
+              })
+              .orWhere('donation.currency ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
+              });
+
+            // WalletAddresses are translanted to huge integers
+            // this breaks postgresql query integer limit
+            if (!Web3.utils.isAddress(searchTerm)) {
+              const amount = Number(searchTerm);
+
+              qb.orWhere('donation.amount = :number', {
+                number: amount,
+              });
+            }
+          }),
+        );
       }
 
       const [donations, donationsCount] = await query
