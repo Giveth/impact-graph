@@ -13,6 +13,7 @@ import { BankAccount, StripeTransaction } from './bankAccount';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusReason } from './projectStatusReason';
 import { ProjectStatusHistory } from './projectStatusHistory';
+import { ThirdPartyProjectImport } from './thirdPartyProjectImport';
 
 export const entities: any = [
   Organization,
@@ -32,4 +33,5 @@ export const entities: any = [
   ProjectStatusHistory,
   AccountVerification,
   ProjectImage,
+  ThirdPartyProjectImport,
 ];

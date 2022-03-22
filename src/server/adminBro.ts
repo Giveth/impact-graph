@@ -1,4 +1,5 @@
 import { Project, ProjStatus } from '../entities/project';
+import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro from 'admin-bro';
 import { User, UserRole } from '../entities/user';
@@ -391,6 +392,35 @@ const getAdminBroInstance = () => {
             new: {
               handler: createDonation,
               // component: true,
+            },
+          },
+        },
+      },
+      {
+        resource: ThirdPartyProjectImport,
+        options: {
+          properties: {
+            thirdPartyAPI: {
+              availableValues: [{ value: 'change', label: 'Change API' }],
+              isVisible: { show: false, edit: false, new: true, list: false },
+            },
+            projectName: {
+              isVisible: { show: false, edit: false, new: true, list: false },
+            },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: false,
+            },
+            edit: {
+              isVisible: false,
+            },
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              handler: importThirdPartyProject,
+              component: false,
             },
           },
         },
@@ -1056,6 +1086,18 @@ export const updateStatusOfProjects = async (
       type: 'success',
     },
   };
+};
+
+export const importThirdPartyProject = async (
+  request: AdminBroRequestInterface,
+  response,
+  context,
+) => {
+  response.send({
+    redirectUrl: 'ThirdPartyProjectImport',
+    record: {},
+    notice: {},
+  });
 };
 
 export const createDonation = async (
