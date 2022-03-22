@@ -127,6 +127,7 @@ const createGivingProject = async (data: {
       listed: true,
       verified: true,
       giveBacks: true,
+      isImported: true,
     });
     await project.save();
     logger.debug(

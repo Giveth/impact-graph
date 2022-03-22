@@ -97,6 +97,7 @@ export const initHandlingTraceCampaignUpdateEvents = () => {
         throw new Error(errorMessages.PROJECT_NOT_FOUND);
       }
       project.traceCampaignId = campaignId;
+      project.isImported = true;
       project.title = title;
       project.description = description;
       let statusId;
