@@ -37,7 +37,6 @@ import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/s
 import { getCsvAirdropTransactions } from '../services/transactionService';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import { errorMessages } from '../utils/errorMessages';
-import * as Sentry from '@sentry/node';
 
 // tslint:disable:no-var-requires
 const express = require('express');
