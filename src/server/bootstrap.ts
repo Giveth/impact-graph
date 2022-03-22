@@ -36,6 +36,7 @@ import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/s
 import { getCsvAirdropTransactions } from '../services/transactionService';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import { errorMessages } from '../utils/errorMessages';
+import { getPoignArtWithdrawals } from '../services/poignArt/api';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -276,10 +277,6 @@ export async function bootstrap() {
     if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
       runGivingBlocksProjectSynchronization();
     }
-    await getCsvAirdropTransactions(
-      '0x0c452a7c116adb6162390f342cee84175f34e3c1bc0015e6f82773a54ace3061',
-      100,
-    );
   } catch (err) {
     logger.error(err);
   }
