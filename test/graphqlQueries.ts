@@ -627,6 +627,8 @@ export const getProjectsAcceptTokensQuery = `
       id
       symbol
       networkId
+      decimals
+      mainnetAddress
       name
     }
   }
