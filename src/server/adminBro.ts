@@ -481,6 +481,14 @@ const getAdminBroInstance = () => {
                 edit: false,
               },
             },
+            isImported: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
             totalReactions: {
               isVisible: false,
             },
