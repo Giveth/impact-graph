@@ -46,6 +46,15 @@ function userByAddressTestCases() {
     assert.equal(result.data.data.userByAddress.email, userData.email);
     assert.equal(result.data.data.userByAddress.url, userData.url);
   });
+  it('Returns null when no user is found', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: 'random address that does not exist',
+      },
+    });
+    assert.equal(result.data.data.userByAddress, null);
+  });
 }
 
 function updateUserTestCases() {
