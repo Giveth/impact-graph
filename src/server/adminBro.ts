@@ -21,7 +21,10 @@ import {
   projectExportSpreadsheet,
   addSheetWithRows,
 } from '../services/googleSheets';
-import { getChangeNonProfitByNameOrIEN } from '../services/changeAPI/nonProfits';
+import {
+  createProjectFromChangeNonProfit,
+  getChangeNonProfitByNameOrIEN,
+} from '../services/changeAPI/nonProfits';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
@@ -1109,7 +1112,7 @@ export const importThirdPartyProject = async (
     switch (thirdPartyAPI) {
       case 'Change': {
         nonProfit = await getChangeNonProfitByNameOrIEN(projectName);
-        // console.log(nonProfit);
+        await createProjectFromChangeNonProfit(nonProfit);
         break;
       }
       default: {
