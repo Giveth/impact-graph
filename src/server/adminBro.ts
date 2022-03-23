@@ -21,6 +21,7 @@ import {
   projectExportSpreadsheet,
   addSheetWithRows,
 } from '../services/googleSheets';
+import { getChangeNonProfitByNameOrIEN } from '../services/changeAPI/nonProfits';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
@@ -401,11 +402,17 @@ const getAdminBroInstance = () => {
         options: {
           properties: {
             thirdPartyAPI: {
-              availableValues: [{ value: 'change', label: 'Change API' }],
-              isVisible: { show: false, edit: false, new: true, list: false },
+              availableValues: [{ value: 'Change', label: 'Change API' }],
+              isVisible: { show: false, edit: true, new: true, list: false },
             },
             projectName: {
-              isVisible: { show: false, edit: false, new: true, list: false },
+              isVisible: { show: false, edit: true, new: true, list: false },
+            },
+            userId: {
+              isVisible: { show: true, edit: false, new: false, list: true },
+            },
+            projectId: {
+              isVisible: { show: true, edit: false, new: false, list: true },
             },
           },
           actions: {
@@ -420,7 +427,6 @@ const getAdminBroInstance = () => {
             },
             new: {
               handler: importThirdPartyProject,
-              component: false,
             },
           },
         },
@@ -1093,10 +1099,37 @@ export const importThirdPartyProject = async (
   response,
   context,
 ) => {
+  let message = `Project successfully imported`;
+  let type = 'success';
+
+  try {
+    logger.debug('import third party project', request.payload);
+    let nonProfit;
+    const { thirdPartyAPI, projectName } = request.payload;
+    switch (thirdPartyAPI) {
+      case 'Change': {
+        nonProfit = await getChangeNonProfitByNameOrIEN(projectName);
+        // console.log(nonProfit);
+        break;
+      }
+      default: {
+        throw errorMessages.NOT_SUPPORTED_THIRD_PARTY_API;
+        break;
+      }
+    }
+  } catch (e) {
+    message = e.message;
+    type = 'danger';
+    logger.error('import third party project error', e.message);
+  }
+
   response.send({
     redirectUrl: 'ThirdPartyProjectImport',
     record: {},
-    notice: {},
+    notice: {
+      message,
+      type,
+    },
   });
 };
 

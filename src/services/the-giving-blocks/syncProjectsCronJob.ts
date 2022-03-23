@@ -17,6 +17,7 @@ import config from '../../config';
 import slugify from 'slugify';
 import { ProjectStatus } from '../../entities/projectStatus';
 import { logger } from '../../utils/logger';
+import { getAppropriateSlug, getQualityScore } from '../projectService';
 
 const givingBlockCategoryName = 'The Giving Block';
 const givingBlockHandle = 'the-giving-block';
@@ -150,32 +151,6 @@ const createGivingProject = async (data: {
     // Log Error but keep going with the rest of the projects
     logger.error('createGivingProject error', e);
   }
-};
-
-// Current Formula: This will be changed in the future
-const getQualityScore = (description, hasImageUpload): number => {
-  let qualityScore = 40;
-
-  // Some projects have no description
-  if (Number(description?.length) > 100) qualityScore = qualityScore + 10;
-  if (hasImageUpload) qualityScore = qualityScore + 30;
-
-  return qualityScore;
-};
-
-const getAppropriateSlug = async (slugBase: string): Promise<string> => {
-  let slug = slugBase.toLowerCase();
-  const projectCount = await Project.createQueryBuilder('project')
-    // check current slug and previous slugs
-    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-      slug,
-    })
-    .getCount();
-
-  if (projectCount > 0) {
-    slug = slugBase + '-' + (projectCount - 1);
-  }
-  return slug;
 };
 
 // The GivingBlocks itself will be the category
