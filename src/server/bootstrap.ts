@@ -38,6 +38,7 @@ import { getCsvAirdropTransactions } from '../services/transactionService';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import { errorMessages } from '../utils/errorMessages';
 import { getPoignArtWithdrawals } from '../services/poignArt/api';
+import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -279,6 +280,9 @@ export async function bootstrap() {
     // If we need to deactivate the process use the env var
     if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
       runGivingBlocksProjectSynchronization();
+    }
+    if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
+      runSyncPoignArtDonations();
     }
   } catch (err) {
     logger.error(err);

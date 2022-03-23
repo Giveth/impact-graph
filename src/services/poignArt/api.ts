@@ -1,19 +1,18 @@
 import axios from 'axios';
 import { logger } from '../../utils/logger';
 
+export interface PoignArtWithdrawal {
+  amount: number;
+  timestamp: number;
+  blockNumber: number;
+  txHash: string;
+  recipient: string;
+}
 export const getPoignArtWithdrawals = async (inputData: {
   recipient: string;
   // It should be seconds NOT milli seconds
   startTimestamp: number;
-}): Promise<
-  {
-    amount: number;
-    timestamp: number;
-    blockNumber: number;
-    txHash: string;
-    recipient: string;
-  }[]
-> => {
+}): Promise<PoignArtWithdrawal[]> => {
   try {
     const { recipient, startTimestamp } = inputData;
     const graphqlQuery = `{
