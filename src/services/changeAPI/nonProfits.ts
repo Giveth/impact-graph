@@ -60,9 +60,11 @@ export const getChangeNonProfitByNameOrIEN = async (
     );
 
     const nonProfits = result.data.nonprofits;
-    if (nonProfits.length > 1) throw errorMessages.CHANGE_API_TITLE_NOT_PRECISE;
+    if (nonProfits.length > 1)
+      throw errorMessages.CHANGE_API_TITLE_OR_EIN_NOT_PRECISE;
 
-    if (nonProfits.length === 0) throw errorMessages.CHANGE_API_INVALID_TITLE;
+    if (nonProfits.length === 0)
+      throw errorMessages.CHANGE_API_INVALID_TITLE_OR_EIN;
 
     return nonProfits[0];
   } catch (e) {

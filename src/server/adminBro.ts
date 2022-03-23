@@ -1117,7 +1117,6 @@ export const importThirdPartyProject = async (
       }
       default: {
         throw errorMessages.NOT_SUPPORTED_THIRD_PARTY_API;
-        break;
       }
     }
   } catch (e) {
