@@ -5,6 +5,10 @@ export class addGivingBlockOrganizationToGivingBlockProjects1648085509369
 {
   // this is to fix newly created givingBlocksProjects after the older migration ran
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const projectTableExists = await queryRunner.hasTable('project');
+
+    if (!projectTableExists) return;
+
     const givingBlockOrganization = (
       await queryRunner.query(`SELECT * FROM organization
               WHERE label='givingBlock'`)
