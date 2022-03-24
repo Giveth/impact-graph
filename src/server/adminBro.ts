@@ -1134,6 +1134,7 @@ export const createDonation = async (
         donationType: 'csvAirDrop',
         createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
+        isTokenEligibleForGivback: true,
       });
       const donor = await User.findOne({
         walletAddress: transactionInfo?.from,

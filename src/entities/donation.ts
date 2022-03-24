@@ -143,6 +143,10 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true, default: false })
   segmentNotified: boolean;
 
+  @Field(type => Boolean, { nullable: true })
+  @Column({ nullable: true, default: false })
+  isTokenEligibleForGivback: boolean;
+
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')
       .where(`donation.currency = 'GIV' AND donation."valueUsd" IS NULL `)

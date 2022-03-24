@@ -269,6 +269,10 @@ function saveDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.saveDonation);
+    const donation = await Donation.findOne(
+      saveDonationResponse.data.data.saveDonation,
+    );
+    assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should save GIV donation for giveth project on mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -300,6 +304,45 @@ function saveDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.saveDonation);
+    const donation = await Donation.findOne(
+      saveDonationResponse.data.data.saveDonation,
+    );
+    assert.isTrue(donation?.isTokenEligibleForGivback);
+  });
+  it('should save custom token donation for giveth project on mainnet successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.MAIN_NET,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'CUSTOM_TOKEN',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.saveDonation);
+    const donation = await Donation.findOne(
+      saveDonationResponse.data.data.saveDonation,
+    );
+    assert.isFalse(donation?.isTokenEligibleForGivback);
   });
   it('should save GIV donation for trace project on mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb({
@@ -334,7 +377,50 @@ function saveDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.saveDonation);
+    const donation = await Donation.findOne(
+      saveDonationResponse.data.data.saveDonation,
+    );
+    assert.isTrue(donation?.isTokenEligibleForGivback);
   });
+  it('should save custom token donation for trace project on mainnet successfully', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.TRACE,
+    });
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.MAIN_NET,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'CUSTOM_TOKEN',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.saveDonation);
+    const donation = await Donation.findOne(
+      saveDonationResponse.data.data.saveDonation,
+    );
+    assert.isFalse(donation?.isTokenEligibleForGivback);
+  });
+
   it('should save GIV donation for trace project on xdai successfully', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -368,6 +454,10 @@ function saveDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.saveDonation);
+    const donation = await Donation.findOne(
+      saveDonationResponse.data.data.saveDonation,
+    );
+    assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should throw error when save GIV donation for givingBlock project on xdai', async () => {
     const project = await saveProjectDirectlyToDb({
@@ -476,6 +566,10 @@ function saveDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.saveDonation);
+    const donation = await Donation.findOne(
+      saveDonationResponse.data.data.saveDonation,
+    );
+    assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should save GIV donation for not logged-in users successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -496,6 +590,7 @@ function saveDonationTestCases() {
     const donation = await Donation.findOne({
       id: saveDonationResponse.data.data.saveDonation,
     });
+    assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.isOk(donation);
     assert.isNull(donation?.userId);
   });
@@ -536,6 +631,7 @@ function saveDonationTestCases() {
     assert.isOk(donation);
     assert.equal(donation?.userId, user.id);
     assert.isTrue(donation?.anonymous);
+    assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should fill usd value of donation after creation', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -573,6 +669,7 @@ function saveDonationTestCases() {
     assert.isOk(donation);
     assert.isOk(donation?.valueUsd);
     assert.isOk(donation?.priceUsd);
+    assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should donation have true for segmentNotified after creation', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -790,7 +887,6 @@ function saveDonationTestCases() {
     assert.isOk(donation);
     assert.isFalse(donation?.isProjectVerified);
   });
-
   it('should throw exception when donating to draft projects', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
