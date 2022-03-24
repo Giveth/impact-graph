@@ -18,7 +18,7 @@ const changeAPIHandle = 'change';
 
 // Admin Account assigned by Giveth to handle this projects
 const adminId =
-  (config.get('THIRD_PARTY_PROYECTS_ADMIN_USER_ID') as string) || '1';
+  (config.get('THIRD_PARTY_PROJECTS_ADMIN_USER_ID') as string) || '1';
 
 interface ChangeNonProfit {
   address_line?: string;

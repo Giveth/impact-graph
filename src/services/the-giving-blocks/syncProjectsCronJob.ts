@@ -30,7 +30,7 @@ const cronJobTime =
 
 // Admin Account assigned by Giveth to handle this projects
 const adminId =
-  (config.get('THIRD_PARTY_PROYECTS_ADMIN_USER_ID') as string) || '1';
+  (config.get('THIRD_PARTY_PROJECTS_ADMIN_USER_ID') as string) || '1';
 
 export const runGivingBlocksProjectSynchronization = () => {
   logger.debug('runGivingBlocksProjectSynchronization() has been called');

@@ -10,7 +10,7 @@ import {
 import { Project } from './project';
 import { User } from './user';
 
-// only purpose of this entity is to server as a custom page in adminbro
+// only purpose of this entity is to serve as a custom page in adminbro
 @Entity()
 @ObjectType()
 export class ThirdPartyProjectImport extends BaseEntity {
