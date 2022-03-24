@@ -76,6 +76,7 @@ const createPoignArtDonationInDb = async (
     toWalletAddress: unchainProject.walletAddress,
     isProjectVerified: unchainProject.verified,
     fromWalletAddress: 'I should ask it from Lauren',
+    transactionId: poignArtWithdrawal.txHash,
 
     status: DONATION_STATUS.VERIFIED,
     donationType: DONATION_TYPES.POIGN_ART,
