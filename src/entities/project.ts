@@ -120,7 +120,9 @@ class Project extends BaseEntity {
   updatedAt: Date;
 
   @Field(type => Organization)
-  @ManyToOne(type => Organization)
+  @ManyToOne(type => Organization, {
+    eager: true,
+  })
   @JoinTable()
   organization: Organization;
 
