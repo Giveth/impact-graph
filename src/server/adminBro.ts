@@ -406,7 +406,7 @@ const getAdminBroInstance = () => {
           properties: {
             thirdPartyAPI: {
               availableValues: [{ value: 'Change', label: 'Change API' }],
-              isVisible: { show: false, edit: true, new: true, list: false },
+              isVisible: true,
             },
             projectName: {
               isVisible: { show: false, edit: true, new: true, list: false },
@@ -1102,23 +1102,33 @@ export const importThirdPartyProject = async (
   response,
   context,
 ) => {
+  const { currentAdmin } = context;
   let message = `Project successfully imported`;
   let type = 'success';
 
   try {
     logger.debug('import third party project', request.payload);
     let nonProfit;
+    let newProject;
     const { thirdPartyAPI, projectName } = request.payload;
     switch (thirdPartyAPI) {
       case 'Change': {
         nonProfit = await getChangeNonProfitByNameOrIEN(projectName);
-        await createProjectFromChangeNonProfit(nonProfit);
+        newProject = await createProjectFromChangeNonProfit(nonProfit);
         break;
       }
       default: {
         throw errorMessages.NOT_SUPPORTED_THIRD_PARTY_API;
       }
     }
+    // keep record of all created projects and who did from which api
+    const importHistoryRecord = ThirdPartyProjectImport.create({
+      projectName: newProject.title,
+      project: newProject,
+      user: currentAdmin,
+      thirdPartyAPI,
+    });
+    await importHistoryRecord.save();
   } catch (e) {
     message = e.message;
     type = 'danger';
@@ -1126,7 +1136,7 @@ export const importThirdPartyProject = async (
   }
 
   response.send({
-    redirectUrl: 'ThirdPartyProjectImport',
+    redirectUrl: 'list',
     record: {},
     notice: {
       message,

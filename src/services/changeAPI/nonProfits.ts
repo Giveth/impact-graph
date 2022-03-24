@@ -1,6 +1,7 @@
 import Axios, { AxiosResponse } from 'axios';
 import slugify from 'slugify';
 import config from '../../config';
+import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
 import {
   Category,
   Project,
@@ -75,10 +76,13 @@ export const getChangeNonProfitByNameOrIEN = async (
 
 export const createProjectFromChangeNonProfit = async (
   nonProfit: ChangeNonProfit,
-) => {
+): Promise<Project> => {
   try {
     const changeCategory = await findOrCreateChangeAPICategory();
     const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
+    const organization = await Organization.findOne({
+      label: ORGANIZATION_LABELS.CHANGE,
+    });
 
     const slugBase = slugify(nonProfit.name, {
       remove: /[*+~.,()'"!:@]/g,
@@ -92,6 +96,7 @@ export const createProjectFromChangeNonProfit = async (
 
     const project = Project.create({
       title: nonProfit.name,
+      organization,
       description: nonProfit.mission,
       categories: [changeCategory],
       walletAddress: nonProfit.crypto.ethereum_address,
@@ -130,6 +135,8 @@ export const createProjectFromChangeNonProfit = async (
     });
 
     await ProjectUpdate.save(update);
+
+    return project;
   } catch (e) {
     logger.error('createChangeAPIProject error', e);
     throw e;

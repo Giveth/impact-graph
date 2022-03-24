@@ -18,6 +18,7 @@ import slugify from 'slugify';
 import { ProjectStatus } from '../../entities/projectStatus';
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
+import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
 
 const givingBlockCategoryName = 'The Giving Block';
 const givingBlockHandle = 'the-giving-block';
@@ -43,6 +44,9 @@ const exportGivingBlocksProjects = async () => {
   const accessToken = authResponse.accessToken;
 
   const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
+  const organization = await Organization.findOne({
+    label: ORGANIZATION_LABELS.GIVING_BLOCK,
+  });
 
   const givingBlocksProjects = await fetchGivingBlockProjects(accessToken);
   const givingBlocksCategory = await findOrCreateGivingBlocksCategory();
@@ -52,6 +56,7 @@ const exportGivingBlocksProjects = async () => {
       accessToken,
       givingBlockProject,
       givingBlocksCategory,
+      organization,
       activeStatus,
     });
   }
@@ -61,6 +66,7 @@ const createGivingProject = async (data: {
   accessToken: string;
   givingBlockProject: GivingBlockProject;
   givingBlocksCategory: GivingBlocksCategory;
+  organization?: Organization;
   activeStatus?: ProjectStatus;
 }) => {
   const {
@@ -111,6 +117,7 @@ const createGivingProject = async (data: {
     const project = Project.create({
       title: givingBlockProject.name,
       description,
+      organization,
       categories: [givingBlocksCategory],
       walletAddress,
       creationDate: new Date(),
