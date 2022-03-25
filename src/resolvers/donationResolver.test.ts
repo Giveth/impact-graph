@@ -1025,7 +1025,16 @@ function donationsByProjectIdTestCases() {
     const donations = result.data.data.donationsByProjectId.donations;
     assert.equal(Number(donations[0].id), DONATION_SEED_DATA.FIFTH_DONATION.id);
   });
-  it('should search by user name', async () => {
+  it('should search by user name except anonymous donations', async () => {
+    const anonymousDonation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.THIRD_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    anonymousDonation.anonymous = true;
+    await anonymousDonation.save();
+
     const result = await axios.post(
       graphqlUrl,
       {
@@ -1043,6 +1052,9 @@ function donationsByProjectIdTestCases() {
       Number(donations[0]?.id),
       DONATION_SEED_DATA.FIFTH_DONATION.id,
     );
+
+    const anonymousDonations = donations.filter(d => d.anonymous === true);
+    assert.isTrue(anonymousDonations.length === 0);
   });
   it('should search by donation amount', async () => {
     const result = await axios.post(

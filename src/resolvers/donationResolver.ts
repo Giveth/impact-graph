@@ -241,9 +241,12 @@ export class DonationResolver {
       if (searchTerm) {
         query.andWhere(
           new Brackets(qb => {
-            qb.where('user.name ILIKE :searchTerm', {
-              searchTerm: `%${searchTerm}%`,
-            })
+            qb.where(
+              '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
+              {
+                searchTerm: `%${searchTerm}%`,
+              },
+            )
               .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
                 searchTerm: `%${searchTerm}%`,
               })
