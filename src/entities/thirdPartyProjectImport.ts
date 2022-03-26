@@ -35,8 +35,8 @@ export class ThirdPartyProjectImport extends BaseEntity {
   user?: User;
 
   @RelationId(
-    (thirdPartyProjectExport: ThirdPartyProjectImport) =>
-      thirdPartyProjectExport.user,
+    (thirdPartyProjectImport: ThirdPartyProjectImport) =>
+      thirdPartyProjectImport.user,
   )
   userId: number;
 
@@ -46,8 +46,8 @@ export class ThirdPartyProjectImport extends BaseEntity {
   project?: Project;
 
   @RelationId(
-    (thirdPartyProjectExport: ThirdPartyProjectImport) =>
-      thirdPartyProjectExport.project,
+    (thirdPartyProjectImport: ThirdPartyProjectImport) =>
+      thirdPartyProjectImport.project,
   )
   projectId: number;
 }

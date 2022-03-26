@@ -16,6 +16,10 @@ import { getAppropriateSlug, getQualityScore } from '../projectService';
 const changeAPICategoryName = 'Change';
 const changeAPIHandle = 'change';
 
+const changeApiNonProfitUrl = config.get(
+  'CHANGE_API_NON_PROFITS_SEARCH_URL',
+) as string;
+
 // Admin Account assigned by Giveth to handle this projects
 const adminId =
   (config.get('THIRD_PARTY_PROJECTS_ADMIN_USER_ID') as string) || '1';
@@ -50,15 +54,12 @@ export const getChangeNonProfitByNameOrIEN = async (
   nonProfit: String,
 ): Promise<ChangeNonProfit> => {
   try {
-    const result = await Axios.get(
-      'https://api.getchange.io/api/v1/nonprofits',
-      {
-        params: {
-          public_key: config.get('CHANGE_API_KEYS') as string,
-          search_term: nonProfit,
-        },
+    const result = await Axios.get(changeApiNonProfitUrl, {
+      params: {
+        public_key: config.get('CHANGE_API_KEYS') as string,
+        search_term: nonProfit,
       },
-    );
+    });
 
     const nonProfits = result.data.nonprofits;
     if (nonProfits.length > 1)

@@ -24,8 +24,9 @@ export class addChangeAcceptedtokens1648066794387
       ;`,
     );
 
+    const environment = config.get('ENVIRONMENT') as string;
     // add test token for any other env
-    if (config.get('NODE_ENV') !== 'production') {
+    if (environment !== 'production') {
       const ropstenNativeToken = (
         await queryRunner.query(`
             SELECT * FROM token
