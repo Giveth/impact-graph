@@ -86,8 +86,8 @@ interface AdminBroContextInterface {
 interface AdminBroRequestInterface {
   payload?: any;
   record?: any;
-  query: {
-    recordIds: string;
+  query?: {
+    recordIds?: string;
   };
 }
 
@@ -1004,7 +1004,7 @@ export const verifyProjects = async (
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, { verified: verificationStatus })
       .where('project.id IN (:...ids)')
-      .setParameter('ids', request.query.recordIds.split(','))
+      .setParameter('ids', request?.query?.recordIds?.split(','))
       .returning('*')
       .updateEntity(true)
       .execute();
@@ -1064,7 +1064,7 @@ export const updateStatusOfProjects = async (
       const projects = await Project.createQueryBuilder('project')
         .update<Project>(Project, updateData)
         .where('project.id IN (:...ids)')
-        .setParameter('ids', request.query.recordIds.split(','))
+        .setParameter('ids', request?.query?.recordIds?.split(','))
         .returning('*')
         .updateEntity(true)
         .execute();
