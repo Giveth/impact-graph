@@ -1126,6 +1126,9 @@ export class ProjectResolver {
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.organization', 'organization')
       .where(`lower("walletAddress")=lower(:address)`, {
         address,
       });

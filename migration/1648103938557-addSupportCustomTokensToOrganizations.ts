@@ -13,13 +13,7 @@ export class addSupportCustomTokensToOrganizations1648103938557
     await queryRunner.query(`
          UPDATE organization
          SET "supportCustomTokens" = true
-         WHERE label='${ORGANIZATION_LABELS.GIVETH}'
-      `);
-
-    await queryRunner.query(`
-         UPDATE organization
-         SET "supportCustomTokens"=true
-         WHERE label='${ORGANIZATION_LABELS.TRACE}'
+         WHERE label='${ORGANIZATION_LABELS.GIVETH}' OR label='${ORGANIZATION_LABELS.TRACE}'
       `);
   }
 
