@@ -21,6 +21,8 @@ export enum SegmentEvents {
   GET_DONATION_PRICE_FAILED = 'Get Donation Price Failed',
 }
 
+const environment = config.get('ENVIRONMENT') as string;
+
 class GraphAnalytics {
   analytics: Analytics;
   constructor(analytics: Analytics) {
@@ -60,7 +62,7 @@ class GraphAnalytics {
 export function getAnalytics() {
   const segmentAnalytics = new Analytics(config.get('SEGMENT_API_KEY'), {
     flushAt: 1,
-    enable: config.get('NODE_ENV') !== 'test',
+    enable: environment !== 'test',
   });
   return new GraphAnalytics(segmentAnalytics);
 }

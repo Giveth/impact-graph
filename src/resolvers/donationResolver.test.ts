@@ -443,6 +443,136 @@ function saveDonationTestCases() {
       errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
     );
   });
+  // simulates staging env they only accept ETH
+  it('should save ETH donation for CHANGE project on Ropsten successfully', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.CHANGE,
+    });
+    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const accessToken = await generateTestAccessToken(user!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.ROPSTEN,
+          transactionNetworkId: NETWORK_IDS.ROPSTEN,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'ETH',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.saveDonation);
+  });
+  // for production they only accept ETH on mainnet
+  it('should save ETH donation for CHANGE project on Mainnet successfully', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.CHANGE,
+    });
+    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const accessToken = await generateTestAccessToken(user!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.MAIN_NET,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'ETH',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.saveDonation);
+  });
+  // they do not accept DAI (same would apply for any other random token)
+  it('should throw error when save DAI donation for CHANGE project on mainnet', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.CHANGE,
+    });
+    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const accessToken = await generateTestAccessToken(user!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.MAIN_NET,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'DAI',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+    );
+  });
+  // they do not accept DAI (same would apply for any other random token)
+  it('should throw error when save DAI donation for CHANGE project on Xdai Chain', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.CHANGE,
+    });
+    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const accessToken = await generateTestAccessToken(user!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'XDAI',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+    );
+  });
   it('should save ETH donation for givingBlock project on mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),

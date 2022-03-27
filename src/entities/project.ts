@@ -99,6 +99,11 @@ class Project extends BaseEntity {
   @Column({ default: null, nullable: true })
   givingBlocksId?: string;
 
+  @Index({ unique: true, where: '"changeId" IS NOT NULL' })
+  @Field({ nullable: true })
+  @Column({ default: null, nullable: true })
+  changeId?: string;
+
   @Field({ nullable: true })
   @Column({ default: null, nullable: true })
   website?: string;
