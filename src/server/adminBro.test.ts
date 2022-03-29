@@ -1,12 +1,14 @@
 import {
   createDonation,
   exportProjectsWithFiltersToCsv,
+  importThirdPartyProject,
   listDelist,
   updateStatusOfProjects,
   verifyProjects,
 } from './adminBro';
 import {
   createProjectData,
+  generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   SEED_DATA,
   sleep,
@@ -22,6 +24,9 @@ import {
 import { ProjectStatus } from '../entities/projectStatus';
 import { NETWORK_IDS } from '../provider';
 import { Donation } from '../entities/donation';
+import * as ChangeAPI from '../services/changeAPI/nonProfits';
+import sinon from 'sinon';
+import { errorMessages } from '../utils/errorMessages';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -34,6 +39,100 @@ describe(
   'exportProjectsWithFiltersToCsv() test cases',
   exportProjectsWithFiltersToCsvTestCases,
 );
+describe(
+  'importThirdPartyProject() test cases',
+  importThirdPartyProjectTestCases,
+);
+
+function importThirdPartyProjectTestCases() {
+  it('should throw error when change api throws error', async () => {
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const stub = sinon
+      .stub(ChangeAPI, 'getChangeNonProfitByNameOrIEN')
+      .rejects(errorMessages.CHANGE_API_INVALID_TITLE_OR_EIN);
+
+    await importThirdPartyProject(
+      {
+        query: {},
+        payload: {
+          thirdPartyAPI: 'Change',
+          projectName: 'ChangeApiTestProject',
+        },
+      },
+      {
+        send: () => {
+          // ..
+        },
+      },
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+    );
+
+    const createdProject = await Project.findOne({
+      title: 'ChangeApiTestProject',
+    });
+    assert.isUndefined(createdProject);
+    stub.restore();
+  });
+  it('creates the project succesfully when changeAPI returns data', async () => {
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    sinon.stub(ChangeAPI, 'getChangeNonProfitByNameOrIEN').resolves({
+      address_line: 'test',
+      category: 'test',
+      city: 'test',
+      classification: 'test',
+      crypto: {
+        ethereum_address: generateRandomEtheriumAddress(),
+        solana_address: generateRandomEtheriumAddress(),
+      },
+      ein: '1234',
+      icon_url: 'test',
+      id: 'test',
+      mission: 'test',
+      name: 'ChangeApiTestProject',
+      socials: {
+        facebook: 'test',
+        instagram: 'instagram',
+        twitter: 'twitter',
+        youtube: 'youtube',
+      },
+      state: 'test',
+      website: 'test',
+      zip_code: 'test',
+    });
+
+    await importThirdPartyProject(
+      {
+        query: {},
+        payload: {
+          thirdPartyAPI: 'Change',
+          projectName: 'ChangeApiTestProject',
+        },
+      },
+      {
+        send: () => {
+          // ..
+        },
+      },
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+    );
+
+    const createdProject = await Project.findOne({
+      title: 'ChangeApiTestProject',
+    });
+    assert(createdProject);
+    assert.isTrue(createdProject?.title === 'ChangeApiTestProject');
+  });
+}
 
 function createDonationTestCases() {
   it('Should create donations for csv airDrop', async () => {
