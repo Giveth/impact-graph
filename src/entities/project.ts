@@ -99,6 +99,11 @@ class Project extends BaseEntity {
   @Column({ default: null, nullable: true })
   givingBlocksId?: string;
 
+  @Index({ unique: true, where: '"changeId" IS NOT NULL' })
+  @Field({ nullable: true })
+  @Column({ default: null, nullable: true })
+  changeId?: string;
+
   @Field({ nullable: true })
   @Column({ default: null, nullable: true })
   website?: string;
@@ -120,7 +125,9 @@ class Project extends BaseEntity {
   updatedAt: Date;
 
   @Field(type => Organization)
-  @ManyToOne(type => Organization)
+  @ManyToOne(type => Organization, {
+    eager: true,
+  })
   @JoinTable()
   organization: Organization;
 
@@ -163,6 +170,10 @@ class Project extends BaseEntity {
   @Field(type => Boolean)
   @Column()
   verified: boolean;
+
+  @Field(type => Boolean, { nullable: true })
+  @Column({ default: false })
+  isImported: boolean;
 
   @Field(type => Boolean)
   @Column()

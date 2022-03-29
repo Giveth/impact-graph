@@ -241,9 +241,12 @@ export class DonationResolver {
       if (searchTerm) {
         query.andWhere(
           new Brackets(qb => {
-            qb.where('user.name ILIKE :searchTerm', {
-              searchTerm: `%${searchTerm}%`,
-            })
+            qb.where(
+              '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
+              {
+                searchTerm: `%${searchTerm}%`,
+              },
+            )
               .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
                 searchTerm: `%${searchTerm}%`,
               })
@@ -356,7 +359,11 @@ export class DonationResolver {
         chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
       let donorUser;
 
-      const project = await Project.findOne({ id: Number(projectId) });
+      const project = await Project.createQueryBuilder('project')
+        .leftJoinAndSelect('project.organization', 'organization')
+        .leftJoinAndSelect('project.status', 'status')
+        .where(`project.id =${projectId}`)
+        .getOne();
 
       if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
       if (project.status.id !== ProjStatus.active) {
@@ -366,14 +373,20 @@ export class DonationResolver {
         networkId: chainId,
         symbol: token,
       });
-      if (!tokenInDb) throw new Error(errorMessages.TOKEN_NOT_FOUND);
-      const acceptsToken = await isTokenAcceptableForProject({
-        projectId,
-        tokenId: tokenInDb.id,
-      });
-      if (!acceptsToken) {
-        throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+      let isTokenEligibleForGivback = false;
+      if (!tokenInDb && !project.organization.supportCustomTokens) {
+        throw new Error(errorMessages.TOKEN_NOT_FOUND);
+      } else if (tokenInDb) {
+        const acceptsToken = await isTokenAcceptableForProject({
+          projectId,
+          tokenId: tokenInDb.id,
+        });
+        if (!acceptsToken && !project.organization.supportCustomTokens) {
+          throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+        }
+        isTokenEligibleForGivback = true;
       }
+
       if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
         throw new Error(
           errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
@@ -399,6 +412,7 @@ export class DonationResolver {
         user: donorUser,
         tokenAddress,
         project,
+        isTokenEligibleForGivback,
         isProjectVerified: project.verified,
         createdAt: new Date(),
         segmentNotified: true,

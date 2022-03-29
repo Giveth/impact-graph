@@ -1,4 +1,5 @@
 import { Project, ProjStatus } from '../entities/project';
+import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro from 'admin-bro';
 import { User, UserRole } from '../entities/user';
@@ -24,6 +25,10 @@ import {
   projectExportSpreadsheet,
   addSheetWithRows,
 } from '../services/googleSheets';
+import {
+  createProjectFromChangeNonProfit,
+  getChangeNonProfitByNameOrIEN,
+} from '../services/changeAPI/nonProfits';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
@@ -85,8 +90,8 @@ interface AdminBroContextInterface {
 interface AdminBroRequestInterface {
   payload?: any;
   record?: any;
-  query: {
-    recordIds: string;
+  query?: {
+    recordIds?: string;
   };
 }
 
@@ -400,6 +405,40 @@ const getAdminBroInstance = () => {
         },
       },
       {
+        resource: ThirdPartyProjectImport,
+        options: {
+          properties: {
+            thirdPartyAPI: {
+              availableValues: [{ value: 'Change', label: 'Change API' }],
+              isVisible: true,
+            },
+            projectName: {
+              isVisible: { show: false, edit: true, new: true, list: false },
+            },
+            userId: {
+              isVisible: { show: true, edit: false, new: false, list: true },
+            },
+            projectId: {
+              isVisible: { show: true, edit: false, new: false, list: true },
+            },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: false,
+            },
+            edit: {
+              isVisible: false,
+            },
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              handler: importThirdPartyProject,
+            },
+          },
+        },
+      },
+      {
         resource: Project,
         options: {
           properties: {
@@ -478,6 +517,14 @@ const getAdminBroInstance = () => {
               isVisible: false,
             },
             stripeAccountId: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            isImported: {
               isVisible: {
                 list: false,
                 filter: false,
@@ -961,7 +1008,7 @@ export const verifyProjects = async (
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, { verified: verificationStatus })
       .where('project.id IN (:...ids)')
-      .setParameter('ids', request.query.recordIds.split(','))
+      .setParameter('ids', request?.query?.recordIds?.split(','))
       .returning('*')
       .updateEntity(true)
       .execute();
@@ -1021,7 +1068,7 @@ export const updateStatusOfProjects = async (
       const projects = await Project.createQueryBuilder('project')
         .update<Project>(Project, updateData)
         .where('project.id IN (:...ids)')
-        .setParameter('ids', request.query.recordIds.split(','))
+        .setParameter('ids', request?.query?.recordIds?.split(','))
         .returning('*')
         .updateEntity(true)
         .execute();
@@ -1052,6 +1099,54 @@ export const updateStatusOfProjects = async (
       type: 'success',
     },
   };
+};
+
+export const importThirdPartyProject = async (
+  request: AdminBroRequestInterface,
+  response,
+  context,
+) => {
+  const { currentAdmin } = context;
+  let message = `Project successfully imported`;
+  let type = 'success';
+
+  try {
+    logger.debug('import third party project', request.payload);
+    let nonProfit;
+    let newProject;
+    const { thirdPartyAPI, projectName } = request.payload;
+    switch (thirdPartyAPI) {
+      case 'Change': {
+        nonProfit = await getChangeNonProfitByNameOrIEN(projectName);
+        newProject = await createProjectFromChangeNonProfit(nonProfit);
+        break;
+      }
+      default: {
+        throw errorMessages.NOT_SUPPORTED_THIRD_PARTY_API;
+      }
+    }
+    // keep record of all created projects and who did from which api
+    const importHistoryRecord = ThirdPartyProjectImport.create({
+      projectName: newProject.title,
+      project: newProject,
+      user: currentAdmin,
+      thirdPartyAPI,
+    });
+    await importHistoryRecord.save();
+  } catch (e) {
+    message = e.message;
+    type = 'danger';
+    logger.error('import third party project error', e.message);
+  }
+
+  response.send({
+    redirectUrl: 'list',
+    record: {},
+    notice: {
+      message,
+      type,
+    },
+  });
 };
 
 export const createDonation = async (
@@ -1130,6 +1225,7 @@ export const createDonation = async (
         donationType: DONATION_TYPES.CSV_AIR_DROP,
         createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
+        isTokenEligibleForGivback: true,
       });
       const donor = await User.findOne({
         walletAddress: transactionInfo?.from,
