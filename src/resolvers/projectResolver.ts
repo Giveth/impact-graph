@@ -691,6 +691,9 @@ export class ProjectResolver {
     await project.save();
     project.adminUser = await User.findOne({ id: Number(project.admin) });
 
+    // Edit emails
+    Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
+
     // We dont wait for trace reponse, because it may increase our response time
     dispatchProjectUpdateEvent(project);
     return project;
