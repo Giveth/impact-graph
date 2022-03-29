@@ -434,9 +434,8 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
-      // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.users', 'users')
+      .leftJoinAndSelect('project.organization', 'organization')
       .innerJoinAndMapOne(
         'project.adminUser',
         User,
@@ -515,7 +514,6 @@ export class ProjectResolver {
       .take(take)
       .skip(skip)
       .getManyAndCount();
-
     return { projects, totalCount, categories };
   }
 
@@ -568,6 +566,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
@@ -598,8 +597,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
-      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
-      // .leftJoinAndSelect('project.donations', 'donations')
+      .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
@@ -1118,6 +1116,9 @@ export class ProjectResolver {
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.organization', 'organization')
       .where(`lower("walletAddress")=lower(:address)`, {
         address,
       });

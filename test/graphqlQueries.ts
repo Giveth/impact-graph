@@ -307,6 +307,11 @@ export const fetchAllProjectsQuery = `
         reaction {
           id
         }
+        organization {
+          name
+          label
+          supportCustomTokens
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -352,6 +357,11 @@ export const fetchProjectsBySlugQuery = `
         id
         userId
         reaction
+      }
+      organization {
+        name
+        label
+        supportCustomTokens
       }
       totalReactions
       totalDonations
@@ -614,6 +624,11 @@ export const projectByIdQuery = `
       }
       reaction {
         id
+      }
+      organization {
+        name
+        label
+        supportCustomTokens
       }
     }
   }

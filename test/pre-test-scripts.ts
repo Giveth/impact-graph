@@ -55,13 +55,13 @@ async function seedDb() {
   await seedUsers();
   await seedCategories();
   await seedStatuses();
+  await seedOrganizations();
   await seedProjects();
   await seedProjectUpdates();
   await seedLikes();
   await seedDonations();
   await seedStatusReasons();
   await seedTokens();
-  await seedOrganizations();
   await relateOrganizationsToTokens();
 }
 
