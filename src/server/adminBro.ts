@@ -572,6 +572,7 @@ const getAdminBroInstance = () => {
                 const { currentAdmin } = context;
                 const project = await Project.findOne(request?.record?.id);
                 if (project) {
+                  Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
                   await dispatchProjectUpdateEvent(project);
 
                   // As we dont what fields has changed (listed, verified, ..), I just added new status and a description that project has been edited
