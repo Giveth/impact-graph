@@ -12,7 +12,11 @@ import { SelectQueryBuilder } from 'typeorm';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
-import { Donation, DONATION_STATUS } from '../entities/donation';
+import {
+  Donation,
+  DONATION_STATUS,
+  DONATION_TYPES,
+} from '../entities/donation';
 import {
   findTransactionByHash,
   getCsvAirdropTransactions,
@@ -1218,7 +1222,7 @@ export const createDonation = async (
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
-        donationType: 'csvAirDrop',
+        donationType: DONATION_TYPES.CSV_AIR_DROP,
         createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
         isTokenEligibleForGivback: true,

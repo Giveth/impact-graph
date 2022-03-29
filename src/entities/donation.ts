@@ -19,6 +19,14 @@ export const DONATION_STATUS = {
   FAILED: 'failed',
 };
 
+export const DONATION_TYPES = {
+  CSV_AIR_DROP: 'csvAirDrop',
+  POIGN_ART: 'poignArt',
+
+  // TODO we should write a migration to fill this field for transak donations
+  TRANSAK: 'transak',
+};
+
 export enum SortField {
   CreationDate = 'createdAt',
   TokenAmount = 'amount',

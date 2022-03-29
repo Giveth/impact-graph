@@ -26,10 +26,13 @@ export const processSendSegmentEventsJobs = () => {
     numberOfVerifyDonationConcurrentJob,
     async (job, done) => {
       const { event, analyticsUserId, properties, anonymousId } = job.data;
-      analytics.track(event, analyticsUserId, properties, anonymousId);
-      // When sending events to segment it misses some events when sending concurrent events
-      // So I added a queue to send them consequentially and with 1.5 second time between them
-      await sleep(1500);
+      if (event) {
+        analytics.track(event, analyticsUserId, properties, anonymousId);
+        // When sending events to segment it misses some events when sending concurrent events
+        // So I added a queue to send them consequentially and with 1.5 second time between them
+        await sleep(1500);
+      }
+
       done();
     },
   );
