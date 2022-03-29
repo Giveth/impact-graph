@@ -458,7 +458,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     switch (orderBy.field) {
-      case OrderField.Traceable: // TODO: PRISMA will fix this, temporary fix inverting nulls.
+      case OrderField.Traceable:
         // const traceableDirection: {
         //   [key: string]: 'NULLS FIRST' | 'NULLS LAST';
         // } = {
@@ -504,6 +504,10 @@ export class ProjectResolver {
           `project.${OrderField.CreationDate}`,
           OrderDirection.DESC,
         );
+        break;
+      case OrderField.Verified:
+        query.where(`project.${orderBy.field} = true`);
+        query.orderBy(`project.${OrderField.CreationDate}`, orderBy.direction);
         break;
       default:
         query.orderBy(`project.${orderBy.field}`, orderBy.direction);

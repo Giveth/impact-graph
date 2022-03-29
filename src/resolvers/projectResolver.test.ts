@@ -388,7 +388,11 @@ function projectsTestCases() {
         },
       },
     });
-    assert.isTrue(result.data.data.projects.projects[0].verified);
+    const projects = result.data.data.projects.projects;
+    assert.isTrue(projects[0].verified);
+    assert.isTrue(
+      projects[0].creationDate > projects[projects.length - 1].creationDate,
+    );
   });
   it('should return projects, sort by verified, ASC', async () => {
     await saveProjectDirectlyToDb({
@@ -407,7 +411,11 @@ function projectsTestCases() {
         },
       },
     });
-    assert.isNotTrue(result.data.data.projects.projects[0].verified);
+    const projects = result.data.data.projects.projects;
+    assert.isTrue(projects[0].verified);
+    assert.isTrue(
+      projects[0].creationDate < projects[projects.length - 1].creationDate,
+    );
   });
   it('should return projects, filter by verified, true', async () => {
     // There is two verified projects so I just need to create a project with verified: false and listed:true
