@@ -841,12 +841,14 @@ export class ProjectResolver {
       ...projectInput,
       description: projectInput?.description?.replace(/<img .*?>/g, ''),
     };
-    analytics.track(
-      SegmentEvents.PROJECT_CREATED,
-      `givethId-${ctx.req.user.userId}`,
-      segmentProject,
-      null,
-    );
+    if (status?.id === ProjStatus.active) {
+      analytics.track(
+        SegmentEvents.PROJECT_CREATED,
+        `givethId-${ctx.req.user.userId}`,
+        segmentProject,
+        null,
+      );
+    }
 
     await pubSub.publish('NOTIFICATIONS', payload);
 
