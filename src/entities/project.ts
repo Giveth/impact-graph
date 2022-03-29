@@ -334,11 +334,6 @@ class Project extends BaseEntity {
   owner() {
     return this.users[0];
   }
-
-  @AfterUpdate()
-  notifyProjectEdited() {
-    Project.notifySegment(this, SegmentEvents.PROJECT_EDITED);
-  }
 }
 
 @Entity()
