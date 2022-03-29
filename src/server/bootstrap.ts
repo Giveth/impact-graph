@@ -34,10 +34,8 @@ import { runUpdateHistoricGivPrices } from '../services/cronJobs/syncGivPrices';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
-import { getCsvAirdropTransactions } from '../services/transactionService';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import { errorMessages } from '../utils/errorMessages';
-import { getPoignArtWithdrawals } from '../services/poignArt/api';
 import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 
 // tslint:disable:no-var-requires
