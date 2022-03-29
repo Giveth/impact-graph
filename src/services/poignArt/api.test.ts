@@ -10,7 +10,7 @@ describe(
 
 function getPoignArtWithdrawalsTestCases() {
   const unchainWalletAddress = process.env
-    .POIGN_ART_RECIPINET_ADDRESS as string;
+    .POIGN_ART_RECIPIENT_ADDRESS as string;
   it('should return result for unchain address', async () => {
     const withdrawals = await getPoignArtWithdrawals({
       recipient: unchainWalletAddress,

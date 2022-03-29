@@ -19,6 +19,8 @@ import { NETWORK_IDS } from '../../provider';
 const cronJobTime =
   (config.get('SYNC_POIGN_ART_CRONJOB_EXPRESSION') as string) || '0 0 * * 0';
 
+const poignArtOriginAddress = config.get('POIGN_ART_ORIGIN_ADDRESS') as string;
+
 export const runSyncPoignArtDonations = () => {
   logger.debug('runSyncPoignArtDonations() has been called');
   schedule(cronJobTime, async () => {
@@ -39,7 +41,7 @@ const importPoignArtDonations = async () => {
       );
     }
     const unchainProjectAddress = process.env
-      .POIGN_ART_RECIPINET_ADDRESS as string;
+      .POIGN_ART_RECIPIENT_ADDRESS as string;
     const unchainProject = await Project.createQueryBuilder('project')
       .where(
         `"LOWER(fromWalletAddress) = ${unchainProjectAddress.toLowerCase()}`,
@@ -75,7 +77,7 @@ const createPoignArtDonationInDb = async (
     projectId: unchainProject.id,
     toWalletAddress: unchainProject.walletAddress,
     isProjectVerified: unchainProject.verified,
-    fromWalletAddress: 'I should ask it from Lauren',
+    fromWalletAddress: poignArtOriginAddress,
     transactionId: poignArtWithdrawal.txHash,
 
     status: DONATION_STATUS.VERIFIED,
