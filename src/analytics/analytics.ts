@@ -3,6 +3,7 @@ import config from '../config';
 import { User } from '../entities/user';
 
 export enum SegmentEvents {
+  DRAFTED_PROJECT_ACTIVATED = 'Draft activated',
   PROJECT_LISTED = 'Project listed',
   PROJECT_UNLISTED = 'Project unlisted',
   PROJECT_EDITED = 'Project edited',

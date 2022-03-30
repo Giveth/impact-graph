@@ -1371,6 +1371,11 @@ export class ProjectResolver {
         statusId: ProjStatus.active,
         user,
       });
+      const segmentEventToDispatch =
+        project.status.id === ProjStatus.drafted
+          ? SegmentEvents.DRAFTED_PROJECT_ACTIVATED
+          : SegmentEvents.PROJECT_ACTIVATED;
+
       project.listed = null;
       await project.save();
       const segmentProject = {
@@ -1382,7 +1387,7 @@ export class ProjectResolver {
         slug: project.slug,
       };
       analytics.track(
-        SegmentEvents.PROJECT_ACTIVATED,
+        segmentEventToDispatch,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
         null,
