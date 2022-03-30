@@ -450,6 +450,14 @@ const getAdminBroInstance = () => {
                 edit: false,
               },
             },
+            changeId: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
             organizationId: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
