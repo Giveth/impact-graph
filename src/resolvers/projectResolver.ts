@@ -846,12 +846,14 @@ export class ProjectResolver {
       ...projectInput,
       description: projectInput?.description?.replace(/<img .*?>/g, ''),
     };
-    analytics.track(
-      SegmentEvents.PROJECT_CREATED,
-      `givethId-${ctx.req.user.userId}`,
-      segmentProject,
-      null,
-    );
+    if (status?.id === ProjStatus.active) {
+      analytics.track(
+        SegmentEvents.PROJECT_CREATED,
+        `givethId-${ctx.req.user.userId}`,
+        segmentProject,
+        null,
+      );
+    }
 
     await pubSub.publish('NOTIFICATIONS', payload);
 
@@ -1315,6 +1317,7 @@ export class ProjectResolver {
     }
     const prevStatus = project.status;
     project.status = status;
+    project.prevStatusId = prevStatus.id;
     await project.save();
 
     await Project.addProjectStatusHistoryRecord({
@@ -1377,6 +1380,11 @@ export class ProjectResolver {
         statusId: ProjStatus.active,
         user,
       });
+      const segmentEventToDispatch =
+        project.prevStatusId === ProjStatus.drafted
+          ? SegmentEvents.DRAFTED_PROJECT_ACTIVATED
+          : SegmentEvents.PROJECT_ACTIVATED;
+
       project.listed = null;
       await project.save();
       const segmentProject = {
@@ -1388,7 +1396,7 @@ export class ProjectResolver {
         slug: project.slug,
       };
       analytics.track(
-        SegmentEvents.PROJECT_ACTIVATED,
+        segmentEventToDispatch,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
         null,
