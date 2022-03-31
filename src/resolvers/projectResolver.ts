@@ -1309,6 +1309,7 @@ export class ProjectResolver {
     }
     const prevStatus = project.status;
     project.status = status;
+    project.prevStatusId = prevStatus.id;
     await project.save();
 
     await Project.addProjectStatusHistoryRecord({
@@ -1372,7 +1373,7 @@ export class ProjectResolver {
         user,
       });
       const segmentEventToDispatch =
-        project.status.id === ProjStatus.drafted
+        project.prevStatusId === ProjStatus.drafted
           ? SegmentEvents.DRAFTED_PROJECT_ACTIVATED
           : SegmentEvents.PROJECT_ACTIVATED;
 

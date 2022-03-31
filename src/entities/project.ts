@@ -232,6 +232,10 @@ class Project extends BaseEntity {
   @Field(type => User, { nullable: true })
   adminUser?: User;
 
+  // Virtual attribute to subquery result into
+  @Field(type => Int, { nullable: true })
+  prevStatusId?: number;
+
   // User reaction to the project
   @Field(type => Reaction, { nullable: true })
   reaction?: Reaction;
