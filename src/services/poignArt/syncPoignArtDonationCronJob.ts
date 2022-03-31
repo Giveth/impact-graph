@@ -11,6 +11,8 @@ import { convertTimeStampToSeconds } from '../../utils/utils';
 import { getPoignArtWithdrawals, PoignArtWithdrawal } from './api';
 import { fetchGivHistoricPrice } from '../givPriceService';
 import { NETWORK_IDS } from '../../provider';
+import { updateUserTotalReceived } from '../userService';
+import { updateTotalDonationsOfProject } from '../donationService';
 
 /**
  * @see{@link https://github.com/Giveth/impact-graph/issues/433}
@@ -60,6 +62,8 @@ const importPoignArtDonations = async () => {
     for (const poignArtWithdrawal of poignArtWithdrawals) {
       await createPoignArtDonationInDb(poignArtWithdrawal, unchainProject);
     }
+    await updateUserTotalReceived(Number(unchainProject.admin));
+    await updateTotalDonationsOfProject(unchainProject.id);
   } catch (e) {
     logger.error('importPoignArtDonations() error', e);
     throw e;
