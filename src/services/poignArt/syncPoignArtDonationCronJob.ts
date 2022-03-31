@@ -32,8 +32,8 @@ const importPoignArtDonations = async () => {
   try {
     let startTimestamp = 0;
     const lastPoignArtDonation = await Donation.createQueryBuilder('donation')
-      .where(`donationType= ${DONATION_TYPES.POIGN_ART}`)
-      .orderBy('createdAt', 'DESC')
+      .where(`donation.donationType = '${DONATION_TYPES.POIGN_ART}'`)
+      .orderBy('donation.createdAt', 'DESC')
       .getOne();
     if (lastPoignArtDonation) {
       startTimestamp = convertTimeStampToSeconds(
@@ -44,7 +44,7 @@ const importPoignArtDonations = async () => {
       .POIGN_ART_RECIPIENT_ADDRESS as string;
     const unchainProject = await Project.createQueryBuilder('project')
       .where(
-        `"LOWER(fromWalletAddress) = ${unchainProjectAddress.toLowerCase()}`,
+        `LOWER(project."walletAddress") = '${unchainProjectAddress.toLowerCase()}'`,
       )
       .getOne();
     if (!unchainProject) {
