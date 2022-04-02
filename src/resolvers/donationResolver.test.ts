@@ -1187,35 +1187,6 @@ function donationsFromWalletsTestCases() {
     assert.equal(test, true);
   });
   it('should find donations with special source in uppercase successfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user4 = await User.create({
-      walletAddress: walletAddress4,
-      loginType: 'wallet',
-      firstName: 'fatemeTest44',
-    }).save();
-    const accessToken4 = await generateTestAccessToken(user4.id);
-    await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: walletAddress4,
-          toAddress: walletAddress3,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken4}`,
-        },
-      },
-    );
-
     const result = await axios.post(
       graphqlUrl,
       {
@@ -1235,35 +1206,6 @@ function donationsFromWalletsTestCases() {
     assert.equal(test, true);
   });
   it('should find donations with special source unsuccessfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user2 = await User.create({
-      walletAddress: walletAddress2,
-      loginType: 'wallet',
-      firstName: 'fatemeTest2',
-    }).save();
-    const accessToken2 = await generateTestAccessToken(user2.id);
-    await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: walletAddress2,
-          toAddress: walletAddress3,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken2}`,
-        },
-      },
-    );
-
     const result = await axios.post(
       graphqlUrl,
       {
