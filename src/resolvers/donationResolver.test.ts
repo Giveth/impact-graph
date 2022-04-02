@@ -20,6 +20,7 @@ import {
   saveDonation,
   fetchDonationsByProjectIdQuery,
   fetchAllDonationsQuery,
+  donationsToWallets,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -38,6 +39,7 @@ describe('donationByUserId() test cases', donationsByUserIdTestCases);
 // describe('tokens() test cases', tokensTestCases);
 describe('donationsByDonor() test cases', donationsByDonorTestCases);
 describe('saveDonation() test cases', saveDonationTestCases);
+describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
@@ -1568,5 +1570,98 @@ function donationsByDonorTestCases() {
       result.data.errors[0].message,
       errorMessages.DONATION_VIEWING_LOGIN_REQUIRED,
     );
+  });
+}
+
+function donationsToWalletsTestCases() {
+  const walletAddress1 = generateRandomEtheriumAddress();
+  const walletAddress2 = generateRandomEtheriumAddress();
+  const walletAddress3 = generateRandomEtheriumAddress();
+  const walletAddress4 = generateRandomEtheriumAddress();
+  it('should find donations with special destination successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user1 = await User.create({
+      walletAddress: walletAddress1,
+      loginType: 'wallet',
+      firstName: 'bacheTest',
+    }).save();
+    const accessToken1 = await generateTestAccessToken(user1.id);
+    const donation1 = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress2,
+          toAddress: walletAddress1,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken1}`,
+        },
+      },
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsToWallets,
+        variables: {
+          toWalletAddresses: [walletAddress1],
+        },
+      },
+      {},
+    );
+    let test = true;
+    result.data.data.donationsToWallets.forEach(item => {
+      if (item.toWalletAddress !== walletAddress1) {
+        test = false;
+      }
+    });
+    assert.equal(test, true);
+  });
+  it('should find donations with special destination in uppercase successfully', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsToWallets,
+        variables: {
+          toWalletAddresses: [walletAddress1.toUpperCase()],
+        },
+      },
+      {},
+    );
+    let test = true;
+    result.data.data.donationsToWallets.forEach(item => {
+      if (item.toWalletAddress !== walletAddress1) {
+        test = false;
+      }
+    });
+    assert.equal(test, true);
+  });
+  it('should find donations with special destination unsuccessfully', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsToWallets,
+        variables: {
+          toWalletAddresses: [walletAddress3],
+        },
+      },
+      {},
+    );
+    let test = false;
+    result.data.data.donationsToWallets.forEach(item => {
+      if (item.toWalletAddress === walletAddress2) {
+        test = true;
+      }
+    });
+    assert.equal(test, false);
   });
 }
