@@ -35,7 +35,6 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../services/userService';
-import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 import { bold } from 'chalk';
 import { getCampaignDonations } from '../services/trace/traceService';
@@ -45,6 +44,7 @@ import {
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
+import { logger } from '../utils/logger';
 
 const analytics = getAnalytics();
 
@@ -167,7 +167,10 @@ export class DonationResolver {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase(),
     );
-
+    logger.debug(
+      'fromWalletAddressesArray after lowercase',
+      fromWalletAddressesArray,
+    );
     const donations = await this.donationRepository.find({
       where: {
         fromWalletAddress: In(fromWalletAddressesArray),
