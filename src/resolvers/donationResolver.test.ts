@@ -33,8 +33,6 @@ const moment = require('moment');
 
 // TODO Write test cases
 describe('donations() test cases', donationsTestCases);
-// describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
-// describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
 describe('donationByUserId() test cases', donationsByUserIdTestCases);
 // describe('tokens() test cases', tokensTestCases);
@@ -1134,14 +1132,11 @@ function saveDonationTestCases() {
 }
 
 function donationsFromWalletsTestCases() {
-  const walletAddress1 = generateRandomEtheriumAddress();
-  const walletAddress2 = generateRandomEtheriumAddress();
-  const walletAddress3 = generateRandomEtheriumAddress();
-  const walletAddress4 = generateRandomEtheriumAddress();
   it('should find donations with special source successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
     const user1 = await User.create({
-      walletAddress: walletAddress1,
+      walletAddress,
       loginType: 'wallet',
       firstName: 'fatemeTest1',
     }).save();
@@ -1154,7 +1149,7 @@ function donationsFromWalletsTestCases() {
           projectId: project.id,
           chainId: NETWORK_IDS.XDAI,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: walletAddress1,
+          fromAddress: walletAddress,
           toAddress: project.walletAddress,
           transactionId: generateRandomTxHash(),
           amount: 10,
@@ -1173,56 +1168,49 @@ function donationsFromWalletsTestCases() {
       {
         query: donationsFromWallets,
         variables: {
-          fromWalletAddresses: [walletAddress1],
+          fromWalletAddresses: [walletAddress],
         },
       },
       {},
     );
-    let test = true;
     result.data.data.donationsFromWallets.forEach(item => {
-      if (item.fromWalletAddress !== walletAddress1) {
-        test = false;
-      }
+      assert.equal(item.fromWalletAddress, walletAddress);
     });
-    assert.equal(test, true);
   });
   it('should find donations with special source in uppercase successfully', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
     const result = await axios.post(
       graphqlUrl,
       {
         query: donationsFromWallets,
         variables: {
-          fromWalletAddresses: [walletAddress1.toUpperCase()],
+          fromWalletAddresses: [walletAddress.toUpperCase()],
         },
       },
       {},
     );
-    let test = true;
+
     result.data.data.donationsFromWallets.forEach(item => {
-      if (item.fromWalletAddress !== walletAddress1) {
-        test = false;
-      }
+      assert.equal(item.fromWalletAddress, walletAddress);
     });
-    assert.equal(test, true);
   });
   it('should find donations with special source unsuccessfully', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const walletAddress1 = generateRandomEtheriumAddress();
+
     const result = await axios.post(
       graphqlUrl,
       {
         query: donationsFromWallets,
         variables: {
-          fromWalletAddresses: [walletAddress3],
+          fromWalletAddresses: [walletAddress],
         },
       },
       {},
     );
-    let test = false;
     result.data.data.donationsFromWallets.forEach(item => {
-      if (item.fromWalletAddress === walletAddress2) {
-        test = true;
-      }
+      assert.notEqual(item.fromWalletAddress, walletAddress1);
     });
-    assert.equal(test, false);
   });
 }
 
