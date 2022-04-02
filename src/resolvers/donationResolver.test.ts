@@ -32,8 +32,6 @@ const moment = require('moment');
 
 // TODO Write test cases
 describe('donations() test cases', donationsTestCases);
-// describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
-// describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
 describe('donationByUserId() test cases', donationsByUserIdTestCases);
 // describe('tokens() test cases', tokensTestCases);
@@ -1574,19 +1572,16 @@ function donationsByDonorTestCases() {
 }
 
 function donationsToWalletsTestCases() {
-  const walletAddress1 = generateRandomEtheriumAddress();
-  const walletAddress2 = generateRandomEtheriumAddress();
-  const walletAddress3 = generateRandomEtheriumAddress();
-  const walletAddress4 = generateRandomEtheriumAddress();
   it('should find donations with special destination successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const user1 = await User.create({
-      walletAddress: walletAddress1,
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress,
       loginType: 'wallet',
-      firstName: 'bacheTest',
+      firstName: 'donationsToWalletTest1User',
     }).save();
-    const accessToken1 = await generateTestAccessToken(user1.id);
-    const donation1 = await axios.post(
+    const accessToken1 = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
       graphqlUrl,
       {
         query: saveDonation,
@@ -1594,8 +1589,8 @@ function donationsToWalletsTestCases() {
           projectId: project.id,
           chainId: NETWORK_IDS.XDAI,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: walletAddress2,
-          toAddress: walletAddress1,
+          fromAddress: walletAddress,
+          toAddress: walletAddress,
           transactionId: generateRandomTxHash(),
           amount: 10,
           token: 'GIV',
@@ -1613,55 +1608,129 @@ function donationsToWalletsTestCases() {
       {
         query: donationsToWallets,
         variables: {
+          toWalletAddresses: [walletAddress],
+        },
+      },
+      {},
+    );
+    result.data.data.donationsToWallets.forEach(item => {
+      assert.equal(item.toWalletAddress, walletAddress);
+    });
+  });
+  it('should find donations with special destination in uppercase successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'donationsToWalletTest2User',
+    }).save();
+    const accessToken1 = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress,
+          toAddress: walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken1}`,
+        },
+      },
+    );
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsToWallets,
+        variables: {
+          toWalletAddresses: [walletAddress.toUpperCase()],
+        },
+      },
+      {},
+    );
+    result.data.data.donationsToWallets.forEach(item => {
+      assert.equal(item.toWalletAddress, walletAddress);
+    });
+  });
+  it('should find donations with special destination unsuccessfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const walletAddress1 = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'donationsToWalletTest3User',
+    }).save();
+    const accessToken1 = await generateTestAccessToken(user.id);
+    const donation1 = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress,
+          toAddress: walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken1}`,
+        },
+      },
+    );
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsToWallets,
+        variables: {
           toWalletAddresses: [walletAddress1],
         },
       },
       {},
     );
-    let test = true;
     result.data.data.donationsToWallets.forEach(item => {
-      if (item.toWalletAddress !== walletAddress1) {
-        test = false;
-      }
+      assert.notEqual(item.toWalletAddress, walletAddress1);
     });
-    assert.equal(test, true);
   });
-  it('should find donations with special destination in uppercase successfully', async () => {
+  it('should find no donations with this destination ', async () => {
+    let walletAddress = generateRandomEtheriumAddress();
+    const donation = await Donation.find({
+      where: { toWalletAddress: walletAddress },
+    });
+    do {
+      walletAddress = generateRandomEtheriumAddress();
+    } while (
+      (
+        await Donation.find({
+          where: { toWalletAddress: walletAddress },
+        })
+      ).length !== 0
+    );
+
     const result = await axios.post(
       graphqlUrl,
       {
         query: donationsToWallets,
         variables: {
-          toWalletAddresses: [walletAddress1.toUpperCase()],
+          toWalletAddresses: [walletAddress],
         },
       },
       {},
     );
-    let test = true;
-    result.data.data.donationsToWallets.forEach(item => {
-      if (item.toWalletAddress !== walletAddress1) {
-        test = false;
-      }
-    });
-    assert.equal(test, true);
-  });
-  it('should find donations with special destination unsuccessfully', async () => {
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: donationsToWallets,
-        variables: {
-          toWalletAddresses: [walletAddress3],
-        },
-      },
-      {},
-    );
-    let test = false;
-    result.data.data.donationsToWallets.forEach(item => {
-      if (item.toWalletAddress === walletAddress2) {
-        test = true;
-      }
-    });
-    assert.equal(test, false);
+    assert.equal(result.data.data.donationsToWallets.length, 0);
   });
 }
