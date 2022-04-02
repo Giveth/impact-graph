@@ -1135,13 +1135,13 @@ function donationsFromWalletsTestCases() {
   it('should find donations with special source successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const user1 = await User.create({
+    const user = await User.create({
       walletAddress,
       loginType: 'wallet',
       firstName: 'fatemeTest1',
     }).save();
-    const accessToken1 = await generateTestAccessToken(user1.id);
-    const donation1 = await axios.post(
+    const accessToken = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
       graphqlUrl,
       {
         query: saveDonation,
@@ -1158,7 +1158,7 @@ function donationsFromWalletsTestCases() {
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken1}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       },
     );
@@ -1178,7 +1178,35 @@ function donationsFromWalletsTestCases() {
     });
   });
   it('should find donations with special source in uppercase successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'fatemeTest2',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
     const result = await axios.post(
       graphqlUrl,
       {
@@ -1197,6 +1225,34 @@ function donationsFromWalletsTestCases() {
   it('should find donations with special source unsuccessfully', async () => {
     const walletAddress = generateRandomEtheriumAddress();
     const walletAddress1 = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'fatemeTest1',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
 
     const result = await axios.post(
       graphqlUrl,
@@ -1211,6 +1267,30 @@ function donationsFromWalletsTestCases() {
     result.data.data.donationsFromWallets.forEach(item => {
       assert.notEqual(item.fromWalletAddress, walletAddress1);
     });
+  });
+  it('should find no donations with this source ', async () => {
+    let walletAddress = generateRandomEtheriumAddress();
+    do {
+      walletAddress = generateRandomEtheriumAddress();
+    } while (
+      (
+        await Donation.find({
+          where: { fromWalletAddress: walletAddress },
+        })
+      ).length !== 0
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsFromWallets,
+        variables: {
+          fromWalletAddresses: [walletAddress],
+        },
+      },
+      {},
+    );
+    assert.equal(result.data.data.donationsFromWallets.length, 0);
   });
 }
 
