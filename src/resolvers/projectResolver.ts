@@ -60,6 +60,7 @@ import { getLoggedInUser } from '../services/authorizationServices';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { propertyKeyRegex } from 'admin-bro/types/src/utils/flat/property-key-regex';
+import { PurpleAddress } from '../entities/purpleAddress';
 
 const analytics = getAnalytics();
 
@@ -1041,6 +1042,8 @@ export class ProjectResolver {
     return query.getMany();
   }
 
+  // TODO after finalizing getPurpleList and when Ashley filled that table we can remove this query and then change
+  // givback-calculation script to use  getPurpleList query
   @Query(returns => [String])
   async getProjectsRecipients(): Promise<String[]> {
     const recipients = await Project.query(
@@ -1050,6 +1053,27 @@ export class ProjectResolver {
             `,
     );
     return recipients.map(({ walletAddress }) => walletAddress);
+  }
+
+  @Query(returns => [String])
+  async getPurpleList(): Promise<String[]> {
+    const recipients = await Project.query(
+      `
+            SELECT "walletAddress" FROM project
+            WHERE verified=true 
+            `,
+    );
+    const recipientsAddresses = recipients.map(({ walletAddress }) =>
+      walletAddress.toLowerCase(),
+    );
+    const purpleAddresses = await PurpleAddress.query(
+      `
+            SELECT address FROM purple_address
+            `,
+    );
+    return purpleAddresses
+      .map(({ address }) => address.toLowerCase())
+      .concat(recipientsAddresses);
   }
 
   @Query(returns => [Token])
