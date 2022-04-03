@@ -188,6 +188,25 @@ export const fetchDonationsByProjectIdQuery = `
   }
 `;
 
+export const donationsToWallets = `
+  query (
+    $toWalletAddresses: [String!]!
+   
+  ) {
+    donationsToWallets(
+      toWalletAddresses: $toWalletAddresses
+    ) {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    }
+  }
+`;
+
 export const fetchAllDonationsQuery = `
   query (
     $fromDate: String
