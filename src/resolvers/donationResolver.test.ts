@@ -1671,7 +1671,7 @@ function donationsToWalletsTestCases() {
       firstName: 'donationsToWalletTest3User',
     }).save();
     const accessToken1 = await generateTestAccessToken(user.id);
-    const donation1 = await axios.post(
+    const donation = await axios.post(
       graphqlUrl,
       {
         query: saveDonation,
@@ -1681,6 +1681,27 @@ function donationsToWalletsTestCases() {
           transactionNetworkId: NETWORK_IDS.XDAI,
           fromAddress: walletAddress,
           toAddress: walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken1}`,
+        },
+      },
+    );
+    const donation1 = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress1,
+          toAddress: walletAddress1,
           transactionId: generateRandomTxHash(),
           amount: 10,
           token: 'GIV',
@@ -1703,24 +1724,11 @@ function donationsToWalletsTestCases() {
       {},
     );
     result.data.data.donationsToWallets.forEach(item => {
-      assert.notEqual(item.toWalletAddress, walletAddress1);
+      assert.notEqual(item.toWalletAddress, walletAddress);
     });
   });
   it('should find no donations with this destination ', async () => {
-    let walletAddress = generateRandomEtheriumAddress();
-    const donation = await Donation.find({
-      where: { toWalletAddress: walletAddress },
-    });
-    do {
-      walletAddress = generateRandomEtheriumAddress();
-    } while (
-      (
-        await Donation.find({
-          where: { toWalletAddress: walletAddress },
-        })
-      ).length !== 0
-    );
-
+    const walletAddress = generateRandomEtheriumAddress();
     const result = await axios.post(
       graphqlUrl,
       {
