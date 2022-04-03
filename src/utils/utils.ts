@@ -27,3 +27,9 @@ export const convertExponentialNumber = (n: number): number => {
           : decimal.slice(0, +pow) + '.' + decimal.slice(+pow));
   return Number(wrappedNumber);
 };
+
+export const convertTimeStampToSeconds = (
+  timestampInMilliSeconds: number,
+): number => {
+  return Math.floor(timestampInMilliSeconds / 1000);
+};

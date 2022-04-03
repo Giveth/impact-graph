@@ -188,6 +188,41 @@ export const fetchDonationsByProjectIdQuery = `
   }
 `;
 
+export const fetchAllDonationsQuery = `
+  query (
+    $fromDate: String
+    $toDate: String
+  ) {
+    donations(
+      fromDate: $fromDate
+      toDate: $toDate
+    ) {
+        id
+        transactionId
+        transactionNetworkId
+        toWalletAddress
+        fromWalletAddress
+        currency
+        anonymous
+        valueUsd
+        amount
+        user {
+          id
+          email
+        }
+        project {
+          listed
+          verified
+          slug
+          admin
+          title
+        }
+        createdAt
+        status
+    }
+  }
+`;
+
 export const fetchDonationsByUserIdQuery = `
   query (
     $take: Int
@@ -272,6 +307,11 @@ export const fetchAllProjectsQuery = `
         reaction {
           id
         }
+        organization {
+          name
+          label
+          supportCustomTokens
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -317,6 +357,11 @@ export const fetchProjectsBySlugQuery = `
         id
         userId
         reaction
+      }
+      organization {
+        name
+        label
+        supportCustomTokens
       }
       totalReactions
       totalDonations
@@ -466,6 +511,23 @@ export const userByAddress = `
     }
   }
 `;
+
+export const userById = `
+  query ($userId:  Int!) {
+    user(userId: $userId) {
+      id
+      firstName
+      lastName
+      name
+      email
+      avatar
+      walletAddress
+      url
+      location
+    }
+  }
+`;
+
 export const uploadImageToIpfsQuery = `
   mutation ($fileUpload: FileUploadInputType!) {
     upload(fileUpload: $fileUpload)
@@ -580,6 +642,11 @@ export const projectByIdQuery = `
       reaction {
         id
       }
+      organization {
+        name
+        label
+        supportCustomTokens
+      }
     }
   }
 `;
@@ -592,6 +659,8 @@ export const getProjectsAcceptTokensQuery = `
       id
       symbol
       networkId
+      decimals
+      mainnetAddress
       name
     }
   }

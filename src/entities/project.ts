@@ -99,6 +99,11 @@ class Project extends BaseEntity {
   @Column({ default: null, nullable: true })
   givingBlocksId?: string;
 
+  @Index({ unique: true, where: '"changeId" IS NOT NULL' })
+  @Field({ nullable: true })
+  @Column({ default: null, nullable: true })
+  changeId?: string;
+
   @Field({ nullable: true })
   @Column({ default: null, nullable: true })
   website?: string;
@@ -120,7 +125,9 @@ class Project extends BaseEntity {
   updatedAt: Date;
 
   @Field(type => Organization)
-  @ManyToOne(type => Organization)
+  @ManyToOne(type => Organization, {
+    eager: true,
+  })
   @JoinTable()
   organization: Organization;
 
@@ -163,6 +170,10 @@ class Project extends BaseEntity {
   @Field(type => Boolean)
   @Column()
   verified: boolean;
+
+  @Field(type => Boolean, { nullable: true })
+  @Column({ default: false })
+  isImported: boolean;
 
   @Field(type => Boolean)
   @Column()
@@ -222,6 +233,10 @@ class Project extends BaseEntity {
   // Virtual attribute to subquery result into
   @Field(type => User, { nullable: true })
   adminUser?: User;
+
+  // Virtual attribute to subquery result into
+  @Field(type => Int, { nullable: true })
+  prevStatusId?: number;
 
   // User reaction to the project
   @Field(type => Reaction, { nullable: true })
@@ -322,11 +337,6 @@ class Project extends BaseEntity {
 
   owner() {
     return this.users[0];
-  }
-
-  @AfterUpdate()
-  notifyProjectEdited() {
-    Project.notifySegment(this, SegmentEvents.PROJECT_EDITED);
   }
 }
 

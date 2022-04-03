@@ -32,6 +32,7 @@ export const processSendSegmentEventsJobs = () => {
         // So I added a queue to send them consequentially and with 1.5 second time between them
         await sleep(1500);
       }
+
       done();
     },
   );

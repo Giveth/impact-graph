@@ -168,6 +168,22 @@ export const createProjectData = (): CreateProjectData => {
     totalProjectUpdates: 1,
   };
 };
+export const createDonationData = (): CreateDonationData => {
+  return {
+    transactionId: generateRandomTxHash(),
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+    currency: 'ETH',
+    anonymous: false,
+    amount: 15,
+    valueUsd: 15,
+    userId: SEED_DATA.FIRST_USER.id,
+    projectId: SEED_DATA.FIRST_PROJECT.id,
+    createdAt: moment(),
+    segmentNotified: true,
+  };
+};
 
 export const SEED_DATA = {
   FIRST_USER: {
@@ -306,21 +322,25 @@ export const SEED_DATA = {
       name: 'Giveth',
       label: ORGANIZATION_LABELS.GIVETH,
       website: 'https://giveth.io',
+      supportCustomTokens: true,
     },
     {
       name: 'Trace',
       label: ORGANIZATION_LABELS.TRACE,
       website: 'https://trace.giveth.io',
+      supportCustomTokens: true,
     },
     {
       name: 'Giving Block',
       label: ORGANIZATION_LABELS.GIVING_BLOCK,
       website: 'https://thegivingblock.com',
+      supportCustomTokens: false,
     },
     {
       name: 'CHANGE',
       label: ORGANIZATION_LABELS.CHANGE,
       website: 'https://getchange.io',
+      supportCustomToken: false,
     },
   ],
   TOKENS: {
@@ -1239,11 +1259,11 @@ export const REACTION_SEED_DATA = {
 export const DONATION_SEED_DATA = {
   FIRST_DONATION: {
     id: 1,
-    transactionId: generateRandomEtheriumAddress(),
+    transactionId: generateRandomTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
-    currency: 'ETH',
+    currency: 'GIV',
     anonymous: false,
     amount: 15,
     valueUsd: 15,
@@ -1325,8 +1345,12 @@ export interface CreateDonationData {
   fromWalletAddress: string;
   currency: string;
   anonymous: boolean;
+  segmentNotified?: boolean;
   amount: number;
   createdAt: any;
+  valueUsd?: number;
+  userId?: number;
+  projectId?: number;
 }
 
 export const saveDonationDirectlyToDb = async (

@@ -57,6 +57,10 @@ import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { getLoggedInUser } from '../services/authorizationServices';
+import {
+  getQualityScore,
+  getAppropriateSlug,
+} from '../services/projectService';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { propertyKeyRegex } from 'admin-bro/types/src/utils/flat/property-key-regex';
@@ -431,9 +435,8 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
-      // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.users', 'users')
+      .leftJoinAndSelect('project.organization', 'organization')
       .innerJoinAndMapOne(
         'project.adminUser',
         User,
@@ -456,7 +459,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     switch (orderBy.field) {
-      case OrderField.Traceable: // TODO: PRISMA will fix this, temporary fix inverting nulls.
+      case OrderField.Traceable:
         // const traceableDirection: {
         //   [key: string]: 'NULLS FIRST' | 'NULLS LAST';
         // } = {
@@ -503,6 +506,10 @@ export class ProjectResolver {
           OrderDirection.DESC,
         );
         break;
+      case OrderField.Verified:
+        query.where(`project.${orderBy.field} = true`);
+        query.orderBy(`project.${OrderField.CreationDate}`, orderBy.direction);
+        break;
       default:
         query.orderBy(`project.${orderBy.field}`, orderBy.direction);
         break;
@@ -512,7 +519,6 @@ export class ProjectResolver {
       .take(take)
       .skip(skip)
       .getManyAndCount();
-
     return { projects, totalCount, categories };
   }
 
@@ -565,6 +571,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
@@ -595,8 +602,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
-      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
-      // .leftJoinAndSelect('project.donations', 'donations')
+      .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
@@ -659,7 +665,7 @@ export class ProjectResolver {
       projectId,
     });
 
-    const qualityScore = this.getQualityScore(
+    const qualityScore = getQualityScore(
       project.description,
       Boolean(image),
       heartCount,
@@ -675,7 +681,7 @@ export class ProjectResolver {
     }
 
     const slugBase = slugify(newProjectData.title);
-    const newSlug = await this.getAppropriateSlug(slugBase, projectId);
+    const newSlug = await getAppropriateSlug(slugBase, projectId);
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
       // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
       project.slugHistory?.push(project.slug as string);
@@ -690,23 +696,12 @@ export class ProjectResolver {
     await project.save();
     project.adminUser = await User.findOne({ id: Number(project.admin) });
 
+    // Edit emails
+    Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
+
     // We dont wait for trace reponse, because it may increase our response time
     dispatchProjectUpdateEvent(project);
     return project;
-  }
-
-  // getQualityScore (projectInput) {
-  getQualityScore(description, hasImageUpload, heartCount) {
-    const heartScore = 10;
-    let qualityScore = 40;
-
-    if (description.length > 100) qualityScore = qualityScore + 10;
-    if (hasImageUpload) qualityScore = qualityScore + 30;
-
-    if (heartCount) {
-      qualityScore = heartCount * heartScore;
-    }
-    return qualityScore;
   }
 
   @Mutation(returns => ImageResponse)
@@ -758,7 +753,7 @@ export class ProjectResolver {
     const user = await getLoggedInUser(ctx);
     const { image, description } = projectInput;
 
-    const qualityScore = this.getQualityScore(description, Boolean(image), 0);
+    const qualityScore = getQualityScore(description, Boolean(image), 0);
 
     if (!projectInput.categories) {
       throw new Error(
@@ -789,7 +784,7 @@ export class ProjectResolver {
     await validateProjectWalletAddress(projectInput.walletAddress);
     await validateProjectTitle(projectInput.title);
     const slugBase = slugify(projectInput.title);
-    const slug = await this.getAppropriateSlug(slugBase);
+    const slug = await getAppropriateSlug(slugBase);
 
     const status = await this.projectStatusRepository.findOne({
       id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
@@ -852,12 +847,14 @@ export class ProjectResolver {
       ...projectInput,
       description: projectInput?.description?.replace(/<img .*?>/g, ''),
     };
-    analytics.track(
-      SegmentEvents.PROJECT_CREATED,
-      `givethId-${ctx.req.user.userId}`,
-      segmentProject,
-      null,
-    );
+    if (status?.id === ProjStatus.active) {
+      analytics.track(
+        SegmentEvents.PROJECT_CREATED,
+        `givethId-${ctx.req.user.userId}`,
+        segmentProject,
+        null,
+      );
+    }
 
     await pubSub.publish('NOTIFICATIONS', payload);
 
@@ -1152,6 +1149,9 @@ export class ProjectResolver {
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.organization', 'organization')
       .where(`lower("walletAddress")=lower(:address)`, {
         address,
       });
@@ -1341,6 +1341,7 @@ export class ProjectResolver {
     }
     const prevStatus = project.status;
     project.status = status;
+    project.prevStatusId = prevStatus.id;
     await project.save();
 
     await Project.addProjectStatusHistoryRecord({
@@ -1403,6 +1404,11 @@ export class ProjectResolver {
         statusId: ProjStatus.active,
         user,
       });
+      const segmentEventToDispatch =
+        project.prevStatusId === ProjStatus.drafted
+          ? SegmentEvents.DRAFTED_PROJECT_ACTIVATED
+          : SegmentEvents.PROJECT_ACTIVATED;
+
       project.listed = null;
       await project.save();
       const segmentProject = {
@@ -1414,7 +1420,7 @@ export class ProjectResolver {
         slug: project.slug,
       };
       analytics.track(
-        SegmentEvents.PROJECT_ACTIVATED,
+        segmentEventToDispatch,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
         null,
@@ -1425,27 +1431,5 @@ export class ProjectResolver {
       SentryLogger.captureException(error);
       throw error;
     }
-  }
-
-  private async getAppropriateSlug(
-    slugBase: string,
-    projectId?: number,
-  ): Promise<string> {
-    let slug = slugBase.toLowerCase();
-    const query = this.projectRepository
-      .createQueryBuilder('project')
-      // check current slug and previous slugs
-      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-        slug,
-      });
-    if (projectId) {
-      query.andWhere(`id != ${projectId}`);
-    }
-    const projectCount = await query.getCount();
-
-    if (projectCount > 0) {
-      slug = slug + '-' + (projectCount - 1);
-    }
-    return slug;
   }
 }

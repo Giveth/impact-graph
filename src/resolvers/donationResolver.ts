@@ -22,7 +22,7 @@ import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Brackets } from 'typeorm';
 import { User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
@@ -39,6 +39,12 @@ import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 import { bold } from 'chalk';
 import { getCampaignDonations } from '../services/trace/traceService';
+import { from } from 'form-data';
+import {
+  getDonationsQueryValidator,
+  validateWithJoiSchema,
+} from '../utils/validators/graphqlQueryValidators';
+import Web3 from 'web3';
 
 const analytics = getAnalytics();
 
@@ -127,10 +133,29 @@ export class DonationResolver {
   ) {}
 
   @Query(returns => [Donation], { nullable: true })
-  async donations() {
-    const donation = await this.donationRepository.find();
+  async donations(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ) {
+    try {
+      validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
+      const query = this.donationRepository
+        .createQueryBuilder('donation')
+        .leftJoinAndSelect('donation.user', 'user')
+        .leftJoinAndSelect('donation.project', 'project');
 
-    return donation;
+      if (fromDate) {
+        query.andWhere(`"createdAt" >= '${fromDate}'`);
+      }
+      if (toDate) {
+        query.andWhere(`"createdAt" <= '${toDate}'`);
+      }
+      return await query.getMany();
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
   }
 
   @Query(returns => [Donation], { nullable: true })
@@ -214,9 +239,32 @@ export class DonationResolver {
         );
 
       if (searchTerm) {
-        query.andWhere('user.name ILIKE :searchTerm', {
-          searchTerm: `%${searchTerm}%`,
-        });
+        query.andWhere(
+          new Brackets(qb => {
+            qb.where(
+              '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
+              {
+                searchTerm: `%${searchTerm}%`,
+              },
+            )
+              .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
+              })
+              .orWhere('donation.currency ILIKE :searchTerm', {
+                searchTerm: `%${searchTerm}%`,
+              });
+
+            // WalletAddresses are translanted to huge integers
+            // this breaks postgresql query integer limit
+            if (!Web3.utils.isAddress(searchTerm)) {
+              const amount = Number(searchTerm);
+
+              qb.orWhere('donation.amount = :number', {
+                number: amount,
+              });
+            }
+          }),
+        );
       }
 
       const [donations, donationsCount] = await query
@@ -311,7 +359,11 @@ export class DonationResolver {
         chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
       let donorUser;
 
-      const project = await Project.findOne({ id: Number(projectId) });
+      const project = await Project.createQueryBuilder('project')
+        .leftJoinAndSelect('project.organization', 'organization')
+        .leftJoinAndSelect('project.status', 'status')
+        .where(`project.id =${projectId}`)
+        .getOne();
 
       if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
       if (project.status.id !== ProjStatus.active) {
@@ -321,14 +373,20 @@ export class DonationResolver {
         networkId: chainId,
         symbol: token,
       });
-      if (!tokenInDb) throw new Error(errorMessages.TOKEN_NOT_FOUND);
-      const acceptsToken = await isTokenAcceptableForProject({
-        projectId,
-        tokenId: tokenInDb.id,
-      });
-      if (!acceptsToken) {
-        throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+      let isTokenEligibleForGivback = false;
+      if (!tokenInDb && !project.organization.supportCustomTokens) {
+        throw new Error(errorMessages.TOKEN_NOT_FOUND);
+      } else if (tokenInDb) {
+        const acceptsToken = await isTokenAcceptableForProject({
+          projectId,
+          tokenId: tokenInDb.id,
+        });
+        if (!acceptsToken && !project.organization.supportCustomTokens) {
+          throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+        }
+        isTokenEligibleForGivback = true;
       }
+
       if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
         throw new Error(
           errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
@@ -354,6 +412,7 @@ export class DonationResolver {
         user: donorUser,
         tokenAddress,
         project,
+        isTokenEligibleForGivback,
         isProjectVerified: project.verified,
         createdAt: new Date(),
         segmentNotified: true,
