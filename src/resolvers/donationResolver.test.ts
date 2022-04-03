@@ -1254,6 +1254,28 @@ function donationsFromWalletsTestCases() {
       },
     );
 
+    const donation1 = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress1,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
     const result = await axios.post(
       graphqlUrl,
       {
@@ -1269,17 +1291,7 @@ function donationsFromWalletsTestCases() {
     });
   });
   it('should find no donations with this source ', async () => {
-    let walletAddress = generateRandomEtheriumAddress();
-    do {
-      walletAddress = generateRandomEtheriumAddress();
-    } while (
-      (
-        await Donation.find({
-          where: { fromWalletAddress: walletAddress },
-        })
-      ).length !== 0
-    );
-
+    const walletAddress = generateRandomEtheriumAddress();
     const result = await axios.post(
       graphqlUrl,
       {
