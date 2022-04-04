@@ -3019,7 +3019,7 @@ function addProjectUpdateTestCases() {
       'testProjectUpdateFateme',
     );
   });
-  it('should cant add project update because of ownerShip ', async () => {
+  it('should can not add project update because of ownerShip ', async () => {
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
@@ -3080,7 +3080,7 @@ function addProjectUpdateTestCases() {
       errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
     );
   });
-  it('should cant add project update because of not found project ', async () => {
+  it('should can not add project update because of not found project ', async () => {
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
@@ -3111,7 +3111,7 @@ function addProjectUpdateTestCases() {
       errorMessages.PROJECT_NOT_FOUND,
     );
   });
-  it('should cant add project update because of not found user ', async () => {
+  it('should can not add project update because of lack of authentication ', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const result = await axios.post(graphqlUrl, {
       query: addProjectUpdateQuery,
@@ -3126,5 +3126,32 @@ function addProjectUpdateTestCases() {
       result.data.errors[0].message,
       errorMessages.AUTHENTICATION_REQUIRED,
     );
+  });
+  it('should can not add project update because user not found ', async () => {
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'testEditProjectUpdateFateme',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    await User.delete({ id: user.id });
+    const projectCount = await Project.count();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectUpdateQuery,
+        variables: {
+          projectId: Number(projectCount || 1),
+          content: 'TestProjectUpdateFateme4',
+          title: 'testAddProjectUpdateFateme4',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(result.data.errors[0].message, errorMessages.USER_NOT_FOUND);
   });
 }
