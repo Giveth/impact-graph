@@ -270,6 +270,7 @@ export async function bootstrap() {
     app.use(
       express.urlencoded({
         limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
+        extended: true,
       }),
     );
     runCheckPendingDonationsCronJob();
