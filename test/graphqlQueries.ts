@@ -559,6 +559,18 @@ export const unlikeProjectQuery = `
   }
 `;
 
+export const addProjectUpdateQuery = `
+        mutation addProjectUpdate($projectId: Float! $content: String! 
+                   $title: String!){
+       addProjectUpdate(content: $content projectId: $projectId 
+                    title: $title) {
+                    userId
+                    projectId
+                    id
+                    title
+                    }
+         }`;
+
 export const likeProjectUpdateQuery = `
   mutation ($projectUpdateId: Int!) {
     likeProjectUpdate(projectUpdateId: $projectUpdateId) {
