@@ -692,7 +692,12 @@ export const walletAddressIsValid = `
 `;
 
 export const editProjectUpdateQuery = `
-  query WalletAddressIsValid($address: String!) {
-    walletAddressIsValid(address: $address)
-  }
-`;
+        mutation editProjectUpdate($updateId: Float! $content: String!
+                   $title: String!){
+       editProjectUpdate(content: $content updateId: $updateId 
+                    title: $title) {
+                    userId
+                    projectId
+                    title
+                    }
+         }`;
