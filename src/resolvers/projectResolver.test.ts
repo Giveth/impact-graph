@@ -3093,7 +3093,7 @@ function editProjectUpdateTestCases() {
       errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
     );
   });
-  it('should can not add project update because of not found project ', async () => {
+  it('should can not edit project update because of not found project ', async () => {
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
@@ -3119,7 +3119,7 @@ function editProjectUpdateTestCases() {
     );
     assert.equal(result.data.errors[0].message, 'Project Update not found.');
   });
-  it('should can not add project update because of lack of authentication ', async () => {
+  it('should can not edit project update because of lack of authentication ', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const result = await axios.post(graphqlUrl, {
       query: editProjectUpdateQuery,
