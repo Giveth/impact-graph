@@ -690,3 +690,9 @@ export const walletAddressIsValid = `
     walletAddressIsValid(address: $address)
   }
 `;
+
+export const editProjectUpdateQuery = `
+  query WalletAddressIsValid($address: String!) {
+    walletAddressIsValid(address: $address)
+  }
+`;
