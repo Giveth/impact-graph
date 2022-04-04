@@ -167,10 +167,6 @@ export class DonationResolver {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase(),
     );
-    logger.debug(
-      'fromWalletAddressesArray after lowercase',
-      fromWalletAddressesArray,
-    );
     const donations = await this.donationRepository.find({
       where: {
         fromWalletAddress: In(fromWalletAddressesArray),
