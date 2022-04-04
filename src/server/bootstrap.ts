@@ -229,13 +229,13 @@ export async function bootstrap() {
     app.use(
       '/graphql',
       json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000,
+        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
       }),
     );
     app.use(
       '/graphql',
       graphqlUploadExpress({
-        maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
+        maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
         maxFiles: 10,
       }),
     );
@@ -264,7 +264,12 @@ export async function bootstrap() {
 
     app.use(
       json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000,
+        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
+      }),
+    );
+    app.use(
+      express.urlencoded({
+        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
       }),
     );
     runCheckPendingDonationsCronJob();
