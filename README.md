@@ -13,7 +13,9 @@ ImpactQL is a GraphQL server, that enables rapid development of serverless impac
 ```
 git clone git@github.com:topiahq/impact-graph.git
 cd impact-graph
+// You should have installed chromium on your system, it can be installed by your or package maneger (apt,brew, ..)
 npm i
+// If you had problem on npm install, you can see https://stackoverflow.com/a/66044814/9372962 (Mac os users)
 cp config/example.env config/development.env
 ```
 
@@ -22,7 +24,7 @@ Edit the config/development.env file in your favorite code editor and the enviro
 [Create a database](https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e) (we recommend Postgres) on your computer or server, we currently support for MySQL, MariaDB, Postgres, MongoDB and SQLite.
 Or if you want, you can run the docker-compose like this:
 `docker-compose -f docker-compose-local-postgres-redis.yml up -d`
-and put these to your `developmen.env`
+and put these to your `development.env`
 
 ```
 TYPEORM_DATABASE_TYPE=postgres
@@ -31,13 +33,6 @@ TYPEORM_DATABASE_USER=postgres
 TYPEORM_DATABASE_PASSWORD=postgres
 TYPEORM_DATABASE_HOST=localhost
 TYPEORM_DATABASE_PORT=5442
-```
-
-
-If you don't have redis installed do so, and then start it with:
-
-```
-redis-server /usr/local/etc/redis.conf
 ```
 
 
@@ -51,6 +46,7 @@ In localhost and test we put logs in console and file but in production and stag
 You can see logs beautifully with this command
 
 ```
+ npm i -g bunyan
  tail -f logs/impact-graph.log |bunyan
 
 ```

@@ -206,6 +206,25 @@ export const donationsFromWallets = `
   }
 `;
 
+export const donationsToWallets = `
+  query (
+    $toWalletAddresses: [String!]!
+   
+  ) {
+    donationsToWallets(
+      toWalletAddresses: $toWalletAddresses
+    ) {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    }
+  }
+`;
+
 export const fetchAllDonationsQuery = `
   query (
     $fromDate: String
@@ -529,6 +548,23 @@ export const userByAddress = `
     }
   }
 `;
+
+export const userById = `
+  query ($userId:  Int!) {
+    user(userId: $userId) {
+      id
+      firstName
+      lastName
+      name
+      email
+      avatar
+      walletAddress
+      url
+      location
+    }
+  }
+`;
+
 export const uploadImageToIpfsQuery = `
   mutation ($fileUpload: FileUploadInputType!) {
     upload(fileUpload: $fileUpload)
