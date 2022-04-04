@@ -715,6 +715,14 @@ const getAdminBroInstance = () => {
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
             },
+            delete: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            bulkDelete: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
           },
         },
       },
