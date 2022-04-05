@@ -690,3 +690,9 @@ export const walletAddressIsValid = `
     walletAddressIsValid(address: $address)
   }
 `;
+
+export const deleteProjectUpdateQuery = `
+        mutation deleteProjectUpdate($updateId: Float!){
+       deleteProjectUpdate(updateId: $updateId 
+                    ) 
+         }`;
