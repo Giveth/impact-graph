@@ -27,6 +27,7 @@ import {
   createProjectQuery,
   updateProjectQuery,
   getProjectsAcceptTokensQuery,
+  getPurpleList,
 } from '../../test/graphqlQueries';
 import { CreateProjectInput, ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
@@ -43,6 +44,7 @@ import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { User } from '../entities/user';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
+import { PurpleAddress } from '../entities/purpleAddress';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -60,6 +62,7 @@ describe(
 );
 describe('projectBySlug test cases --->', projectBySlugTestCases);
 describe('projectById test cases --->', projectByIdTestCases);
+describe('getPurpleList test cases --->', getPurpleListTestCases);
 
 describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // TODO We should implement test cases for below query/mutation
@@ -2627,6 +2630,53 @@ function projectByIdTestCases() {
     assert.equal(
       result.data.errors[0].message,
       errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
+    );
+  });
+}
+
+function getPurpleListTestCases() {
+  it('should return purpleAddress records', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await PurpleAddress.create({
+      address: walletAddress,
+      projectId: SEED_DATA.FIRST_PROJECT.id,
+    }).save();
+    const result = await axios.post(graphqlUrl, {
+      query: getPurpleList,
+    });
+    assert.isOk(result.data.data.getPurpleList);
+    assert.isTrue(
+      result.data.data.getPurpleList.includes(walletAddress.toLowerCase()),
+    );
+  });
+  it('should return verifiedProject wallet address', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPurpleList,
+    });
+    assert.isOk(result.data.data.getPurpleList);
+    assert.isTrue(
+      result.data.data.getPurpleList.includes(walletAddress.toLowerCase()),
+    );
+  });
+  it('should not return non-verified project wallet address', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: false,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPurpleList,
+    });
+    assert.isOk(result.data.data.getPurpleList);
+    assert.isFalse(
+      result.data.data.getPurpleList.includes(walletAddress.toLowerCase()),
     );
   });
 }
