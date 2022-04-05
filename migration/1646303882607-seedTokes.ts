@@ -4,6 +4,11 @@ import seedTokens from './data/seedTokens';
 
 export class seedTokes1646303882607 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
+    // typeorm sync hasn't run, so we need to declare the column
+    await queryRunner.query(
+      `ALTER TABLE IF EXISTS "token" ADD COLUMN IF NOT EXISTS "isGivbackEligible" boolean DEFAULT false`,
+    );
+
     await queryRunner.manager.save(
       Token,
       seedTokens.map(t => {
