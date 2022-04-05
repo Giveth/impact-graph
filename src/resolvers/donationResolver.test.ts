@@ -23,8 +23,9 @@ import {
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
-import { ORGANIZATION_LABELS } from '../entities/organization';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjStatus } from '../entities/project';
+import { Token } from '../entities/token';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -381,6 +382,59 @@ function saveDonationTestCases() {
       saveDonationResponse.data.data.saveDonation,
     );
     assert.isTrue(donation?.isTokenEligibleForGivback);
+  });
+  it('should save DOGE donation for projects in mainnet as nonEligible', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.GIVETH,
+    });
+    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const accessToken = await generateTestAccessToken(user!.id);
+    const token = Token.create({
+      name: 'Doge not eligible',
+      symbol: 'DOGE',
+      address: '0x30cf203b48edaa42c3b4918e955fed26cd012a23',
+      decimals: 18,
+      isGivbackEligible: false,
+      networkId: 1,
+    });
+    await token.save();
+    const givethOrganization = (await Organization.findOne({
+      label: ORGANIZATION_LABELS.GIVETH,
+    })) as Organization;
+
+    await Token.query(
+      `INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
+        (${token.id}, ${givethOrganization.id})
+      ;`,
+    );
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.MAIN_NET,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET,
+          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'DOGE',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.saveDonation);
+    const donation = await Donation.findOne(
+      saveDonationResponse.data.data.saveDonation,
+    );
+    // DOGE is in the list but not eligible
+    assert.isFalse(donation?.isTokenEligibleForGivback);
   });
   it('should save custom token donation for trace project on mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb({
