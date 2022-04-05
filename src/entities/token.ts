@@ -43,7 +43,7 @@ export class Token extends BaseEntity {
 
   @Field(type => Boolean, { nullable: true })
   @Column({ nullable: false, default: false })
-  isGivbackElegible: boolean;
+  isGivbackEligible: boolean;
 
   // @Field(type => [Organization])
   // @JoinTable()

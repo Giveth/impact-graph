@@ -1,19 +1,19 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class setCurrentTokensAsGivBackElegible1649133177576
+export class setCurrentTokensAsGivBackEligible1649133177576
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const tokenTableExists = await queryRunner.hasTable('token');
     if (tokenTableExists) {
       await queryRunner.query(
-        `ALTER TABLE IF EXISTS "token" ADD COLUMN IF NOT EXISTS "isGivbackElegible" boolean DEFAULT false`,
+        `ALTER TABLE IF EXISTS "token" ADD COLUMN IF NOT EXISTS "isGivbackEligible" boolean DEFAULT false`,
       );
 
-      // set all current tokens as givBackElegible
+      // set all current tokens as givBackEligible
       await queryRunner.query(`
                 UPDATE token
-                SET "isGivbackElegible" = true
+                SET "isGivbackEligible" = true
             `);
     }
   }
@@ -22,7 +22,7 @@ export class setCurrentTokensAsGivBackElegible1649133177576
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
         UPDATE token
-        SET "isGivbackElegible" = false
+        SET "isGivbackEligible" = false
     `);
   }
 }
