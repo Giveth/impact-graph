@@ -553,6 +553,12 @@ export const uploadImageToIpfsQuery = `
   }
 `;
 
+export const traceImageUploadQuery = `
+  mutation ($traceFileUpload: TraceFileUploadInputType!) {
+    traceImageUpload(traceFileUpload: $traceFileUpload)
+  }
+`;
+
 export const unlikeProjectQuery = `
   mutation ($reactionId: Int!) {
     unlikeProject(reactionId: $reactionId)

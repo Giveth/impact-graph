@@ -1,23 +1,25 @@
 import { assert } from 'chai';
 import sinon from 'sinon';
 import axios from 'axios';
-import { uploadImageToIpfsQuery } from '../../test/graphqlQueries';
+import {
+  traceImageUploadQuery,
+  uploadImageToIpfsQuery,
+} from '../../test/graphqlQueries';
 import {
   generateTestAccessToken,
   graphqlUrl,
   SEED_DATA,
 } from '../../test/testUtils';
 import * as pinataUtils from '../middleware/pinataUtils';
-import { createReadStream } from 'fs';
+import { createReadStream, readFileSync } from 'fs';
 import { errorMessages } from '../utils/errorMessages';
+import { TraceImageOwnerType } from './uploadResolver';
 // tslint:disable-next-line:no-var-requires
 const path = require('path');
 
-// tslint:disable-next-line:no-var-requires
-const FormData = require('form-data');
-
 // test cases
 describe('upload() test cases', uploadTestCases);
+describe('traceImageUpload() test cases', traceImageUpload);
 
 function uploadTestCases() {
   it('should not allow uploading an image when not logged in', async () => {
@@ -90,5 +92,76 @@ function uploadTestCases() {
         ),
       );
     }
+  });
+}
+
+function traceImageUpload() {
+  const resultString = 'ipfsString';
+  sinon.stub(pinataUtils, 'pinFileDataBase64').returns(
+    Promise.resolve({
+      data: {
+        ipfsHash: resultString,
+      },
+    }),
+  );
+
+  it('should allow uploading 400k size image successfully', async () => {
+    const filename = '../../test/images/testImage400k.jpg';
+
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+
+    const image = readFileSync(path.resolve(__dirname, `./${filename}`));
+    const fileDataBase64 = image.toString('base64');
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: traceImageUploadQuery,
+        variables: {
+          traceFileUpload: {
+            password: process.env.TRACE_FILE_UPLOADER_PASSWORD,
+            fileDataBase64,
+            entityId: '1',
+            imageOwnerType: TraceImageOwnerType.TRACE,
+            user: '1',
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.traceImageUpload.startsWith('/ipfs/'));
+  });
+  it('should allow uploading 4k size image successfully', async () => {
+    const filename = '../../test/images/testImage.jpg';
+
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const image = readFileSync(path.resolve(__dirname, `./${filename}`));
+    const fileDataBase64 = image.toString('base64');
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: traceImageUploadQuery,
+        variables: {
+          traceFileUpload: {
+            password: process.env.TRACE_FILE_UPLOADER_PASSWORD,
+            fileDataBase64,
+            entityId: '1',
+            imageOwnerType: TraceImageOwnerType.USER,
+            user: '1',
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isTrue(result.data.data.traceImageUpload.startsWith('/ipfs/'));
   });
 }

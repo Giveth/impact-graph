@@ -203,7 +203,11 @@ export async function bootstrap() {
       },
     };
     app.use(cors(corsOptions));
-    app.use(bodyParser.json());
+    app.use(
+      bodyParser.json({
+        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
+      }),
+    );
     const limiter = new RateLimit({
       store: new RedisStore({
         prefix: 'rate-limit:',
@@ -235,7 +239,7 @@ export async function bootstrap() {
     app.use(
       '/graphql',
       graphqlUploadExpress({
-        maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
+        maxFileSize: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 2000000,
         maxFiles: 10,
       }),
     );
@@ -262,17 +266,6 @@ export async function bootstrap() {
     app.use(adminBroQueryCache);
     app.use(adminBroRootPath, getAdminBroRouter());
 
-    app.use(
-      json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
-      }),
-    );
-    app.use(
-      express.urlencoded({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
-        extended: true,
-      }),
-    );
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();

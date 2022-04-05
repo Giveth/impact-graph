@@ -15,7 +15,6 @@ import { logger } from '../utils/logger';
 import { getLoggedInUser } from '../services/authorizationServices';
 import { errorMessages } from '../utils/errorMessages';
 import SentryLogger from '../sentryLogger';
-import { Readable } from 'stream';
 
 @InputType()
 export class FileUploadInputType {
