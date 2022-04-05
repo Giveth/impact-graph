@@ -41,6 +41,10 @@ export class Token extends BaseEntity {
   @Column()
   decimals: number;
 
+  @Field(type => Boolean, { nullable: true })
+  @Column({ nullable: false, default: false })
+  isGivbackElegible: boolean;
+
   // @Field(type => [Organization])
   // @JoinTable()
 
