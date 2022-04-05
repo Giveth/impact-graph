@@ -691,6 +691,12 @@ export const getProjectsAcceptTokensQuery = `
   }
 `;
 
+export const getPurpleList = `
+  query{
+    getPurpleList
+  }
+`;
+
 export const walletAddressIsValid = `
   query WalletAddressIsValid($address: String!) {
     walletAddressIsValid(address: $address)
