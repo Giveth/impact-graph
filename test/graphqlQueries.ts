@@ -187,6 +187,24 @@ export const fetchDonationsByProjectIdQuery = `
     }
   }
 `;
+export const donationsFromWallets = `
+  query (
+    $fromWalletAddresses: [String!]!
+   
+  ) {
+    donationsFromWallets(
+      fromWalletAddresses: $fromWalletAddresses
+    ) {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    }
+  }
+`;
 
 export const donationsToWallets = `
   query (
