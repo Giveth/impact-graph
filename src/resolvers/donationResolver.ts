@@ -384,7 +384,7 @@ export class DonationResolver {
         if (!acceptsToken && !project.organization.supportCustomTokens) {
           throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
         }
-        isTokenEligibleForGivback = true;
+        isTokenEligibleForGivback = tokenInDb.isGivbackElegible;
       }
 
       if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
