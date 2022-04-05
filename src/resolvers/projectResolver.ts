@@ -1056,20 +1056,20 @@ export class ProjectResolver {
   async getPurpleList(): Promise<String[]> {
     const recipients = await Project.query(
       `
-            SELECT "walletAddress" FROM project
-            WHERE verified=true 
-            `,
+          SELECT LOWER("walletAddress") as recipient
+          FROM project
+          WHERE verified=true
+      `,
     );
-    const recipientsAddresses = recipients.map(({ walletAddress }) =>
-      walletAddress.toLowerCase(),
-    );
+    const recipientsAddresses = recipients.map(({ recipient }) => recipient);
     const purpleAddresses = await PurpleAddress.query(
       `
-            SELECT address FROM purple_address
-            `,
+          SELECT LOWER(address) as "purpleAddress"
+          FROM purple_address
+      `,
     );
     return purpleAddresses
-      .map(({ address }) => address.toLowerCase())
+      .map(({ purpleAddress }) => purpleAddress)
       .concat(recipientsAddresses);
   }
 
