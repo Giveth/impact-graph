@@ -41,6 +41,7 @@ import {
   ProjectStatusHistory,
 } from '../entities/projectStatusHistory';
 import { Organization } from '../entities/organization';
+import { PurpleAddress } from '../entities/purpleAddress';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -698,6 +699,29 @@ const getAdminBroInstance = () => {
             },
             bulkDelete: {
               isVisible: false,
+            },
+          },
+        },
+      },
+      {
+        resource: PurpleAddress,
+        options: {
+          actions: {
+            new: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            delete: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            bulkDelete: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
             },
           },
         },
