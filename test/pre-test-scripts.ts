@@ -70,18 +70,21 @@ async function seedTokens() {
     await Token.create({
       ...token,
       networkId: 100,
+      isGivbackEligible: true,
     }).save();
   }
   for (const token of SEED_DATA.TOKENS.mainnet) {
     await Token.create({
       ...token,
       networkId: 1,
+      isGivbackEligible: true,
     }).save();
   }
   for (const token of SEED_DATA.TOKENS.ropsten) {
     await Token.create({
       ...token,
       networkId: 3,
+      isGivbackEligible: true,
     }).save();
   }
 }

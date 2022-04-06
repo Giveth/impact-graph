@@ -187,6 +187,24 @@ export const fetchDonationsByProjectIdQuery = `
     }
   }
 `;
+export const donationsFromWallets = `
+  query (
+    $fromWalletAddresses: [String!]!
+   
+  ) {
+    donationsFromWallets(
+      fromWalletAddresses: $fromWalletAddresses
+    ) {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    }
+  }
+`;
 
 export const donationsToWallets = `
   query (
@@ -553,11 +571,29 @@ export const uploadImageToIpfsQuery = `
   }
 `;
 
+export const traceImageUploadQuery = `
+  mutation ($traceFileUpload: TraceFileUploadInputType!) {
+    traceImageUpload(traceFileUpload: $traceFileUpload)
+  }
+`;
+
 export const unlikeProjectQuery = `
   mutation ($reactionId: Int!) {
     unlikeProject(reactionId: $reactionId)
   }
 `;
+
+export const addProjectUpdateQuery = `
+        mutation addProjectUpdate($projectId: Float! $content: String! 
+                   $title: String!){
+       addProjectUpdate(content: $content projectId: $projectId 
+                    title: $title) {
+                    userId
+                    projectId
+                    id
+                    title
+                    }
+         }`;
 
 export const likeProjectUpdateQuery = `
   mutation ($projectUpdateId: Int!) {
@@ -701,4 +737,15 @@ export const deleteProjectUpdateQuery = `
         mutation deleteProjectUpdate($updateId: Float!){
        deleteProjectUpdate(updateId: $updateId 
                     ) 
+         }`;
+
+export const editProjectUpdateQuery = `
+        mutation editProjectUpdate($updateId: Float! $content: String!
+                   $title: String!){
+       editProjectUpdate(content: $content updateId: $updateId 
+                    title: $title) {
+                    userId
+                    projectId
+                    title
+                    }
          }`;
