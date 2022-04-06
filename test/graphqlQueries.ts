@@ -720,3 +720,14 @@ export const walletAddressIsValid = `
     walletAddressIsValid(address: $address)
   }
 `;
+
+export const editProjectUpdateQuery = `
+        mutation editProjectUpdate($updateId: Float! $content: String!
+                   $title: String!){
+       editProjectUpdate(content: $content updateId: $updateId 
+                    title: $title) {
+                    userId
+                    projectId
+                    title
+                    }
+         }`;
