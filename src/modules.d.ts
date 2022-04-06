@@ -34,5 +34,6 @@ declare namespace NodeJS {
     OUR_SECRET: string;
     XDAI_NODE_HTTP_URL: string;
     SEGMENT_API_KEY: string;
+    TRACE_FILE_UPLOADER_PASSWORD: string;
   }
 }

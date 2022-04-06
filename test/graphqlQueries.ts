@@ -187,6 +187,43 @@ export const fetchDonationsByProjectIdQuery = `
     }
   }
 `;
+export const donationsFromWallets = `
+  query (
+    $fromWalletAddresses: [String!]!
+   
+  ) {
+    donationsFromWallets(
+      fromWalletAddresses: $fromWalletAddresses
+    ) {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    }
+  }
+`;
+
+export const donationsToWallets = `
+  query (
+    $toWalletAddresses: [String!]!
+   
+  ) {
+    donationsToWallets(
+      toWalletAddresses: $toWalletAddresses
+    ) {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    }
+  }
+`;
 
 export const fetchAllDonationsQuery = `
   query (
@@ -511,9 +548,32 @@ export const userByAddress = `
     }
   }
 `;
+
+export const userById = `
+  query ($userId:  Int!) {
+    user(userId: $userId) {
+      id
+      firstName
+      lastName
+      name
+      email
+      avatar
+      walletAddress
+      url
+      location
+    }
+  }
+`;
+
 export const uploadImageToIpfsQuery = `
   mutation ($fileUpload: FileUploadInputType!) {
     upload(fileUpload: $fileUpload)
+  }
+`;
+
+export const traceImageUploadQuery = `
+  mutation ($traceFileUpload: TraceFileUploadInputType!) {
+    traceImageUpload(traceFileUpload: $traceFileUpload)
   }
 `;
 
@@ -646,6 +706,12 @@ export const getProjectsAcceptTokensQuery = `
       mainnetAddress
       name
     }
+  }
+`;
+
+export const getPurpleList = `
+  query{
+    getPurpleList
   }
 `;
 

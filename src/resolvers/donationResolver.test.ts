@@ -20,25 +20,28 @@ import {
   saveDonation,
   fetchDonationsByProjectIdQuery,
   fetchAllDonationsQuery,
+  donationsToWallets,
+  donationsFromWallets,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjStatus } from '../entities/project';
 import { Token } from '../entities/token';
+import { IsUppercase } from 'class-validator';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
 // TODO Write test cases
 describe('donations() test cases', donationsTestCases);
-// describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
-// describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
 describe('donationByUserId() test cases', donationsByUserIdTestCases);
 // describe('tokens() test cases', tokensTestCases);
 describe('donationsByDonor() test cases', donationsByDonorTestCases);
 describe('saveDonation() test cases', saveDonationTestCases);
+describe('donationsToWallets() test cases', donationsToWalletsTestCases);
+describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
 
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
@@ -1184,6 +1187,181 @@ function saveDonationTestCases() {
   });
 }
 
+function donationsFromWalletsTestCases() {
+  it('should find donations with special source successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'fatemeTest1',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsFromWallets,
+        variables: {
+          fromWalletAddresses: [walletAddress],
+        },
+      },
+      {},
+    );
+    result.data.data.donationsFromWallets.forEach(item => {
+      assert.equal(item.fromWalletAddress, walletAddress);
+    });
+  });
+  it('should find donations with special source in uppercase successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'fatemeTest2',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsFromWallets,
+        variables: {
+          fromWalletAddresses: [walletAddress.toUpperCase()],
+        },
+      },
+      {},
+    );
+
+    result.data.data.donationsFromWallets.forEach(item => {
+      assert.equal(item.fromWalletAddress, walletAddress);
+    });
+  });
+  it('should find donations with special source unsuccessfully', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const walletAddress1 = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'fatemeTest1',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const donation1 = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: walletAddress1,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsFromWallets,
+        variables: {
+          fromWalletAddresses: [walletAddress],
+        },
+      },
+      {},
+    );
+    result.data.data.donationsFromWallets.forEach(item => {
+      assert.notEqual(item.fromWalletAddress, walletAddress1);
+    });
+  });
+  it('should find no donations with this source ', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsFromWallets,
+        variables: {
+          fromWalletAddresses: [walletAddress],
+        },
+      },
+      {},
+    );
+    assert.equal(result.data.data.donationsFromWallets.length, 0);
+  });
+}
+
 function donationsByProjectIdTestCases() {
   it('should sort by the createdAt DESC', async () => {
     const result = await axios.post(
@@ -1622,5 +1800,177 @@ function donationsByDonorTestCases() {
       result.data.errors[0].message,
       errorMessages.DONATION_VIEWING_LOGIN_REQUIRED,
     );
+  });
+}
+
+function donationsToWalletsTestCases() {
+  it('should find donations with special destination successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'donationsToWalletTest1User',
+    }).save();
+    const accessToken1 = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: project.walletAddress,
+          toAddress: walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken1}`,
+        },
+      },
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsToWallets,
+        variables: {
+          toWalletAddresses: [walletAddress],
+        },
+      },
+      {},
+    );
+    result.data.data.donationsToWallets.forEach(item => {
+      assert.equal(item.toWalletAddress, walletAddress);
+    });
+  });
+  it('should find donations with special destination in uppercase successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'donationsToWalletTest2User',
+    }).save();
+    const accessToken1 = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: project.walletAddress,
+          toAddress: walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken1}`,
+        },
+      },
+    );
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsToWallets,
+        variables: {
+          toWalletAddresses: [walletAddress.toUpperCase()],
+        },
+      },
+      {},
+    );
+    result.data.data.donationsToWallets.forEach(item => {
+      assert.equal(item.toWalletAddress, walletAddress);
+    });
+  });
+  it('should find donations with special destination unsuccessfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const walletAddress1 = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress,
+      loginType: 'wallet',
+      firstName: 'donationsToWalletTest3User',
+    }).save();
+    const accessToken1 = await generateTestAccessToken(user.id);
+    const donation = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: project.walletAddress,
+          toAddress: walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken1}`,
+        },
+      },
+    );
+    const donation1 = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: project.walletAddress,
+          toAddress: walletAddress1,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken1}`,
+        },
+      },
+    );
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsToWallets,
+        variables: {
+          toWalletAddresses: [walletAddress1],
+        },
+      },
+      {},
+    );
+    result.data.data.donationsToWallets.forEach(item => {
+      assert.notEqual(item.toWalletAddress, walletAddress);
+    });
+  });
+  it('should find no donations with this destination ', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: donationsToWallets,
+        variables: {
+          toWalletAddresses: [walletAddress],
+        },
+      },
+      {},
+    );
+    assert.equal(result.data.data.donationsToWallets.length, 0);
   });
 }
