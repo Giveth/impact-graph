@@ -46,7 +46,7 @@ function userTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: userById,
       variables: {
-        userId: usersCount + 1,
+        userId: usersCount + 1000000,
       },
     });
     assert.isNull(result.data.data.user);
