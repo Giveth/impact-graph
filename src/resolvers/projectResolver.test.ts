@@ -44,7 +44,7 @@ import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { User } from '../entities/user';
-import { ORGANIZATION_LABELS } from '../entities/organization';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { PurpleAddress } from '../entities/purpleAddress';
 import { Float } from 'type-graphql';
@@ -118,7 +118,17 @@ function getProjectsAcceptTokensTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.TRACE,
     });
-    const allTokens = await Token.find({});
+    const traceOrganization = (await Organization.findOne({
+      label: ORGANIZATION_LABELS.TRACE,
+    })) as Organization;
+
+    const allTokens = (
+      await Token.query(`
+      SELECT COUNT(*) as "tokenCount"
+      FROM organization_tokens_token
+      WHERE "organizationId" = ${traceOrganization.id}
+    `)
+    )[0];
     const result = await axios.post(graphqlUrl, {
       query: getProjectsAcceptTokensQuery,
       variables: {
@@ -128,7 +138,7 @@ function getProjectsAcceptTokensTestCases() {
     assert.isOk(result.data.data.getProjectAcceptTokens);
     assert.equal(
       result.data.data.getProjectAcceptTokens.length,
-      allTokens.length,
+      Number(allTokens.tokenCount),
     );
   });
   it('should just return ETH token for givingBlock projects', async () => {
