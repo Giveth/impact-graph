@@ -27,6 +27,7 @@ import {
   createProjectQuery,
   updateProjectQuery,
   getProjectsAcceptTokensQuery,
+  deleteProjectUpdateQuery,
   getPurpleList,
   editProjectUpdateQuery,
   addProjectUpdateQuery,
@@ -74,7 +75,7 @@ describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // describe('uploadImage test cases --->', uploadImageTestCases);
 describe('addProjectUpdate test cases --->', addProjectUpdateTestCases);
 describe('editProjectUpdate test cases --->', editProjectUpdateTestCases);
-// describe('deleteProjectUpdate test cases --->', deleteProjectUpdateTestCases);
+describe('deleteProjectUpdate test cases --->', deleteProjectUpdateTestCases);
 // describe('getProjectsRecipients test cases --->', getProjectsRecipientsTestCases);
 // describe('getProjectReactions test cases --->', getProjectReactionsTestCases);
 // describe('isValidTitleForProject test cases --->', isValidTitleForProjectTestCases);
@@ -3378,6 +3379,169 @@ function editProjectUpdateTestCases() {
         updateId: Number(project.id),
         content: 'TestProjectAfterUpdateFateme2',
         title: 'testEditProjectAfterUpdateFateme2',
+      },
+    });
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
+  });
+}
+
+function deleteProjectUpdateTestCases() {
+  it('should delete project update successfully ', async () => {
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'testDeleteProjectUpdateFateme',
+    }).save();
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(user.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(user.id);
+
+    const addProjectResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: { ...sampleProject, title: String(new Date().getTime()) },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const updateProject = await ProjectUpdate.create({
+      userId: user.id,
+      projectId: Number(addProjectResponse.data.data.createProject.id),
+      content: 'TestProjectUpdateFateme',
+      title: 'testDeleteProjectUpdateFateme',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: deleteProjectUpdateQuery,
+        variables: {
+          updateId: updateProject.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(result.data.data.deleteProjectUpdate, true);
+  });
+  it('should can not delete project update because of ownerShip ', async () => {
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'testDeleteProjectUpdateFateme',
+    }).save();
+
+    const user1 = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'testDeleteProjectUpdateFateme1',
+    }).save();
+
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0]],
+      description: 'description',
+      admin: String(user.id),
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const accessToken = await generateTestAccessToken(user.id);
+    const accessTokenUser1 = await generateTestAccessToken(user1.id);
+
+    const addProjectResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: { ...sampleProject, title: String(new Date().getTime()) },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const updateProject = await ProjectUpdate.create({
+      userId: user.id,
+      projectId: Number(addProjectResponse.data.data.createProject.id),
+      content: 'TestProjectUpdateFateme',
+      title: 'testDeleteProjectUpdateFateme',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+    // Add projectUpdate with accessToken user1
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: deleteProjectUpdateQuery,
+        variables: {
+          updateId: Number(updateProject.id),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessTokenUser1}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
+    );
+  });
+  it('should can not delete project update because of not found project ', async () => {
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'testDeleteProjectUpdateFateme',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const projectUpdateCount = await ProjectUpdate.count();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: deleteProjectUpdateQuery,
+        variables: {
+          updateId: Number(projectUpdateCount + 2),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(result.data.errors[0].message, 'Project Update not found.');
+  });
+  it('should can not delete project update because of lack of authentication ', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const result = await axios.post(graphqlUrl, {
+      query: deleteProjectUpdateQuery,
+      variables: {
+        updateId: Number(project.id),
+        content: 'TestProjectAfterUpdateFateme2',
+        title: 'testDeleteProjectAfterUpdateFateme2',
       },
     });
 

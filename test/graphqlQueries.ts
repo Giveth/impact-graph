@@ -733,6 +733,12 @@ export const walletAddressIsValid = `
   }
 `;
 
+export const deleteProjectUpdateQuery = `
+        mutation deleteProjectUpdate($updateId: Float!){
+       deleteProjectUpdate(updateId: $updateId 
+                    ) 
+         }`;
+
 export const editProjectUpdateQuery = `
         mutation editProjectUpdate($updateId: Float! $content: String!
                    $title: String!){
