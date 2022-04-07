@@ -39,6 +39,7 @@ const envVars = [
   'OUR_SECRET',
   // 'XDAI_NODE_HTTP_URL',
   'SEGMENT_API_KEY',
+  'TRACE_FILE_UPLOADER_PASSWORD',
 ];
 // tslint:disable-next-line:class-name
 interface requiredEnv {
@@ -76,6 +77,7 @@ interface requiredEnv {
   OUR_SECRET: string;
   XDAI_NODE_HTTP_URL: string;
   SEGMENT_API_KEY: string;
+  TRACE_FILE_UPLOADER_PASSWORD: string;
 }
 
 class Config {

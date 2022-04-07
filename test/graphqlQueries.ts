@@ -187,6 +187,43 @@ export const fetchDonationsByProjectIdQuery = `
     }
   }
 `;
+export const donationsFromWallets = `
+  query (
+    $fromWalletAddresses: [String!]!
+   
+  ) {
+    donationsFromWallets(
+      fromWalletAddresses: $fromWalletAddresses
+    ) {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    }
+  }
+`;
+
+export const donationsToWallets = `
+  query (
+    $toWalletAddresses: [String!]!
+   
+  ) {
+    donationsToWallets(
+      toWalletAddresses: $toWalletAddresses
+    ) {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    }
+  }
+`;
 
 export const fetchAllDonationsQuery = `
   query (
@@ -511,9 +548,32 @@ export const userByAddress = `
     }
   }
 `;
+
+export const userById = `
+  query ($userId:  Int!) {
+    user(userId: $userId) {
+      id
+      firstName
+      lastName
+      name
+      email
+      avatar
+      walletAddress
+      url
+      location
+    }
+  }
+`;
+
 export const uploadImageToIpfsQuery = `
   mutation ($fileUpload: FileUploadInputType!) {
     upload(fileUpload: $fileUpload)
+  }
+`;
+
+export const traceImageUploadQuery = `
+  mutation ($traceFileUpload: TraceFileUploadInputType!) {
+    traceImageUpload(traceFileUpload: $traceFileUpload)
   }
 `;
 
@@ -522,6 +582,18 @@ export const unlikeProjectQuery = `
     unlikeProject(reactionId: $reactionId)
   }
 `;
+
+export const addProjectUpdateQuery = `
+        mutation addProjectUpdate($projectId: Float! $content: String! 
+                   $title: String!){
+       addProjectUpdate(content: $content projectId: $projectId 
+                    title: $title) {
+                    userId
+                    projectId
+                    id
+                    title
+                    }
+         }`;
 
 export const likeProjectUpdateQuery = `
   mutation ($projectUpdateId: Int!) {
@@ -649,8 +721,31 @@ export const getProjectsAcceptTokensQuery = `
   }
 `;
 
+export const getPurpleList = `
+  query{
+    getPurpleList
+  }
+`;
+
 export const walletAddressIsValid = `
   query WalletAddressIsValid($address: String!) {
     walletAddressIsValid(address: $address)
   }
 `;
+
+export const deleteProjectUpdateQuery = `
+        mutation deleteProjectUpdate($updateId: Float!){
+       deleteProjectUpdate(updateId: $updateId 
+                    ) 
+         }`;
+
+export const editProjectUpdateQuery = `
+        mutation editProjectUpdate($updateId: Float! $content: String!
+                   $title: String!){
+       editProjectUpdate(content: $content updateId: $updateId 
+                    title: $title) {
+                    userId
+                    projectId
+                    title
+                    }
+         }`;

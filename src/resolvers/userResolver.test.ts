@@ -8,15 +8,50 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import axios from 'axios';
-import { updateUser, userByAddress } from '../../test/graphqlQueries';
+import { updateUser, userByAddress, userById } from '../../test/graphqlQueries';
 import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 
 describe('updateUser() test cases', updateUserTestCases);
-// describe('user() test cases', userTestCases);
+describe('user() test cases', userTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
+
+function userTestCases() {
+  it('should return userInfo successfully with id', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: `${new Date().getTime()}-giveth@gievth.com`,
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const user = await User.create(userData).save();
+    const result = await axios.post(graphqlUrl, {
+      query: userById,
+      variables: {
+        userId: user.id,
+      },
+    });
+    assert.isOk(result.data.data.user);
+    assert.equal(result.data.data.user.id, user.id);
+    assert.equal(result.data.data.user.email, user.email);
+  });
+
+  it('should return null if user doesnt exist', async () => {
+    const usersCount = await User.count();
+    const result = await axios.post(graphqlUrl, {
+      query: userById,
+      variables: {
+        userId: usersCount + 1000000,
+      },
+    });
+    assert.isNull(result.data.data.user);
+  });
+}
 
 function userByAddressTestCases() {
   it('Get all fields of a user', async () => {
