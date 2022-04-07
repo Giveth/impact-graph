@@ -5,11 +5,13 @@ import {
   Entity,
   BaseEntity,
   ManyToMany,
+  Index,
 } from 'typeorm';
 import { Organization } from './organization';
 
 @Entity()
 @ObjectType()
+@Index(['name', 'address', 'networkId'], { unique: true })
 export class Token extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -48,6 +50,8 @@ export class Token extends BaseEntity {
   // @Field(type => [Organization])
   // @JoinTable()
 
-  @ManyToMany(type => Organization, organization => organization.tokens)
+  @ManyToMany(type => Organization, organization => organization.tokens, {
+    eager: true,
+  })
   organizations: Organization[];
 }

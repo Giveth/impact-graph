@@ -40,7 +40,9 @@ import {
   HISTORY_DESCRIPTIONS,
   ProjectStatusHistory,
 } from '../entities/projectStatusHistory';
-import { Organization } from '../entities/organization';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import { Token } from '../entities/token';
+import { NETWORK_IDS } from '../provider';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -85,6 +87,7 @@ interface AdminBroContextInterface {
   resource: any;
   records: any[];
   currentAdmin: User;
+  payload: any;
 }
 
 interface AdminBroRequestInterface {
@@ -400,6 +403,104 @@ const getAdminBroInstance = () => {
             new: {
               handler: createDonation,
               // component: true,
+            },
+          },
+        },
+      },
+      {
+        resource: Token,
+        options: {
+          properties: {
+            networkId: {
+              isVisible: true,
+              availableValues: [
+                { value: NETWORK_IDS.MAIN_NET, label: 'MAINNET' },
+                { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
+                { value: NETWORK_IDS.XDAI, label: 'XDAI' },
+                { value: NETWORK_IDS.BSC, label: 'BSC' },
+              ],
+            },
+            symbol: { isVisible: true },
+            name: { isVisible: true },
+            isGivbackEligible: { isVisible: true },
+            address: { isVisible: true },
+            mainnetAddress: {
+              isVisible: {
+                show: true,
+                edit: true,
+                new: true,
+                list: false,
+                filter: true,
+              },
+            },
+            decimals: { isVisible: true },
+            organizations: {
+              isVisible: {
+                show: true,
+                edit: true,
+                new: true,
+                list: true,
+              },
+              components: {
+                show: AdminBro.bundle('./components/ListOrganizationsNames'),
+                list: AdminBro.bundle('./components/ListOrganizationsNames'),
+              },
+              availableValues: [
+                {
+                  value: 'giveth,trace,givingBlock,change',
+                  label: 'All Organizations',
+                },
+                { value: 'giveth', label: 'Giveth' },
+                { value: 'trace', label: 'Trace' },
+                { value: 'givingBlock', label: 'GivingBlocks' },
+                { value: 'change', label: 'Change' },
+                { value: 'giveth,trace', label: 'Giveth, Trace' },
+                { value: 'giveth,givingBlock', label: 'Giveth, GivingBlocks' },
+                { value: 'giveth,change', label: 'Giveth, Change' },
+                {
+                  value: 'giveth,trace,givingBlock',
+                  label: 'Giveth, Trace, GivingBlocks',
+                },
+                {
+                  value: 'giveth,trace,change',
+                  label: 'Giveth, Trace, Change',
+                },
+                {
+                  value: 'giveth,givingBlock,change',
+                  label: 'Giveth, GivingBlocks, Change',
+                },
+                { value: 'trace,givingBlock', label: 'Trace, GivingBlocks' },
+                { value: 'trace,change', label: 'Trace, Change' },
+                {
+                  value: 'trace,givingBlock,change',
+                  label: 'Trace, GivingBlocks, Change',
+                },
+                {
+                  value: 'givingBlocks, change',
+                  label: 'GivingBlocks, Change',
+                },
+              ],
+            },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: false,
+            },
+            // Organization is not editable, hooks are not working correctly
+            edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              isVisible: true,
+              // component: false
+            },
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              handler: createToken,
+              // component: false
             },
           },
         },
@@ -1109,6 +1210,62 @@ export const updateStatusOfProjects = async (
       type: 'success',
     },
   };
+};
+
+export const createToken = async (
+  request: AdminBroRequestInterface,
+  response,
+) => {
+  let message = `Token created successfully`;
+  let type = 'success';
+  const {
+    address,
+    decimals,
+    isGivbackEligible,
+    mainnetAddress,
+    name,
+    networkId,
+    symbol,
+    organizations,
+  } = request.payload;
+  try {
+    const newToken = Token.create({
+      name,
+      symbol,
+      address,
+      mainnetAddress,
+      isGivbackEligible,
+      decimals: Number(decimals),
+      networkId: Number(networkId),
+    });
+
+    if (organizations) {
+      const organizationsInDb = await Organization.createQueryBuilder(
+        'organization',
+      )
+        .where('organization.label IN (:...labels)', {
+          labels: organizations.split(','),
+        })
+        .getMany();
+
+      newToken.organizations = organizationsInDb;
+    }
+
+    await newToken.save();
+  } catch (e) {
+    logger.error('error creating token', e.message);
+    message = e.message;
+    type = 'danger';
+  }
+
+  response.send({
+    redirectUrl: 'Token',
+    record: {},
+    notice: {
+      message,
+      type,
+    },
+  });
 };
 
 export const importThirdPartyProject = async (
