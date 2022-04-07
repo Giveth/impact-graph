@@ -42,6 +42,7 @@ import {
 } from '../entities/projectStatusHistory';
 import { Organization } from '../entities/organization';
 import { PurpleAddress } from '../entities/purpleAddress';
+import { findAdminUserByEmail } from '../repositories/userRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -104,7 +105,7 @@ export const getAdminBroRouter = () => {
     {
       authenticate: async (email, password) => {
         try {
-          const user = await User.findOne({ email });
+          const user = await findAdminUserByEmail(email);
           if (user) {
             const matched = await bcrypt.compare(
               password,
