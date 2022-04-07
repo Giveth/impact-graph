@@ -87,7 +87,7 @@ interface AdminBroContextInterface {
   resource: any;
   records: any[];
   currentAdmin: User;
-  payload: any;
+  payload?: any;
 }
 
 interface AdminBroRequestInterface {
