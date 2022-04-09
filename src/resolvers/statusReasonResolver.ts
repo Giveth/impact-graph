@@ -1,5 +1,9 @@
 import { Arg, Int, Query, Resolver } from 'type-graphql';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
+import {
+  findAllStatusReasons,
+  findStatusReasonsByStatusId,
+} from '../repositories/statusReasonRepository';
 
 @Resolver(of => ProjectStatusReason)
 export class StatusReasonResolver {
@@ -7,13 +11,16 @@ export class StatusReasonResolver {
   async getStatusReasons(
     @Arg('statusId', { nullable: true }) statusId?: number,
   ) {
-    const query = await ProjectStatusReason.createQueryBuilder(
-      'project_status_reason',
-    ).leftJoinAndSelect('project_status_reason.status', 'status');
-
+    // const query = await ProjectStatusReason.createQueryBuilder(
+    //   'project_status_reason',
+    // ).leftJoinAndSelect('project_status_reason.status', 'status');
+    //
+    let result;
     if (statusId) {
-      query.where(`"statusId" = ${statusId}`);
+      result = await findStatusReasonsByStatusId(statusId);
+    } else {
+      result = await findAllStatusReasons();
     }
-    return query.getMany();
+    return result;
   }
 }
