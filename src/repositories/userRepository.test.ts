@@ -133,7 +133,23 @@ describe('findUserByWalletAddress test cases', () => {
       loginType: 'wallet',
       walletAddress: generateRandomEtheriumAddress(),
     }).save();
-    const foundUser = await findUserByWalletAddress(user?.walletAddress || '');
+    const foundUser = await findUserByWalletAddress(
+      user.walletAddress as string,
+    );
+    assert.isOk(foundUser);
+    assert.equal(foundUser?.walletAddress, user.walletAddress);
+  });
+
+  it('Should find user by uppercase walletAddress', async () => {
+    const email = `${new Date().getTime()}@giveth.io`;
+    const user = await User.create({
+      email,
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    }).save();
+    const foundUser = await findUserByWalletAddress(
+      (user?.walletAddress as string).toUpperCase(),
+    );
     assert.isOk(foundUser);
     assert.equal(foundUser?.walletAddress, user.walletAddress);
   });
@@ -154,15 +170,13 @@ describe('findUserById test cases', () => {
       loginType: 'wallet',
       walletAddress: generateRandomEtheriumAddress(),
     }).save();
-    const foundUser = await findUserById(user?.id || 1);
+    const foundUser = await findUserById(user?.id as number);
     assert.isOk(foundUser);
     assert.equal(foundUser?.id, user.id);
   });
 
-  it('should not find  user when walletAddress doesnt exists', async () => {
-    const foundUser = await findUserByWalletAddress(
-      generateRandomEtheriumAddress(),
-    );
+  it('should not find  user when userId doesnt exists', async () => {
+    const foundUser = await findUserById(1000000000);
     assert.isUndefined(foundUser);
   });
 });
