@@ -16,6 +16,8 @@ function getStatusReasonsTestCases() {
       query: projectStatusReasonsQuery,
       variables: {},
     });
+    // tslint:disable-next-line:no-console
+    console.log('result----------------', result.data);
     assert.isArray(result.data.data.getStatusReasons);
     assert.isOk(result.data.data.getStatusReasons[0]);
     assert.isOk(result.data.data.getStatusReasons[0].description);
