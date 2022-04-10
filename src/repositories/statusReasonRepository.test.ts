@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { ProjectStatus } from '../entities/projectStatus';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
 import {
   findAllStatusReasons,
@@ -8,45 +7,30 @@ import {
 
 describe('findAllStatusReasons test cases', () => {
   it('should find all status reasons', async () => {
-    const status = await ProjectStatus.create({
-      symbol: 'deactive',
-      name: 'deactive',
-      description: 'cancelled description',
-    }).save();
     await ProjectStatusReason.create({
-      status,
+      statusId: 6,
       description: 'test',
     }).save();
     const allStatusReasons = await findAllStatusReasons();
-    // tslint:disable-next-line:no-console
-    console.log('------------', allStatusReasons);
-    allStatusReasons.forEach(item => {
-      assert.equal(status.id, item.status.id);
-    });
+    assert.isOk(allStatusReasons);
+    assert.notEqual(allStatusReasons.length, 0);
   });
 });
 
 describe('findStatusReasonsByStatusId test cases', () => {
   it('should find status reasons by statusId', async () => {
-    const status = await ProjectStatus.create({
-      symbol: 'pending',
-      name: 'pending',
-      description: 'pending description',
-    }).save();
+    const statusId = 6;
     await ProjectStatusReason.create({
-      status,
+      statusId,
       description: 'test1',
     }).save();
-    const statusReasons = await findStatusReasonsByStatusId(status.id);
+    const statusReasons = await findStatusReasonsByStatusId(statusId);
     statusReasons.forEach(item => {
-      assert.equal(status.id, item.status.id);
+      assert.equal(statusId, item.status.id);
     });
   });
   it('should not find any status reasons for specific statusId', async () => {
-    const projectStatusCount = await ProjectStatusReason.count();
-    const statusReasons = await findStatusReasonsByStatusId(
-      projectStatusCount + 100,
-    );
+    const statusReasons = await findStatusReasonsByStatusId(10000000);
     assert.equal(statusReasons.length, 0);
   });
 });
