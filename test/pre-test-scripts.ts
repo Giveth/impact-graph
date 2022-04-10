@@ -55,13 +55,13 @@ async function seedDb() {
   await seedUsers();
   await seedCategories();
   await seedStatuses();
+  await seedOrganizations();
   await seedProjects();
   await seedProjectUpdates();
   await seedLikes();
   await seedDonations();
   await seedStatusReasons();
   await seedTokens();
-  await seedOrganizations();
   await relateOrganizationsToTokens();
 }
 
@@ -70,18 +70,21 @@ async function seedTokens() {
     await Token.create({
       ...token,
       networkId: 100,
+      isGivbackEligible: true,
     }).save();
   }
   for (const token of SEED_DATA.TOKENS.mainnet) {
     await Token.create({
       ...token,
       networkId: 1,
+      isGivbackEligible: true,
     }).save();
   }
   for (const token of SEED_DATA.TOKENS.ropsten) {
     await Token.create({
       ...token,
       networkId: 3,
+      isGivbackEligible: true,
     }).save();
   }
 }
@@ -103,6 +106,9 @@ async function relateOrganizationsToTokens() {
   const givingBlock = (await Organization.findOne({
     label: ORGANIZATION_LABELS.GIVING_BLOCK,
   })) as Organization;
+  const change = (await Organization.findOne({
+    label: ORGANIZATION_LABELS.CHANGE,
+  })) as Organization;
   giveth.tokens = tokens;
   await giveth.save();
   trace.tokens = tokens;
@@ -113,6 +119,14 @@ async function relateOrganizationsToTokens() {
   })) as Token;
   givingBlock.tokens = [etherMainnetToken];
   await givingBlock?.save();
+  const changeTokens = await Token.find({
+    where: [
+      { symbol: 'ETH', networkId: NETWORK_IDS.MAIN_NET },
+      { symbol: 'ETH', networkId: NETWORK_IDS.ROPSTEN },
+    ],
+  });
+  change.tokens = changeTokens;
+  await change.save();
 }
 async function seedUsers() {
   await User.create(SEED_DATA.FIRST_USER).save();

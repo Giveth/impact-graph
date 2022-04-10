@@ -11,7 +11,6 @@ import {
 } from 'typeorm';
 import { Project } from './project';
 import { Token } from './token';
-import { ProjectStatusReason } from './projectStatusReason';
 
 @Entity()
 @ObjectType()
@@ -32,6 +31,10 @@ export class Organization extends BaseEntity {
   @Field()
   @Column('text', { nullable: true })
   website?: string;
+
+  @Field()
+  @Column('boolean', { nullable: true, default: false })
+  supportCustomTokens?: boolean;
 
   @Field(type => [Project], { nullable: true })
   @OneToMany(type => Project, project => project.organization)

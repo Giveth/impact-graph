@@ -3,6 +3,7 @@ import config from '../config';
 import { User } from '../entities/user';
 
 export enum SegmentEvents {
+  DRAFTED_PROJECT_ACTIVATED = 'Draft published',
   PROJECT_LISTED = 'Project listed',
   PROJECT_UNLISTED = 'Project unlisted',
   PROJECT_EDITED = 'Project edited',
@@ -20,6 +21,8 @@ export enum SegmentEvents {
   UPDATED_PROFILE = 'Updated profile',
   GET_DONATION_PRICE_FAILED = 'Get Donation Price Failed',
 }
+
+const environment = config.get('ENVIRONMENT') as string;
 
 class GraphAnalytics {
   analytics: Analytics;
@@ -60,7 +63,7 @@ class GraphAnalytics {
 export function getAnalytics() {
   const segmentAnalytics = new Analytics(config.get('SEGMENT_API_KEY'), {
     flushAt: 1,
-    enable: config.get('NODE_ENV') !== 'test',
+    enable: environment !== 'test',
   });
   return new GraphAnalytics(segmentAnalytics);
 }

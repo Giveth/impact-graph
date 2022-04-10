@@ -1,4 +1,9 @@
 export const errorMessages = {
+  CHANGE_API_INVALID_TITLE_OR_EIN:
+    'ChangeAPI title or EIN not found or invalid',
+  CHANGE_API_TITLE_OR_EIN_NOT_PRECISE:
+    'Please query the exact project title or EIN ID from the ChangeAPI site',
+  NOT_SUPPORTED_THIRD_PARTY_API: 'Third Party API not supported',
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',

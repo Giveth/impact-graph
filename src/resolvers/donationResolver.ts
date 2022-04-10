@@ -35,7 +35,6 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../services/userService';
-import { logger } from '../utils/logger';
 import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 import { bold } from 'chalk';
 import { getCampaignDonations } from '../services/trace/traceService';
@@ -45,6 +44,7 @@ import {
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
+import { logger } from '../utils/logger';
 
 const analytics = getAnalytics();
 
@@ -167,7 +167,6 @@ export class DonationResolver {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase(),
     );
-
     const donations = await this.donationRepository.find({
       where: {
         fromWalletAddress: In(fromWalletAddressesArray),
@@ -359,7 +358,11 @@ export class DonationResolver {
         chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
       let donorUser;
 
-      const project = await Project.findOne({ id: Number(projectId) });
+      const project = await Project.createQueryBuilder('project')
+        .leftJoinAndSelect('project.organization', 'organization')
+        .leftJoinAndSelect('project.status', 'status')
+        .where(`project.id =${projectId}`)
+        .getOne();
 
       if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
       if (project.status.id !== ProjStatus.active) {
@@ -369,14 +372,20 @@ export class DonationResolver {
         networkId: chainId,
         symbol: token,
       });
-      if (!tokenInDb) throw new Error(errorMessages.TOKEN_NOT_FOUND);
-      const acceptsToken = await isTokenAcceptableForProject({
-        projectId,
-        tokenId: tokenInDb.id,
-      });
-      if (!acceptsToken) {
-        throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+      let isTokenEligibleForGivback = false;
+      if (!tokenInDb && !project.organization.supportCustomTokens) {
+        throw new Error(errorMessages.TOKEN_NOT_FOUND);
+      } else if (tokenInDb) {
+        const acceptsToken = await isTokenAcceptableForProject({
+          projectId,
+          tokenId: tokenInDb.id,
+        });
+        if (!acceptsToken && !project.organization.supportCustomTokens) {
+          throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+        }
+        isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
       }
+
       if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
         throw new Error(
           errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
@@ -402,6 +411,7 @@ export class DonationResolver {
         user: donorUser,
         tokenAddress,
         project,
+        isTokenEligibleForGivback,
         isProjectVerified: project.verified,
         createdAt: new Date(),
         segmentNotified: true,

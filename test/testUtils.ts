@@ -322,21 +322,25 @@ export const SEED_DATA = {
       name: 'Giveth',
       label: ORGANIZATION_LABELS.GIVETH,
       website: 'https://giveth.io',
+      supportCustomTokens: true,
     },
     {
       name: 'Trace',
       label: ORGANIZATION_LABELS.TRACE,
       website: 'https://trace.giveth.io',
+      supportCustomTokens: true,
     },
     {
       name: 'Giving Block',
       label: ORGANIZATION_LABELS.GIVING_BLOCK,
       website: 'https://thegivingblock.com',
+      supportCustomTokens: false,
     },
     {
       name: 'CHANGE',
       label: ORGANIZATION_LABELS.CHANGE,
       website: 'https://getchange.io',
+      supportCustomToken: false,
     },
   ],
   TOKENS: {

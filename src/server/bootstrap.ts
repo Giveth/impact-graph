@@ -34,9 +34,9 @@ import { runUpdateHistoricGivPrices } from '../services/cronJobs/syncGivPrices';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
-import { getCsvAirdropTransactions } from '../services/transactionService';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import { errorMessages } from '../utils/errorMessages';
+import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -203,7 +203,11 @@ export async function bootstrap() {
       },
     };
     app.use(cors(corsOptions));
-    app.use(bodyParser.json());
+    app.use(
+      bodyParser.json({
+        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
+      }),
+    );
     const limiter = new RateLimit({
       store: new RedisStore({
         prefix: 'rate-limit:',
@@ -229,7 +233,7 @@ export async function bootstrap() {
     app.use(
       '/graphql',
       json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000,
+        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
       }),
     );
     app.use(
@@ -262,11 +266,6 @@ export async function bootstrap() {
     app.use(adminBroQueryCache);
     app.use(adminBroRootPath, getAdminBroRouter());
 
-    app.use(
-      json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000,
-      }),
-    );
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
@@ -279,10 +278,9 @@ export async function bootstrap() {
     if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
       runGivingBlocksProjectSynchronization();
     }
-    await getCsvAirdropTransactions(
-      '0x0c452a7c116adb6162390f342cee84175f34e3c1bc0015e6f82773a54ace3061',
-      100,
-    );
+    if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
+      runSyncPoignArtDonations();
+    }
   } catch (err) {
     logger.error(err);
   }
