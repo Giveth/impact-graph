@@ -1,4 +1,5 @@
-FROM node:14-alpine
+#https://hub.docker.com/_/node?tab=tags&page=1
+FROM node:16.14.2-alpine3.15
 
 WORKDIR /usr/src/app
 
