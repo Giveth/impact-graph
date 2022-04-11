@@ -489,6 +489,7 @@ const getAdminBroInstance = () => {
             },
             // Organization is not editable, hooks are not working correctly
             edit: {
+              after: linkOrganizations,
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
               isVisible: true,
@@ -1236,6 +1237,47 @@ export const updateStatusOfProjects = async (
   };
 };
 
+export const linkOrganizations = async (request: AdminBroRequestInterface) => {
+  // edit action calls this method more than once, returning from those extra calls
+  // default handler updates the other params, we only care about orgs
+  if (!request.record.params.organizations) return request;
+
+  let message = `Token created successfully`;
+  let type = 'success';
+  const { organizations, id } = request.record.params;
+  try {
+    const token = await Token.createQueryBuilder('token')
+      .where('token.id = :id', { id })
+      .getOne();
+
+    if (organizations) {
+      // delete organization relation and relink them
+      await Token.query(`
+        DELETE FROM organization_tokens_token
+        WHERE "tokenId" = ${token!.id}
+      `);
+
+      const organizationsInDb = await Organization.createQueryBuilder(
+        'organization',
+      )
+        .where('organization.label IN (:...labels)', {
+          labels: organizations.split(','),
+        })
+        .getMany();
+
+      token!.organizations = organizationsInDb;
+    }
+
+    await token!.save();
+  } catch (e) {
+    logger.error('error creating token', e.message);
+    message = e.message;
+    type = 'danger';
+  }
+
+  return request;
+};
+
 export const createToken = async (
   request: AdminBroRequestInterface,
   response,
@@ -1282,7 +1324,7 @@ export const createToken = async (
     type = 'danger';
   }
 
-  response.send({
+  return response.send({
     redirectUrl: 'Token',
     record: {},
     notice: {
