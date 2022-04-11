@@ -13,5 +13,6 @@ export const findStatusReasonsByStatusId = async (statusId: number) => {
     'project_status_reason',
   ).leftJoinAndSelect('project_status_reason.status', 'status');
   query.where(`"statusId" = ${statusId}`);
-  return query.getMany();
+  const result = await query.getMany();
+  return result;
 };
