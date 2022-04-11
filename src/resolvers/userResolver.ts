@@ -24,6 +24,7 @@ import {
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
+import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 
 const analytics = getAnalytics();
 
@@ -147,10 +148,13 @@ export class UserResolver {
     const associatedVerifications = verificationsInput.map(verification => {
       return { ...verification, user: currentUser, dId };
     });
-    const accountVerifications = this.accountVerificationRepository.create(
-      associatedVerifications,
-    );
-    await this.accountVerificationRepository.save(accountVerifications);
+    // const accountVerifications = this.accountVerificationRepository.create(
+    //   associatedVerifications,
+    // );
+    // await this.accountVerificationRepository.save(accountVerifications);
+
+    // I don't know where this router use and even it use atall or not so I did not wite test for it
+    await createNewAccountVerification(associatedVerifications);
 
     return true;
   }
