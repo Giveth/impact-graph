@@ -1,7 +1,9 @@
 import {
   createDonation,
+  createToken,
   exportProjectsWithFiltersToCsv,
   importThirdPartyProject,
+  linkOrganizations,
   listDelist,
   updateStatusOfProjects,
   verifyProjects,
@@ -9,6 +11,7 @@ import {
 import {
   createProjectData,
   generateRandomEtheriumAddress,
+  generateRandomTxHash,
   saveProjectDirectlyToDb,
   SEED_DATA,
   sleep,
@@ -27,6 +30,8 @@ import { Donation } from '../entities/donation';
 import * as ChangeAPI from '../services/changeAPI/nonProfits';
 import sinon from 'sinon';
 import { errorMessages } from '../utils/errorMessages';
+import { Token } from '../entities/token';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -34,6 +39,8 @@ describe(
 );
 describe('verifyProjects() test cases', verifyProjectsTestCases);
 describe('listDelist() test cases', listDelistTestCases);
+describe('createToken() test cases', createTokenTestCases);
+describe('linkOrganizations() test cases', linkOrganizationsTestCases);
 describe('createDonation() test cases', createDonationTestCases);
 describe(
   'exportProjectsWithFiltersToCsv() test cases',
@@ -43,6 +50,94 @@ describe(
   'importThirdPartyProject() test cases',
   importThirdPartyProjectTestCases,
 );
+
+const DRGTTokenAddress = generateRandomTxHash();
+function createTokenTestCases() {
+  it('should create token when unique it is unique by network, address', async () => {
+    await createToken(
+      {
+        query: {},
+        payload: {
+          address: DRGTTokenAddress,
+          decimals: 18,
+          isGivbackEligible: true,
+          mainnetAddress: '',
+          name: 'DragonToken',
+          networkId: 1,
+          symbol: 'DRGT',
+          organizations: 'giveth,trace',
+        },
+      },
+      {
+        send: () => {
+          // ..
+        },
+      },
+    );
+
+    const newToken = await Token.findOne({ address: DRGTTokenAddress });
+    const organizations = await Organization.createQueryBuilder('organization')
+      .where(`organization.label = 'giveth' OR organization.label = 'trace'`)
+      .getMany();
+    assert.isOk(newToken);
+    assert.isTrue(newToken!.organizations.length === organizations.length);
+    assert.equal(newToken!.organizations[0].id, organizations[0].id);
+  });
+  it('should not create token when it is not unique by network and address', async () => {
+    await createToken(
+      {
+        query: {},
+        payload: {
+          address: DRGTTokenAddress,
+          decimals: 18,
+          isGivbackEligible: true,
+          mainnetAddress: '',
+          name: 'DragonToken',
+          networkId: 1,
+          symbol: 'DRGT',
+          organizations: 'giveth,trace',
+        },
+      },
+      {
+        send: () => {
+          // ..
+        },
+      },
+    );
+
+    const tokensWithAddress = await Token.find({ address: DRGTTokenAddress });
+    assert.isTrue(tokensWithAddress.length === 1);
+  });
+}
+
+function linkOrganizationsTestCases() {
+  it('should overwrite token organizations relationships when present', async () => {
+    const token = await Token.findOne({ address: DRGTTokenAddress });
+    await linkOrganizations({
+      query: {},
+      record: {
+        params: {
+          id: token!.id,
+          address: DRGTTokenAddress,
+          decimals: 18,
+          isGivbackEligible: true,
+          mainnetAddress: '',
+          name: 'DragonToken',
+          networkId: 1,
+          symbol: 'DRGT',
+          organizations: ORGANIZATION_LABELS.GIVING_BLOCK,
+        },
+      },
+    });
+
+    const tokenUpdated = await Token.findOne({ address: DRGTTokenAddress });
+    assert.isTrue(tokenUpdated!.organizations.length === 1);
+    assert.equal(
+      tokenUpdated!.organizations[0].label,
+      ORGANIZATION_LABELS.GIVING_BLOCK,
+    );
+  });
+}
 
 function importThirdPartyProjectTestCases() {
   it('should throw error when change api throws error', async () => {

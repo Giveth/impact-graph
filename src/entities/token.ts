@@ -11,7 +11,7 @@ import { Organization } from './organization';
 
 @Entity()
 @ObjectType()
-@Index(['name', 'address', 'networkId'], { unique: true })
+@Index(['address', 'networkId'], { unique: true })
 export class Token extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
