@@ -115,6 +115,7 @@
     "tslint:fix": "tslint -c tslint.json --fix '{src,test}/**/*.ts'",
     "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
     "test:userRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userRepository.test.ts",
+    "test:donationRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/donationRepository.test.ts",
     "test:uploadResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/uploadResolver.test.ts",
     "test:traceImageUpload": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/traceImageUpload.test.ts",
     "test:userResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/userResolver.test.ts",
