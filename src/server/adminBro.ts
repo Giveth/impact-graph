@@ -446,47 +446,7 @@ const getAdminBroInstance = async () => {
                 show: AdminBro.bundle('./components/ListOrganizationsNames'),
                 list: AdminBro.bundle('./components/ListOrganizationsNames'),
               },
-              availableValues: [
-                {
-                  value: (
-                    await Organization.createQueryBuilder(
-                      'organization',
-                    ).getMany()
-                  )
-                    .map(org => org.label)
-                    .join(','),
-                  label: 'All Organizations',
-                },
-                { value: 'giveth', label: 'Giveth' },
-                { value: 'trace', label: 'Trace' },
-                { value: 'givingBlock', label: 'GivingBlocks' },
-                { value: 'change', label: 'Change' },
-                { value: 'giveth,trace', label: 'Giveth, Trace' },
-                { value: 'giveth,givingBlock', label: 'Giveth, GivingBlocks' },
-                { value: 'giveth,change', label: 'Giveth, Change' },
-                {
-                  value: 'giveth,trace,givingBlock',
-                  label: 'Giveth, Trace, GivingBlocks',
-                },
-                {
-                  value: 'giveth,trace,change',
-                  label: 'Giveth, Trace, Change',
-                },
-                {
-                  value: 'giveth,givingBlock,change',
-                  label: 'Giveth, GivingBlocks, Change',
-                },
-                { value: 'trace,givingBlock', label: 'Trace, GivingBlocks' },
-                { value: 'trace,change', label: 'Trace, Change' },
-                {
-                  value: 'trace,givingBlock,change',
-                  label: 'Trace, GivingBlocks, Change',
-                },
-                {
-                  value: 'givingBlocks, change',
-                  label: 'GivingBlocks, Change',
-                },
-              ],
+              availableValues: await generateOrganizationList(),
             },
           },
           actions: {
@@ -1025,6 +985,72 @@ export const buildProjectsQuery = (
     });
 
   return query;
+};
+
+export const permuteOrganizations = (
+  organizationsLabels: string[],
+  organizationCount: number,
+) => {
+  let allPermutations: string[] = [];
+
+  for (
+    let permutationLength = 2;
+    permutationLength < organizationCount;
+    permutationLength++
+  ) {
+    const permutations = permute(organizationsLabels, permutationLength);
+    for (const permutation of permutations) {
+      allPermutations = allPermutations.concat(permutation.join(','));
+    }
+  }
+
+  return allPermutations
+    .sort((a, b) => a.length - b.length)
+    .map(labels => {
+      return { value: labels, label: labels };
+    });
+};
+
+export const permute = (organizationsLabels: string[], currentLength) => {
+  return organizationsLabels.flatMap((v, i) =>
+    currentLength > 1
+      ? permute(organizationsLabels.slice(i + 1), currentLength - 1).map(w => [
+          v,
+          ...w,
+        ])
+      : [[v]],
+  );
+};
+
+export const generateOrganizationList = async () => {
+  const organizationsList: {}[] = [];
+  const [organizations, organizationCount] =
+    await Organization.createQueryBuilder('organization')
+      .orderBy('organization.id')
+      .getManyAndCount();
+  const organizationLabels = organizations.map(org => org.label);
+  // 4 orgs (giveth ,  trace ,   )
+
+  const allOrganizations = {
+    value: organizationLabels.join(','),
+    label: 'All Organizations',
+  };
+
+  // all orgs in one (giveth,trace,blah,blah)
+  const individualOrganizations = organizations.map(org => {
+    return { value: org.label, label: org.label };
+  });
+
+  const organizationsPermutations = permuteOrganizations(
+    organizationLabels,
+    organizationCount,
+  );
+
+  return organizationsList.concat(
+    allOrganizations,
+    individualOrganizations,
+    organizationsPermutations,
+  );
 };
 
 export const exportProjectsWithFiltersToCsv = async (
