@@ -101,9 +101,9 @@ interface AdminBroRequestInterface {
 
 AdminBro.registerAdapter({ Database, Resource });
 
-export const getAdminBroRouter = () => {
+export const getAdminBroRouter = async () => {
   return AdminBroExpress.buildAuthenticatedRouter(
-    getAdminBroInstance(),
+    await getAdminBroInstance(),
     {
       authenticate: async (email, password) => {
         try {
@@ -200,7 +200,7 @@ export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
   return dbUser;
 };
 
-const getAdminBroInstance = () => {
+const getAdminBroInstance = async () => {
   return new AdminBro({
     branding: {
       logo: 'https://i.imgur.com/cGKo1Tk.png',
@@ -448,7 +448,13 @@ const getAdminBroInstance = () => {
               },
               availableValues: [
                 {
-                  value: 'giveth,trace,givingBlock,change',
+                  value: (
+                    await Organization.createQueryBuilder(
+                      'organization',
+                    ).getMany()
+                  )
+                    .map(org => org.label)
+                    .join(','),
                   label: 'All Organizations',
                 },
                 { value: 'giveth', label: 'Giveth' },
