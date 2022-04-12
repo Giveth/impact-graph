@@ -52,10 +52,10 @@ export const findDonationsToWalletAddresses = async (
   toWalletAddressesArray: string[],
 ) => {
   const donations = await Donation.query(`SELECT * FROM "donation"
-  WHERE LOWER("toWalletAddress") IN LOWER('${toWalletAddressesArray}')
+  WHERE LOWER("toWalletAddress") IN (${toWalletAddressesArray
+    .map(walletAddress => `LOWER('${walletAddress}')`)
+    .join(',')})
   `);
-  // tslint:disable-next-line:no-console
-  console.log('donations', donations);
   return donations;
 };
 
