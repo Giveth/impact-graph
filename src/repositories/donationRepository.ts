@@ -1,6 +1,7 @@
 import { In } from 'typeorm';
 import { Donation } from '../entities/donation';
 import { User } from '../entities/user';
+import { Project } from '../entities/project';
 
 export const findDonationWithJoinToUserAndProject = async (data: {
   fromDate?: string;
@@ -50,9 +51,11 @@ export const findDonationsFromWalletAddresses = async (
 export const findDonationsToWalletAddresses = async (
   toWalletAddressesArray: string[],
 ) => {
-  const donations = await Donation.query(`SELECT * FROM donations
+  const donations = await Donation.query(`SELECT * FROM "donation"
   WHERE LOWER("toWalletAddress") IN LOWER('${toWalletAddressesArray}')
   `);
+  // tslint:disable-next-line:no-console
+  console.log('donations', donations);
   return donations;
 };
 
@@ -63,4 +66,63 @@ export const findDonationByUserId = async userId => {
     },
   });
   return donations;
+};
+
+export const createDonation = async (data: {
+  amount: number;
+  isFiat: boolean;
+  project: Project;
+  transactionNetworkId: number;
+  fromWalletAddress: string;
+  transactionId: string;
+  tokenAddress: string;
+  isProjectVerified: boolean;
+  donorUser: any;
+  currency: string;
+  isTokenEligibleForGivback: boolean;
+  segmentNotified: boolean;
+  toWalletAddress: string;
+  donationAnonymous: boolean;
+  anonymous: boolean;
+  transakId: string;
+  token: string;
+}) => {
+  const {
+    amount,
+    transactionId,
+    isFiat,
+    transactionNetworkId,
+    currency,
+    donorUser,
+    tokenAddress,
+    project,
+    isTokenEligibleForGivback,
+    isProjectVerified,
+    donationAnonymous,
+    // createdAt,
+    segmentNotified,
+    toWalletAddress,
+    fromWalletAddress,
+    anonymous,
+    transakId,
+    token,
+  } = data;
+  const donation = await Donation.create({
+    amount: Number(amount),
+    transactionId: transactionId?.toLowerCase() || transakId,
+    isFiat: Boolean(transakId),
+    transactionNetworkId: Number(transactionNetworkId),
+    currency: token,
+    user: donorUser,
+    tokenAddress,
+    project,
+    isTokenEligibleForGivback,
+    isProjectVerified,
+    createdAt: new Date(),
+    segmentNotified: true,
+    toWalletAddress,
+    fromWalletAddress,
+    anonymous: donationAnonymous,
+  }).save();
+  return donation;
 };

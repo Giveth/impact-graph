@@ -46,6 +46,7 @@ import {
 import Web3 from 'web3';
 import { logger } from '../utils/logger';
 import {
+  createDonation,
   findDonationByUserId,
   findDonationsFromWalletAddresses,
   findDonationsToWalletAddresses,
@@ -56,6 +57,7 @@ import {
   findProjectByIdJoin,
 } from '../repositories/projectRepository';
 import { findTokenById } from '../repositories/tokenRepository';
+import { findUserById } from '../repositories/userRepository';
 
 const analytics = getAnalytics();
 
@@ -415,7 +417,8 @@ export class DonationResolver {
       }
 
       if (userId) {
-        donorUser = await User.findOne({ id: ctx.req.user.userId });
+        // donorUser = await User.findOne({ id: ctx.req.user.userId });
+        donorUser = await findUserById(ctx.req.user.userId);
       } else {
         donorUser = null;
       }
@@ -424,24 +427,27 @@ export class DonationResolver {
       const donationAnonymous =
         userId && anonymous !== undefined ? anonymous : !userId;
 
-      const donation = await Donation.create({
+      const donation = await createDonation({
         amount: Number(amount),
         transactionId: transactionId?.toLowerCase() || transakId,
         isFiat: Boolean(transakId),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
-        user: donorUser,
+        donorUser,
         tokenAddress,
         project,
         isTokenEligibleForGivback,
         isProjectVerified: project.verified,
-        createdAt: new Date(),
+        // createdAt: new Date(),
         segmentNotified: true,
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
-        anonymous: donationAnonymous,
+        donationAnonymous,
+        anonymous,
+        transakId,
+        token,
       });
-      await donation.save();
+      // await donation.save();
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
@@ -508,7 +514,8 @@ export class DonationResolver {
 
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId;
-        donorUser = await User.findOne({ id: userId });
+        // donorUser = await User.findOne({ id: userId });
+        donorUser = await findUserById(userId);
         analytics.identifyUser(donorUser);
         if (!donorUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`);
@@ -529,7 +536,8 @@ export class DonationResolver {
         );
       }
 
-      const projectOwner = await User.findOne({ id: Number(project.admin) });
+      // const projectOwner = await User.findOne({ id: Number(project.admin) });
+      const projectOwner = await findUserById(Number(project.admin));
 
       if (projectOwner) {
         analytics.identifyUser(projectOwner);
