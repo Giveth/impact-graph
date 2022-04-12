@@ -45,6 +45,10 @@ import {
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
 import { logger } from '../utils/logger';
+import {
+  findDonationsFromWalletAddresses,
+  findDonationWithJoinToUserAndProject,
+} from '../repositories/donationRepository';
 
 const analytics = getAnalytics();
 
@@ -140,18 +144,19 @@ export class DonationResolver {
   ) {
     try {
       validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
-      const query = this.donationRepository
-        .createQueryBuilder('donation')
-        .leftJoinAndSelect('donation.user', 'user')
-        .leftJoinAndSelect('donation.project', 'project');
-
-      if (fromDate) {
-        query.andWhere(`"createdAt" >= '${fromDate}'`);
-      }
-      if (toDate) {
-        query.andWhere(`"createdAt" <= '${toDate}'`);
-      }
-      return await query.getMany();
+      // const query = this.donationRepository
+      //   .createQueryBuilder('donation')
+      //   .leftJoinAndSelect('donation.user', 'user')
+      //   .leftJoinAndSelect('donation.project', 'project');
+      //
+      // if (fromDate) {
+      //   query.andWhere(`"createdAt" >= '${fromDate}'`);
+      // }
+      // if (toDate) {
+      //   query.andWhere(`"createdAt" <= '${toDate}'`);
+      // }
+      // return await query.getMany();
+      return await findDonationWithJoinToUserAndProject({ fromDate, toDate });
     } catch (e) {
       logger.error('donations query error', e);
       throw e;
@@ -167,11 +172,14 @@ export class DonationResolver {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase(),
     );
-    const donations = await this.donationRepository.find({
-      where: {
-        fromWalletAddress: In(fromWalletAddressesArray),
-      },
-    });
+    // const donations = await this.donationRepository.find({
+    //   where: {
+    //     fromWalletAddress: In(fromWalletAddressesArray),
+    //   },
+    // });
+    const donations = await findDonationsFromWalletAddresses(
+      fromWalletAddressesArray,
+    );
     return donations;
   }
 
