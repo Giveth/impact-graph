@@ -226,7 +226,7 @@ export class ProjectResolver {
     searchTerm: string,
   ) {
     if (!searchTerm) return query;
-
+    // TODO
     return query.andWhere(
       new Brackets(qb => {
         qb.where('project.title ILIKE :searchTerm', {
@@ -249,6 +249,7 @@ export class ProjectResolver {
     query: SelectQueryBuilder<Project>,
     userId: number,
   ) {
+    // TODO
     return query.leftJoinAndMapOne(
       'project.reaction',
       Reaction,
