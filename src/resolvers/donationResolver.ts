@@ -46,9 +46,16 @@ import {
 import Web3 from 'web3';
 import { logger } from '../utils/logger';
 import {
+  findDonationByUserId,
   findDonationsFromWalletAddresses,
+  findDonationsToWalletAddresses,
   findDonationWithJoinToUserAndProject,
 } from '../repositories/donationRepository';
+import {
+  findProjectById,
+  findProjectByIdJoin,
+} from '../repositories/projectRepository';
+import { findTokenById } from '../repositories/tokenRepository';
 
 const analytics = getAnalytics();
 
@@ -188,15 +195,16 @@ export class DonationResolver {
     @Ctx() ctx: MyContext,
     @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[],
   ) {
-    const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
-      o.toLowerCase(),
-    );
+    // const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
+    //   o.toLowerCase(),
+    // );
 
-    const donations = await this.donationRepository.find({
-      where: {
-        toWalletAddress: In(toWalletAddressesArray),
-      },
-    });
+    // const donations = await this.donationRepository.find({
+    //   where: {
+    //     toWalletAddress: In(toWalletAddressesArray),
+    //   },
+    // });
+    const donations = await findDonationsToWalletAddresses(toWalletAddresses);
     return donations;
   }
   @Query(returns => PaginateDonations, { nullable: true })
@@ -216,9 +224,10 @@ export class DonationResolver {
     })
     orderBy: SortBy,
   ) {
-    const project = await Project.findOne({
-      id: projectId,
-    });
+    // const project = await Project.findOne({
+    //   id: projectId,
+    // });
+    const project = await findProjectById(projectId);
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
@@ -235,6 +244,7 @@ export class DonationResolver {
         totalUsdBalance: project.totalTraceDonations,
       };
     } else {
+      // TODO
       const query = this.donationRepository
         .createQueryBuilder('donation')
         .leftJoinAndSelect('donation.user', 'user')
@@ -309,11 +319,12 @@ export class DonationResolver {
     if (!ctx.req.user)
       throw new Error(errorMessages.DONATION_VIEWING_LOGIN_REQUIRED);
 
-    const donations = await this.donationRepository.find({
-      where: {
-        user: ctx.req.user.userId,
-      },
-    });
+    // const donations = await this.donationRepository.find({
+    //   where: {
+    //     user: ctx.req.user.userId,
+    //   },
+    // });
+    const donations = await findDonationByUserId(ctx.req.user.userId);
 
     return donations;
   }
@@ -322,6 +333,7 @@ export class DonationResolver {
   async donationsByUserId(
     @Args() { take, skip, orderBy, userId }: UserDonationsArgs,
   ) {
+    // TODO
     const [donations, totalCount] = await this.donationRepository
       .createQueryBuilder('donation')
       .leftJoinAndSelect('donation.project', 'project')
@@ -366,20 +378,22 @@ export class DonationResolver {
         chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
       let donorUser;
 
-      const project = await Project.createQueryBuilder('project')
-        .leftJoinAndSelect('project.organization', 'organization')
-        .leftJoinAndSelect('project.status', 'status')
-        .where(`project.id =${projectId}`)
-        .getOne();
+      // const project = await Project.createQueryBuilder('project')
+      //   .leftJoinAndSelect('project.organization', 'organization')
+      //   .leftJoinAndSelect('project.status', 'status')
+      //   .where(`project.id =${projectId}`)
+      //   .getOne();
+      const project = await findProjectByIdJoin(projectId);
 
       if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
       if (project.status.id !== ProjStatus.active) {
         throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
       }
-      const tokenInDb = await Token.findOne({
-        networkId: chainId,
-        symbol: token,
-      });
+      // const tokenInDb = await Token.findOne({
+      //   networkId: chainId,
+      //   symbol: token,
+      // });
+      const tokenInDb = await findTokenById({ chainId, token });
       let isTokenEligibleForGivback = false;
       if (!tokenInDb && !project.organization.supportCustomTokens) {
         throw new Error(errorMessages.TOKEN_NOT_FOUND);
