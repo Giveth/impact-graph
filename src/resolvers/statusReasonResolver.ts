@@ -4,6 +4,7 @@ import {
   findAllStatusReasons,
   findStatusReasonsByStatusId,
 } from '../repositories/statusReasonRepository';
+import { logger } from '../utils/logger';
 
 @Resolver(of => ProjectStatusReason)
 export class StatusReasonResolver {
@@ -11,16 +12,13 @@ export class StatusReasonResolver {
   async getStatusReasons(
     @Arg('statusId', { nullable: true }) statusId?: number,
   ) {
-    // const query = await ProjectStatusReason.createQueryBuilder(
-    //   'project_status_reason',
-    // ).leftJoinAndSelect('project_status_reason.status', 'status');
-    //
-    let result;
-    if (statusId) {
-      result = await findStatusReasonsByStatusId(statusId);
-    } else {
-      result = await findAllStatusReasons();
+    try {
+      return statusId
+        ? await findStatusReasonsByStatusId(statusId)
+        : await findAllStatusReasons();
+    } catch (e) {
+      logger.error('getStatusReasons error', e);
+      throw e;
     }
-    return result;
   }
 }
