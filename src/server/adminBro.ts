@@ -993,6 +993,7 @@ export const permuteOrganizations = (
 ) => {
   let allPermutations: string[] = [];
 
+  // we exclude from here the AllOrganizationsOption and length 1 selection
   for (
     let permutationLength = 2;
     permutationLength < organizationCount;
@@ -1011,14 +1012,15 @@ export const permuteOrganizations = (
     });
 };
 
+// generates orderly permutations and maps then into an array which is later flatten into 1 dimension
+// Current length is the length of selected items from the total items
 export const permute = (organizationsLabels: string[], currentLength) => {
-  return organizationsLabels.flatMap((v, i) =>
+  return organizationsLabels.flatMap((value, index) =>
     currentLength > 1
-      ? permute(organizationsLabels.slice(i + 1), currentLength - 1).map(w => [
-          v,
-          ...w,
-        ])
-      : [[v]],
+      ? permute(organizationsLabels.slice(index + 1), currentLength - 1).map(
+          permutation => [value, ...permutation],
+        )
+      : [[value]],
   );
 };
 
@@ -1029,14 +1031,14 @@ export const generateOrganizationList = async () => {
       .orderBy('organization.id')
       .getManyAndCount();
   const organizationLabels = organizations.map(org => org.label);
-  // 4 orgs (giveth ,  trace ,   )
 
+  // all organization labels into 1 option
   const allOrganizations = {
     value: organizationLabels.join(','),
     label: 'All Organizations',
   };
 
-  // all orgs in one (giveth,trace,blah,blah)
+  // all four organizations separated
   const individualOrganizations = organizations.map(org => {
     return { value: org.label, label: org.label };
   });
