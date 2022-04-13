@@ -138,7 +138,6 @@ export class UserResolver {
   ): Promise<boolean> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
-    // const currentUser = await User.findOne({ id: user.userId });
     const currentUser = await findUserById(user.userId);
     if (!currentUser) throw new Error(errorMessages.USER_NOT_FOUND);
 
@@ -148,12 +147,8 @@ export class UserResolver {
     const associatedVerifications = verificationsInput.map(verification => {
       return { ...verification, user: currentUser, dId };
     });
-    // const accountVerifications = this.accountVerificationRepository.create(
-    //   associatedVerifications,
-    // );
-    // await this.accountVerificationRepository.save(accountVerifications);
 
-    // I don't know where this router use and even it use atall or not so I did not wite test for it
+    // I don't know wether we use this mutation or not, maybe it's useless
     await createNewAccountVerification(associatedVerifications);
 
     return true;
