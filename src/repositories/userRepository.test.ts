@@ -158,7 +158,7 @@ describe('findUserByWalletAddress test cases', () => {
     const foundUser = await findUserByWalletAddress(
       generateRandomEtheriumAddress(),
     );
-    assert.isUndefined(foundUser);
+    assert.isNotOk(foundUser);
   });
 });
 
