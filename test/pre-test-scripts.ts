@@ -96,7 +96,7 @@ async function seedOrganizations() {
 }
 
 async function relateOrganizationsToTokens() {
-  const tokens = await Token.find({});
+  const tokens = await Token.createQueryBuilder('token').getMany();
   const giveth = (await Organization.findOne({
     label: ORGANIZATION_LABELS.GIVETH,
   })) as Organization;
