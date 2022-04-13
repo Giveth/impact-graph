@@ -4,11 +4,16 @@ import {
   findAllStatusReasons,
   findStatusReasonsByStatusId,
 } from './statusReasonRepository';
+import { ProjectStatus } from '../entities/projectStatus';
+import { ProjStatus } from '../entities/project';
 
 describe('findAllStatusReasons test cases', () => {
   it('should find all status reasons', async () => {
+    const status = await ProjectStatus.findOne({
+      id: ProjStatus.active,
+    });
     await ProjectStatusReason.create({
-      statusId: 6,
+      status,
       description: 'test',
     }).save();
     const allStatusReasons = await findAllStatusReasons();
@@ -19,14 +24,16 @@ describe('findAllStatusReasons test cases', () => {
 
 describe('findStatusReasonsByStatusId test cases', () => {
   it('should find status reasons by statusId', async () => {
-    const statusId = 6;
+    const status = (await ProjectStatus.findOne({
+      id: ProjStatus.active,
+    })) as ProjectStatus;
     await ProjectStatusReason.create({
-      statusId,
+      status,
       description: 'test1',
     }).save();
-    const statusReasons = await findStatusReasonsByStatusId(statusId);
+    const statusReasons = await findStatusReasonsByStatusId(status?.id);
     statusReasons.forEach(item => {
-      assert.equal(statusId, item.status.id);
+      assert.equal(item.status.id, status?.id);
     });
   });
   it('should not find any status reasons for specific statusId', async () => {
