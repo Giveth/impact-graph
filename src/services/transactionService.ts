@@ -252,7 +252,8 @@ function validateTransactionWithInputData(
       errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
     );
   }
-  if (transaction.amount !== input.amount) {
+  if (Math.abs(transaction.amount - input.amount) > 0.001) {
+    // We ignore small conflicts but for bigger amount we throw exception https://github.com/Giveth/impact-graph/issues/289
     throw new Error(
       errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
     );
