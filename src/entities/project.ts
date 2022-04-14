@@ -381,13 +381,11 @@ class ProjectUpdate extends BaseEntity {
 
   @AfterInsert()
   async updateProjectStampOnCreation() {
-    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
-    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 }
