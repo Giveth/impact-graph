@@ -80,6 +80,7 @@ const headers = [
   'listed',
   'totalDonations',
   'totalProjectUpdates',
+  'website',
 ];
 
 interface AdminBroContextInterface {
@@ -978,6 +979,7 @@ const sendProjectsToGoogleSheet = async (
       listed: Boolean(project.listed),
       totalDonations: project.totalDonations,
       totalProjectUpdates: project.totalProjectUpdates,
+      website: project.website || '',
     };
   });
 
