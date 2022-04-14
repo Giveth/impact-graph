@@ -80,6 +80,7 @@ const headers = [
   'listed',
   'totalDonations',
   'totalProjectUpdates',
+  'website',
 ];
 
 interface AdminBroContextInterface {

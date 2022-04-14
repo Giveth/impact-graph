@@ -42,6 +42,7 @@ export const addSheetWithRows = async (
     listed: boolean;
     totalDonations: number;
     totalProjectUpdates: number;
+    website: string;
   }[],
 ): Promise<void> => {
   try {
