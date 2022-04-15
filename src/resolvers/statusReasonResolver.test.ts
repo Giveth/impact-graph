@@ -47,7 +47,7 @@ function getStatusReasonsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: projectStatusReasonsQuery,
       variables: {
-        statusId: new Date().getTime(),
+        statusId: 1000000,
       },
     });
     assert.isArray(result.data.data.getStatusReasons);
