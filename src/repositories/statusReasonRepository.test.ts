@@ -18,7 +18,7 @@ describe('findAllStatusReasons test cases', () => {
     }).save();
     const allStatusReasons = await findAllStatusReasons();
     assert.isOk(allStatusReasons);
-    assert.notEqual(allStatusReasons.length, 0);
+    assert.isNotEmpty(allStatusReasons);
   });
 });
 
@@ -38,6 +38,6 @@ describe('findStatusReasonsByStatusId test cases', () => {
   });
   it('should not find any status reasons for specific statusId', async () => {
     const statusReasons = await findStatusReasonsByStatusId(10000000);
-    assert.equal(statusReasons.length, 0);
+    assert.isEmpty(statusReasons);
   });
 });

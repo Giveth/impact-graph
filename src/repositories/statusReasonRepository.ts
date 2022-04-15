@@ -13,6 +13,6 @@ export const findStatusReasonsByStatusId = async (
 ): Promise<ProjectStatusReason[]> => {
   return ProjectStatusReason.createQueryBuilder('project_status_reason')
     .leftJoinAndSelect('project_status_reason.status', 'status')
-    .where(`"statusId" = ${statusId}`)
+    .where('project_status_reason."statusId" = :statusId', { statusId })
     .getMany();
 };
