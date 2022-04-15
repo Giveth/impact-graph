@@ -86,22 +86,25 @@ describe('findDonationByUserId test cases', () => {
   });
 });
 
-// describe('createDonation test cases', () => {
-//   it('should create donation ', async () => {
-//     const email = `${new Date().getTime()}@giveth.io`;
-//     const user = await User.create({
-//       email,
-//       role: UserRole.ADMIN,
-//       walletAddress: generateRandomEtheriumAddress(),
-//       loginType: 'wallet',
-//     }).save();
-//     const project = await saveProjectDirectlyToDb(createProjectData());
-//     const donationData = createDonationData();
-//     const walletAddress = generateRandomEtheriumAddress();
-//     donationData.toWalletAddress = walletAddress;
-//     donationData.projectId = project.id;
-//     const newDonation = await createDonation(donationData);
-//     assert.isOk(newDonation);
-//     assert.equal(newDonation.projectId, project.id);
-//   });
-// });
+describe('createDonation test cases', () => {
+  it('should create donation ', async () => {
+    const email = `${new Date().getTime()}@giveth.io`;
+    const user = await User.create({
+      email,
+      role: UserRole.ADMIN,
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+    }).save();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donationData = createDonationData();
+    const walletAddress = generateRandomEtheriumAddress();
+    donationData.toWalletAddress = walletAddress;
+    donationData.projectId = project.id;
+    const newDonation = await createDonation({
+      project,
+      token,
+    });
+    assert.isOk(newDonation);
+    assert.equal(newDonation.projectId, project.id);
+  });
+});

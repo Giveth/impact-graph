@@ -50,22 +50,20 @@ export const findDonationsFromWalletAddresses = async (
 
 export const findDonationsToWalletAddresses = async (
   toWalletAddressesArray: string[],
-) => {
-  const donations = await Donation.query(`SELECT * FROM "donation"
+): Promise<Donation[]> => {
+  return Donation.query(`SELECT * FROM "donation"
   WHERE LOWER("toWalletAddress") IN (${toWalletAddressesArray
     .map(walletAddress => `LOWER('${walletAddress}')`)
     .join(',')})
   `);
-  return donations;
 };
 
-export const findDonationByUserId = async userId => {
-  const donations = await Donation.find({
+export const findDonationByUserId = async (userId): Promise<Donation[]> => {
+  return Donation.find({
     where: {
       user: userId,
     },
   });
-  return donations;
 };
 
 export const createDonation = async (data: {
@@ -86,7 +84,7 @@ export const createDonation = async (data: {
   anonymous: boolean;
   transakId: string;
   token: string;
-}) => {
+}): Promise<Donation> => {
   const {
     amount,
     transactionId,
