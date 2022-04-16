@@ -42,7 +42,11 @@ import {
 } from '../entities/projectStatusHistory';
 import { Organization } from '../entities/organization';
 import { PurpleAddress } from '../entities/purpleAddress';
-import { findAdminUserByEmail } from '../repositories/userRepository';
+import {
+  findAdminUserByEmail,
+  findUserById,
+  findUserByWalletAddress,
+} from '../repositories/userRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -192,7 +196,7 @@ export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
   }
   if (!adminUser) return false;
 
-  const dbUser = await User.findOne({ id: adminUser.id });
+  const dbUser = await findUserById(adminUser.id);
   if (!dbUser) return false;
 
   return dbUser;
@@ -1262,9 +1266,7 @@ export const createDonation = async (
         anonymous: true,
         isTokenEligibleForGivback: true,
       });
-      const donor = await User.findOne({
-        walletAddress: transactionInfo?.from,
-      });
+      const donor = await findUserByWalletAddress(transactionInfo?.from);
       if (donor) {
         donation.anonymous = false;
         donation.user = donor;

@@ -1,7 +1,7 @@
 import { User, UserRole } from '../entities/user';
 
 export const findAdminUserByEmail = async (
-  email,
+  email: string,
 ): Promise<User | undefined> => {
   const users = await User.query(`
             SELECT * FROM public."user"
