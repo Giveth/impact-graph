@@ -1107,7 +1107,7 @@ const sendProjectsToGoogleSheet = async (
       admin: project.admin,
       creationDate: project.creationDate,
       updatedAt: project.updatedAt,
-      impactLocation: project.impactLocation,
+      impactLocation: project.impactLocation || '',
       walletAddress: project.walletAddress,
       statusId: project.statusId,
       qualityScore: project.qualityScore,
