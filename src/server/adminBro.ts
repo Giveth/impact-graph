@@ -1361,7 +1361,7 @@ export const createToken = async (
     type = 'danger';
   }
 
-  return response.send({
+  response.send({
     redirectUrl: 'Token',
     record: {},
     notice: {
