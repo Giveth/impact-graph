@@ -61,9 +61,9 @@ const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminBroCookie = 'adminbro';
 
 const segmentProjectStatusEvents = {
-  act: SegmentEvents.PROJECT_ACTIVATED,
-  can: SegmentEvents.PROJECT_DEACTIVATED,
-  del: SegmentEvents.PROJECT_CANCELLED,
+  activate: SegmentEvents.PROJECT_ACTIVATED,
+  deactivate: SegmentEvents.PROJECT_DEACTIVATED,
+  cancelled: SegmentEvents.PROJECT_CANCELLED,
 };
 
 // headers defined by the verification team for exporting
