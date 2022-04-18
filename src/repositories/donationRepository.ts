@@ -68,7 +68,6 @@ export const findDonationByUserId = async (userId): Promise<Donation[]> => {
 
 export const createDonation = async (data: {
   amount: number;
-  isFiat: boolean;
   project: Project;
   transactionNetworkId: number;
   fromWalletAddress: string;
@@ -76,32 +75,25 @@ export const createDonation = async (data: {
   tokenAddress: string;
   isProjectVerified: boolean;
   donorUser: any;
-  currency: string;
   isTokenEligibleForGivback: boolean;
   segmentNotified: boolean;
   toWalletAddress: string;
   donationAnonymous: boolean;
-  anonymous: boolean;
   transakId: string;
   token: string;
 }): Promise<Donation> => {
   const {
     amount,
     transactionId,
-    isFiat,
     transactionNetworkId,
-    currency,
     donorUser,
     tokenAddress,
     project,
     isTokenEligibleForGivback,
     isProjectVerified,
     donationAnonymous,
-    // createdAt,
-    segmentNotified,
     toWalletAddress,
     fromWalletAddress,
-    anonymous,
     transakId,
     token,
   } = data;

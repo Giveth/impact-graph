@@ -101,8 +101,20 @@ describe('createDonation test cases', () => {
     donationData.toWalletAddress = walletAddress;
     donationData.projectId = project.id;
     const newDonation = await createDonation({
+      donationAnonymous: false,
+      donorUser: user,
+      isProjectVerified: false,
+      isTokenEligibleForGivback: false,
       project,
-      token,
+      segmentNotified: false,
+      tokenAddress: '',
+      transakId: '',
+      transactionId: '9151faa1-e69b-4a36-b959-3c4f894afb68',
+      transactionNetworkId: 10,
+      toWalletAddress: '134',
+      fromWalletAddress: '134',
+      amount: 10,
+      token: 'jgjbjbkjbnjknb',
     });
     assert.isOk(newDonation);
     assert.equal(newDonation.projectId, project.id);
