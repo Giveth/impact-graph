@@ -233,6 +233,7 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
     assert.notEqual(transactionInfo.hash, txHash);
   });
+
   it('should return transaction detail for DAI token transfer on mainnet', async () => {
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
     const amount = 1760;
@@ -249,6 +250,24 @@ function getTransactionDetailTestCases() {
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'DAI');
     assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for DAI token transfer on mainnet, when amount difference is tiny', async () => {
+    // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
+    const amount = 1760.001;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
+      symbol: 'DAI',
+      networkId: NETWORK_IDS.MAIN_NET,
+      fromAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
+      toAddress: '0x2Ea846Dc38C6b6451909F1E7ff2bF613a96DC1F3',
+      amount,
+      timestamp: 1624772582,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'DAI');
+    assert.equal(transactionInfo.amount, 1760);
   });
 
   it('should return error when fromAddress of transaction is different from donation fromAddress for DAI in mainnet', async () => {
