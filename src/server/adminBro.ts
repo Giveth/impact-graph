@@ -1335,8 +1335,8 @@ export const createToken = async (
     const newToken = Token.create({
       name,
       symbol,
-      address,
-      mainnetAddress,
+      address: address?.toLowerCase(),
+      mainnetAddress: mainnetAddress?.toLowerCase(),
       isGivbackEligible,
       decimals: Number(decimals),
       networkId: Number(networkId),
