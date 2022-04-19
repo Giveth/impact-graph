@@ -7,6 +7,7 @@ import DonationTracker from './segment/DonationTracker';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { Organization } from '../entities/organization';
+import { findUserById } from '../repositories/userRepository';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -63,7 +64,7 @@ export const updateDonationByTransakData = async (
 
 const notifyTransakUpdate = async donation => {
   const project = await Project.findOne({ id: donation.projectId });
-  const owner = await User.findOne({ id: Number(project?.admin) });
+  const owner = await findUserById(Number(project?.admin));
 
   // Notify Owner of donation, and notify authenticated user his donation was received
   if (project && owner) {
@@ -75,7 +76,7 @@ const notifyTransakUpdate = async donation => {
     ).track();
 
     if (!donation.anonymous) {
-      const donor = await User.findOne({ id: donation.userId });
+      const donor = await findUserById(donation.userId);
 
       if (donor)
         new DonationTracker(

@@ -1,11 +1,24 @@
 import { User, UserRole } from '../entities/user';
 
-export const findAdminUserByEmail = async (email): Promise<User | null> => {
-  const users = await User.query(`
-            SELECT * FROM public."user"
-            WHERE email='${email}'
-            AND role != '${UserRole.RESTRICTED}'
-            LIMIT 1
-          `);
-  return users.length > 0 ? users[0] : null;
+export const findAdminUserByEmail = async (
+  email: string,
+): Promise<User | undefined> => {
+  return User.createQueryBuilder()
+    .where(`email = :email`, { email })
+    .andWhere(`role != '${UserRole.RESTRICTED}'`)
+    .getOne();
+};
+
+export const findUserByWalletAddress = async (
+  walletAddress: string,
+): Promise<User | undefined> => {
+  return User.createQueryBuilder()
+    .where(`LOWER("walletAddress") = :walletAddress`, {
+      walletAddress: walletAddress.toLowerCase(),
+    })
+    .getOne();
+};
+
+export const findUserById = (userId: number): Promise<User | undefined> => {
+  return User.findOne({ id: userId });
 };

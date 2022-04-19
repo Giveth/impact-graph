@@ -20,6 +20,11 @@ import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { errorMessages } from '../utils/errorMessages';
 import { Project } from '../entities/project';
 import { validateEmail } from '../utils/validators/commonValidators';
+import {
+  findUserById,
+  findUserByWalletAddress,
+} from '../repositories/userRepository';
+import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 
 const analytics = getAnalytics();
 
@@ -36,6 +41,7 @@ export class UserResolver {
     // return User.create(data).save();
   }
 
+  // TODO it seems this endpoint doesnt use https://github.com/Giveth/giveth-dapps-v2/blob/develop/src/apollo/gql/gqlUser.ts
   @Query(returns => User, { nullable: true })
   async user(@Arg('userId', type => Int) userId: number) {
     return await this.userRepository.findOne({
@@ -46,7 +52,7 @@ export class UserResolver {
 
   @Query(returns => User, { nullable: true })
   userByAddress(@Arg('address', type => String) address: string) {
-    return this.userRepository.findOne({ walletAddress: address });
+    return findUserByWalletAddress(address);
   }
 
   @Mutation(returns => Boolean)
@@ -60,7 +66,7 @@ export class UserResolver {
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-    const dbUser = await User.findOne({ id: user.userId });
+    const dbUser = await findUserById(user.userId);
     if (!dbUser) {
       return false;
     }
@@ -130,7 +136,7 @@ export class UserResolver {
   ): Promise<boolean> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
-    const currentUser = await User.findOne({ id: user.userId });
+    const currentUser = await findUserById(user.userId);
     if (!currentUser) throw new Error(errorMessages.USER_NOT_FOUND);
 
     currentUser.dId = dId;
@@ -139,10 +145,9 @@ export class UserResolver {
     const associatedVerifications = verificationsInput.map(verification => {
       return { ...verification, user: currentUser, dId };
     });
-    const accountVerifications = this.accountVerificationRepository.create(
-      associatedVerifications,
-    );
-    await this.accountVerificationRepository.save(accountVerifications);
+
+    // I don't know wether we use this mutation or not, maybe it's useless
+    await createNewAccountVerification(associatedVerifications);
 
     return true;
   }

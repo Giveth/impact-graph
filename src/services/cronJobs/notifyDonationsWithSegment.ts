@@ -7,6 +7,7 @@ import { User } from '../../entities/user';
 import { sleep } from '../../utils/utils';
 import config from '../../config';
 import { TRANSAK_COMPLETED_STATUS } from '../donationService';
+import { findUserById } from '../../repositories/userRepository';
 
 const analytics = getAnalytics();
 
@@ -41,7 +42,7 @@ export const notifyMissingDonationsWithSegment = async () => {
       donation.id,
     );
     const project = await Project.findOne({ id: donation.projectId });
-    const owner = await User.findOne({ id: Number(project?.admin) });
+    const owner = await findUserById(Number(project?.admin));
     // Notify owner donation was received ( if user and owner and project exist)
     donation.segmentNotified = true;
     await donation.save();
@@ -61,7 +62,7 @@ export const notifyMissingDonationsWithSegment = async () => {
       );
     }
 
-    const user = await User.findOne({ id: donation.userId });
+    const user = await findUserById(donation.userId);
     // Notify user donation was made
     if (project && user) {
       analytics.identifyUser(user);
