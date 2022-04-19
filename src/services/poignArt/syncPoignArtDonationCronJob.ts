@@ -76,7 +76,7 @@ const createPoignArtDonationInDb = async (
 ) => {
   const ethPrice = (
     await fetchGivHistoricPrice(poignArtWithdrawal.txHash, NETWORK_IDS.MAIN_NET)
-  ).givPriceInEth;
+  ).ethPriceInUsd;
   const donation = Donation.create({
     project: unchainProject,
     toWalletAddress: unchainProject.walletAddress,

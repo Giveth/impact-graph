@@ -45,6 +45,7 @@ import {
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
 import { logger } from '../utils/logger';
+import { findUserById } from '../repositories/userRepository';
 
 const analytics = getAnalytics();
 
@@ -393,7 +394,7 @@ export class DonationResolver {
       }
 
       if (userId) {
-        donorUser = await User.findOne({ id: ctx.req.user.userId });
+        donorUser = await findUserById(ctx.req.user.userId);
       } else {
         donorUser = null;
       }
@@ -486,7 +487,7 @@ export class DonationResolver {
 
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId;
-        donorUser = await User.findOne({ id: userId });
+        donorUser = await findUserById(userId);
         analytics.identifyUser(donorUser);
         if (!donorUser)
           throw Error(`The logged in user doesn't exist - id ${userId}`);
@@ -507,7 +508,7 @@ export class DonationResolver {
         );
       }
 
-      const projectOwner = await User.findOne({ id: Number(project.admin) });
+      const projectOwner = await findUserById(Number(project.admin));
 
       if (projectOwner) {
         analytics.identifyUser(projectOwner);
