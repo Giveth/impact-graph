@@ -266,6 +266,7 @@ export class ProjectResolver {
     const query = Project.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
