@@ -34,7 +34,8 @@ interface ChangeNonProfit {
     solana_address?: string;
   };
   ein: string;
-  icon_url: string;
+  icon_url?: string;
+  cover_image_url?: string;
   id: string;
   mission: string;
   name: string;
@@ -90,10 +91,9 @@ export const createProjectFromChangeNonProfit = async (
     });
     const slug = await getAppropriateSlug(slugBase);
 
-    const qualityScore = getQualityScore(
-      nonProfit.mission,
-      Boolean(nonProfit.icon_url),
-    );
+    const image = nonProfit?.cover_image_url || nonProfit?.icon_url;
+
+    const qualityScore = getQualityScore(nonProfit.mission, Boolean(image));
 
     const project = Project.create({
       title: nonProfit.name,
@@ -105,7 +105,7 @@ export const createProjectFromChangeNonProfit = async (
       slug,
       youtube: nonProfit.socials.youtube,
       website: nonProfit.website,
-      image: nonProfit.icon_url,
+      image,
       slugHistory: [],
       changeId: String(nonProfit.id),
       admin: adminId,
