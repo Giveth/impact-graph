@@ -15,6 +15,7 @@ import { registerEnumType, Field, ID, ObjectType } from 'type-graphql';
 import config from '../config';
 import SentryLogger from '../sentryLogger';
 import { getAnalytics } from '../analytics/analytics';
+import { findUserByWalletAddress } from '../repositories/userRepository';
 
 const analytics = getAnalytics();
 // tslint:disable-next-line:no-var-requires
@@ -223,9 +224,7 @@ export class LoginResolver {
     if (walletAddress.toLocaleLowerCase() !== publicAddressLowerCase)
       return null;
 
-    let user = await User.findOne({
-      where: { walletAddress: publicAddressLowerCase },
-    });
+    let user = await findUserByWalletAddress(publicAddressLowerCase);
 
     try {
       if (!user) {

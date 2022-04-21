@@ -417,7 +417,7 @@ export class DonationResolver {
       }
 
       if (userId) {
-        // donorUser = await User.findOne({ id: ctx.req.user.userId });
+        // donorUser = await findUserById(ctx.req.user.userId);
         donorUser = await findUserById(ctx.req.user.userId);
       } else {
         donorUser = null;
@@ -510,7 +510,7 @@ export class DonationResolver {
 
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId;
-        // donorUser = await User.findOne({ id: userId });
+        // donorUser = await findUserById(userId);
         donorUser = await findUserById(userId);
         analytics.identifyUser(donorUser);
         if (!donorUser)
@@ -532,7 +532,7 @@ export class DonationResolver {
         );
       }
 
-      // const projectOwner = await User.findOne({ id: Number(project.admin) });
+      // const projectOwner = await findUserById(Number(project.admin));
       const projectOwner = await findUserById(Number(project.admin));
 
       if (projectOwner) {

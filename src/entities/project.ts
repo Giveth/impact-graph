@@ -29,6 +29,7 @@ import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
 import { errorMessages } from '../utils/errorMessages';
 import { Organization } from './organization';
+import { findUserById } from '../repositories/userRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -282,7 +283,7 @@ class Project extends BaseEntity {
     const { project, status, prevStatus, description, reasonId, userId } =
       inputData;
     let reason;
-    const user = await User.findOne({ id: userId });
+    const user = await findUserById(userId);
 
     if (reasonId) {
       reason = await ProjectStatusReason.findOne({ id: reasonId, status });
@@ -381,13 +382,11 @@ class ProjectUpdate extends BaseEntity {
 
   @AfterInsert()
   async updateProjectStampOnCreation() {
-    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
-    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 }

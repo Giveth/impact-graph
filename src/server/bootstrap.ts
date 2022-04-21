@@ -264,7 +264,7 @@ export async function bootstrap() {
 
     // Admin Bruh!
     app.use(adminBroQueryCache);
-    app.use(adminBroRootPath, getAdminBroRouter());
+    app.use(adminBroRootPath, await getAdminBroRouter());
 
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();

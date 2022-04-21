@@ -65,6 +65,7 @@ import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { propertyKeyRegex } from 'admin-bro/types/src/utils/flat/property-key-regex';
 import { PurpleAddress } from '../entities/purpleAddress';
+import { findUserById } from '../repositories/userRepository';
 
 const analytics = getAnalytics();
 
@@ -694,7 +695,7 @@ export class ProjectResolver {
     project.updatedAt = new Date();
     project.listed = null;
     await project.save();
-    project.adminUser = await User.findOne({ id: Number(project.admin) });
+    project.adminUser = await findUserById(Number(project.admin));
 
     // Edit emails
     Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
@@ -815,7 +816,7 @@ export class ProjectResolver {
     });
 
     const newProject = await this.projectRepository.save(project);
-    newProject.adminUser = await User.findOne({ id: Number(newProject.admin) });
+    newProject.adminUser = await findUserById(Number(newProject.admin));
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,
@@ -873,7 +874,7 @@ export class ProjectResolver {
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
-    const owner = await User.findOne({ id: user.userId });
+    const owner = await findUserById(user.userId);
 
     if (!owner) throw new Error(errorMessages.USER_NOT_FOUND);
 

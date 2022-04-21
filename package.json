@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -115,6 +115,8 @@
     "tslint:fix": "tslint -c tslint.json --fix '{src,test}/**/*.ts'",
     "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
     "test:userRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userRepository.test.ts",
+    "test:statusReasonRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/statusReasonRepository.test.ts",
+    "test:statusReasonResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/statusReasonResolver.test.ts",
     "test:donationRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/donationRepository.test.ts",
     "test:uploadResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/uploadResolver.test.ts",
     "test:traceImageUpload": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/traceImageUpload.test.ts",
@@ -124,6 +126,7 @@
     "test:projectResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/projectResolver.test.ts",
     "test:donationService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/donationService.test.ts",
     "test:reactionsService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/reactionsService.test.ts",
+    "test:transactionsService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/transactionService.test.ts",
     "test:projectUpdatesService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/projectUpdatesService.test.ts",
     "test:adminBro": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/server/adminBro.test.ts",
     "test:poignArt": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/poignArt/api.test.ts",

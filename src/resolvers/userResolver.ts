@@ -52,7 +52,6 @@ export class UserResolver {
 
   @Query(returns => User, { nullable: true })
   userByAddress(@Arg('address', type => String) address: string) {
-    // return this.userRepository.findOne({ walletAddress: address });
     return findUserByWalletAddress(address);
   }
 
@@ -67,7 +66,6 @@ export class UserResolver {
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-    // const dbUser = await User.findOne({ id: user.userId });
     const dbUser = await findUserById(user.userId);
     if (!dbUser) {
       return false;

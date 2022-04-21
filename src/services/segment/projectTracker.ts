@@ -2,6 +2,7 @@ import { User } from '../../entities/user';
 import { Project } from '../../entities/project';
 import { getAnalytics, SegmentEvents } from '../../analytics/analytics';
 import { addSegmentEventToQueue } from '../../analytics/segmentQueue';
+import { findUserById } from '../../repositories/userRepository';
 
 const analytics = getAnalytics();
 
@@ -19,8 +20,7 @@ class ProjectTracker {
   }
 
   async track() {
-    this.projectOwner = await User.findOne({ id: Number(this.project.admin) });
-
+    this.projectOwner = await findUserById(Number(this.project.admin));
     if (this.projectOwner) {
       addSegmentEventToQueue({
         event: this.eventName,
