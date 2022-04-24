@@ -20,23 +20,6 @@ export const findDonationWithJoinToUserAndProject = async (data: {
   return await query.getMany();
 };
 
-export const findDonationWithJoinToUser = async (data: {
-  fromDate?: string;
-  toDate?: string;
-}) => {
-  const { fromDate, toDate } = data;
-  const query = Donation.createQueryBuilder('donation')
-    .leftJoinAndSelect('donation.user', 'user')
-    .leftJoinAndSelect('donation.project', 'project');
-  if (fromDate) {
-    query.andWhere(`"createdAt" >= '${fromDate}'`);
-  }
-  if (toDate) {
-    query.andWhere(`"createdAt" <= '${toDate}'`);
-  }
-  return await query.getMany();
-};
-
 export const findDonationsFromWalletAddresses = async (
   fromWalletAddressesArray: string[],
 ) => {

@@ -153,18 +153,6 @@ export class DonationResolver {
   ) {
     try {
       validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
-      // const query = this.donationRepository
-      //   .createQueryBuilder('donation')
-      //   .leftJoinAndSelect('donation.user', 'user')
-      //   .leftJoinAndSelect('donation.project', 'project');
-      //
-      // if (fromDate) {
-      //   query.andWhere(`"createdAt" >= '${fromDate}'`);
-      // }
-      // if (toDate) {
-      //   query.andWhere(`"createdAt" <= '${toDate}'`);
-      // }
-      // return await query.getMany();
       return await findDonationWithJoinToUserAndProject({ fromDate, toDate });
     } catch (e) {
       logger.error('donations query error', e);
@@ -181,15 +169,7 @@ export class DonationResolver {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase(),
     );
-    // const donations = await this.donationRepository.find({
-    //   where: {
-    //     fromWalletAddress: In(fromWalletAddressesArray),
-    //   },
-    // });
-    const donations = await findDonationsFromWalletAddresses(
-      fromWalletAddressesArray,
-    );
-    return donations;
+    return await findDonationsFromWalletAddresses(fromWalletAddressesArray);
   }
 
   @Query(returns => [Donation], { nullable: true })
@@ -197,17 +177,7 @@ export class DonationResolver {
     @Ctx() ctx: MyContext,
     @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[],
   ) {
-    // const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
-    //   o.toLowerCase(),
-    // );
-
-    // const donations = await this.donationRepository.find({
-    //   where: {
-    //     toWalletAddress: In(toWalletAddressesArray),
-    //   },
-    // });
-    const donations = await findDonationsToWalletAddresses(toWalletAddresses);
-    return donations;
+    return await findDonationsToWalletAddresses(toWalletAddresses);
   }
   @Query(returns => PaginateDonations, { nullable: true })
   async donationsByProjectId(
@@ -226,9 +196,6 @@ export class DonationResolver {
     })
     orderBy: SortBy,
   ) {
-    // const project = await Project.findOne({
-    //   id: projectId,
-    // });
     const project = await findProjectById(projectId);
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
@@ -320,15 +287,7 @@ export class DonationResolver {
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
       throw new Error(errorMessages.DONATION_VIEWING_LOGIN_REQUIRED);
-
-    // const donations = await this.donationRepository.find({
-    //   where: {
-    //     user: ctx.req.user.userId,
-    //   },
-    // });
-    const donations = await findDonationByUserId(ctx.req.user.userId);
-
-    return donations;
+    return await findDonationByUserId(ctx.req.user.userId);
   }
 
   @Query(returns => UserDonations, { nullable: true })
@@ -379,22 +338,12 @@ export class DonationResolver {
       const priceChainId =
         chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
       let donorUser;
-
-      // const project = await Project.createQueryBuilder('project')
-      //   .leftJoinAndSelect('project.organization', 'organization')
-      //   .leftJoinAndSelect('project.status', 'status')
-      //   .where(`project.id =${projectId}`)
-      //   .getOne();
       const project = await findProjectByIdJoin(projectId);
 
       if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
       if (project.status.id !== ProjStatus.active) {
         throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
       }
-      // const tokenInDb = await Token.findOne({
-      //   networkId: chainId,
-      //   symbol: token,
-      // });
       const tokenInDb = await findTokenById({ chainId, token });
       let isTokenEligibleForGivback = false;
       if (!tokenInDb && !project.organization.supportCustomTokens) {
@@ -417,7 +366,6 @@ export class DonationResolver {
       }
 
       if (userId) {
-        // donorUser = await findUserById(ctx.req.user.userId);
         donorUser = await findUserById(ctx.req.user.userId);
       } else {
         donorUser = null;
@@ -443,7 +391,6 @@ export class DonationResolver {
         transakId,
         token,
       });
-      // await donation.save();
       const baseTokens =
         Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
@@ -510,7 +457,6 @@ export class DonationResolver {
 
       if (ctx.req.user && ctx.req.user.userId) {
         userId = ctx.req.user.userId;
-        // donorUser = await findUserById(userId);
         donorUser = await findUserById(userId);
         analytics.identifyUser(donorUser);
         if (!donorUser)
@@ -532,7 +478,6 @@ export class DonationResolver {
         );
       }
 
-      // const projectOwner = await findUserById(Number(project.admin));
       const projectOwner = await findUserById(Number(project.admin));
 
       if (projectOwner) {
@@ -565,9 +510,7 @@ export class DonationResolver {
     chainId: number,
   ): Promise<number[]> {
     try {
-      const tokenPrices = await getTokenPrices(token, baseTokens, chainId);
-
-      return tokenPrices;
+      return await getTokenPrices(token, baseTokens, chainId);
     } catch (e) {
       logger.debug('Unable to fetch monoswap prices: ', e);
       return [];
