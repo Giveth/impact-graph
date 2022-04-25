@@ -333,7 +333,9 @@ function saveDonationTestCases() {
           toAddress: project.walletAddress,
           transactionId: generateRandomTxHash(),
           amount: 10,
-          token: 'CUSTOM_TOKEN',
+
+          // custom token
+          token: 'ABCD',
         },
       },
       {
@@ -462,7 +464,9 @@ function saveDonationTestCases() {
           toAddress: project.walletAddress,
           transactionId: generateRandomTxHash(),
           amount: 10,
-          token: 'CUSTOM_TOKEN',
+
+          // custom token
+          token: 'ABCD',
         },
       },
       {
