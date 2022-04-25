@@ -67,4 +67,6 @@ export const errorMessages = {
   AUTHENTICATION_REQUIRED: 'Authentication required.',
   SOMETHING_WENT_WRONG: 'Something went wrong.',
   PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
+  AMOUNT_IS_INVALID: 'Amount is not valid',
+  CURRENCY_IS_INVALID: 'Currency is not valid',
 };
