@@ -314,21 +314,27 @@ export class DonationResolver {
   @Query(returns => UserDonations, { nullable: true })
   async donationsByUserId(
     @Args() { take, skip, orderBy, userId }: UserDonationsArgs,
+    @Ctx() ctx: MyContext,
   ) {
-    const [donations, totalCount] = await this.donationRepository
+    const loggedInUserId = ctx?.req?.user?.userId;
+    const query = this.donationRepository
       .createQueryBuilder('donation')
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
-      .where(`donation.userId = ${userId} AND donation.anonymous = ${false}`)
+      .where(`donation.userId = ${userId}`)
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
         nullDirection[orderBy.direction as string],
-      )
+      );
+    if (!loggedInUserId || loggedInUserId !== userId) {
+      query.andWhere(`    donation.anonymous = ${false}`);
+    }
+
+    const [donations, totalCount] = await query
       .take(take)
       .skip(skip)
       .getManyAndCount();
-
     return {
       donations,
       totalCount,
