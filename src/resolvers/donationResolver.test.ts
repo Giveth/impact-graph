@@ -1853,6 +1853,34 @@ function donationsByUserIdTestCases() {
         Date.parse(donations[donationsCount - 1].createdAt),
     );
   });
+  it('should not find anonymous donation', async () => {
+    const anonymousDonation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.THIRD_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    anonymousDonation.anonymous = true;
+    await anonymousDonation.save();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByUserIdQuery,
+        variables: {
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'ASC',
+          },
+          userId: SEED_DATA.THIRD_USER.id,
+        },
+      },
+      {},
+    );
+
+    result.data.data.donationsByUserId.donations.forEach(item => {
+      assert.equal(item.anonymous, false);
+    });
+  });
   describe('with default createdAt DESC sort', () => {
     it('should paginate results by indicated take and skip', async () => {
       const result = await axios.post(
