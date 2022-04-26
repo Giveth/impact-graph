@@ -319,7 +319,7 @@ export class DonationResolver {
       .createQueryBuilder('donation')
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
-      .where(`donation.userId = ${userId}`)
+      .where(`donation.userId = ${userId} AND donation.anonymous = ${false}`)
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
