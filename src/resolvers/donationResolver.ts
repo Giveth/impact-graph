@@ -402,7 +402,14 @@ export class DonationResolver {
       // ONLY when logged in, allow setting the anonymous boolean
       const donationAnonymous =
         userId && anonymous !== undefined ? anonymous : !userId;
-
+      // I think this var is not longer than 10 english char
+      const maxValidLengthCurrency = 10;
+      if (amount <= 0) {
+        throw new Error(errorMessages.AMOUNT_IS_INVALID);
+      }
+      if (!/^[a-zA-Z]+$/.test(token) || token.length > maxValidLengthCurrency) {
+        throw new Error(errorMessages.CURRENCY_IS_INVALID);
+      }
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId?.toLowerCase() || transakId,

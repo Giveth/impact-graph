@@ -560,7 +560,7 @@ const getAdminBroInstance = async () => {
               isVisible: {
                 list: false,
                 filter: false,
-                show: false,
+                show: true,
                 edit: true,
               },
             },
