@@ -619,7 +619,7 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             walletAddress: {
-              isVisible: { list: false, filter: false, show: true, edit: true },
+              isVisible: { list: false, filter: true, show: true, edit: true },
             },
             impactLocation: {
               isVisible: { list: false, filter: false, show: true, edit: true },
