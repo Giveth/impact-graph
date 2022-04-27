@@ -533,9 +533,6 @@ const getAdminBroInstance = async () => {
                 edit: false,
               },
             },
-            description: {
-              isVisible: { list: false, filter: false, show: true, edit: true },
-            },
             organizationId: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -563,7 +560,7 @@ const getAdminBroInstance = async () => {
               isVisible: {
                 list: false,
                 filter: false,
-                show: false,
+                show: true,
                 edit: true,
               },
             },
