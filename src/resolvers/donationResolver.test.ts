@@ -1881,6 +1881,183 @@ function donationsByUserIdTestCases() {
       assert.equal(item.anonymous, false);
     });
   });
+  it('should  find his/her own anonymous donation for logged in user', async () => {
+    const user = await User.create({
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    }).save();
+    const title = String(new Date().getTime());
+    const projectData = {
+      // title: `test project`,
+      title,
+      description: 'test description',
+      walletAddress: generateRandomEtheriumAddress(),
+      categories: ['food1'],
+      verified: true,
+      listed: true,
+      giveBacks: false,
+      creationDate: new Date(),
+      updatedAt: new Date(),
+      slug: title,
+      // firstUser's id
+      admin: String(user.id),
+      qualityScore: 30,
+      // just need the initial value to be different than 0
+      totalDonations: 10,
+      totalReactions: 0,
+      totalProjectUpdates: 1,
+    };
+    const firstUserAccessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb(projectData);
+
+    const donationData = {
+      transactionId: generateRandomTxHash(),
+      transactionNetworkId: NETWORK_IDS.MAIN_NET,
+      toWalletAddress: generateRandomEtheriumAddress(),
+      fromWalletAddress: generateRandomEtheriumAddress(),
+      currency: 'ETH',
+      anonymous: true,
+      amount: 10,
+      valueUsd: 15,
+      userId: user.id,
+      projectId: project.id,
+      createdAt: moment(),
+      segmentNotified: true,
+    };
+
+    const anonymousDonation = await saveDonationDirectlyToDb(
+      donationData,
+      user.id,
+      project.id,
+    );
+
+    anonymousDonation.anonymous = true;
+    await anonymousDonation.save();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByUserIdQuery,
+        variables: {
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'ASC',
+          },
+          userId: user.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${firstUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      String(result.data.data.donationsByUserId.donations[0].user.id),
+      String(user.id),
+    );
+    assert.equal(
+      result.data.data.donationsByUserId.donations[0].anonymous,
+      true,
+    );
+  });
+  it('should  find just not anonymous donation for user is not login', async () => {
+    const user = await User.create({
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    }).save();
+    const title = String(new Date().getTime());
+    const projectData = {
+      // title: `test project`,
+      title,
+      description: 'test description',
+      walletAddress: generateRandomEtheriumAddress(),
+      categories: ['food1'],
+      verified: true,
+      listed: true,
+      giveBacks: false,
+      creationDate: new Date(),
+      updatedAt: new Date(),
+      slug: title,
+      // firstUser's id
+      admin: String(user.id),
+      qualityScore: 30,
+      // just need the initial value to be different than 0
+      totalDonations: 10,
+      totalReactions: 0,
+      totalProjectUpdates: 1,
+    };
+    const project = await saveProjectDirectlyToDb(projectData);
+
+    const donationDataAnonymous = {
+      transactionId: generateRandomTxHash(),
+      transactionNetworkId: NETWORK_IDS.MAIN_NET,
+      toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+      fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+      currency: 'ETH',
+      anonymous: true,
+      amount: 15,
+      valueUsd: 15,
+      userId: user.id,
+      projectId: project.id,
+      createdAt: moment(),
+      segmentNotified: true,
+    };
+
+    const donationDataNotAnonymous = {
+      transactionId: generateRandomTxHash(),
+      transactionNetworkId: NETWORK_IDS.MAIN_NET,
+      toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+      fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+      currency: 'ETH',
+      anonymous: false,
+      amount: 15,
+      valueUsd: 15,
+      userId: user.id,
+      projectId: project.id,
+      createdAt: moment(),
+      segmentNotified: true,
+    };
+
+    const notAnonymousDonation = await saveDonationDirectlyToDb(
+      donationDataNotAnonymous,
+      user.id,
+      project.id,
+    );
+
+    const anonymousDonation = await saveDonationDirectlyToDb(
+      donationDataAnonymous,
+      user.id,
+      project.id,
+    );
+
+    notAnonymousDonation.anonymous = false;
+    anonymousDonation.anonymous = true;
+    await notAnonymousDonation.save();
+    await anonymousDonation.save();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByUserIdQuery,
+        variables: {
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'ASC',
+          },
+          userId: user.id,
+        },
+      },
+      {},
+    );
+    assert.equal(
+      String(result.data.data.donationsByUserId.donations[0].user.id),
+      String(user.id),
+    );
+    assert.equal(result.data.data.donationsByUserId.donations.length, 1);
+    assert.equal(
+      result.data.data.donationsByUserId.donations[0].anonymous,
+      false,
+    );
+  });
   describe('with default createdAt DESC sort', () => {
     it('should paginate results by indicated take and skip', async () => {
       const result = await axios.post(
