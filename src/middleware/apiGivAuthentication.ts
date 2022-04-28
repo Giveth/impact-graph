@@ -1,5 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorMessages } from '../utils/errorMessages';
+import {
+  createBasicAuthentication,
+  decodeBasicAuthentication,
+} from '../utils/utils';
 
 export const apiGivAuthentication = (
   req: Request,
@@ -7,8 +11,18 @@ export const apiGivAuthentication = (
   next: NextFunction,
 ) => {
   try {
-    const username = req?.headers?.username;
-    const password = req?.headers?.password;
+    const basicAuthentication =
+      req?.headers?.Authorization || req?.headers?.authorization;
+    const basicAuthenticationData =
+      decodeBasicAuthentication(basicAuthentication);
+
+    if (!basicAuthenticationData) {
+      throw new Error(errorMessages.UN_AUTHORIZED);
+    }
+
+    const username = basicAuthenticationData?.split(':')[0];
+    const password = basicAuthenticationData?.split(':')[1];
+
     if (
       !username ||
       !password ||

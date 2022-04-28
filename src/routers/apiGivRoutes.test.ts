@@ -8,6 +8,7 @@ import {
 } from '../../test/testUtils';
 import { createDonation } from '../repositories/donationRepository';
 import axios from 'axios';
+import { createBasicAuthentication } from '../utils/utils';
 export const restUrl = 'http://localhost:4000/apigive/donations';
 
 describe('createDonation in apiGiv test cases', () => {
@@ -24,6 +25,11 @@ describe('createDonation in apiGiv test cases', () => {
     const walletAddress = generateRandomEtheriumAddress();
     donationData.toWalletAddress = walletAddress;
     donationData.projectId = project.id;
+    const basicAuthentication = createBasicAuthentication({
+      userName: 'fateme',
+      password: '123',
+    });
+
     const newDonation = await createDonation({
       donationAnonymous: false,
       donorUser: user,
@@ -40,21 +46,17 @@ describe('createDonation in apiGiv test cases', () => {
       amount: 10,
       token: 'jgjbjbkjbnjknb',
     });
-
-    const data = JSON.stringify(newDonation);
-
-    const config = {
-      method: 'post',
-      url: restUrl,
-      headers: {
-        Authorization: 'Basic ZmF0ZW1laDEzNzk6MTltVml6bHhSY0REZDZRbjg3OGY=',
+    const result = await axios.post(
+      restUrl,
+      { newDonation },
+      {
+        headers: {
+          Authorization: basicAuthentication,
+        },
       },
-      data,
-    };
-
-    const result = await axios(config);
-
-    assert.isOk(newDonation);
-    assert.equal(newDonation.projectId, project.id);
+    );
+    // tslint:disable-next-line:no-console
+    console.log('-------------', result.data);
+    assert.isOk(result.data);
   });
 });

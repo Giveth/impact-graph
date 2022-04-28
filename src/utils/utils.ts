@@ -33,3 +33,12 @@ export const convertTimeStampToSeconds = (
 ): number => {
   return Math.floor(timestampInMilliSeconds / 1000);
 };
+
+export const createBasicAuthentication = ({ userName, password }) => {
+  const str = userName + ':' + password;
+  return 'Basic ' + Buffer.from(str).toString('base64');
+};
+
+export const decodeBasicAuthentication = basicAuthentication => {
+  return new Buffer(basicAuthentication.split(' ')[1], 'base64').toString();
+};
