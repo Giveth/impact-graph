@@ -4,13 +4,10 @@ import {
   createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
-  graphqlUrl,
   saveProjectDirectlyToDb,
-  SEED_DATA,
 } from '../../test/testUtils';
 import { createDonation } from '../repositories/donationRepository';
 import axios from 'axios';
-import { fetchDonationsByUserIdQuery } from '../../test/graphqlQueries';
 export const restUrl = 'http://localhost:4000/apigive/donations';
 
 describe('createDonation in apiGiv test cases', () => {
