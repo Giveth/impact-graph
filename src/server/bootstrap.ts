@@ -244,7 +244,7 @@ export async function bootstrap() {
         maxFiles: 10,
       }),
     );
-    app.use('', apiGivRouter);
+    app.use('/apigive', apiGivRouter);
     apolloServer.applyMiddleware({ app });
     app.post(
       '/stripe-webhook',

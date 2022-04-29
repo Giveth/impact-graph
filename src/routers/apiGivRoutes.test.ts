@@ -6,57 +6,72 @@ import {
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
 } from '../../test/testUtils';
-import { createDonation } from '../repositories/donationRepository';
 import axios from 'axios';
 import { createBasicAuthentication } from '../utils/utils';
+
 export const restUrl = 'http://localhost:4000/apigive/donations';
 
 describe('createDonation in apiGiv test cases', () => {
   it('should create donation ', async () => {
     const email = `${new Date().getTime()}@giveth.io`;
+    const walletAddress = generateRandomEtheriumAddress();
     const user = await User.create({
       email,
       role: UserRole.ADMIN,
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
     }).save();
-    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    const title = String(new Date().getTime());
+    const projectData = {
+      title,
+      description: 'test description',
+      walletAddress,
+      categories: ['food1'],
+      verified: true,
+      listed: true,
+      giveBacks: false,
+      creationDate: new Date(),
+      updatedAt: new Date(),
+      slug: title,
+      qualityScore: 30,
+      totalDonations: 10,
+      admin: String(user.id),
+      totalReactions: 0,
+      totalProjectUpdates: 1,
+    };
+    const project = await saveProjectDirectlyToDb(projectData);
     const donationData = createDonationData();
-    const walletAddress = generateRandomEtheriumAddress();
     donationData.toWalletAddress = walletAddress;
-    donationData.projectId = project.id;
     const basicAuthentication = createBasicAuthentication({
-      userName: 'fateme',
+      userName: 'testApiGive',
       password: '123',
     });
 
-    const newDonation = await createDonation({
+    const newDonation = {
       donationAnonymous: false,
       donorUser: user,
       isProjectVerified: false,
-      isTokenEligibleForGivback: false,
-      project,
       segmentNotified: false,
       tokenAddress: '',
       transakId: '',
       transactionId: '9151faa1-e69b-4a36-b959-3c4f894afb68',
       transactionNetworkId: 10,
-      toWalletAddress: '134',
-      fromWalletAddress: '134',
+      toWalletAddress: walletAddress,
+      fromWalletAddress: generateRandomEtheriumAddress(),
       amount: 10,
-      token: 'jgjbjbkjbnjknb',
-    });
-    const result = await axios.post(
-      restUrl,
-      { newDonation },
-      {
-        headers: {
-          Authorization: basicAuthentication,
-        },
+      token: 'jgj',
+      currency: 'fdd',
+      status: 'active',
+      isFiat: true,
+      project,
+    };
+    const result = await axios.post(restUrl, newDonation, {
+      headers: {
+        Authorization: basicAuthentication,
       },
-    );
-    // tslint:disable-next-line:no-console
-    console.log('-------------', result.data);
+    });
+
     assert.isOk(result.data);
   });
 });
