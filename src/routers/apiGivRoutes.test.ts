@@ -1,77 +1,45 @@
 import { assert } from 'chai';
-import { User, UserRole } from '../entities/user';
 import {
-  createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
+  generateRandomTxHash,
   saveProjectDirectlyToDb,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { createBasicAuthentication } from '../utils/utils';
+import { NETWORK_IDS } from '../provider';
+import { DONATION_STATUS } from '../entities/donation';
 
-export const restUrl = 'http://localhost:4000/apigive/donations';
+export const restUrl = 'http://localhost:4000/apigive';
 
 describe('createDonation in apiGiv test cases', () => {
   it('should create donation ', async () => {
-    const email = `${new Date().getTime()}@giveth.io`;
-    const walletAddress = generateRandomEtheriumAddress();
-    const user = await User.create({
-      email,
-      role: UserRole.ADMIN,
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-    }).save();
-
-    const title = String(new Date().getTime());
-    const projectData = {
-      title,
-      description: 'test description',
-      walletAddress,
-      categories: ['food1'],
-      verified: true,
-      listed: true,
-      giveBacks: false,
-      creationDate: new Date(),
-      updatedAt: new Date(),
-      slug: title,
-      qualityScore: 30,
-      totalDonations: 10,
-      admin: String(user.id),
-      totalReactions: 0,
-      totalProjectUpdates: 1,
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donationData = {
+      toWalletAddress: project.walletAddress,
+      currency: 'GIV',
+      transactionNetworkId: NETWORK_IDS.XDAI,
+      fromWalletAddress: generateRandomEtheriumAddress(),
+      amount: 100,
+      priceUsd: 0.3,
+      valueUsd: 30,
+      donationType: 'apiGivProject',
+      status: DONATION_STATUS.VERIFIED,
+      isFiat: false,
+      transactionId: generateRandomTxHash(),
     };
-    const project = await saveProjectDirectlyToDb(projectData);
-    const donationData = createDonationData();
-    donationData.toWalletAddress = walletAddress;
     const basicAuthentication = createBasicAuthentication({
-      userName: 'testApiGive',
-      password: '123',
+      userName: process.env.API_GIV_USERNAME,
+      password: process.env.API_GIV_PASSWORD,
     });
 
-    const newDonation = {
-      donationAnonymous: false,
-      donorUser: user,
-      isProjectVerified: false,
-      segmentNotified: false,
-      tokenAddress: '',
-      transakId: '',
-      transactionId: '9151faa1-e69b-4a36-b959-3c4f894afb68',
-      transactionNetworkId: 10,
-      toWalletAddress: walletAddress,
-      fromWalletAddress: generateRandomEtheriumAddress(),
-      amount: 10,
-      token: 'jgj',
-      currency: 'fdd',
-      status: 'active',
-      isFiat: true,
-      project,
-    };
-    const result = await axios.post(restUrl, newDonation, {
+    const result = await axios.post(`${restUrl}/donations`, donationData, {
       headers: {
         Authorization: basicAuthentication,
       },
     });
 
     assert.isOk(result.data);
+    assert.equal(result.data.transactionId, donationData.transactionId);
   });
 });
