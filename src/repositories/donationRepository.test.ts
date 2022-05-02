@@ -2,11 +2,17 @@ import {
   createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
+  generateRandomTxHash,
+  saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
+  SEED_DATA,
 } from '../../test/testUtils';
 import { User, UserRole } from '../entities/user';
 import { assert } from 'chai';
-import { createDonation } from './donationRepository';
+import {
+  createDonation,
+  findDonationsByTransactionId,
+} from './donationRepository';
 
 describe('createDonation test cases', () => {
   it('should create donation ', async () => {
@@ -42,3 +48,53 @@ describe('createDonation test cases', () => {
     assert.equal(newDonation.projectId, project.id);
   });
 });
+
+describe(
+  'findDonationsByTransactionId() test cases',
+  findDonationsByTransactionIdTestCases,
+);
+
+function findDonationsByTransactionIdTestCases() {
+  it('should return donation with txHash ', async () => {
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    const fetchedDonation = await findDonationsByTransactionId(
+      donation.transactionId,
+    );
+    assert.isOk(fetchedDonation);
+    assert.equal(fetchedDonation?.id, donation.id);
+  });
+  it('should return donation with lowercase txHash ', async () => {
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    const fetchedDonation = await findDonationsByTransactionId(
+      donation.transactionId.toLowerCase(),
+    );
+    assert.isOk(fetchedDonation);
+    assert.equal(fetchedDonation?.id, donation.id);
+  });
+  it('should return donation with uppercase txHash ', async () => {
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    const fetchedDonation = await findDonationsByTransactionId(
+      donation.transactionId.toUpperCase(),
+    );
+    assert.isOk(fetchedDonation);
+    assert.equal(fetchedDonation?.id, donation.id);
+  });
+  it('should not return donation with invalid txHash ', async () => {
+    const fetchedDonation = await findDonationsByTransactionId(
+      generateRandomTxHash(),
+    );
+    assert.isNotOk(fetchedDonation);
+  });
+}

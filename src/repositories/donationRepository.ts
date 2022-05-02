@@ -52,3 +52,13 @@ export const createDonation = async (data: {
   }).save();
   return donation;
 };
+
+export const findDonationsByTransactionId = async (
+  txHash: string,
+): Promise<Donation | undefined> => {
+  return Donation.createQueryBuilder('donation')
+    .where(`"transactionId" = :txHash`, {
+      txHash: txHash.toLowerCase(),
+    })
+    .getOne();
+};

@@ -1,6 +1,9 @@
 import express, { Request, Response } from 'express';
 import { apiGivAuthentication } from '../middleware/apiGivAuthentication';
-import { createDonation } from '../repositories/donationRepository';
+import {
+  createDonation,
+  findDonationsByTransactionId,
+} from '../repositories/donationRepository';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation } from '../entities/donation';
 import { findProjectByWalletAddress } from '../repositories/projectRepository';
@@ -17,8 +20,14 @@ apiGivRouter.post(
   async (request: Request, response: Response) => {
     try {
       const { body } = request;
+      const donation = await findDonationsByTransactionId(body.transactionId);
+      if (donation) {
+        throw new ApiGivStandardError(errorMessages.DUPLICATE_TX_HASH, 400);
+      }
       const project = await findProjectByWalletAddress(body.toWalletAddress);
-      if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      if (!project) {
+        throw new ApiGivStandardError(errorMessages.PROJECT_NOT_FOUND, 400);
+      }
       if (project.status.id !== ProjStatus.active) {
         throw new ApiGivStandardError(
           errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
