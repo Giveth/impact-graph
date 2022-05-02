@@ -2,11 +2,14 @@ import { getPoignArtWithdrawals } from './api';
 import { assert } from 'chai';
 import { generateRandomEtheriumAddress } from '../../../test/testUtils';
 import { convertTimeStampToSeconds } from '../../utils/utils';
+import axios from 'axios';
 
 describe(
   'getPoignArtWithdrawals() test cases',
   getPoignArtWithdrawalsTestCases,
 );
+
+describe('health check test case', healthCheckTestCases);
 
 function getPoignArtWithdrawalsTestCases() {
   const unchainWalletAddress = process.env
@@ -33,5 +36,11 @@ function getPoignArtWithdrawalsTestCases() {
       startTimestamp: convertTimeStampToSeconds(new Date().getTime()),
     });
     assert.equal(withdrawals.length, 0);
+  });
+}
+function healthCheckTestCases() {
+  it('should return empty array for now startTimestamp', async () => {
+    const result = await axios.get('http://localhost:4000/health');
+    assert.equal(result.data, 'Hii every thing seems ok');
   });
 }

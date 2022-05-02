@@ -4,7 +4,7 @@ import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
 import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
-import { json, Request, Response } from 'express';
+import { json, Request, response, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
@@ -254,6 +254,7 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       netlifyDeployed,
     );
+    app.get('/health', response.send('Hii every thing seems ok'));
     app.post('/transak_webhook', webhookHandler);
 
     // Start the server
