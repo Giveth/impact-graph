@@ -254,7 +254,9 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       netlifyDeployed,
     );
-    app.get('/health', response.send('Hii every thing seems ok'));
+    app.get('/health', (req, res, next) => {
+      res.send('Hi every thing seems ok');
+    });
     app.post('/transak_webhook', webhookHandler);
 
     // Start the server
