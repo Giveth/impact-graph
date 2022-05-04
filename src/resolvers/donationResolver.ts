@@ -45,7 +45,10 @@ import {
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
 import { logger } from '../utils/logger';
-import { findUserById } from '../repositories/userRepository';
+import {
+  findUserById,
+  findUserByWalletAddress,
+} from '../repositories/userRepository';
 
 const analytics = getAnalytics();
 
@@ -399,11 +402,9 @@ export class DonationResolver {
         );
       }
 
-      if (userId) {
-        donorUser = await findUserById(ctx.req.user.userId);
-      } else {
-        donorUser = null;
-      }
+      donorUser =
+        (await findUserById(ctx.req.user?.userId)) ||
+        (await findUserByWalletAddress(fromAddress.toString()));
 
       // ONLY when logged in, allow setting the anonymous boolean
       const donationAnonymous =
