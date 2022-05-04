@@ -67,6 +67,18 @@ export const generateTestAccessToken = async (id: number): Promise<string> => {
   );
 };
 
+// Failed user case from undetected bug in the dapp, userId lost
+export const generateUserIdLessAccessToken = async (
+  id: number,
+): Promise<string> => {
+  const user = await User.findOne({ id });
+  return jwt.sign(
+    { firstName: user?.firstName },
+    config.get('JWT_SECRET') as string,
+    { expiresIn: '30d' },
+  );
+};
+
 export interface CreateProjectData {
   id?: number;
   title: string;
