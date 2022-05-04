@@ -10,6 +10,7 @@ import {
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   createDonationData,
+  generateUserIdLessAccessToken,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
@@ -762,7 +763,7 @@ function saveDonationTestCases() {
     );
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
-  it('should save GIV donation for not logged-in users successfully', async () => {
+  it('should save GIV donation for not logged-in users succesfully, but wallet belongs to a user', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const saveDonationResponse = await axios.post(graphqlUrl, {
       query: saveDonation,
@@ -783,7 +784,12 @@ function saveDonationTestCases() {
     });
     assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.isOk(donation);
-    assert.isNull(donation?.userId);
+    const user = await User.findOne({
+      walletAddress: SEED_DATA.FIRST_USER.walletAddress,
+    });
+    // there will always be an userId present
+    // login resolvers always create an user even if profile not completed
+    assert.isTrue(user?.id === donation?.userId);
   });
   it('should save donation anonymously for logged-in users successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -802,6 +808,46 @@ function saveDonationTestCases() {
           chainId: NETWORK_IDS.XDAI,
           transactionNetworkId: NETWORK_IDS.XDAI,
           fromAddress: SEED_DATA.FIRST_USER.walletAddress,
+          anonymous: true,
+          toAddress: project.walletAddress,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.saveDonation);
+    const donation = await Donation.findOne({
+      id: saveDonationResponse.data.data.saveDonation,
+    });
+    assert.isOk(donation);
+    assert.equal(donation?.userId, user.id);
+    assert.isTrue(donation?.anonymous);
+    assert.isTrue(donation?.isTokenEligibleForGivback);
+  });
+  it('should save donation anonymously with userId for jwt without userId', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const newUserWalletAddress = generateRandomEtheriumAddress();
+    const user = await User.create({
+      walletAddress: newUserWalletAddress,
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateUserIdLessAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: saveDonation,
+        variables: {
+          projectId: project.id,
+          chainId: NETWORK_IDS.XDAI,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          fromAddress: user.walletAddress,
           anonymous: true,
           toAddress: project.walletAddress,
           transactionId: generateRandomTxHash(),
