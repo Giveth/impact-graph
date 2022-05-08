@@ -37,6 +37,7 @@ import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/s
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import { errorMessages } from '../utils/errorMessages';
 import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
+import { apiGivRouter } from '../routers/apiGivRoutes';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -243,6 +244,7 @@ export async function bootstrap() {
         maxFiles: 10,
       }),
     );
+    app.use('/apigive', apiGivRouter);
     apolloServer.applyMiddleware({ app });
     app.post(
       '/stripe-webhook',

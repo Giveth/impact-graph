@@ -1807,7 +1807,7 @@ function donationsByUserIdTestCases() {
 
     const donations = result.data.data.donationsByUserId.donations;
     const donationsCount = donations.length;
-    assert.isTrue(donations[0].amount < donations[donationsCount - 1].amount);
+    assert.isTrue(donations[0].amount <= donations[donationsCount - 1].amount);
   });
   it('should sort by USD value donated DESC', async () => {
     const result = await axios.post(
@@ -1850,7 +1850,7 @@ function donationsByUserIdTestCases() {
     const donations = result.data.data.donationsByUserId.donations;
     const donationsCount = donations.length;
     assert.isTrue(
-      donations[0].valueUsd < donations[donationsCount - 1].valueUsd,
+      donations[0].valueUsd <= donations[donationsCount - 1].valueUsd,
     );
   });
   it('should sort by createdAt DESC', async () => {
