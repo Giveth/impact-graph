@@ -1,9 +1,9 @@
 import { Project } from '../entities/project';
 
 export const findProjectByWalletAddress = async (walletAddress: string) => {
-  return await Project.findOne({
-    where: {
-      walletAddress,
-    },
-  });
+  return Project.createQueryBuilder('project')
+    .where(`LOWER("walletAddress") = :walletAddress`, {
+      walletAddress: walletAddress.toLowerCase(),
+    })
+    .getOne();
 };
