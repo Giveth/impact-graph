@@ -35,4 +35,13 @@ function findProjectByWalletAddressTestCases() {
     assert.isOk(fetchedProject);
     assert.equal(fetchedProject?.id, project.id);
   });
+  it('should join with status successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const fetchedProject = await findProjectByWalletAddress(
+      project.walletAddress?.toLowerCase() as string,
+    );
+    assert.isOk(fetchedProject);
+    assert.equal(fetchedProject?.id, project.id);
+    assert.isOk(fetchedProject?.status?.id);
+  });
 }

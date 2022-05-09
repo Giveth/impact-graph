@@ -130,7 +130,7 @@
     "test:reactionsService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/reactionsService.test.ts",
     "test:transactionsService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/transactionService.test.ts",
     "test:projectUpdatesService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/projectUpdatesService.test.ts",
-    "test:apiGiv": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/routers/apiGivRoutes.test.ts",
+    "test:apiGive": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/routers/apiGivRoutes.test.ts",
     "test:adminBro": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/server/adminBro.test.ts",
     "test:poignArt": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/poignArt/api.test.ts",
     "test:bootstrap": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/server/bootstrap.test.ts",
