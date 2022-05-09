@@ -1,13 +1,3 @@
-export const saveDonationQuery = `
-        mutation SaveDonation($chainId: Float! $projectId: Float! 
-                   $token: String! $transactionNetworkId: Float! $transactionId: String! 
-                   $amount: Float! $toAddress: String! $fromAddress: String!){
-       saveDonation(chainId: $chainId projectId: $projectId 
-                    token: $token transactionNetworkId: $transactionNetworkId 
-                    transactionId: $transactionId amount: $amount 
-                     toAddress: $toAddress fromAddress: $fromAddress) 
-         }`;
-
 export const saveDonation = `
   mutation (
     $chainId: Float!
@@ -34,6 +24,32 @@ export const saveDonation = `
       projectId: $projectId
       transakId: $transakId
       transakStatus: $transakStatus
+      tokenAddress: $tokenAddress
+      anonymous: $anonymous
+    )
+  }
+`;
+
+export const createDonationMutation = `
+  mutation (
+    $transactionId: String!
+    $transactionNetworkId: Float!
+    $nonce: Float!
+    $amount: Float!
+    $token: String!
+    $projectId: Float!
+    $transakId: String
+    $tokenAddress: String
+    $anonymous: Boolean
+  ) {
+    createDonation(
+      transactionId: $transactionId
+      transactionNetworkId: $transactionNetworkId
+      nonce: $nonce
+      amount: $amount
+      token: $token
+      projectId: $projectId
+      transakId: $transakId
       tokenAddress: $tokenAddress
       anonymous: $anonymous
     )

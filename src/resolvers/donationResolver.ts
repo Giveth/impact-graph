@@ -40,6 +40,7 @@ import { bold } from 'chalk';
 import { getCampaignDonations } from '../services/trace/traceService';
 import { from } from 'form-data';
 import {
+  createDonationQueryValidator,
   getDonationsQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
@@ -195,6 +196,7 @@ export class DonationResolver {
     });
     return donations;
   }
+
   @Query(returns => PaginateDonations, { nullable: true })
   async donationsByProjectId(
     @Ctx() ctx: MyContext,
@@ -344,6 +346,7 @@ export class DonationResolver {
     };
   }
 
+  // TODO we should remove this mutation when frontend used createDonation
   @Mutation(returns => Number)
   async saveDonation(
     @Arg('fromAddress') fromAddress: string,
@@ -540,6 +543,144 @@ export class DonationResolver {
           projectOwner.segmentUserId(),
         );
       }
+      return donation.id;
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('saveDonation() error', e);
+      throw e;
+    }
+  }
+
+  @Mutation(returns => Number)
+  async createDonation(
+    @Arg('amount') amount: number,
+    @Arg('transactionId') transactionId: string,
+    @Arg('transactionNetworkId') transactionNetworkId: number,
+    @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
+    @Arg('anonymous', { nullable: true }) anonymous: boolean,
+    @Arg('token') token: string,
+    @Arg('projectId') projectId: number,
+    @Arg('nonce') nonce: number,
+    @Arg('transakId', { nullable: true }) transakId: string,
+    @Ctx() ctx: MyContext,
+  ): Promise<Number> {
+    try {
+      const userId = ctx?.req?.user?.userId;
+      const donorUser = await findUserById(userId);
+      if (!donorUser) {
+        throw new Error(errorMessages.UN_AUTHORIZED);
+      }
+      validateWithJoiSchema(
+        {
+          amount,
+          transactionId,
+          transactionNetworkId,
+          anonymous,
+          tokenAddress,
+          token,
+          projectId,
+          nonce,
+          transakId,
+        },
+        createDonationQueryValidator,
+      );
+
+      const priceChainId =
+        transactionNetworkId === NETWORK_IDS.ROPSTEN
+          ? NETWORK_IDS.MAIN_NET
+          : transactionNetworkId;
+
+      const project = await Project.createQueryBuilder('project')
+        .leftJoinAndSelect('project.organization', 'organization')
+        .leftJoinAndSelect('project.status', 'status')
+        .where(`project.id = :projectId`, {
+          projectId,
+        })
+        .getOne();
+
+      if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      if (project.status.id !== ProjStatus.active) {
+        throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
+      }
+      const tokenInDb = await Token.findOne({
+        networkId: transactionNetworkId,
+        symbol: token,
+      });
+      const isCustomToken = !Boolean(tokenInDb);
+      let isTokenEligibleForGivback = false;
+      if (isCustomToken && !project.organization.supportCustomTokens) {
+        throw new Error(errorMessages.TOKEN_NOT_FOUND);
+      } else if (tokenInDb) {
+        const acceptsToken = await isTokenAcceptableForProject({
+          projectId,
+          tokenId: tokenInDb.id,
+        });
+        if (!acceptsToken && !project.organization.supportCustomTokens) {
+          throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+        }
+        isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
+      }
+      const toAddress = project.walletAddress?.toLowerCase() as string;
+      const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
+
+      const donation = await Donation.create({
+        amount: Number(amount),
+        transactionId: transactionId?.toLowerCase() || transakId,
+        isFiat: Boolean(transakId),
+        transactionNetworkId: Number(transactionNetworkId),
+        currency: token,
+        user: donorUser,
+        tokenAddress,
+        nonce,
+        project,
+        isTokenEligibleForGivback,
+        isCustomToken,
+        isProjectVerified: project.verified,
+        createdAt: new Date(),
+        segmentNotified: false,
+        toWalletAddress: toAddress.toString().toLowerCase(),
+        fromWalletAddress: fromAddress.toString().toLowerCase(),
+        anonymous: Boolean(anonymous),
+      });
+      await donation.save();
+      const baseTokens =
+        Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
+
+      try {
+        const tokenPrices = await this.getMonoSwapTokenPrices(
+          token,
+          baseTokens,
+          Number(priceChainId),
+        );
+
+        if (tokenPrices.length !== 0) {
+          donation.priceUsd = Number(tokenPrices[0]);
+          donation.priceEth = Number(tokenPrices[1]);
+
+          donation.valueUsd = Number(amount) * donation.priceUsd;
+          donation.valueEth = Number(amount) * donation.priceEth;
+        }
+      } catch (e) {
+        logger.error('Error in getting price from monoswap', {
+          error: e,
+          donation,
+        });
+        addSegmentEventToQueue({
+          event: SegmentEvents.GET_DONATION_PRICE_FAILED,
+          analyticsUserId: userId,
+          properties: donation,
+          anonymousId: null,
+        });
+      }
+
+      await donation.save();
+
+      // After updating, recalculate user total donated and owner total received
+      await updateUserTotalDonated(donorUser.id);
+      await updateUserTotalReceived(Number(project.admin));
+
+      // After updating price we update totalDonations
+      await updateTotalDonationsOfProject(projectId);
       return donation.id;
     } catch (e) {
       SentryLogger.captureException(e);

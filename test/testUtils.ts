@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
-import { User } from '../src/entities/user';
+import { User, UserRole } from '../src/entities/user';
 import { Donation } from '../src/entities/donation';
 import {
   Category,
@@ -15,6 +15,7 @@ import {
   Organization,
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
+import { findUserByWalletAddress } from '../src/repositories/userRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -103,7 +104,13 @@ export interface CreateProjectData {
   image?: string;
 }
 
-export const saveUserDirectlyToDb = async (walletAddress: string) => {
+export const saveUserDirectlyToDb = async (
+  walletAddress: string,
+): Promise<User> => {
+  const user = await findUserByWalletAddress(walletAddress);
+  if (user) {
+    return user;
+  }
   return User.create({
     loginType: 'wallet',
     walletAddress,
@@ -190,8 +197,6 @@ export const createDonationData = (): CreateDonationData => {
     anonymous: false,
     amount: 15,
     valueUsd: 15,
-    userId: SEED_DATA.FIRST_USER.id,
-    projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
     segmentNotified: true,
   };
@@ -1361,8 +1366,9 @@ export interface CreateDonationData {
   amount: number;
   createdAt: any;
   valueUsd?: number;
-  userId?: number;
-  projectId?: number;
+  // userId?: number;
+  // projectId?: number;
+  status?: string;
 }
 
 export const saveDonationDirectlyToDb = async (

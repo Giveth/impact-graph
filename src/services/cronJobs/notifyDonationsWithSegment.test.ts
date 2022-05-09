@@ -1,12 +1,14 @@
 import { assert } from 'chai';
 import 'mocha';
-import { DONATION_SEED_DATA } from '../../../test/testUtils';
+import {
+  createDonationData,
+  saveDonationDirectlyToDb,
+  SEED_DATA,
+} from '../../../test/testUtils';
 import sinon from 'sinon';
-import { Donation } from '../../entities/donation';
+import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { notifyMissingDonationsWithSegment } from './notifyDonationsWithSegment';
 import * as utils from '../../utils/utils';
-import { TRANSAK_COMPLETED_STATUS } from '../../services/donationService';
-import { Not } from 'typeorm';
 
 describe(
   'notifyMissingDonationsWithSegment() test cases',
@@ -18,40 +20,68 @@ function notifyMissingDonationsWithSegmentTestCases() {
     // ignore sleep function to optimize test times
     sinon.stub(utils, 'sleep').resolves(true);
 
-    const unnotifiedDonation = await Donation.findOne({
-      id: DONATION_SEED_DATA.SECOND_DONATION.id,
-    });
-    await notifyMissingDonationsWithSegment();
-
-    const afterNotifiedDonation = await Donation.findOne({
-      id: DONATION_SEED_DATA.SECOND_DONATION.id,
-    });
-    assert.notEqual(
-      unnotifiedDonation?.segmentNotified,
-      afterNotifiedDonation?.segmentNotified,
+    const verifiedDonation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        segmentNotified: false,
+        status: DONATION_STATUS.VERIFIED,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
     );
-    assert.equal(afterNotifiedDonation?.segmentNotified, true);
+
+    const pendingDonation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        segmentNotified: false,
+        status: DONATION_STATUS.PENDING,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const failedDonation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        segmentNotified: false,
+        status: DONATION_STATUS.FAILED,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    await notifyMissingDonationsWithSegment();
+    const updatedVerifiedDonation = await Donation.findOne(verifiedDonation.id);
+    const updatedPendingDonation = await Donation.findOne(pendingDonation.id);
+    const updatedFailedDonation = await Donation.findOne(failedDonation.id);
+    assert.isTrue(updatedVerifiedDonation?.segmentNotified);
+    assert.isFalse(updatedPendingDonation?.segmentNotified);
+    assert.isFalse(updatedFailedDonation?.segmentNotified);
   });
   describe('after the notifyMissingDonationsWithSegment() ran', () => {
-    it('should have not notified incompleted transak donations', async () => {
-      const incompletedTransakDonations = await Donation.createQueryBuilder(
+    // All verified donations should be notified and other donations should not be notified
+
+    // TODO saveDonation mutations creates pending donations with segmentNotifed:true, after removing that
+    // mutation we can uncomment this test case
+    // it('should have not notified unverified donations', async () => {
+    //   const notifiedUnVerifiedDonations = await Donation.createQueryBuilder(
+    //     'donation',
+    //   )
+    //     .where({ segmentNotified: true })
+    //     .andWhere(`donation.status != '${DONATION_STATUS.VERIFIED}'`)
+    //     .getMany();
+    //   assert.isEmpty(notifiedUnVerifiedDonations);
+    // });
+
+    it('should have notified all verified donations', async () => {
+      const notNotifiedVerifiedDonations = await Donation.createQueryBuilder(
         'donation',
       )
         .where({ segmentNotified: false })
-        .andWhere(
-          `donation.transakStatus != '${TRANSAK_COMPLETED_STATUS}' AND donation.transakStatus IS NOT NULL`,
-        )
-        .getMany();
-      const notNotifiedDonations = await Donation.createQueryBuilder('donation')
-        .where({ segmentNotified: false })
-        .andWhere(
-          `(donation.transakStatus = '${TRANSAK_COMPLETED_STATUS}' OR donation.transakStatus IS NULL)`,
-        )
+        .andWhere(`(donation.status = '${DONATION_STATUS.VERIFIED}')`)
         .getMany();
 
-      // cronjob ignores incompleted transak donations and they remain unnotified
-      assert.equal(notNotifiedDonations?.length, 0);
-      assert.equal(incompletedTransakDonations?.length, 1);
+      assert.isEmpty(notNotifiedVerifiedDonations);
     });
   });
 }

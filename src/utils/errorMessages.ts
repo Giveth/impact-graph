@@ -18,6 +18,7 @@ export const errorMessages = {
   CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION:
     'This category is not valid',
   INVALID_TX_HASH: 'Invalid txHash',
+  INVALID_TRANSACTION_ID: 'Invalid transactionId',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
   PROJECT_STATUS_NOT_FOUND:
     'No project status found, this should be impossible',
