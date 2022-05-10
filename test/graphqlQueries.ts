@@ -56,6 +56,37 @@ export const createDonationMutation = `
   }
 `;
 
+export const updateDonationStatusMutation = `
+  mutation (
+    $status: String!
+    $donationId: Float!
+  ) {
+    updateDonationStatus(
+      status: $status
+      donationId: $donationId
+    ){
+      id
+      status
+      verifyErrorMessage
+    }
+  }
+`;
+
+export const inquiryDonationWithNetworkQuery = `
+  query (
+    $donationId: Float!
+  ) {
+    inquiryDonationWithNetwork(
+      donationId: $donationId
+    ){
+      id
+      status
+      verifyErrorMessage
+    
+    }
+  }
+`;
+
 export const createProjectQuery = `
        mutation ($project: CreateProjectInput!) {
           createProject(project: $project) {

@@ -11,6 +11,7 @@ import {
   saveDonationDirectlyToDb,
   createDonationData,
   generateUserIdLessAccessToken,
+  saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
@@ -24,6 +25,8 @@ import {
   donationsToWallets,
   donationsFromWallets,
   createDonationMutation,
+  inquiryDonationWithNetworkQuery,
+  updateDonationStatusMutation,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -31,6 +34,7 @@ import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjStatus } from '../entities/project';
 import { Token } from '../entities/token';
 import { IsUppercase } from 'class-validator';
+import { findDonationById } from '../repositories/donationRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -43,6 +47,11 @@ describe('donationByUserId() test cases', donationsByUserIdTestCases);
 describe('donationsByDonor() test cases', donationsByDonorTestCases);
 describe('saveDonation() test cases', saveDonationTestCases);
 describe('createDonation() test cases', createDonationTestCases);
+describe(
+  'inquiryDonationWithNetwork() test cases',
+  inquiryDonationWithNetworkTestCases,
+);
+describe('updateDonationStatus() test cases', updateDonationStatusTestCases);
 describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
 
@@ -3389,5 +3398,348 @@ function donationsToWalletsTestCases() {
       {},
     );
     assert.equal(result.data.data.donationsToWallets.length, 0);
+  });
+}
+
+function inquiryDonationWithNetworkTestCases() {
+  it('should update donation status to verified after inquiry ', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0xaaf96af4d0634dafcac1b6eca627b77ceb157aad1037033761ed3a4220ebb2b5
+    const transactionInfo = {
+      txHash:
+        '0xaaf96af4d0634dafcac1b6eca627b77ceb157aad1037033761ed3a4220ebb2b5',
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: '0x00d18ca9782be1caef611017c2fbc1a39779a57c',
+      toAddress: '0x90b31c07fb0310b4b0d88368169dad8fe0cbb6da',
+      currency: 'XDAI',
+      timestamp: 1647483910,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 1,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    assert.equal(donation.status, DONATION_STATUS.PENDING);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: inquiryDonationWithNetworkQuery,
+        variables: {
+          donationId: donation.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.inquiryDonationWithNetwork.status,
+      DONATION_STATUS.VERIFIED,
+    );
+  });
+  it('should update donation status to failed after inquiry ', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0x6c2550e21d57d2c9c7e1cb22c0c4d6581575c77f9be2ef35995466e61c730a08
+    const transactionInfo = {
+      txHash:
+        '0x6c2550e21d57d2c9c7e1cb22c0c4d6581575c77f9be2ef35995466e61c730a08',
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: '0x42a7d872dec08d309f4b93d05e5b9de183765858',
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 1,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    assert.equal(donation.status, DONATION_STATUS.PENDING);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: inquiryDonationWithNetworkQuery,
+        variables: {
+          donationId: donation.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.inquiryDonationWithNetwork.status,
+      DONATION_STATUS.FAILED,
+    );
+    assert.equal(
+      result.data.data.inquiryDonationWithNetwork.verifyErrorMessage,
+      errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
+    );
+  });
+  it('should donation status remain pending after inquiry (we assume its not mined so far)', async () => {
+    const transactionInfo = {
+      txHash: generateRandomTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 1,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    assert.equal(donation.status, DONATION_STATUS.PENDING);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: inquiryDonationWithNetworkQuery,
+        variables: {
+          donationId: donation.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.inquiryDonationWithNetwork.status,
+      DONATION_STATUS.PENDING,
+    );
+  });
+}
+
+function updateDonationStatusTestCases() {
+  it('should update donation status to verified ', async () => {
+    // https://etherscan.io/tx/0xe42fd848528dcb06f56fd3b553807354b4bf0ff591454e1cc54070684d519df5
+    const transactionInfo = {
+      txHash:
+        '0xe42fd848528dcb06f56fd3b553807354b4bf0ff591454e1cc54070684d519df5',
+      networkId: NETWORK_IDS.MAIN_NET,
+      amount: 500,
+      fromAddress: '0x5d28fe1e9f895464aab52287d85ebff32b351674',
+      toAddress: '0x0eed1566f46b0421d53d2143a3957bb22016ef4b',
+      currency: 'GIV',
+      timestamp: 1646704855,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 1,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    assert.equal(donation.status, DONATION_STATUS.PENDING);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateDonationStatusMutation,
+        variables: {
+          donationId: donation.id,
+
+          // We send faild but because it checks with network first, it ignores sent status
+          status: DONATION_STATUS.FAILED,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateDonationStatus.status,
+      DONATION_STATUS.VERIFIED,
+    );
+  });
+  it('should update donation status to failed', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0x013c3371c1de181439ac51067fd2e417b71b9d462c13417252e2153f80af630f
+    const transactionInfo = {
+      txHash:
+        '0x013c3371c1de181439ac51067fd2e417b71b9d462c13417252e2153f80af630f',
+      networkId: NETWORK_IDS.XDAI,
+      amount: 2800,
+      fromAddress: '0x5d28fe1e9f895464aab52287d85ebff32b351674',
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1646725075,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 1,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    assert.equal(donation.status, DONATION_STATUS.PENDING);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateDonationStatusMutation,
+        variables: {
+          donationId: donation.id,
+          status: DONATION_STATUS.FAILED,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateDonationStatus.status,
+      DONATION_STATUS.FAILED,
+    );
+    assert.equal(
+      result.data.data.updateDonationStatus.verifyErrorMessage,
+      errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
+    );
+  });
+  it('should update donation status to failed, tx is not mined and donor says it failed', async () => {
+    const transactionInfo = {
+      txHash: generateRandomTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 1,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    assert.equal(donation.status, DONATION_STATUS.PENDING);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateDonationStatusMutation,
+        variables: {
+          donationId: donation.id,
+          status: DONATION_STATUS.FAILED,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateDonationStatus.status,
+      DONATION_STATUS.FAILED,
+    );
+    assert.equal(
+      result.data.data.updateDonationStatus.verifyErrorMessage,
+      errorMessages.DONOR_REPORTED_IT_AS_FAILED,
+    );
   });
 }

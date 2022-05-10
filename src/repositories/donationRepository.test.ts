@@ -11,6 +11,7 @@ import { User, UserRole } from '../entities/user';
 import { assert } from 'chai';
 import {
   createDonation,
+  findDonationById,
   findDonationsByTransactionId,
 } from './donationRepository';
 
@@ -53,6 +54,7 @@ describe(
   'findDonationsByTransactionId() test cases',
   findDonationsByTransactionIdTestCases,
 );
+describe('findDonationById() test cases', findDonationByIdTestCases);
 
 function findDonationsByTransactionIdTestCases() {
   it('should return donation with txHash ', async () => {
@@ -95,6 +97,23 @@ function findDonationsByTransactionIdTestCases() {
     const fetchedDonation = await findDonationsByTransactionId(
       generateRandomTxHash(),
     );
+    assert.isNotOk(fetchedDonation);
+  });
+}
+
+function findDonationByIdTestCases() {
+  it('should return donation with id ', async () => {
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    const fetchedDonation = await findDonationById(donation.id);
+    assert.isOk(fetchedDonation);
+    assert.equal(fetchedDonation?.id, donation.id);
+  });
+  it('should not return donation with invalid id ', async () => {
+    const fetchedDonation = await findDonationById(10000000);
     assert.isNotOk(fetchedDonation);
   });
 }

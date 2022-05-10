@@ -3,6 +3,7 @@ import { CustomHelpers, number, ObjectSchema, ValidationResult } from 'joi';
 const Joi = require('joi');
 import { errorMessages } from '../errorMessages';
 import { NETWORK_IDS } from '../../provider';
+import { DONATION_STATUS } from '../../entities/donation';
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 
@@ -36,7 +37,7 @@ export const getDonationsQueryValidator = Joi.object({
 });
 
 export const createDonationQueryValidator = Joi.object({
-  amount: Joi.number()?.greater(0),
+  amount: Joi.number()?.greater(0).required(),
   transactionId: Joi.string().required().pattern(txHashRegex).messages({
     'string.pattern.base': errorMessages.INVALID_TRANSACTION_ID,
   }),
@@ -52,4 +53,15 @@ export const createDonationQueryValidator = Joi.object({
   nonce: Joi.number().integer().min(0).required(),
   anonymous: Joi.boolean(),
   transakId: Joi.string(),
+});
+
+export const updateDonationQueryValidator = Joi.object({
+  donationId: Joi.number().integer().min(0).required(),
+  status: Joi.string()
+    .required()
+    .valid(DONATION_STATUS.VERIFIED, DONATION_STATUS.FAILED),
+});
+
+export const inquiryDonationWithNetworkQueryValidator = Joi.object({
+  donationId: Joi.number().integer().min(0).required(),
 });

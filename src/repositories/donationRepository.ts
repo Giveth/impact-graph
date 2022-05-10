@@ -62,3 +62,13 @@ export const findDonationsByTransactionId = async (
     })
     .getOne();
 };
+
+export const findDonationById = async (
+  donationId: number,
+): Promise<Donation | undefined> => {
+  return Donation.createQueryBuilder('donation')
+    .where(`id = :donationId`, {
+      donationId,
+    })
+    .getOne();
+};

@@ -17,7 +17,7 @@ import { Max, Min } from 'class-validator';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 // import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
-import { Donation, SortField } from '../entities/donation';
+import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
@@ -29,6 +29,7 @@ import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
   isTokenAcceptableForProject,
+  syncDonationStatusWithBlockchainNetwork,
   updateTotalDonationsOfProject,
 } from '../services/donationService';
 import {
@@ -42,6 +43,8 @@ import { from } from 'form-data';
 import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
+  inquiryDonationWithNetworkQueryValidator,
+  updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
@@ -50,6 +53,7 @@ import {
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
+import { findDonationById } from '../repositories/donationRepository';
 
 const analytics = getAnalytics();
 
@@ -671,6 +675,17 @@ export class DonationResolver {
           properties: donation,
           anonymousId: null,
         });
+        SentryLogger.captureException(
+          new Error('Error in getting price from monoswap'),
+          {
+            extra: {
+              donationId: donation.id,
+              txHash: donation.transactionId,
+              currency: donation.currency,
+              network: donation.transactionNetworkId,
+            },
+          },
+        );
       }
 
       await donation.save();
@@ -684,7 +699,93 @@ export class DonationResolver {
       return donation.id;
     } catch (e) {
       SentryLogger.captureException(e);
-      logger.error('saveDonation() error', e);
+      logger.error('createDonation() error', e);
+      throw e;
+    }
+  }
+
+  @Mutation(returns => Donation)
+  async updateDonationStatus(
+    @Arg('donationId') donationId: number,
+    @Arg('status') status: string,
+    @Ctx() ctx: MyContext,
+  ): Promise<Donation> {
+    // We just update status of donation with tx status in blockchain network
+    // but if user send failed status, and there were nothing in network we change it to failed
+    try {
+      const userId = ctx?.req?.user?.userId;
+      if (!userId) {
+        throw new Error(errorMessages.UN_AUTHORIZED);
+      }
+      const donation = await findDonationById(donationId);
+      if (!donation) {
+        throw new Error(errorMessages.DONATION_NOT_FOUND);
+      }
+      if (donation.userId !== userId) {
+        throw new Error(errorMessages.YOU_ARE_NOT_OWNER_OF_THIS_DONATION);
+      }
+      validateWithJoiSchema(
+        {
+          status,
+          donationId,
+        },
+        updateDonationQueryValidator,
+      );
+      if (donation.status === DONATION_STATUS.VERIFIED) {
+        return donation;
+      }
+      const updatedDonation = await syncDonationStatusWithBlockchainNetwork({
+        donationId,
+      });
+      if (
+        updatedDonation.status === DONATION_STATUS.PENDING &&
+        status === DONATION_STATUS.FAILED
+      ) {
+        updatedDonation.status = DONATION_STATUS.FAILED;
+        updatedDonation.verifyErrorMessage =
+          errorMessages.DONOR_REPORTED_IT_AS_FAILED;
+        await updatedDonation.save();
+      }
+      return updatedDonation;
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('updateDonationStatus() error', e);
+      throw e;
+    }
+  }
+
+  @Query(returns => Donation)
+  async inquiryDonationWithNetwork(
+    @Arg('donationId') donationId: number,
+    @Ctx() ctx: MyContext,
+  ): Promise<Donation> {
+    try {
+      const userId = ctx?.req?.user?.userId;
+      if (!userId) {
+        throw new Error(errorMessages.UN_AUTHORIZED);
+      }
+      const donation = await findDonationById(donationId);
+      if (!donation) {
+        throw new Error(errorMessages.DONATION_NOT_FOUND);
+      }
+      if (donation.userId !== userId) {
+        throw new Error(errorMessages.YOU_ARE_NOT_OWNER_OF_THIS_DONATION);
+      }
+      validateWithJoiSchema(
+        {
+          donationId,
+        },
+        inquiryDonationWithNetworkQueryValidator,
+      );
+      if (donation.status === DONATION_STATUS.VERIFIED) {
+        return donation;
+      }
+      return await syncDonationStatusWithBlockchainNetwork({
+        donationId,
+      });
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('inquiryDonationWithNetwork() error', e);
       throw e;
     }
   }
