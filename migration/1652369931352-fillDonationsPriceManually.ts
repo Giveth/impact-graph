@@ -224,6 +224,10 @@ export class fillDonationsPriceManually1652369931352
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
+    const donationTableExists = await queryRunner.hasTable('donation');
+    if (!donationTableExists) {
+      return;
+    }
     for (const donation of donations) {
       await queryRunner.query(`
                      UPDATE donation
@@ -235,6 +239,10 @@ export class fillDonationsPriceManually1652369931352
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
+    const donationTableExists = await queryRunner.hasTable('donation');
+    if (!donationTableExists) {
+      return;
+    }
     for (const donation of donations) {
       await queryRunner.query(`
                      UPDATE donation
