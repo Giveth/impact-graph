@@ -36,7 +36,7 @@ import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/s
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import { errorMessages } from '../utils/errorMessages';
 import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
-import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/syncOldDonationsPrices';
+import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 
 // tslint:disable:no-var-requires
 const express = require('express');
