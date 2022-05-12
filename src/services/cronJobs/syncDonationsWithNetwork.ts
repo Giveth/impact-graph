@@ -1,5 +1,4 @@
 import { Donation, DONATION_STATUS } from '../../entities/donation';
-import { getTransactionInfoFromNetwork } from '../transactionService';
 import { errorMessages } from '../../utils/errorMessages';
 import { schedule } from 'node-cron';
 
@@ -9,6 +8,7 @@ import Bull from 'bull';
 import config from '../../config';
 import { redisConfig } from '../../redis';
 import { logger } from '../../utils/logger';
+import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
 
 const verifyDonationsQueue = new Bull('verify-donations-queue', {
   redis: redisConfig,
@@ -67,56 +67,15 @@ function processVerifyDonationsJobs() {
     async (job, done) => {
       const { donationId } = job.data;
       logger.debug('job processing', { jobData: job.data });
-      const donation = await Donation.findOne(donationId);
-      if (!donation) {
-        throw new Error(errorMessages.DONATION_NOT_FOUND);
-      }
       try {
-        if (
-          donation.toWalletAddress.toLowerCase() !==
-          donation.project.walletAddress?.toLowerCase()
-        ) {
-          donation.verifyErrorMessage =
-            errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS;
-          donation.status = DONATION_STATUS.FAILED;
-          await donation.save();
-          return done();
-        }
-        const transaction = await getTransactionInfoFromNetwork({
-          nonce: donation.nonce,
-          networkId: donation.transactionNetworkId,
-          toAddress: donation.toWalletAddress,
-          fromAddress: donation.fromWalletAddress,
-          amount: donation.amount,
-          symbol: donation.currency,
-          txHash: donation.transactionId,
-          timestamp: donation.createdAt.getTime() / 1000,
-        });
-        donation.status = DONATION_STATUS.VERIFIED;
-        if (transaction.hash !== donation.transactionId) {
-          donation.speedup = true;
-          donation.transactionId = transaction.hash;
-        }
-        await donation.save();
-        logger.debug('donation and transaction', {
-          transaction,
-          donationId: donation.id,
-        });
+        await syncDonationStatusWithBlockchainNetwork(donationId);
         done();
       } catch (e) {
+        logger.error(
+          'processVerifyDonationsJobs >> syncDonationStatusWithBlockchainNetwork error',
+          e,
+        );
         done();
-        logger.debug('checkPendingDonations() error', {
-          error: e,
-          donationId: donation.id,
-        });
-
-        if (failedVerifiedDonationErrorMessages.includes(e.message)) {
-          // if error message is in failedVerifiedDonationErrorMessages then we know we should change the status to failed
-          // otherwise we leave it to be checked in next cycle
-          donation.verifyErrorMessage = e.message;
-          donation.status = DONATION_STATUS.FAILED;
-          await donation.save();
-        }
       }
     },
   );
