@@ -1,10 +1,12 @@
 import { assert } from 'chai';
 import {
   isTokenAcceptableForProject,
+  updateOldStableCoinDonationsPrice,
   updateTotalDonationsOfProject,
 } from './donationService';
 import { NETWORK_IDS } from '../provider';
 import {
+  createDonationData,
   createProjectData,
   DONATION_SEED_DATA,
   saveDonationDirectlyToDb,
@@ -14,11 +16,16 @@ import {
 import { Token } from '../entities/token';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { Project } from '../entities/project';
+import { Donation } from '../entities/donation';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
   'updateTotalDonationsOfProject test cases',
-  updateTotalDonationsOfProjectTestCases,
+  fillTotalDonationsOfProjectTestCases,
+);
+describe(
+  'updateOldStableCoinDonationsPrice test cases',
+  fillOldStableCoinDonationsPriceTestCases,
 );
 
 function isProjectAcceptTokenTestCases() {
@@ -165,7 +172,7 @@ function isProjectAcceptTokenTestCases() {
   });
 }
 
-function updateTotalDonationsOfProjectTestCases() {
+function fillTotalDonationsOfProjectTestCases() {
   it('should not change updatedAt', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     await updateTotalDonationsOfProject(project.id);
@@ -194,5 +201,24 @@ function updateTotalDonationsOfProjectTestCases() {
       new Date(updatedProject.updatedAt).getTime(),
       new Date(project.updatedAt).getTime(),
     );
+  });
+}
+
+function fillOldStableCoinDonationsPriceTestCases() {
+  it('should fill price for XDAI donation that already doesnt have price', async () => {
+    const donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        currency: 'XDAI',
+        valueUsd: undefined,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    assert.isNotOk(donation.valueUsd);
+    await updateOldStableCoinDonationsPrice();
+    const updatedDonation = await Donation.findOne(donation.id);
+    assert.equal(updatedDonation?.valueUsd, updatedDonation?.amount);
+    assert.equal(updatedDonation?.priceUsd, 1);
   });
 }
