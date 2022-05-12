@@ -211,6 +211,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
         ...createDonationData(),
         currency: 'XDAI',
         valueUsd: undefined,
+        amount: 100,
       },
       SEED_DATA.FIRST_USER.id,
       SEED_DATA.FIRST_PROJECT.id,
