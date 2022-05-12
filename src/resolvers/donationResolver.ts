@@ -43,7 +43,6 @@ import { from } from 'form-data';
 import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
-  inquiryDonationWithNetworkQueryValidator,
   updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
@@ -707,7 +706,7 @@ export class DonationResolver {
   @Mutation(returns => Donation)
   async updateDonationStatus(
     @Arg('donationId') donationId: number,
-    @Arg('status') status: string,
+    @Arg('status', { nullable: true }) status: string,
     @Ctx() ctx: MyContext,
   ): Promise<Donation> {
     // We just update status of donation with tx status in blockchain network
@@ -750,42 +749,6 @@ export class DonationResolver {
     } catch (e) {
       SentryLogger.captureException(e);
       logger.error('updateDonationStatus() error', e);
-      throw e;
-    }
-  }
-
-  @Query(returns => Donation)
-  async inquiryDonationWithNetwork(
-    @Arg('donationId') donationId: number,
-    @Ctx() ctx: MyContext,
-  ): Promise<Donation> {
-    try {
-      const userId = ctx?.req?.user?.userId;
-      if (!userId) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
-      }
-      const donation = await findDonationById(donationId);
-      if (!donation) {
-        throw new Error(errorMessages.DONATION_NOT_FOUND);
-      }
-      if (donation.userId !== userId) {
-        throw new Error(errorMessages.YOU_ARE_NOT_OWNER_OF_THIS_DONATION);
-      }
-      validateWithJoiSchema(
-        {
-          donationId,
-        },
-        inquiryDonationWithNetworkQueryValidator,
-      );
-      if (donation.status === DONATION_STATUS.VERIFIED) {
-        return donation;
-      }
-      return await syncDonationStatusWithBlockchainNetwork({
-        donationId,
-      });
-    } catch (e) {
-      SentryLogger.captureException(e);
-      logger.error('inquiryDonationWithNetwork() error', e);
       throw e;
     }
   }

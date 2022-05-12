@@ -25,7 +25,6 @@ import {
   donationsToWallets,
   donationsFromWallets,
   createDonationMutation,
-  inquiryDonationWithNetworkQuery,
   updateDonationStatusMutation,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
@@ -47,10 +46,6 @@ describe('donationByUserId() test cases', donationsByUserIdTestCases);
 describe('donationsByDonor() test cases', donationsByDonorTestCases);
 describe('saveDonation() test cases', saveDonationTestCases);
 describe('createDonation() test cases', createDonationTestCases);
-describe(
-  'inquiryDonationWithNetwork() test cases',
-  inquiryDonationWithNetworkTestCases,
-);
 describe('updateDonationStatus() test cases', updateDonationStatusTestCases);
 describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
@@ -3401,8 +3396,8 @@ function donationsToWalletsTestCases() {
   });
 }
 
-function inquiryDonationWithNetworkTestCases() {
-  it('should update donation status to verified after inquiry ', async () => {
+function updateDonationStatusTestCases() {
+  it('should update donation status to verified after calling without sending status', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0xaaf96af4d0634dafcac1b6eca627b77ceb157aad1037033761ed3a4220ebb2b5
     const transactionInfo = {
       txHash:
@@ -3440,7 +3435,7 @@ function inquiryDonationWithNetworkTestCases() {
     const result = await axios.post(
       graphqlUrl,
       {
-        query: inquiryDonationWithNetworkQuery,
+        query: updateDonationStatusMutation,
         variables: {
           donationId: donation.id,
         },
@@ -3452,11 +3447,11 @@ function inquiryDonationWithNetworkTestCases() {
       },
     );
     assert.equal(
-      result.data.data.inquiryDonationWithNetwork.status,
+      result.data.data.updateDonationStatus.status,
       DONATION_STATUS.VERIFIED,
     );
   });
-  it('should update donation status to failed after inquiry ', async () => {
+  it('should update donation status to failed after calling without sending status ', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x6c2550e21d57d2c9c7e1cb22c0c4d6581575c77f9be2ef35995466e61c730a08
     const transactionInfo = {
       txHash:
@@ -3494,7 +3489,7 @@ function inquiryDonationWithNetworkTestCases() {
     const result = await axios.post(
       graphqlUrl,
       {
-        query: inquiryDonationWithNetworkQuery,
+        query: updateDonationStatusMutation,
         variables: {
           donationId: donation.id,
         },
@@ -3506,15 +3501,15 @@ function inquiryDonationWithNetworkTestCases() {
       },
     );
     assert.equal(
-      result.data.data.inquiryDonationWithNetwork.status,
+      result.data.data.updateDonationStatus.status,
       DONATION_STATUS.FAILED,
     );
     assert.equal(
-      result.data.data.inquiryDonationWithNetwork.verifyErrorMessage,
+      result.data.data.updateDonationStatus.verifyErrorMessage,
       errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
     );
   });
-  it('should donation status remain pending after inquiry (we assume its not mined so far)', async () => {
+  it('should donation status remain pending after calling without sending status (we assume its not mined so far)', async () => {
     const transactionInfo = {
       txHash: generateRandomTxHash(),
       networkId: NETWORK_IDS.XDAI,
@@ -3550,7 +3545,7 @@ function inquiryDonationWithNetworkTestCases() {
     const result = await axios.post(
       graphqlUrl,
       {
-        query: inquiryDonationWithNetworkQuery,
+        query: updateDonationStatusMutation,
         variables: {
           donationId: donation.id,
         },
@@ -3562,13 +3557,11 @@ function inquiryDonationWithNetworkTestCases() {
       },
     );
     assert.equal(
-      result.data.data.inquiryDonationWithNetwork.status,
+      result.data.data.updateDonationStatus.status,
       DONATION_STATUS.PENDING,
     );
   });
-}
 
-function updateDonationStatusTestCases() {
   it('should update donation status to verified ', async () => {
     // https://etherscan.io/tx/0xe42fd848528dcb06f56fd3b553807354b4bf0ff591454e1cc54070684d519df5
     const transactionInfo = {

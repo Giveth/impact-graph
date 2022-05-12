@@ -57,11 +57,5 @@ export const createDonationQueryValidator = Joi.object({
 
 export const updateDonationQueryValidator = Joi.object({
   donationId: Joi.number().integer().min(0).required(),
-  status: Joi.string()
-    .required()
-    .valid(DONATION_STATUS.VERIFIED, DONATION_STATUS.FAILED),
-});
-
-export const inquiryDonationWithNetworkQueryValidator = Joi.object({
-  donationId: Joi.number().integer().min(0).required(),
+  status: Joi.string().valid(DONATION_STATUS.VERIFIED, DONATION_STATUS.FAILED),
 });

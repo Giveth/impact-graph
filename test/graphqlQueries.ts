@@ -58,7 +58,7 @@ export const createDonationMutation = `
 
 export const updateDonationStatusMutation = `
   mutation (
-    $status: String!
+    $status: String
     $donationId: Float!
   ) {
     updateDonationStatus(
@@ -68,21 +68,6 @@ export const updateDonationStatusMutation = `
       id
       status
       verifyErrorMessage
-    }
-  }
-`;
-
-export const inquiryDonationWithNetworkQuery = `
-  query (
-    $donationId: Float!
-  ) {
-    inquiryDonationWithNetwork(
-      donationId: $donationId
-    ){
-      id
-      status
-      verifyErrorMessage
-    
     }
   }
 `;
