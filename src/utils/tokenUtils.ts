@@ -11,6 +11,7 @@ export const findTokenByNetworkAndSymbol = async (
   name: string;
   decimals: number;
   chainId: number;
+  isGivbackEligible: boolean;
 }> => {
   const token = await Token.findOne({
     symbol,
@@ -24,6 +25,7 @@ export const findTokenByNetworkAndSymbol = async (
     address: token.address,
     name: token.name,
     decimals: token.decimals,
+    isGivbackEligible: token.isGivbackEligible,
     symbol,
   };
 };

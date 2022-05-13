@@ -7,6 +7,38 @@ import {
 } from './userRepository';
 import { assert } from 'chai';
 
+describe('sql injection test cases', () => {
+  it('should not find user when sending SQL query instead of email (test to be safe on SQL injection)', async () => {
+    const email = `${new Date().getTime()}@giveth.io`;
+    await User.create({
+      email,
+      role: UserRole.OPERATOR,
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+    }).save();
+
+    const foundUser = await findAdminUserByEmail(
+      `${email}' OR email = 'anotherEmail'`,
+    );
+    assert.isNotOk(foundUser);
+  });
+
+  it('should not find user when sending SQL query instead of walletAddress (test to be safe on SQL injection)', async () => {
+    const email = `${new Date().getTime()}@giveth.io`;
+    const walletAddress = generateRandomEtheriumAddress();
+    await User.create({
+      email,
+      role: UserRole.OPERATOR,
+      walletAddress,
+      loginType: 'wallet',
+    }).save();
+    const foundUser = await findUserByWalletAddress(
+      `${walletAddress}' OR "walletAddress" = '${generateRandomEtheriumAddress()}'`,
+    );
+    assert.isNotOk(foundUser);
+  });
+});
+
 describe('findAdminUserByEmail test cases', () => {
   it('should Find admin user by email', async () => {
     const email = `${new Date().getTime()}@giveth.io`;
@@ -37,7 +69,7 @@ describe('findAdminUserByEmail test cases', () => {
   it('should not find operator/admin user when doesnt exists', async () => {
     const email = `${new Date().getTime()}@giveth.io`;
     const foundUser = await findAdminUserByEmail(email);
-    assert.isNull(foundUser);
+    assert.isUndefined(foundUser);
   });
 
   it('should find admin user when there is two user with similar email and restricted one created first', async () => {
@@ -158,7 +190,7 @@ describe('findUserByWalletAddress test cases', () => {
     const foundUser = await findUserByWalletAddress(
       generateRandomEtheriumAddress(),
     );
-    assert.isUndefined(foundUser);
+    assert.isNotOk(foundUser);
   });
 });
 

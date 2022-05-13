@@ -24,3 +24,4 @@ src/scripts/*.json
 
 
 *.log
+*.DS_Store

@@ -4,7 +4,7 @@ import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
 import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
-import { json, Request, Response } from 'express';
+import { json, Request, response, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
@@ -37,6 +37,7 @@ import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/s
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import { errorMessages } from '../utils/errorMessages';
 import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
+import { apiGivRouter } from '../routers/apiGivRoutes';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -243,6 +244,7 @@ export async function bootstrap() {
         maxFiles: 10,
       }),
     );
+    app.use('/apigive', apiGivRouter);
     apolloServer.applyMiddleware({ app });
     app.post(
       '/stripe-webhook',
@@ -254,6 +256,9 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       netlifyDeployed,
     );
+    app.get('/health', (req, res, next) => {
+      res.send('Hi every thing seems ok');
+    });
     app.post('/transak_webhook', webhookHandler);
 
     // Start the server
@@ -264,7 +269,7 @@ export async function bootstrap() {
 
     // Admin Bruh!
     app.use(adminBroQueryCache);
-    app.use(adminBroRootPath, getAdminBroRouter());
+    app.use(adminBroRootPath, await getAdminBroRouter());
 
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();

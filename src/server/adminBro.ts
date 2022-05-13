@@ -40,9 +40,15 @@ import {
   HISTORY_DESCRIPTIONS,
   ProjectStatusHistory,
 } from '../entities/projectStatusHistory';
-import { Organization } from '../entities/organization';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import { Token } from '../entities/token';
+import { NETWORK_IDS } from '../provider';
 import { PurpleAddress } from '../entities/purpleAddress';
-import { findAdminUserByEmail } from '../repositories/userRepository';
+import {
+  findAdminUserByEmail,
+  findUserById,
+  findUserByWalletAddress,
+} from '../repositories/userRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -59,9 +65,9 @@ const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminBroCookie = 'adminbro';
 
 const segmentProjectStatusEvents = {
-  act: SegmentEvents.PROJECT_ACTIVATED,
-  can: SegmentEvents.PROJECT_DEACTIVATED,
-  del: SegmentEvents.PROJECT_CANCELLED,
+  activate: SegmentEvents.PROJECT_ACTIVATED,
+  deactivate: SegmentEvents.PROJECT_DEACTIVATED,
+  cancelled: SegmentEvents.PROJECT_CANCELLED,
 };
 
 // headers defined by the verification team for exporting
@@ -80,6 +86,7 @@ const headers = [
   'listed',
   'totalDonations',
   'totalProjectUpdates',
+  'website',
 ];
 
 interface AdminBroContextInterface {
@@ -87,6 +94,7 @@ interface AdminBroContextInterface {
   resource: any;
   records: any[];
   currentAdmin: User;
+  payload?: any;
 }
 
 interface AdminBroRequestInterface {
@@ -99,9 +107,9 @@ interface AdminBroRequestInterface {
 
 AdminBro.registerAdapter({ Database, Resource });
 
-export const getAdminBroRouter = () => {
+export const getAdminBroRouter = async () => {
   return AdminBroExpress.buildAuthenticatedRouter(
-    getAdminBroInstance(),
+    await getAdminBroInstance(),
     {
       authenticate: async (email, password) => {
         try {
@@ -192,13 +200,13 @@ export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
   }
   if (!adminUser) return false;
 
-  const dbUser = await User.findOne({ id: adminUser.id });
+  const dbUser = await findUserById(adminUser.id);
   if (!dbUser) return false;
 
   return dbUser;
 };
 
-const getAdminBroInstance = () => {
+const getAdminBroInstance = async () => {
   return new AdminBro({
     branding: {
       logo: 'https://i.imgur.com/cGKo1Tk.png',
@@ -407,6 +415,71 @@ const getAdminBroInstance = () => {
         },
       },
       {
+        resource: Token,
+        options: {
+          properties: {
+            networkId: {
+              isVisible: true,
+              availableValues: [
+                { value: NETWORK_IDS.MAIN_NET, label: 'MAINNET' },
+                { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
+                { value: NETWORK_IDS.XDAI, label: 'XDAI' },
+                { value: NETWORK_IDS.BSC, label: 'BSC' },
+              ],
+            },
+            symbol: { isVisible: true },
+            name: { isVisible: true },
+            isGivbackEligible: { isVisible: true },
+            address: { isVisible: true },
+            mainnetAddress: {
+              isVisible: {
+                show: true,
+                edit: true,
+                new: true,
+                list: false,
+                filter: true,
+              },
+            },
+            decimals: { isVisible: true },
+            organizations: {
+              isVisible: {
+                show: true,
+                edit: true,
+                new: true,
+                list: true,
+              },
+              components: {
+                show: AdminBro.bundle('./components/ListOrganizationsNames'),
+                list: AdminBro.bundle('./components/ListOrganizationsNames'),
+              },
+              availableValues: await generateOrganizationList(),
+            },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: false,
+            },
+            // Organization is not editable, hooks are not working correctly
+            edit: {
+              after: linkOrganizations,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              isVisible: true,
+              // component: false
+            },
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              handler: createToken,
+              // component: false
+            },
+          },
+        },
+      },
+      {
         resource: ThirdPartyProjectImport,
         options: {
           properties: {
@@ -487,7 +560,7 @@ const getAdminBroInstance = () => {
               isVisible: {
                 list: false,
                 filter: false,
-                show: false,
+                show: true,
                 edit: true,
               },
             },
@@ -546,7 +619,7 @@ const getAdminBroInstance = () => {
               isVisible: false,
             },
             walletAddress: {
-              isVisible: { list: false, filter: false, show: true, edit: true },
+              isVisible: { list: false, filter: true, show: true, edit: true },
             },
             impactLocation: {
               isVisible: { list: false, filter: false, show: true, edit: true },
@@ -920,6 +993,74 @@ export const buildProjectsQuery = (
   return query;
 };
 
+export const permuteOrganizations = (
+  organizationsLabels: string[],
+  organizationCount: number,
+) => {
+  let allPermutations: string[] = [];
+
+  // we exclude from here the AllOrganizationsOption and length 1 selection
+  for (
+    let permutationLength = 2;
+    permutationLength < organizationCount;
+    permutationLength++
+  ) {
+    const permutations = permute(organizationsLabels, permutationLength);
+    for (const permutation of permutations) {
+      allPermutations = allPermutations.concat(permutation.join(','));
+    }
+  }
+
+  return allPermutations
+    .sort((a, b) => a.length - b.length)
+    .map(labels => {
+      return { value: labels, label: labels };
+    });
+};
+
+// generates orderly permutations and maps then into an array which is later flatten into 1 dimension
+// Current length is the length of selected items from the total items
+export const permute = (organizationsLabels: string[], currentLength) => {
+  return organizationsLabels.flatMap((value, index) =>
+    currentLength > 1
+      ? permute(organizationsLabels.slice(index + 1), currentLength - 1).map(
+          permutation => [value, ...permutation],
+        )
+      : [[value]],
+  );
+};
+
+export const generateOrganizationList = async () => {
+  const organizationsList: {}[] = [];
+  const [organizations, organizationCount] =
+    await Organization.createQueryBuilder('organization')
+      .orderBy('organization.id')
+      .getManyAndCount();
+  const organizationLabels = organizations.map(org => org.label);
+
+  // all organization labels into 1 option
+  const allOrganizations = {
+    value: organizationLabels.join(','),
+    label: 'All Organizations',
+  };
+
+  // all four organizations separated
+  const individualOrganizations = organizations.map(org => {
+    return { value: org.label, label: org.label };
+  });
+
+  const organizationsPermutations = permuteOrganizations(
+    organizationLabels,
+    organizationCount,
+  );
+
+  return organizationsList.concat(
+    allOrganizations,
+    individualOrganizations,
+    organizationsPermutations,
+  );
+};
+
 export const exportProjectsWithFiltersToCsv = async (
   _request: AdminBroRequestInterface,
   _response,
@@ -970,7 +1111,7 @@ const sendProjectsToGoogleSheet = async (
       admin: project.admin,
       creationDate: project.creationDate,
       updatedAt: project.updatedAt,
-      impactLocation: project.impactLocation,
+      impactLocation: project.impactLocation || '',
       walletAddress: project.walletAddress,
       statusId: project.statusId,
       qualityScore: project.qualityScore,
@@ -978,6 +1119,7 @@ const sendProjectsToGoogleSheet = async (
       listed: Boolean(project.listed),
       totalDonations: project.totalDonations,
       totalProjectUpdates: project.totalProjectUpdates,
+      website: project.website || '',
     };
   });
 
@@ -1136,6 +1278,103 @@ export const updateStatusOfProjects = async (
   };
 };
 
+export const linkOrganizations = async (request: AdminBroRequestInterface) => {
+  // edit action calls this method more than once, returning from those extra calls
+  // default handler updates the other params, we only care about orgs
+  if (!request.record.params.organizations) return request;
+
+  let message = `Token created successfully`;
+  let type = 'success';
+  const { organizations, id } = request.record.params;
+  try {
+    const token = await Token.createQueryBuilder('token')
+      .where('token.id = :id', { id })
+      .getOne();
+
+    if (organizations) {
+      // delete organization relation and relink them
+      await Token.query(`
+        DELETE FROM organization_tokens_token
+        WHERE "tokenId" = ${token!.id}
+      `);
+
+      const organizationsInDb = await Organization.createQueryBuilder(
+        'organization',
+      )
+        .where('organization.label IN (:...labels)', {
+          labels: organizations.split(','),
+        })
+        .getMany();
+
+      token!.organizations = organizationsInDb;
+    }
+
+    await token!.save();
+  } catch (e) {
+    logger.error('error creating token', e.message);
+    message = e.message;
+    type = 'danger';
+  }
+
+  return request;
+};
+
+export const createToken = async (
+  request: AdminBroRequestInterface,
+  response,
+) => {
+  let message = `Token created successfully`;
+  let type = 'success';
+  const {
+    address,
+    decimals,
+    isGivbackEligible,
+    mainnetAddress,
+    name,
+    networkId,
+    symbol,
+    organizations,
+  } = request.payload;
+  try {
+    const newToken = Token.create({
+      name,
+      symbol,
+      address: address?.toLowerCase(),
+      mainnetAddress: mainnetAddress?.toLowerCase(),
+      isGivbackEligible,
+      decimals: Number(decimals),
+      networkId: Number(networkId),
+    });
+
+    if (organizations) {
+      const organizationsInDb = await Organization.createQueryBuilder(
+        'organization',
+      )
+        .where('organization.label IN (:...labels)', {
+          labels: organizations.split(','),
+        })
+        .getMany();
+
+      newToken.organizations = organizationsInDb;
+    }
+
+    await newToken.save();
+  } catch (e) {
+    logger.error('error creating token', e.message);
+    message = e.message;
+    type = 'danger';
+  }
+
+  response.send({
+    redirectUrl: 'Token',
+    record: {},
+    notice: {
+      message,
+      type,
+    },
+  });
+};
+
 export const importThirdPartyProject = async (
   request: AdminBroRequestInterface,
   response,
@@ -1262,9 +1501,7 @@ export const createDonation = async (
         anonymous: true,
         isTokenEligibleForGivback: true,
       });
-      const donor = await User.findOne({
-        walletAddress: transactionInfo?.from,
-      });
+      const donor = await findUserByWalletAddress(transactionInfo?.from);
       if (donor) {
         donation.anonymous = false;
         donation.user = donor;

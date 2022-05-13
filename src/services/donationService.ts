@@ -7,6 +7,10 @@ import DonationTracker from './segment/DonationTracker';
 import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { Organization } from '../entities/organization';
+import { findUserById } from '../repositories/userRepository';
+import { errorMessages } from '../utils/errorMessages';
+import { getTransactionInfoFromNetwork } from './transactionService';
+import { findProjectById } from '../repositories/projectRepository';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -50,8 +54,9 @@ export const updateDonationByTransakData = async (
   }
 
   if (TRANSAK_COMPLETED_STATUS === donation.transakStatus) {
-    donation.segmentNotified = true;
-    notifyTransakUpdate(donation);
+    await sendSegmentEventForDonation({
+      donation,
+    });
     if (donationProjectIsValid) {
       donation.status = DONATION_STATUS.VERIFIED;
       donation.transakTransactionLink = transakData.webhookData.transactionLink;
@@ -59,33 +64,6 @@ export const updateDonationByTransakData = async (
   }
   await donation.save();
   await updateTotalDonationsOfProject(donation.projectId);
-};
-
-const notifyTransakUpdate = async donation => {
-  const project = await Project.findOne({ id: donation.projectId });
-  const owner = await User.findOne({ id: Number(project?.admin) });
-
-  // Notify Owner of donation, and notify authenticated user his donation was received
-  if (project && owner) {
-    new DonationTracker(
-      donation,
-      project,
-      owner,
-      SegmentEvents.DONATION_RECEIVED,
-    ).track();
-
-    if (!donation.anonymous) {
-      const donor = await User.findOne({ id: donation.userId });
-
-      if (donor)
-        new DonationTracker(
-          donation,
-          project,
-          donor,
-          SegmentEvents.MADE_DONATION,
-        ).track();
-    }
-  }
 };
 
 export const updateTotalDonationsOfProject = async (projectId: number) => {
@@ -129,5 +107,112 @@ export const isTokenAcceptableForProject = async (inputData: {
       error: e,
     });
     return false;
+  }
+};
+
+const failedVerifiedDonationErrorMessages = [
+  errorMessages.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
+  errorMessages.INVALID_NETWORK_ID,
+  errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
+  errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
+  errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
+];
+
+export const syncDonationStatusWithBlockchainNetwork = async (params: {
+  donationId: number;
+}): Promise<Donation> => {
+  const { donationId } = params;
+  const donation = await Donation.findOne(donationId);
+  if (!donation) {
+    throw new Error(errorMessages.DONATION_NOT_FOUND);
+  }
+  try {
+    if (
+      donation.toWalletAddress.toLowerCase() !==
+      donation.project.walletAddress?.toLowerCase()
+    ) {
+      donation.verifyErrorMessage =
+        errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS;
+      donation.status = DONATION_STATUS.FAILED;
+      await donation.save();
+      return donation;
+    }
+    const transaction = await getTransactionInfoFromNetwork({
+      nonce: donation.nonce,
+      networkId: donation.transactionNetworkId,
+      toAddress: donation.toWalletAddress,
+      fromAddress: donation.fromWalletAddress,
+      amount: donation.amount,
+      symbol: donation.currency,
+      txHash: donation.transactionId,
+      timestamp: donation.createdAt.getTime() / 1000,
+    });
+    donation.status = DONATION_STATUS.VERIFIED;
+    if (transaction.hash !== donation.transactionId) {
+      donation.speedup = true;
+      donation.transactionId = transaction.hash;
+    }
+    await donation.save();
+    await sendSegmentEventForDonation({
+      donation,
+    });
+    logger.debug('donation and transaction', {
+      transaction,
+      donationId: donation.id,
+    });
+    return donation;
+  } catch (e) {
+    logger.debug('checkPendingDonations() error', {
+      error: e,
+      donationId: donation.id,
+    });
+
+    if (failedVerifiedDonationErrorMessages.includes(e.message)) {
+      // if error message is in failedVerifiedDonationErrorMessages then we know we should change the status to failed
+      // otherwise we leave it to be checked in next cycle
+      donation.verifyErrorMessage = e.message;
+      donation.status = DONATION_STATUS.FAILED;
+      await donation.save();
+    }
+    return donation;
+  }
+};
+
+export const sendSegmentEventForDonation = async (params: {
+  donation: Donation;
+}): Promise<void> => {
+  const { donation } = params;
+  if (donation.segmentNotified) {
+    // Should not send notifications for those that we already sent
+    return;
+  }
+  donation.segmentNotified = true;
+  await donation.save();
+  const project = await findProjectById(donation.projectId);
+  if (!project) {
+    logger.error(
+      'sendSegmentEventForDonation project not found for sending segment event donationId',
+      donation.id,
+    );
+    return;
+  }
+  const donorUser = await findUserById(donation.userId);
+  const projectOwner = await findUserById(Number(project.admin));
+  if (projectOwner) {
+    new DonationTracker(
+      donation,
+      project,
+      projectOwner,
+      SegmentEvents.DONATION_RECEIVED,
+    ).track();
+  }
+
+  if (donorUser) {
+    new DonationTracker(
+      donation,
+      project,
+      donorUser,
+      SegmentEvents.MADE_DONATION,
+    ).track();
   }
 };

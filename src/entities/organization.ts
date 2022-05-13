@@ -43,7 +43,6 @@ export class Organization extends BaseEntity {
   @Field(type => [Token], { nullable: true })
   @ManyToMany(type => Token, token => token.organizations, {
     nullable: true,
-    eager: true,
     cascade: true,
   })
   @JoinTable()

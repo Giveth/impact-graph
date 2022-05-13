@@ -3,10 +3,12 @@ export const errorMessages = {
     'ChangeAPI title or EIN not found or invalid',
   CHANGE_API_TITLE_OR_EIN_NOT_PRECISE:
     'Please query the exact project title or EIN ID from the ChangeAPI site',
+  YOU_ARE_NOT_OWNER_OF_THIS_DONATION: 'You are now owner of this donation',
   NOT_SUPPORTED_THIRD_PARTY_API: 'Third Party API not supported',
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',
+  DONOR_REPORTED_IT_AS_FAILED: 'Donor reported it as failed',
   INVALID_DATE_FORMAT: 'Date format should be YYYYMMDD HH:mm:ss',
   INTERNAL_SERVER_ERROR: 'Internal server error',
   ERROR_CONNECTING_DB: 'Error in connecting DB',
@@ -18,6 +20,8 @@ export const errorMessages = {
   CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION:
     'This category is not valid',
   INVALID_TX_HASH: 'Invalid txHash',
+  INVALID_TRANSACTION_ID: 'Invalid transactionId',
+  DUPLICATE_TX_HASH: 'There is a donation with this txHash in our DB',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
   PROJECT_STATUS_NOT_FOUND:
     'No project status found, this should be impossible',
@@ -67,4 +71,6 @@ export const errorMessages = {
   AUTHENTICATION_REQUIRED: 'Authentication required.',
   SOMETHING_WENT_WRONG: 'Something went wrong.',
   PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
+  AMOUNT_IS_INVALID: 'Amount is not valid',
+  CURRENCY_IS_INVALID: 'Currency is not valid',
 };

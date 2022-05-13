@@ -1,4 +1,4 @@
-import { Donation } from '../../entities/donation';
+import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { logger } from '../../utils/logger';
 import { getAnalytics, SegmentEvents } from '../../analytics/analytics';
 import { schedule } from 'node-cron';
@@ -6,9 +6,7 @@ import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import { sleep } from '../../utils/utils';
 import config from '../../config';
-import { TRANSAK_COMPLETED_STATUS } from '../donationService';
-
-const analytics = getAnalytics();
+import { sendSegmentEventForDonation } from '../donationService';
 
 const cronJobTime =
   (config.get(
@@ -24,12 +22,8 @@ export const runNotifyMissingDonationsCronJob = () => {
 
 // As Segment sometimes fail, this is a Best Effort service
 export const notifyMissingDonationsWithSegment = async () => {
-  // skip incompleted transak donations
   const donations = await Donation.createQueryBuilder('donation')
-    .where({ segmentNotified: false })
-    .andWhere(
-      `(donation.transakStatus = '${TRANSAK_COMPLETED_STATUS}' OR donation.transakStatus IS NULL)`,
-    )
+    .where({ segmentNotified: false, status: DONATION_STATUS.VERIFIED })
     .getMany();
   logger.debug(
     'notifyMissingDonationsWithSegment donations count',
@@ -40,43 +34,9 @@ export const notifyMissingDonationsWithSegment = async () => {
       'notifyMissingDonationsWithSegment() sending notification for donation id',
       donation.id,
     );
-    const project = await Project.findOne({ id: donation.projectId });
-    const owner = await User.findOne({ id: Number(project?.admin) });
-    // Notify owner donation was received ( if user and owner and project exist)
-    donation.segmentNotified = true;
-    await donation.save();
-    if (project && owner) {
-      const receivedDonationAttributes = segmentDonationAttributes(
-        project,
-        donation,
-        owner,
-      );
-      analytics.identifyUser(owner);
-
-      analytics.track(
-        SegmentEvents.DONATION_RECEIVED,
-        owner.segmentUserId(),
-        receivedDonationAttributes,
-        owner.segmentUserId(),
-      );
-    }
-
-    const user = await User.findOne({ id: donation.userId });
-    // Notify user donation was made
-    if (project && user) {
-      analytics.identifyUser(user);
-      const madeDonationAttributes = segmentDonationAttributes(
-        project,
-        donation,
-        user,
-      );
-      analytics.track(
-        SegmentEvents.MADE_DONATION,
-        user.segmentUserId(),
-        madeDonationAttributes,
-        user.segmentUserId(),
-      );
-    }
+    await sendSegmentEventForDonation({
+      donation,
+    });
     // await enough for segment limit to regen
     await sleep(1000);
   }

@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
-import { User } from '../src/entities/user';
+import { User, UserRole } from '../src/entities/user';
 import { Donation } from '../src/entities/donation';
 import {
   Category,
@@ -15,6 +15,7 @@ import {
   Organization,
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
+import { findUserByWalletAddress } from '../src/repositories/userRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -67,6 +68,18 @@ export const generateTestAccessToken = async (id: number): Promise<string> => {
   );
 };
 
+// Failed user case from undetected bug in the dapp, userId lost
+export const generateUserIdLessAccessToken = async (
+  id: number,
+): Promise<string> => {
+  const user = await User.findOne({ id });
+  return jwt.sign(
+    { firstName: user?.firstName },
+    config.get('JWT_SECRET') as string,
+    { expiresIn: '30d' },
+  );
+};
+
 export interface CreateProjectData {
   id?: number;
   title: string;
@@ -91,7 +104,13 @@ export interface CreateProjectData {
   image?: string;
 }
 
-export const saveUserDirectlyToDb = async (walletAddress: string) => {
+export const saveUserDirectlyToDb = async (
+  walletAddress: string,
+): Promise<User> => {
+  const user = await findUserByWalletAddress(walletAddress);
+  if (user) {
+    return user;
+  }
   return User.create({
     loginType: 'wallet',
     walletAddress,
@@ -178,8 +197,6 @@ export const createDonationData = (): CreateDonationData => {
     anonymous: false,
     amount: 15,
     valueUsd: 15,
-    userId: SEED_DATA.FIRST_USER.id,
-    projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
     segmentNotified: true,
   };
@@ -1349,8 +1366,9 @@ export interface CreateDonationData {
   amount: number;
   createdAt: any;
   valueUsd?: number;
-  userId?: number;
+  // userId?: number;
   projectId?: number;
+  status?: string;
 }
 
 export const saveDonationDirectlyToDb = async (
