@@ -30,7 +30,6 @@ import {
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
-import { runUpdateHistoricGivPrices } from '../services/cronJobs/syncGivPrices';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
@@ -38,6 +37,7 @@ import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDon
 import { errorMessages } from '../utils/errorMessages';
 import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 import { apiGivRouter } from '../routers/apiGivRoutes';
+import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -276,7 +276,7 @@ export async function bootstrap() {
     runCheckPendingProjectListingCronJob();
     processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
-    runUpdateHistoricGivPrices();
+    runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
 
     // If we need to deactivate the process use the env var

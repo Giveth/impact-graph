@@ -8,6 +8,8 @@ import { SegmentEvents } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { Organization } from '../entities/organization';
 import { findUserById } from '../repositories/userRepository';
+import { convertExponentialNumber } from '../utils/utils';
+import { fetchGivHistoricPrice } from './givPriceService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -130,5 +132,70 @@ export const isTokenAcceptableForProject = async (inputData: {
       error: e,
     });
     return false;
+  }
+};
+
+const toFixNumber = (input: number, digits: number): number => {
+  return convertExponentialNumber(Number(input.toFixed(digits)));
+};
+
+export const updateOldGivDonationsPrice = async () => {
+  const donations = await Donation.findXdaiGivDonationsWithoutPrice();
+  logger.debug('updateOldGivDonationPrice donations count', donations.length);
+  for (const donation of donations) {
+    logger.debug(
+      'updateOldGivDonationPrice() updating accurate price, donationId',
+      donation.id,
+    );
+    try {
+      const givHistoricPrices = await fetchGivHistoricPrice(
+        donation.transactionId,
+        donation.transactionNetworkId,
+      );
+      logger.debug('Update donation usd price ', {
+        donationId: donation.id,
+        ...givHistoricPrices,
+        valueEth: toFixNumber(
+          donation.amount * givHistoricPrices.givPriceInEth,
+          6,
+        ),
+      });
+      donation.priceEth = toFixNumber(givHistoricPrices.ethPriceInUsd, 6);
+      donation.priceUsd = toFixNumber(givHistoricPrices.givPriceInUsd, 3);
+      donation.valueUsd = toFixNumber(
+        donation.amount * givHistoricPrices.givPriceInUsd,
+        3,
+      );
+      donation.valueEth = toFixNumber(
+        donation.amount * givHistoricPrices.givPriceInEth,
+        6,
+      );
+      await donation.save();
+      await updateTotalDonationsOfProject(donation.projectId);
+    } catch (e) {
+      logger.error('Update GIV donation valueUsd error', e.message);
+    }
+  }
+};
+
+export const updateOldStableCoinDonationsPrice = async () => {
+  const donations = await Donation.findStableCoinDonationsWithoutPrice();
+  logger.debug(
+    'updateOldStableCoinDonationPrice donations count',
+    donations.length,
+  );
+  for (const donation of donations) {
+    logger.debug(
+      'updateOldStableCoinDonationPrice() updating accurate price, donationId',
+      donation.id,
+    );
+    try {
+      donation.priceUsd = 1;
+      donation.valueUsd = donation.amount;
+      await donation.save();
+      await updateTotalDonationsOfProject(donation.projectId);
+    } catch (e) {
+      logger.error('Update GIV donation valueUsd error', e.message);
+    }
   }
 };
