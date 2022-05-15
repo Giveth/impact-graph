@@ -75,6 +75,10 @@ export class Donation extends BaseEntity {
 
   @Field()
   @Column('boolean', { default: false })
+  isCustomToken: boolean;
+
+  @Field()
+  @Column('boolean', { default: false })
   isFiat: boolean;
 
   @Field()
