@@ -380,6 +380,7 @@ class ProjectUpdate extends BaseEntity {
   @Field(type => Reaction, { nullable: true })
   reaction?: Reaction;
 
+  // does not call with createQueryBuilder
   @AfterInsert()
   async updateProjectStampOnCreation() {
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
