@@ -22,3 +22,13 @@ export const findUserByWalletAddress = async (
 export const findUserById = (userId: number): Promise<User | undefined> => {
   return User.findOne({ id: userId });
 };
+
+export const createUserWithPublicAddress = async (
+  walletAddress: string,
+): Promise<User> => {
+  return await User.create({
+    walletAddress: walletAddress.toLowerCase(),
+    loginType: 'wallet',
+    segmentIdentified: true,
+  }).save();
+};
