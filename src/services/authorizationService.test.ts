@@ -15,7 +15,6 @@ describe('authorizationHandler() test cases', authorizationHandlerTestCases);
 // tslint:disable-next-line:no-var-requires
 const siwe = require('siwe');
 
-const provider = ethers.getDefaultProvider();
 const domain = 'localhost';
 const origin = 'https://serve.giveth.io';
 
@@ -48,7 +47,7 @@ function authorizationHandlerTestCases() {
     const user = await User.create(userData).save();
     const nonceRoute = config.get('AUTH_MICROSERVICE_NONCE_URL') as string;
     const nonceResult = await Axios.get(nonceRoute);
-    const wallet = new ethers.Wallet(privateKey, provider);
+    const wallet = new ethers.Wallet(privateKey);
 
     const siweMessage = new siwe.SiweMessage({
       domain,
@@ -80,7 +79,7 @@ function authorizationHandlerTestCases() {
     const publicKey = process.env.PUBLIC_ETHERS_SECONDARY_TEST_KEY as string;
     const nonceRoute = config.get('AUTH_MICROSERVICE_NONCE_URL') as string;
     const nonceResult = await Axios.get(nonceRoute);
-    const wallet = new ethers.Wallet(privateKey, provider);
+    const wallet = new ethers.Wallet(privateKey);
 
     const siweMessage = new siwe.SiweMessage({
       domain,
