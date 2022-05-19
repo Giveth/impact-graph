@@ -109,5 +109,6 @@ function authorizationHandlerTestCases() {
     // user should have been created
     const user = await findUserByWalletAddress(publicKey);
     assert.equal(jwtUser.userId, user!.id);
+    assert.equal(user!.walletAddress, publicKey.toLowerCase());
   });
 }

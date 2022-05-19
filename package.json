@@ -42,7 +42,7 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "eth-sig-util": "^3.0.1",
-    "ethers": "^5.5.1",
+    "ethers": "5.5.4",
     "express": "^4.17.1",
     "express-formidable": "^1.2.0",
     "express-rate-limit": "^5.5.1",
