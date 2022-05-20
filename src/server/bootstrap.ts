@@ -89,13 +89,12 @@ export async function bootstrap() {
           }
 
           const { headers } = req;
-          const authVersion = headers.authVersion || '1';
+          const authVersion = headers.authversion || '1';
           logger.info(authVersion);
 
           if (headers.authorization) {
             token = headers.authorization.split(' ')[1].toString();
-            let user;
-            user = await authorizationHandler(authVersion, token);
+            const user = await authorizationHandler(authVersion, token);
             req.user = user;
           }
         } catch (error) {
