@@ -90,6 +90,7 @@ export async function bootstrap() {
 
           const { headers } = req;
           const authVersion = headers.authVersion || '1';
+          logger.info(authVersion);
 
           if (headers.authorization) {
             token = headers.authorization.split(' ')[1].toString();
