@@ -1,6 +1,7 @@
 import {
   ManagingFunds,
   Milestones,
+  PROJECT_VERIFICATION_STATUSES,
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
@@ -86,9 +87,22 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   return projectVerificationForm?.save();
 };
 
-export const getInProgressProjectVerificationRequest = async (params: {
-  projectId: number;
-}): Promise<ProjectVerificationForm | null> => {
-  // inProgress means submitted or draft
-  throw new Error('not implemented');
+export const getInProgressProjectVerificationRequest = async (
+  projectId,
+): Promise<ProjectVerificationForm | undefined> => {
+  return ProjectVerificationForm.createQueryBuilder()
+    .where(`projectId=:projectId`, {
+      projectId,
+    })
+    .andWhere(
+      `
+      status=:draft 
+      OR status=:submitted
+      `,
+      {
+        draft: PROJECT_VERIFICATION_STATUSES.DRAFT,
+        submitted: PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+      },
+    )
+    .getOne();
 };

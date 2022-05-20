@@ -23,6 +23,9 @@ export const errorMessages = {
   INVALID_TRANSACTION_ID: 'Invalid transactionId',
   DUPLICATE_TX_HASH: 'There is a donation with this txHash in our DB',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
+  PROJECT_IS_ALREADY_VERIFIED: 'Project is already verified.',
+  THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT:
+    'There is an ongoing project verification request for this project',
   PROJECT_STATUS_NOT_FOUND:
     'No project status found, this should be impossible',
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
