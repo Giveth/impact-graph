@@ -380,6 +380,54 @@ class ProjectUpdate extends BaseEntity {
   @Field(type => Reaction, { nullable: true })
   reaction?: Reaction;
 
+  @Field()
+  @Column('boolean', { default: false })
+  isNonProfitOrganization: boolean;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  organizationCountry: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  organizationWebsite: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  organizationDescription: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  twitter: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  facebook: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  linkedin: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  instagram: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  youtube: string;
+
+  @Column({ nullable: true })
+  foundationDate: Date;
+
+  @Column('text', { nullable: true })
+  mission: string;
+
+  @Column('text', { nullable: true })
+  achievedMilestones: string;
+
+  @Column('text', { nullable: true })
+  managingFundDescription: string;
+
   // does not call with createQueryBuilder
   @AfterInsert()
   async updateProjectStampOnCreation() {
