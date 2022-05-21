@@ -31,6 +31,7 @@ export const PROJECT_VERIFICATION_STEPS = {
 
 @InterfaceType()
 export class ProjectRegistry {
+  @Field({ nullable: true })
   isNonProfitOrganization?: boolean;
   organizationCountry?: string;
   organizationWebsite?: string;
@@ -39,6 +40,7 @@ export class ProjectRegistry {
 
 @InterfaceType()
 export class ProjectContacts {
+  @Field({ nullable: true })
   twitter?: string;
   facebook?: string;
   linkedin?: string;
@@ -48,6 +50,7 @@ export class ProjectContacts {
 
 @InterfaceType()
 export class Milestones {
+  @Field({ nullable: true })
   foundationDate?: Date;
   mission?: string;
   achievedMilestones?: string;
@@ -56,6 +59,7 @@ export class Milestones {
 
 @InterfaceType()
 export class ManagingFunds {
+  @Field({ nullable: true })
   description: string;
   relatedAddresses: {
     title: string;

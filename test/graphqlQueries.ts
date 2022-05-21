@@ -781,3 +781,17 @@ export const editProjectUpdateQuery = `
                     title
                     }
          }`;
+
+export const createProjectVerificationFormMutation = `
+        mutation createProjectVerificationForm($projectId: Float!){
+           createProjectVerificationForm(projectId: $projectId) {
+                    user {
+                      id
+                    }
+                    project {
+                      id
+                    }
+                    status
+                    }
+            }
+        `;

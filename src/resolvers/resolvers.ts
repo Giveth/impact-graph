@@ -10,6 +10,7 @@ import { CategoryResolver } from './categoryResolver';
 import { DonationResolver } from './donationResolver';
 import { ReactionResolver } from './reactionResolver';
 import { StatusReasonResolver } from './statusReasonResolver';
+import { ProjectVerificationFormResolver } from './projectVerificationFormResolver';
 
 export const resolvers: any = [
   UserResolver,
@@ -24,4 +25,5 @@ export const resolvers: any = [
   CategoryResolver,
   DonationResolver,
   ReactionResolver,
+  ProjectVerificationFormResolver,
 ];

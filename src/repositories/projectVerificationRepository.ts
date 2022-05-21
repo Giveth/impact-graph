@@ -6,15 +6,19 @@ import {
   ProjectRegistry,
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
+import { findProjectById } from './projectRepository';
+import { findUserById } from './userRepository';
 
 export const createProjectVerificationRequest = async (params: {
   userId: number;
   projectId: number;
 }): Promise<ProjectVerificationForm> => {
   const { userId, projectId } = params;
+  const project = await findProjectById(projectId);
+  const user = await findUserById(userId);
   return ProjectVerificationForm.create({
-    userId,
-    projectId,
+    project,
+    user,
   }).save();
 };
 
@@ -87,11 +91,12 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   return projectVerificationForm?.save();
 };
 
+// TODO write test for this
 export const getInProgressProjectVerificationRequest = async (
-  projectId,
+  projectId: number,
 ): Promise<ProjectVerificationForm | undefined> => {
   return ProjectVerificationForm.createQueryBuilder()
-    .where(`projectId=:projectId`, {
+    .where(`"projectId"=:projectId`, {
       projectId,
     })
     .andWhere(
