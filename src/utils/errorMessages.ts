@@ -26,6 +26,8 @@ export const errorMessages = {
   PROJECT_IS_ALREADY_VERIFIED: 'Project is already verified.',
   THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT:
     'There is an ongoing project verification request for this project',
+  THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT:
+    'There is not any project verification form for this project',
   PROJECT_STATUS_NOT_FOUND:
     'No project status found, this should be impossible',
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:

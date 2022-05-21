@@ -785,6 +785,22 @@ export const editProjectUpdateQuery = `
 export const createProjectVerificationFormMutation = `
         mutation createProjectVerificationForm($projectId: Float!){
            createProjectVerificationForm(projectId: $projectId) {
+                    id
+                    user {
+                      id
+                    }
+                    project {
+                      id
+                    }
+                    status
+                    }
+            }
+        `;
+
+export const getCurrentProjectVerificationFormQuery = `
+        query getCurrentProjectVerificationForm($projectId: Float!){
+           getCurrentProjectVerificationForm(projectId: $projectId) {
+                    id
                     user {
                       id
                     }

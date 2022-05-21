@@ -8,8 +8,10 @@ import {
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
+import { Project } from '../entities/project';
+import { Brackets } from 'typeorm';
 
-export const createProjectVerificationRequest = async (params: {
+export const createProjectVerificationForm = async (params: {
   userId: number;
   projectId: number;
 }): Promise<ProjectVerificationForm> => {
@@ -91,23 +93,24 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   return projectVerificationForm?.save();
 };
 
-// TODO write test for this
 export const getInProgressProjectVerificationRequest = async (
   projectId: number,
 ): Promise<ProjectVerificationForm | undefined> => {
-  return ProjectVerificationForm.createQueryBuilder()
+  return ProjectVerificationForm.createQueryBuilder('project_verification_form')
     .where(`"projectId"=:projectId`, {
       projectId,
     })
     .andWhere(
-      `
-      status=:draft 
-      OR status=:submitted
-      `,
-      {
-        draft: PROJECT_VERIFICATION_STATUSES.DRAFT,
-        submitted: PROJECT_VERIFICATION_STATUSES.SUBMITTED,
-      },
+      // https://stackoverflow.com/a/69165948/4650625
+      new Brackets(qb => {
+        qb.where('status = :draft', {
+          draft: PROJECT_VERIFICATION_STATUSES.DRAFT,
+        }).orWhere('status = :submitted', {
+          submitted: PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+        });
+      }),
     )
+    .leftJoinAndSelect('project_verification_form.project', 'project')
+    .leftJoinAndSelect('project_verification_form.user', 'user')
     .getOne();
 };

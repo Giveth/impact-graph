@@ -12,7 +12,8 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import {
-  createProjectVerificationRequest,
+  createProjectVerificationForm,
+  getInProgressProjectVerificationRequest,
   updateManagingFundsOfProjectVerification,
   updateMilestonesOfProjectVerification,
   updateProjectContactsOfProjectVerification,
@@ -21,8 +22,8 @@ import {
 import { assert } from 'chai';
 
 describe(
-  'createProjectVerificationRequest test cases',
-  createProjectVerificationRequestTestCases,
+  'createProjectVerificationForm test cases',
+  createProjectVerificationFormTestCases,
 );
 describe(
   'updateProjectRegistryOfProjectVerification test cases',
@@ -40,12 +41,20 @@ describe(
   'updateManagingFundsOfProjectVerification test cases',
   updateManagingFundsOfProjectVerificationTestCases,
 );
+describe(
+  'getInProgressProjectVerificationRequest test cases',
+  getInProgressProjectVerificationRequestTestCases,
+);
 
-function createProjectVerificationRequestTestCases() {
-  it('should create projectVerification sucessfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
+function createProjectVerificationFormTestCases() {
+  it('should create projectVerification successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projectVerificationForm = await createProjectVerificationRequest({
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
       userId: user.id,
     });
@@ -57,10 +66,14 @@ function createProjectVerificationRequestTestCases() {
 }
 
 function updateProjectRegistryOfProjectVerificationTestCases() {
-  it('Should update projectVerification sucessfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
+  it('Should update projectVerification successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projectVerificationForm = await createProjectVerificationRequest({
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
       userId: user.id,
     });
@@ -83,10 +96,14 @@ function updateProjectRegistryOfProjectVerificationTestCases() {
 }
 
 function updateProjectContactsOfProjectVerificationTestCases() {
-  it('Should update projectVerification sucessfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
+  it('Should update projectVerification successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projectVerificationForm = await createProjectVerificationRequest({
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
       userId: user.id,
     });
@@ -114,10 +131,14 @@ function updateProjectContactsOfProjectVerificationTestCases() {
 }
 
 function updateMilestonesOfProjectVerificationTestCases() {
-  it('Should update projectVerification sucessfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
+  it('Should update projectVerification successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projectVerificationForm = await createProjectVerificationRequest({
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
       userId: user.id,
     });
@@ -144,10 +165,14 @@ function updateMilestonesOfProjectVerificationTestCases() {
 }
 
 function updateManagingFundsOfProjectVerificationTestCases() {
-  it('Should update projectVerification sucessfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
+  it('Should update projectVerification successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projectVerificationForm = await createProjectVerificationRequest({
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
       userId: user.id,
     });
@@ -178,6 +203,53 @@ function updateManagingFundsOfProjectVerificationTestCases() {
     assert.equal(
       updatedProjectVerification?.managingFunds.description,
       managingFunds.description,
+    );
+  });
+}
+
+function getInProgressProjectVerificationRequestTestCases() {
+  it('Should find projectVerificationForm with submitted status', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm.save();
+    const foundProjectVerificationForm =
+      await getInProgressProjectVerificationRequest(project.id);
+    assert.isOk(foundProjectVerificationForm);
+    assert.equal(foundProjectVerificationForm?.id, projectVerificationForm.id);
+    assert.equal(
+      foundProjectVerificationForm?.status,
+      projectVerificationForm.status,
+    );
+  });
+  it('Should find projectVerificationForm with draft status', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
+    await projectVerificationForm.save();
+    const foundProjectVerificationForm =
+      await getInProgressProjectVerificationRequest(project.id);
+    assert.isOk(foundProjectVerificationForm);
+    assert.equal(foundProjectVerificationForm?.id, projectVerificationForm.id);
+    assert.equal(
+      foundProjectVerificationForm?.status,
+      projectVerificationForm.status,
     );
   });
 }
