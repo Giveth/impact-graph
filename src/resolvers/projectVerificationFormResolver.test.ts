@@ -12,8 +12,11 @@ import {
   createProjectVerificationFormMutation,
   getCurrentProjectVerificationFormQuery,
 } from '../../test/graphqlQueries';
-import { ProjStatus } from '../entities/project';
-import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
+import { Project, ProjStatus } from '../entities/project';
+import {
+  PROJECT_VERIFICATION_STATUSES,
+  ProjectVerificationForm,
+} from '../entities/projectVerificationForm';
 import { createProjectVerificationForm } from '../repositories/projectVerificationRepository';
 
 describe(
@@ -54,6 +57,170 @@ function createProjectVerificationFormMutationTestCases() {
     assert.equal(
       result.data.data.createProjectVerificationForm.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+  });
+  it('should not create project verification because user that is authenticated is not project owner', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+      admin: String(user1.id),
+      verified: false,
+      listed: false,
+    });
+    const accessToken = await generateTestAccessToken(user2.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectVerificationFormMutation,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      'You are not the owner of this project.',
+    );
+  });
+  it('should not create project verification because project verified before', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: true,
+      listed: false,
+    });
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectVerificationFormMutation,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(result.data.errors[0].message, 'Project is already verified.');
+  });
+  it('should not create project verification because project not found', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const projectId = Number(await Project.count()) + 3;
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectVerificationFormMutation,
+        variables: {
+          projectId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(result.data.errors[0].message, 'Project not found.');
+  });
+  it('should not create project verification because user not found', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: createProjectVerificationFormMutation,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.equal(result.data.errors[0].message, 'unAuthorized');
+  });
+  it('should not create project verification because user have draft project verification', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const accessToken = await generateTestAccessToken(user.id);
+
+    await ProjectVerificationForm.create({
+      project,
+      user,
+      status: 'draft',
+    }).save();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectVerificationFormMutation,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      'There is an ongoing project verification request for this project',
+    );
+  });
+  it('should not create project verification because user have submitted project verification', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const accessToken = await generateTestAccessToken(user.id);
+
+    await ProjectVerificationForm.create({
+      project,
+      user,
+      status: 'submitted',
+    }).save();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectVerificationFormMutation,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      'There is an ongoing project verification request for this project',
     );
   });
 }
