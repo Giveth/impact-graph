@@ -8,6 +8,7 @@ export const errorMessages = {
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',
+  INVALID_AUTHORIZATION_VERSION: 'Authorizatio version is not valid',
   INVALID_STEP: 'Invalid step',
   DONOR_REPORTED_IT_AS_FAILED: 'Donor reported it as failed',
   INVALID_DATE_FORMAT: 'Date format should be YYYYMMDD HH:mm:ss',
