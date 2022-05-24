@@ -824,13 +824,49 @@ export const updateProjectVerificationFormMutation = `
                     }
                     status
                     }
-                    projectContacts {
-                      youtube
-                      instagram
-                      linkedin
-                      facebook
-                      instagram
-                    }
-
             }
         `;
+
+// export const updateProjectVerificationFormMutation = `
+//         mutation updateProjectVerificationForm($projectVerificationUpdateInput: ProjectVerificationUpdateInput!){
+//            updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
+//                     id
+//                     user {
+//                       id
+//                     }
+//                     project {
+//                       id
+//                     }
+//                     status
+//                     }
+//                     projectContacts {
+//                       youtube
+//                       instagram
+//                       linkedin
+//                       facebook
+//                       instagram
+//                     }
+//                     projectRegistry {
+//                       organizationDescription
+//                       isNonProfitOrganization
+//                       organizationCountry
+//                       organizationWebsite
+//                     }
+//
+//                     milestones {
+//                       mission
+//                       foundationDate
+//                       achievedMilestones
+//                       achievedMilestonesProof
+//                     }
+//                     managingFunds {
+//                       description
+//                       relatedAddress {
+//                         address
+//                         networkId
+//                         title
+//                       }
+//                     }
+//
+//             }
+//         `;

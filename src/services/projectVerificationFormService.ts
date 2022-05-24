@@ -22,6 +22,7 @@ import {
   updateProjectContactsOfProjectVerification,
   updateProjectRegistryOfProjectVerification,
   updateProjectVerificationStatus,
+  updateTermsAndConditionsOfProjectVerification,
 } from '../repositories/projectVerificationRepository';
 import { errorMessages } from '../utils/errorMessages';
 import { ProjectVerificationUpdateInput } from '../resolvers/types/ProjectVerificationUpdateInput';
@@ -58,16 +59,14 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationProjectContactsStepValidator,
       );
-      const result = await updateProjectContactsOfProjectVerification({
+      return updateProjectContactsOfProjectVerification({
         projectVerificationId,
         projectContacts,
       });
-      logger.debug('update project verification result', result);
-      return result;
     case PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY:
       validateWithJoiSchema(
         {
-          projectContacts,
+          projectRegistry,
         },
         updateProjectVerificationProjectRegistryStepValidator,
       );
@@ -78,7 +77,7 @@ export const updateProjectVerificationFormByUser = async (params: {
     case PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS:
       validateWithJoiSchema(
         {
-          projectContacts,
+          managingFunds,
         },
         updateProjectVerificationManagingFundsStepValidator,
       );
@@ -89,7 +88,7 @@ export const updateProjectVerificationFormByUser = async (params: {
     case PROJECT_VERIFICATION_STEPS.MILESTONES:
       validateWithJoiSchema(
         {
-          projectContacts,
+          milestones,
         },
         updateProjectVerificationMilestonesStepValidator,
       );
@@ -104,9 +103,9 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationTermsAndConditionsStepValidator,
       );
-      return updateMilestonesOfProjectVerification({
+      return updateTermsAndConditionsOfProjectVerification({
         projectVerificationId,
-        milestones,
+        isTermAndConditionsAccepted,
       });
     case PROJECT_VERIFICATION_STEPS.SUBMIT:
       validateWithJoiSchema(

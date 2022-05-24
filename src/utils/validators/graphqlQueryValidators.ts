@@ -135,10 +135,11 @@ export const updateProjectVerificationTermsAndConditionsStepValidator =
 
 export const submitProjectVerificationStepValidator = Joi.object({
   isTermAndConditionsAccepted: Joi.boolean().required().valid(true),
-  socialProfiles: Joi.array().required().min(1).messages({
-    'string.base':
-      errorMessages.SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT,
-  }),
+  socialProfiles: Joi.array().required().min(0),
+  // socialProfiles: Joi.array().required().min(1).messages({
+  //   'string.base':
+  //     errorMessages.SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT,
+  // }),
   status: Joi.string().required().valid(PROJECT_VERIFICATION_STATUSES.DRAFT),
   projectContacts: projectContactsValidator,
   milestones: milestonesValidator,

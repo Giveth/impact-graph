@@ -14,13 +14,18 @@ import {
   updateProjectVerificationFormMutation,
 } from '../../test/graphqlQueries';
 import {
+  ManagingFunds,
+  Milestones,
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
+  ProjectContacts,
+  ProjectRegistry,
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
 import { Project, ProjStatus } from '../entities/project';
 import { createProjectVerificationForm } from '../repositories/projectVerificationRepository';
 import { errorMessages } from '../utils/errorMessages';
+import { NETWORK_IDS } from '../provider';
 
 describe(
   'createProjectVerification test cases',
@@ -234,11 +239,40 @@ function createProjectVerificationFormMutationTestCases() {
 }
 
 function updateProjectVerificationFormMutationTestCases() {
+  const projectContacts: ProjectContacts = {
+    facebook: 'facebookAddress',
+    instagram: 'instagramAddress',
+    linkedin: 'linkedinAddress',
+    twitter: '',
+    youtube: 'youtubeAddress',
+  };
+  const projectRegistry: ProjectRegistry = {
+    organizationWebsite: 'org website',
+    organizationCountry: 'France',
+    isNonProfitOrganization: true,
+    organizationDescription: '',
+  };
+  const milestones: Milestones = {
+    mission: 'mission',
+    achievedMilestonesProof: 'an ipfs hash',
+    achievedMilestones: 'lots of work',
+    foundationDate: new Date(),
+  };
+  const managingFunds: ManagingFunds = {
+    description: 'description!!!',
+    relatedAddresses: [
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.MAIN_NET,
+        title: 'test title',
+      },
+    ],
+  };
   it('should update project verification with projectContacts form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
-      statusId: ProjStatus.deactive,
+      statusId: ProjStatus.active,
       admin: String(user.id),
       verified: false,
       listed: false,
@@ -249,13 +283,6 @@ function updateProjectVerificationFormMutationTestCases() {
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
-    const projectContacts = {
-      facebook: 'facebookAddress',
-      instagram: 'instagramAddress',
-      linkedin: 'linkedinAddress',
-      twitter: '',
-      youtube: 'youtubeAddress',
-    };
     const result = await axios.post(
       graphqlUrl,
       {
@@ -283,13 +310,204 @@ function updateProjectVerificationFormMutationTestCases() {
     //   PROJECT_VERIFICATION_STATUSES.DRAFT,
     // );
     // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.projectContacts.linkedin,
+    //   result.data.data.updateProjectVerificationForm.projectRegistry.linkedin,
     //   projectContacts.linkedin,
     // );
     // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.projectContacts.twitter,
+    //   result.data.data.updateProjectVerificationForm.projectRegistry.twitter,
     //   projectContacts.twitter,
     // );
+  });
+  it('should update project verification with projectRegistry form successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY,
+            projectRegistry,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+
+    // TODO after fixing graphql output, below test cases should be uncommented
+    // assert.equal(
+    //   result.data.data.updateProjectVerificationForm.status,
+    //   PROJECT_VERIFICATION_STATUSES.DRAFT,
+    // );
+    // assert.equal(
+    //   result.data.data.updateProjectVerificationForm.projectRegistry.organizationDescription,
+    //   projectRegistry.organizationDescription,
+    // );
+    // assert.equal(
+    //   result.data.data.updateProjectVerificationForm.projectRegistry.organizationCountry,
+    //   projectRegistry.organizationCountry,
+    // );
+  });
+  it('should update project verification with milestones form successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.MILESTONES,
+            milestones,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+
+    // TODO after fixing graphql output, below test cases should be uncommented
+    // assert.equal(
+    //   result.data.data.updateProjectVerificationForm.status,
+    //   PROJECT_VERIFICATION_STATUSES.DRAFT,
+    // );
+    // assert.equal(
+    //   result.data.data.updateProjectVerificationForm.milestones.achievedMilestones,
+    //   milestones.achievedMilestones,
+    // );
+    // assert.equal(
+    //   result.data.data.updateProjectVerificationForm.milestones.achievedMilestonesProof,
+    //   milestones.achievedMilestonesProof,
+    // );
+  });
+  it('should update project verification with managingFunds form successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
+            managingFunds,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+
+    // TODO after fixing graphql output, below test cases should be uncommented
+    // assert.equal(
+    //   result.data.data.updateProjectVerificationForm.status,
+    //   PROJECT_VERIFICATION_STATUSES.DRAFT,
+    // );
+    // assert.equal(
+    //   result.data.data.updateProjectVerificationForm.managingFunds.description,
+    //   managingFunds.description,
+    // );
+    // assert.equal(
+    //   result.data.data.updateProjectVerificationForm.managingFunds.relatedAddresses[0].address,
+    //   managingFunds.relatedAddresses[0].address,
+    // );
+  });
+  it('should update project verification with submit form successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      projectRegistry,
+      projectContacts,
+      milestones,
+      managingFunds,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      isTermAndConditionsAccepted: true,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.SUBMIT,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+    );
   });
 }
 
