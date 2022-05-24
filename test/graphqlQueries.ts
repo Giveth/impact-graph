@@ -808,6 +808,29 @@ export const getCurrentProjectVerificationFormQuery = `
                       id
                     }
                     status
+                  }
+            }
+        `;
+
+export const updateProjectVerificationFormMutation = `
+        mutation updateProjectVerificationForm($projectVerificationUpdateInput: ProjectVerificationUpdateInput!){
+           updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
+                    id
+                    user {
+                      id
                     }
+                    project {
+                      id
+                    }
+                    status
+                    }
+                    projectContacts {
+                      youtube
+                      instagram
+                      linkedin
+                      facebook
+                      instagram
+                    }
+
             }
         `;

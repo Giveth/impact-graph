@@ -8,6 +8,7 @@ export const errorMessages = {
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',
+  INVALID_STEP: 'Invalid step',
   DONOR_REPORTED_IT_AS_FAILED: 'Donor reported it as failed',
   INVALID_DATE_FORMAT: 'Date format should be YYYYMMDD HH:mm:ss',
   INTERNAL_SERVER_ERROR: 'Internal server error',
@@ -23,7 +24,11 @@ export const errorMessages = {
   INVALID_TRANSACTION_ID: 'Invalid transactionId',
   DUPLICATE_TX_HASH: 'There is a donation with this txHash in our DB',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
+  YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM:
+    'You are not the owner of this project verification form.',
+  PROJECT_VERIFICATION_FORM_NOT_FOUND: 'Project verification form not found',
   PROJECT_IS_ALREADY_VERIFIED: 'Project is already verified.',
+  YOU_JUST_CAN_EDIT_DRAFT_REQUESTS: 'Project is already verified.',
   THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT:
     'There is an ongoing project verification request for this project',
   THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT:
@@ -78,4 +83,6 @@ export const errorMessages = {
   PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
   AMOUNT_IS_INVALID: 'Amount is not valid',
   CURRENCY_IS_INVALID: 'Currency is not valid',
+  SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT:
+    'Should have one connected social network before submit',
 };

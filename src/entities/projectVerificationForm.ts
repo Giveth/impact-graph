@@ -10,7 +10,7 @@ import {
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
-import { Field, ID, InterfaceType, ObjectType } from 'type-graphql';
+import { Field, ID, InputType, InterfaceType, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { SocialProfile } from './socialProfile';
@@ -26,25 +26,34 @@ export const PROJECT_VERIFICATION_STEPS = {
   PROJECT_REGISTRY: 'projectRegistry',
   PROJECT_CONTACTS: 'projectContacts',
   MANAGING_FUNDS: 'managingFunds',
+  MILESTONES: 'milestones',
   TERM_AND_CONDITION: 'termAndCondition',
+  SUBMIT: 'submit',
 };
 
 @InterfaceType()
 export class ProjectRegistry {
   @Field({ nullable: true })
   isNonProfitOrganization?: boolean;
+  @Field({ nullable: true })
   organizationCountry?: string;
+  @Field({ nullable: true })
   organizationWebsite?: string;
-  organizaitonDescription?: string;
+  @Field({ nullable: true })
+  organizationDescription?: string;
 }
 
 @InterfaceType()
 export class ProjectContacts {
   @Field({ nullable: true })
   twitter?: string;
+  @Field({ nullable: true })
   facebook?: string;
+  @Field({ nullable: true })
   linkedin?: string;
+  @Field({ nullable: true })
   instagram?: string;
+  @Field({ nullable: true })
   youtube?: string;
 }
 
@@ -52,20 +61,31 @@ export class ProjectContacts {
 export class Milestones {
   @Field({ nullable: true })
   foundationDate?: Date;
+  @Field({ nullable: true })
   mission?: string;
+  @Field({ nullable: true })
   achievedMilestones?: string;
+  @Field({ nullable: true })
   achievedMilestonesProof?: string;
+}
+
+@InterfaceType()
+export class RelatedAddress {
+  @Field({ nullable: true })
+  title: string;
+  @Field({ nullable: true })
+  address: string;
+  @Field({ nullable: true })
+  networkId: number;
 }
 
 @InterfaceType()
 export class ManagingFunds {
   @Field({ nullable: true })
   description: string;
-  relatedAddresses: {
-    title: string;
-    address: string;
-    networkId: number;
-  }[];
+
+  @Field(() => RelatedAddress, { nullable: true })
+  relatedAddresses: RelatedAddress[];
 }
 
 @Entity()
@@ -117,7 +137,7 @@ export class ProjectVerificationForm extends BaseEntity {
   createdAt: Date;
 
   @Field()
-  @Column('text', { default: PROJECT_VERIFICATION_STATUSES.DRAFT })
+  @Column('text', { default: PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS })
   step: string;
 
   // https://github.com/typeorm/typeorm/issues/4674#issuecomment-618073862
@@ -125,7 +145,7 @@ export class ProjectVerificationForm extends BaseEntity {
   @Column('jsonb', { nullable: true })
   projectRegistry: ProjectRegistry;
 
-  @Field({ nullable: true })
+  @Field(type => ProjectContacts, { nullable: true })
   @Column('jsonb', { nullable: true })
   projectContacts: ProjectContacts;
 

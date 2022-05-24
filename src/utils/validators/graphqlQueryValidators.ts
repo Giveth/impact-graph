@@ -4,6 +4,7 @@ const Joi = require('joi');
 import { errorMessages } from '../errorMessages';
 import { NETWORK_IDS } from '../../provider';
 import { DONATION_STATUS } from '../../entities/donation';
+import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 
@@ -23,6 +24,8 @@ const throwHttpErrorIfJoiValidatorFails = (
     throw new Error(validationResult.error.details[0].message);
   }
 };
+
+const projectIdValidator = Joi.number().integer().min(0).required();
 
 export const getDonationsQueryValidator = Joi.object({
   fromDate: Joi.string().pattern(filterDateRegex).messages({
@@ -61,9 +64,84 @@ export const updateDonationQueryValidator = Joi.object({
 });
 
 export const createProjectVerificationRequestValidator = Joi.object({
-  projectId: Joi.number().integer().min(0).required(),
+  projectId: projectIdValidator,
 });
 
 export const getCurrentProjectVerificationRequestValidator = Joi.object({
-  projectId: Joi.number().integer().min(0).required(),
+  projectId: projectIdValidator,
+});
+
+const projectRegistryValidator = Joi.object({
+  isNonProfitOrganization: Joi.boolean(),
+  organizationCountry: Joi.string().allow(''),
+  organizationWebsite: Joi.string().allow(''),
+  organizationDescription: Joi.string().allow(''),
+});
+
+const projectContactsValidator = Joi.object({
+  twitter: Joi.string().allow(''),
+  facebook: Joi.string().allow(''),
+  linkedin: Joi.string().allow(''),
+  youtube: Joi.string().allow(''),
+  instagram: Joi.string().allow(''),
+});
+
+const milestonesValidator = Joi.object({
+  foundationDate: Joi.date().allow(''),
+  mission: Joi.string().allow(''),
+  achievedMilestones: Joi.string().allow(''),
+  achievedMilestonesProof: Joi.string().allow(''),
+});
+
+const managingFundsValidator = Joi.object({
+  description: Joi.string().required(),
+  relatedAddresses: Joi.array().items(
+    Joi.object({
+      title: Joi.string().required(),
+      address: Joi.string().required().pattern(ethereumWalletAddressRegex),
+      networkId: Joi.number()?.valid(
+        NETWORK_IDS.MAIN_NET,
+        NETWORK_IDS.XDAI,
+        NETWORK_IDS.XDAI,
+      ),
+    }),
+  ),
+});
+
+export const updateProjectVerificationProjectContactsStepValidator = Joi.object(
+  {
+    projectContacts: projectContactsValidator,
+  },
+);
+
+export const updateProjectVerificationProjectRegistryStepValidator = Joi.object(
+  {
+    projectRegistry: projectRegistryValidator,
+  },
+);
+
+export const updateProjectVerificationManagingFundsStepValidator = Joi.object({
+  managingFunds: managingFundsValidator,
+});
+
+export const updateProjectVerificationMilestonesStepValidator = Joi.object({
+  milestones: milestonesValidator,
+});
+
+export const updateProjectVerificationTermsAndConditionsStepValidator =
+  Joi.object({
+    isTermAndConditionsAccepted: Joi.boolean().required(),
+  });
+
+export const submitProjectVerificationStepValidator = Joi.object({
+  isTermAndConditionsAccepted: Joi.boolean().required().valid(true),
+  socialProfiles: Joi.array().required().min(1).messages({
+    'string.base':
+      errorMessages.SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT,
+  }),
+  status: Joi.string().required().valid(PROJECT_VERIFICATION_STATUSES.DRAFT),
+  projectContacts: projectContactsValidator,
+  milestones: milestonesValidator,
+  managingFunds: managingFundsValidator,
+  projectRegistry: projectRegistryValidator,
 });
