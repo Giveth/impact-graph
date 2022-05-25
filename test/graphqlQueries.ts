@@ -786,14 +786,46 @@ export const createProjectVerificationFormMutation = `
         mutation createProjectVerificationForm($projectId: Float!){
            createProjectVerificationForm(projectId: $projectId) {
                     id
+                    isTermAndConditionsAccepted
+                    projectRegistry {
+                      organizationDescription
+                      isNonProfitOrganization
+                      organizationCountry
+                      organizationWebsite
+                    }
+                    projectContacts {
+                      youtube
+                      instagram
+                      linkedin
+                      facebook
+                      instagram
+                      twitter
+                    }
+                    milestones {
+                      mission
+                      foundationDate
+                      achievedMilestones
+                      achievedMilestonesProof
+                    }
+                    managingFunds {
+                      description
+                      relatedAddresses {
+                        address
+                        networkId
+                        title
+                      }
+                    }
                     user {
                       id
+                      walletAddress
                     }
                     project {
                       id
+                      slug
                     }
                     status
                     }
+                    
             }
         `;
 
@@ -801,14 +833,46 @@ export const getCurrentProjectVerificationFormQuery = `
         query getCurrentProjectVerificationForm($projectId: Float!){
            getCurrentProjectVerificationForm(projectId: $projectId) {
                     id
+                    isTermAndConditionsAccepted
+                    projectRegistry {
+                      organizationDescription
+                      isNonProfitOrganization
+                      organizationCountry
+                      organizationWebsite
+                    }
+                    projectContacts {
+                      youtube
+                      instagram
+                      linkedin
+                      facebook
+                      instagram
+                      twitter
+                    }
+                    milestones {
+                      mission
+                      foundationDate
+                      achievedMilestones
+                      achievedMilestonesProof
+                    }
+                    managingFunds {
+                      description
+                      relatedAddresses {
+                        address
+                        networkId
+                        title
+                      }
+                    }
                     user {
                       id
+                      walletAddress
                     }
                     project {
                       id
+                      slug
                     }
                     status
-                  }
+                    }
+                    
             }
         `;
 
@@ -847,56 +911,14 @@ export const updateProjectVerificationFormMutation = `
                     }
                     user {
                       id
+                      walletAddress
                     }
                     project {
                       id
+                      slug
                     }
                     status
                     }
                     
             }
         `;
-
-// export const updateProjectVerificationFormMutation = `
-//         mutation updateProjectVerificationForm($projectVerificationUpdateInput: ProjectVerificationUpdateInput!){
-//            updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
-//                     id
-//                     user {
-//                       id
-//                     }
-//                     project {
-//                       id
-//                     }
-//                     status
-//                     }
-//                     projectContacts {
-//                       youtube
-//                       instagram
-//                       linkedin
-//                       facebook
-//                       instagram
-//                     }
-//                     projectRegistry {
-//                       organizationDescription
-//                       isNonProfitOrganization
-//                       organizationCountry
-//                       organizationWebsite
-//                     }
-//
-//                     milestones {
-//                       mission
-//                       foundationDate
-//                       achievedMilestones
-//                       achievedMilestonesProof
-//                     }
-//                     managingFunds {
-//                       description
-//                       relatedAddress {
-//                         address
-//                         networkId
-//                         title
-//                       }
-//                     }
-//
-//             }
-//         `;

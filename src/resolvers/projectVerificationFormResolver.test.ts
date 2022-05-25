@@ -71,6 +71,15 @@ function createProjectVerificationFormMutationTestCases() {
       result.data.data.createProjectVerificationForm.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
+    assert.isNotOk(
+      result.data.data.createProjectVerificationForm.managingFunds,
+    );
+    assert.isNotOk(
+      result.data.data.createProjectVerificationForm.projectContacts,
+    );
+    assert.isNotOk(
+      result.data.data.createProjectVerificationForm.projectRegistry,
+    );
   });
   it('should not create project verification because user that is authenticated is not project owner', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
