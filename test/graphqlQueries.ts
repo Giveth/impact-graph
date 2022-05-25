@@ -837,6 +837,14 @@ export const updateProjectVerificationFormMutation = `
                       achievedMilestones
                       achievedMilestonesProof
                     }
+                    managingFunds {
+                      description
+                      relatedAddresses {
+                        address
+                        networkId
+                        title
+                      }
+                    }
                     user {
                       id
                     }

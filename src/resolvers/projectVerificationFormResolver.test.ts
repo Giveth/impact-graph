@@ -450,19 +450,19 @@ function updateProjectVerificationFormMutationTestCases() {
     );
     assert.isOk(result.data.data.updateProjectVerificationForm);
 
-    // TODO after fixing graphql output, below test cases should be uncommented
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.status,
-    //   PROJECT_VERIFICATION_STATUSES.DRAFT,
-    // );
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.managingFunds.description,
-    //   managingFunds.description,
-    // );
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.managingFunds.relatedAddresses[0].address,
-    //   managingFunds.relatedAddresses[0].address,
-    // );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.managingFunds.description,
+      managingFunds.description,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.managingFunds
+        .relatedAddresses[0].address,
+      managingFunds.relatedAddresses[0].address,
+    );
   });
   it('should update project verification with termAndConditions form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

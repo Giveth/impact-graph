@@ -84,7 +84,7 @@ export class ManagingFunds {
   @Field({ nullable: true })
   description: string;
 
-  @Field(() => RelatedAddress, { nullable: true })
+  @Field(() => [RelatedAddress], { nullable: true })
   relatedAddresses: RelatedAddress[];
 }
 
