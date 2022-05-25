@@ -31,6 +31,7 @@ import {
   getPurpleList,
   editProjectUpdateQuery,
   addProjectUpdateQuery,
+  walletAddressIsPurpleListed,
 } from '../../test/graphqlQueries';
 import { CreateProjectInput, ProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
@@ -67,6 +68,10 @@ describe(
 describe('projectBySlug test cases --->', projectBySlugTestCases);
 describe('projectById test cases --->', projectByIdTestCases);
 describe('getPurpleList test cases --->', getPurpleListTestCases);
+describe(
+  'walletAddressIsPurpleListed Test Cases --->',
+  walletAddressIsPurpleListedTestCases,
+);
 
 describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // TODO We should implement test cases for below query/mutation
@@ -2645,6 +2650,63 @@ function projectByIdTestCases() {
       result.data.errors[0].message,
       errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
+  });
+}
+
+function walletAddressIsPurpleListedTestCases() {
+  it('should return true if walletAddress is purpleListed', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await PurpleAddress.create({
+      address: walletAddress,
+      projectId: SEED_DATA.FIRST_PROJECT.id,
+    }).save();
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.isTrue(result.data.data.walletAddressIsPurpleListed);
+  });
+  it('should return true if wallet address is from a verifiedProject', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.isTrue(result.data.data.walletAddressIsPurpleListed);
+  });
+  it('should return false if wallet address is from a nonverified project', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: false,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.isFalse(result.data.data.walletAddressIsPurpleListed);
+  });
+  it('should return false if its a random non related address', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.isFalse(result.data.data.walletAddressIsPurpleListed);
   });
 }
 

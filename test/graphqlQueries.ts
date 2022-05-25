@@ -759,6 +759,12 @@ export const getPurpleList = `
   }
 `;
 
+export const walletAddressIsPurpleListed = `
+  query walletAddressIsPurpleListed($address: String!) {
+    walletAddressIsPurpleListed(address: $address)
+  }
+`;
+
 export const walletAddressIsValid = `
   query WalletAddressIsValid($address: String!) {
     walletAddressIsValid(address: $address)

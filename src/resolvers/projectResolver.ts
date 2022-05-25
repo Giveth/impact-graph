@@ -1075,6 +1075,30 @@ export class ProjectResolver {
       .concat(recipientsAddresses);
   }
 
+  @Query(returns => Boolean)
+  async walletAddressIsPurpleListed(
+    @Arg('address') address: string,
+  ): Promise<Boolean> {
+    const recipient = await Project.createQueryBuilder()
+      .where('verified = true')
+      .andWhere(`LOWER("walletAddress") = :walletAddress`, {
+        walletAddress: address.toLowerCase(),
+      })
+      .getOne();
+
+    if (recipient) return true;
+
+    const purpleAddress = await PurpleAddress.createQueryBuilder()
+      .where(`LOWER(address) = :walletAddress`, {
+        walletAddress: address.toLowerCase(),
+      })
+      .getOne();
+
+    if (purpleAddress) return true;
+
+    return false;
+  }
+
   @Query(returns => [Token])
   async getProjectAcceptTokens(
     @Arg('projectId') projectId: number,
