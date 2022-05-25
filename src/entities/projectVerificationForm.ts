@@ -10,7 +10,7 @@ import {
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
-import { Field, ID, InputType, InterfaceType, ObjectType } from 'type-graphql';
+import { Field, ID, InterfaceType, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { SocialProfile } from './socialProfile';
@@ -136,10 +136,6 @@ export class ProjectVerificationForm extends BaseEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field()
-  @Column('text', { default: PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS })
-  step: string;
-
   // https://github.com/typeorm/typeorm/issues/4674#issuecomment-618073862
   @Field({ nullable: true })
   @Column('jsonb', { nullable: true })
@@ -157,7 +153,7 @@ export class ProjectVerificationForm extends BaseEntity {
   @Column('jsonb', { nullable: true })
   managingFunds: ManagingFunds;
 
-  @Field()
-  @Column('boolean', { default: false })
-  isTermAndConditionsAccepted: boolean;
+  @Field({ nullable: true })
+  @Column('boolean', { default: false, nullable: true })
+  isTermAndConditionsAccepted?: boolean;
 }

@@ -816,6 +816,7 @@ export const updateProjectVerificationFormMutation = `
         mutation updateProjectVerificationForm($projectVerificationUpdateInput: ProjectVerificationUpdateInput!){
            updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
                     id
+                    isTermAndConditionsAccepted
                     user {
                       id
                     }
@@ -824,6 +825,7 @@ export const updateProjectVerificationFormMutation = `
                     }
                     status
                     }
+                    
             }
         `;
 
