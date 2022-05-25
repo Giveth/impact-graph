@@ -41,7 +41,7 @@ class ManagingFundsInputType {
   @Field({ nullable: true })
   description: string;
 
-  @Field(() => RelatedAddressInputType, { nullable: true })
+  @Field(() => [RelatedAddressInputType], { nullable: true })
   relatedAddresses: RelatedAddressInputType[];
 }
 
