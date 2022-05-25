@@ -1890,6 +1890,38 @@ function createDonationTestCases() {
       errorMessages.UN_AUTHORIZED,
     );
   });
+  it('should throw error when access token has no userId', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateUserIdLessAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomTxHash(),
+          nonce: 3,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.UN_AUTHORIZED,
+    );
+  });
   it('should create donation anonymously successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
