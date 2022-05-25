@@ -817,6 +817,12 @@ export const updateProjectVerificationFormMutation = `
            updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
                     id
                     isTermAndConditionsAccepted
+                    projectRegistry {
+                      organizationDescription
+                      isNonProfitOrganization
+                      organizationCountry
+                      organizationWebsite
+                    }
                     projectContacts {
                       youtube
                       instagram
@@ -824,6 +830,12 @@ export const updateProjectVerificationFormMutation = `
                       facebook
                       instagram
                       twitter
+                    }
+                    milestones {
+                      mission
+                      foundationDate
+                      achievedMilestones
+                      achievedMilestonesProof
                     }
                     user {
                       id

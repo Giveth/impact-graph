@@ -350,19 +350,20 @@ function updateProjectVerificationFormMutationTestCases() {
     );
     assert.isOk(result.data.data.updateProjectVerificationForm);
 
-    // TODO after fixing graphql output, below test cases should be uncommented
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.status,
-    //   PROJECT_VERIFICATION_STATUSES.DRAFT,
-    // );
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.projectRegistry.organizationDescription,
-    //   projectRegistry.organizationDescription,
-    // );
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.projectRegistry.organizationCountry,
-    //   projectRegistry.organizationCountry,
-    // );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.projectRegistry
+        .organizationDescription,
+      projectRegistry.organizationDescription,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.projectRegistry
+        .organizationCountry,
+      projectRegistry.organizationCountry,
+    );
   });
   it('should update project verification with milestones form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -399,19 +400,20 @@ function updateProjectVerificationFormMutationTestCases() {
     );
     assert.isOk(result.data.data.updateProjectVerificationForm);
 
-    // TODO after fixing graphql output, below test cases should be uncommented
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.status,
-    //   PROJECT_VERIFICATION_STATUSES.DRAFT,
-    // );
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.milestones.achievedMilestones,
-    //   milestones.achievedMilestones,
-    // );
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.milestones.achievedMilestonesProof,
-    //   milestones.achievedMilestonesProof,
-    // );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones
+        .achievedMilestones,
+      milestones.achievedMilestones,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones
+        .achievedMilestonesProof,
+      milestones.achievedMilestonesProof,
+    );
   });
   it('should update project verification with managingFunds form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
