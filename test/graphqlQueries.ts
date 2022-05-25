@@ -817,6 +817,14 @@ export const updateProjectVerificationFormMutation = `
            updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
                     id
                     isTermAndConditionsAccepted
+                    projectContacts {
+                      youtube
+                      instagram
+                      linkedin
+                      facebook
+                      instagram
+                      twitter
+                    }
                     user {
                       id
                     }

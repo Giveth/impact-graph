@@ -31,7 +31,7 @@ export const PROJECT_VERIFICATION_STEPS = {
   SUBMIT: 'submit',
 };
 
-@InterfaceType()
+@ObjectType()
 export class ProjectRegistry {
   @Field({ nullable: true })
   isNonProfitOrganization?: boolean;
@@ -43,7 +43,7 @@ export class ProjectRegistry {
   organizationDescription?: string;
 }
 
-@InterfaceType()
+@ObjectType()
 export class ProjectContacts {
   @Field({ nullable: true })
   twitter?: string;
@@ -57,7 +57,7 @@ export class ProjectContacts {
   youtube?: string;
 }
 
-@InterfaceType()
+@ObjectType()
 export class Milestones {
   @Field({ nullable: true })
   foundationDate?: Date;
@@ -69,7 +69,7 @@ export class Milestones {
   achievedMilestonesProof?: string;
 }
 
-@InterfaceType()
+@ObjectType()
 export class RelatedAddress {
   @Field({ nullable: true })
   title: string;
@@ -79,7 +79,7 @@ export class RelatedAddress {
   networkId: number;
 }
 
-@InterfaceType()
+@ObjectType()
 export class ManagingFunds {
   @Field({ nullable: true })
   description: string;

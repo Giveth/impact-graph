@@ -301,22 +301,19 @@ function updateProjectVerificationFormMutationTestCases() {
         },
       },
     );
-
     assert.isOk(result.data.data.updateProjectVerificationForm);
-
-    // TODO after fixing graphql output, below test cases should be uncommented
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.status,
-    //   PROJECT_VERIFICATION_STATUSES.DRAFT,
-    // );
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.projectRegistry.linkedin,
-    //   projectContacts.linkedin,
-    // );
-    // assert.equal(
-    //   result.data.data.updateProjectVerificationForm.projectRegistry.twitter,
-    //   projectContacts.twitter,
-    // );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.projectContacts.linkedin,
+      projectContacts.linkedin,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.projectContacts.twitter,
+      projectContacts.twitter,
+    );
   });
   it('should update project verification with projectRegistry form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

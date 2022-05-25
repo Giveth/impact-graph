@@ -33,15 +33,7 @@ export const updateProjectVerificationFormByUser = async (params: {
   projectVerificationUpdateInput: ProjectVerificationUpdateInput;
 }): Promise<ProjectVerificationForm> => {
   const { projectVerificationForm, projectVerificationUpdateInput } = params;
-  const {
-    projectVerificationId,
-    // projectContacts,
-    // projectRegistry,
-    // milestones,
-    // managingFunds,
-    // isTermAndConditionsAccepted,
-    step,
-  } = projectVerificationUpdateInput;
+  const { projectVerificationId, step } = projectVerificationUpdateInput;
   const projectContacts =
     projectVerificationUpdateInput.projectContacts as ProjectContacts;
   const projectRegistry =

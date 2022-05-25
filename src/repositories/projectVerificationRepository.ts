@@ -82,8 +82,10 @@ export const updateProjectContactsOfProjectVerification = async (params: {
   if (!projectVerificationForm) {
     throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
   }
+  // const projectContacts2 = new ProjectContacts()
+  // projectContacts2.linkedin = projectContacts.linkedin
   projectVerificationForm.projectContacts = projectContacts;
-  return projectVerificationForm?.save();
+  return await projectVerificationForm.save();
 };
 export const updateMilestonesOfProjectVerification = async (params: {
   projectVerificationId: number;
