@@ -369,6 +369,17 @@ export class DonationResolver {
   ): Promise<Number> {
     try {
       let userId = ctx?.req?.user?.userId || null;
+
+      if (!userId) {
+        SentryLogger.captureException(
+          `saveDonation() UserId was not assign for address ${fromAddress}`,
+        );
+        logger.error(
+          'saveDonation() error',
+          `UserId was not assign for address ${fromAddress}`,
+        );
+      }
+
       if (!chainId) chainId = NETWORK_IDS.MAIN_NET;
       const priceChainId =
         chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
