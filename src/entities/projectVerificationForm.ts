@@ -10,7 +10,7 @@ import {
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
-import { Field, ID, InterfaceType, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { SocialProfile } from './socialProfile';
@@ -35,12 +35,12 @@ export const PROJECT_VERIFICATION_STEPS = {
 // Representative of the project, no specifically the user
 @ObjectType()
 export class PersonalInfo {
-  @Field({ nullable: false })
-  fullName: string;
-  @Field({ nullable: false })
-  walletAddress: string;
-  @Field({ nullable: false })
-  email: string;
+  @Field({ nullable: true })
+  fullName?: string;
+  @Field({ nullable: true })
+  walletAddress?: string;
+  @Field({ nullable: true })
+  email?: string;
 }
 
 @ObjectType()
@@ -149,11 +149,11 @@ export class ProjectVerificationForm extends BaseEntity {
   createdAt: Date;
 
   // https://github.com/typeorm/typeorm/issues/4674#issuecomment-618073862
-  @Field({ nullable: true })
+  @Field(type => PersonalInfo, { nullable: true })
   @Column('jsonb', { nullable: true })
   personalInfo: PersonalInfo;
 
-  @Field({ nullable: true })
+  @Field(type => ProjectRegistry, { nullable: true })
   @Column('jsonb', { nullable: true })
   projectRegistry: ProjectRegistry;
 
@@ -161,11 +161,11 @@ export class ProjectVerificationForm extends BaseEntity {
   @Column('jsonb', { nullable: true })
   projectContacts: ProjectContacts;
 
-  @Field({ nullable: true })
+  @Field(type => Milestones, { nullable: true })
   @Column('jsonb', { nullable: true })
   milestones: Milestones;
 
-  @Field({ nullable: true })
+  @Field(type => ManagingFunds, { nullable: true })
   @Column('jsonb', { nullable: true })
   managingFunds: ManagingFunds;
 

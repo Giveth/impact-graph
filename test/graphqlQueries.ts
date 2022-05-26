@@ -881,11 +881,17 @@ export const updateProjectVerificationFormMutation = `
            updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
                     id
                     isTermAndConditionsAccepted
+                    emailConfirmed
                     projectRegistry {
                       organizationDescription
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
+                    }
+                    personalInfo {
+                      email
+                      walletAddress
+                      fullName
                     }
                     projectContacts {
                       youtube

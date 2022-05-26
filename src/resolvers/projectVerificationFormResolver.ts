@@ -203,10 +203,12 @@ export class ProjectVerificationFormResolver {
       ) {
         throw new Error(errorMessages.PROJECT_IS_ALREADY_VERIFIED);
       }
-      return updateProjectVerificationFormByUser({
+      const verificationForm = await updateProjectVerificationFormByUser({
         projectVerificationForm,
         projectVerificationUpdateInput,
       });
+
+      return verificationForm;
     } catch (e) {
       logger.error('createProjectVerificationRequest() error', e);
       throw e;

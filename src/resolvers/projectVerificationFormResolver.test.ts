@@ -21,6 +21,7 @@ import {
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
+  PersonalInfo,
 } from '../entities/projectVerificationForm';
 import { Project, ProjStatus } from '../entities/project';
 import { createProjectVerificationForm } from '../repositories/projectVerificationRepository';
@@ -248,6 +249,11 @@ function createProjectVerificationFormMutationTestCases() {
 }
 
 function updateProjectVerificationFormMutationTestCases() {
+  const personalInfo: PersonalInfo = {
+    email: 'test@example.com',
+    fullName: 'test',
+    walletAddress: 'xxxxx',
+  };
   const projectContacts: ProjectContacts = {
     facebook: 'facebookAddress',
     instagram: 'instagramAddress',
@@ -322,6 +328,57 @@ function updateProjectVerificationFormMutationTestCases() {
     assert.equal(
       result.data.data.updateProjectVerificationForm.projectContacts.twitter,
       projectContacts.twitter,
+    );
+  });
+  it('should update project verification with personalinfo form successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.PERSONAL_INFO,
+            personalInfo,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.personalInfo.email,
+      personalInfo.email,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.personalInfo.fullName,
+      personalInfo.fullName,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.personalInfo.walletAddress,
+      personalInfo.walletAddress,
     );
   });
   it('should update project verification with projectRegistry form successfully', async () => {
@@ -530,11 +587,13 @@ function updateProjectVerificationFormMutationTestCases() {
     const projectVerification = await ProjectVerificationForm.create({
       project,
       user,
+      personalInfo,
       projectRegistry,
       projectContacts,
       milestones,
       managingFunds,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
       isTermAndConditionsAccepted: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);

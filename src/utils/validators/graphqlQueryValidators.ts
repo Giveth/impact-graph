@@ -116,7 +116,7 @@ const managingFundsValidator = Joi.object({
 
 export const updateProjectVerificationProjectPersonalInfoStepValidator =
   Joi.object({
-    projectContacts: projectPersonalInfoValidator,
+    personalInfo: projectPersonalInfoValidator,
   });
 
 export const updateProjectVerificationProjectContactsStepValidator = Joi.object(
@@ -152,8 +152,10 @@ export const submitProjectVerificationStepValidator = Joi.object({
   //     errorMessages.SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT,
   // }),
   status: Joi.string().required().valid(PROJECT_VERIFICATION_STATUSES.DRAFT),
+  emailConfirmed: Joi.boolean().required().valid(true),
   projectContacts: projectContactsValidator,
   milestones: milestonesValidator,
   managingFunds: managingFundsValidator,
   projectRegistry: projectRegistryValidator,
+  personalInfo: projectPersonalInfoValidator,
 });

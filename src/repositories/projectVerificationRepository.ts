@@ -60,7 +60,7 @@ export const findProjectVerificationFormByEmailConfirmationToken = async (
 export const updateProjectPersonalInfoOfProjectVerification = async (params: {
   projectVerificationId: number;
   personalInfo: PersonalInfo;
-}) => {
+}): Promise<ProjectVerificationForm> => {
   const { personalInfo, projectVerificationId } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
@@ -70,7 +70,7 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
   }
 
   projectVerificationForm.personalInfo = personalInfo;
-  return projectVerificationForm?.save();
+  return await projectVerificationForm?.save();
 };
 
 export const updateProjectRegistryOfProjectVerification = async (params: {
@@ -86,7 +86,7 @@ export const updateProjectRegistryOfProjectVerification = async (params: {
   }
 
   projectVerificationForm.projectRegistry = projectRegistry;
-  return projectVerificationForm?.save();
+  return await projectVerificationForm?.save();
 };
 
 export const updateProjectVerificationStatus = async (params: {
@@ -102,7 +102,7 @@ export const updateProjectVerificationStatus = async (params: {
   }
 
   projectVerificationForm.status = status;
-  return projectVerificationForm?.save();
+  return await projectVerificationForm?.save();
 };
 
 export const updateProjectContactsOfProjectVerification = async (params: {
@@ -133,7 +133,7 @@ export const updateMilestonesOfProjectVerification = async (params: {
     throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
   }
   projectVerificationForm.milestones = milestones;
-  return projectVerificationForm?.save();
+  return await projectVerificationForm?.save();
 };
 export const updateTermsAndConditionsOfProjectVerification = async (params: {
   projectVerificationId: number;
@@ -148,7 +148,7 @@ export const updateTermsAndConditionsOfProjectVerification = async (params: {
   }
   projectVerificationForm.isTermAndConditionsAccepted =
     isTermAndConditionsAccepted;
-  return projectVerificationForm?.save();
+  return await projectVerificationForm?.save();
 };
 
 export const updateManagingFundsOfProjectVerification = async (params: {
@@ -163,7 +163,7 @@ export const updateManagingFundsOfProjectVerification = async (params: {
     throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
   }
   projectVerificationForm.managingFunds = managingFunds;
-  return projectVerificationForm?.save();
+  return await projectVerificationForm?.save();
 };
 
 export const getInProgressProjectVerificationRequest = async (

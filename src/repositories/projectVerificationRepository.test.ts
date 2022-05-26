@@ -13,10 +13,12 @@ import {
 } from '../../test/testUtils';
 import {
   createProjectVerificationForm,
+  findProjectVerificationFormById,
   getInProgressProjectVerificationRequest,
   updateManagingFundsOfProjectVerification,
   updateMilestonesOfProjectVerification,
   updateProjectContactsOfProjectVerification,
+  updateProjectPersonalInfoOfProjectVerification,
   updateProjectRegistryOfProjectVerification,
 } from './projectVerificationRepository';
 import { assert } from 'chai';
@@ -24,6 +26,10 @@ import { assert } from 'chai';
 describe(
   'createProjectVerificationForm test cases',
   createProjectVerificationFormTestCases,
+);
+describe(
+  'updateProjectPersonalInfoOfProjectVerification test cases',
+  updateProjectPersonalInfoOfProjectVerificationTestCases,
 );
 describe(
   'updateProjectRegistryOfProjectVerification test cases',
@@ -61,6 +67,39 @@ function createProjectVerificationFormTestCases() {
     assert.equal(
       projectVerificationForm.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+  });
+}
+
+function updateProjectPersonalInfoOfProjectVerificationTestCases() {
+  it('Should update projectVerification successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    const projectPersonalInfo = {
+      fullName: 'Carlos',
+      walletAddress: 'fdfsdfsdfsf',
+      email: 'test@example.com',
+    };
+    const updatedProjectVerification =
+      await updateProjectPersonalInfoOfProjectVerification({
+        projectVerificationId: projectVerificationForm.id,
+        personalInfo: projectPersonalInfo,
+      });
+
+    const test = await findProjectVerificationFormById(
+      projectVerificationForm.id,
+    );
+    assert.equal(
+      updatedProjectVerification?.personalInfo.email,
+      projectPersonalInfo.email,
     );
   });
 }

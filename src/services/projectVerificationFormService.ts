@@ -56,7 +56,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationProjectPersonalInfoStepValidator,
       );
-      return updateProjectPersonalInfoOfProjectVerification({
+      return await updateProjectPersonalInfoOfProjectVerification({
         projectVerificationId,
         personalInfo,
       });
@@ -67,7 +67,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationProjectContactsStepValidator,
       );
-      return updateProjectContactsOfProjectVerification({
+      return await updateProjectContactsOfProjectVerification({
         projectVerificationId,
         projectContacts,
       });
@@ -78,7 +78,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationProjectRegistryStepValidator,
       );
-      return updateProjectRegistryOfProjectVerification({
+      return await updateProjectRegistryOfProjectVerification({
         projectVerificationId,
         projectRegistry,
       });
@@ -89,7 +89,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationManagingFundsStepValidator,
       );
-      return updateManagingFundsOfProjectVerification({
+      return await updateManagingFundsOfProjectVerification({
         projectVerificationId,
         managingFunds,
       });
@@ -100,7 +100,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationMilestonesStepValidator,
       );
-      return updateMilestonesOfProjectVerification({
+      return await updateMilestonesOfProjectVerification({
         projectVerificationId,
         milestones,
       });
@@ -111,7 +111,7 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationTermsAndConditionsStepValidator,
       );
-      return updateTermsAndConditionsOfProjectVerification({
+      return await updateTermsAndConditionsOfProjectVerification({
         projectVerificationId,
         isTermAndConditionsAccepted,
       });
@@ -124,12 +124,13 @@ export const updateProjectVerificationFormByUser = async (params: {
           managingFunds: projectVerificationForm.managingFunds,
           socialProfiles: projectVerificationForm.socialProfiles,
           status: projectVerificationForm.status,
+          emailConfirmed: projectVerificationForm.emailConfirmed,
           isTermAndConditionsAccepted:
             projectVerificationForm.isTermAndConditionsAccepted,
         },
         submitProjectVerificationStepValidator,
       );
-      return submitProjectVerificationForm({
+      return await submitProjectVerificationForm({
         projectVerificationId,
       });
 
