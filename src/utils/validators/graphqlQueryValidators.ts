@@ -71,6 +71,12 @@ export const getCurrentProjectVerificationRequestValidator = Joi.object({
   projectId: projectIdValidator,
 });
 
+const projectPersonalInfoValidator = Joi.object({
+  fullName: Joi.string(),
+  walletAddress: Joi.string(),
+  email: Joi.string(),
+});
+
 const projectRegistryValidator = Joi.object({
   isNonProfitOrganization: Joi.boolean(),
   organizationCountry: Joi.string().allow(''),
@@ -107,6 +113,11 @@ const managingFundsValidator = Joi.object({
     }),
   ),
 });
+
+export const updateProjectVerificationProjectPersonalInfoStepValidator =
+  Joi.object({
+    projectContacts: projectPersonalInfoValidator,
+  });
 
 export const updateProjectVerificationProjectContactsStepValidator = Joi.object(
   {

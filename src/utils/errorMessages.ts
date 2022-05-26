@@ -30,6 +30,8 @@ export const errorMessages = {
   PROJECT_VERIFICATION_FORM_NOT_FOUND: 'Project verification form not found',
   PROJECT_IS_ALREADY_VERIFIED: 'Project is already verified.',
   YOU_JUST_CAN_EDIT_DRAFT_REQUESTS: 'Project is already verified.',
+  EMAIL_CONFIRMATION_CANNOT_BE_SENT_IN_THIS_STEP:
+    'Email confirmation cannot be sent in this step',
   THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT:
     'There is an ongoing project verification request for this project',
   THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT:

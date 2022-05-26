@@ -6,12 +6,14 @@ import {
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
+  PersonalInfo,
 } from '../entities/projectVerificationForm';
 import {
   submitProjectVerificationStepValidator,
   updateProjectVerificationManagingFundsStepValidator,
   updateProjectVerificationMilestonesStepValidator,
   updateProjectVerificationProjectContactsStepValidator,
+  updateProjectVerificationProjectPersonalInfoStepValidator,
   updateProjectVerificationProjectRegistryStepValidator,
   updateProjectVerificationTermsAndConditionsStepValidator,
   validateWithJoiSchema,
@@ -20,6 +22,7 @@ import {
   updateManagingFundsOfProjectVerification,
   updateMilestonesOfProjectVerification,
   updateProjectContactsOfProjectVerification,
+  updateProjectPersonalInfoOfProjectVerification,
   updateProjectRegistryOfProjectVerification,
   updateProjectVerificationStatus,
   updateTermsAndConditionsOfProjectVerification,
@@ -34,6 +37,8 @@ export const updateProjectVerificationFormByUser = async (params: {
 }): Promise<ProjectVerificationForm> => {
   const { projectVerificationForm, projectVerificationUpdateInput } = params;
   const { projectVerificationId, step } = projectVerificationUpdateInput;
+  const personalInfo =
+    projectVerificationUpdateInput.personalInfo as PersonalInfo;
   const projectContacts =
     projectVerificationUpdateInput.projectContacts as ProjectContacts;
   const projectRegistry =
@@ -44,6 +49,17 @@ export const updateProjectVerificationFormByUser = async (params: {
   const isTermAndConditionsAccepted =
     projectVerificationUpdateInput.isTermAndConditionsAccepted as boolean;
   switch (step) {
+    case PROJECT_VERIFICATION_STEPS.PERSONAL_INFO:
+      validateWithJoiSchema(
+        {
+          personalInfo,
+        },
+        updateProjectVerificationProjectPersonalInfoStepValidator,
+      );
+      return updateProjectPersonalInfoOfProjectVerification({
+        projectVerificationId,
+        personalInfo,
+      });
     case PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS:
       validateWithJoiSchema(
         {

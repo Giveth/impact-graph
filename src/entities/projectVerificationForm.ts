@@ -23,6 +23,7 @@ export const PROJECT_VERIFICATION_STATUSES = {
 };
 
 export const PROJECT_VERIFICATION_STEPS = {
+  PERSONAL_INFO: 'personalInfo',
   PROJECT_REGISTRY: 'projectRegistry',
   PROJECT_CONTACTS: 'projectContacts',
   MANAGING_FUNDS: 'managingFunds',
@@ -30,6 +31,17 @@ export const PROJECT_VERIFICATION_STEPS = {
   TERM_AND_CONDITION: 'termAndCondition',
   SUBMIT: 'submit',
 };
+
+// Representative of the project, no specifically the user
+@ObjectType()
+export class PersonalInfo {
+  @Field({ nullable: false })
+  fullName: string;
+  @Field({ nullable: false })
+  walletAddress: string;
+  @Field({ nullable: false })
+  email: string;
+}
 
 @ObjectType()
 export class ProjectRegistry {
@@ -139,6 +151,10 @@ export class ProjectVerificationForm extends BaseEntity {
   // https://github.com/typeorm/typeorm/issues/4674#issuecomment-618073862
   @Field({ nullable: true })
   @Column('jsonb', { nullable: true })
+  personalInfo: PersonalInfo;
+
+  @Field({ nullable: true })
+  @Column('jsonb', { nullable: true })
   projectRegistry: ProjectRegistry;
 
   @Field(type => ProjectContacts, { nullable: true })
@@ -152,6 +168,26 @@ export class ProjectVerificationForm extends BaseEntity {
   @Field({ nullable: true })
   @Column('jsonb', { nullable: true })
   managingFunds: ManagingFunds;
+
+  @Field(type => Boolean, { nullable: false })
+  @Column({ default: false })
+  emailConfirmed: boolean;
+
+  @Field(type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  emailConfirmationToken: string | null;
+
+  @Field(type => Boolean, { nullable: true })
+  @Column({ default: false })
+  emailConfirmationSent: boolean;
+
+  @Field(type => Date, { nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
+  emailConfirmationSentAt: Date | null;
+
+  @Field(type => Date, { nullable: true })
+  @Column({ nullable: true })
+  emailConfirmedAt: Date;
 
   @Field({ nullable: true })
   @Column('boolean', { default: false, nullable: true })

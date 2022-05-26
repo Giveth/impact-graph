@@ -13,6 +13,7 @@ export enum SegmentEvents {
   PROJECT_ACTIVATED = 'Project activated',
   PROJECT_DEACTIVATED = 'Project deactivated',
   PROJECT_CANCELLED = 'Project cancelled',
+  SEND_EMAIL_CONFIRMATION = 'Send email confirmation',
   MADE_DONATION = 'Made donation',
   DONATION_RECEIVED = 'Donation received',
   PROJECT_UPDATED_DONOR = 'Project updated - donor',

@@ -1,6 +1,16 @@
 import { Field, InputType } from 'type-graphql';
 
 @InputType()
+class ProjectPersonalInfoInputType {
+  @Field({ nullable: true })
+  fullName?: string;
+  @Field({ nullable: true })
+  walletAddress?: string;
+  @Field({ nullable: true })
+  email?: string;
+}
+
+@InputType()
 class MilestonesInputType {
   @Field({ nullable: true })
   foundationDate?: Date;
@@ -64,6 +74,9 @@ export class ProjectVerificationUpdateInput {
 
   @Field()
   projectVerificationId: number;
+
+  @Field({ nullable: true })
+  personalInfo?: ProjectPersonalInfoInputType;
 
   @Field({ nullable: true })
   projectRegistry?: ProjectRegistryInputType;

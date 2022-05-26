@@ -2,6 +2,7 @@ import {
   ManagingFunds,
   Milestones,
   PROJECT_VERIFICATION_STATUSES,
+  PersonalInfo,
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
@@ -39,6 +40,39 @@ export const findProjectVerificationFormById = async (
     .leftJoinAndSelect('project_verification_form.user', 'user')
     .getOne();
 };
+
+export const findProjectVerificationFormByEmailConfirmationToken = async (
+  emailConfirmationToken: string,
+): Promise<ProjectVerificationForm | undefined> => {
+  return ProjectVerificationForm.createQueryBuilder('project_verification_form')
+    .where({
+      emailConfirmationToken,
+    })
+    .leftJoinAndSelect(
+      'project_verification_form.socialProfiles',
+      'socialProfiles',
+    )
+    .leftJoinAndSelect('project_verification_form.project', 'project')
+    .leftJoinAndSelect('project_verification_form.user', 'user')
+    .getOne();
+};
+
+export const updateProjectPersonalInfoOfProjectVerification = async (params: {
+  projectVerificationId: number;
+  personalInfo: PersonalInfo;
+}) => {
+  const { personalInfo, projectVerificationId } = params;
+  const projectVerificationForm = await findProjectVerificationFormById(
+    projectVerificationId,
+  );
+  if (!projectVerificationForm) {
+    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+  }
+
+  projectVerificationForm.personalInfo = personalInfo;
+  return projectVerificationForm?.save();
+};
+
 export const updateProjectRegistryOfProjectVerification = async (params: {
   projectVerificationId: number;
   projectRegistry: ProjectRegistry;
