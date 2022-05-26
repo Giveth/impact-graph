@@ -98,6 +98,7 @@ export async function bootstrap() {
             req.user = user;
           }
         } catch (error) {
+          SentryLogger.captureException(`Error: ${error} for token ${token}`);
           logger.error(`Error: ${error} for token ${token}`);
           req.auth = {};
           req.auth.token = token;
