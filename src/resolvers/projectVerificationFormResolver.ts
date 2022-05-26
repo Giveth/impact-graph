@@ -125,6 +125,9 @@ export class ProjectVerificationFormResolver {
       if (!project) {
         throw new Error(errorMessages.PROJECT_NOT_FOUND);
       }
+      if (project.verified === true) {
+        throw new Error(errorMessages.PROJECT_IS_ALREADY_VERIFIED);
+      }
       if (Number(project.admin) !== userId) {
         throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
       }

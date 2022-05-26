@@ -565,6 +565,41 @@ function updateProjectVerificationFormMutationTestCases() {
 }
 
 function getCurrentProjectVerificationFormTestCases() {
+  it('should throw error when the project is already verified', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+      admin: String(user.id),
+      verified: true,
+      listed: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
+    await projectVerificationForm.save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: getCurrentProjectVerificationFormQuery,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.PROJECT_IS_ALREADY_VERIFIED,
+    );
+  });
   it('should get current project verification form with submitted status', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
