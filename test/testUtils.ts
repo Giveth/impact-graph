@@ -68,6 +68,16 @@ export const generateTestAccessToken = async (id: number): Promise<string> => {
   );
 };
 
+export const generateConfirmationEmailToken = async (
+  id: number,
+): Promise<string> => {
+  return jwt.sign(
+    { projectVerificationFormId: id },
+    config.get('JWT_SECRET') as string,
+    { expiresIn: '120' },
+  );
+};
+
 // Failed user case from undetected bug in the dapp, userId lost
 export const generateUserIdLessAccessToken = async (
   id: number,

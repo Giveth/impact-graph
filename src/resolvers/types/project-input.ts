@@ -90,6 +90,6 @@ export class CreateProjectInput {
   @Field({ nullable: true })
   walletAddress: string;
 
-  @Field(tyoe => Boolean, { nullable: true, defaultValue: false })
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
   isDraft?: boolean;
 }

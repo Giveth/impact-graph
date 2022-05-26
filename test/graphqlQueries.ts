@@ -787,3 +787,276 @@ export const editProjectUpdateQuery = `
                     title
                     }
          }`;
+
+export const createProjectVerificationFormMutation = `
+        mutation createProjectVerificationForm($projectId: Float!){
+           createProjectVerificationForm(projectId: $projectId) {
+                    id
+                    isTermAndConditionsAccepted
+                    emailConfirmationToken
+                    emailConfirmationSent
+                    emailConfirmationSentAt
+                    emailConfirmedAt
+                    emailConfirmed
+                    projectRegistry {
+                      organizationDescription
+                      isNonProfitOrganization
+                      organizationCountry
+                      organizationWebsite
+                    }
+                    projectContacts {
+                      youtube
+                      instagram
+                      linkedin
+                      facebook
+                      instagram
+                      twitter
+                    }
+                    milestones {
+                      mission
+                      foundationDate
+                      achievedMilestones
+                      achievedMilestonesProof
+                    }
+                    managingFunds {
+                      description
+                      relatedAddresses {
+                        address
+                        networkId
+                        title
+                      }
+                    }
+                    user {
+                      id
+                      walletAddress
+                    }
+                    project {
+                      id
+                      slug
+                    }
+                    status
+                    }
+                    
+            }
+        `;
+
+export const getCurrentProjectVerificationFormQuery = `
+        query getCurrentProjectVerificationForm($projectId: Float!){
+           getCurrentProjectVerificationForm(projectId: $projectId) {
+                    id
+                    isTermAndConditionsAccepted
+                    emailConfirmationToken
+                    emailConfirmationSent
+                    emailConfirmationSentAt
+                    emailConfirmedAt
+                    emailConfirmed
+                    projectRegistry {
+                      organizationDescription
+                      isNonProfitOrganization
+                      organizationCountry
+                      organizationWebsite
+                    }
+                    projectContacts {
+                      youtube
+                      instagram
+                      linkedin
+                      facebook
+                      instagram
+                      twitter
+                    }
+                    milestones {
+                      mission
+                      foundationDate
+                      achievedMilestones
+                      achievedMilestonesProof
+                    }
+                    managingFunds {
+                      description
+                      relatedAddresses {
+                        address
+                        networkId
+                        title
+                      }
+                    }
+                    user {
+                      id
+                      walletAddress
+                    }
+                    project {
+                      id
+                      slug
+                    }
+                    status
+                    }
+                    
+            }
+        `;
+
+export const projectVerificationConfirmEmail = `
+        mutation projectVerificationConfirmEmail($emailConfirmationToken: String!){
+          projectVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
+            id
+            isTermAndConditionsAccepted
+            emailConfirmationToken
+            emailConfirmationSent
+            emailConfirmationSentAt
+            emailConfirmedAt
+            emailConfirmed
+            projectRegistry {
+              organizationDescription
+              isNonProfitOrganization
+              organizationCountry
+              organizationWebsite
+            }
+            personalInfo {
+              email
+              walletAddress
+              fullName
+            }
+            projectContacts {
+              youtube
+              instagram
+              linkedin
+              facebook
+              instagram
+              twitter
+            }
+            milestones {
+              mission
+              foundationDate
+              achievedMilestones
+              achievedMilestonesProof
+            }
+            managingFunds {
+              description
+              relatedAddresses {
+                address
+                networkId
+                title
+              }
+            }
+            user {
+              id
+              walletAddress
+            }
+            project {
+              id
+              slug
+            }
+            status
+          }
+        }
+`;
+
+export const projectVerificationSendEmailConfirmation = `
+        mutation projectVerificationSendEmailConfirmation($projectVerificationFormId: Float!){
+          projectVerificationSendEmailConfirmation(projectVerificationFormId: $projectVerificationFormId) {
+            id
+            isTermAndConditionsAccepted
+            emailConfirmationToken
+            emailConfirmationSent
+            emailConfirmationSentAt
+            emailConfirmedAt
+            emailConfirmed
+            projectRegistry {
+              organizationDescription
+              isNonProfitOrganization
+              organizationCountry
+              organizationWebsite
+            }
+            personalInfo {
+              email
+              walletAddress
+              fullName
+            }
+            projectContacts {
+              youtube
+              instagram
+              linkedin
+              facebook
+              instagram
+              twitter
+            }
+            milestones {
+              mission
+              foundationDate
+              achievedMilestones
+              achievedMilestonesProof
+            }
+            managingFunds {
+              description
+              relatedAddresses {
+                address
+                networkId
+                title
+              }
+            }
+            user {
+              id
+              walletAddress
+            }
+            project {
+              id
+              slug
+            }
+            status
+          }
+        }
+`;
+
+export const updateProjectVerificationFormMutation = `
+        mutation updateProjectVerificationForm($projectVerificationUpdateInput: ProjectVerificationUpdateInput!){
+           updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
+                    id
+                    isTermAndConditionsAccepted
+                    emailConfirmationToken
+                    emailConfirmationSent
+                    emailConfirmationSentAt
+                    emailConfirmedAt
+                    emailConfirmed
+                    projectRegistry {
+                      organizationDescription
+                      isNonProfitOrganization
+                      organizationCountry
+                      organizationWebsite
+                    }
+                    personalInfo {
+                      email
+                      walletAddress
+                      fullName
+                    }
+                    projectContacts {
+                      youtube
+                      instagram
+                      linkedin
+                      facebook
+                      instagram
+                      twitter
+                    }
+                    milestones {
+                      mission
+                      foundationDate
+                      achievedMilestones
+                      achievedMilestonesProof
+                    }
+                    managingFunds {
+                      description
+                      relatedAddresses {
+                        address
+                        networkId
+                        title
+                      }
+                    }
+                    user {
+                      id
+                      walletAddress
+                    }
+                    project {
+                      id
+                      slug
+                    }
+                    status
+                    }
+                    
+            }
+        `;

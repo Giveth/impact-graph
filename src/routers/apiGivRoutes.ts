@@ -1,9 +1,6 @@
 import express, { Request, Response } from 'express';
 import { apiGivAuthentication } from '../middleware/apiGivAuthentication';
-import {
-  createDonation,
-  findDonationsByTransactionId,
-} from '../repositories/donationRepository';
+import { findDonationsByTransactionId } from '../repositories/donationRepository';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation } from '../entities/donation';
 import { findProjectByWalletAddress } from '../repositories/projectRepository';
