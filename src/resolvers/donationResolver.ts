@@ -338,6 +338,7 @@ export class DonationResolver {
     };
   }
 
+  // deprecated
   @Mutation(returns => Number)
   async saveDonation(
     @Arg('fromAddress') fromAddress: string,
