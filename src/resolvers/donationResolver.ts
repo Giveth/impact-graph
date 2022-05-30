@@ -23,7 +23,7 @@ import { Project, ProjStatus } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In, Brackets } from 'typeorm';
-import { User } from '../entities/user';
+import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
@@ -150,7 +150,8 @@ export class DonationResolver {
       validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
       const query = this.donationRepository
         .createQueryBuilder('donation')
-        .leftJoinAndSelect('donation.user', 'user')
+        .leftJoin('donation.user', 'user')
+        .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project');
 
       if (fromDate) {
@@ -175,12 +176,13 @@ export class DonationResolver {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase(),
     );
-    const donations = await this.donationRepository.find({
-      where: {
-        fromWalletAddress: In(fromWalletAddressesArray),
-      },
-    });
-    return donations;
+    return this.donationRepository
+      .createQueryBuilder('donation')
+      .where({ fromWalletAddress: In(fromWalletAddressesArray) })
+      .leftJoin('donation.user', 'user')
+      .addSelect(publicSelectionFields)
+      .leftJoinAndSelect('donation.project', 'project')
+      .getMany();
   }
 
   @Query(returns => [Donation], { nullable: true })
@@ -192,12 +194,13 @@ export class DonationResolver {
       o.toLowerCase(),
     );
 
-    const donations = await this.donationRepository.find({
-      where: {
-        toWalletAddress: In(toWalletAddressesArray),
-      },
-    });
-    return donations;
+    return this.donationRepository
+      .createQueryBuilder('donation')
+      .where({ toWalletAddress: In(toWalletAddressesArray) })
+      .leftJoin('donation.user', 'user')
+      .addSelect(publicSelectionFields)
+      .leftJoinAndSelect('donation.project', 'project')
+      .getMany();
   }
 
   @Query(returns => PaginateDonations, { nullable: true })
@@ -238,7 +241,8 @@ export class DonationResolver {
     } else {
       const query = this.donationRepository
         .createQueryBuilder('donation')
-        .leftJoinAndSelect('donation.user', 'user')
+        .leftJoin('donation.user', 'user')
+        .addSelect(publicSelectionFields)
         .where(`donation.projectId = ${projectId}`)
         .orderBy(
           `donation.${orderBy.field}`,
@@ -309,14 +313,13 @@ export class DonationResolver {
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
       throw new Error(errorMessages.DONATION_VIEWING_LOGIN_REQUIRED);
-
-    const donations = await this.donationRepository.find({
-      where: {
-        user: ctx.req.user.userId,
-      },
-    });
-
-    return donations;
+    return this.donationRepository
+      .createQueryBuilder('donation')
+      .where({ user: ctx.req.user.userId })
+      .leftJoin('donation.user', 'user')
+      .addSelect(publicSelectionFields)
+      .leftJoinAndSelect('donation.project', 'project')
+      .getMany();
   }
 
   @Query(returns => UserDonations, { nullable: true })

@@ -78,7 +78,7 @@ function userByAddressTestCases() {
     assert.equal(result.data.data.userByAddress.avatar, userData.avatar);
     assert.equal(result.data.data.userByAddress.firstName, userData.firstName);
     assert.equal(result.data.data.userByAddress.lastName, userData.lastName);
-    assert.equal(result.data.data.userByAddress.email, userData.email);
+    assert.isNotOk(result.data.data.userByAddress.role);
     assert.equal(result.data.data.userByAddress.url, userData.url);
   });
   it('Returns null when no user is found', async () => {

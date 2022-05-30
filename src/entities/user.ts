@@ -12,8 +12,16 @@ import { Project, ProjStatus } from './project';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
-import { ProjectStatusReason } from './projectStatusReason';
 import { ProjectStatusHistory } from './projectStatusHistory';
+
+export const publicSelectionFields = [
+  'user.id',
+  'user.walletAddress',
+  'user.name',
+  'user.firstName',
+  'user.lastName',
+  'user.avatar',
+];
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -28,7 +36,6 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field({ nullable: true })
   @Column({
     type: 'enum',
     enum: UserRole,
@@ -56,11 +63,9 @@ export class User extends BaseEntity {
   @Column({ unique: true })
   walletAddress?: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   password?: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   encryptedPassword?: string;
 
@@ -79,7 +84,6 @@ export class User extends BaseEntity {
   @Column()
   loginType: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   dId?: string;
 
