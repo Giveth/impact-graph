@@ -22,7 +22,7 @@ import { triggerBuild } from '../netlify/build';
 import { MyContext } from '../types/MyContext';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
-import { User } from '../entities/user';
+import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
 import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
@@ -437,7 +437,6 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.users', 'users')
       .leftJoinAndSelect('project.organization', 'organization')
       .innerJoinAndMapOne(
         'project.adminUser',
@@ -553,12 +552,6 @@ export class ProjectResolver {
     return { projects, totalCount };
   }
 
-  @Query(returns => [Project])
-  async project(@Args() { id }: GetProjectArgs): Promise<Project[]> {
-    return this.projectRepository.find({ id });
-  }
-
-  // Move this to it's own resolver latere
   @Query(returns => Project)
   async projectById(
     @Arg('id') id: number,
@@ -1164,25 +1157,6 @@ export class ProjectResolver {
       return validateProjectTitleForEdit(title, projectId);
     }
     return validateProjectTitle(title);
-  }
-
-  @Query(returns => Project, { nullable: true })
-  projectByAddress(
-    @Arg('address', type => String) address: string,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
-    connectedWalletUserId: number,
-    @Ctx() { req: { user } }: MyContext,
-  ) {
-    let query = this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.categories', 'categories')
-      .leftJoinAndSelect('project.organization', 'organization')
-      .where(`lower("walletAddress")=lower(:address)`, {
-        address,
-      });
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-    return query.getOne();
   }
 
   @Query(returns => AllProjects, { nullable: true })

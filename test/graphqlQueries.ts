@@ -399,7 +399,7 @@ export const fetchAllProjectsQuery = `
         reaction {
           id
         }
-        user {
+        adminUser {
           id
           email
           firstName
@@ -461,7 +461,7 @@ export const fetchProjectsBySlugQuery = `
         label
         supportCustomTokens
       }
-      user {
+      adminUser {
         id
         email
         firstName
@@ -513,7 +513,7 @@ export const fetchSimilarProjectsBySlugQuery = `
           userId
           reaction
         }
-        user {
+        adminUser {
           id
           email
           firstName
@@ -567,7 +567,7 @@ export const fetchLikedProjectsQuery = `
           userId
           reaction
         }
-        user {
+        adminUser {
           id
           email
           firstName
@@ -747,6 +747,13 @@ export const projectsByUserIdQuery = `
             projectUpdateId
             userId
           }
+              
+          adminUser {
+            firstName
+            email
+            id
+            walletAddress
+          }
           qualityScore
         }
         totalCount
@@ -780,6 +787,12 @@ export const projectByIdQuery = `
         name
         label
         supportCustomTokens
+      }
+      adminUser {
+        firstName
+        email
+        id
+        walletAddress
       }
     }
   }
