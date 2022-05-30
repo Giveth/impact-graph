@@ -16,6 +16,7 @@ import {
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
 import { findUserByWalletAddress } from '../src/repositories/userRepository';
+import { findProjectByWalletAddress } from '../src/repositories/projectRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -119,6 +120,12 @@ export const saveUserDirectlyToDb = async (
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
 ): Promise<Project> => {
+  const foundProject = await findProjectByWalletAddress(
+    projectData.walletAddress,
+  );
+  if (foundProject) {
+    return foundProject;
+  }
   const statusId = projectData?.statusId || ProjStatus.active;
   const status = await ProjectStatus.findOne({
     id: statusId,
