@@ -39,6 +39,8 @@ export const errorMessages = {
   TRANSACTION_NOT_FOUND: 'Transaction not found.',
   TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS:
     'FromAddress of Transaction is different from sent fromAddress',
+  TRANSACTION_STATUS_IS_FAILED_IN_NETWORK:
+    'Transaction status is failed in network',
   TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT:
     'Transaction amount is different with sent amount',
   TRANSACTION_CANT_BE_OLDER_THAN_DONATION:
