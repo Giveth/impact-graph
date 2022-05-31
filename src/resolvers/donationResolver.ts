@@ -250,7 +250,9 @@ export class DonationResolver {
         );
 
       if (status) {
-        query.andWhere(`    donation.status = ${status}`);
+        query.andWhere(`donation.status = :status`, {
+          status,
+        });
       }
 
       if (searchTerm) {
@@ -344,11 +346,13 @@ export class DonationResolver {
         nullDirection[orderBy.direction as string],
       );
     if (!loggedInUserId || loggedInUserId !== userId) {
-      query.andWhere(`    donation.anonymous = ${false}`);
+      query.andWhere(`donation.anonymous = ${false}`);
     }
 
     if (status) {
-      query.andWhere(`    donation.status = ${status}`);
+      query.andWhere(`donation.status = :status`, {
+        status,
+      });
     }
 
     const [donations, totalCount] = await query

@@ -189,6 +189,7 @@ export const fetchDonationsByProjectIdQuery = `
     $traceable: Boolean
     $projectId: Int!
     $searchTerm: String
+    $status: String
     $orderBy: SortBy
   ) {
     donationsByProjectId(
@@ -197,6 +198,7 @@ export const fetchDonationsByProjectIdQuery = `
       traceable: $traceable
       projectId: $projectId
       searchTerm: $searchTerm
+      status: $status
       orderBy: $orderBy
     ) {
       donations {
@@ -209,6 +211,7 @@ export const fetchDonationsByProjectIdQuery = `
         anonymous
         valueUsd
         amount
+        status
         user {
           id
         }
