@@ -3166,6 +3166,54 @@ function donationsByUserIdTestCases() {
       false,
     );
   });
+  it('should filter donations by failed status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+          status: DONATION_STATUS.VERIFIED,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByUserIdQuery,
+        variables: {
+          orderBy: {
+            field: 'UsdAmount',
+            direction: 'DESC',
+          },
+          status: DONATION_STATUS.PENDING,
+          userId: user.id,
+        },
+      },
+      {},
+    );
+    result.data.data.donationsByUserId.forEach(item => {
+      assert.equal(item.status, DONATION_STATUS.FAILED);
+    });
+  });
   describe('with default createdAt DESC sort', () => {
     it('should paginate results by indicated take and skip', async () => {
       const result = await axios.post(

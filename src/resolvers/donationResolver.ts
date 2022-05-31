@@ -122,6 +122,8 @@ class UserDonationsArgs {
 
   @Field(type => Int, { nullable: false })
   userId: number;
+  @Field(type => String, { nullable: true })
+  status: string;
 }
 
 @ObjectType()
@@ -208,6 +210,7 @@ export class DonationResolver {
     @Arg('traceable', type => Boolean, { defaultValue: false })
     traceable: boolean,
     @Arg('projectId', type => Int, { nullable: false }) projectId: number,
+    @Arg('status', type => String, { nullable: true }) status: string,
     @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
     @Arg('orderBy', type => SortBy, {
       defaultValue: {
@@ -245,6 +248,10 @@ export class DonationResolver {
           orderBy.direction,
           nullDirection[orderBy.direction as string],
         );
+
+      if (status) {
+        query.andWhere(`    donation.status = ${status}`);
+      }
 
       if (searchTerm) {
         query.andWhere(
@@ -321,7 +328,8 @@ export class DonationResolver {
 
   @Query(returns => UserDonations, { nullable: true })
   async donationsByUserId(
-    @Args() { take, skip, orderBy, userId }: UserDonationsArgs,
+    @Args() { take, skip, orderBy, userId, status }: UserDonationsArgs,
+    // @Arg('status', type => String, { nullable: true }) status: string,
     @Ctx() ctx: MyContext,
   ) {
     const loggedInUserId = ctx?.req?.user?.userId;
@@ -337,6 +345,10 @@ export class DonationResolver {
       );
     if (!loggedInUserId || loggedInUserId !== userId) {
       query.andWhere(`    donation.anonymous = ${false}`);
+    }
+
+    if (status) {
+      query.andWhere(`    donation.status = ${status}`);
     }
 
     const [donations, totalCount] = await query

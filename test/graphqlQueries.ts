@@ -296,6 +296,7 @@ export const fetchDonationsByUserIdQuery = `
   query (
     $take: Int
     $skip: Int
+    $status: String
     $orderBy: SortBy
     $userId: Int!
   ) {
@@ -304,6 +305,7 @@ export const fetchDonationsByUserIdQuery = `
       skip: $skip
       orderBy: $orderBy
       userId: $userId
+      status: $status
     ) {
       donations {
         id
@@ -315,6 +317,7 @@ export const fetchDonationsByUserIdQuery = `
         anonymous
         valueUsd
         amount
+        status
         user {
           id
         }
