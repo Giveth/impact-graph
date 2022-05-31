@@ -12,6 +12,7 @@ import {
 } from '../../test/testUtils';
 import {
   createProjectVerificationFormMutation,
+  getAllowedCountries,
   getCurrentProjectVerificationFormQuery,
   projectVerificationConfirmEmail,
   projectVerificationSendEmailConfirmation,
@@ -34,6 +35,7 @@ import {
 } from '../repositories/projectVerificationRepository';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
+import { countriesList } from '../utils/utils';
 
 describe(
   'createProjectVerification test cases',
@@ -48,6 +50,8 @@ describe(
   'updateProjectVerificationFormMutation test cases',
   updateProjectVerificationFormMutationTestCases,
 );
+
+describe('getAllowedCountries test cases', getAllowedCountriesTestCases);
 
 function createProjectVerificationFormMutationTestCases() {
   it('should create project verification form successfully', async () => {
@@ -1012,6 +1016,18 @@ function getCurrentProjectVerificationFormTestCases() {
     assert.equal(
       result.data.errors[0].message,
       errorMessages.PROJECT_NOT_FOUND,
+    );
+  });
+}
+
+function getAllowedCountriesTestCases() {
+  it('Should return list of available country list ', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: getAllowedCountries,
+    });
+    assert.equal(
+      result.data.data.getAllowedCountries.length,
+      countriesList.length,
     );
   });
 }

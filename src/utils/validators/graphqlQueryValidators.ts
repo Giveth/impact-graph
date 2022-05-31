@@ -5,6 +5,7 @@ import { errorMessages } from '../errorMessages';
 import { NETWORK_IDS } from '../../provider';
 import { DONATION_STATUS } from '../../entities/donation';
 import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
+import { countriesList } from '../utils';
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 
@@ -79,7 +80,11 @@ const projectPersonalInfoValidator = Joi.object({
 
 const projectRegistryValidator = Joi.object({
   isNonProfitOrganization: Joi.boolean(),
-  organizationCountry: Joi.string().allow(''),
+  organizationCountry: Joi.string().valid(
+    // We allow country to be empty string
+    '',
+    ...countriesList.map(({ name, code }) => name),
+  ),
   organizationWebsite: Joi.string().allow(''),
   organizationDescription: Joi.string().allow(''),
 });

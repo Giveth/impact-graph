@@ -892,6 +892,15 @@ export const getCurrentProjectVerificationFormQuery = `
             }
         `;
 
+export const getAllowedCountries = `
+    query {
+        getAllowedCountries {
+            name
+            code
+        }
+    }
+        `;
+
 export const projectVerificationConfirmEmail = `
         mutation projectVerificationConfirmEmail($emailConfirmationToken: String!){
           projectVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
