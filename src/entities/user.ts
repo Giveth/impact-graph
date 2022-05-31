@@ -20,6 +20,7 @@ export const publicSelectionFields = [
   'user.name',
   'user.firstName',
   'user.lastName',
+  'user.url',
   'user.avatar',
 ];
 

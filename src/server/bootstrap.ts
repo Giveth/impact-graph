@@ -91,7 +91,6 @@ export async function bootstrap() {
           const { headers } = req;
           const authVersion = headers.authversion || '1';
           logger.info(authVersion);
-
           if (headers.authorization) {
             token = headers.authorization.split(' ')[1].toString();
             const user = await authorizationHandler(authVersion, token);

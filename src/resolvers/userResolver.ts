@@ -51,8 +51,13 @@ export class UserResolver {
   }
 
   @Query(returns => User, { nullable: true })
-  userByAddress(@Arg('address', type => String) address: string) {
-    return findUserByWalletAddress(address);
+  userByAddress(
+    @Arg('address', type => String) address: string,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    const includeSensitiveFields =
+      user?.walletAddress?.toLowerCase() === address.toLowerCase();
+    return findUserByWalletAddress(address, includeSensitiveFields);
   }
 
   @Mutation(returns => Boolean)

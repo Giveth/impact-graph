@@ -40,6 +40,9 @@ export const getLoggedInUser = async (ctx: MyContext) => {
 interface JwtVerifiedUser {
   email?: string;
   name?: string;
+  firstName?: string;
+  lastName?: string;
+  walletAddress?: string;
   userId: number;
   token: string;
 }
@@ -70,7 +73,10 @@ export const validateImpactGraphJwt = async (
 
   const user = {
     email: decodedJwt?.email,
-    name: decodedJwt?.firstName,
+    name: decodedJwt?.name,
+    firstName: decodedJwt?.firstName,
+    lastName: decodedJwt?.lastName,
+    walletAddress: decodedJwt?.walletAddress,
     userId: decodedJwt?.userId,
     token,
   };
@@ -105,7 +111,10 @@ export const validateAuthMicroserviceJwt = async (
 
     return {
       email: user?.email,
-      name: user?.firstName,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      name: user?.name,
+      walletAddress: user?.walletAddress,
       userId: user!.id,
       token,
     };

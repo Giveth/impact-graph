@@ -62,7 +62,13 @@ export const assertNotThrowsAsync = async fn => {
 export const generateTestAccessToken = async (id: number): Promise<string> => {
   const user = await User.findOne({ id });
   return jwt.sign(
-    { userId: id, firstName: user?.firstName },
+    {
+      userId: id,
+      firstName: user?.firstName,
+      walletAddress: user?.walletAddress,
+      name: user?.name,
+      lastName: user?.lastName,
+    },
     config.get('JWT_SECRET') as string,
     { expiresIn: '30d' },
   );
@@ -1413,6 +1419,7 @@ export const saveDonationDirectlyToDb = async (
 export function generateRandomEtheriumAddress(): string {
   return `0x${generateHexNumber(40)}`;
 }
+
 export function generateRandomTxHash(): string {
   return `0x${generateHexNumber(64)}`;
 }
