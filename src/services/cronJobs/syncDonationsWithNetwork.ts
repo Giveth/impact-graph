@@ -80,10 +80,3 @@ function processVerifyDonationsJobs() {
     },
   );
 }
-
-const failedVerifiedDonationErrorMessages = [
-  errorMessages.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
-  errorMessages.INVALID_NETWORK_ID,
-  errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
-  errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
-];

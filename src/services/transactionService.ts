@@ -176,8 +176,14 @@ async function getTransactionDetailForNormalTransfer(
   const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
     txHash,
   );
+  const receipt = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
+    txHash,
+  );
   if (!transaction) {
     return null;
+  }
+  if (!receipt?.status) {
+    throw new Error(errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK);
   }
   const block = await getNetworkWeb3(networkId).eth.getBlock(
     transaction.blockNumber as number,
@@ -200,7 +206,9 @@ async function getTransactionDetailForTokenTransfer(
   const token = await findTokenByNetworkAndSymbol(networkId, symbol);
   const web3 = getNetworkWeb3(networkId);
   const transaction = await web3.eth.getTransaction(txHash);
+  const receipt = await web3.eth.getTransactionReceipt(txHash);
   logger.debug('getTransactionDetailForTokenTransfer', {
+    receipt,
     transaction,
     input,
     token,
@@ -215,6 +223,9 @@ async function getTransactionDetailForTokenTransfer(
   }
   if (!transaction) {
     return null;
+  }
+  if (!receipt?.status) {
+    throw new Error(errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK);
   }
 
   const transactionData = abiDecoder.decodeMethod(transaction.input);
