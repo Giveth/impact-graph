@@ -185,13 +185,14 @@ const failedVerifiedDonationErrorMessages = [
   errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
   errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
   errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+  errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
 ];
 
 export const syncDonationStatusWithBlockchainNetwork = async (params: {
   donationId: number;
 }): Promise<Donation> => {
   const { donationId } = params;
-  const donation = await findDonationById(donationId);
+  const donation = await Donation.findOne(donationId);
   if (!donation) {
     throw new Error(errorMessages.DONATION_NOT_FOUND);
   }

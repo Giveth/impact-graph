@@ -53,6 +53,8 @@ export const errorMessages = {
     'FromAddress of Transaction is different from sent fromAddress',
   TRANSACTION_STATUS_IS_FAILED_IN_NETWORK:
     'Transaction status is failed in network',
+  TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED:
+    'Transaction not found and nonce is used',
   TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT:
     'Transaction amount is different with sent amount',
   TRANSACTION_CANT_BE_OLDER_THAN_DONATION:
