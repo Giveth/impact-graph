@@ -147,7 +147,10 @@ function getTransactionDetailTestCases() {
         timestamp: 1607360947,
       });
     };
-    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND);
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
+    );
   });
 
   it('should return error when fromAddress of transaction is different from donation fromAddress', async () => {
@@ -495,7 +498,10 @@ function getTransactionDetailTestCases() {
         timestamp: 1621241124,
       });
     };
-    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND);
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
+    );
   });
 
   it('should return transaction detail for HNY token transfer on XDAI', async () => {
