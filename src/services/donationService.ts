@@ -13,6 +13,7 @@ import { getTransactionInfoFromNetwork } from './transactionService';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice } from './givPriceService';
+import { findDonationById } from '../repositories/donationRepository';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -190,7 +191,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
   donationId: number;
 }): Promise<Donation> => {
   const { donationId } = params;
-  const donation = await Donation.findOne(donationId);
+  const donation = await findDonationById(donationId);
   if (!donation) {
     throw new Error(errorMessages.DONATION_NOT_FOUND);
   }
