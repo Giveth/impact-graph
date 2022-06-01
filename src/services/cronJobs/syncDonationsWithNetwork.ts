@@ -68,7 +68,7 @@ function processVerifyDonationsJobs() {
       const { donationId } = job.data;
       logger.debug('job processing', { jobData: job.data });
       try {
-        await syncDonationStatusWithBlockchainNetwork(donationId);
+        await syncDonationStatusWithBlockchainNetwork({ donationId });
         done();
       } catch (e) {
         logger.error(
