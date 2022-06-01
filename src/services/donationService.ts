@@ -192,12 +192,13 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
   donationId: number;
 }): Promise<Donation> => {
   const { donationId } = params;
-  const donation = await Donation.findOne(donationId);
+  const donation = await findDonationById(donationId);
   if (!donation) {
     throw new Error(errorMessages.DONATION_NOT_FOUND);
   }
   logger.debug('syncDonationStatusWithBlockchainNetwork() has been called', {
-    donationId: donation.id,
+    donationId,
+    fetchDonationId: donation.id,
     txHash: donation.transactionId,
   });
   try {

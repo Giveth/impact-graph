@@ -66,8 +66,9 @@ export const findDonationById = async (
   donationId: number,
 ): Promise<Donation | undefined> => {
   return Donation.createQueryBuilder('donation')
-    .where(`id = :donationId`, {
+    .where(`donation.id = :donationId`, {
       donationId,
     })
+    .leftJoinAndSelect('donation.project', 'project')
     .getOne();
 };

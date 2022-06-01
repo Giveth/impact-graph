@@ -143,6 +143,7 @@ function getTransactionDetailTestCases() {
         fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
         toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
         amount: 0.04,
+        nonce: 99999999,
         timestamp: 1607360947,
       });
     };
@@ -490,6 +491,7 @@ function getTransactionDetailTestCases() {
         fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
         toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
         amount,
+        nonce:99999,
         timestamp: 1621241124,
       });
     };

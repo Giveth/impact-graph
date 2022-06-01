@@ -52,11 +52,7 @@ export async function getTransactionInfoFromNetwork(
     });
   }
 
-  if (
-    !transaction &&
-    typeof nonce === 'number' &&
-    userTransactionsCount > nonce
-  ) {
+  if (!transaction && (!nonce || userTransactionsCount > nonce)) {
     // in this case we understand that the transaction will not happen anytime, because nonce is used
     // so this is not speedup for sure
     throw new Error(errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED);
