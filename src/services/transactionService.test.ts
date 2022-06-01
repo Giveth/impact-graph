@@ -491,7 +491,7 @@ function getTransactionDetailTestCases() {
         fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
         toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
         amount,
-        nonce:99999,
+        nonce: 99999,
         timestamp: 1621241124,
       });
     };
