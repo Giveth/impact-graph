@@ -24,6 +24,8 @@ import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdat
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import * as jwt from 'jsonwebtoken';
 import config from '../config';
+import { countriesList } from '../utils/utils';
+import { Country } from '../entities/Country';
 
 const analytics = getAnalytics();
 
@@ -254,5 +256,10 @@ export class ProjectVerificationFormResolver {
       logger.error('getCurrentProjectVerificationForm() error', e);
       throw e;
     }
+  }
+
+  @Query(returns => [Country])
+  getAllowedCountries(): Country[] {
+    return countriesList;
   }
 }
