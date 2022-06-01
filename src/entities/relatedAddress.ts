@@ -7,6 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   RelationId,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
@@ -15,6 +16,7 @@ import { User } from './user';
 
 @Entity()
 @ObjectType()
+@Unique(['address', 'networkId', 'project'])
 export class RelatedAddress extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -25,18 +27,13 @@ export class RelatedAddress extends BaseEntity {
   @Column({ nullable: true })
   title?: string;
 
-  @Index()
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  description?: string;
-
   @Field()
-  @Column({ nullable: false })
+  @Column()
   networkId: number;
 
   @Index()
   @Field()
-  @Column({ unique: true })
+  @Column()
   address: string;
 
   @Index()
@@ -55,7 +52,7 @@ export class RelatedAddress extends BaseEntity {
 
   @Field()
   @Column('boolean', { default: false })
-  isPrimaryAddress: boolean;
+  isRecipient: boolean;
 
   @UpdateDateColumn()
   updatedAt: Date;

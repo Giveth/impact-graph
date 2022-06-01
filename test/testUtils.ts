@@ -17,6 +17,11 @@ import {
 } from '../src/entities/organization';
 import { findUserByWalletAddress } from '../src/repositories/userRepository';
 import { findProjectByWalletAddress } from '../src/repositories/projectRepository';
+import {
+  addNewRelatedAddress,
+  findRelatedAddressByWalletAddress,
+} from '../src/repositories/relatedAddressRepository';
+import { RelatedAddressInputType } from '../src/resolvers/types/ProjectVerificationUpdateInput';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -97,6 +102,7 @@ export interface CreateProjectData {
   slug: string;
   description: string;
   admin: string;
+  // relatedAddresses: RelatedAddressInputType[];
   walletAddress: string;
   categories: string[];
   verified?: boolean;
@@ -130,11 +136,11 @@ export const saveUserDirectlyToDb = async (
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
 ): Promise<Project> => {
-  const foundProject = await findProjectByWalletAddress(
+  const relatedAddress = await findRelatedAddressByWalletAddress(
     projectData.walletAddress,
   );
-  if (foundProject) {
-    return foundProject;
+  if (relatedAddress && relatedAddress.project) {
+    return relatedAddress.project;
   }
   const statusId = projectData?.statusId || ProjStatus.active;
   const status = await ProjectStatus.findOne({
@@ -168,6 +174,15 @@ export const saveProjectDirectlyToDb = async (
     users: [user],
   }).save();
 
+  for (const networkId of Object.values(NETWORK_IDS)) {
+    await addNewRelatedAddress({
+      project,
+      user,
+      isRecipient: true,
+      address: projectData.walletAddress,
+      networkId,
+    });
+  }
   // default projectUpdate for liking projects
   // this was breaking updateAt tests as it was running update hooks sometime in the future.
   // Found no other way to avoid triggering the hooks.
@@ -183,11 +198,12 @@ export const saveProjectDirectlyToDb = async (
 };
 export const createProjectData = (): CreateProjectData => {
   const title = String(new Date().getTime());
+  const walletAddress = generateRandomEtheriumAddress();
   return {
     // title: `test project`,
     title,
     description: 'test description',
-    walletAddress: generateRandomEtheriumAddress(),
+    walletAddress,
     categories: ['food1'],
     verified: true,
     listed: true,

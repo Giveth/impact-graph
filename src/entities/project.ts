@@ -164,8 +164,8 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   stripeAccountId?: string;
 
-  @Field()
-  @Column({ unique: true })
+  @Field({ nullable: true })
+  @Column({ unique: true, nullable: true })
   walletAddress?: string;
 
   @Field(type => Boolean)

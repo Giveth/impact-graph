@@ -3,6 +3,8 @@ import { Project, ProjStatus } from '../../entities/project';
 import Web3 from 'web3';
 import { errorMessages } from '../errorMessages';
 import { logger } from '../logger';
+import { findRelatedAddressByWalletAddress } from '../../repositories/relatedAddressRepository';
+import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
 
 export function isWalletAddressValid(address) {
   return Boolean(
@@ -25,17 +27,21 @@ export const validateProjectWalletAddress = async (
       `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
     );
   }
-  const projectWithAddress = await Project.createQueryBuilder('project')
-    .where(`lower("walletAddress")=lower(:walletAddress )`, {
-      walletAddress,
-    })
-    .getOne();
-  if (projectWithAddress && projectWithAddress.id !== projectId) {
+  const relatedAddress = await findRelatedAddressByWalletAddress(walletAddress);
+  if (relatedAddress && relatedAddress.project.id !== projectId) {
     throw new Error(
       `Eth address ${walletAddress} is already being used for a project`,
     );
   }
   return true;
+};
+export const validateProjectRelatedAddresses = async (
+  relatedAddresses: RelatedAddressInputType[],
+  projectId?: number,
+): Promise<void> => {
+  for (const relateAddress of relatedAddresses) {
+    await validateProjectWalletAddress(relateAddress.address, projectId);
+  }
 };
 
 const titleReplacerRegex = /^\s+|\s+$|\s+(?=\s)/g;

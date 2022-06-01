@@ -43,7 +43,7 @@ import {
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { NETWORK_IDS } from '../provider';
-import { PurpleAddress } from '../entities/purpleAddress';
+import { RelatedAddress } from '../entities/relatedAddress';
 import {
   findAdminUserByEmail,
   findUserById,
@@ -778,7 +778,7 @@ const getAdminBroInstance = async () => {
         },
       },
       {
-        resource: PurpleAddress,
+        resource: RelatedAddress,
         options: {
           actions: {
             new: {

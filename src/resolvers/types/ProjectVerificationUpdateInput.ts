@@ -37,9 +37,9 @@ class ProjectContactsInputType {
 }
 
 @InputType()
-class RelatedAddressInputType {
+export class RelatedAddressInputType {
   @Field({ nullable: true })
-  title: string;
+  title?: string;
   @Field({ nullable: true })
   address: string;
   @Field({ nullable: true })

@@ -11,7 +11,7 @@ import { ProjectStatus } from '../entities/projectStatus';
 import {
   CreateProjectInput,
   ImageUpload,
-  ProjectInput,
+  UpdateProjectInput,
 } from './types/project-input';
 import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
@@ -48,6 +48,7 @@ import {
 import { errorMessages } from '../utils/errorMessages';
 import {
   canUserVisitProject,
+  validateProjectRelatedAddresses,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
@@ -63,9 +64,15 @@ import {
 } from '../services/projectService';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
-import { propertyKeyRegex } from 'admin-bro/types/src/utils/flat/property-key-regex';
-import { PurpleAddress } from '../entities/purpleAddress';
 import { findUserById } from '../repositories/userRepository';
+import {
+  addNewRelatedAddress,
+  getUniqueRelatedAddresses,
+  findRelatedAddressByWalletAddress,
+  removeRelatedAddressOfProject,
+} from '../repositories/relatedAddressRepository';
+import { NETWORK_IDS } from '../provider';
+import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 
 const analytics = getAnalytics();
 
@@ -622,7 +629,7 @@ export class ProjectResolver {
   @Mutation(returns => Project)
   async updateProject(
     @Arg('projectId') projectId: number,
-    @Arg('newProjectData') newProjectData: CreateProjectInput,
+    @Arg('newProjectData') newProjectData: UpdateProjectInput,
     @Ctx() { req: { user } }: MyContext,
   ) {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
@@ -675,13 +682,13 @@ export class ProjectResolver {
     if (newProjectData.title) {
       await validateProjectTitleForEdit(newProjectData.title, projectId);
     }
-    if (newProjectData.walletAddress) {
-      await validateProjectWalletAddress(
-        newProjectData.walletAddress,
+
+    if (newProjectData.relatedAddresses) {
+      await validateProjectRelatedAddresses(
+        newProjectData.relatedAddresses,
         projectId,
       );
     }
-
     const slugBase = slugify(newProjectData.title);
     const newSlug = await getAppropriateSlug(slugBase, projectId);
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
@@ -696,7 +703,20 @@ export class ProjectResolver {
     project.updatedAt = new Date();
     project.listed = null;
     await project.save();
-    project.adminUser = await findUserById(Number(project.admin));
+    const adminUser = (await findUserById(Number(project.admin))) as User;
+    if (newProjectData.relatedAddresses) {
+      await removeRelatedAddressOfProject({ project });
+      for (const relatedAddress of newProjectData.relatedAddresses) {
+        await addNewRelatedAddress({
+          project,
+          user: adminUser,
+          address: relatedAddress.address,
+          networkId: relatedAddress.networkId,
+          isRecipient: true,
+        });
+      }
+    }
+    project.adminUser = adminUser;
 
     // Edit emails
     Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
@@ -783,7 +803,10 @@ export class ProjectResolver {
         errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
       );
     }
-    await validateProjectWalletAddress(projectInput.walletAddress);
+
+    await validateProjectRelatedAddresses(
+      projectInput.relatedAddresses as RelatedAddressInputType[],
+    );
     await validateProjectTitle(projectInput.title);
     const slugBase = slugify(projectInput.title);
     const slug = await getAppropriateSlug(slugBase);
@@ -817,7 +840,17 @@ export class ProjectResolver {
     });
 
     const newProject = await this.projectRepository.save(project);
-    newProject.adminUser = await findUserById(Number(newProject.admin));
+    const adminUser = (await findUserById(Number(newProject.admin))) as User;
+    newProject.adminUser = adminUser;
+    for (const relatedAddress of projectInput?.relatedAddresses) {
+      await addNewRelatedAddress({
+        project,
+        user: adminUser,
+        address: relatedAddress.address,
+        networkId: relatedAddress.networkId,
+        isRecipient: true,
+      });
+    }
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,
@@ -1064,14 +1097,9 @@ export class ProjectResolver {
       `,
     );
     const recipientsAddresses = recipients.map(({ recipient }) => recipient);
-    const purpleAddresses = await PurpleAddress.query(
-      `
-          SELECT LOWER(address) as "purpleAddress"
-          FROM purple_address
-      `,
-    );
-    return purpleAddresses
-      .map(({ purpleAddress }) => purpleAddress)
+    const relatedAddresses = await getUniqueRelatedAddresses();
+    return relatedAddresses
+      .map(({ relatedAddress }) => relatedAddress)
       .concat(recipientsAddresses);
   }
 
@@ -1079,24 +1107,7 @@ export class ProjectResolver {
   async walletAddressIsPurpleListed(
     @Arg('address') address: string,
   ): Promise<Boolean> {
-    const recipient = await Project.createQueryBuilder()
-      .where('verified = true')
-      .andWhere(`LOWER("walletAddress") = :walletAddress`, {
-        walletAddress: address.toLowerCase(),
-      })
-      .getOne();
-
-    if (recipient) return true;
-
-    const purpleAddress = await PurpleAddress.createQueryBuilder()
-      .where(`LOWER(address) = :walletAddress`, {
-        walletAddress: address.toLowerCase(),
-      })
-      .getOne();
-
-    if (purpleAddress) return true;
-
-    return false;
+    return Boolean(await findRelatedAddressByWalletAddress(address));
   }
 
   @Query(returns => [Token])
