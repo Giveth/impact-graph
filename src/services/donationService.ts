@@ -203,6 +203,8 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
   });
   try {
     if (
+      // TODO should delete this condition in future, because we sont allow users to send
+      // toWalletAddress for donations so we shouldn not check it ( because ourself have set that)
       donation.toWalletAddress.toLowerCase() !==
       donation.project.walletAddress?.toLowerCase()
     ) {
