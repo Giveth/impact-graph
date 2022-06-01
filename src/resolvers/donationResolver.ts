@@ -331,7 +331,6 @@ export class DonationResolver {
   @Query(returns => UserDonations, { nullable: true })
   async donationsByUserId(
     @Args() { take, skip, orderBy, userId, status }: UserDonationsArgs,
-    // @Arg('status', type => String, { nullable: true }) status: string,
     @Ctx() ctx: MyContext,
   ) {
     const loggedInUserId = ctx?.req?.user?.userId;
