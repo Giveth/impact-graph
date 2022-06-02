@@ -267,12 +267,8 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .innerJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .where('project.id != :id', { id: currentProject?.id })
       .andWhere(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -438,12 +434,10 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.organization', 'organization')
-      .innerJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      // you can alias it as user but it still is mapped as adminUser
+      // like defined in our project entity
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .innerJoinAndSelect('project.categories', 'c')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -567,12 +561,8 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      );
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields); // aliased selection
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
@@ -598,12 +588,8 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      );
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields); // aliased selection
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
@@ -688,8 +674,8 @@ export class ProjectResolver {
     project.qualityScore = qualityScore;
     project.updatedAt = new Date();
     project.listed = null;
+
     await project.save();
-    project.adminUser = await findUserById(Number(project.admin));
 
     // Edit emails
     Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
@@ -807,10 +793,10 @@ export class ProjectResolver {
       totalProjectUpdates: 1,
       verified: false,
       giveBacks: false,
+      adminUser: user,
     });
 
     const newProject = await this.projectRepository.save(project);
-    newProject.adminUser = await findUserById(Number(newProject.admin));
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,
@@ -1179,12 +1165,8 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      .innerJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .where('project.admin = :userId', { userId: String(userId) });
 
     if (userId !== user?.userId) {
@@ -1298,12 +1280,8 @@ export class ProjectResolver {
         { userId },
       )
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );

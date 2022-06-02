@@ -167,6 +167,7 @@ export const saveProjectDirectlyToDb = async (
     organization,
     categories,
     users: [user],
+    adminUser: user,
   }).save();
 
   // default projectUpdate for liking projects

@@ -8,6 +8,7 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   JoinTable,
   LessThan,
   ManyToMany,
@@ -201,6 +202,11 @@ class Project extends BaseEntity {
   @ManyToOne(type => ProjectStatus, { eager: true })
   status: ProjectStatus;
 
+  @Index()
+  @Field(type => User, { nullable: true })
+  @ManyToOne(() => User, { eager: true })
+  adminUser?: User;
+
   @Field(type => [ProjectStatusHistory], { nullable: true })
   @OneToMany(
     type => ProjectStatusHistory,
@@ -230,10 +236,6 @@ class Project extends BaseEntity {
   @Field(type => Boolean, { nullable: true })
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
-
-  // Virtual attribute to subquery result into
-  @Field(type => User, { nullable: true })
-  adminUser?: User;
 
   // Virtual attribute to subquery result into
   @Field(type => Int, { nullable: true })
