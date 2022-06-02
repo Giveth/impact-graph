@@ -475,7 +475,7 @@ export class ProjectResolver {
         //   traceableDirection[orderBy.direction],
         // );
 
-        query.where(
+        query.andWhere(
           `project.${orderBy.field} IS${
             orderBy.direction === OrderDirection.ASC ? '' : ' NOT'
           } NULL`,
@@ -498,7 +498,7 @@ export class ProjectResolver {
         //   orderBy.direction,
         //   acceptGivDirection[orderBy.direction],
         // );
-        query.where(
+        query.andWhere(
           `project.${orderBy.field} IS${
             orderBy.direction === OrderDirection.DESC ? '' : ' NOT'
           } NULL`,
@@ -509,7 +509,7 @@ export class ProjectResolver {
         );
         break;
       case OrderField.Verified:
-        query.where(`project.${orderBy.field} = true`);
+        query.andWhere(`project.${orderBy.field} = true`);
         query.orderBy(`project.${OrderField.CreationDate}`, orderBy.direction);
         break;
       default:
