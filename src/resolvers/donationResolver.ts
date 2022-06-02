@@ -53,6 +53,7 @@ import {
   findUserByWalletAddress,
 } from '../repositories/userRepository';
 import { findDonationById } from '../repositories/donationRepository';
+import { sleep } from '../utils/utils';
 
 const analytics = getAnalytics();
 
@@ -759,6 +760,11 @@ export class DonationResolver {
       if (donation.status === DONATION_STATUS.VERIFIED) {
         return donation;
       }
+
+      // Sometimes web3 provider doesnt return gnosis transactions right after it get mined
+      //  so I put a delay , it might solve our problem
+      await sleep(10_000);
+
       const updatedDonation = await syncDonationStatusWithBlockchainNetwork({
         donationId,
       });
