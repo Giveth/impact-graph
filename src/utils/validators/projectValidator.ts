@@ -28,7 +28,7 @@ export const validateProjectWalletAddress = async (
     );
   }
   const relatedAddress = await findRelatedAddressByWalletAddress(walletAddress);
-  if (relatedAddress && relatedAddress.project.id !== projectId) {
+  if (relatedAddress && relatedAddress?.project?.id !== projectId) {
     throw new Error(
       `Eth address ${walletAddress} is already being used for a project`,
     );

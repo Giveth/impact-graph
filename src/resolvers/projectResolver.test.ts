@@ -801,6 +801,13 @@ function createProjectTestCases() {
   it('Create Project should return <<Access denied>>, calling without token', async () => {
     const sampleProject = {
       title: 'title1',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      relatedAddresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
     };
     const result = await axios.post(graphqlUrl, {
       query: createProjectQuery,
@@ -970,7 +977,12 @@ function createProjectTestCases() {
         variables: {
           project: {
             ...sampleProject,
-            walletAddress: generateRandomEtheriumAddress(),
+            relatedAddresses: [
+              {
+                address: generateRandomEtheriumAddress(),
+                networkId: NETWORK_IDS.XDAI,
+              },
+            ],
           },
         },
       },
@@ -1415,11 +1427,10 @@ function updateProjectTestCases() {
             title: String(new Date().getTime()),
             relatedAddresses: [
               {
-                address: generateRandomEtheriumAddress(),
+                address: walletAddress,
                 networkId: NETWORK_IDS.XDAI,
               },
             ],
-            walletAddress,
           },
         },
       },

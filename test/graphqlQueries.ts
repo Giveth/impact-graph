@@ -109,7 +109,7 @@ export const createProjectQuery = `
   `;
 
 export const updateProjectQuery = `
-  mutation ($projectId: Float!, $newProjectData: CreateProjectInput!) {
+  mutation ($projectId: Float!, $newProjectData: UpdateProjectInput!) {
     updateProject(projectId: $projectId, newProjectData: $newProjectData) {
       id
       title

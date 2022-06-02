@@ -53,6 +53,7 @@ import {
   findUserByWalletAddress,
 } from '../repositories/userRepository';
 import { findDonationById } from '../repositories/donationRepository';
+import { findProjectRecipientAddressByNetworkId } from '../repositories/relatedAddressRepository';
 
 const analytics = getAnalytics();
 
@@ -634,7 +635,17 @@ export class DonationResolver {
         }
         isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
       }
-      const toAddress = project.walletAddress?.toLowerCase() as string;
+      const projectRelatedAddress =
+        await findProjectRecipientAddressByNetworkId({
+          projectId,
+          networkId: transactionNetworkId,
+        });
+      if (!projectRelatedAddress) {
+        throw new Error(
+          errorMessages.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+        );
+      }
+      const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
       const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
 
       const donation = await Donation.create({

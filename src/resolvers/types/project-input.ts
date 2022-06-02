@@ -19,8 +19,8 @@ class ProjectInput {
   @MaxLength(70)
   title: string;
 
-  @Field()
-  admin: string;
+  @Field({ nullable: true })
+  admin?: string;
 
   @Field({ nullable: true })
   // @Length(0, 2000)

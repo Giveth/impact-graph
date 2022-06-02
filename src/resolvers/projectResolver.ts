@@ -67,9 +67,10 @@ import { Token } from '../entities/token';
 import { findUserById } from '../repositories/userRepository';
 import {
   addNewRelatedAddress,
-  getUniqueRelatedAddresses,
+  getPurpleListAddresses,
   findRelatedAddressByWalletAddress,
   removeRelatedAddressOfProject,
+  isWalletAddressInPurpleList,
 } from '../repositories/relatedAddressRepository';
 import { NETWORK_IDS } from '../provider';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
@@ -1089,25 +1090,15 @@ export class ProjectResolver {
 
   @Query(returns => [String])
   async getPurpleList(): Promise<String[]> {
-    const recipients = await Project.query(
-      `
-          SELECT LOWER("walletAddress") as recipient
-          FROM project
-          WHERE verified=true
-      `,
-    );
-    const recipientsAddresses = recipients.map(({ recipient }) => recipient);
-    const relatedAddresses = await getUniqueRelatedAddresses();
-    return relatedAddresses
-      .map(({ relatedAddress }) => relatedAddress)
-      .concat(recipientsAddresses);
+    const relatedAddresses = await getPurpleListAddresses();
+    return relatedAddresses.map(({ relatedAddress }) => relatedAddress);
   }
 
   @Query(returns => Boolean)
   async walletAddressIsPurpleListed(
     @Arg('address') address: string,
   ): Promise<Boolean> {
-    return Boolean(await findRelatedAddressByWalletAddress(address));
+    return isWalletAddressInPurpleList(address);
   }
 
   @Query(returns => [Token])
