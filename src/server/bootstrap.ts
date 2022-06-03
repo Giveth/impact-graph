@@ -275,9 +275,9 @@ export async function bootstrap() {
     runUpdateTraceableProjectsTotalDonations();
 
     // If we need to deactivate the process use the env var
-    if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
-      runGivingBlocksProjectSynchronization();
-    }
+    // if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
+    //   runGivingBlocksProjectSynchronization();
+    // }
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
     }
