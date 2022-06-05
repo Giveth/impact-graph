@@ -202,10 +202,16 @@ class Project extends BaseEntity {
   @ManyToOne(type => ProjectStatus, { eager: true })
   status: ProjectStatus;
 
+  @RelationId((project: Project) => project.status)
+  statusId: number;
+
   @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(() => User, { eager: true })
   adminUser?: User;
+
+  @RelationId((project: Project) => project.adminUser)
+  adminUserId: number;
 
   @Field(type => [ProjectStatusHistory], { nullable: true })
   @OneToMany(
@@ -213,9 +219,6 @@ class Project extends BaseEntity {
     projectStatusHistory => projectStatusHistory.project,
   )
   statusHistory?: ProjectStatusHistory[];
-
-  @RelationId((project: Project) => project.status)
-  statusId: number;
 
   @Field(type => Float)
   @Column({ type: 'real' })
