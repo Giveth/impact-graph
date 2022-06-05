@@ -13,6 +13,7 @@ import { getTransactionInfoFromNetwork } from './transactionService';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice } from './givPriceService';
+import { findDonationById } from '../repositories/donationRepository';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -184,22 +185,26 @@ const failedVerifiedDonationErrorMessages = [
   errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
   errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
   errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+  errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
 ];
 
 export const syncDonationStatusWithBlockchainNetwork = async (params: {
   donationId: number;
 }): Promise<Donation> => {
   const { donationId } = params;
-  const donation = await Donation.findOne(donationId);
+  const donation = await findDonationById(donationId);
   if (!donation) {
     throw new Error(errorMessages.DONATION_NOT_FOUND);
   }
   logger.debug('syncDonationStatusWithBlockchainNetwork() has been called', {
-    donationId: donation.id,
+    donationId,
+    fetchDonationId: donation.id,
     txHash: donation.transactionId,
   });
   try {
     if (
+      // TODO should delete this condition in future, because we sont allow users to send
+      // toWalletAddress for donations so we shouldn not check it ( because ourself have set that)
       donation.toWalletAddress.toLowerCase() !==
       donation.project.walletAddress?.toLowerCase()
     ) {

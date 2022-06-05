@@ -32,8 +32,6 @@ import { User } from '../entities/user';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjStatus } from '../entities/project';
 import { Token } from '../entities/token';
-import { IsUppercase } from 'class-validator';
-import { findDonationById } from '../repositories/donationRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -2828,6 +2826,194 @@ function donationsByProjectIdTestCases() {
 
     assert.isTrue(donations.length > 0);
   });
+  it('should filter donations by failed status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const verifiedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const failedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.FAILED },
+      user.id,
+      project.id,
+    );
+
+    const pendingDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.PENDING },
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          status: DONATION_STATUS.FAILED,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    donations.forEach(item => {
+      assert.equal(item.status, DONATION_STATUS.FAILED);
+    });
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === failedDonation.id),
+    );
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === verifiedDonation.id),
+    );
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === pendingDonation.id),
+    );
+  });
+  it('should filter donations by pending status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const verifiedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const failedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.FAILED },
+      user.id,
+      project.id,
+    );
+
+    const pendingDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.PENDING },
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          status: DONATION_STATUS.PENDING,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    donations.forEach(item => {
+      assert.equal(item.status, DONATION_STATUS.PENDING);
+    });
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === failedDonation.id),
+    );
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === verifiedDonation.id),
+    );
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === pendingDonation.id),
+    );
+  });
+  it('should filter donations by verified status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const verifiedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const failedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.FAILED },
+      user.id,
+      project.id,
+    );
+
+    const pendingDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.PENDING },
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          status: DONATION_STATUS.VERIFIED,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    donations.forEach(item => {
+      assert.equal(item.status, DONATION_STATUS.VERIFIED);
+    });
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === failedDonation.id),
+    );
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === verifiedDonation.id),
+    );
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === pendingDonation.id),
+    );
+  });
+  it('should return all donations when not sending status filter', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const verifiedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const failedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.FAILED },
+      user.id,
+      project.id,
+    );
+
+    const pendingDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.PENDING },
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByProjectId.donations;
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === failedDonation.id),
+    );
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === verifiedDonation.id),
+    );
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === pendingDonation.id),
+    );
+  });
 }
 
 function donationsByUserIdTestCases() {
@@ -3164,6 +3350,190 @@ function donationsByUserIdTestCases() {
     assert.equal(
       result.data.data.donationsByUserId.donations[0].anonymous,
       false,
+    );
+  });
+  it('should filter donations by failed status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const verifiedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const failedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.FAILED },
+      user.id,
+      project.id,
+    );
+
+    const pendingDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.PENDING },
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchDonationsByUserIdQuery,
+      variables: {
+        orderBy: {
+          field: 'UsdAmount',
+          direction: 'DESC',
+        },
+        status: DONATION_STATUS.FAILED,
+        userId: user.id,
+      },
+    });
+    const donations = result.data.data.donationsByUserId.donations;
+    donations.forEach(item => {
+      assert.equal(item.status, DONATION_STATUS.FAILED);
+    });
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === failedDonation.id),
+    );
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === verifiedDonation.id),
+    );
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === pendingDonation.id),
+    );
+  });
+  it('should filter donations by verified status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const verifiedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const failedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.FAILED },
+      user.id,
+      project.id,
+    );
+
+    const pendingDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.PENDING },
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchDonationsByUserIdQuery,
+      variables: {
+        orderBy: {
+          field: 'UsdAmount',
+          direction: 'DESC',
+        },
+        status: DONATION_STATUS.VERIFIED,
+        userId: user.id,
+      },
+    });
+    const donations = result.data.data.donationsByUserId.donations;
+    donations.forEach(item => {
+      assert.equal(item.status, DONATION_STATUS.VERIFIED);
+    });
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === failedDonation.id),
+    );
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === verifiedDonation.id),
+    );
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === pendingDonation.id),
+    );
+  });
+  it('should filter donations by pending status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const verifiedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const failedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.FAILED },
+      user.id,
+      project.id,
+    );
+
+    const pendingDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.PENDING },
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchDonationsByUserIdQuery,
+      variables: {
+        orderBy: {
+          field: 'UsdAmount',
+          direction: 'DESC',
+        },
+        status: DONATION_STATUS.PENDING,
+        userId: user.id,
+      },
+    });
+    const donations = result.data.data.donationsByUserId.donations;
+    donations.forEach(item => {
+      assert.equal(item.status, DONATION_STATUS.PENDING);
+    });
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === failedDonation.id),
+    );
+    assert.isNotOk(
+      donations.find(donation => Number(donation.id) === verifiedDonation.id),
+    );
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === pendingDonation.id),
+    );
+  });
+  it('should return all donations when not sending status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const verifiedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const failedDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.FAILED },
+      user.id,
+      project.id,
+    );
+
+    const pendingDonation = await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.PENDING },
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchDonationsByUserIdQuery,
+      variables: {
+        orderBy: {
+          field: 'UsdAmount',
+          direction: 'DESC',
+        },
+        userId: user.id,
+      },
+    });
+    const donations = result.data.data.donationsByUserId.donations;
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === failedDonation.id),
+    );
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === verifiedDonation.id),
+    );
+    assert.isOk(
+      donations.find(donation => Number(donation.id) === pendingDonation.id),
     );
   });
   describe('with default createdAt DESC sort', () => {
@@ -3624,6 +3994,7 @@ function updateDonationStatusTestCases() {
         fromWalletAddress: transactionInfo.fromAddress,
         toWalletAddress: transactionInfo.toAddress,
         valueUsd: 1,
+        nonce: 99999999,
         anonymous: false,
         createdAt: new Date(transactionInfo.timestamp),
         status: DONATION_STATUS.PENDING,
@@ -3792,6 +4163,7 @@ function updateDonationStatusTestCases() {
         currency: transactionInfo.currency,
         fromWalletAddress: transactionInfo.fromAddress,
         toWalletAddress: transactionInfo.toAddress,
+        nonce: 999999,
         valueUsd: 1,
         anonymous: false,
         createdAt: new Date(transactionInfo.timestamp),

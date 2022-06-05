@@ -1399,6 +1399,7 @@ export interface CreateDonationData {
   amount: number;
   createdAt: any;
   valueUsd?: number;
+  nonce?: number;
   // userId?: number;
   projectId?: number;
   status?: string;
