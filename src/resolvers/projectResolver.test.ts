@@ -1032,8 +1032,8 @@ function createProjectTestCases() {
     assert.equal(result.data.data.createProject.listed, null);
 
     assert.equal(
-      result.data.data.createProject.admin,
-      String(SEED_DATA.FIRST_USER.id),
+      result.data.data.createProject.adminUser.id,
+      SEED_DATA.FIRST_USER.id,
     );
     assert.equal(result.data.data.createProject.verified, false);
     assert.equal(
