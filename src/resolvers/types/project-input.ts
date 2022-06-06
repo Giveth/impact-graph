@@ -47,11 +47,11 @@ class ProjectInput {
 @InputType()
 export class CreateProjectInput extends ProjectInput {
   @Field(() => [RelatedAddressInputType], { nullable: true })
-  relatedAddresses: RelatedAddressInputType[];
+  addresses: RelatedAddressInputType[];
 }
 
 @InputType()
 export class UpdateProjectInput extends ProjectInput {
   @Field(() => [RelatedAddressInputType], { nullable: true })
-  relatedAddresses?: RelatedAddressInputType[];
+  addresses?: RelatedAddressInputType[];
 }

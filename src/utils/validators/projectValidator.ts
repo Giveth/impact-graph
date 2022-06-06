@@ -3,7 +3,7 @@ import { Project, ProjStatus } from '../../entities/project';
 import Web3 from 'web3';
 import { errorMessages } from '../errorMessages';
 import { logger } from '../logger';
-import { findRelatedAddressByWalletAddress } from '../../repositories/relatedAddressRepository';
+import { findRelatedAddressByWalletAddress } from '../../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
 
 export function isWalletAddressValid(address) {

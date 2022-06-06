@@ -1,10 +1,11 @@
 import {
-  addNewRelatedAddress,
+  addNewProjectAddress,
   findProjectRecipientAddressByNetworkId,
+  findProjectRecipientAddressByProjectId,
   getPurpleListAddresses,
   isWalletAddressInPurpleList,
   removeRelatedAddressOfProject,
-} from './relatedAddressRepository';
+} from './projectAddressRepository';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -19,10 +20,14 @@ describe(
   'removeRelatedAddressOfProject test cases',
   removeRelatedAddressOfProjectTestCases,
 );
-describe('addNewRelatedAddress test cases', addNewRelatedAddressTestCases);
+describe('addNewProjectAddress test cases', addNewProjectAddressTestCases);
 describe(
   'findProjectRecipientAddressByNetworkId test cases',
   findProjectRecipientAddressByNetworkIdTestCases,
+);
+describe(
+  'findProjectRecipientAddressByProjectId test cases',
+  findProjectRecipientAddressByProjectIdTestCases,
 );
 describe(
   'isWalletAddressInPurpleList test cases',
@@ -40,7 +45,7 @@ function getPurpleListAddressesTestCases() {
     const purpleListAddresses = await getPurpleListAddresses();
     assert.isOk(
       purpleListAddresses.find(
-        ({ relatedAddress }) => relatedAddress === walletAddress,
+        ({ projectAddress }) => projectAddress === walletAddress,
       ),
     );
   });
@@ -54,7 +59,7 @@ function getPurpleListAddressesTestCases() {
     const purpleListAddresses = await getPurpleListAddresses();
     assert.isNotOk(
       purpleListAddresses.find(
-        ({ relatedAddress }) => relatedAddress === walletAddress,
+        ({ projectAddress }) => projectAddress === walletAddress,
       ),
     );
   });
@@ -93,12 +98,12 @@ function removeRelatedAddressOfProjectTestCases() {
     const purpleListAddresses = await getPurpleListAddresses();
     assert.isNotOk(
       purpleListAddresses.find(
-        ({ relatedAddress }) => relatedAddress === walletAddress,
+        ({ projectAddress }) => projectAddress === walletAddress,
       ),
     );
   });
 }
-function addNewRelatedAddressTestCases() {
+function addNewProjectAddressTestCases() {
   it('should new related address ', async () => {
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -109,7 +114,7 @@ function addNewRelatedAddressTestCases() {
       admin: String(user.id),
     });
     const newAddress = generateRandomEtheriumAddress();
-    const newRelatedAddress = await addNewRelatedAddress({
+    const newRelatedAddress = await addNewProjectAddress({
       address: newAddress,
       networkId: NETWORK_IDS.XDAI,
       project,
@@ -129,7 +134,7 @@ function addNewRelatedAddressTestCases() {
     const purpleListAddresses = await getPurpleListAddresses();
     assert.isNotOk(
       purpleListAddresses.find(
-        ({ relatedAddress }) => relatedAddress === walletAddress,
+        ({ projectAddress }) => projectAddress === walletAddress,
       ),
     );
   });
@@ -149,6 +154,20 @@ function findProjectRecipientAddressByNetworkIdTestCases() {
     assert.equal(recipientAddress?.address, walletAddress);
     assert.equal(recipientAddress?.networkId, NETWORK_IDS.XDAI);
     assert.isTrue(recipientAddress?.isRecipient);
+  });
+}
+function findProjectRecipientAddressByProjectIdTestCases() {
+  it('should return recipient address of project', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+    });
+    const recipientAddress = await findProjectRecipientAddressByProjectId({
+      projectId: project.id,
+    });
+    assert.equal(recipientAddress[0].address, walletAddress);
   });
 }
 

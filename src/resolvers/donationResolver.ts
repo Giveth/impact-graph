@@ -54,7 +54,7 @@ import {
 } from '../repositories/userRepository';
 import { findDonationById } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
-import { findProjectRecipientAddressByNetworkId } from '../repositories/relatedAddressRepository';
+import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 
 const analytics = getAnalytics();
 

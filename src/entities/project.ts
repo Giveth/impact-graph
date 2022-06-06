@@ -30,6 +30,7 @@ import { ProjectStatusReason } from './projectStatusReason';
 import { errorMessages } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
+import { ProjectAddress } from './projectAddress';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -195,6 +196,10 @@ class Project extends BaseEntity {
 
   @OneToMany(type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
+
+  @Field(type => [ProjectAddress], { nullable: true })
+  @OneToMany(type => ProjectAddress, projectAddress => projectAddress.project)
+  addresses?: ProjectAddress[];
 
   @Index()
   @Field(type => ProjectStatus)

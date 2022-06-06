@@ -12,7 +12,7 @@ const insertRelatedAddress = async (params: {
   const { queryRunner, project, networkId } = params;
   await queryRunner.query(
     `
-                  INSERT INTO related_address(
+                  INSERT INTO project_address(
                   "networkId", address, "projectId", "userId", "isRecipient")
                   VALUES (${networkId}, '${project.walletAddress?.toLowerCase()}', ${
       project.id
@@ -42,15 +42,15 @@ export class fillRelatedAddressesFromProjectsTable1654415838996
       return;
     }
 
-    // The related_address has changed so first of all we should drop existing table
+    // The project_address has changed so first of all we should drop existing table
     await queryRunner.query(
       `
-                 DROP TABLE IF EXISTS related_address; 
+                 DROP TABLE IF EXISTS project_address; 
           `,
     );
     await queryRunner.query(
       `
-        CREATE TABLE IF NOT EXISTS related_address
+        CREATE TABLE IF NOT EXISTS project_address
         (
             id SERIAL NOT NULL,
             title character varying COLLATE pg_catalog."default",

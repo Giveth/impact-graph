@@ -1,15 +1,15 @@
-import { RelatedAddress } from '../entities/relatedAddress';
+import { ProjectAddress } from '../entities/projectAddress';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 
 export const getPurpleListAddresses = async (): Promise<
-  { relatedAddress: string }[]
+  { projectAddress: string }[]
 > => {
   // addresses that are related to verified projects
-  const addresses = await RelatedAddress.query(
+  const addresses = await ProjectAddress.query(
     `
-          SELECT "projectId", LOWER(address) as "relatedAddress"
-          FROM related_address
+          SELECT "projectId", LOWER(address) as "projectAddress"
+          FROM project_address
           JOIN project
           on project.id="projectId" and "verified"=true
       `,
@@ -20,35 +20,35 @@ export const getPurpleListAddresses = async (): Promise<
 export const isWalletAddressInPurpleList = async (
   address: string,
 ): Promise<boolean> => {
-  const relatedAddress = await RelatedAddress.query(
+  const projectAddress = await ProjectAddress.query(
     `
-          SELECT "projectId", LOWER(address) as "relatedAddress"
-          FROM related_address
+          SELECT "projectId", LOWER(address) as "projectAddress"
+          FROM project_address
           JOIN project
           on project.id="projectId" and "verified"=true
           where address='${address}'
           limit 1
       `,
   );
-  return relatedAddress.length > 0;
+  return projectAddress.length > 0;
 };
 
 export const findRelatedAddressByWalletAddress = async (
   walletAddress: string,
 ) => {
-  return RelatedAddress.createQueryBuilder('relatedAddress')
+  return ProjectAddress.createQueryBuilder('projectAddress')
     .where(`LOWER(address) = :walletAddress`, {
       walletAddress: walletAddress.toLowerCase(),
     })
-    .leftJoinAndSelect('relatedAddress.project', 'project')
+    .leftJoinAndSelect('projectAddress.project', 'project')
     .getOne();
 };
 export const findProjectRecipientAddressByNetworkId = async (params: {
   projectId: number;
   networkId: number;
-}): Promise<RelatedAddress | undefined> => {
+}): Promise<ProjectAddress | undefined> => {
   const { projectId, networkId } = params;
-  return RelatedAddress.createQueryBuilder('relatedAddress')
+  return ProjectAddress.createQueryBuilder('projectAddress')
     .where(`"projectId" = :projectId`, {
       projectId,
     })
@@ -59,21 +59,33 @@ export const findProjectRecipientAddressByNetworkId = async (params: {
     .getOne();
 };
 
-export const addNewRelatedAddress = async (params: {
+export const addNewProjectAddress = async (params: {
   project: Project;
   user: User;
   address: string;
   title?: string;
   isRecipient?: boolean;
   networkId: number;
-}): Promise<RelatedAddress> => {
-  return RelatedAddress.create(params).save();
+}): Promise<ProjectAddress> => {
+  return ProjectAddress.create(params).save();
 };
 
 export const removeRelatedAddressOfProject = async (params: {
   project: Project;
 }): Promise<void> => {
-  await RelatedAddress.delete({
+  await ProjectAddress.delete({
     project: params.project,
   });
+};
+
+export const findProjectRecipientAddressByProjectId = async (params: {
+  projectId: number;
+}): Promise<ProjectAddress[]> => {
+  const { projectId } = params;
+  return ProjectAddress.createQueryBuilder('projectAddress')
+    .where(`"projectId" = :projectId`, {
+      projectId,
+    })
+    .andWhere(`"isRecipient" = true`)
+    .getMany();
 };

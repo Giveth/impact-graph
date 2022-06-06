@@ -41,39 +41,44 @@ export const updateDonationStatusMutation = `
 `;
 
 export const createProjectQuery = `
-       mutation ($project: CreateProjectInput!) {
-          createProject(project: $project) {
-            id
-            title
-            description
-            admin
-            image
-            impactLocation
-            slug
-            walletAddress
-            listed
-            verified
-            organization {
-              id
-              name
-              label
-            }
-            status {
-              name
-              id
-              symbol
-            }
-            categories {
-              name
-            }
-            adminUser{
-              id
-              name
-              email
-              walletAddress
-            }
-          }
+   mutation ($project: CreateProjectInput!) {
+      createProject(project: $project) {
+        id
+        title
+        description
+        admin
+        image
+        impactLocation
+        slug
+        walletAddress
+        listed
+        verified
+        organization {
+          id
+          name
+          label
+        }
+        status {
+          name
+          id
+          symbol
+        }
+        categories {
+          name
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
+        }
+        adminUser{
+          id
+          name
+          email
+          walletAddress
+        }
       }
+  }
   `;
 
 export const updateProjectQuery = `
@@ -94,12 +99,22 @@ export const updateProjectQuery = `
       categories {
         name
       }
+      addresses {
+        address
+        isRecipient
+        networkId
+      }
       adminUser{
         id
         name
         email
         walletAddress
       }
+     addresses {
+      address
+      isRecipient
+      networkId
+    }
     }
   }
  `;
@@ -355,6 +370,11 @@ export const fetchAllProjectsQuery = `
           label
           supportCustomTokens
         }
+        addresses {
+          address
+          isRecipient
+          networkId
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -406,6 +426,11 @@ export const fetchProjectsBySlugQuery = `
         label
         supportCustomTokens
       }
+      addresses {
+        address
+        isRecipient
+        networkId
+      }
       totalReactions
       totalDonations
       totalTraceDonations
@@ -451,6 +476,11 @@ export const fetchSimilarProjectsBySlugQuery = `
           id
           userId
           reaction
+        }
+       addresses {
+          address
+          isRecipient
+          networkId
         }
         totalReactions
         totalDonations
@@ -499,6 +529,11 @@ export const fetchLikedProjectsQuery = `
           id
           userId
           reaction
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
         }
         totalReactions
         totalDonations
@@ -673,6 +708,11 @@ export const projectsByUserIdQuery = `
             id
             projectUpdateId
             userId
+          }    
+          addresses {
+            address
+            isRecipient
+            networkId
           }
           qualityScore
         }
@@ -702,6 +742,11 @@ export const projectByIdQuery = `
       }
       reaction {
         id
+      }
+      addresses {
+        address
+        isRecipient
+        networkId
       }
       organization {
         name

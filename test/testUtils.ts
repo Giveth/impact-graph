@@ -16,12 +16,10 @@ import {
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
 import { findUserByWalletAddress } from '../src/repositories/userRepository';
-import { findProjectByWalletAddress } from '../src/repositories/projectRepository';
 import {
-  addNewRelatedAddress,
+  addNewProjectAddress,
   findRelatedAddressByWalletAddress,
-} from '../src/repositories/relatedAddressRepository';
-import { RelatedAddressInputType } from '../src/resolvers/types/ProjectVerificationUpdateInput';
+} from '../src/repositories/projectAddressRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -175,7 +173,7 @@ export const saveProjectDirectlyToDb = async (
   }).save();
 
   for (const networkId of Object.values(NETWORK_IDS)) {
-    await addNewRelatedAddress({
+    await addNewProjectAddress({
       project,
       user,
       isRecipient: true,

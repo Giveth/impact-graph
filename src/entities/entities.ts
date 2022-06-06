@@ -15,7 +15,7 @@ import { ProjectStatusReason } from './projectStatusReason';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ThirdPartyProjectImport } from './thirdPartyProjectImport';
 import { ProjectVerificationForm } from './projectVerificationForm';
-import { RelatedAddress } from './relatedAddress';
+import { ProjectAddress } from './projectAddress';
 import { SocialProfile } from './socialProfile';
 
 export const entities: any = [
@@ -38,6 +38,6 @@ export const entities: any = [
   ProjectImage,
   ThirdPartyProjectImport,
   ProjectVerificationForm,
-  RelatedAddress,
+  ProjectAddress,
   SocialProfile,
 ];

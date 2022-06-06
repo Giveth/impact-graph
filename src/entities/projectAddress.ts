@@ -17,7 +17,7 @@ import { User } from './user';
 @Entity()
 @ObjectType()
 @Unique(['address', 'networkId', 'project'])
-export class RelatedAddress extends BaseEntity {
+export class ProjectAddress extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
@@ -40,14 +40,14 @@ export class RelatedAddress extends BaseEntity {
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
   project: Project;
-  @RelationId((relatedAddress: RelatedAddress) => relatedAddress.project)
+  @RelationId((relatedAddress: ProjectAddress) => relatedAddress.project)
   projectId: number;
 
   @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })
   user: User;
-  @RelationId((relatedAddress: RelatedAddress) => relatedAddress.user)
+  @RelationId((relatedAddress: ProjectAddress) => relatedAddress.user)
   userId: number;
 
   @Field()

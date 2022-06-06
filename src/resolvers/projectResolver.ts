@@ -66,13 +66,12 @@ import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { findUserById } from '../repositories/userRepository';
 import {
-  addNewRelatedAddress,
+  addNewProjectAddress,
   getPurpleListAddresses,
-  findRelatedAddressByWalletAddress,
   removeRelatedAddressOfProject,
   isWalletAddressInPurpleList,
-} from '../repositories/relatedAddressRepository';
-import { NETWORK_IDS } from '../provider';
+  findProjectRecipientAddressByProjectId,
+} from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 
 const analytics = getAnalytics();
@@ -275,6 +274,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .innerJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
@@ -446,6 +446,7 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.users', 'users')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
       .innerJoinAndMapOne(
         'project.adminUser',
@@ -581,6 +582,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndMapOne(
         'project.adminUser',
@@ -613,6 +615,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
@@ -684,9 +687,9 @@ export class ProjectResolver {
       await validateProjectTitleForEdit(newProjectData.title, projectId);
     }
 
-    if (newProjectData.relatedAddresses) {
+    if (newProjectData.addresses) {
       await validateProjectRelatedAddresses(
-        newProjectData.relatedAddresses,
+        newProjectData.addresses,
         projectId,
       );
     }
@@ -705,10 +708,10 @@ export class ProjectResolver {
     project.listed = null;
     await project.save();
     const adminUser = (await findUserById(Number(project.admin))) as User;
-    if (newProjectData.relatedAddresses) {
+    if (newProjectData.addresses) {
       await removeRelatedAddressOfProject({ project });
-      for (const relatedAddress of newProjectData.relatedAddresses) {
-        await addNewRelatedAddress({
+      for (const relatedAddress of newProjectData.addresses) {
+        await addNewProjectAddress({
           project,
           user: adminUser,
           address: relatedAddress.address,
@@ -718,6 +721,9 @@ export class ProjectResolver {
       }
     }
     project.adminUser = adminUser;
+    project.addresses = await findProjectRecipientAddressByProjectId({
+      projectId,
+    });
 
     // Edit emails
     Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
@@ -806,7 +812,7 @@ export class ProjectResolver {
     }
 
     await validateProjectRelatedAddresses(
-      projectInput.relatedAddresses as RelatedAddressInputType[],
+      projectInput.addresses as RelatedAddressInputType[],
     );
     await validateProjectTitle(projectInput.title);
     const slugBase = slugify(projectInput.title);
@@ -843,8 +849,8 @@ export class ProjectResolver {
     const newProject = await this.projectRepository.save(project);
     const adminUser = (await findUserById(Number(newProject.admin))) as User;
     newProject.adminUser = adminUser;
-    for (const relatedAddress of projectInput?.relatedAddresses) {
-      await addNewRelatedAddress({
+    for (const relatedAddress of projectInput?.addresses) {
+      await addNewProjectAddress({
         project,
         user: adminUser,
         address: relatedAddress.address,
@@ -852,6 +858,9 @@ export class ProjectResolver {
         isRecipient: true,
       });
     }
+    newProject.addresses = await findProjectRecipientAddressByProjectId({
+      projectId: project.id,
+    });
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,
@@ -1091,7 +1100,7 @@ export class ProjectResolver {
   @Query(returns => [String])
   async getPurpleList(): Promise<String[]> {
     const relatedAddresses = await getPurpleListAddresses();
-    return relatedAddresses.map(({ relatedAddress }) => relatedAddress);
+    return relatedAddresses.map(({ projectAddress }) => projectAddress);
   }
 
   @Query(returns => Boolean)
@@ -1207,6 +1216,7 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .innerJoinAndMapOne(
         'project.adminUser',
         User,
@@ -1326,6 +1336,7 @@ export class ProjectResolver {
         { userId },
       )
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndMapOne(
         'project.adminUser',
         User,
