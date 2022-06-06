@@ -7,7 +7,10 @@ import {
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { logger } from '../utils/logger';
-import { findProjectById } from '../repositories/projectRepository';
+import {
+  findProjectById,
+  findProjectBySlug,
+} from '../repositories/projectRepository';
 import {
   createProjectVerificationForm,
   findProjectVerificationFormByEmailConfirmationToken,
@@ -17,7 +20,6 @@ import {
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
-  PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
 import { updateProjectVerificationFormByUser } from '../services/projectVerificationFormService';
 import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdateInput';
@@ -182,6 +184,7 @@ export class ProjectVerificationFormResolver {
     projectVerificationUpdateInput: ProjectVerificationUpdateInput,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectVerificationForm> {
+    // https://github.com/Giveth/impact-graph/pull/519#issuecomment-1136845612
     try {
       const userId = user?.userId;
       const { projectVerificationId } = projectVerificationUpdateInput;
@@ -219,7 +222,7 @@ export class ProjectVerificationFormResolver {
 
   @Query(returns => ProjectVerificationForm)
   async getCurrentProjectVerificationForm(
-    @Arg('projectId') projectId: number,
+    @Arg('slug') slug: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectVerificationForm> {
     try {
@@ -229,15 +232,15 @@ export class ProjectVerificationFormResolver {
       }
       validateWithJoiSchema(
         {
-          projectId,
+          slug,
         },
         getCurrentProjectVerificationRequestValidator,
       );
-      const project = await findProjectById(projectId);
+      const project = await findProjectBySlug(slug);
       if (!project) {
         throw new Error(errorMessages.PROJECT_NOT_FOUND);
       }
-      if (project.verified === true) {
+      if (project.verified) {
         throw new Error(errorMessages.PROJECT_IS_ALREADY_VERIFIED);
       }
       if (Number(project.admin) !== userId) {
@@ -245,7 +248,7 @@ export class ProjectVerificationFormResolver {
       }
 
       const inProjectVerificationRequest =
-        await getInProgressProjectVerificationRequest(projectId);
+        await getInProgressProjectVerificationRequest(project.id);
       if (!inProjectVerificationRequest) {
         throw new Error(
           errorMessages.THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT,

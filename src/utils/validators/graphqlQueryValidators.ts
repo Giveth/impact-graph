@@ -69,7 +69,7 @@ export const createProjectVerificationRequestValidator = Joi.object({
 });
 
 export const getCurrentProjectVerificationRequestValidator = Joi.object({
-  projectId: projectIdValidator,
+  slug: Joi.string().required(),
 });
 
 const projectPersonalInfoValidator = Joi.object({

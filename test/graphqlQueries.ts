@@ -847,8 +847,8 @@ export const createProjectVerificationFormMutation = `
         `;
 
 export const getCurrentProjectVerificationFormQuery = `
-        query getCurrentProjectVerificationForm($projectId: Float!){
-           getCurrentProjectVerificationForm(projectId: $projectId) {
+        query getCurrentProjectVerificationForm($slug: String!){
+           getCurrentProjectVerificationForm(slug: $slug) {
                     id
                     isTermAndConditionsAccepted
                     emailConfirmationToken
