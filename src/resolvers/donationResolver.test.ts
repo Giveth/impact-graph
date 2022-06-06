@@ -19,7 +19,6 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
   fetchDonationsByUserIdQuery,
   fetchDonationsByDonorQuery,
-  saveDonation,
   fetchDonationsByProjectIdQuery,
   fetchAllDonationsQuery,
   donationsToWallets,
@@ -42,7 +41,6 @@ describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
 describe('donationByUserId() test cases', donationsByUserIdTestCases);
 // describe('tokens() test cases', tokensTestCases);
 describe('donationsByDonor() test cases', donationsByDonorTestCases);
-describe('saveDonation() test cases', saveDonationTestCases);
 describe('createDonation() test cases', createDonationTestCases);
 describe('updateDonationStatus() test cases', updateDonationStatusTestCases);
 describe('donationsToWallets() test cases', donationsToWalletsTestCases);
@@ -247,1136 +245,6 @@ function donationsTestCases() {
   });
 }
 
-function saveDonationTestCases() {
-  it('should save GIV donation for giveth project on xdai successfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.saveDonation,
-    );
-    assert.isTrue(donation?.isTokenEligibleForGivback);
-  });
-  it('should save GIV donation for giveth project on mainnet successfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.MAIN_NET,
-          transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.saveDonation,
-    );
-    assert.isTrue(donation?.isTokenEligibleForGivback);
-  });
-  it('should save custom token donation for giveth project on mainnet successfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.MAIN_NET,
-          transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-
-          // custom token
-          token: 'ABCD',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.saveDonation,
-    );
-    assert.isFalse(donation?.isTokenEligibleForGivback);
-  });
-  it('should save GIV donation for trace project on mainnet successfully', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.TRACE,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.MAIN_NET,
-          transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.saveDonation,
-    );
-    assert.isTrue(donation?.isTokenEligibleForGivback);
-  });
-  it('should save DOGE donation for projects in mainnet as nonEligible', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVETH,
-    });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
-    const accessToken = await generateTestAccessToken(user!.id);
-    const token = Token.create({
-      name: 'Doge not eligible',
-      symbol: 'DOGE',
-      address: '0x30cf203b48edaa42c3b4918e955fed26cd012a23',
-      decimals: 18,
-      isGivbackEligible: false,
-      networkId: 1,
-    });
-    await token.save();
-    const givethOrganization = (await Organization.findOne({
-      label: ORGANIZATION_LABELS.GIVETH,
-    })) as Organization;
-
-    await Token.query(
-      `INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
-        (${token.id}, ${givethOrganization.id})
-      ;`,
-    );
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.MAIN_NET,
-          transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'DOGE',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.saveDonation,
-    );
-    // DOGE is in the list but not eligible
-    assert.isFalse(donation?.isTokenEligibleForGivback);
-  });
-  it('should save custom token donation for trace project on mainnet successfully', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.TRACE,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.MAIN_NET,
-          transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-
-          // custom token
-          token: 'ABCD',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.saveDonation,
-    );
-    assert.isFalse(donation?.isTokenEligibleForGivback);
-  });
-
-  it('should save GIV donation for trace project on xdai successfully', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.TRACE,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.saveDonation,
-    );
-    assert.isTrue(donation?.isTokenEligibleForGivback);
-  });
-  it('should throw error when save GIV donation for givingBlock project on xdai', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
-    );
-  });
-  it('should throw error when save GIV donation for givingBlock project on mainnet', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.MAIN_NET,
-          transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
-    );
-  });
-  // simulates staging env they only accept ETH
-  it('should save ETH donation for CHANGE project on Ropsten successfully', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.CHANGE,
-    });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
-    const accessToken = await generateTestAccessToken(user!.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.ROPSTEN,
-          transactionNetworkId: NETWORK_IDS.ROPSTEN,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'ETH',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-  });
-  // for production they only accept ETH on mainnet
-  it('should save ETH donation for CHANGE project on Mainnet successfully', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.CHANGE,
-    });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
-    const accessToken = await generateTestAccessToken(user!.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.MAIN_NET,
-          transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'ETH',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-  });
-  // they do not accept DAI (same would apply for any other random token)
-  it('should throw error when save DAI donation for CHANGE project on mainnet', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.CHANGE,
-    });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
-    const accessToken = await generateTestAccessToken(user!.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.MAIN_NET,
-          transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'DAI',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
-    );
-  });
-  // they do not accept DAI (same would apply for any other random token)
-  it('should throw error when save DAI donation for CHANGE project on Xdai Chain', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.CHANGE,
-    });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
-    const accessToken = await generateTestAccessToken(user!.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'XDAI',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
-    );
-  });
-  it('should save ETH donation for givingBlock project on mainnet successfully', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.MAIN_NET,
-          transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'ETH',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.saveDonation,
-    );
-    assert.isTrue(donation?.isTokenEligibleForGivback);
-  });
-  it('should save GIV donation for not logged-in users succesfully, but wallet belongs to a user', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const saveDonationResponse = await axios.post(graphqlUrl, {
-      query: saveDonation,
-      variables: {
-        projectId: project.id,
-        chainId: NETWORK_IDS.XDAI,
-        transactionNetworkId: NETWORK_IDS.XDAI,
-        fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-        toAddress: project.walletAddress,
-        transactionId: generateRandomTxHash(),
-        amount: 10,
-        token: 'GIV',
-      },
-    });
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.saveDonation,
-    });
-    assert.isTrue(donation?.isTokenEligibleForGivback);
-    assert.isOk(donation);
-    const user = await User.findOne({
-      walletAddress: SEED_DATA.FIRST_USER.walletAddress,
-    });
-    // there will always be an userId present
-    // login resolvers always create an user even if profile not completed
-    assert.isTrue(user?.id === donation?.userId);
-  });
-  it('should save donation anonymously for logged-in users successfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          anonymous: true,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.saveDonation,
-    });
-    assert.isOk(donation);
-    assert.equal(donation?.userId, user.id);
-    assert.isTrue(donation?.anonymous);
-    assert.isTrue(donation?.isTokenEligibleForGivback);
-  });
-  it('should save donation anonymously with userId for jwt without userId', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const newUserWalletAddress = generateRandomEtheriumAddress();
-    const user = await User.create({
-      walletAddress: newUserWalletAddress,
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateUserIdLessAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: user.walletAddress,
-          anonymous: true,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.saveDonation,
-    });
-    assert.isOk(donation);
-    assert.equal(donation?.userId, user.id);
-    assert.isTrue(donation?.anonymous);
-    assert.isTrue(donation?.isTokenEligibleForGivback);
-  });
-  it('should fill usd value of donation after creation', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.saveDonation,
-    });
-    assert.isOk(donation);
-    assert.isOk(donation?.valueUsd);
-    assert.isOk(donation?.priceUsd);
-    assert.isTrue(donation?.isTokenEligibleForGivback);
-  });
-  it('should donation have true for segmentNotified after creation', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.saveDonation,
-    });
-    assert.isOk(donation);
-    assert.isTrue(donation?.segmentNotified);
-  });
-  it('should throw exception when send invalid projectId', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: 999999,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.PROJECT_NOT_FOUND,
-    );
-  });
-  it('should throw exception when send invalid toWalletAddress', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: 'invalidWalletAddress',
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
-    );
-  });
-  it('should throw exception when toWalletAddress and projectId dont match', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: generateRandomEtheriumAddress(),
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
-    );
-  });
-  it('should isProjectVerified be true after create donation for verified projects', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      verified: true,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.saveDonation,
-    });
-    assert.isOk(donation);
-    assert.isTrue(donation?.isProjectVerified);
-  });
-  it('should isProjectVerified be true after create donation for unVerified projects', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      verified: false,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.saveDonation,
-    });
-    assert.isOk(donation);
-    assert.isFalse(donation?.isProjectVerified);
-  });
-  it('should throw exception when donating to draft projects', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      statusId: ProjStatus.drafted,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: generateRandomEtheriumAddress(),
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
-    );
-  });
-  it('should throw exception when donating to cancelled projects', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      statusId: ProjStatus.cancelled,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: generateRandomEtheriumAddress(),
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
-    );
-  });
-  it('should throw exception when donating to deactivated projects', async () => {
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      statusId: ProjStatus.deactive,
-    });
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: generateRandomEtheriumAddress(),
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
-    );
-  });
-  it('should throw exception when amount is zero', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 0,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.AMOUNT_IS_INVALID,
-    );
-  });
-  it('should throw exception when amount is negative', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: -10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.AMOUNT_IS_INVALID,
-    );
-  });
-  it('should throw exception when currency is not valid when currency contain number', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'fatemeTest1',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV999999',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.CURRENCY_IS_INVALID,
-    );
-  });
-  it('should throw exception when currency is not valid when currency length more than 10', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'fatemeTest',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIVGIVGIVGIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.CURRENCY_IS_INVALID,
-    );
-  });
-}
-
 function createDonationTestCases() {
   it('should create GIV donation for giveth project on xdai successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -1522,8 +390,8 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.GIVETH,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
-    const accessToken = await generateTestAccessToken(user!.id);
+    const user = (await User.findOne({ id: SEED_DATA.ADMIN_USER.id })) as User;
+    const accessToken = await generateTestAccessToken(user.id);
     const token = Token.create({
       name: 'Not eligible',
       symbol: 'NonEligible',
@@ -2437,32 +1305,11 @@ function donationsFromWalletsTestCases() {
   it('should find donations with special source successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const user = await User.create({
-      walletAddress,
-      loginType: 'wallet',
-      firstName: 'fatemeTest1',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    const user = await saveUserDirectlyToDb(walletAddress);
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project.id,
     );
 
     const result = await axios.post(
@@ -2475,6 +1322,7 @@ function donationsFromWalletsTestCases() {
       },
       {},
     );
+    // assert.isNotEmpty(result.data.data.donationsFromWallets);
     result.data.data.donationsFromWallets.forEach(item => {
       assert.equal(item.fromWalletAddress, walletAddress);
     });
@@ -2482,32 +1330,11 @@ function donationsFromWalletsTestCases() {
   it('should find donations with special source in uppercase successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const user = await User.create({
-      walletAddress,
-      loginType: 'wallet',
-      firstName: 'fatemeTest2',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    const user = await saveUserDirectlyToDb(walletAddress);
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project.id,
     );
     const result = await axios.post(
       graphqlUrl,
@@ -2526,56 +1353,20 @@ function donationsFromWalletsTestCases() {
   });
   it('should find donations with special source unsuccessfully', async () => {
     const walletAddress = generateRandomEtheriumAddress();
-    const walletAddress1 = generateRandomEtheriumAddress();
+    const walletAddress2 = generateRandomEtheriumAddress();
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress,
-      loginType: 'wallet',
-      firstName: 'fatemeTest1',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    const user = await saveUserDirectlyToDb(walletAddress);
+    const user2 = await saveUserDirectlyToDb(walletAddress2);
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project.id,
     );
 
-    const donation1 = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: walletAddress1,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user2.id,
+      project.id,
     );
 
     const result = await axios.post(
@@ -2588,10 +1379,15 @@ function donationsFromWalletsTestCases() {
       },
       {},
     );
+    // assert.isNotEmpty(result.data.data.donationsFromWallets);
     result.data.data.donationsFromWallets.forEach(item => {
-      assert.notEqual(item.fromWalletAddress, walletAddress1);
+      assert.equal(
+        item.fromWalletAddress.toLowerCase(),
+        walletAddress.toLowerCase(),
+      );
     });
   });
+
   it('should find no donations with this source ', async () => {
     const walletAddress = generateRandomEtheriumAddress();
     const result = await axios.post(
@@ -3457,13 +2253,14 @@ function donationsByUserIdTestCases() {
     );
 
     const failedDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.FAILED },
+      createDonationData({ status: DONATION_STATUS.FAILED }),
       user.id,
       project.id,
     );
 
     const pendingDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.PENDING },
+      createDonationData({ status: DONATION_STATUS.PENDING }),
+
       user.id,
       project.id,
     );
@@ -3628,34 +2425,16 @@ function donationsByDonorTestCases() {
 
 function donationsToWalletsTestCases() {
   it('should find donations with special destination successfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const user = await User.create({
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
       walletAddress,
-      loginType: 'wallet',
-      firstName: 'donationsToWalletTest1User',
-    }).save();
-    const accessToken1 = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: project.walletAddress,
-          toAddress: walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken1}`,
-        },
-      },
+    });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project.id,
     );
 
     const result = await axios.post(
@@ -3668,40 +2447,24 @@ function donationsToWalletsTestCases() {
       },
       {},
     );
+    // assert.isNotEmpty(result.data.data.donationsToWallets);
     result.data.data.donationsToWallets.forEach(item => {
       assert.equal(item.toWalletAddress, walletAddress);
     });
   });
   it('should find donations with special destination in uppercase successfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const user = await User.create({
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
       walletAddress,
-      loginType: 'wallet',
-      firstName: 'donationsToWalletTest2User',
-    }).save();
-    const accessToken1 = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: project.walletAddress,
-          toAddress: walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken1}`,
-        },
-      },
+    });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project.id,
     );
+
     const result = await axios.post(
       graphqlUrl,
       {
@@ -3712,74 +2475,47 @@ function donationsToWalletsTestCases() {
       },
       {},
     );
+    // assert.isNotEmpty(result.data.data.donationsToWallets);
     result.data.data.donationsToWallets.forEach(item => {
       assert.equal(item.toWalletAddress, walletAddress);
     });
   });
   it('should find donations with special destination unsuccessfully', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const walletAddress1 = generateRandomEtheriumAddress();
-    const user = await User.create({
+    const walletAddress2 = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
       walletAddress,
-      loginType: 'wallet',
-      firstName: 'donationsToWalletTest3User',
-    }).save();
-    const accessToken1 = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: project.walletAddress,
-          toAddress: walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken1}`,
-        },
-      },
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: walletAddress2,
+    });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project.id,
     );
-    const donation1 = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: project.walletAddress,
-          toAddress: walletAddress1,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken1}`,
-        },
-      },
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project2.id,
     );
+
     const result = await axios.post(
       graphqlUrl,
       {
         query: donationsToWallets,
         variables: {
-          toWalletAddresses: [walletAddress1],
+          toWalletAddresses: [walletAddress2],
         },
       },
       {},
     );
+    // assert.isNotEmpty(result.data.data.donationsToWallets);
     result.data.data.donationsToWallets.forEach(item => {
-      assert.notEqual(item.toWalletAddress, walletAddress);
+      assert.equal(item.toWalletAddress, walletAddress2);
     });
   });
   it('should find no donations with this destination ', async () => {

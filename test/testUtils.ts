@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User, UserRole } from '../src/entities/user';
-import { Donation } from '../src/entities/donation';
+import { Donation, DONATION_STATUS } from '../src/entities/donation';
 import {
   Category,
   Project,
@@ -220,13 +220,16 @@ export const createProjectData = (): CreateProjectData => {
     totalProjectUpdates: 1,
   };
 };
-export const createDonationData = (): CreateDonationData => {
+export const createDonationData = (params?: {
+  status?: string;
+}): CreateDonationData => {
   return {
     transactionId: generateRandomTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
     currency: 'ETH',
+    status: params?.status || DONATION_STATUS.PENDING,
     anonymous: false,
     amount: 15,
     valueUsd: 15,
