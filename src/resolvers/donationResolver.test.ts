@@ -10,7 +10,6 @@ import {
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   createDonationData,
-  generateUserIdLessAccessToken,
   saveUserDirectlyToDb,
   generateUserIdLessAccessToken,
 } from '../../test/testUtils';
