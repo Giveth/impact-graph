@@ -61,7 +61,16 @@ export class fillRelatedAddressesFromProjectsTable1654415838996
     if (!projectTableExists) {
       // tslint:disable-next-line:no-console
       console.log(
-        'The project table doesnt exist, so there is no need to relate it to organizations',
+        'The project table doesnt exist, so there is no need to relate it to relatedAddreses',
+      );
+      return;
+    }
+    const userTableExists = await queryRunner.hasTable('user');
+
+    if (!userTableExists) {
+      // tslint:disable-next-line:no-console
+      console.log(
+        'The user table doesnt exist, so there is no need to relate it to relatedAddresses',
       );
       return;
     }
