@@ -952,42 +952,6 @@ function saveDonationTestCases() {
     assert.isOk(donation?.priceUsd);
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
-  it('should donation have true for segmentNotified after creation', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: saveDonation,
-        variables: {
-          projectId: project.id,
-          chainId: NETWORK_IDS.XDAI,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: SEED_DATA.FIRST_USER.walletAddress,
-          toAddress: project.walletAddress,
-          transactionId: generateRandomTxHash(),
-          amount: 10,
-          token: 'GIV',
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(saveDonationResponse.data.data.saveDonation);
-    const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.saveDonation,
-    });
-    assert.isOk(donation);
-    assert.isTrue(donation?.segmentNotified);
-  });
   it('should throw exception when send invalid projectId', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
