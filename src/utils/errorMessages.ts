@@ -3,10 +3,14 @@ export const errorMessages = {
     'ChangeAPI title or EIN not found or invalid',
   CHANGE_API_TITLE_OR_EIN_NOT_PRECISE:
     'Please query the exact project title or EIN ID from the ChangeAPI site',
+  YOU_ARE_NOT_OWNER_OF_THIS_DONATION: 'You are now owner of this donation',
   NOT_SUPPORTED_THIRD_PARTY_API: 'Third Party API not supported',
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',
+  INVALID_AUTHORIZATION_VERSION: 'Authorizatio version is not valid',
+  INVALID_STEP: 'Invalid step',
+  DONOR_REPORTED_IT_AS_FAILED: 'Donor reported it as failed',
   INVALID_DATE_FORMAT: 'Date format should be YYYYMMDD HH:mm:ss',
   INTERNAL_SERVER_ERROR: 'Internal server error',
   ERROR_CONNECTING_DB: 'Error in connecting DB',
@@ -18,7 +22,20 @@ export const errorMessages = {
   CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION:
     'This category is not valid',
   INVALID_TX_HASH: 'Invalid txHash',
+  INVALID_TRANSACTION_ID: 'Invalid transactionId',
+  DUPLICATE_TX_HASH: 'There is a donation with this txHash in our DB',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
+  YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM:
+    'You are not the owner of this project verification form.',
+  PROJECT_VERIFICATION_FORM_NOT_FOUND: 'Project verification form not found',
+  PROJECT_IS_ALREADY_VERIFIED: 'Project is already verified.',
+  YOU_JUST_CAN_EDIT_DRAFT_REQUESTS: 'Project is already verified.',
+  EMAIL_CONFIRMATION_CANNOT_BE_SENT_IN_THIS_STEP:
+    'Email confirmation cannot be sent in this step',
+  THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT:
+    'There is an ongoing project verification request for this project',
+  THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT:
+    'There is not any project verification form for this project',
   PROJECT_STATUS_NOT_FOUND:
     'No project status found, this should be impossible',
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
@@ -34,6 +51,10 @@ export const errorMessages = {
   TRANSACTION_NOT_FOUND: 'Transaction not found.',
   TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS:
     'FromAddress of Transaction is different from sent fromAddress',
+  TRANSACTION_STATUS_IS_FAILED_IN_NETWORK:
+    'Transaction status is failed in network',
+  TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED:
+    'Transaction not found and nonce is used',
   TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT:
     'Transaction amount is different with sent amount',
   TRANSACTION_CANT_BE_OLDER_THAN_DONATION:
@@ -69,4 +90,6 @@ export const errorMessages = {
   PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
   AMOUNT_IS_INVALID: 'Amount is not valid',
   CURRENCY_IS_INVALID: 'Currency is not valid',
+  SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT:
+    'Should have one connected social network before submit',
 };

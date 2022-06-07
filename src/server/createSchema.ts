@@ -1,7 +1,3 @@
-import config from '../config';
-import * as TypeORM from 'typeorm';
-import { entities } from '../entities/entities';
-import { seedDatabase } from '../helpers';
 import * as TypeGraphQL from 'type-graphql';
 import { resolvers } from '../resolvers/resolvers';
 import { Container } from 'typedi';

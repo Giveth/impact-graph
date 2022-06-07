@@ -62,7 +62,7 @@ export class Donation extends BaseEntity {
   isProjectVerified: boolean;
 
   @Field()
-  @Column('text', { default: 'pending' })
+  @Column('text', { default: DONATION_STATUS.PENDING })
   status: string;
 
   @Field({ nullable: true })
@@ -72,6 +72,10 @@ export class Donation extends BaseEntity {
   @Field()
   @Column('boolean', { default: false })
   speedup: boolean;
+
+  @Field()
+  @Column('boolean', { default: false })
+  isCustomToken: boolean;
 
   @Field()
   @Column('boolean', { default: false })

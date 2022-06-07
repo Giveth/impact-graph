@@ -475,7 +475,7 @@ export class ProjectResolver {
         //   traceableDirection[orderBy.direction],
         // );
 
-        query.where(
+        query.andWhere(
           `project.${orderBy.field} IS${
             orderBy.direction === OrderDirection.ASC ? '' : ' NOT'
           } NULL`,
@@ -498,7 +498,7 @@ export class ProjectResolver {
         //   orderBy.direction,
         //   acceptGivDirection[orderBy.direction],
         // );
-        query.where(
+        query.andWhere(
           `project.${orderBy.field} IS${
             orderBy.direction === OrderDirection.DESC ? '' : ' NOT'
           } NULL`,
@@ -509,7 +509,7 @@ export class ProjectResolver {
         );
         break;
       case OrderField.Verified:
-        query.where(`project.${orderBy.field} = true`);
+        query.andWhere(`project.${orderBy.field} = true`);
         query.orderBy(`project.${OrderField.CreationDate}`, orderBy.direction);
         break;
       default:
@@ -1073,6 +1073,30 @@ export class ProjectResolver {
     return purpleAddresses
       .map(({ purpleAddress }) => purpleAddress)
       .concat(recipientsAddresses);
+  }
+
+  @Query(returns => Boolean)
+  async walletAddressIsPurpleListed(
+    @Arg('address') address: string,
+  ): Promise<Boolean> {
+    const recipient = await Project.createQueryBuilder()
+      .where('verified = true')
+      .andWhere(`LOWER("walletAddress") = :walletAddress`, {
+        walletAddress: address.toLowerCase(),
+      })
+      .getOne();
+
+    if (recipient) return true;
+
+    const purpleAddress = await PurpleAddress.createQueryBuilder()
+      .where(`LOWER(address) = :walletAddress`, {
+        walletAddress: address.toLowerCase(),
+      })
+      .getOne();
+
+    if (purpleAddress) return true;
+
+    return false;
   }
 
   @Query(returns => [Token])

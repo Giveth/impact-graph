@@ -4,7 +4,7 @@ import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
 import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
-import { json, Request, Response } from 'express';
+import { json, Request, response, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
@@ -36,7 +36,9 @@ import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/s
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import { errorMessages } from '../utils/errorMessages';
 import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
+import { apiGivRouter } from '../routers/apiGivRoutes';
 import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
+import { authorizationHandler } from '../services/authorizationServices';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -79,7 +81,7 @@ export async function bootstrap() {
     const apolloServer = new ApolloServer({
       uploads: false,
       schema,
-      context: ({ req, res }: any) => {
+      context: async ({ req, res }: any) => {
         let token;
         try {
           if (!req) {
@@ -87,47 +89,20 @@ export async function bootstrap() {
           }
 
           const { headers } = req;
+          const authVersion = headers.authversion || '1';
+          logger.info(authVersion);
+
           if (headers.authorization) {
             token = headers.authorization.split(' ')[1].toString();
-            const secret = config.get('JWT_SECRET') as string;
-
-            const decodedJwt: any = jwt.verify(token, secret);
-
-            let user;
-            if (decodedJwt.nextAuth) {
-              user = {
-                email: decodedJwt?.nextauth?.user?.email,
-                name: decodedJwt?.nextauth?.user?.name,
-                token,
-              };
-            } else {
-              user = {
-                email: decodedJwt?.email,
-                name: decodedJwt?.firstName,
-                userId: decodedJwt?.userId,
-                token,
-              };
-            }
-
+            const user = await authorizationHandler(authVersion, token);
             req.user = user;
           }
-
-          const userWalletAddress = headers['wallet-address'];
-          if (userWalletAddress) {
-            req.userwalletAddress = userWalletAddress;
-          }
         } catch (error) {
-          // console.error(
-          //   `Apollo Server error : ${JSON.stringify(error, null, 2)}`
-          // )
-          // Logger.captureMessage(
-          //   `Error with with token, check pm2 logs and search for - Error for token - to get the token`
-          // )
-          // console.error(`Error for token - ${token}`)
+          SentryLogger.captureException(`Error: ${error} for token ${token}`);
+          logger.error(`Error: ${error} for token ${token}`);
           req.auth = {};
           req.auth.token = token;
           req.auth.error = error;
-          // logger.debug(`ctx.req.auth : ${JSON.stringify(ctx.req.auth, null, 2)}`)
         }
 
         return {
@@ -243,6 +218,7 @@ export async function bootstrap() {
         maxFiles: 10,
       }),
     );
+    app.use('/apigive', apiGivRouter);
     apolloServer.applyMiddleware({ app });
     app.post(
       '/stripe-webhook',
@@ -254,6 +230,9 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       netlifyDeployed,
     );
+    app.get('/health', (req, res, next) => {
+      res.send('Hi every thing seems ok');
+    });
     app.post('/transak_webhook', webhookHandler);
 
     // Start the server

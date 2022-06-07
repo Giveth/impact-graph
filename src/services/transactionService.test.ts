@@ -133,7 +133,6 @@ function getTransactionDetailTestCases() {
   });
 
   it('should return error when transactionHash is wrong on mainnet', async () => {
-    const amount = 0.04;
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
     const badFunc = async () => {
       await getTransactionInfoFromNetwork({
@@ -143,11 +142,15 @@ function getTransactionDetailTestCases() {
         networkId: NETWORK_IDS.MAIN_NET,
         fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
         toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
-        amount,
+        amount: 0.04,
+        nonce: 99999999,
         timestamp: 1607360947,
       });
     };
-    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND);
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
+    );
   });
 
   it('should return error when fromAddress of transaction is different from donation fromAddress', async () => {
@@ -289,6 +292,28 @@ function getTransactionDetailTestCases() {
     await assertThrowsAsync(
       badFunc,
       errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
+    );
+  });
+
+  it('should return error when transaction fails because of low gas on ropsten', async () => {
+    const amount = 0.14;
+    // https://ropsten.etherscan.io/tx/0x66a7902f3dad318e8d075454e26ee829e9832db0b20922cfd9d916fb792ff724
+    const badFunc = async () => {
+      await getTransactionInfoFromNetwork({
+        txHash:
+          '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
+        symbol: 'DAI',
+        networkId: NETWORK_IDS.ROPSTEN,
+        fromAddress: '0x10a84b835c5df26f2a380b3e00bcc84a66cd2d34',
+        toAddress: '0xe3f738ff9fa4e157cab12ee6f1847f680495229a',
+        amount,
+        nonce: 584,
+        timestamp: 1624772582,
+      });
+    };
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
     );
   });
 
@@ -469,10 +494,14 @@ function getTransactionDetailTestCases() {
         fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
         toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
         amount,
+        nonce: 99999,
         timestamp: 1621241124,
       });
     };
-    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND);
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
+    );
   });
 
   it('should return transaction detail for HNY token transfer on XDAI', async () => {
