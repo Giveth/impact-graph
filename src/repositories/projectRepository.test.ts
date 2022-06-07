@@ -1,14 +1,44 @@
-import { findProjectByWalletAddress } from './projectRepository';
+import {
+  findProjectBySlug,
+  findProjectByWalletAddress,
+} from './projectRepository';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
 } from '../../test/testUtils';
 import { assert } from 'chai';
+import { findProjectById } from './projectRepository';
 
 describe(
   'findProjectByWalletAddress test cases',
   findProjectByWalletAddressTestCases,
 );
+describe('findProjectById test cases', () => {
+  it('Should find project by id', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const foundProject = await findProjectById(project.id);
+    assert.isOk(foundProject);
+    assert.equal(foundProject?.id, project.id);
+  });
+
+  it('should not find project when project doesnt exists', async () => {
+    const foundProject = await findProjectById(1000000000);
+    assert.isUndefined(foundProject);
+  });
+});
+describe('findProjectBySlug test cases', () => {
+  it('Should find project by id', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const foundProject = await findProjectBySlug(project.slug as string);
+    assert.isOk(foundProject);
+    assert.equal(foundProject?.id, project.id);
+  });
+
+  it('should not find project when project doesnt exists', async () => {
+    const foundProject = await findProjectBySlug(new Date().toString());
+    assert.isUndefined(foundProject);
+  });
+});
 
 function findProjectByWalletAddressTestCases() {
   it('should find project by walletAddress', async () => {
@@ -45,18 +75,3 @@ function findProjectByWalletAddressTestCases() {
     assert.isOk(fetchedProject?.status?.id);
   });
 }
-import { findProjectById } from './projectRepository';
-
-describe('findProjectById test cases', () => {
-  it('Should find project by id', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const foundProject = await findProjectById(project.id);
-    assert.isOk(foundProject);
-    assert.equal(foundProject?.id, project.id);
-  });
-
-  it('should not find project when project doesnt exists', async () => {
-    const foundProject = await findProjectById(1000000000);
-    assert.isUndefined(foundProject);
-  });
-});

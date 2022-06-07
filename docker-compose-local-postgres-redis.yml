@@ -4,6 +4,7 @@ services:
   impact-graph-postgress:
     image: postgres
     container_name: impact-graph-postgress
+    restart: always
     environment:
       - POSTGRES_DB=givethio
       - POSTGRES_USER=postgres
@@ -19,6 +20,7 @@ services:
     # For running application use above container port: 5442
     image: postgres
     container_name: impact-graph-postgress-test
+    restart: always
     environment:
       - POSTGRES_DB=givethio
       - POSTGRES_USER=postgres

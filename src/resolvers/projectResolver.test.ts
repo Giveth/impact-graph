@@ -654,6 +654,93 @@ function projectsTestCases() {
       result.data.data.projects.projects[0].totalTraceDonations >= 100,
     );
   });
+  it('should return just listed projects, sort by acceptGiv, DESC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalTraceDonations: 100,
+      listed: false,
+    });
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalTraceDonations: 100,
+      listed: true,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        limit: 50,
+        orderBy: {
+          field: 'AcceptGiv',
+          direction: 'DESC',
+        },
+      },
+    });
+    result.data.data.projects.projects.forEach(project => {
+      assert.isTrue(project.listed);
+    });
+  });
+  it('should return just listed projects, sort by Verified, DESC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalTraceDonations: 100,
+      verified: true,
+      listed: false,
+    });
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalTraceDonations: 100,
+      verified: true,
+      listed: true,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        limit: 50,
+        orderBy: {
+          field: 'Verified',
+          direction: 'DESC',
+        },
+      },
+    });
+    result.data.data.projects.projects.forEach(project => {
+      assert.isTrue(project.listed);
+    });
+  });
+  it('should return just listed projects, sort by Traceable, DESC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalTraceDonations: 100,
+      verified: true,
+      traceCampaignId: 'campaignIdInTrace',
+      listed: false,
+    });
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalTraceDonations: 100,
+      traceCampaignId: 'campaignIdInTrace',
+      verified: true,
+      listed: true,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        limit: 50,
+        orderBy: {
+          field: 'Traceable',
+          direction: 'DESC',
+        },
+      },
+    });
+    result.data.data.projects.projects.forEach(project => {
+      assert.isTrue(project.listed);
+    });
+  });
   it('should return projects, sort by totalTraceDonations, ASC', async () => {
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,

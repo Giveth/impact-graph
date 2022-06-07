@@ -10,8 +10,8 @@ import {
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   createDonationData,
-  generateUserIdLessAccessToken,
   saveUserDirectlyToDb,
+  generateUserIdLessAccessToken,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';

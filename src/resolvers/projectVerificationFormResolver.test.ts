@@ -815,7 +815,7 @@ function getCurrentProjectVerificationFormTestCases() {
       {
         query: getCurrentProjectVerificationFormQuery,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {
@@ -850,7 +850,7 @@ function getCurrentProjectVerificationFormTestCases() {
       {
         query: getCurrentProjectVerificationFormQuery,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {
@@ -889,7 +889,7 @@ function getCurrentProjectVerificationFormTestCases() {
       {
         query: getCurrentProjectVerificationFormQuery,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {
@@ -925,7 +925,7 @@ function getCurrentProjectVerificationFormTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: getCurrentProjectVerificationFormQuery,
       variables: {
-        projectId: project.id,
+        slug: project.slug,
       },
     });
     assert.equal(result.data.errors[0].message, errorMessages.UN_AUTHORIZED);
@@ -952,7 +952,7 @@ function getCurrentProjectVerificationFormTestCases() {
       {
         query: getCurrentProjectVerificationFormQuery,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {
@@ -981,7 +981,7 @@ function getCurrentProjectVerificationFormTestCases() {
       {
         query: getCurrentProjectVerificationFormQuery,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {
@@ -997,14 +997,13 @@ function getCurrentProjectVerificationFormTestCases() {
   });
   it('should get current project verification because project not found', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projectId = Number(await Project.count()) + 3;
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
       graphqlUrl,
       {
         query: getCurrentProjectVerificationFormQuery,
         variables: {
-          projectId,
+          slug: new Date().toString(),
         },
       },
       {
