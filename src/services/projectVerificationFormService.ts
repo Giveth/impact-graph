@@ -24,6 +24,7 @@ import {
   updateProjectContactsOfProjectVerification,
   updateProjectPersonalInfoOfProjectVerification,
   updateProjectRegistryOfProjectVerification,
+  updateProjectVerificationLastStep,
   updateProjectVerificationStatus,
   updateTermsAndConditionsOfProjectVerification,
 } from '../repositories/projectVerificationRepository';
@@ -35,7 +36,7 @@ export const updateProjectVerificationFormByUser = async (params: {
   projectVerificationForm: ProjectVerificationForm;
   projectVerificationUpdateInput: ProjectVerificationUpdateInput;
 }): Promise<ProjectVerificationForm> => {
-  const { projectVerificationForm, projectVerificationUpdateInput } = params;
+  const { projectVerificationUpdateInput, projectVerificationForm } = params;
   const { projectVerificationId, step } = projectVerificationUpdateInput;
   const personalInfo =
     projectVerificationUpdateInput.personalInfo as PersonalInfo;
@@ -48,6 +49,7 @@ export const updateProjectVerificationFormByUser = async (params: {
     projectVerificationUpdateInput.managingFunds as ManagingFunds;
   const isTermAndConditionsAccepted =
     projectVerificationUpdateInput.isTermAndConditionsAccepted as boolean;
+  let updatedProjectVerificationForm: ProjectVerificationForm;
   switch (step) {
     case PROJECT_VERIFICATION_STEPS.PERSONAL_INFO:
       validateWithJoiSchema(
@@ -56,10 +58,12 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationProjectPersonalInfoStepValidator,
       );
-      return await updateProjectPersonalInfoOfProjectVerification({
-        projectVerificationId,
-        personalInfo,
-      });
+      updatedProjectVerificationForm =
+        await updateProjectPersonalInfoOfProjectVerification({
+          projectVerificationId,
+          personalInfo,
+        });
+      break;
     case PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS:
       validateWithJoiSchema(
         {
@@ -67,10 +71,12 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationProjectContactsStepValidator,
       );
-      return await updateProjectContactsOfProjectVerification({
-        projectVerificationId,
-        projectContacts,
-      });
+      updatedProjectVerificationForm =
+        await updateProjectContactsOfProjectVerification({
+          projectVerificationId,
+          projectContacts,
+        });
+      break;
     case PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY:
       validateWithJoiSchema(
         {
@@ -78,10 +84,12 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationProjectRegistryStepValidator,
       );
-      return await updateProjectRegistryOfProjectVerification({
-        projectVerificationId,
-        projectRegistry,
-      });
+      updatedProjectVerificationForm =
+        await updateProjectRegistryOfProjectVerification({
+          projectVerificationId,
+          projectRegistry,
+        });
+      break;
     case PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS:
       validateWithJoiSchema(
         {
@@ -89,10 +97,12 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationManagingFundsStepValidator,
       );
-      return await updateManagingFundsOfProjectVerification({
-        projectVerificationId,
-        managingFunds,
-      });
+      updatedProjectVerificationForm =
+        await updateManagingFundsOfProjectVerification({
+          projectVerificationId,
+          managingFunds,
+        });
+      break;
     case PROJECT_VERIFICATION_STEPS.MILESTONES:
       validateWithJoiSchema(
         {
@@ -100,10 +110,12 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationMilestonesStepValidator,
       );
-      return await updateMilestonesOfProjectVerification({
-        projectVerificationId,
-        milestones,
-      });
+      updatedProjectVerificationForm =
+        await updateMilestonesOfProjectVerification({
+          projectVerificationId,
+          milestones,
+        });
+      break;
     case PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION:
       validateWithJoiSchema(
         {
@@ -111,10 +123,12 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         updateProjectVerificationTermsAndConditionsStepValidator,
       );
-      return await updateTermsAndConditionsOfProjectVerification({
-        projectVerificationId,
-        isTermAndConditionsAccepted,
-      });
+      updatedProjectVerificationForm =
+        await updateTermsAndConditionsOfProjectVerification({
+          projectVerificationId,
+          isTermAndConditionsAccepted,
+        });
+      break;
     case PROJECT_VERIFICATION_STEPS.SUBMIT:
       validateWithJoiSchema(
         {
@@ -130,13 +144,25 @@ export const updateProjectVerificationFormByUser = async (params: {
         },
         submitProjectVerificationStepValidator,
       );
-      return await submitProjectVerificationForm({
+      updatedProjectVerificationForm = await submitProjectVerificationForm({
         projectVerificationId,
       });
+      break;
 
     default:
       throw new Error(errorMessages.INVALID_STEP);
   }
+  const lastStep = projectVerificationForm.lastStep;
+  const stepsArray = Object.values(PROJECT_VERIFICATION_STEPS);
+  if (!lastStep || stepsArray.indexOf(step) > stepsArray.indexOf(lastStep)) {
+    // If you fill an step we and after that you fill previous step we won't change your lastStep
+    // in other word lastStep is incremental and it would not decrease
+    updatedProjectVerificationForm = await updateProjectVerificationLastStep({
+      projectVerificationId,
+      lastStep: step,
+    });
+  }
+  return updatedProjectVerificationForm;
 };
 
 const submitProjectVerificationForm = async (params: {

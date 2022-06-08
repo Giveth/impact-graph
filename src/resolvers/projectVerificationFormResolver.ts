@@ -37,6 +37,7 @@ const dappUrl = process.env.FRONTEND_URL as string;
 
 @Resolver(of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
+  // https://github.com/Giveth/impact-graph/pull/519#issuecomment-1136845612
   @Mutation(returns => ProjectVerificationForm)
   async projectVerificationConfirmEmail(
     @Arg('emailConfirmationToken') emailConfirmationToken: string,
@@ -168,7 +169,7 @@ export class ProjectVerificationFormResolver {
 
   @Mutation(returns => ProjectVerificationForm)
   async createProjectVerificationForm(
-    @Arg('projectId') projectId: number,
+    @Arg('slug') slug: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectVerificationForm> {
     try {
@@ -178,11 +179,11 @@ export class ProjectVerificationFormResolver {
       }
       validateWithJoiSchema(
         {
-          projectId,
+          slug,
         },
         createProjectVerificationRequestValidator,
       );
-      const project = await findProjectById(projectId);
+      const project = await findProjectBySlug(slug);
       if (!project) {
         throw new Error(errorMessages.PROJECT_NOT_FOUND);
       }
@@ -194,14 +195,14 @@ export class ProjectVerificationFormResolver {
       }
 
       const inProjectVerificationRequest =
-        await getInProgressProjectVerificationRequest(projectId);
+        await getInProgressProjectVerificationRequest(project.id);
       if (inProjectVerificationRequest) {
         throw new Error(
           errorMessages.THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT,
         );
       }
       return createProjectVerificationForm({
-        projectId,
+        projectId: project.id,
         userId,
       });
     } catch (e) {
@@ -216,7 +217,6 @@ export class ProjectVerificationFormResolver {
     projectVerificationUpdateInput: ProjectVerificationUpdateInput,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectVerificationForm> {
-    // https://github.com/Giveth/impact-graph/pull/519#issuecomment-1136845612
     try {
       const userId = user?.userId;
       const { projectVerificationId } = projectVerificationUpdateInput;

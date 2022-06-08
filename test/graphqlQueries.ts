@@ -839,8 +839,8 @@ export const editProjectUpdateQuery = `
          }`;
 
 export const createProjectVerificationFormMutation = `
-        mutation createProjectVerificationForm($projectId: Float!){
-           createProjectVerificationForm(projectId: $projectId) {
+        mutation createProjectVerificationForm($slug: String!){
+           createProjectVerificationForm(slug: $slug) {
                     id
                     isTermAndConditionsAccepted
                     emailConfirmationToken
@@ -1119,6 +1119,7 @@ export const updateProjectVerificationFormMutation = `
                       slug
                     }
                     status
+                    lastStep
                     }
                     
             }

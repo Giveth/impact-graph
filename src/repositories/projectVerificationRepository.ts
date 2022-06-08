@@ -70,7 +70,7 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
   }
 
   projectVerificationForm.personalInfo = personalInfo;
-  return await projectVerificationForm?.save();
+  return projectVerificationForm?.save();
 };
 
 export const updateProjectRegistryOfProjectVerification = async (params: {
@@ -86,7 +86,7 @@ export const updateProjectRegistryOfProjectVerification = async (params: {
   }
 
   projectVerificationForm.projectRegistry = projectRegistry;
-  return await projectVerificationForm?.save();
+  return projectVerificationForm?.save();
 };
 
 export const updateProjectVerificationStatus = async (params: {
@@ -102,7 +102,23 @@ export const updateProjectVerificationStatus = async (params: {
   }
 
   projectVerificationForm.status = status;
-  return await projectVerificationForm?.save();
+  return projectVerificationForm?.save();
+};
+
+export const updateProjectVerificationLastStep = async (params: {
+  projectVerificationId: number;
+  lastStep: string;
+}): Promise<ProjectVerificationForm> => {
+  const { lastStep, projectVerificationId } = params;
+  const projectVerificationForm = await findProjectVerificationFormById(
+    projectVerificationId,
+  );
+  if (!projectVerificationForm) {
+    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+  }
+
+  projectVerificationForm.lastStep = lastStep;
+  return projectVerificationForm?.save();
 };
 
 export const updateProjectContactsOfProjectVerification = async (params: {
@@ -163,7 +179,7 @@ export const updateManagingFundsOfProjectVerification = async (params: {
     throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
   }
   projectVerificationForm.managingFunds = managingFunds;
-  return await projectVerificationForm?.save();
+  return projectVerificationForm?.save();
 };
 
 export const getInProgressProjectVerificationRequest = async (
