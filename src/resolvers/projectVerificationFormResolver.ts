@@ -134,10 +134,23 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
 
+      const callbackUrl = `https://${dappUrl}/verification/${project.slug}/${token}`;
+      const emailConfirmationData = {
+        email: projectVerificationForm.personalInfo.email,
+        callbackUrl,
+      };
+
       await sendMailConfirmationEmail(
         projectVerificationForm.personalInfo.email!,
         project,
         token,
+      );
+
+      analytics.track(
+        SegmentEvents.SEND_EMAIL_CONFIRMATION,
+        `givethId-${userId}`,
+        emailConfirmationData,
+        null,
       );
 
       return projectVerificationForm;
