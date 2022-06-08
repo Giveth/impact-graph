@@ -7,7 +7,7 @@ const enableDappMailing = process.env.ENABLE_DAPP_MAILER as string;
 const dappUrl = process.env.FRONTEND_URL as string;
 
 // TODO: After creating the template, update values
-export const sendEmail = async (
+export const sendMailConfirmationEmail = async (
   email: string,
   project: Project,
   token: string,

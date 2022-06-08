@@ -28,7 +28,7 @@ import * as jwt from 'jsonwebtoken';
 import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
-import { sendEmail } from '../services/mailerService';
+import { sendMailConfirmationEmail } from '../services/mailerService';
 
 const analytics = getAnalytics();
 
@@ -134,7 +134,7 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
 
-      await sendEmail(
+      await sendMailConfirmationEmail(
         projectVerificationForm.personalInfo.email!,
         project,
         token,
