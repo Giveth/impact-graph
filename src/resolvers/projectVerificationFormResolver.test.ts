@@ -77,7 +77,7 @@ function createProjectVerificationFormMutationTestCases() {
       {
         query: createProjectVerificationFormMutation,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {
@@ -117,7 +117,7 @@ function createProjectVerificationFormMutationTestCases() {
       {
         query: createProjectVerificationFormMutation,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {
@@ -147,7 +147,7 @@ function createProjectVerificationFormMutationTestCases() {
       {
         query: createProjectVerificationFormMutation,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {
@@ -167,7 +167,7 @@ function createProjectVerificationFormMutationTestCases() {
       {
         query: createProjectVerificationFormMutation,
         variables: {
-          projectId,
+          slug: new Date().toString(),
         },
       },
       {
@@ -190,7 +190,7 @@ function createProjectVerificationFormMutationTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: createProjectVerificationFormMutation,
       variables: {
-        projectId: project.id,
+        slug: project.slug,
       },
     });
     assert.equal(result.data.errors[0].message, 'unAuthorized');
@@ -216,7 +216,7 @@ function createProjectVerificationFormMutationTestCases() {
       {
         query: createProjectVerificationFormMutation,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {
@@ -251,7 +251,7 @@ function createProjectVerificationFormMutationTestCases() {
       {
         query: createProjectVerificationFormMutation,
         variables: {
-          projectId: project.id,
+          slug: project.slug,
         },
       },
       {

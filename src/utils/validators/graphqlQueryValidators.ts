@@ -65,7 +65,7 @@ export const updateDonationQueryValidator = Joi.object({
 });
 
 export const createProjectVerificationRequestValidator = Joi.object({
-  projectId: projectIdValidator,
+  slug: Joi.string().required(),
 });
 
 export const getCurrentProjectVerificationRequestValidator = Joi.object({
