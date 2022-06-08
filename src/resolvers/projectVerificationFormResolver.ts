@@ -28,8 +28,11 @@ import * as jwt from 'jsonwebtoken';
 import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
+import { sendMailConfirmationEmail } from '../services/mailerService';
 
 const analytics = getAnalytics();
+
+const dappUrl = process.env.FRONTEND_URL as string;
 
 @Resolver(of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
@@ -38,7 +41,17 @@ export class ProjectVerificationFormResolver {
     @Arg('emailConfirmationToken') emailConfirmationToken: string,
   ): Promise<ProjectVerificationForm> {
     try {
-      const secret = config.get('JWT_SECRET') as string;
+      const secret = config.get('MAILER_JWT_SECRET') as string;
+
+      const isValidToken =
+        await findProjectVerificationFormByEmailConfirmationToken(
+          emailConfirmationToken,
+        );
+
+      if (!isValidToken) {
+        throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+      }
+
       const decodedJwt: any = jwt.verify(emailConfirmationToken, secret);
       const projectVerificationFormId = decodedJwt.projectVerificationFormId;
       const projectVerificationForm = await findProjectVerificationFormById(
@@ -49,6 +62,7 @@ export class ProjectVerificationFormResolver {
         throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
       }
 
+      projectVerificationForm.emailConfirmationToken = null;
       projectVerificationForm.emailConfirmedAt = new Date();
       projectVerificationForm.emailConfirmed = true;
       await projectVerificationForm.save();
@@ -102,30 +116,29 @@ export class ProjectVerificationFormResolver {
         );
       }
 
+      const project = await findProjectById(projectVerificationForm.projectId);
+      if (!project) {
+        throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      }
+
       const token = jwt.sign(
         { projectVerificationFormId },
-        config.get('JWT_SECRET') as string,
+        config.get('MAILER_JWT_SECRET') as string,
         {
-          expiresIn: '1h',
+          expiresIn: '3d',
         },
-      );
-
-      const emailConfirmation = {
-        email: projectVerificationForm.personalInfo.email,
-        token,
-      };
-
-      analytics.track(
-        SegmentEvents.SEND_EMAIL_CONFIRMATION,
-        `givethId-${userId}`,
-        emailConfirmation,
-        null,
       );
 
       projectVerificationForm.emailConfirmationToken = token;
       projectVerificationForm.emailConfirmationSent = true;
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
+
+      await sendMailConfirmationEmail(
+        projectVerificationForm.personalInfo.email!,
+        project,
+        token,
+      );
 
       return projectVerificationForm;
     } catch (e) {

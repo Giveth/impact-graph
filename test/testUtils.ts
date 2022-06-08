@@ -80,7 +80,7 @@ export const generateConfirmationEmailToken = async (
 ): Promise<string> => {
   return jwt.sign(
     { projectVerificationFormId: id },
-    config.get('JWT_SECRET') as string,
+    config.get('MAILER_JWT_SECRET') as string,
     { expiresIn: '120' },
   );
 };
