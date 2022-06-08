@@ -156,6 +156,9 @@ export const fetchDonationsByDonorQuery = `
       amount
       user {
         id
+        firstName
+        email
+        walletAddress
       }
       project {
         id
@@ -197,6 +200,9 @@ export const fetchDonationsByProjectIdQuery = `
         status
         user {
           id
+          walletAddress
+          firstName
+          email
         }
         createdAt
       }
@@ -220,6 +226,12 @@ export const donationsFromWallets = `
     priceEth
     fromWalletAddress
     toWalletAddress
+    user {
+      id
+      email
+      firstName
+      walletAddress
+      }
     }
   }
 `;
@@ -239,6 +251,12 @@ export const donationsToWallets = `
     priceEth
     fromWalletAddress
     toWalletAddress
+    user {
+      id
+      email
+      firstName
+      walletAddress
+      }
     }
   }
 `;
@@ -263,6 +281,8 @@ export const fetchAllDonationsQuery = `
         amount
         user {
           id
+          walletAddress
+          firstName
           email
         }
         project {
@@ -306,6 +326,9 @@ export const fetchDonationsByUserIdQuery = `
         status
         user {
           id
+          walletAddress
+          email
+          firstName
         }
         project {
           id
@@ -364,6 +387,12 @@ export const fetchAllProjectsQuery = `
         }
         reaction {
           id
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
         }
         organization {
           name
@@ -431,6 +460,12 @@ export const fetchProjectsBySlugQuery = `
         isRecipient
         networkId
       }
+      adminUser {
+        id
+        email
+        firstName
+        walletAddress
+      }
       totalReactions
       totalDonations
       totalTraceDonations
@@ -481,6 +516,12 @@ export const fetchSimilarProjectsBySlugQuery = `
           address
           isRecipient
           networkId
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
         }
         totalReactions
         totalDonations
@@ -535,6 +576,12 @@ export const fetchLikedProjectsQuery = `
           isRecipient
           networkId
         }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -577,22 +624,6 @@ export const updateUser = `
 export const userByAddress = `
   query ($address: String!) {
     userByAddress(address: $address) {
-      id
-      firstName
-      lastName
-      name
-      email
-      avatar
-      walletAddress
-      url
-      location
-    }
-  }
-`;
-
-export const userById = `
-  query ($userId:  Int!) {
-    user(userId: $userId) {
       id
       firstName
       lastName
@@ -714,6 +745,13 @@ export const projectsByUserIdQuery = `
             isRecipient
             networkId
           }
+              
+          adminUser {
+            firstName
+            email
+            id
+            walletAddress
+          }
           qualityScore
         }
         totalCount
@@ -752,6 +790,12 @@ export const projectByIdQuery = `
         name
         label
         supportCustomTokens
+      }
+      adminUser {
+        firstName
+        email
+        id
+        walletAddress
       }
     }
   }
@@ -808,8 +852,8 @@ export const editProjectUpdateQuery = `
          }`;
 
 export const createProjectVerificationFormMutation = `
-        mutation createProjectVerificationForm($projectId: Float!){
-           createProjectVerificationForm(projectId: $projectId) {
+        mutation createProjectVerificationForm($slug: String!){
+           createProjectVerificationForm(slug: $slug) {
                     id
                     isTermAndConditionsAccepted
                     emailConfirmationToken
@@ -864,6 +908,7 @@ export const getCurrentProjectVerificationFormQuery = `
            getCurrentProjectVerificationForm(slug: $slug) {
                     id
                     isTermAndConditionsAccepted
+                    emailConfirmationTokenExpiredAt
                     emailConfirmationToken
                     emailConfirmationSent
                     emailConfirmationSentAt
@@ -925,6 +970,7 @@ export const projectVerificationConfirmEmail = `
           projectVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
             id
             isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
             emailConfirmationToken
             emailConfirmationSent
             emailConfirmationSentAt
@@ -981,6 +1027,7 @@ export const projectVerificationSendEmailConfirmation = `
           projectVerificationSendEmailConfirmation(projectVerificationFormId: $projectVerificationFormId) {
             id
             isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
             emailConfirmationToken
             emailConfirmationSent
             emailConfirmationSentAt
@@ -1037,6 +1084,7 @@ export const updateProjectVerificationFormMutation = `
            updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
                     id
                     isTermAndConditionsAccepted
+                    emailConfirmationTokenExpiredAt
                     emailConfirmationToken
                     emailConfirmationSent
                     emailConfirmationSentAt
@@ -1084,6 +1132,7 @@ export const updateProjectVerificationFormMutation = `
                       slug
                     }
                     status
+                    lastStep
                     }
                     
             }

@@ -22,7 +22,7 @@ import { triggerBuild } from '../netlify/build';
 import { MyContext } from '../types/MyContext';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
-import { User } from '../entities/user';
+import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
 import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
@@ -274,13 +274,8 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .innerJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .where('project.id != :id', { id: currentProject?.id })
       .andWhere(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -448,12 +443,10 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.users', 'users')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
-      .innerJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      // you can alias it as user but it still is mapped as adminUser
+      // like defined in our project entity
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .innerJoinAndSelect('project.categories', 'c')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -562,12 +555,6 @@ export class ProjectResolver {
     return { projects, totalCount };
   }
 
-  @Query(returns => [Project])
-  async project(@Args() { id }: GetProjectArgs): Promise<Project[]> {
-    return this.projectRepository.find({ id });
-  }
-
-  // Move this to it's own resolver latere
   @Query(returns => Project)
   async projectById(
     @Arg('id') id: number,
@@ -584,12 +571,8 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      );
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields); // aliased selection
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
@@ -616,12 +599,8 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      );
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields); // aliased selection
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
@@ -706,6 +685,7 @@ export class ProjectResolver {
     project.qualityScore = qualityScore;
     project.updatedAt = new Date();
     project.listed = null;
+
     await project.save();
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
@@ -844,6 +824,7 @@ export class ProjectResolver {
       totalProjectUpdates: 1,
       verified: false,
       giveBacks: false,
+      adminUser: user,
     });
 
     const newProject = await this.projectRepository.save(project);
@@ -1177,25 +1158,6 @@ export class ProjectResolver {
     return validateProjectTitle(title);
   }
 
-  @Query(returns => Project, { nullable: true })
-  projectByAddress(
-    @Arg('address', type => String) address: string,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
-    connectedWalletUserId: number,
-    @Ctx() { req: { user } }: MyContext,
-  ) {
-    let query = this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.categories', 'categories')
-      .leftJoinAndSelect('project.organization', 'organization')
-      .where(`lower("walletAddress")=lower(:address)`, {
-        address,
-      });
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-    return query.getOne();
-  }
-
   @Query(returns => AllProjects, { nullable: true })
   async projectsByUserId(
     @Arg('userId', type => Int) userId: number,
@@ -1217,12 +1179,8 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
-      .innerJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .where('project.admin = :userId', { userId: String(userId) });
 
     if (userId !== user?.userId) {
@@ -1337,12 +1295,8 @@ export class ProjectResolver {
       )
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );

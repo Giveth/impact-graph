@@ -23,6 +23,7 @@ export const PROJECT_VERIFICATION_STATUSES = {
 };
 
 export const PROJECT_VERIFICATION_STEPS = {
+  // Order of these steps are important, please see https://github.com/Giveth/giveth-dapps-v2/issues/893
   PERSONAL_INFO: 'personalInfo',
   PROJECT_REGISTRY: 'projectRegistry',
   PROJECT_CONTACTS: 'projectContacts',
@@ -169,6 +170,10 @@ export class ProjectVerificationForm extends BaseEntity {
   @Column('jsonb', { nullable: true })
   managingFunds: ManagingFunds;
 
+  @Field(type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  lastStep: string | null;
+
   @Field(type => Boolean, { nullable: false })
   @Column({ default: false })
   emailConfirmed: boolean;
@@ -176,6 +181,10 @@ export class ProjectVerificationForm extends BaseEntity {
   @Field(type => String, { nullable: true })
   @Column('text', { nullable: true })
   emailConfirmationToken: string | null;
+
+  @Field(type => Date, { nullable: true })
+  @Column('text', { nullable: true })
+  emailConfirmationTokenExpiredAt: Date | null;
 
   @Field(type => Boolean, { nullable: true })
   @Column({ default: false })

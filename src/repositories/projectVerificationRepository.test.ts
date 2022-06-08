@@ -2,6 +2,7 @@ import {
   ManagingFunds,
   Milestones,
   PROJECT_VERIFICATION_STATUSES,
+  PROJECT_VERIFICATION_STEPS,
   ProjectContacts,
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
@@ -20,6 +21,7 @@ import {
   updateProjectContactsOfProjectVerification,
   updateProjectPersonalInfoOfProjectVerification,
   updateProjectRegistryOfProjectVerification,
+  updateProjectVerificationLastStep,
 } from './projectVerificationRepository';
 import { assert } from 'chai';
 
@@ -38,6 +40,10 @@ describe(
 describe(
   'updateProjectContactsOfProjectVerification test cases',
   updateProjectContactsOfProjectVerificationTestCases,
+);
+describe(
+  'updateProjectVerificationLastStep test cases',
+  updateProjectVerificationLastStepTestCases,
 );
 describe(
   'updateMilestonesOfProjectVerification test cases',
@@ -165,6 +171,30 @@ function updateProjectContactsOfProjectVerificationTestCases() {
     assert.equal(
       updatedProjectVerification?.projectContacts.twitter,
       projectContacts.twitter,
+    );
+  });
+}
+function updateProjectVerificationLastStepTestCases() {
+  it('Should update projectVerification last step successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.lastStep =
+      PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS;
+    const updatedProjectVerification = await updateProjectVerificationLastStep({
+      projectVerificationId: projectVerificationForm.id,
+      lastStep: PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
+    });
+    assert.equal(
+      updatedProjectVerification.lastStep,
+      PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
     );
   });
 }

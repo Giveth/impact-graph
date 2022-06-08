@@ -1,4 +1,7 @@
-import { generateRandomEtheriumAddress } from '../../test/testUtils';
+import {
+  generateRandomEtheriumAddress,
+  saveUserDirectlyToDb,
+} from '../../test/testUtils';
 import { User, UserRole } from '../entities/user';
 import {
   findAdminUserByEmail,
@@ -172,13 +175,29 @@ describe('findUserByWalletAddress test cases', () => {
     assert.equal(foundUser?.walletAddress, user.walletAddress);
   });
 
+  it('Should find user by walletAddress without sensitive fields', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const foundUser = await findUserByWalletAddress(
+      user.walletAddress as string,
+      false,
+    );
+    assert.isOk(foundUser);
+    assert.equal(foundUser?.walletAddress, user.walletAddress);
+    assert.isNotOk(foundUser?.email);
+  });
+
+  it('Should find user by walletAddress with all fields', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const foundUser = await findUserByWalletAddress(
+      user.walletAddress as string,
+    );
+    assert.isOk(foundUser);
+    assert.equal(foundUser?.walletAddress, user.walletAddress);
+    assert.isOk(foundUser?.email);
+  });
+
   it('Should find user by uppercase walletAddress', async () => {
-    const email = `${new Date().getTime()}@giveth.io`;
-    const user = await User.create({
-      email,
-      loginType: 'wallet',
-      walletAddress: generateRandomEtheriumAddress(),
-    }).save();
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const foundUser = await findUserByWalletAddress(
       (user?.walletAddress as string).toUpperCase(),
     );

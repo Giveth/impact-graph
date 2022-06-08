@@ -2,11 +2,14 @@ import { assert } from 'chai';
 import 'mocha';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
-import { Donation } from '../entities/donation';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
+  createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
+  saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
+  saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
 import {
@@ -14,6 +17,7 @@ import {
   updateUserTotalReceived,
 } from '../services/userService';
 import { ORGANIZATION_LABELS } from '../entities/organization';
+import { create } from 'domain';
 
 describe(
   'updateUserTotalDonated() test cases',
@@ -26,20 +30,23 @@ describe(
 
 function updateUserTotalDonatedTestCases() {
   it('should update total donated of a donor', async () => {
-    const user = await User.findOne({ id: SEED_DATA.FIRST_USER.id });
-    user!.totalDonated = 0;
-    user!.save();
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const valueUsd = 100;
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: DONATION_STATUS.VERIFIED,
+        valueUsd,
+      },
+      user.id,
+      project.id,
+    );
 
-    await updateUserTotalDonated(SEED_DATA.FIRST_USER.id);
+    await updateUserTotalDonated(user.id);
 
-    const updatedUser = await User.findOne({ id: SEED_DATA.FIRST_USER.id });
-    const totalDonated = await Donation.createQueryBuilder('donation')
-      .select('SUM(donation.valueUsd)', 'sum')
-      .where(`donation.userId = ${SEED_DATA.FIRST_USER.id}`)
-      .getRawOne();
-
-    assert.notEqual(user!.totalDonated, updatedUser!.totalDonated);
-    assert.equal(updatedUser!.totalDonated, totalDonated.sum);
+    const updatedUser = await User.findOne({ id: user.id });
+    assert.equal(updatedUser?.totalDonated, valueUsd);
   });
 }
 
@@ -56,9 +63,9 @@ function updateUserTotalReceivedTestCases() {
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
       totalDonations: 180,
     });
-    const owner = await User.findOne({ id: user.id });
-    owner!.totalReceived = 0;
-    await owner!.save();
+    const owner = (await User.findOne({ id: user.id })) as User;
+    owner.totalReceived = 0;
+    await owner?.save();
 
     await updateUserTotalReceived(user.id);
 

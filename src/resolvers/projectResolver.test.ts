@@ -176,6 +176,11 @@ function projectsTestCases() {
     assert.equal(projects.length, secondUserProjects.length);
     assert.equal(Number(projects[0]?.admin), SEED_DATA.SECOND_USER.id);
     assert.isNotEmpty(projects[0].addresses);
+    projects.forEach(project => {
+      assert.isNotOk(project.adminUser.email);
+      assert.isOk(project.adminUser.firstName);
+      assert.isOk(project.adminUser.walletAddress);
+    });
   });
 
   it('should return projects with current take', async () => {
@@ -238,6 +243,11 @@ function projectsTestCases() {
       projects[0]?.reaction?.id,
       REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION.id,
     );
+    projects.forEach(project => {
+      assert.isNotOk(project.adminUser.email);
+      assert.isOk(project.adminUser.firstName);
+      assert.isOk(project.adminUser.walletAddress);
+    });
   });
 
   it('should return projects, sort by creationDate, DESC', async () => {
@@ -806,6 +816,11 @@ function projectsByUserIdTestCases() {
       project => Number(project.admin) !== userId,
     );
     assert.isNotOk(projectWithAnotherOwner);
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isNotOk(project.adminUser.email);
+    });
   });
 
   it('should return projects with current take', async () => {
@@ -820,6 +835,11 @@ function projectsByUserIdTestCases() {
     });
     const projects = result.data.data.projectsByUserId.projects;
     assert.equal(projects.length, take);
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isNotOk(project.adminUser.email);
+    });
   });
 
   it('should not return draft projects', async () => {
@@ -840,6 +860,11 @@ function projectsByUserIdTestCases() {
     const projects = result.data.data.projectsByUserId.projects;
     assert.equal(projects.length, take);
     assert.isNotOk(projects.find(project => project.id === draftProject.id));
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isNotOk(project.adminUser.email);
+    });
   });
 
   it('should not return not listed projects', async () => {
@@ -859,6 +884,11 @@ function projectsByUserIdTestCases() {
     assert.isNotOk(
       projects.find(project => project.id === notListedProject.id),
     );
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isNotOk(project.adminUser.email);
+    });
   });
 
   it('should not return new created active project', async () => {
@@ -874,6 +904,11 @@ function projectsByUserIdTestCases() {
     });
     const projects = result.data.data.projectsByUserId.projects;
     assert.equal(projects[0].id, activeProject.id);
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isNotOk(project.adminUser.email);
+    });
     assert.isNotEmpty(result.data.data.projectsByUserId.projects[0].addresses);
   });
 }
@@ -1121,8 +1156,8 @@ function createProjectTestCases() {
     assert.equal(result.data.data.createProject.listed, null);
 
     assert.equal(
-      result.data.data.createProject.admin,
-      String(SEED_DATA.FIRST_USER.id),
+      result.data.data.createProject.adminUser.id,
+      SEED_DATA.FIRST_USER.id,
     );
     assert.equal(result.data.data.createProject.verified, false);
     assert.equal(
@@ -2529,7 +2564,11 @@ function likedProjectsByUserIdTestCases() {
 
     const projects = result.data.data.likedProjectsByUserId.projects;
     assert.equal(projects.length, take);
-
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isNotOk(project.adminUser.email);
+    });
     const reaction = await Reaction.findOne({
       userId: SEED_DATA.FIRST_USER.id,
       projectId: SEED_DATA.FIRST_PROJECT.id,
@@ -2664,6 +2703,9 @@ function projectByIdTestCases() {
     assert.equal(result.data.data.projectById.id, project.id);
     assert.equal(result.data.data.projectById.slug, project.slug);
     assert.isNotEmpty(result.data.data.projectById.addresses);
+    assert.isOk(result.data.data.projectById.adminUser.walletAddress);
+    assert.isOk(result.data.data.projectById.adminUser.firstName);
+    assert.isNotOk(result.data.data.projectById.adminUser.email);
   });
   it('should return error for invalid id', async () => {
     const result = await axios.post(graphqlUrl, {
@@ -2695,6 +2737,9 @@ function projectByIdTestCases() {
     });
     assert.equal(result.data.data.projectById.id, project.id);
     assert.equal(result.data.data.projectById.reaction.id, reaction.id);
+    assert.isOk(result.data.data.projectById.adminUser.walletAddress);
+    assert.isOk(result.data.data.projectById.adminUser.firstName);
+    assert.isNotOk(result.data.data.projectById.adminUser.email);
   });
   it('should not return reaction when user doesnt exist', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -2708,6 +2753,9 @@ function projectByIdTestCases() {
       },
     });
     assert.equal(result.data.data.projectById.id, project.id);
+    assert.isOk(result.data.data.projectById.adminUser.walletAddress);
+    assert.isOk(result.data.data.projectById.adminUser.firstName);
+    assert.isNotOk(result.data.data.projectById.adminUser.email);
     assert.isNotOk(result.data.data.projectById.reaction);
   });
   it('should not return reaction when user didnt like the project', async () => {
@@ -2723,6 +2771,9 @@ function projectByIdTestCases() {
     });
     assert.equal(result.data.data.projectById.id, project.id);
     assert.isNotOk(result.data.data.projectById.reaction);
+    assert.isOk(result.data.data.projectById.adminUser.walletAddress);
+    assert.isOk(result.data.data.projectById.adminUser.firstName);
+    assert.isNotOk(result.data.data.projectById.adminUser.email);
   });
   it('should not return drafted projects if not logged in', async () => {
     const draftedProject = await saveProjectDirectlyToDb({
@@ -2772,6 +2823,9 @@ function projectByIdTestCases() {
 
     const project = result.data.data.projectById;
     assert.equal(Number(project.id), draftedProject.id);
+    assert.isOk(project.adminUser.walletAddress);
+    assert.isOk(project.adminUser.firstName);
+    assert.isNotOk(project.adminUser.email);
   });
   it('should not return drafted project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
@@ -2853,6 +2907,9 @@ function projectByIdTestCases() {
 
     const project = result.data.data.projectById;
     assert.equal(Number(project.id), cancelledProject.id);
+    assert.isOk(project.adminUser.walletAddress);
+    assert.isOk(project.adminUser.firstName);
+    assert.isNotOk(project.adminUser.email);
   });
   it('should not return cancelled project is user is logged in but is not owner of project', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.SECOND_USER.id);
@@ -3069,6 +3126,9 @@ function projectBySlugTestCases() {
 
     const project = result.data.data.projectBySlug;
     assert.equal(Number(project.id), project1.id);
+    assert.isOk(project.adminUser.walletAddress);
+    assert.isOk(project.adminUser.firstName);
+    assert.isNotOk(project.adminUser.email);
     assert.isNotEmpty(project.addresses);
     assert.equal(project.addresses[0].address, walletAddress);
   });
@@ -3150,6 +3210,9 @@ function projectBySlugTestCases() {
 
     const project = result.data.data.projectBySlug;
     assert.equal(Number(project.id), draftedProject.id);
+    assert.isOk(project.adminUser.walletAddress);
+    assert.isOk(project.adminUser.firstName);
+    assert.isNotOk(project.adminUser.email);
   });
 
   it('should not return cancelled if not logged in', async () => {
@@ -3230,6 +3293,9 @@ function projectBySlugTestCases() {
 
     const project = result.data.data.projectBySlug;
     assert.equal(Number(project.id), cancelledProject.id);
+    assert.isOk(project.adminUser.walletAddress);
+    assert.isOk(project.adminUser.firstName);
+    assert.isNotOk(project.adminUser.email);
   });
 }
 
@@ -3261,6 +3327,11 @@ function similarProjectsBySlugTestCases() {
     // excludes viewed project
     assert.equal(totalCount, 1);
     assert.equal(projects[0].id, secondProject.id);
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isNotOk(project.adminUser.email);
+    });
   });
   it('should return projects with at least one matching category, if not all matched', async () => {
     const viewedProject = await saveProjectDirectlyToDb({
@@ -3302,6 +3373,11 @@ function similarProjectsBySlugTestCases() {
     assert.isNotEmpty(projects[0].addresses);
     assert.equal(totalCount, relatedCount);
     assert.equal(totalCount, 1);
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isNotOk(project.adminUser.email);
+    });
   });
   it('should return projects with the same admin, if no category matches', async () => {
     const viewedProject = await saveProjectDirectlyToDb({
@@ -3319,6 +3395,11 @@ function similarProjectsBySlugTestCases() {
     });
 
     const projects = result.data.data.similarProjectsBySlug.projects;
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isNotOk(project.adminUser.email);
+    });
     const totalCount = result.data.data.similarProjectsBySlug.totalCount;
 
     const [_, relatedCount] = await Project.createQueryBuilder('project')
