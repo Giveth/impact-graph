@@ -1115,6 +1115,7 @@ export const updateProjectVerificationFormMutation = `
                       slug
                     }
                     status
+                    lastStep
                     }
                     
             }
