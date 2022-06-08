@@ -40,7 +40,17 @@ export class ProjectVerificationFormResolver {
     @Arg('emailConfirmationToken') emailConfirmationToken: string,
   ): Promise<ProjectVerificationForm> {
     try {
-      const secret = config.get('JWT_SECRET') as string;
+      const secret = config.get('MAILER_JWT_SECRET') as string;
+
+      const isValidToken =
+        await findProjectVerificationFormByEmailConfirmationToken(
+          emailConfirmationToken,
+        );
+
+      if (!isValidToken) {
+        throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+      }
+
       const decodedJwt: any = jwt.verify(emailConfirmationToken, secret);
       const projectVerificationFormId = decodedJwt.projectVerificationFormId;
       const projectVerificationForm = await findProjectVerificationFormById(
@@ -51,6 +61,7 @@ export class ProjectVerificationFormResolver {
         throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
       }
 
+      projectVerificationForm.emailConfirmationToken = null;
       projectVerificationForm.emailConfirmedAt = new Date();
       projectVerificationForm.emailConfirmed = true;
       await projectVerificationForm.save();
@@ -111,9 +122,9 @@ export class ProjectVerificationFormResolver {
 
       const token = jwt.sign(
         { projectVerificationFormId },
-        config.get('JWT_SECRET') as string,
+        config.get('MAILER_JWT_SECRET') as string,
         {
-          expiresIn: '1h',
+          expiresIn: '3d',
         },
       );
 
@@ -129,6 +140,7 @@ export class ProjectVerificationFormResolver {
         callbackUrl,
       };
 
+      // this is unreliable
       analytics.track(
         SegmentEvents.SEND_EMAIL_CONFIRMATION,
         `givethId-${userId}`,
