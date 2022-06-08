@@ -22,6 +22,8 @@ export const publicSelectionFields = [
   'user.lastName',
   'user.url',
   'user.avatar',
+  'user.totalDonated',
+  'user.totalReceived',
 ];
 
 export enum UserRole {
