@@ -173,6 +173,9 @@ export const fetchDonationsByDonorQuery = `
       amount
       user {
         id
+        firstName
+        email
+        walletAddress
       }
       project {
         id
@@ -214,6 +217,9 @@ export const fetchDonationsByProjectIdQuery = `
         status
         user {
           id
+          walletAddress
+          firstName
+          email
         }
         createdAt
       }
@@ -237,6 +243,12 @@ export const donationsFromWallets = `
     priceEth
     fromWalletAddress
     toWalletAddress
+    user {
+      id
+      email
+      firstName
+      walletAddress
+      }
     }
   }
 `;
@@ -256,6 +268,12 @@ export const donationsToWallets = `
     priceEth
     fromWalletAddress
     toWalletAddress
+    user {
+      id
+      email
+      firstName
+      walletAddress
+      }
     }
   }
 `;
@@ -280,6 +298,8 @@ export const fetchAllDonationsQuery = `
         amount
         user {
           id
+          walletAddress
+          firstName
           email
         }
         project {
@@ -323,6 +343,9 @@ export const fetchDonationsByUserIdQuery = `
         status
         user {
           id
+          walletAddress
+          email
+          firstName
         }
         project {
           id
@@ -382,6 +405,12 @@ export const fetchAllProjectsQuery = `
         reaction {
           id
         }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
         organization {
           name
           label
@@ -438,6 +467,12 @@ export const fetchProjectsBySlugQuery = `
         label
         supportCustomTokens
       }
+      adminUser {
+        id
+        email
+        firstName
+        walletAddress
+      }
       totalReactions
       totalDonations
       totalTraceDonations
@@ -483,6 +518,12 @@ export const fetchSimilarProjectsBySlugQuery = `
           id
           userId
           reaction
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
         }
         totalReactions
         totalDonations
@@ -532,6 +573,12 @@ export const fetchLikedProjectsQuery = `
           userId
           reaction
         }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -574,22 +621,6 @@ export const updateUser = `
 export const userByAddress = `
   query ($address: String!) {
     userByAddress(address: $address) {
-      id
-      firstName
-      lastName
-      name
-      email
-      avatar
-      walletAddress
-      url
-      location
-    }
-  }
-`;
-
-export const userById = `
-  query ($userId:  Int!) {
-    user(userId: $userId) {
       id
       firstName
       lastName
@@ -706,6 +737,13 @@ export const projectsByUserIdQuery = `
             projectUpdateId
             userId
           }
+              
+          adminUser {
+            firstName
+            email
+            id
+            walletAddress
+          }
           qualityScore
         }
         totalCount
@@ -739,6 +777,12 @@ export const projectByIdQuery = `
         name
         label
         supportCustomTokens
+      }
+      adminUser {
+        firstName
+        email
+        id
+        walletAddress
       }
     }
   }

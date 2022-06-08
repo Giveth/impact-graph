@@ -1,5 +1,5 @@
 import { getAnalytics } from '../analytics/analytics';
-import { User, UserRole } from '../entities/user';
+import { publicSelectionFields, User, UserRole } from '../entities/user';
 
 const analytics = getAnalytics();
 
@@ -14,12 +14,19 @@ export const findAdminUserByEmail = async (
 
 export const findUserByWalletAddress = async (
   walletAddress: string,
+  includeSensitiveFields = true,
 ): Promise<User | undefined> => {
-  return User.createQueryBuilder()
-    .where(`LOWER("walletAddress") = :walletAddress`, {
+  const query = User.createQueryBuilder('user').where(
+    `LOWER("walletAddress") = :walletAddress`,
+    {
       walletAddress: walletAddress.toLowerCase(),
-    })
-    .getOne();
+    },
+  );
+  if (!includeSensitiveFields) {
+    query.select(publicSelectionFields);
+  }
+
+  return query.getOne();
 };
 
 export const findUserById = (userId: number): Promise<User | undefined> => {

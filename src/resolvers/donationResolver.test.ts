@@ -166,21 +166,16 @@ function donationsTestCases() {
       },
     });
     assert.isOk(donationsResponse.data.data.donations);
+    const donations = donationsResponse.data.data.donations;
     const allDonationsCount = await Donation.count();
-    assert.notEqual(
-      donationsResponse.data.data.donations.length,
-      allDonationsCount,
-    );
-    assert.isOk(
-      donationsResponse.data.data.donations.find(
-        d => Number(d.id) === oldDonation.id,
-      ),
-    );
-    assert.notOk(
-      donationsResponse.data.data.donations.find(
-        d => Number(d.id) === newDonation.id,
-      ),
-    );
+    assert.notEqual(donations.length, allDonationsCount);
+    assert.isOk(donations.find(d => Number(d.id) === oldDonation.id));
+    assert.notOk(donations.find(d => Number(d.id) === newDonation.id));
+    donations.forEach(donation => {
+      assert.isNotOk(donation.user.email);
+      assert.isOk(donation.user.firstName);
+      assert.isOk(donation.user.walletAddress);
+    });
   });
   it('should get result when sending toDate and fromDate', async () => {
     const oldDonation = await saveDonationDirectlyToDb(
@@ -2441,13 +2436,10 @@ function donationsFromWalletsTestCases() {
   it('should find donations with special source successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const user = await User.create({
-      walletAddress,
-      loginType: 'wallet',
-      firstName: 'fatemeTest1',
-    }).save();
+    const user = await saveUserDirectlyToDb(walletAddress);
+
     const accessToken = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
+    await axios.post(
       graphqlUrl,
       {
         query: saveDonation,
@@ -2481,18 +2473,16 @@ function donationsFromWalletsTestCases() {
     );
     result.data.data.donationsFromWallets.forEach(item => {
       assert.equal(item.fromWalletAddress, walletAddress);
+      assert.isNotOk(item.user.email);
+      assert.isOk(item.user.walletAddress);
     });
   });
   it('should find donations with special source in uppercase successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const user = await User.create({
-      walletAddress,
-      loginType: 'wallet',
-      firstName: 'fatemeTest2',
-    }).save();
+    const user = await saveUserDirectlyToDb(walletAddress);
     const accessToken = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
+    await axios.post(
       graphqlUrl,
       {
         query: saveDonation,
@@ -2526,19 +2516,17 @@ function donationsFromWalletsTestCases() {
 
     result.data.data.donationsFromWallets.forEach(item => {
       assert.equal(item.fromWalletAddress, walletAddress);
+      assert.isNotOk(item.user.email);
+      assert.isOk(item.user.walletAddress);
     });
   });
   it('should find donations with special source unsuccessfully', async () => {
     const walletAddress = generateRandomEtheriumAddress();
     const walletAddress1 = generateRandomEtheriumAddress();
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress,
-      loginType: 'wallet',
-      firstName: 'fatemeTest1',
-    }).save();
+    const user = await saveUserDirectlyToDb(walletAddress);
     const accessToken = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
+    await axios.post(
       graphqlUrl,
       {
         query: saveDonation,
@@ -2560,7 +2548,7 @@ function donationsFromWalletsTestCases() {
       },
     );
 
-    const donation1 = await axios.post(
+    await axios.post(
       graphqlUrl,
       {
         query: saveDonation,
@@ -2594,6 +2582,8 @@ function donationsFromWalletsTestCases() {
     );
     result.data.data.donationsFromWallets.forEach(item => {
       assert.notEqual(item.fromWalletAddress, walletAddress1);
+      assert.isNotOk(item.user.email);
+      assert.isOk(item.user.walletAddress);
     });
   });
   it('should find no donations with this source ', async () => {
@@ -2631,6 +2621,11 @@ function donationsByProjectIdTestCases() {
 
     const donations = result.data.data.donationsByProjectId.donations;
     assert.equal(Number(donations[0].id), DONATION_SEED_DATA.FIFTH_DONATION.id);
+    donations.forEach(donation => {
+      assert.isNotOk(donation.user.email);
+      assert.isOk(donation.user.firstName);
+      assert.isOk(donation.user.walletAddress);
+    });
   });
   it('should sort by createdAt ASC', async () => {
     const result = await axios.post(
@@ -3608,6 +3603,11 @@ function donationsByDonorTestCases() {
       firstUserResult.data.data.donationsByDonor[0].fromWalletAddress,
       SEED_DATA.FIRST_USER.walletAddress,
     );
+    firstUserResult.data.data.donationsByDonor.forEach(donation => {
+      assert.isNotOk(donation.user.email);
+      assert.isOk(donation.user.firstName);
+      assert.isOk(donation.user.walletAddress);
+    });
     assert.equal(
       firstUserResult.data.data.donationsByDonor[1].fromWalletAddress,
       SEED_DATA.FIRST_USER.walletAddress,
@@ -3634,13 +3634,9 @@ function donationsToWalletsTestCases() {
   it('should find donations with special destination successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const user = await User.create({
-      walletAddress,
-      loginType: 'wallet',
-      firstName: 'donationsToWalletTest1User',
-    }).save();
+    const user = await saveUserDirectlyToDb(walletAddress);
     const accessToken1 = await generateTestAccessToken(user.id);
-    const donation = await axios.post(
+    await axios.post(
       graphqlUrl,
       {
         query: saveDonation,
@@ -3648,8 +3644,8 @@ function donationsToWalletsTestCases() {
           projectId: project.id,
           chainId: NETWORK_IDS.XDAI,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          fromAddress: project.walletAddress,
-          toAddress: walletAddress,
+          fromAddress: walletAddress,
+          toAddress: project.walletAddress,
           transactionId: generateRandomTxHash(),
           amount: 10,
           token: 'GIV',
@@ -3667,13 +3663,16 @@ function donationsToWalletsTestCases() {
       {
         query: donationsToWallets,
         variables: {
-          toWalletAddresses: [walletAddress],
+          toWalletAddresses: [project.walletAddress],
         },
       },
       {},
     );
+    assert.isNotEmpty(result.data.data.donationsToWallets);
     result.data.data.donationsToWallets.forEach(item => {
-      assert.equal(item.toWalletAddress, walletAddress);
+      assert.equal(item.toWalletAddress, project.walletAddress);
+      assert.isNotOk(item.user.email);
+      assert.isOk(item.user.walletAddress);
     });
   });
   it('should find donations with special destination in uppercase successfully', async () => {

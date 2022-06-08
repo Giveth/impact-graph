@@ -63,7 +63,13 @@ export const assertNotThrowsAsync = async fn => {
 export const generateTestAccessToken = async (id: number): Promise<string> => {
   const user = await User.findOne({ id });
   return jwt.sign(
-    { userId: id, firstName: user?.firstName },
+    {
+      userId: id,
+      firstName: user?.firstName,
+      walletAddress: user?.walletAddress,
+      name: user?.name,
+      lastName: user?.lastName,
+    },
     config.get('JWT_SECRET') as string,
     { expiresIn: '30d' },
   );
@@ -125,6 +131,8 @@ export const saveUserDirectlyToDb = async (
   return User.create({
     loginType: 'wallet',
     walletAddress,
+    firstName: `testUser-${walletAddress}`,
+    email: `testEmail-${walletAddress}@giveth.io`,
   }).save();
 };
 export const saveProjectDirectlyToDb = async (
@@ -166,6 +174,7 @@ export const saveProjectDirectlyToDb = async (
     organization,
     categories,
     users: [user],
+    adminUser: user,
   }).save();
 
   // default projectUpdate for liking projects
@@ -221,15 +230,19 @@ export const createDonationData = (): CreateDonationData => {
 
 export const SEED_DATA = {
   FIRST_USER: {
-    name: 'firstUser',
+    name: 'firstUser name',
     lastName: 'firstUser lastName',
+    firstName: 'firstUser firstName',
+    email: 'firstUser@giveth.io',
     loginType: 'wallet',
     id: 1,
     walletAddress: generateRandomEtheriumAddress(),
   },
   SECOND_USER: {
     name: 'secondUser',
+    email: 'secondUser@giveth.io',
     lastName: 'secondUser lastName',
+    firstName: 'secondUser firstName',
     loginType: 'wallet',
     id: 2,
     walletAddress: generateRandomEtheriumAddress(),
@@ -237,6 +250,8 @@ export const SEED_DATA = {
   THIRD_USER: {
     name: 'thirdUser',
     lastName: 'thirdUser lastName',
+    firstName: 'thirdUser firstName',
+    email: 'thirdUser@giveth.io',
     loginType: 'wallet',
     id: 3,
     walletAddress: generateRandomEtheriumAddress(),
@@ -244,6 +259,8 @@ export const SEED_DATA = {
   ADMIN_USER: {
     name: 'adminUser',
     lastName: 'adminUser lastName',
+    firstName: 'adminUser firstName',
+    email: 'adminUser@giveth.io',
     loginType: 'wallet',
     id: 4,
     walletAddress: generateRandomEtheriumAddress(),
@@ -251,6 +268,7 @@ export const SEED_DATA = {
   PROJECT_OWNER_USER: {
     name: 'project owner user',
     lastName: 'projectOwner lastName',
+    email: 'projectOwnerUser@giveth.io',
     loginType: 'wallet',
     id: 5,
     walletAddress: generateRandomEtheriumAddress(),
@@ -1410,6 +1428,7 @@ export const saveDonationDirectlyToDb = async (
 export function generateRandomEtheriumAddress(): string {
   return `0x${generateHexNumber(40)}`;
 }
+
 export function generateRandomTxHash(): string {
   return `0x${generateHexNumber(64)}`;
 }
