@@ -895,6 +895,7 @@ export const getCurrentProjectVerificationFormQuery = `
            getCurrentProjectVerificationForm(slug: $slug) {
                     id
                     isTermAndConditionsAccepted
+                    emailConfirmationTokenExpiredAt
                     emailConfirmationToken
                     emailConfirmationSent
                     emailConfirmationSentAt
@@ -956,6 +957,7 @@ export const projectVerificationConfirmEmail = `
           projectVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
             id
             isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
             emailConfirmationToken
             emailConfirmationSent
             emailConfirmationSentAt
@@ -1012,6 +1014,7 @@ export const projectVerificationSendEmailConfirmation = `
           projectVerificationSendEmailConfirmation(projectVerificationFormId: $projectVerificationFormId) {
             id
             isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
             emailConfirmationToken
             emailConfirmationSent
             emailConfirmationSentAt
@@ -1068,6 +1071,7 @@ export const updateProjectVerificationFormMutation = `
            updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
                     id
                     isTermAndConditionsAccepted
+                    emailConfirmationTokenExpiredAt
                     emailConfirmationToken
                     emailConfirmationSent
                     emailConfirmationSentAt

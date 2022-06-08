@@ -29,6 +29,7 @@ import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
 import { sendMailConfirmationEmail } from '../services/mailerService';
+import moment from 'moment';
 
 const analytics = getAnalytics();
 
@@ -62,6 +63,7 @@ export class ProjectVerificationFormResolver {
         throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
       }
 
+      projectVerificationForm.emailConfirmationTokenExpiredAt = null;
       projectVerificationForm.emailConfirmationToken = null;
       projectVerificationForm.emailConfirmedAt = new Date();
       projectVerificationForm.emailConfirmed = true;
@@ -80,6 +82,7 @@ export class ProjectVerificationFormResolver {
       }
 
       projectVerificationForm.emailConfirmed = false;
+      projectVerificationForm.emailConfirmationTokenExpiredAt = null;
       projectVerificationForm.emailConfirmationSent = false;
       projectVerificationForm.emailConfirmationSentAt = null;
       projectVerificationForm.emailConfirmationToken = null;
@@ -129,6 +132,9 @@ export class ProjectVerificationFormResolver {
         },
       );
 
+      projectVerificationForm.emailConfirmationTokenExpiredAt = moment()
+        .add(2, 'minutes')
+        .toDate();
       projectVerificationForm.emailConfirmationToken = token;
       projectVerificationForm.emailConfirmationSent = true;
       projectVerificationForm.emailConfirmationSentAt = new Date();
