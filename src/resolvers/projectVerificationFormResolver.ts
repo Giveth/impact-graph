@@ -28,10 +28,11 @@ import * as jwt from 'jsonwebtoken';
 import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
+import { sendEmail } from '../services/mailerService';
 
 const analytics = getAnalytics();
 
-const callbackBaseUrl = process.env.FRONTEND_URL as string;
+const dappUrl = process.env.FRONTEND_URL as string;
 
 @Resolver(of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
@@ -133,19 +134,10 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
 
-      const callbackUrl = `https://${callbackBaseUrl}/${project.slug}/${token}`;
-
-      const emailConfirmationData = {
-        email: projectVerificationForm.personalInfo.email,
-        callbackUrl,
-      };
-
-      // this is unreliable
-      analytics.track(
-        SegmentEvents.SEND_EMAIL_CONFIRMATION,
-        `givethId-${userId}`,
-        emailConfirmationData,
-        null,
+      await sendEmail(
+        projectVerificationForm.personalInfo.email!,
+        project,
+        token,
       );
 
       return projectVerificationForm;
