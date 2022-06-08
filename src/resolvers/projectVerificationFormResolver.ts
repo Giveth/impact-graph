@@ -31,6 +31,8 @@ import { Country } from '../entities/Country';
 
 const analytics = getAnalytics();
 
+const callbackBaseUrl = process.env.FRONTEND_URL as string;
+
 @Resolver(of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
   @Mutation(returns => ProjectVerificationForm)
@@ -102,6 +104,11 @@ export class ProjectVerificationFormResolver {
         );
       }
 
+      const project = await findProjectById(projectVerificationForm.projectId);
+      if (!project) {
+        throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      }
+
       const token = jwt.sign(
         { projectVerificationFormId },
         config.get('JWT_SECRET') as string,
@@ -110,22 +117,24 @@ export class ProjectVerificationFormResolver {
         },
       );
 
-      const emailConfirmation = {
+      projectVerificationForm.emailConfirmationToken = token;
+      projectVerificationForm.emailConfirmationSent = true;
+      projectVerificationForm.emailConfirmationSentAt = new Date();
+      await projectVerificationForm.save();
+
+      const callbackUrl = `https://${callbackBaseUrl}/${project.slug}/${token}`;
+
+      const emailConfirmationData = {
         email: projectVerificationForm.personalInfo.email,
-        token,
+        callbackUrl,
       };
 
       analytics.track(
         SegmentEvents.SEND_EMAIL_CONFIRMATION,
         `givethId-${userId}`,
-        emailConfirmation,
+        emailConfirmationData,
         null,
       );
-
-      projectVerificationForm.emailConfirmationToken = token;
-      projectVerificationForm.emailConfirmationSent = true;
-      projectVerificationForm.emailConfirmationSentAt = new Date();
-      await projectVerificationForm.save();
 
       return projectVerificationForm;
     } catch (e) {
