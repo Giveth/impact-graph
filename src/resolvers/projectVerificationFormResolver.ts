@@ -129,7 +129,7 @@ export class ProjectVerificationFormResolver {
         { projectVerificationFormId },
         config.get('MAILER_JWT_SECRET') as string,
         {
-          expiresIn: '3d',
+          expiresIn: '2m',
         },
       );
 
