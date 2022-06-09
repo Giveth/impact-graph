@@ -49,6 +49,7 @@ import {
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
+import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -240,6 +241,30 @@ const getAdminBroInstance = async () => {
       language: 'en',
     },
     resources: [
+      {
+        resource: ProjectVerificationForm,
+        options: {
+          properties: {
+            id: {
+              isVisible: true,
+            },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: false,
+            },
+            edit: {
+              isVisible: true,
+            },
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: false,
+            },
+          },
+        },
+      },
       {
         resource: Donation,
         options: {

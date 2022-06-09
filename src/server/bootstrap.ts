@@ -244,13 +244,13 @@ export async function bootstrap() {
     app.use(adminBroQueryCache);
     app.use(adminBroRootPath, await getAdminBroRouter());
 
-    runCheckPendingDonationsCronJob();
-    runNotifyMissingDonationsCronJob();
-    runCheckPendingProjectListingCronJob();
-    processSendSegmentEventsJobs();
-    initHandlingTraceCampaignUpdateEvents();
-    runUpdateDonationsWithoutValueUsdPrices();
-    runUpdateTraceableProjectsTotalDonations();
+    // runCheckPendingDonationsCronJob();
+    // runNotifyMissingDonationsCronJob();
+    // runCheckPendingProjectListingCronJob();
+    // processSendSegmentEventsJobs();
+    // initHandlingTraceCampaignUpdateEvents();
+    // runUpdateDonationsWithoutValueUsdPrices();
+    // runUpdateTraceableProjectsTotalDonations();
 
     // If we need to deactivate the process use the env var
     // if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
