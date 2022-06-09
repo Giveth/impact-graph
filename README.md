@@ -79,59 +79,13 @@ We have so far only implemented these databases - MySQL, MariaDB, Postgres, Mong
 
 ## Roadmap
 
-The first usecase we are building is user registration and putting projects in the database
+The first use case we are building is user registration and putting projects in the database
 
 ## Authentication
 
 ### Strategies
 
 There are many strategies available for authentication
-
-#### Email address and password
-
-
-```javascript
-mutation RegisterUser {
-  mutation {
-    register(
-      data: {
-        email: "testemail@email.com"
-        password: "thisisatestpassword"
-        firstName: "Bob"
-        lastName: "Barker"
-      }
-    ) {
-      id
-      email
-    }
-  }
-}
-
-mutation {
-  login(email: "testemail@email.com", password: "thisisatestpassword") {
-    token
-    user {
-      firstName
-      lastName
-      email
-    }
-  }
-}
-```
-
-#### Ethereum wallet
-
-```javascript
-mutation {
-  loginWallet(walletAddress:"0xeC54C676E54c5e3e7F095D979eA13533b5dC2177", signature: "0x417f84a0d31abf872a8071da3e888a5708dfff76f4fcb9c07dde1a36a0e8241a6b8f3480a936efe661772cc6d8156504acec6789cc5246c363f0634b9ee956601b", email: "testemail@email.com") {
-    token
-    user {
-
-      email
-    }
-  }
-}
-```
 
 #### OAuth
 
@@ -143,62 +97,8 @@ mutation {
 - Supports both JSON Web Tokens
 
 ### Example queries
+If you want to see examples you can read test cases or see [Graphql queries](./test/graphqlQueries.ts)
 
-```javascript
-query GetProjects {
-  projects {
-    title
-    id
-    description
-  }
-}
-
-query AppProject {
-  mutation {
-    addProject(
-      project: {
-        title: "Unicorn DAC"
-        description: "The Unicorn DAC, a non-hierarchical decentralized governance experimentWhy are bosses necessary? They arent. Self-managed organizations exist all over the world, but there is no template for how a ..."
-      }
-    ) {
-      title
-      description
-    }
-  }
-}
-
-mutation RegisterUser {
-  mutation {
-    register(
-      data: {
-        email: "testemail@email.com"
-        password: "thisisatestpassword"
-        firstName: "Bob"
-        lastName: "Barker"
-      }
-    ) {
-      id
-      email
-    }
-  }
-}
-
-mutation LoginWallet {
-  mutation {
-    loginWallet(
-      walletAddress: "0x......................................0"
-      signature: "0xaslkdjasldkfjs8afjoi3jo3urjfo3902094304832094230948p34023948203423094802384idfb"
-      email: "test@testington.com"
-    ) {
-      token
-      user {
-        email
-      }
-    }
-  }
-}
-
-```
 ### Admin panel
 We use [Admin Bro](https://github.com/SoftwareBrothers/adminjs) for Admin dashboard
 You should navigate to `/admin` for browsing admin panel.
@@ -293,3 +193,7 @@ https://www.tablesgenerator.com/markdown_tables
 
 #### Donation Flow
 [![](https://mermaid.ink/img/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG4gICAgYXV0b251bWJlclxuICAgIGFjdG9yIFVzZXJcbiAgICBwYXJ0aWNpcGFudCBGcm9udGVuZFxuICAgIHBhcnRpY2lwYW50IE1ldGFtYXNrXG4gICAgcGFydGljaXBhbnQgQmFja2VuZFxuICAgIHBhcnRpY2lwYW50IERCXG4gICAgcGFydGljaXBhbnQgTW9ub3N3YXBcblxuICAgIFVzZXIgLT4-IEZyb250ZW5kOiBXYW50IHRvIGRvbmF0ZVxuICAgIG5vdGUgb3ZlciBGcm9udGVuZDogQ2hlY2sgcHJvamVjdCB3YWxsZXQgYWRkcmVzc1xuXG4gICAgRnJvbnRlbmQgLT4-IE1ldGFtYXNrIDogQ3JlYXRlIHRyYW5zYWN0aW9uXG4gICAgTWV0YW1hc2sgLS0-PiBVc2VyOiBTaG93IGNvbmZpcm0gdHJhbnNhY3Rpb24gcG9wdXBcbiAgICBVc2VyIC0-PiBNZXRhbWFzazogT2tcbiAgICBNZXRhbWFzayAtPj4gRnJvbnRlbmQgOiBGcm9udGVuZCBnZXQgdHhIYXNoIGJ5IHdlYjNcbiAgICBGcm9udGVuZCAtPj4gQmFja2VuZDogU2F2ZSBuZXcgZG9uYXRpb25cbiAgICBub3RlIG92ZXIgQmFja2VuZDogVmFsaWRhdGUgZG9uYXRpb24ncyBpbmZvIHdpdGggcHJvamVjdCB3YWxsZXQgYWRkcmVzcywgdXNlciwgLi5cbiAgICBCYWNrZW5kIC0-PiBEQjogU2F2ZSBkb25hdGlvbiB0byBEQlxuICAgIERCIC0tPj4gQmFja2VuZCA6IE9rXG4gICAgQmFja2VuZCAtPj4gTW9ub3N3YXAgOiBHZXQgcHJpY2Ugb2YgZG9uYXRlZCB0b2tlblxuICAgIGFsdCBNb25vc3dhcCBjYW4gZmV0Y2ggcHJpY2U6XG4gICAgICAgIE1vbm9zd2FwIC0tPj4gQmFja2VuZCA6IHJldHVybiBwcmljZVxuICAgICAgICBCYWNrZW5kIC0-PiBEQjogVXBkYXRlIHByaWNlVXNkIGFuZCB2YWx1ZVVzZCBvZiBkb25hdGlvblxuICAgICAgICBEQiAtLT4-IEJhY2tlbmQ6IE9rXG4gICAgICAgIEJhY2tlbmQgLT4-IERCOiBVcGRhdGUgcHJvamVjdCB0b3RhbERvbmF0aW9ucyB2YWx1ZVVzZFxuICAgICAgICBEQiAtLT4-IEJhY2tlbmQ6IE9rXG4gICAgZWxzZSBSZXR1cm4gZXJyb3I6XG4gICAgICAgIE1vbm9zd2FwIC0tPj4gQmFja2VuZCA6IFJldHVybiBFcnJvclxuICAgICAgICBub3RlIG92ZXIgQmFja2VuZDogRG8gbm90aGluZ1xuICAgIGVuZFxuICAgIEJhY2tlbmQgLS0-PiBGcm9udGVuZDogT2tcbiIsIm1lcm1haWQiOnsidGhlbWUiOiJkZWZhdWx0In0sInVwZGF0ZUVkaXRvciI6dHJ1ZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)](https://mermaid-js.github.io/mermaid-live-editor/edit/#eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG4gICAgYXV0b251bWJlclxuICAgIGFjdG9yIFVzZXJcbiAgICBwYXJ0aWNpcGFudCBGcm9udGVuZFxuICAgIHBhcnRpY2lwYW50IE1ldGFtYXNrXG4gICAgcGFydGljaXBhbnQgQmFja2VuZFxuICAgIHBhcnRpY2lwYW50IERCXG4gICAgcGFydGljaXBhbnQgTW9ub3N3YXBcblxuICAgIFVzZXIgLT4-IEZyb250ZW5kOiBXYW50IHRvIGRvbmF0ZVxuICAgIG5vdGUgb3ZlciBGcm9udGVuZDogQ2hlY2sgcHJvamVjdCB3YWxsZXQgYWRkcmVzc1xuXG4gICAgRnJvbnRlbmQgLT4-IE1ldGFtYXNrIDogQ3JlYXRlIHRyYW5zYWN0aW9uXG4gICAgTWV0YW1hc2sgLS0-PiBVc2VyOiBTaG93IGNvbmZpcm0gdHJhbnNhY3Rpb24gcG9wdXBcbiAgICBVc2VyIC0-PiBNZXRhbWFzazogT2tcbiAgICBNZXRhbWFzayAtPj4gRnJvbnRlbmQgOiBGcm9udGVuZCBnZXQgdHhIYXNoIGJ5IHdlYjNcbiAgICBGcm9udGVuZCAtPj4gQmFja2VuZDogU2F2ZSBuZXcgZG9uYXRpb25cbiAgICBub3RlIG92ZXIgQmFja2VuZDogVmFsaWRhdGUgZG9uYXRpb24ncyBpbmZvIHdpdGggcHJvamVjdCB3YWxsZXQgYWRkcmVzcywgdXNlciwgLi5cbiAgICBCYWNrZW5kIC0-PiBEQjogU2F2ZSBkb25hdGlvbiB0byBEQlxuICAgIERCIC0tPj4gQmFja2VuZCA6IE9rXG4gICAgQmFja2VuZCAtPj4gTW9ub3N3YXAgOiBHZXQgcHJpY2Ugb2YgZG9uYXRlZCB0b2tlblxuICAgIGFsdCBNb25vc3dhcCBjYW4gZmV0Y2ggcHJpY2U6XG4gICAgICAgIE1vbm9zd2FwIC0tPj4gQmFja2VuZCA6IHJldHVybiBwcmljZVxuICAgICAgICBCYWNrZW5kIC0-PiBEQjogVXBkYXRlIHByaWNlVXNkIGFuZCB2YWx1ZVVzZCBvZiBkb25hdGlvblxuICAgICAgICBEQiAtLT4-IEJhY2tlbmQ6IE9rXG4gICAgICAgIEJhY2tlbmQgLT4-IERCOiBVcGRhdGUgcHJvamVjdCB0b3RhbERvbmF0aW9ucyB2YWx1ZVVzZFxuICAgICAgICBEQiAtLT4-IEJhY2tlbmQ6IE9rXG4gICAgZWxzZSBSZXR1cm4gZXJyb3I6XG4gICAgICAgIE1vbm9zd2FwIC0tPj4gQmFja2VuZCA6IFJldHVybiBFcnJvclxuICAgICAgICBub3RlIG92ZXIgQmFja2VuZDogRG8gbm90aGluZ1xuICAgIGVuZFxuICAgIEJhY2tlbmQgLS0-PiBGcm9udGVuZDogT2tcbiIsIm1lcm1haWQiOiJ7XG4gIFwidGhlbWVcIjogXCJkZWZhdWx0XCJcbn0iLCJ1cGRhdGVFZGl0b3IiOnRydWUsImF1dG9TeW5jIjp0cnVlLCJ1cGRhdGVEaWFncmFtIjpmYWxzZX0)
+
+#### Verify social network accounts ( for project verification flow)
+
+[![](https://mermaid.ink/img/pako:eNqNVE1v2zAM_SuEzm4C7OhDga77QIEt3ZZ1p1xYiXY4K1ImyTOCov99lO0kbpIW88m2-B4fHyk-Ke0NqVJF-tOS0_SBsQ64WTmQB3XyAR4iheF7iyGx5i26BJ-Cd4mcOT95j7q5eLBcAEZYes1oYUGp86GBHDaE5jxwdX19oC7hxhhAiAPCjYhW4hxuaEDtg3vkmLqE20CYSLCOuj1-G3zFlqCSmtKaI_ylwBVrTOxd_jtWPZLA1Ust981pwnyeRR_PLpRwa1k3IAn6bLs3RaO1UFMaHPo2yL3HNq3fPQQL31sKI955Kc4L4xH8FRt2NbQS-LgDbZlcujMFBDIcSKfMUMBsNnuzyB-BUhtcprmgdLmQiJGvbwMkf9odNCZQjANaOj5x6SY2B5T0x4D2LopMQOG3vmY3cfGQ8Es-yJAxw5F56t2ZrHmcuhjnWsx9lOh57X1tqYCO0xry9IPMA2oton96IXvV4bsKOAE7bVtDRnLIb7DcEBiO2gcDnbyKXVKcXKaYTq0RZUJYgE9rCh1HGgDwSNZ3MiJ00prRgGX-6IVKWTIe52L3Nk_c6Lt4Fjihzsyfhaw3m13l89j8N3O7R73q1i-0bPIdPIT2bebexE72gG9gg2Leiz6Nd5LMuRWTIT3tdb7av_OPCzdaFWpDYYNsZMs99dtGif-yPlQpr4YqbG1aqZV7ltB2mzV_NCyLT5UV2kiFkhvolzunVZlCS_ugcVOOUc__ADNdybM)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqNVE1v2zAM_SuEzm4C7OhDga77QIEt3ZZ1p1xYiXY4K1ImyTOCov99lO0kbpIW88m2-B4fHyk-Ke0NqVJF-tOS0_SBsQ64WTmQB3XyAR4iheF7iyGx5i26BJ-Cd4mcOT95j7q5eLBcAEZYes1oYUGp86GBHDaE5jxwdX19oC7hxhhAiAPCjYhW4hxuaEDtg3vkmLqE20CYSLCOuj1-G3zFlqCSmtKaI_ylwBVrTOxd_jtWPZLA1Ust981pwnyeRR_PLpRwa1k3IAn6bLs3RaO1UFMaHPo2yL3HNq3fPQQL31sKI955Kc4L4xH8FRt2NbQS-LgDbZlcujMFBDIcSKfMUMBsNnuzyB-BUhtcprmgdLmQiJGvbwMkf9odNCZQjANaOj5x6SY2B5T0x4D2LopMQOG3vmY3cfGQ8Es-yJAxw5F56t2ZrHmcuhjnWsx9lOh57X1tqYCO0xry9IPMA2oton96IXvV4bsKOAE7bVtDRnLIb7DcEBiO2gcDnbyKXVKcXKaYTq0RZUJYgE9rCh1HGgDwSNZ3MiJ00prRgGX-6IVKWTIe52L3Nk_c6Lt4Fjihzsyfhaw3m13l89j8N3O7R73q1i-0bPIdPIT2bebexE72gG9gg2Leiz6Nd5LMuRWTIT3tdb7av_OPCzdaFWpDYYNsZMs99dtGif-yPlQpr4YqbG1aqZV7ltB2mzV_NCyLT5UV2kiFkhvolzunVZlCS_ugcVOOUc__ADNdybM)

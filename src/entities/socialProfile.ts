@@ -66,6 +66,10 @@ export class SocialProfile extends BaseEntity {
   @Column('text', { nullable: true })
   socialNetworkId: string;
 
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  socialNetwork: string;
+
   @Field()
   @Column('boolean', { default: false })
   isVerified: boolean;
