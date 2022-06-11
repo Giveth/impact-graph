@@ -26,9 +26,10 @@ export const isWalletAddressInPurpleList = async (
           FROM project_address
           JOIN project
           on project.id="projectId" and "verified"=true
-          where address='${address}'
+          where address = $1
           limit 1
-      `,
+    `,
+    [address],
   );
   return projectAddress.length > 0;
 };
