@@ -17,6 +17,10 @@ import {
 } from '../src/entities/organization';
 import { findUserByWalletAddress } from '../src/repositories/userRepository';
 import { findProjectByWalletAddress } from '../src/repositories/projectRepository';
+import {
+  PROJECT_VERIFICATION_STATUSES,
+  ProjectVerificationForm,
+} from '../src/entities/projectVerificationForm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -133,6 +137,19 @@ export const saveUserDirectlyToDb = async (
     walletAddress,
     firstName: `testUser-${walletAddress}`,
     email: `testEmail-${walletAddress}@giveth.io`,
+  }).save();
+};
+
+export const saveProjectVerificationFormDirectlyToDb = async (params: {
+  project: Project;
+  user: User;
+  status?: string;
+}): Promise<ProjectVerificationForm> => {
+  const { project, user, status } = params;
+  return ProjectVerificationForm.create({
+    project,
+    user,
+    status: status || PROJECT_VERIFICATION_STATUSES.DRAFT,
   }).save();
 };
 export const saveProjectDirectlyToDb = async (

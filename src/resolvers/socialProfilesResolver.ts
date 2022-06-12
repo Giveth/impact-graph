@@ -1,4 +1,4 @@
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Float, Int, Mutation, Query, Resolver } from 'type-graphql';
 import { SocialProfile } from '../entities/socialProfile';
 import { MyContext } from '../types/MyContext';
 import { errorMessages } from '../utils/errorMessages';
@@ -6,9 +6,10 @@ import { findProjectVerificationFormById } from '../repositories/projectVerifica
 import {
   createSocialProfile,
   findSocialProfileById,
-  findSocialProfileBySocialNetworkId,
+  findSocialProfileBySocialNetworkIdAndSocialNetwork,
 } from '../repositories/socialProfileRepository';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
+import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 
 @Resolver(of => SocialProfile)
 export class SocialProfilesResolver {
@@ -28,18 +29,31 @@ export class SocialProfilesResolver {
     if (!projectVerificationForm) {
       throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
     }
-    if (projectVerificationForm.user.id !== user.id) {
+    if (projectVerificationForm.user.id !== user.userId) {
       throw new Error(
         errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
       );
     }
-    const savedSocialProfile = await findSocialProfileBySocialNetworkId(
-      socialNetworkId,
-    );
+
+    if (
+      projectVerificationForm.status !== PROJECT_VERIFICATION_STATUSES.DRAFT
+    ) {
+      throw new Error(
+        errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
+      );
+    }
+    const savedSocialProfile =
+      await findSocialProfileBySocialNetworkIdAndSocialNetwork({
+        socialNetworkId,
+        socialNetwork,
+      });
+    // console.log('check existance', JSON.stringify({
+    //   savedSocialProfile, projectVerificationId}    , null, 4))
     if (
       savedSocialProfile &&
       savedSocialProfile.projectVerificationForm.id === projectVerificationId
     ) {
+      // TODO should add a funciton in socialProfileRepository for this purpose
       throw new Error(
         errorMessages.YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM,
       );

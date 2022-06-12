@@ -1,18 +1,8 @@
-import {
-  ManagingFunds,
-  Milestones,
-  PROJECT_VERIFICATION_STATUSES,
-  PersonalInfo,
-  ProjectContacts,
-  ProjectRegistry,
-  ProjectVerificationForm,
-} from '../entities/projectVerificationForm';
-import { findProjectById } from './projectRepository';
-import { findUserById } from './userRepository';
-import { Brackets } from 'typeorm';
+import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { errorMessages } from '../utils/errorMessages';
 import { SocialProfile } from '../entities/socialProfile';
 import { findProjectVerificationFormById } from './projectVerificationRepository';
+// TODO should write test cases for all of these functions
 
 export const createSocialProfile = async (params: {
   projectVerificationId: number;
@@ -48,21 +38,28 @@ export const findSocialProfileById = async (
     .getOne();
 };
 
-export const findSocialProfileBySocialNetworkId = async (
-  socialNetworkId: string,
-): Promise<SocialProfile | undefined> => {
-  return SocialProfile.createQueryBuilder('social_profile')
-    .where({
-      socialNetworkId,
-    })
-    .leftJoinAndSelect('social_profile.project', 'project')
-    .leftJoinAndSelect('social_profile.user', 'user')
-    .leftJoinAndSelect(
-      'social_profile.projectVerificationForm',
-      'projectVerificationForm',
-    )
-    .getOne();
-};
+export const findSocialProfileBySocialNetworkIdAndSocialNetwork =
+  async (params: {
+    socialNetworkId: string;
+    socialNetwork: string;
+  }): Promise<SocialProfile | undefined> => {
+    const { socialNetworkId, socialNetwork } = params;
+    return SocialProfile.createQueryBuilder('social_profile')
+      .where({
+        socialNetworkId,
+      })
+      .andWhere({
+        socialNetworkId,
+        socialNetwork,
+      })
+      .leftJoinAndSelect('social_profile.project', 'project')
+      .leftJoinAndSelect('social_profile.user', 'user')
+      .leftJoinAndSelect(
+        'social_profile.projectVerificationForm',
+        'projectVerificationForm',
+      )
+      .getOne();
+  };
 
 export const findSocialProfilesByProjectVerificationId = async (
   projectVerificationFormId: number,
@@ -82,7 +79,7 @@ export const findSocialProfilesByProjectVerificationId = async (
 
 export const verifySocialProfileById = async (params: {
   socialProfileId: number;
-}): Promise<ProjectVerificationForm> => {
+}): Promise<SocialProfile> => {
   const { socialProfileId } = params;
   const socialProfile = await findSocialProfileById(socialProfileId);
   if (!socialProfile) {
@@ -90,5 +87,5 @@ export const verifySocialProfileById = async (params: {
   }
 
   socialProfile.isVerified = true;
-  return projectVerificationForm?.save();
+  return socialProfile?.save();
 };

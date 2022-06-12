@@ -31,6 +31,8 @@ export const errorMessages = {
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM:
     'You are not the owner of this project verification form.',
+  PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT:
+    'project verification form is not draft, so you cant add social profile to it',
   YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM:
     'You already have added this social profile for this verification form',
   PROJECT_VERIFICATION_FORM_NOT_FOUND: 'Project verification form not found',

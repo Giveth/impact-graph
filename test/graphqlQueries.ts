@@ -1124,3 +1124,23 @@ export const updateProjectVerificationFormMutation = `
                     
             }
         `;
+
+export const addNewSocialProfileMutation = `
+        mutation addNewSocialProfile($projectVerificationId: Int!, $socialNetwork: String!, $socialNetworkId: String!){
+           addNewSocialProfile(projectVerificationId:$projectVerificationId, socialNetwork:$socialNetwork, socialNetworkId : $socialNetworkId) {
+                      socialNetwork
+                      socialNetworkId
+                      isVerified
+                      user {
+                        id
+                      }
+                      project {
+                        id
+                      }
+                      projectVerificationForm {
+                        id
+                      }
+                    }
+                    
+            }
+        `;
