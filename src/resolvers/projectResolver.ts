@@ -1212,6 +1212,7 @@ export class ProjectResolver {
   ) {
     const viewedProject = await this.projectRepository
       .createQueryBuilder('project')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .innerJoinAndSelect('project.categories', 'categories')
       .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
         slug,
