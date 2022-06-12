@@ -71,6 +71,19 @@ export const addNewProjectAddress = async (params: {
   return ProjectAddress.create(params).save();
 };
 
+export const addBulkNewProjectAddress = async (
+  params: {
+    project: Project;
+    user: User;
+    address: string;
+    title?: string;
+    isRecipient?: boolean;
+    networkId: number;
+  }[],
+): Promise<void> => {
+  await ProjectAddress.insert(params.map(item => ProjectAddress.create(item)));
+};
+
 export const removeRelatedAddressOfProject = async (params: {
   project: Project;
 }): Promise<void> => {

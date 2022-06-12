@@ -71,6 +71,7 @@ import {
   removeRelatedAddressOfProject,
   isWalletAddressInPurpleList,
   findProjectRecipientAddressByProjectId,
+  addBulkNewProjectAddress,
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 
@@ -691,15 +692,17 @@ export class ProjectResolver {
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
       await removeRelatedAddressOfProject({ project });
-      for (const relatedAddress of newProjectData.addresses) {
-        await addNewProjectAddress({
-          project,
-          user: adminUser,
-          address: relatedAddress.address,
-          networkId: relatedAddress.networkId,
-          isRecipient: true,
-        });
-      }
+      await addBulkNewProjectAddress(
+        newProjectData?.addresses.map(relatedAddress => {
+          return {
+            project,
+            user: adminUser,
+            address: relatedAddress.address,
+            networkId: relatedAddress.networkId,
+            isRecipient: true,
+          };
+        }),
+      );
     }
     project.adminUser = adminUser;
     project.addresses = await findProjectRecipientAddressByProjectId({
@@ -831,15 +834,26 @@ export class ProjectResolver {
     const newProject = await this.projectRepository.save(project);
     const adminUser = (await findUserById(Number(newProject.admin))) as User;
     newProject.adminUser = adminUser;
-    for (const relatedAddress of projectInput?.addresses) {
-      await addNewProjectAddress({
-        project,
-        user: adminUser,
-        address: relatedAddress.address,
-        networkId: relatedAddress.networkId,
-        isRecipient: true,
-      });
-    }
+    // for (const relatedAddress of projectInput?.addresses) {
+    //   await addNewProjectAddress({
+    //     project,
+    //     user: adminUser,
+    //     address: relatedAddress.address,
+    //     networkId: relatedAddress.networkId,
+    //     isRecipient: true,
+    //   });
+    // }
+    await addBulkNewProjectAddress(
+      projectInput?.addresses.map(relatedAddress => {
+        return {
+          project,
+          user: adminUser,
+          address: relatedAddress.address,
+          networkId: relatedAddress.networkId,
+          isRecipient: true,
+        };
+      }),
+    );
     newProject.addresses = await findProjectRecipientAddressByProjectId({
       projectId: project.id,
     });

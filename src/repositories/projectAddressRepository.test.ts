@@ -1,7 +1,9 @@
 import {
+  addBulkNewProjectAddress,
   addNewProjectAddress,
   findProjectRecipientAddressByNetworkId,
   findProjectRecipientAddressByProjectId,
+  findRelatedAddressByWalletAddress,
   getPurpleListAddresses,
   isWalletAddressInPurpleList,
   removeRelatedAddressOfProject,
@@ -21,6 +23,10 @@ describe(
   removeRelatedAddressOfProjectTestCases,
 );
 describe('addNewProjectAddress test cases', addNewProjectAddressTestCases);
+describe(
+  'addBulkNewProjectAddress test cases',
+  addBulkNewProjectAddressTestCases,
+);
 describe(
   'findProjectRecipientAddressByNetworkId test cases',
   findProjectRecipientAddressByNetworkIdTestCases,
@@ -137,6 +143,71 @@ function addNewProjectAddressTestCases() {
         ({ projectAddress }) => projectAddress === walletAddress,
       ),
     );
+  });
+}
+function addBulkNewProjectAddressTestCases() {
+  it('should add one related address ', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+      admin: String(user.id),
+    });
+    const newAddress = generateRandomEtheriumAddress();
+    await addBulkNewProjectAddress([
+      {
+        address: newAddress,
+        networkId: NETWORK_IDS.XDAI,
+        project,
+        user,
+      },
+    ]);
+    const newRelatedAddress = await findRelatedAddressByWalletAddress(
+      newAddress,
+    );
+    assert.isOk(newRelatedAddress);
+    assert.equal(newRelatedAddress?.address, newAddress);
+    assert.isFalse(newRelatedAddress?.isRecipient);
+  });
+  it('should add two related address ', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+      admin: String(user.id),
+    });
+    const newAddress1 = generateRandomEtheriumAddress();
+    const newAddress2 = generateRandomEtheriumAddress();
+    await addBulkNewProjectAddress([
+      {
+        address: newAddress1,
+        networkId: NETWORK_IDS.XDAI,
+        project,
+        user,
+      },
+      {
+        address: newAddress2,
+        networkId: NETWORK_IDS.XDAI,
+        project,
+        user,
+      },
+    ]);
+    const newRelatedAddress1 = await findRelatedAddressByWalletAddress(
+      newAddress1,
+    );
+    assert.isOk(newRelatedAddress1);
+    assert.equal(newRelatedAddress1?.address, newAddress1);
+    assert.isFalse(newRelatedAddress1?.isRecipient);
+    const newRelatedAddress2 = await findRelatedAddressByWalletAddress(
+      newAddress2,
+    );
+    assert.isOk(newRelatedAddress2);
+    assert.equal(newRelatedAddress2?.address, newAddress2);
+    assert.isFalse(newRelatedAddress2?.isRecipient);
   });
 }
 function findProjectRecipientAddressByNetworkIdTestCases() {
