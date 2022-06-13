@@ -6,6 +6,8 @@ export const errorMessages = {
   YOU_ARE_NOT_OWNER_OF_THIS_DONATION: 'You are now owner of this donation',
   NOT_SUPPORTED_THIRD_PARTY_API: 'Third Party API not supported',
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
+  YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL:
+    'You should fill email in personal info step before confirming it',
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',
   INVALID_AUTHORIZATION_VERSION: 'Authorizatio version is not valid',

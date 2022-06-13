@@ -1029,6 +1029,10 @@ function projectVerificationSendEmailConfirmationTestCases() {
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
       personalInfo,
     }).save();
+    projectVerification.email = 'test email it should be over written';
+    projectVerification.emailConfirmed = true;
+    await projectVerification.save();
+
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
       graphqlUrl,
@@ -1045,6 +1049,13 @@ function projectVerificationSendEmailConfirmationTestCases() {
       },
     );
     assert.isOk(result.data.data.projectVerificationSendEmailConfirmation);
+    assert.isFalse(
+      result.data.data.projectVerificationSendEmailConfirmation.emailConfirmed,
+    );
+    assert.equal(
+      result.data.data.projectVerificationSendEmailConfirmation.email,
+      personalInfo.email,
+    );
     assert.equal(
       result.data.data.projectVerificationSendEmailConfirmation.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,

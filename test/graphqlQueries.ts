@@ -896,6 +896,7 @@ export const getCurrentProjectVerificationFormQuery = `
                     id
                     isTermAndConditionsAccepted
                     emailConfirmationTokenExpiredAt
+                    email
                     emailConfirmationToken
                     emailConfirmationSent
                     emailConfirmationSentAt
@@ -958,6 +959,7 @@ export const projectVerificationConfirmEmail = `
             id
             isTermAndConditionsAccepted
             emailConfirmationTokenExpiredAt
+            email
             emailConfirmationToken
             emailConfirmationSent
             emailConfirmationSentAt
@@ -1015,6 +1017,7 @@ export const projectVerificationSendEmailConfirmation = `
             id
             isTermAndConditionsAccepted
             emailConfirmationTokenExpiredAt
+            email
             emailConfirmationToken
             emailConfirmationSent
             emailConfirmationSentAt
@@ -1072,6 +1075,7 @@ export const updateProjectVerificationFormMutation = `
                     id
                     isTermAndConditionsAccepted
                     emailConfirmationTokenExpiredAt
+                    email
                     emailConfirmationToken
                     emailConfirmationSent
                     emailConfirmationSentAt

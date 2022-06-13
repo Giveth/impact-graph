@@ -180,11 +180,15 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @Field(type => String, { nullable: true })
   @Column('text', { nullable: true })
+  email?: string;
+
+  @Field(type => String, { nullable: true })
+  @Column('text', { nullable: true })
   emailConfirmationToken: string | null;
 
   @Field(type => Date, { nullable: true })
   @Column('timestamptz', { nullable: true })
-  emailConfirmationTokenExpiredAt?: Date;
+  emailConfirmationTokenExpiredAt: Date | null;
 
   @Field(type => Boolean, { nullable: true })
   @Column({ default: false })
@@ -192,7 +196,7 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @Field(type => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true })
-  emailConfirmationSentAt?: Date;
+  emailConfirmationSentAt: Date | null;
 
   @Field(type => Date, { nullable: true })
   @Column({ nullable: true })

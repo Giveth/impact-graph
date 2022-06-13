@@ -64,6 +64,7 @@ export class ProjectVerificationFormResolver {
         throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
       }
 
+      projectVerificationForm.emailConfirmationTokenExpiredAt = null;
       projectVerificationForm.emailConfirmationToken = null;
       projectVerificationForm.emailConfirmedAt = new Date();
       projectVerificationForm.emailConfirmed = true;
@@ -82,7 +83,9 @@ export class ProjectVerificationFormResolver {
       }
 
       projectVerificationForm.emailConfirmed = false;
+      projectVerificationForm.emailConfirmationTokenExpiredAt = null;
       projectVerificationForm.emailConfirmationSent = false;
+      projectVerificationForm.emailConfirmationSentAt = null;
       projectVerificationForm.emailConfirmationToken = null;
 
       await projectVerificationForm.save();
@@ -116,10 +119,15 @@ export class ProjectVerificationFormResolver {
           errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
         );
       }
-
+      const email = projectVerificationForm.personalInfo.email;
       const project = await findProjectById(projectVerificationForm.projectId);
       if (!project) {
         throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      }
+      if (!email) {
+        throw new Error(
+          errorMessages.YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL,
+        );
       }
 
       const token = jwt.sign(
@@ -135,20 +143,18 @@ export class ProjectVerificationFormResolver {
         .toDate();
       projectVerificationForm.emailConfirmationToken = token;
       projectVerificationForm.emailConfirmationSent = true;
+      projectVerificationForm.emailConfirmed = false;
+      projectVerificationForm.email = email;
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
 
       const callbackUrl = `https://${dappUrl}/verification/${project.slug}/${token}`;
       const emailConfirmationData = {
-        email: projectVerificationForm.personalInfo.email,
+        email,
         callbackUrl,
       };
 
-      await sendMailConfirmationEmail(
-        projectVerificationForm.personalInfo.email!,
-        project,
-        token,
-      );
+      await sendMailConfirmationEmail(email, project, token);
 
       analytics.track(
         SegmentEvents.SEND_EMAIL_CONFIRMATION,
