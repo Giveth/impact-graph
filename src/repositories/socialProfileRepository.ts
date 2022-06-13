@@ -47,9 +47,6 @@ export const findSocialProfileBySocialNetworkIdAndSocialNetwork =
     return SocialProfile.createQueryBuilder('social_profile')
       .where({
         socialNetworkId,
-      })
-      .andWhere({
-        socialNetworkId,
         socialNetwork,
       })
       .leftJoinAndSelect('social_profile.project', 'project')
@@ -60,6 +57,26 @@ export const findSocialProfileBySocialNetworkIdAndSocialNetwork =
       )
       .getOne();
   };
+
+export const isSocialNotworkAddedToVerificationForm = async (params: {
+  socialNetworkId: string;
+  socialNetwork: string;
+  projectVerificationFormId: number;
+}): Promise<Boolean> => {
+  const { socialNetworkId, socialNetwork, projectVerificationFormId } = params;
+  const socialProfilesCount = await SocialProfile.createQueryBuilder(
+    'social_profile',
+  )
+    .where({
+      socialNetworkId,
+      socialNetwork,
+    })
+    .andWhere(`"projectVerificationFormId"=:projectVerificationFormId`, {
+      projectVerificationFormId,
+    })
+    .getCount();
+  return socialProfilesCount > 0;
+};
 
 export const findSocialProfilesByProjectVerificationId = async (
   projectVerificationFormId: number,

@@ -394,7 +394,6 @@ function addNewSocialProfileFormMutationTestCases() {
         },
       },
     );
-    // console.log(' result.data',  result.data)
     assert.equal(
       result.data.errors[0].message,
       errorMessages.YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM,

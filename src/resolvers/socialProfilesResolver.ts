@@ -7,6 +7,7 @@ import {
   createSocialProfile,
   findSocialProfileById,
   findSocialProfileBySocialNetworkIdAndSocialNetwork,
+  isSocialNotworkAddedToVerificationForm,
 } from '../repositories/socialProfileRepository';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
@@ -42,18 +43,13 @@ export class SocialProfilesResolver {
         errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
       );
     }
-    const savedSocialProfile =
-      await findSocialProfileBySocialNetworkIdAndSocialNetwork({
+    const isSocialNetworkAlreadyAdded =
+      await isSocialNotworkAddedToVerificationForm({
         socialNetworkId,
         socialNetwork,
+        projectVerificationFormId: projectVerificationId,
       });
-    // console.log('check existance', JSON.stringify({
-    //   savedSocialProfile, projectVerificationId}    , null, 4))
-    if (
-      savedSocialProfile &&
-      savedSocialProfile.projectVerificationForm.id === projectVerificationId
-    ) {
-      // TODO should add a funciton in socialProfileRepository for this purpose
+    if (isSocialNetworkAlreadyAdded) {
       throw new Error(
         errorMessages.YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM,
       );
