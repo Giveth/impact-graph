@@ -273,13 +273,13 @@ function updateProjectVerificationFormMutationTestCases() {
     fullName: 'test',
     walletAddress: 'xxxxx',
   };
-  const projectContacts: ProjectContacts = {
-    facebook: 'facebookAddress',
-    instagram: 'instagramAddress',
-    linkedin: 'linkedinAddress',
-    twitter: '',
-    youtube: 'youtubeAddress',
-  };
+  const projectContacts: ProjectContacts[] = [
+    { name: 'facebook', url: 'facebookAddress' },
+    { name: 'instagram', url: 'instagramAddress' },
+    { name: 'linkedin', url: 'linkedinAddress' },
+    { name: 'linkedinAddress', url: 'linkedinAddressAddress' },
+    { name: 'youtube', url: 'youtubeAddress' },
+  ];
   const projectRegistry: ProjectRegistry = {
     organizationWebsite: 'org website',
     organizationCountry: 'France',
@@ -341,12 +341,16 @@ function updateProjectVerificationFormMutationTestCases() {
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
     assert.equal(
-      result.data.data.updateProjectVerificationForm.projectContacts.linkedin,
-      projectContacts.linkedin,
+      result.data.data.updateProjectVerificationForm.projectContacts.length,
+      projectContacts.length,
     );
     assert.equal(
-      result.data.data.updateProjectVerificationForm.projectContacts.twitter,
-      projectContacts.twitter,
+      result.data.data.updateProjectVerificationForm.projectContacts[0].url,
+      projectContacts[0].url,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.projectContacts[1].name,
+      projectContacts[1].name,
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,

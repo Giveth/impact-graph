@@ -59,15 +59,9 @@ export class ProjectRegistry {
 @ObjectType()
 export class ProjectContacts {
   @Field({ nullable: true })
-  twitter?: string;
+  name?: string;
   @Field({ nullable: true })
-  facebook?: string;
-  @Field({ nullable: true })
-  linkedin?: string;
-  @Field({ nullable: true })
-  instagram?: string;
-  @Field({ nullable: true })
-  youtube?: string;
+  url?: string;
 }
 
 @ObjectType()
@@ -158,9 +152,9 @@ export class ProjectVerificationForm extends BaseEntity {
   @Column('jsonb', { nullable: true })
   projectRegistry: ProjectRegistry;
 
-  @Field(type => ProjectContacts, { nullable: true })
+  @Field(type => [ProjectContacts], { nullable: true })
   @Column('jsonb', { nullable: true })
-  projectContacts: ProjectContacts;
+  projectContacts: ProjectContacts[];
 
   @Field(type => Milestones, { nullable: true })
   @Column('jsonb', { nullable: true })

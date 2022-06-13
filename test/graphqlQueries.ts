@@ -855,12 +855,8 @@ export const createProjectVerificationFormMutation = `
                       organizationWebsite
                     }
                     projectContacts {
-                      youtube
-                      instagram
-                      linkedin
-                      facebook
-                      instagram
-                      twitter
+                      name
+                      url
                     }
                     milestones {
                       mission
@@ -909,12 +905,8 @@ export const getCurrentProjectVerificationFormQuery = `
                       organizationWebsite
                     }
                     projectContacts {
-                      youtube
-                      instagram
-                      linkedin
-                      facebook
-                      instagram
-                      twitter
+                      name
+                      url
                     }
                     milestones {
                       mission
@@ -977,12 +969,8 @@ export const projectVerificationConfirmEmail = `
               fullName
             }
             projectContacts {
-              youtube
-              instagram
-              linkedin
-              facebook
-              instagram
-              twitter
+              name
+              url
             }
             milestones {
               mission
@@ -1035,12 +1023,8 @@ export const projectVerificationSendEmailConfirmation = `
               fullName
             }
             projectContacts {
-              youtube
-              instagram
-              linkedin
-              facebook
-              instagram
-              twitter
+              name
+              url
             }
             milestones {
               mission
@@ -1093,12 +1077,8 @@ export const updateProjectVerificationFormMutation = `
                       fullName
                     }
                     projectContacts {
-                      youtube
-                      instagram
-                      linkedin
-                      facebook
-                      instagram
-                      twitter
+                      name
+                      url
                     }
                     milestones {
                       mission

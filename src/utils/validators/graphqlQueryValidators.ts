@@ -89,13 +89,12 @@ const projectRegistryValidator = Joi.object({
   organizationDescription: Joi.string().allow(''),
 });
 
-const projectContactsValidator = Joi.object({
-  twitter: Joi.string().allow(''),
-  facebook: Joi.string().allow(''),
-  linkedin: Joi.string().allow(''),
-  youtube: Joi.string().allow(''),
-  instagram: Joi.string().allow(''),
-});
+const projectContactsValidator = Joi.array().items(
+  Joi.object({
+    name: Joi.string().required(),
+    url: Joi.string().required(),
+  }),
+);
 
 const milestonesValidator = Joi.object({
   foundationDate: Joi.date().allow(''),

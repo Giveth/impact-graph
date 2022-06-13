@@ -30,7 +30,6 @@ import {
 } from '../repositories/projectVerificationRepository';
 import { errorMessages } from '../utils/errorMessages';
 import { ProjectVerificationUpdateInput } from '../resolvers/types/ProjectVerificationUpdateInput';
-import { logger } from '../utils/logger';
 
 export const updateProjectVerificationFormByUser = async (params: {
   projectVerificationForm: ProjectVerificationForm;
@@ -41,7 +40,7 @@ export const updateProjectVerificationFormByUser = async (params: {
   const personalInfo =
     projectVerificationUpdateInput.personalInfo as PersonalInfo;
   const projectContacts =
-    projectVerificationUpdateInput.projectContacts as ProjectContacts;
+    projectVerificationUpdateInput.projectContacts as ProjectContacts[];
   const projectRegistry =
     projectVerificationUpdateInput.projectRegistry as ProjectRegistry;
   const milestones = projectVerificationUpdateInput.milestones as Milestones;

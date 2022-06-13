@@ -1,4 +1,5 @@
 import { Field, InputType } from 'type-graphql';
+import { ProjectContacts } from '../../entities/projectVerificationForm';
 
 @InputType()
 class ProjectPersonalInfoInputType {
@@ -25,15 +26,9 @@ class MilestonesInputType {
 @InputType()
 class ProjectContactsInputType {
   @Field({ nullable: true })
-  twitter?: string;
+  name?: string;
   @Field({ nullable: true })
-  facebook?: string;
-  @Field({ nullable: true })
-  linkedin?: string;
-  @Field({ nullable: true })
-  instagram?: string;
-  @Field({ nullable: true })
-  youtube?: string;
+  url?: string;
 }
 
 @InputType()
@@ -81,8 +76,8 @@ export class ProjectVerificationUpdateInput {
   @Field({ nullable: true })
   projectRegistry?: ProjectRegistryInputType;
 
-  @Field({ nullable: true })
-  projectContacts?: ProjectContactsInputType;
+  @Field(type => [ProjectContactsInputType], { nullable: true })
+  projectContacts?: ProjectContactsInputType[];
 
   @Field({ nullable: true })
   milestones?: MilestonesInputType;
