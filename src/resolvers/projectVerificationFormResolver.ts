@@ -64,7 +64,6 @@ export class ProjectVerificationFormResolver {
         throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
       }
 
-      projectVerificationForm.emailConfirmationTokenExpiredAt = null;
       projectVerificationForm.emailConfirmationToken = null;
       projectVerificationForm.emailConfirmedAt = new Date();
       projectVerificationForm.emailConfirmed = true;
@@ -83,7 +82,6 @@ export class ProjectVerificationFormResolver {
       }
 
       projectVerificationForm.emailConfirmed = false;
-      projectVerificationForm.emailConfirmationTokenExpiredAt = null;
       projectVerificationForm.emailConfirmationSent = false;
       projectVerificationForm.emailConfirmationSentAt = null;
       projectVerificationForm.emailConfirmationToken = null;
