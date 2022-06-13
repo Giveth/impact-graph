@@ -66,8 +66,10 @@ export class ProjectContacts {
 
 @ObjectType()
 export class Milestones {
-  @Field({ nullable: true })
+  @Field(type => Date, { nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   foundationDate?: Date;
+
   @Field({ nullable: true })
   mission?: string;
   @Field({ nullable: true })
