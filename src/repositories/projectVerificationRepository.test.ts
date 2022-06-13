@@ -152,25 +152,25 @@ function updateProjectContactsOfProjectVerificationTestCases() {
       projectId: project.id,
       userId: user.id,
     });
-    const projectContacts: ProjectContacts = {
-      facebook: 'facebookAddress',
-      instagram: 'instagramAddress',
-      linkedin: 'linkedinAddress',
-      twitter: '',
-      youtube: 'youtubeAddress',
-    };
+    const projectContacts: ProjectContacts[] = [
+      { name: 'facebook', url: 'facebookAddress' },
+      { name: 'instagram', url: 'instagramAddress' },
+      { name: 'linkedin', url: 'linkedinAddress' },
+      { name: 'linkedinAddress', url: 'linkedinAddressAddress' },
+      { name: 'youtube', url: 'youtubeAddress' },
+    ];
     const updatedProjectVerification =
       await updateProjectContactsOfProjectVerification({
         projectVerificationId: projectVerificationForm.id,
         projectContacts,
       });
     assert.equal(
-      updatedProjectVerification?.projectContacts.facebook,
-      projectContacts.facebook,
+      updatedProjectVerification?.projectContacts.length,
+      projectContacts.length,
     );
     assert.equal(
-      updatedProjectVerification?.projectContacts.twitter,
-      projectContacts.twitter,
+      updatedProjectVerification?.projectContacts[0].name,
+      projectContacts[0].name,
     );
   });
 }
