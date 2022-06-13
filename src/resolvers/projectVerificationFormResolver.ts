@@ -83,7 +83,6 @@ export class ProjectVerificationFormResolver {
 
       projectVerificationForm.emailConfirmed = false;
       projectVerificationForm.emailConfirmationSent = false;
-      projectVerificationForm.emailConfirmationSentAt = null;
       projectVerificationForm.emailConfirmationToken = null;
 
       await projectVerificationForm.save();
