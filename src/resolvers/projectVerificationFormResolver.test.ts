@@ -1174,7 +1174,7 @@ function projectVerificationConfirmEmailTestCases() {
     assert.isFalse(
       projectVerificationReinitializedEmailParams!.emailConfirmationSent,
     );
-    assert.isNull(
+    assert.isNotOk(
       projectVerificationReinitializedEmailParams!.emailConfirmationSentAt,
     );
     assert.isNull(

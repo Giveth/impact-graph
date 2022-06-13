@@ -183,7 +183,7 @@ export class ProjectVerificationForm extends BaseEntity {
   emailConfirmationToken: string | null;
 
   @Field(type => Date, { nullable: true })
-  @Column('date', { nullable: true })
+  @Column('timestamptz', { nullable: true })
   emailConfirmationTokenExpiredAt?: Date;
 
   @Field(type => Boolean, { nullable: true })
@@ -192,7 +192,7 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @Field(type => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true })
-  emailConfirmationSentAt: Date | null;
+  emailConfirmationSentAt?: Date;
 
   @Field(type => Date, { nullable: true })
   @Column({ nullable: true })
