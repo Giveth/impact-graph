@@ -1070,6 +1070,45 @@ function projectVerificationSendEmailConfirmationTestCases() {
         .emailConfirmationToken,
     );
   });
+  it('should throw error when sending email confirmation when email didnt change and is confirmed', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      personalInfo,
+    }).save();
+    projectVerification.email = personalInfo.email;
+    projectVerification.emailConfirmed = true;
+    await projectVerification.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: projectVerificationSendEmailConfirmation,
+        variables: {
+          projectVerificationFormId: projectVerification.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_ALREADY_VERIFIED_THIS_EMAIL,
+    );
+  });
 }
 function projectVerificationConfirmEmailTestCases() {
   const personalInfo: PersonalInfo = {

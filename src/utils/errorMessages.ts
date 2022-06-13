@@ -8,6 +8,7 @@ export const errorMessages = {
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL:
     'You should fill email in personal info step before confirming it',
+  YOU_ALREADY_VERIFIED_THIS_EMAIL: 'You already verified this email',
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',
   INVALID_AUTHORIZATION_VERSION: 'Authorizatio version is not valid',

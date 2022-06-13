@@ -129,6 +129,12 @@ export class ProjectVerificationFormResolver {
           errorMessages.YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL,
         );
       }
+      if (
+        email === projectVerificationForm.email &&
+        projectVerificationForm.emailConfirmed
+      ) {
+        throw new Error(errorMessages.YOU_ALREADY_VERIFIED_THIS_EMAIL);
+      }
 
       const token = jwt.sign(
         { projectVerificationFormId },
