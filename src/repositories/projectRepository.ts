@@ -1,4 +1,6 @@
+import { UpdateResult } from 'typeorm';
 import { Project } from '../entities/project';
+import { errorMessages } from '../utils/errorMessages';
 
 export const findProjectById = (
   projectId: number,
@@ -15,6 +17,31 @@ export const findProjectBySlug = (
       slug,
     })
     .getOne();
+};
+
+export const verifyMultipleProjects = async (params: {
+  verified: boolean;
+  projectsIds: string[];
+}): Promise<UpdateResult> => {
+  return Project.createQueryBuilder('project')
+    .update<Project>(Project, { verified: params.verified })
+    .where('project.id IN (:...ids)')
+    .setParameter('ids', params.projectsIds)
+    .returning('*')
+    .updateEntity(true)
+    .execute();
+};
+
+export const verifyProject = async (params: {
+  verified: boolean;
+  projectId: number;
+}): Promise<Project> => {
+  const project = await Project.findOne({ id: params.projectId });
+
+  if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+
+  project.verified = params.verified;
+  return project.save();
 };
 
 export const findProjectByWalletAddress = async (

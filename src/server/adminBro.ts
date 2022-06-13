@@ -49,7 +49,18 @@ import {
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
-import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import {
+  ProjectVerificationForm,
+  PROJECT_VERIFICATION_STATUSES,
+} from '../entities/projectVerificationForm';
+import {
+  verifyForm,
+  verifyMultipleForms,
+} from '../repositories/projectVerificationRepository';
+import {
+  verifyMultipleProjects,
+  verifyProject,
+} from '../repositories/projectRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -103,6 +114,9 @@ interface AdminBroRequestInterface {
   record?: any;
   query?: {
     recordIds?: string;
+  };
+  params?: {
+    recordId?: string;
   };
 }
 
@@ -254,6 +268,9 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             edit: {
+              isVisible: false,
+            },
+            show: {
               isVisible: true,
             },
             delete: {
@@ -261,6 +278,38 @@ const getAdminBroInstance = async () => {
             },
             new: {
               isVisible: false,
+            },
+            verifyProject: {
+              actionType: 'record',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifySingleVerificationForm(context, request, true);
+              },
+              component: false,
+            },
+            rejectProject: {
+              actionType: 'record',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifySingleVerificationForm(context, request, false);
+              },
+              component: false,
+            },
+            verifyProjects: {
+              actionType: 'bulk',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifyVerificationForms(context, request, true);
+              },
+              component: false,
+            },
+            rejectProjects: {
+              actionType: 'bulk',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifyVerificationForms(context, request, false);
+              },
+              component: false,
             },
           },
         },
@@ -1192,6 +1241,86 @@ export const listDelist = async (
     }),
     notice: {
       message: `Project(s) successfully ${list ? 'listed' : 'unlisted'}`,
+      type: 'success',
+    },
+  };
+};
+
+export const verifySingleVerificationForm = async (
+  context: AdminBroContextInterface,
+  request: AdminBroRequestInterface,
+  verified: boolean,
+) => {
+  const { records, currentAdmin } = context;
+  const verificationStatus = verified
+    ? PROJECT_VERIFICATION_STATUSES.VERIFIED
+    : PROJECT_VERIFICATION_STATUSES.REJECTED;
+  const formId = Number(request?.params?.recordId);
+  try {
+    // call repositories
+    const projectForm = await verifyForm({ verificationStatus, formId });
+    const projectId = projectForm.projectId;
+    const project = await verifyProject({ verified, projectId });
+
+    const segmentEvent = verified
+      ? SegmentEvents.PROJECT_VERIFIED
+      : SegmentEvents.PROJECT_REJECTED;
+
+    Project.notifySegment(project, segmentEvent);
+  } catch (error) {
+    logger.error('verifyVerificationForm() error', error);
+    throw error;
+  }
+  return {
+    redirectUrl: 'ProjectVerificationForm',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message: `Project(s) successfully ${verified ? 'verified' : 'rejected'}`,
+      type: 'success',
+    },
+  };
+};
+
+export const verifyVerificationForms = async (
+  context: AdminBroContextInterface,
+  request: AdminBroRequestInterface,
+  verified: boolean,
+) => {
+  const { records, currentAdmin } = context;
+  const verificationStatus = verified
+    ? PROJECT_VERIFICATION_STATUSES.VERIFIED
+    : PROJECT_VERIFICATION_STATUSES.REJECTED;
+  const formIds = request?.query?.recordIds?.split(',');
+
+  try {
+    // call repositories
+    const projectsForms = await verifyMultipleForms({
+      verificationStatus,
+      formIds,
+    });
+    const projectsIds = projectsForms.raw.map(projectForm => {
+      return projectForm.projectId;
+    });
+    const projects = await verifyMultipleProjects({ verified, projectsIds });
+
+    const segmentEvent = verified
+      ? SegmentEvents.PROJECT_VERIFIED
+      : SegmentEvents.PROJECT_REJECTED;
+
+    Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
+  } catch (error) {
+    logger.error('verifyVerificationForm() error', error);
+    throw error;
+  }
+  return {
+    redirectUrl: 'ProjectVerificationForm',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message: `Project(s) successfully ${verified ? 'verified' : 'rejected'}`,
       type: 'success',
     },
   };

@@ -107,15 +107,15 @@ export class ProjectVerificationForm extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  // @Index()
-  // @Field(type => Project)
-  // @ManyToOne(type => Project, { eager: true })
-  // project: Project;
-  // @RelationId(
-  //   (projectVerificationForm: ProjectVerificationForm) =>
-  //     projectVerificationForm.project,
-  // )
-  // projectId: number;
+  @Index()
+  @Field(type => Project)
+  @ManyToOne(type => Project)
+  project: Project;
+  @RelationId(
+    (projectVerificationForm: ProjectVerificationForm) =>
+      projectVerificationForm.project,
+  )
+  projectId: number;
 
   @Index()
   @Field(type => User, { nullable: true })

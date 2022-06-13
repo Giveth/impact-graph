@@ -30,6 +30,7 @@ export enum UserRole {
   ADMIN = 'admin',
   RESTRICTED = 'restricted',
   OPERATOR = 'operator',
+  VERIFICATION_FORM_VALIDATOR = 'validator',
 }
 
 @ObjectType()

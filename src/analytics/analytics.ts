@@ -9,6 +9,7 @@ export enum SegmentEvents {
   PROJECT_EDITED = 'Project edited',
   PROJECT_BADGE_REVOKED = 'Project badge revoked',
   PROJECT_VERIFIED = 'Project verified',
+  PROJECT_REJECTED = 'Project rejected',
   PROJECT_UNVERIFIED = 'Project unverified',
   PROJECT_ACTIVATED = 'Project activated',
   PROJECT_DEACTIVATED = 'Project deactivated',
