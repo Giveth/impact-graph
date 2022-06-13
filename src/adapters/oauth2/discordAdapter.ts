@@ -46,7 +46,7 @@ export class DiscordAdapter implements SocialNetworkOauth2AdapterInterface {
         username: result.data.username,
       };
     } catch (e) {
-      logger.error('getUserInfoByOauth2Code error', e);
+      logger.error('getUserInfoByOauth2Code discord error', e);
       throw e;
     }
   }

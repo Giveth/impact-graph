@@ -103,4 +103,6 @@ export const errorMessages = {
   SOCIAL_PROFILE_IS_ALREADY_VERIFIED: 'Social profile is already verified',
   YOU_ARE_NOT_THE_OWNER_OF_THIS_SOCIAL_PROFILE:
     'You are not the owner of social profile',
+  ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE:
+    'Error in getting accessToken by authorization code',
 };

@@ -8,31 +8,42 @@ import {
   verifySocialProfileById,
 } from '../repositories/socialProfileRepository';
 import { errorMessages } from '../utils/errorMessages';
+import { oauth2CallbackHandler } from '../services/socialProfileService';
 
 export const oauth2CallbacksRouter = express.Router();
 oauth2CallbacksRouter.get(
   '/socialProfiles/callback/discord',
   async (request: Request, response: Response) => {
     try {
-      const { state, access_token } = request.query;
-      const discordAdapter = getSocialNetworkAdapter(SOCIAL_NETWORKS.DISCORD);
-      const { username } = await discordAdapter.getUserInfoByOauth2Code({
-        state: state as string,
-        oauth2Code: access_token as string,
-      });
-      const socialProfile = await findSocialProfileById(Number(state));
-      if (socialProfile?.socialNetworkId !== username) {
-        throw new Error(
-          errorMessages.VERIFIED_USERNAME_IS_DIFFERENT_WITH_CLAIMED_ONE,
-        );
-      }
-      await verifySocialProfileById({
-        socialProfileId: socialProfile?.id,
+      await oauth2CallbackHandler({
+        socialNetwork: SOCIAL_NETWORKS.DISCORD,
+        state: request.query.state as string,
+        authorizationCodeOrAccessToken: decodeURI(
+          request.query.access_token as string,
+        ),
       });
       // TODO should get redirect address from frontend
       response.redirect('/');
     } catch (e) {
-      logger.error('create donation in /donations webservice ', e);
+      logger.error('/socialProfiles/callback/discord error ', e);
+      handleExpressError(response, e);
+    }
+  },
+);
+
+oauth2CallbacksRouter.get(
+  '/socialProfiles/callback/google',
+  async (request: Request, response: Response) => {
+    try {
+      await oauth2CallbackHandler({
+        state: request.query.state as string,
+        authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
+        socialNetwork: SOCIAL_NETWORKS.GOOGLE,
+      });
+      // TODO should get redirect address from frontend
+      response.redirect('/');
+    } catch (e) {
+      logger.error('/socialProfiles/callback/discord error ', e);
       handleExpressError(response, e);
     }
   },

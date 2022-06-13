@@ -20,6 +20,7 @@ export const SOCIAL_NETWORKS = {
   INSTAGRAM: 'instagram',
   YOUTUBE: 'youtube',
   DISCORD: 'discord',
+  GOOGLE: 'google',
 };
 
 @Entity()
