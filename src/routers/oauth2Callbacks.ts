@@ -65,3 +65,25 @@ oauth2CallbacksRouter.get(
     }
   },
 );
+oauth2CallbacksRouter.get(
+  '/socialProfiles/callback/linkedin',
+  async (request: Request, response: Response) => {
+    try {
+      const socialProfile = await oauth2CallbackHandler({
+        state: request.query.state as string,
+        authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
+        socialNetwork: SOCIAL_NETWORKS.LINK,
+      });
+      // TODO should get redirect address from frontend
+      response.redirect(
+        generateDappVerificationUrl({
+          url: successPagePath,
+          projectVerificationId: socialProfile.projectVerificationForm.id,
+        }),
+      );
+    } catch (e) {
+      logger.error('/socialProfiles/callback/discord error ', e);
+      handleExpressError(response, e);
+    }
+  },
+);

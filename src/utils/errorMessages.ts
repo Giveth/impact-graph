@@ -2,6 +2,7 @@ export const errorMessages = {
   CHANGE_API_INVALID_TITLE_OR_EIN:
     'ChangeAPI title or EIN not found or invalid',
   INVALID_SOCIAL_NETWORK: 'Invalid social network',
+  NOT_IMPLEMENTED: 'Not implemented',
   SOCIAL_PROFILE_NOT_FOUND: 'Social profile not gound',
   CHANGE_API_TITLE_OR_EIN_NOT_PRECISE:
     'Please query the exact project title or EIN ID from the ChangeAPI site',

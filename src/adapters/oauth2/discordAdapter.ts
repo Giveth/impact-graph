@@ -15,7 +15,6 @@ export class DiscordAdapter implements SocialNetworkOauth2AdapterInterface {
 
   async getUserInfoByOauth2Code(params: {
     oauth2Code: string;
-    state: string;
   }): Promise<GetUserInfoByOauth2Output> {
     // https://discordjs.guide/oauth2/#implicit-grant-flow we can get accessToken directly from discord url
     // but the standard way is to get code here and get access token by code with calling another webservice

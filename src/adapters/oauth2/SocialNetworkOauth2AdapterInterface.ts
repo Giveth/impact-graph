@@ -7,6 +7,5 @@ export interface SocialNetworkOauth2AdapterInterface {
 
   getUserInfoByOauth2Code(params: {
     oauth2Code: string;
-    state: string;
   }): Promise<GetUserInfoByOauth2Output>;
 }

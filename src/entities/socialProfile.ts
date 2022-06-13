@@ -19,6 +19,7 @@ export const SOCIAL_NETWORKS = {
   TWITTER: 'twitter',
   INSTAGRAM: 'instagram',
   YOUTUBE: 'youtube',
+  LINKEDIN: 'linkedin',
   DISCORD: 'discord',
   GOOGLE: 'google',
 };

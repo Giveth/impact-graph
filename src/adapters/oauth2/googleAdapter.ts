@@ -25,7 +25,6 @@ export class GoogleAdapter implements SocialNetworkOauth2AdapterInterface {
 
   async getUserInfoByOauth2Code(params: {
     oauth2Code: string;
-    state: string;
   }): Promise<GetUserInfoByOauth2Output> {
     /**
      * @see {@link https://developers.google.com/identity/protocols/oauth2/openid-connect#sendauthrequest}
