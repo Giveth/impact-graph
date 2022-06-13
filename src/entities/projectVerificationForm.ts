@@ -183,8 +183,8 @@ export class ProjectVerificationForm extends BaseEntity {
   emailConfirmationToken: string | null;
 
   @Field(type => Date, { nullable: true })
-  @Column('text', { nullable: true })
-  emailConfirmationTokenExpiredAt: Date | null;
+  @Column('date', { nullable: true })
+  emailConfirmationTokenExpiredAt?: Date;
 
   @Field(type => Boolean, { nullable: true })
   @Column({ default: false })
