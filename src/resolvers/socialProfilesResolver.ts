@@ -11,16 +11,16 @@ import {
 } from '../repositories/socialProfileRepository';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
+import { setOauth2SocialProfileInRedis } from '../services/socialProfileService';
 
 @Resolver(of => SocialProfile)
 export class SocialProfilesResolver {
-  @Mutation(returns => SocialProfile)
+  @Mutation(returns => String)
   async addNewSocialProfile(
     @Arg('projectVerificationId', type => Int) projectVerificationId: number,
     @Arg('socialNetwork', type => String) socialNetwork: string,
-    @Arg('socialNetworkId', type => String) socialNetworkId: string,
     @Ctx() { req: { user } }: MyContext,
-  ): Promise<SocialProfile> {
+  ): Promise<string> {
     if (!user || !user?.userId) {
       throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
     }
@@ -43,49 +43,15 @@ export class SocialProfilesResolver {
         errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
       );
     }
-    const isSocialNetworkAlreadyAdded =
-      await isSocialNotworkAddedToVerificationForm({
-        socialNetworkId,
-        socialNetwork,
-        projectVerificationFormId: projectVerificationId,
-      });
-    if (isSocialNetworkAlreadyAdded) {
-      throw new Error(
-        errorMessages.YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM,
-      );
-    }
-    return createSocialProfile({
-      socialNetwork,
-      socialNetworkId,
-      projectVerificationId,
-    });
-  }
 
-  @Query(returns => String)
-  async getSocialProfileOauth2Url(
-    @Arg('socialProfileId', type => Int) socialProfileId: number,
-    @Ctx() { req: { user } }: MyContext,
-  ) {
-    if (!user || !user?.userId) {
-      throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-    }
-    const socialProfile = await findSocialProfileById(socialProfileId);
-    if (!socialProfile) {
-      throw new Error(errorMessages.SOCIAL_PROFILE_NOT_FOUND);
-    }
-    if (socialProfile?.user.id !== user.id) {
-      throw new Error(
-        errorMessages.YOU_ARE_NOT_THE_OWNER_OF_THIS_SOCIAL_PROFILE,
-      );
-    }
-    if (socialProfile?.isVerified) {
-      throw new Error(errorMessages.SOCIAL_PROFILE_IS_ALREADY_VERIFIED);
-    }
-    const socialNetworkAdapter = getSocialNetworkAdapter(
-      socialProfile.socialNetwork,
-    );
+    const trackId = await setOauth2SocialProfileInRedis({
+      socialNetwork,
+      projectVerificationFormId: projectVerificationId,
+      userId: user.userId,
+    });
+    const socialNetworkAdapter = getSocialNetworkAdapter(socialNetwork);
     return socialNetworkAdapter.getAuthUrl({
-      socialProfileId,
+      trackId,
     });
   }
 }

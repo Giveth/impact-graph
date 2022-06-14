@@ -3,7 +3,7 @@ export interface GetUserInfoByOauth2Output {
 }
 
 export interface SocialNetworkOauth2AdapterInterface {
-  getAuthUrl(params: { socialProfileId: number }): Promise<string>;
+  getAuthUrl(params: { trackId: string }): Promise<string>;
 
   getUserInfoByOauth2Code(params: {
     oauth2Code: string;

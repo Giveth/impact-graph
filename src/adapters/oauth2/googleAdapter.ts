@@ -17,10 +17,10 @@ export class GoogleAdapter implements SocialNetworkOauth2AdapterInterface {
    * @see {@link https://developers.google.com/identity/protocols/oauth2/openid-connect#sendauthrequest}
    */
 
-  async getAuthUrl(params: { socialProfileId: number }): Promise<string> {
-    const { socialProfileId } = params;
+  async getAuthUrl(params: { trackId: string }): Promise<string> {
+    const { trackId } = params;
     // URL sample https://accounts.google.com/o/oauth2/auth?client_id=639942480910-ssnuetakmjmpgek68b4eu1s1cvbi9k0f.apps.googleusercontent.com&redirect_uri=http://localhost:3040/socialProfiles/callback/google&scope=openid%20email&response_type=code
-    return `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${redirectUrl}&scope=openid%20email&response_type=code&state=${socialProfileId}`;
+    return `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${redirectUrl}&scope=openid%20email&response_type=code&state=${trackId}`;
   }
 
   async getUserInfoByOauth2Code(params: {

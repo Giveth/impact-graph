@@ -7,13 +7,9 @@ import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 
 export class MockOauth2Adapter implements SocialNetworkOauth2AdapterInterface {
-  async getAuthUrl(params: { socialProfileId: number }): Promise<string> {
-    const socialProfile = await findSocialProfileById(params.socialProfileId);
-    if (!socialProfile) {
-      logger.error('getAuthUrl mockAdapter error');
-      throw new Error(errorMessages.SOCIAL_PROFILE_NOT_FOUND);
-    }
-    return `${process.env.GIVETH_IO_BACKEND_BASE_URL}/socialProfiles/callback/${socialProfile?.socialNetwork}`;
+  async getAuthUrl(params: { trackId: string }): Promise<string> {
+    // return `${process.env.GIVETH_IO_BACKEND_BASE_URL}/socialProfiles/callback/${socialProfile?.socialNetwork}`;
+    throw new Error(errorMessages.NOT_IMPLEMENTED);
   }
 
   async getUserInfoByOauth2Code(params: {

@@ -72,7 +72,7 @@ oauth2CallbacksRouter.get(
       const socialProfile = await oauth2CallbackHandler({
         state: request.query.state as string,
         authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
-        socialNetwork: SOCIAL_NETWORKS.LINK,
+        socialNetwork: SOCIAL_NETWORKS.LINKEDIN,
       });
       // TODO should get redirect address from frontend
       response.redirect(

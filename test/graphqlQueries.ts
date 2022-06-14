@@ -1039,6 +1039,10 @@ export const projectVerificationSendEmailConfirmation = `
               instagram
               twitter
             }
+            socialProfiles {
+              socialNetwork
+              socialNetworkId
+            }
             milestones {
               mission
               foundationDate
@@ -1126,21 +1130,7 @@ export const updateProjectVerificationFormMutation = `
         `;
 
 export const addNewSocialProfileMutation = `
-        mutation addNewSocialProfile($projectVerificationId: Int!, $socialNetwork: String!, $socialNetworkId: String!){
-           addNewSocialProfile(projectVerificationId:$projectVerificationId, socialNetwork:$socialNetwork, socialNetworkId : $socialNetworkId) {
-                      socialNetwork
-                      socialNetworkId
-                      isVerified
-                      user {
-                        id
-                      }
-                      project {
-                        id
-                      }
-                      projectVerificationForm {
-                        id
-                      }
-                    }
-                    
-            }
+        mutation addNewSocialProfile($projectVerificationId: Int!, $socialNetwork: String!){
+           addNewSocialProfile(projectVerificationId:$projectVerificationId, socialNetwork:$socialNetwork)
+          } 
         `;

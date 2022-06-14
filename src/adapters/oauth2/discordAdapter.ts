@@ -7,9 +7,9 @@ import { logger } from '../../utils/logger';
 
 export class DiscordAdapter implements SocialNetworkOauth2AdapterInterface {
   // https://discordjs.guide/oauth2/#getting-an-oauth2-url
-  async getAuthUrl(params: { socialProfileId: number }): Promise<string> {
-    const { socialProfileId } = params;
-    const url = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.DISCORD_REDIRECT_URL}&response_type=token&scope=identify&state=${socialProfileId}`;
+  async getAuthUrl(params: { trackId: string }): Promise<string> {
+    const { trackId } = params;
+    const url = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.DISCORD_REDIRECT_URL}&response_type=token&scope=identify&state=${trackId}`;
     return encodeURIComponent(url);
   }
 

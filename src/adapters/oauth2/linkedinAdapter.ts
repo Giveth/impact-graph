@@ -13,14 +13,15 @@ const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
 const redirectUrl = process.env.LINKEDIN_REDIRECT_URL;
 
 export class LinkedinAdapter implements SocialNetworkOauth2AdapterInterface {
-  async getAuthUrl(params: { socialProfileId: number }): Promise<string> {
+  async getAuthUrl(params: { trackId: string }): Promise<string> {
+    const { trackId } = params;
     /**
      * @see {@link https://docs.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?context=linkedin%2Fcontext&tabs=HTTPS#step-2-request-an-authorization-code}
      */
 
     // https://docs.microsoft.com/en-us/linkedin/shared/authentication/getting-access?context=linkedin%2Fcontext#open-permissions-consumer
     const scope = 'r_liteprofile';
-    return `https://www.linkedin.com/oauth/v2/authorization?client_id=${clientId}&redirect_uri=${redirectUrl}&response_type=code&scope=${scope}`;
+    return `https://www.linkedin.com/oauth/v2/authorization?client_id=${clientId}&redirect_uri=${redirectUrl}&response_type=code&scope=${scope}&state=${trackId}`;
   }
 
   async getUserInfoByOauth2Code(params: {
