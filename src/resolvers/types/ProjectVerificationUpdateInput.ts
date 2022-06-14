@@ -1,5 +1,6 @@
 import { Field, InputType } from 'type-graphql';
 import { ProjectContacts } from '../../entities/projectVerificationForm';
+import { Column } from 'typeorm';
 
 @InputType()
 class ProjectPersonalInfoInputType {
@@ -13,7 +14,7 @@ class ProjectPersonalInfoInputType {
 
 @InputType()
 class MilestonesInputType {
-  @Field({ nullable: true })
+  @Field(type => Date, { nullable: true })
   foundationDate?: Date;
   @Field({ nullable: true })
   mission?: string;
