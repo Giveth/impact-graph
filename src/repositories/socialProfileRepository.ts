@@ -109,3 +109,9 @@ export const verifySocialProfileById = async (params: {
   socialProfile.isVerified = true;
   return socialProfile?.save();
 };
+
+export const removeSocialProfileById = async (params: {
+  socialProfileId: number;
+}): Promise<void> => {
+  await SocialProfile.delete(params.socialProfileId);
+};

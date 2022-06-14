@@ -1134,3 +1134,9 @@ export const addNewSocialProfileMutation = `
            addNewSocialProfile(projectVerificationId:$projectVerificationId, socialNetwork:$socialNetwork)
           } 
         `;
+
+export const removeSocialProfileMutation = `
+        mutation removeSocialProfile( $socialProfileId: Int!){
+           removeSocialProfile(socialProfileId:$socialProfileId)
+          } 
+        `;

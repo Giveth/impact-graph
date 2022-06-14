@@ -8,6 +8,7 @@ import {
   findSocialProfileById,
   findSocialProfileBySocialNetworkIdAndSocialNetwork,
   isSocialNotworkAddedToVerificationForm,
+  removeSocialProfileById,
 } from '../repositories/socialProfileRepository';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
@@ -53,5 +54,37 @@ export class SocialProfilesResolver {
     return socialNetworkAdapter.getAuthUrl({
       trackId,
     });
+  }
+
+  @Mutation(returns => Boolean)
+  async removeSocialProfile(
+    @Arg('socialProfileId', type => Int) socialProfileId: number,
+    @Ctx() { req: { user } }: MyContext,
+  ): Promise<boolean> {
+    if (!user || !user?.userId) {
+      throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    }
+    const socialProfile = await findSocialProfileById(socialProfileId);
+    if (!socialProfile) {
+      throw new Error(errorMessages.SOCIAL_PROFILE_NOT_FOUND);
+    }
+    if (!socialProfile.projectVerificationForm) {
+      throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+    }
+    if (socialProfile.user.id !== user.userId) {
+      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_SOCIAL_PROFILE);
+    }
+    if (
+      socialProfile.projectVerificationForm.status !==
+      PROJECT_VERIFICATION_STATUSES.DRAFT
+    ) {
+      throw new Error(
+        errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
+      );
+    }
+    await removeSocialProfileById({
+      socialProfileId,
+    });
+    return true;
   }
 }
