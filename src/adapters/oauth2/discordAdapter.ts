@@ -10,7 +10,7 @@ export class DiscordAdapter implements SocialNetworkOauth2AdapterInterface {
   async getAuthUrl(params: { trackId: string }): Promise<string> {
     const { trackId } = params;
     const url = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.DISCORD_REDIRECT_URL}&response_type=token&scope=identify&state=${trackId}`;
-    return encodeURIComponent(url);
+    return url;
   }
 
   async getUserInfoByOauth2Code(params: {
