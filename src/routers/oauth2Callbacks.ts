@@ -21,7 +21,7 @@ const generateDappVerificationUrl = (params: {
 };
 
 oauth2CallbacksRouter.get(
-  `${SOCIAL_PROFILES_PREFIX}/callback/discord`,
+  `/callback/discord`,
   async (request: Request, response: Response) => {
     try {
       const socialProfile = await oauth2CallbackHandler({
@@ -38,14 +38,14 @@ oauth2CallbacksRouter.get(
         }),
       );
     } catch (e) {
-      logger.error(`${SOCIAL_PROFILES_PREFIX}/callback/discord error`, e);
+      logger.error(`/callback/discord error`, e);
       handleExpressError(response, e);
     }
   },
 );
 
 oauth2CallbacksRouter.get(
-  `${SOCIAL_PROFILES_PREFIX}/callback/google`,
+  `/callback/google`,
   async (request: Request, response: Response) => {
     try {
       const socialProfile = await oauth2CallbackHandler({
@@ -61,13 +61,13 @@ oauth2CallbacksRouter.get(
         }),
       );
     } catch (e) {
-      logger.error(`${SOCIAL_PROFILES_PREFIX}/callback/discord error`, e);
+      logger.error(`/callback/discord error`, e);
       handleExpressError(response, e);
     }
   },
 );
 oauth2CallbacksRouter.get(
-  `${SOCIAL_PROFILES_PREFIX}/callback/linkedin`,
+  `/callback/linkedin`,
   async (request: Request, response: Response) => {
     try {
       const socialProfile = await oauth2CallbackHandler({
@@ -83,7 +83,7 @@ oauth2CallbacksRouter.get(
         }),
       );
     } catch (e) {
-      logger.error(`${SOCIAL_PROFILES_PREFIX}/callback/discord error`, e);
+      logger.error(`/callback/discord error`, e);
       handleExpressError(response, e);
     }
   },
