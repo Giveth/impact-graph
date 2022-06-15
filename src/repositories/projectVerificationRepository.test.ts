@@ -214,7 +214,7 @@ function updateMilestonesOfProjectVerificationTestCases() {
     const milestones: Milestones = {
       achievedMilestones: 'We did lots of things',
       achievedMilestonesProof: 'ipfsHash',
-      foundationDate: new Date(),
+      foundationDate: new Date().toString(),
       mission: 'Make world a better place',
     };
     const updatedProjectVerification =
@@ -225,6 +225,10 @@ function updateMilestonesOfProjectVerificationTestCases() {
     assert.equal(
       updatedProjectVerification?.milestones.achievedMilestonesProof,
       milestones.achievedMilestonesProof,
+    );
+    assert.equal(
+      updatedProjectVerification?.milestones.foundationDate,
+      milestones.foundationDate,
     );
     assert.equal(
       updatedProjectVerification?.milestones.mission,

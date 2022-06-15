@@ -290,7 +290,7 @@ function updateProjectVerificationFormMutationTestCases() {
     mission: 'mission',
     achievedMilestonesProof: 'an ipfs hash',
     achievedMilestones: 'lots of work',
-    foundationDate: new Date(),
+    foundationDate: new Date().toString(),
   };
   const managingFunds: ManagingFunds = {
     description: 'description!!!',
@@ -512,8 +512,90 @@ function updateProjectVerificationFormMutationTestCases() {
       milestones.achievedMilestonesProof,
     );
     assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones.foundationDate,
+      milestones.foundationDate,
+    );
+    assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
       PROJECT_VERIFICATION_STEPS.MILESTONES,
+    );
+  });
+  it('should update project verification with milestones form successfully and get it', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.MILESTONES,
+            milestones,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones
+        .achievedMilestones,
+      milestones.achievedMilestones,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones
+        .achievedMilestonesProof,
+      milestones.achievedMilestonesProof,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones.foundationDate,
+      milestones.foundationDate,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.lastStep,
+      PROJECT_VERIFICATION_STEPS.MILESTONES,
+    );
+
+    const fetchedVerificationForm = await axios.post(
+      graphqlUrl,
+      {
+        query: getCurrentProjectVerificationFormQuery,
+        variables: {
+          slug: project.slug,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      fetchedVerificationForm.data.data.getCurrentProjectVerificationForm
+        .milestones.foundationDate,
+      milestones.foundationDate,
     );
   });
   it('should update project verification with managingFunds form successfully', async () => {
