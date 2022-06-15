@@ -8,6 +8,7 @@ export const oauth2CallbacksRouter = express.Router();
 
 const successPagePath = `${process.env.GIVETH_IO_DAPP_BASE_URL}/:projectVerificationFormId/success`;
 const failPagePath = `${process.env.GIVETH_IO_DAPP_BASE_URL}/:projectVerificationFormId/fail`;
+export const SOCIAL_PROFILES_PREFIX = '/socialProfiles';
 const generateDappVerificationUrl = (params: {
   projectVerificationId: number;
   url: string;
@@ -20,7 +21,7 @@ const generateDappVerificationUrl = (params: {
 };
 
 oauth2CallbacksRouter.get(
-  '/socialProfiles/callback/discord',
+  `${SOCIAL_PROFILES_PREFIX}/callback/discord`,
   async (request: Request, response: Response) => {
     try {
       const socialProfile = await oauth2CallbackHandler({
@@ -37,14 +38,14 @@ oauth2CallbacksRouter.get(
         }),
       );
     } catch (e) {
-      logger.error('/socialProfiles/callback/discord error ', e);
+      logger.error(`${SOCIAL_PROFILES_PREFIX}/callback/discord error`, e);
       handleExpressError(response, e);
     }
   },
 );
 
 oauth2CallbacksRouter.get(
-  '/socialProfiles/callback/google',
+  `${SOCIAL_PROFILES_PREFIX}/callback/google`,
   async (request: Request, response: Response) => {
     try {
       const socialProfile = await oauth2CallbackHandler({
@@ -60,13 +61,13 @@ oauth2CallbacksRouter.get(
         }),
       );
     } catch (e) {
-      logger.error('/socialProfiles/callback/discord error ', e);
+      logger.error(`${SOCIAL_PROFILES_PREFIX}/callback/discord error`, e);
       handleExpressError(response, e);
     }
   },
 );
 oauth2CallbacksRouter.get(
-  '/socialProfiles/callback/linkedin',
+  `${SOCIAL_PROFILES_PREFIX}/callback/linkedin`,
   async (request: Request, response: Response) => {
     try {
       const socialProfile = await oauth2CallbackHandler({
@@ -82,7 +83,7 @@ oauth2CallbacksRouter.get(
         }),
       );
     } catch (e) {
-      logger.error('/socialProfiles/callback/discord error ', e);
+      logger.error(`${SOCIAL_PROFILES_PREFIX}/callback/discord error`, e);
       handleExpressError(response, e);
     }
   },
