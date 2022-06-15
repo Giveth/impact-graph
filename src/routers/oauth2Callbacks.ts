@@ -3,21 +3,21 @@ import { handleExpressError } from './standardError';
 import { logger } from '../utils/logger';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
 import { oauth2CallbackHandler } from '../services/socialProfileService';
+import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository';
 
 export const oauth2CallbacksRouter = express.Router();
 
-const successPagePath = `${process.env.GIVETH_IO_DAPP_BASE_URL}/:projectVerificationFormId/success`;
-const failPagePath = `${process.env.GIVETH_IO_DAPP_BASE_URL}/:projectVerificationFormId/fail`;
+const successPagePath = `${process.env.GIVETH_IO_DAPP_BASE_URL}`;
 export const SOCIAL_PROFILES_PREFIX = '/socialProfiles';
-const generateDappVerificationUrl = (params: {
+const generateDappVerificationUrl = async (params: {
   projectVerificationId: number;
   url: string;
-}): string => {
+}): Promise<string> => {
   const { projectVerificationId, url } = params;
-  return url.replace(
-    ':projectVerificationFormId',
-    String(projectVerificationId),
+  const projectVerificationForm = await findProjectVerificationFormById(
+    projectVerificationId,
   );
+  return `${successPagePath}/${projectVerificationForm?.project?.slug}`;
 };
 
 oauth2CallbacksRouter.get(
@@ -32,7 +32,7 @@ oauth2CallbacksRouter.get(
         ),
       });
       response.redirect(
-        generateDappVerificationUrl({
+        await generateDappVerificationUrl({
           url: successPagePath,
           projectVerificationId: socialProfile.projectVerificationForm.id,
         }),
@@ -55,7 +55,7 @@ oauth2CallbacksRouter.get(
       });
       // TODO should get redirect address from frontend
       response.redirect(
-        generateDappVerificationUrl({
+        await generateDappVerificationUrl({
           url: successPagePath,
           projectVerificationId: socialProfile.projectVerificationForm.id,
         }),
@@ -77,7 +77,7 @@ oauth2CallbacksRouter.get(
       });
       // TODO should get redirect address from frontend
       response.redirect(
-        generateDappVerificationUrl({
+        await generateDappVerificationUrl({
           url: successPagePath,
           projectVerificationId: socialProfile.projectVerificationForm.id,
         }),
