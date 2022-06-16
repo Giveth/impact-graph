@@ -1413,7 +1413,7 @@ export const verifySingleVerificationForm = async (
       : SegmentEvents.PROJECT_REJECTED;
 
     Project.notifySegment(project, segmentEvent);
-    updateProjectWithVerificationForm(verificationForm, project);
+    await updateProjectWithVerificationForm(verificationForm, project);
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
     throw error;
@@ -1457,6 +1457,25 @@ export const verifyVerificationForms = async (
       : SegmentEvents.PROJECT_REJECTED;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
+    const projectIds = projects.raw.map(project => {
+      return project.id;
+    });
+
+    // need to requery them as the RAW is not an entity
+    const verificationForms = await ProjectVerificationForm.createQueryBuilder(
+      'projectVerificationForm',
+    )
+      .innerJoinAndSelect('projectVerificationForm.project', 'project')
+      .where('"projectId" IN (:...ids)')
+      .setParameter('ids', projectIds)
+      .getMany();
+
+    for (const verificationForm of verificationForms) {
+      await updateProjectWithVerificationForm(
+        verificationForm,
+        verificationForm.project,
+      );
+    }
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
     throw error;

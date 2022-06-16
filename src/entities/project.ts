@@ -32,6 +32,7 @@ import { errorMessages } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
 import { SocialProfile } from './socialProfile';
+import { RelatedAddress } from './relatedAddress';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -224,6 +225,10 @@ class Project extends BaseEntity {
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
   socialProfiles?: SocialProfile[];
+
+  @Field(type => [RelatedAddress], { nullable: true })
+  @OneToMany(type => RelatedAddress, relatedAddress => relatedAddress.project)
+  relatedAddresses?: RelatedAddress[];
 
   @Field(type => Float)
   @Column({ type: 'real' })
