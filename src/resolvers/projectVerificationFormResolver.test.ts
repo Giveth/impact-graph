@@ -265,6 +265,11 @@ function updateProjectVerificationFormMutationTestCases() {
         networkId: NETWORK_IDS.MAIN_NET,
         title: 'test title',
       },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.XDAI,
+        title: 'test title xdai',
+      },
     ],
   };
   it('should update project verification with projectContacts form successfully', async () => {
