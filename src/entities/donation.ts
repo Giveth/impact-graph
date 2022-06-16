@@ -135,6 +135,7 @@ export class Donation extends BaseEntity {
   @RelationId((donation: Donation) => donation.user)
   userId: number;
 
+  @Index()
   @Field(type => Date)
   @Column()
   createdAt: Date;

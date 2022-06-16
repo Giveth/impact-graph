@@ -127,19 +127,17 @@ export const updateProjectVerificationFormByUser = async (params: {
           projectVerificationId,
           isTermAndConditionsAccepted,
         });
-      break;
-    case PROJECT_VERIFICATION_STEPS.SUBMIT:
       validateWithJoiSchema(
         {
-          projectRegistry: projectVerificationForm.projectRegistry,
-          projectContacts: projectVerificationForm.projectContacts,
-          milestones: projectVerificationForm.milestones,
-          managingFunds: projectVerificationForm.managingFunds,
-          socialProfiles: projectVerificationForm.socialProfiles,
-          status: projectVerificationForm.status,
-          emailConfirmed: projectVerificationForm.emailConfirmed,
+          projectRegistry: updatedProjectVerificationForm.projectRegistry,
+          projectContacts: updatedProjectVerificationForm.projectContacts,
+          milestones: updatedProjectVerificationForm.milestones,
+          managingFunds: updatedProjectVerificationForm.managingFunds,
+          socialProfiles: updatedProjectVerificationForm.socialProfiles,
+          status: updatedProjectVerificationForm.status,
+          emailConfirmed: updatedProjectVerificationForm.emailConfirmed,
           isTermAndConditionsAccepted:
-            projectVerificationForm.isTermAndConditionsAccepted,
+            updatedProjectVerificationForm.isTermAndConditionsAccepted,
         },
         submitProjectVerificationStepValidator,
       );
@@ -147,7 +145,6 @@ export const updateProjectVerificationFormByUser = async (params: {
         projectVerificationId,
       });
       break;
-
     default:
       throw new Error(errorMessages.INVALID_STEP);
   }

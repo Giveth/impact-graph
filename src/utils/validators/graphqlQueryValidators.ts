@@ -111,7 +111,7 @@ const managingFundsValidator = Joi.object({
       address: Joi.string().required().pattern(ethereumWalletAddressRegex),
       networkId: Joi.number()?.valid(
         NETWORK_IDS.MAIN_NET,
-        NETWORK_IDS.XDAI,
+        NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.XDAI,
       ),
     }),
