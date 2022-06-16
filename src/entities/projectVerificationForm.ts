@@ -14,6 +14,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { SocialProfile } from './socialProfile';
+import { Comment } from './comment';
 
 export const PROJECT_VERIFICATION_STATUSES = {
   VERIFIED: 'verified',
@@ -78,7 +79,7 @@ export class Milestones {
 }
 
 @ObjectType()
-export class RelatedAddress {
+export class FormRelatedAddress {
   @Field({ nullable: true })
   title: string;
   @Field({ nullable: true })
@@ -92,8 +93,8 @@ export class ManagingFunds {
   @Field({ nullable: true })
   description: string;
 
-  @Field(() => [RelatedAddress], { nullable: true })
-  relatedAddresses: RelatedAddress[];
+  @Field(() => [FormRelatedAddress], { nullable: true })
+  relatedAddresses: FormRelatedAddress[];
 }
 
 @Entity()
@@ -138,13 +139,16 @@ export class ProjectVerificationForm extends BaseEntity {
   )
   userId: number;
 
-  // Not sure how to display in adminbro
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(
     type => SocialProfile,
     socialProfile => socialProfile.projectVerificationForm,
   )
   socialProfiles?: SocialProfile[];
+
+  @Field(type => [Comment], { nullable: true })
+  @OneToMany(type => Comment, comment => comment.projectVerificationForm)
+  comments?: Comment[];
 
   @Field()
   @Column('text', { default: PROJECT_VERIFICATION_STATUSES.DRAFT })

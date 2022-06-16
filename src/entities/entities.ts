@@ -18,6 +18,7 @@ import { PurpleAddress } from './purpleAddress';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { RelatedAddress } from './relatedAddress';
 import { SocialProfile } from './socialProfile';
+import { Comment } from './comment';
 
 export const entities: any = [
   Organization,
@@ -42,4 +43,5 @@ export const entities: any = [
   ProjectVerificationForm,
   RelatedAddress,
   SocialProfile,
+  Comment,
 ];

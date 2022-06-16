@@ -14,6 +14,7 @@ import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
+import { Comment } from './comment';
 
 export const publicSelectionFields = [
   'user.id',
@@ -117,6 +118,10 @@ export class User extends BaseEntity {
     projectVerificationForm => projectVerificationForm.reviewer,
   )
   projectVerificationForms?: ProjectVerificationForm[];
+
+  @Field(type => [Comment], { nullable: true })
+  @OneToMany(type => Comment, comment => comment.commenter)
+  comments?: ProjectVerificationForm[];
 
   @Field(type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })

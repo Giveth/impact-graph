@@ -62,6 +62,8 @@ import {
   verifyMultipleProjects,
   verifyProject,
 } from '../repositories/projectRepository';
+import { SocialProfile } from '../entities/socialProfile';
+import { Comment } from '../entities/comment';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -320,6 +322,17 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
+            socialProfiles: {
+              isArray: true,
+              type: [SocialProfile],
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
             personalInfo: {
               isVisible: {
                 list: false,
@@ -395,13 +408,15 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
-            socialProfiles: {
+            comments: {
+              isArray: true,
+              type: [Comment],
               isVisible: {
                 list: false,
                 filter: false,
                 show: true,
-                edit: false,
-                new: false,
+                edit: true,
+                new: true,
               },
             },
           },
