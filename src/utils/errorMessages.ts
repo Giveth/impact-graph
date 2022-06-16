@@ -91,6 +91,8 @@ export const errorMessages = {
   AUTHENTICATION_REQUIRED: 'Authentication required.',
   SOMETHING_WENT_WRONG: 'Something went wrong.',
   PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
+  THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT:
+    'There is no recipient address for this project and networkId',
   AMOUNT_IS_INVALID: 'Amount is not valid',
   CURRENCY_IS_INVALID: 'Currency is not valid',
   SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT:

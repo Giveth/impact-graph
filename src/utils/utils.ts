@@ -291,3 +291,11 @@ export const countriesList: Country[] = [
   { name: 'Zambia', code: 'ZM' },
   { name: 'Zimbabwe', code: 'ZW' },
 ];
+
+// we set ENVIRONMENT in docker-compose
+export const ENVIRONMENTS = {
+  PRODUCTION: 'production',
+  STAGING: 'staging',
+  DEVELOP: 'develop',
+  LOCAL: 'local',
+};

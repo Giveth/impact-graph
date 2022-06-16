@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User, UserRole } from '../src/entities/user';
-import { Donation } from '../src/entities/donation';
+import { Donation, DONATION_STATUS } from '../src/entities/donation';
 import {
   Category,
   Project,
@@ -16,7 +16,10 @@ import {
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
 import { findUserByWalletAddress } from '../src/repositories/userRepository';
-import { findProjectByWalletAddress } from '../src/repositories/projectRepository';
+import {
+  addNewProjectAddress,
+  findRelatedAddressByWalletAddress,
+} from '../src/repositories/projectAddressRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -103,6 +106,7 @@ export interface CreateProjectData {
   slug: string;
   description: string;
   admin: string;
+  // relatedAddresses: RelatedAddressInputType[];
   walletAddress: string;
   categories: string[];
   verified?: boolean;
@@ -138,11 +142,11 @@ export const saveUserDirectlyToDb = async (
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
 ): Promise<Project> => {
-  const foundProject = await findProjectByWalletAddress(
+  const relatedAddress = await findRelatedAddressByWalletAddress(
     projectData.walletAddress,
   );
-  if (foundProject) {
-    return foundProject;
+  if (relatedAddress && relatedAddress.project) {
+    return relatedAddress.project;
   }
   const statusId = projectData?.statusId || ProjStatus.active;
   const status = await ProjectStatus.findOne({
@@ -177,6 +181,15 @@ export const saveProjectDirectlyToDb = async (
     adminUser: user,
   }).save();
 
+  for (const networkId of Object.values(NETWORK_IDS)) {
+    await addNewProjectAddress({
+      project,
+      user,
+      isRecipient: true,
+      address: projectData.walletAddress,
+      networkId,
+    });
+  }
   // default projectUpdate for liking projects
   // this was breaking updateAt tests as it was running update hooks sometime in the future.
   // Found no other way to avoid triggering the hooks.
@@ -192,11 +205,12 @@ export const saveProjectDirectlyToDb = async (
 };
 export const createProjectData = (): CreateProjectData => {
   const title = String(new Date().getTime());
+  const walletAddress = generateRandomEtheriumAddress();
   return {
     // title: `test project`,
     title,
     description: 'test description',
-    walletAddress: generateRandomEtheriumAddress(),
+    walletAddress,
     categories: ['food1'],
     verified: true,
     listed: true,
@@ -213,13 +227,16 @@ export const createProjectData = (): CreateProjectData => {
     totalProjectUpdates: 1,
   };
 };
-export const createDonationData = (): CreateDonationData => {
+export const createDonationData = (params?: {
+  status?: string;
+}): CreateDonationData => {
   return {
     transactionId: generateRandomTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
     currency: 'ETH',
+    status: params?.status || DONATION_STATUS.PENDING,
     anonymous: false,
     amount: 15,
     valueUsd: 15,
