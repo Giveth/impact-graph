@@ -119,6 +119,17 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @Index()
   @Field(type => User, { nullable: true })
+  @ManyToOne(type => User, { eager: true })
+  reviewer?: User;
+
+  @RelationId(
+    (projectVerificationForm: ProjectVerificationForm) =>
+      projectVerificationForm.reviewer,
+  )
+  reviewerId: number;
+
+  @Index()
+  @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })
   user: User;
   @RelationId(
@@ -127,6 +138,7 @@ export class ProjectVerificationForm extends BaseEntity {
   )
   userId: number;
 
+  // Not sure how to display in adminbro
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(
     type => SocialProfile,

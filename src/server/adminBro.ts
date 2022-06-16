@@ -58,6 +58,7 @@ import {
   verifyMultipleForms,
 } from '../repositories/projectVerificationRepository';
 import {
+  updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
 } from '../repositories/projectRepository';
@@ -260,7 +261,148 @@ const getAdminBroInstance = async () => {
         options: {
           properties: {
             id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            status: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: true,
+                new: true,
+              },
+            },
+            projectId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            reviewerId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            userId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            createdAt: {
               isVisible: true,
+            },
+            updatedAt: {
+              isVisible: true,
+            },
+            email: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            personalInfo: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            projectRegistry: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            projectContacts: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            milestones: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            managingFunds: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            lastStep: {
+              isVisible: false,
+            },
+            emailConfirmed: {
+              isVisible: false,
+            },
+            emailConfirmationTokenExpiredAt: {
+              isVisible: false,
+            },
+            emailConfirmationToken: {
+              isVisible: false,
+            },
+            emailConfirmationSent: {
+              isVisible: false,
+            },
+            emailConfirmationSentAt: {
+              isVisible: false,
+            },
+            emailConfirmedAt: {
+              isVisible: false,
+            },
+            isTermAndConditionsAccepted: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            socialProfiles: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
           },
           actions: {
@@ -268,7 +410,11 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             edit: {
-              isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin &&
+                (currentAdmin.role === UserRole.ADMIN ||
+                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
+              isVisible: true,
             },
             show: {
               isVisible: true,
@@ -1258,8 +1404,8 @@ export const verifySingleVerificationForm = async (
   const formId = Number(request?.params?.recordId);
   try {
     // call repositories
-    const projectForm = await verifyForm({ verificationStatus, formId });
-    const projectId = projectForm.projectId;
+    const verificationForm = await verifyForm({ verificationStatus, formId });
+    const projectId = verificationForm.projectId;
     const project = await verifyProject({ verified, projectId });
 
     const segmentEvent = verified
@@ -1267,6 +1413,7 @@ export const verifySingleVerificationForm = async (
       : SegmentEvents.PROJECT_REJECTED;
 
     Project.notifySegment(project, segmentEvent);
+    updateProjectWithVerificationForm(verificationForm, project);
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
     throw error;

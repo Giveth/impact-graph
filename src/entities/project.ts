@@ -31,6 +31,7 @@ import { ProjectStatusReason } from './projectStatusReason';
 import { errorMessages } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
+import { SocialProfile } from './socialProfile';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -219,6 +220,10 @@ class Project extends BaseEntity {
     projectStatusHistory => projectStatusHistory.project,
   )
   statusHistory?: ProjectStatusHistory[];
+
+  @Field(type => [SocialProfile], { nullable: true })
+  @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
+  socialProfiles?: SocialProfile[];
 
   @Field(type => Float)
   @Column({ type: 'real' })

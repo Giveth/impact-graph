@@ -13,6 +13,7 @@ import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusHistory } from './projectStatusHistory';
+import { ProjectVerificationForm } from './projectVerificationForm';
 
 export const publicSelectionFields = [
   'user.id',
@@ -30,7 +31,7 @@ export enum UserRole {
   ADMIN = 'admin',
   RESTRICTED = 'restricted',
   OPERATOR = 'operator',
-  VERIFICATION_FORM_VALIDATOR = 'validator',
+  VERIFICATION_FORM_REVIEWER = 'reviewer',
 }
 
 @ObjectType()
@@ -46,6 +47,13 @@ export class User extends BaseEntity {
     default: UserRole.RESTRICTED,
   })
   role: UserRole;
+
+  @Field(type => [AccountVerification], { nullable: true })
+  @OneToMany(
+    type => AccountVerification,
+    accountVerification => accountVerification.user,
+  )
+  accountVerifications?: AccountVerification[];
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -102,12 +110,13 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   segmentIdentified: boolean;
 
-  @Field(type => [AccountVerification], { nullable: true })
+  // Admin Reviewing Forms
+  @Field(type => [ProjectVerificationForm], { nullable: true })
   @OneToMany(
-    type => AccountVerification,
-    accountVerification => accountVerification.user,
+    type => ProjectVerificationForm,
+    projectVerificationForm => projectVerificationForm.reviewer,
   )
-  accountVerifications?: AccountVerification[];
+  projectVerificationForms?: ProjectVerificationForm[];
 
   @Field(type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })
