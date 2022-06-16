@@ -1,7 +1,7 @@
 import { UpdateResult } from 'typeorm';
 import { Project, ProjectUpdate } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
-import { RelatedAddress } from '../entities/relatedAddress';
+import { ProjectAddress } from '../entities/projectAddress';
 import { errorMessages } from '../utils/errorMessages';
 
 export const findProjectById = (
@@ -65,22 +65,22 @@ export const updateProjectWithVerificationForm = async (
   await projectUpdate.save();
 
   // TODO: update links in project update. Or is it enough with the project one to many?
-  const relatedAddresses: RelatedAddress[] = [];
+  const relatedAddresses: ProjectAddress[] = [];
 
   for (const relatedAddress of verificationForm.managingFunds
     .relatedAddresses) {
     relatedAddresses.push(
-      RelatedAddress.create({
+      ProjectAddress.create({
         title: relatedAddress.title,
         address: relatedAddress.address,
         networkId: relatedAddress.networkId,
         projectId: verificationForm.projectId,
         userId: verificationForm.userId,
-        isPrimaryAddress: false,
+        isRecipient: false,
       }),
     );
   }
-  project.relatedAddresses = relatedAddresses;
+  project.projectAddresses = relatedAddresses;
   return project.save();
 };
 
