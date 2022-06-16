@@ -30,7 +30,7 @@ export const PROJECT_VERIFICATION_STEPS = {
   MANAGING_FUNDS: 'managingFunds',
   MILESTONES: 'milestones',
   TERM_AND_CONDITION: 'termAndCondition',
-  SUBMIT: 'submit',
+  // SUBMIT: 'submit',
 };
 
 // Representative of the project, no specifically the user
