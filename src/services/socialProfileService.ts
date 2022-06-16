@@ -10,18 +10,19 @@ import { SocialProfile } from '../entities/socialProfile';
 import { generateRandomString } from '../utils/utils';
 import { getRedisObject, setObjectInRedis } from '../redis';
 import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository';
-import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
+import {
+  PROJECT_VERIFICATION_STATUSES,
+  ProjectVerificationForm,
+} from '../entities/projectVerificationForm';
 
-export const oauth2CallbackHandler = async (params: {
-  authorizationCodeOrAccessToken: string;
+export const getProjectVerificationFormByState = async (params: {
   state: string;
   socialNetwork: string;
-}): Promise<SocialProfile> => {
-  const { authorizationCodeOrAccessToken, state, socialNetwork } = params;
-  const oauth2Adapter = getSocialNetworkAdapter(socialNetwork);
-  const { username } = await oauth2Adapter.getUserInfoByOauth2Code({
-    oauth2Code: authorizationCodeOrAccessToken as string,
-  });
+}): Promise<{
+  projectVerificationForm: ProjectVerificationForm;
+  userId: number;
+}> => {
+  const { socialNetwork, state } = params;
   const redisData = await getOauth2SocialProfileFromRedis(state);
   if (!redisData) {
     throw new Error(errorMessages.INVALID_TRACK_ID_FOR_OAUTH2_LOGIN);
@@ -40,6 +41,28 @@ export const oauth2CallbackHandler = async (params: {
   if (!projectVerificationForm) {
     throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
   }
+  return {
+    projectVerificationForm,
+    userId,
+  };
+};
+
+export const oauth2CallbackHandler = async (params: {
+  authorizationCodeOrAccessToken: string;
+  userId: number;
+  socialNetwork: string;
+  projectVerificationForm: ProjectVerificationForm;
+}): Promise<SocialProfile> => {
+  const {
+    authorizationCodeOrAccessToken,
+    userId,
+    socialNetwork,
+    projectVerificationForm,
+  } = params;
+  const oauth2Adapter = getSocialNetworkAdapter(socialNetwork);
+  const { username } = await oauth2Adapter.getUserInfoByOauth2Code({
+    oauth2Code: authorizationCodeOrAccessToken as string,
+  });
   if (projectVerificationForm.user.id !== userId) {
     throw new Error(
       errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
@@ -55,7 +78,7 @@ export const oauth2CallbackHandler = async (params: {
     await isSocialNetworkAddedToVerificationForm({
       socialNetworkId: username,
       socialNetwork,
-      projectVerificationFormId,
+      projectVerificationFormId: projectVerificationForm.id,
     });
   if (isSocialNetworkAlreadyAdded) {
     throw new Error(
@@ -65,7 +88,7 @@ export const oauth2CallbackHandler = async (params: {
   return createSocialProfile({
     socialNetwork,
     socialNetworkId: username,
-    projectVerificationId: projectVerificationFormId,
+    projectVerificationId: projectVerificationForm.id,
     isVerified: true,
   });
 };

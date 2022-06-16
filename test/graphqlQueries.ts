@@ -921,6 +921,11 @@ export const getCurrentProjectVerificationFormQuery = `
                       achievedMilestones
                       achievedMilestonesProof
                     }
+                    socialProfiles {
+                      socialNetworkId
+                      socialNetwork
+                      isVerified
+                    }
                     managingFunds {
                       description
                       relatedAddresses {

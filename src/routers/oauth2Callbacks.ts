@@ -2,7 +2,10 @@ import express, { Request, Response } from 'express';
 import { handleExpressError } from './standardError';
 import { logger } from '../utils/logger';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
-import { oauth2CallbackHandler } from '../services/socialProfileService';
+import {
+  getProjectVerificationFormByState,
+  oauth2CallbackHandler,
+} from '../services/socialProfileService';
 import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository';
 
 export const oauth2CallbacksRouter = express.Router();
@@ -18,7 +21,12 @@ const generateDappVerificationUrl = async (params: {
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
-  return `${dappBaseUrl}/${projectVerificationForm?.project?.slug}?success=${success}&message=${message}`;
+  const address = `${dappBaseUrl}/${projectVerificationForm?.project?.slug}?success=${success}&message=${message}`;
+  logger.info('generateDappVerificationUrl  ', {
+    params,
+    address,
+  });
+  return address;
 };
 
 oauth2CallbacksRouter.get(
@@ -36,13 +44,19 @@ oauth2CallbacksRouter.get(
       const { state, access_token } = request.query;
 
       if (access_token) {
-        // should handle failed error and redirect to html
-        const socialProfile = await oauth2CallbackHandler({
+        const { projectVerificationForm, userId } =
+          await getProjectVerificationFormByState({
+            socialNetwork: SOCIAL_NETWORKS.DISCORD,
+            state: state as string,
+          });
+        projectVerificationId = projectVerificationForm.id;
+
+        await oauth2CallbackHandler({
           socialNetwork: SOCIAL_NETWORKS.DISCORD,
-          state: state as string,
+          userId,
           authorizationCodeOrAccessToken: decodeURI(access_token as string),
+          projectVerificationForm,
         });
-        projectVerificationId = socialProfile.projectVerificationForm.id;
         response.redirect(
           await generateDappVerificationUrl({
             success: true,
@@ -73,7 +87,7 @@ oauth2CallbacksRouter.get(
   `);
       }
     } catch (e) {
-      logger.error(`/callback/discord error`, e);
+      logger.error(`/callback/discord error`, { e, projectVerificationId });
       if (projectVerificationId) {
         response.redirect(
           await generateDappVerificationUrl({
@@ -94,12 +108,19 @@ oauth2CallbacksRouter.get(
   async (request: Request, response: Response) => {
     let projectVerificationId;
     try {
-      const socialProfile = await oauth2CallbackHandler({
-        state: request.query.state as string,
-        authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
+      const { projectVerificationForm, userId } =
+        await getProjectVerificationFormByState({
+          socialNetwork: SOCIAL_NETWORKS.GOOGLE,
+          state: request.query.state as string,
+        });
+      projectVerificationId = projectVerificationForm.id;
+
+      await oauth2CallbackHandler({
         socialNetwork: SOCIAL_NETWORKS.GOOGLE,
+        userId,
+        authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
+        projectVerificationForm,
       });
-      projectVerificationId = socialProfile.projectVerificationForm.id;
       response.redirect(
         await generateDappVerificationUrl({
           success: true,
@@ -107,7 +128,7 @@ oauth2CallbacksRouter.get(
         }),
       );
     } catch (e) {
-      logger.error(`/callback/discord error`, e);
+      logger.error(`/callback/discord error`, { e, projectVerificationId });
       if (projectVerificationId) {
         response.redirect(
           await generateDappVerificationUrl({
@@ -127,12 +148,19 @@ oauth2CallbacksRouter.get(
   async (request: Request, response: Response) => {
     let projectVerificationId;
     try {
-      const socialProfile = await oauth2CallbackHandler({
-        state: request.query.state as string,
-        authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
+      const { projectVerificationForm, userId } =
+        await getProjectVerificationFormByState({
+          socialNetwork: SOCIAL_NETWORKS.LINKEDIN,
+          state: request.query.state as string,
+        });
+      projectVerificationId = projectVerificationForm.id;
+
+      await oauth2CallbackHandler({
         socialNetwork: SOCIAL_NETWORKS.LINKEDIN,
+        userId,
+        authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
+        projectVerificationForm,
       });
-      projectVerificationId = socialProfile.projectVerificationForm.id;
       response.redirect(
         await generateDappVerificationUrl({
           success: true,
@@ -140,7 +168,7 @@ oauth2CallbacksRouter.get(
         }),
       );
     } catch (e) {
-      logger.error(`/callback/linkedin error`, e);
+      logger.error(`/callback/linkedin error`, { e, projectVerificationId });
       if (projectVerificationId) {
         response.redirect(
           await generateDappVerificationUrl({

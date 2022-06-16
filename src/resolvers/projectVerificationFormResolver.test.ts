@@ -35,7 +35,9 @@ import {
 } from '../repositories/projectVerificationRepository';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
-import { countriesList } from '../utils/utils';
+import { countriesList, generateRandomString } from '../utils/utils';
+import { createSocialProfile } from '../repositories/socialProfileRepository';
+import { SOCIAL_NETWORKS } from '../entities/socialProfile';
 
 describe(
   'createProjectVerification test cases',
@@ -821,6 +823,13 @@ function getCurrentProjectVerificationFormTestCases() {
     });
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
     await projectVerificationForm.save();
+    const socialProfileInfo = {
+      projectVerificationId: projectVerificationForm.id,
+      isVerified: true,
+      socialNetwork: SOCIAL_NETWORKS.DISCORD,
+      socialNetworkId: generateRandomString(),
+    };
+    await createSocialProfile(socialProfileInfo);
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
       graphqlUrl,
@@ -843,6 +852,15 @@ function getCurrentProjectVerificationFormTestCases() {
     assert.equal(
       result.data.data.getCurrentProjectVerificationForm.id,
       projectVerificationForm.id,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles.length,
+      1,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles[0]
+        .socialNetworkId,
+      socialProfileInfo.socialNetworkId,
     );
   });
   it('should get current project verification form with draft status', async () => {
