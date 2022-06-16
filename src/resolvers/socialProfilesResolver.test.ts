@@ -209,7 +209,7 @@ function addNewSocialProfileFormMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
+      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
     );
   });
   it('should get error when project verification form is rejected', async () => {
@@ -244,7 +244,7 @@ function addNewSocialProfileFormMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
+      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
     );
   });
   it('should get error when project verification form is submitted', async () => {
@@ -279,7 +279,7 @@ function addNewSocialProfileFormMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
+      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
     );
   });
   // it('should get error when social profile is already added for this form', async () => {

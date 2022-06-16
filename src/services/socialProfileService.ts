@@ -2,7 +2,7 @@ import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 import {
   createSocialProfile,
   findSocialProfileById,
-  isSocialNotworkAddedToVerificationForm,
+  isSocialNetworkAddedToVerificationForm,
   verifySocialProfileById,
 } from '../repositories/socialProfileRepository';
 import { errorMessages } from '../utils/errorMessages';
@@ -48,18 +48,18 @@ export const oauth2CallbackHandler = async (params: {
 
   if (projectVerificationForm.status !== PROJECT_VERIFICATION_STATUSES.DRAFT) {
     throw new Error(
-      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
+      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
     );
   }
   const isSocialNetworkAlreadyAdded =
-    await isSocialNotworkAddedToVerificationForm({
+    await isSocialNetworkAddedToVerificationForm({
       socialNetworkId: username,
       socialNetwork,
       projectVerificationFormId,
     });
   if (isSocialNetworkAlreadyAdded) {
     throw new Error(
-      errorMessages.YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM,
+      errorMessages.YOU_ALREADY_ADDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM,
     );
   }
   return createSocialProfile({

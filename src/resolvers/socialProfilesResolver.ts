@@ -6,8 +6,6 @@ import { findProjectVerificationFormById } from '../repositories/projectVerifica
 import {
   createSocialProfile,
   findSocialProfileById,
-  findSocialProfileBySocialNetworkIdAndSocialNetwork,
-  isSocialNotworkAddedToVerificationForm,
   removeSocialProfileById,
 } from '../repositories/socialProfileRepository';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
@@ -41,7 +39,7 @@ export class SocialProfilesResolver {
       projectVerificationForm.status !== PROJECT_VERIFICATION_STATUSES.DRAFT
     ) {
       throw new Error(
-        errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
+        errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
       );
     }
 
@@ -79,7 +77,7 @@ export class SocialProfilesResolver {
       PROJECT_VERIFICATION_STATUSES.DRAFT
     ) {
       throw new Error(
-        errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_ADD_SOCIAL_PROFILE_TO_IT,
+        errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
       );
     }
     await removeSocialProfileById({

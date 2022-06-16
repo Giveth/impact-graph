@@ -61,7 +61,7 @@ export const findSocialProfileBySocialNetworkIdAndSocialNetwork =
       .getOne();
   };
 
-export const isSocialNotworkAddedToVerificationForm = async (params: {
+export const isSocialNetworkAddedToVerificationForm = async (params: {
   socialNetworkId: string;
   socialNetwork: string;
   projectVerificationFormId: number;

@@ -26,6 +26,7 @@ export const SOCIAL_NETWORKS = {
 
 @Entity()
 @ObjectType()
+@Index(['socialNetworkId', 'socialNetwork'])
 export class SocialProfile extends BaseEntity {
   /**
    * @see {@link https://github.com/Giveth/giveth-dapps-v2/issues/711#issuecomment-1128435255}
