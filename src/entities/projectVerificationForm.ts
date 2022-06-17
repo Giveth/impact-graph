@@ -14,7 +14,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { SocialProfile } from './socialProfile';
-import { Comment } from './comment';
+// import { Comment } from './comment';
 
 export const PROJECT_VERIFICATION_STATUSES = {
   VERIFIED: 'verified',
@@ -146,9 +146,9 @@ export class ProjectVerificationForm extends BaseEntity {
   )
   socialProfiles?: SocialProfile[];
 
-  @Field(type => [Comment], { nullable: true })
-  @OneToMany(type => Comment, comment => comment.projectVerificationForm)
-  comments?: Comment[];
+  // @Field(type => [Comment], { nullable: true })
+  // @OneToMany(type => Comment, comment => comment.projectVerificationForm)
+  // comments?: Comment[];
 
   @Field()
   @Column('text', { default: PROJECT_VERIFICATION_STATUSES.DRAFT })
