@@ -21,7 +21,7 @@ const generateDappVerificationUrl = async (params: {
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
-  const address = `${dappBaseUrl}/${projectVerificationForm?.project?.slug}?success=${success}&message=${message}`;
+  const address = `${dappBaseUrl}/verification/${projectVerificationForm?.project?.slug}?success=${success}&message=${message}`;
   logger.info('generateDappVerificationUrl  ', {
     params,
     address,
