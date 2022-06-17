@@ -334,6 +334,7 @@ const getAdminBroInstance = async () => {
               },
             },
             personalInfo: {
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
@@ -342,6 +343,9 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
+            'personalInfo.fullName': { type: 'string' },
+            'personalInfo.walletAddress': { type: 'string' },
+            'personalInfo.email': { type: 'string' },
             projectRegistry: {
               isVisible: {
                 list: false,
