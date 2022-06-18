@@ -4,8 +4,10 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
   UpdateDateColumn,
@@ -109,8 +111,10 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @Index()
   @Field(type => Project)
-  @ManyToOne(type => Project, { eager: true })
+  @OneToOne(type => Project, { eager: true })
+  @JoinColumn()
   project: Project;
+
   @RelationId(
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.project,

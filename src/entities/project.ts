@@ -14,6 +14,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
 } from 'typeorm';
@@ -31,6 +32,7 @@ import { ProjectStatusReason } from './projectStatusReason';
 import { errorMessages } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
+import { ProjectVerificationForm } from './projectVerificationForm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -219,6 +221,14 @@ class Project extends BaseEntity {
     projectStatusHistory => projectStatusHistory.project,
   )
   statusHistory?: ProjectStatusHistory[];
+
+  @Field(type => ProjectVerificationForm, { nullable: true })
+  @OneToOne(
+    () => ProjectVerificationForm,
+    projectVerificationForm => projectVerificationForm.project,
+    { nullable: true },
+  )
+  projectVerificationForm?: ProjectVerificationForm;
 
   @Field(type => Float)
   @Column({ type: 'real' })
