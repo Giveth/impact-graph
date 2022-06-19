@@ -224,7 +224,7 @@ class Project extends BaseEntity {
 
   @Field(type => ProjectVerificationForm, { nullable: true })
   @OneToOne(
-    () => ProjectVerificationForm,
+    type => ProjectVerificationForm,
     projectVerificationForm => projectVerificationForm.project,
     { nullable: true },
   )
