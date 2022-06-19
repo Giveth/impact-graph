@@ -202,18 +202,6 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     txHash: donation.transactionId,
   });
   try {
-    if (
-      // TODO should delete this condition in future, because we sont allow users to send
-      // toWalletAddress for donations so we shouldn not check it ( because ourself have set that)
-      donation.toWalletAddress.toLowerCase() !==
-      donation.project.walletAddress?.toLowerCase()
-    ) {
-      donation.verifyErrorMessage =
-        errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS;
-      donation.status = DONATION_STATUS.FAILED;
-      await donation.save();
-      return donation;
-    }
     const transaction = await getTransactionInfoFromNetwork({
       nonce: donation.nonce,
       networkId: donation.transactionNetworkId,

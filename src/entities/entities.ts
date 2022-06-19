@@ -14,9 +14,8 @@ import { AccountVerification } from './accountVerification';
 import { ProjectStatusReason } from './projectStatusReason';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ThirdPartyProjectImport } from './thirdPartyProjectImport';
-import { PurpleAddress } from './purpleAddress';
 import { ProjectVerificationForm } from './projectVerificationForm';
-import { RelatedAddress } from './relatedAddress';
+import { ProjectAddress } from './projectAddress';
 import { SocialProfile } from './socialProfile';
 
 export const entities: any = [
@@ -37,9 +36,8 @@ export const entities: any = [
   ProjectStatusHistory,
   AccountVerification,
   ProjectImage,
-  PurpleAddress,
   ThirdPartyProjectImport,
   ProjectVerificationForm,
-  RelatedAddress,
+  ProjectAddress,
   SocialProfile,
 ];
