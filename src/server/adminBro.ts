@@ -50,6 +50,7 @@ import {
   findUserByWalletAddress,
 } from '../repositories/userRepository';
 import {
+  FormRelatedAddress,
   ProjectVerificationForm,
   PROJECT_VERIFICATION_STATUSES,
 } from '../entities/projectVerificationForm';
@@ -324,7 +325,6 @@ const getAdminBroInstance = async () => {
             },
             socialProfiles: {
               isArray: true,
-              type: [SocialProfile],
               isVisible: {
                 list: false,
                 filter: false,
@@ -347,6 +347,7 @@ const getAdminBroInstance = async () => {
             'personalInfo.walletAddress': { type: 'string' },
             'personalInfo.email': { type: 'string' },
             projectRegistry: {
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
@@ -355,7 +356,13 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
+            'projectRegistry.isNonProfitOrganization': { type: 'boolean' },
+            'projectRegistry.organizationCountry': { type: 'string' },
+            'projectRegistry.organizationWebsite': { type: 'string' },
+            'projectRegistry.organizationDescription': { type: 'string' },
             projectContacts: {
+              type: 'mixed',
+              isArray: true,
               isVisible: {
                 list: false,
                 filter: false,
@@ -364,7 +371,10 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
+            'projectContacts.name': { type: 'string' },
+            'projectContacts.url': { type: 'string' },
             milestones: {
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
@@ -373,7 +383,12 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
+            'milestones.foundationDate': { type: 'string' },
+            'milestones.mission': { type: 'string' },
+            'milestones.achievedMilestones': { type: 'string' },
+            'milestones.achievedMilestonesProof': { type: 'string' },
             managingFunds: {
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
@@ -382,6 +397,11 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
+            'managingFunds.description': { type: 'string' },
+            'managingFunds.relatedAddresses': { type: 'mixed', isArray: true },
+            'managingFunds.relatedAddresses.title': { type: 'string' },
+            'managingFunds.relatedAddresses.address': { type: 'string' },
+            'managingFunds.relatedAddresses.networkId': { type: 'integer' },
             lastStep: {
               isVisible: false,
             },

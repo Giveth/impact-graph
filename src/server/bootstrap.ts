@@ -39,6 +39,8 @@ import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonat
 import { apiGivRouter } from '../routers/apiGivRoutes';
 import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 import { authorizationHandler } from '../services/authorizationServices';
+import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import { SocialProfile } from '../entities/socialProfile';
 
 // tslint:disable:no-var-requires
 const express = require('express');
