@@ -292,6 +292,17 @@ export const countriesList: Country[] = [
   { name: 'Zimbabwe', code: 'ZW' },
 ];
 
+export const generateRandomString = (len = 20): string => {
+  const charSet =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = '';
+  for (let i = 0; i < len; i++) {
+    const randomPoz = Math.floor(Math.random() * charSet.length);
+    randomString += charSet.substring(randomPoz, randomPoz + 1);
+  }
+  return randomString;
+};
+
 // we set ENVIRONMENT in docker-compose
 export const ENVIRONMENTS = {
   PRODUCTION: 'production',

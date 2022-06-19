@@ -927,6 +927,11 @@ export const getCurrentProjectVerificationFormQuery = `
                       achievedMilestones
                       achievedMilestonesProof
                     }
+                    socialProfiles {
+                      socialNetworkId
+                      socialNetwork
+                      isVerified
+                    }
                     managingFunds {
                       description
                       relatedAddresses {
@@ -1039,6 +1044,10 @@ export const projectVerificationSendEmailConfirmation = `
               name
               url
             }
+            socialProfiles {
+              socialNetwork
+              socialNetworkId
+            }
             milestones {
               mission
               foundationDate
@@ -1120,4 +1129,16 @@ export const updateProjectVerificationFormMutation = `
                     }
                     
             }
+        `;
+
+export const addNewSocialProfileMutation = `
+        mutation addNewSocialProfile($projectVerificationId: Int!, $socialNetwork: String!){
+           addNewSocialProfile(projectVerificationId:$projectVerificationId, socialNetwork:$socialNetwork)
+          } 
+        `;
+
+export const removeSocialProfileMutation = `
+        mutation removeSocialProfile( $socialProfileId: Int!){
+           removeSocialProfile(socialProfileId:$socialProfileId)
+          } 
         `;
