@@ -35,7 +35,9 @@ import {
 } from '../repositories/projectVerificationRepository';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
-import { countriesList } from '../utils/utils';
+import { countriesList, generateRandomString } from '../utils/utils';
+import { createSocialProfile } from '../repositories/socialProfileRepository';
+import { SOCIAL_NETWORKS } from '../entities/socialProfile';
 
 describe(
   'createProjectVerification test cases',
@@ -230,41 +232,6 @@ function createProjectVerificationFormMutationTestCases() {
       'There is an ongoing project verification request for this project',
     );
   });
-  it('should not create project verification because user have submitted project verification', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      statusId: ProjStatus.deactive,
-      admin: String(user.id),
-      verified: false,
-      listed: false,
-    });
-    const accessToken = await generateTestAccessToken(user.id);
-
-    await ProjectVerificationForm.create({
-      project,
-      user,
-      status: 'submitted',
-    }).save();
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: createProjectVerificationFormMutation,
-        variables: {
-          slug: project.slug,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      result.data.errors[0].message,
-      'There is an ongoing project verification request for this project',
-    );
-  });
 }
 
 function updateProjectVerificationFormMutationTestCases() {
@@ -299,6 +266,11 @@ function updateProjectVerificationFormMutationTestCases() {
         address: generateRandomEtheriumAddress(),
         networkId: NETWORK_IDS.MAIN_NET,
         title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.XDAI,
+        title: 'test title xdai',
       },
     ],
   };
@@ -664,6 +636,11 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      projectContacts,
+      projectRegistry,
+      managingFunds,
+      milestones,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -675,61 +652,6 @@ function updateProjectVerificationFormMutationTestCases() {
             projectVerificationId: projectVerification.id,
             step: PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
             isTermAndConditionsAccepted: true,
-          },
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(result.data.data.updateProjectVerificationForm);
-
-    assert.equal(
-      result.data.data.updateProjectVerificationForm.status,
-      PROJECT_VERIFICATION_STATUSES.DRAFT,
-    );
-    assert.equal(
-      result.data.data.updateProjectVerificationForm
-        .isTermAndConditionsAccepted,
-      true,
-    );
-    assert.equal(
-      result.data.data.updateProjectVerificationForm.lastStep,
-      PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
-    );
-  });
-  it('should update project verification with submit form successfully', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      statusId: ProjStatus.active,
-      admin: String(user.id),
-      verified: false,
-      listed: false,
-    });
-    const projectVerification = await ProjectVerificationForm.create({
-      project,
-      user,
-      personalInfo,
-      projectRegistry,
-      projectContacts,
-      milestones,
-      managingFunds,
-      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
-      emailConfirmed: true,
-      isTermAndConditionsAccepted: true,
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateProjectVerificationFormMutation,
-        variables: {
-          projectVerificationUpdateInput: {
-            projectVerificationId: projectVerification.id,
-            step: PROJECT_VERIFICATION_STEPS.SUBMIT,
           },
         },
       },
@@ -746,8 +668,13 @@ function updateProjectVerificationFormMutationTestCases() {
       PROJECT_VERIFICATION_STATUSES.SUBMITTED,
     );
     assert.equal(
+      result.data.data.updateProjectVerificationForm
+        .isTermAndConditionsAccepted,
+      true,
+    );
+    assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
-      PROJECT_VERIFICATION_STEPS.SUBMIT,
+      PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
     );
   });
 
@@ -764,8 +691,13 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      projectContacts,
+      projectRegistry,
+      managingFunds,
+      milestones,
+      emailConfirmed: true,
     }).save();
-    projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.SUBMIT;
+    projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS;
     await projectVerification.save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -775,8 +707,8 @@ function updateProjectVerificationFormMutationTestCases() {
         variables: {
           projectVerificationUpdateInput: {
             projectVerificationId: projectVerification.id,
-            step: PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
-            isTermAndConditionsAccepted: true,
+            step: PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY,
+            projectRegistry,
           },
         },
       },
@@ -792,14 +724,10 @@ function updateProjectVerificationFormMutationTestCases() {
       result.data.data.updateProjectVerificationForm.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
-    assert.equal(
-      result.data.data.updateProjectVerificationForm
-        .isTermAndConditionsAccepted,
-      true,
-    );
+
     assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
-      PROJECT_VERIFICATION_STEPS.SUBMIT,
+      PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS,
     );
   });
 
@@ -817,7 +745,7 @@ function updateProjectVerificationFormMutationTestCases() {
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
-    projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS;
+    projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY;
     await projectVerification.save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -827,8 +755,8 @@ function updateProjectVerificationFormMutationTestCases() {
         variables: {
           projectVerificationUpdateInput: {
             projectVerificationId: projectVerification.id,
-            step: PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
-            isTermAndConditionsAccepted: true,
+            step: PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS,
+            projectContacts,
           },
         },
       },
@@ -844,14 +772,10 @@ function updateProjectVerificationFormMutationTestCases() {
       result.data.data.updateProjectVerificationForm.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
-    assert.equal(
-      result.data.data.updateProjectVerificationForm
-        .isTermAndConditionsAccepted,
-      true,
-    );
+
     assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
-      PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
+      PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS,
     );
   });
 }
@@ -907,6 +831,13 @@ function getCurrentProjectVerificationFormTestCases() {
     });
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
     await projectVerificationForm.save();
+    const socialProfileInfo = {
+      projectVerificationId: projectVerificationForm.id,
+      isVerified: true,
+      socialNetwork: SOCIAL_NETWORKS.DISCORD,
+      socialNetworkId: generateRandomString(),
+    };
+    await createSocialProfile(socialProfileInfo);
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
       graphqlUrl,
@@ -929,6 +860,15 @@ function getCurrentProjectVerificationFormTestCases() {
     assert.equal(
       result.data.data.getCurrentProjectVerificationForm.id,
       projectVerificationForm.id,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles.length,
+      1,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles[0]
+        .socialNetworkId,
+      socialProfileInfo.socialNetworkId,
     );
   });
   it('should get current project verification form with draft status', async () => {

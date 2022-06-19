@@ -11,6 +11,7 @@ import { DonationResolver } from './donationResolver';
 import { ReactionResolver } from './reactionResolver';
 import { StatusReasonResolver } from './statusReasonResolver';
 import { ProjectVerificationFormResolver } from './projectVerificationFormResolver';
+import { SocialProfilesResolver } from './socialProfilesResolver';
 
 export const resolvers: any = [
   UserResolver,
@@ -26,4 +27,5 @@ export const resolvers: any = [
   DonationResolver,
   ReactionResolver,
   ProjectVerificationFormResolver,
+  SocialProfilesResolver,
 ];

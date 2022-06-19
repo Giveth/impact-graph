@@ -215,7 +215,7 @@ export const getInProgressProjectVerificationRequest = async (
   projectId: number,
 ): Promise<ProjectVerificationForm | undefined> => {
   return ProjectVerificationForm.createQueryBuilder('project_verification_form')
-    .where(`"projectId"=:projectId`, {
+    .where(`project_verification_form.projectId=:projectId`, {
       projectId,
     })
     .andWhere(
@@ -229,6 +229,10 @@ export const getInProgressProjectVerificationRequest = async (
       }),
     )
     .leftJoinAndSelect('project_verification_form.project', 'project')
+    .leftJoinAndSelect(
+      'project_verification_form.socialProfiles',
+      'socialProfiles',
+    )
     .leftJoinAndSelect('project_verification_form.user', 'user')
     .getOne();
 };
