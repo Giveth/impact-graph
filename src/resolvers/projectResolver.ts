@@ -1202,16 +1202,19 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .innerJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields) // aliased selection
-      .where('project.admin = :userId', { userId: String(userId) });
+      .addSelect(publicSelectionFields); // aliased selection
 
-    if (userId !== user?.userId) {
+    if (userId === user?.userId) {
       query = ProjectResolver.addProjectVerificationForm(
         query,
         connectedWalletUserId,
         user,
       );
+    }
 
+    query = query.where('project.admin = :userId', { userId: String(userId) });
+
+    if (userId !== user?.userId) {
       query = query.andWhere(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
