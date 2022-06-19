@@ -119,17 +119,28 @@ export class ProjectVerificationFormResolver {
           errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
         );
       }
-
+      const email = projectVerificationForm.personalInfo.email;
       const project = await findProjectById(projectVerificationForm.projectId);
       if (!project) {
         throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      }
+      if (!email) {
+        throw new Error(
+          errorMessages.YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL,
+        );
+      }
+      if (
+        email === projectVerificationForm.email &&
+        projectVerificationForm.emailConfirmed
+      ) {
+        throw new Error(errorMessages.YOU_ALREADY_VERIFIED_THIS_EMAIL);
       }
 
       const token = jwt.sign(
         { projectVerificationFormId },
         config.get('MAILER_JWT_SECRET') as string,
         {
-          expiresIn: '3d',
+          expiresIn: '2m',
         },
       );
 
@@ -138,20 +149,18 @@ export class ProjectVerificationFormResolver {
         .toDate();
       projectVerificationForm.emailConfirmationToken = token;
       projectVerificationForm.emailConfirmationSent = true;
+      projectVerificationForm.emailConfirmed = false;
+      projectVerificationForm.email = email;
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
 
       const callbackUrl = `https://${dappUrl}/verification/${project.slug}/${token}`;
       const emailConfirmationData = {
-        email: projectVerificationForm.personalInfo.email,
+        email,
         callbackUrl,
       };
 
-      await sendMailConfirmationEmail(
-        projectVerificationForm.personalInfo.email!,
-        project,
-        token,
-      );
+      await sendMailConfirmationEmail(email, project, token);
 
       analytics.track(
         SegmentEvents.SEND_EMAIL_CONFIRMATION,

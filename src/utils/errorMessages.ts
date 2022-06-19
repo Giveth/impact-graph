@@ -12,6 +12,9 @@ export const errorMessages = {
   YOU_ARE_NOT_OWNER_OF_THIS_DONATION: 'You are now owner of this donation',
   NOT_SUPPORTED_THIRD_PARTY_API: 'Third Party API not supported',
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
+  YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL:
+    'You should fill email in personal info step before confirming it',
+  YOU_ALREADY_VERIFIED_THIS_EMAIL: 'You already verified this email',
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',
   VERIFIED_USERNAME_IS_DIFFERENT_WITH_CLAIMED_ONE:
@@ -102,6 +105,8 @@ export const errorMessages = {
   AUTHENTICATION_REQUIRED: 'Authentication required.',
   SOMETHING_WENT_WRONG: 'Something went wrong.',
   PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
+  THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT:
+    'There is no recipient address for this project and networkId',
   AMOUNT_IS_INVALID: 'Amount is not valid',
   CURRENCY_IS_INVALID: 'Currency is not valid',
   SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT:

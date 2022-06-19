@@ -232,41 +232,6 @@ function createProjectVerificationFormMutationTestCases() {
       'There is an ongoing project verification request for this project',
     );
   });
-  it('should not create project verification because user have submitted project verification', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      statusId: ProjStatus.deactive,
-      admin: String(user.id),
-      verified: false,
-      listed: false,
-    });
-    const accessToken = await generateTestAccessToken(user.id);
-
-    await ProjectVerificationForm.create({
-      project,
-      user,
-      status: 'submitted',
-    }).save();
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: createProjectVerificationFormMutation,
-        variables: {
-          slug: project.slug,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      result.data.errors[0].message,
-      'There is an ongoing project verification request for this project',
-    );
-  });
 }
 
 function updateProjectVerificationFormMutationTestCases() {
@@ -275,13 +240,13 @@ function updateProjectVerificationFormMutationTestCases() {
     fullName: 'test',
     walletAddress: 'xxxxx',
   };
-  const projectContacts: ProjectContacts = {
-    facebook: 'facebookAddress',
-    instagram: 'instagramAddress',
-    linkedin: 'linkedinAddress',
-    twitter: '',
-    youtube: 'youtubeAddress',
-  };
+  const projectContacts: ProjectContacts[] = [
+    { name: 'facebook', url: 'facebookAddress' },
+    { name: 'instagram', url: 'instagramAddress' },
+    { name: 'linkedin', url: 'linkedinAddress' },
+    { name: 'linkedinAddress', url: 'linkedinAddressAddress' },
+    { name: 'youtube', url: 'youtubeAddress' },
+  ];
   const projectRegistry: ProjectRegistry = {
     organizationWebsite: 'org website',
     organizationCountry: 'France',
@@ -292,7 +257,7 @@ function updateProjectVerificationFormMutationTestCases() {
     mission: 'mission',
     achievedMilestonesProof: 'an ipfs hash',
     achievedMilestones: 'lots of work',
-    foundationDate: new Date(),
+    foundationDate: new Date().toString(),
   };
   const managingFunds: ManagingFunds = {
     description: 'description!!!',
@@ -301,6 +266,11 @@ function updateProjectVerificationFormMutationTestCases() {
         address: generateRandomEtheriumAddress(),
         networkId: NETWORK_IDS.MAIN_NET,
         title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.XDAI,
+        title: 'test title xdai',
       },
     ],
   };
@@ -343,12 +313,16 @@ function updateProjectVerificationFormMutationTestCases() {
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
     assert.equal(
-      result.data.data.updateProjectVerificationForm.projectContacts.linkedin,
-      projectContacts.linkedin,
+      result.data.data.updateProjectVerificationForm.projectContacts.length,
+      projectContacts.length,
     );
     assert.equal(
-      result.data.data.updateProjectVerificationForm.projectContacts.twitter,
-      projectContacts.twitter,
+      result.data.data.updateProjectVerificationForm.projectContacts[0].url,
+      projectContacts[0].url,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.projectContacts[1].name,
+      projectContacts[1].name,
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
@@ -510,8 +484,90 @@ function updateProjectVerificationFormMutationTestCases() {
       milestones.achievedMilestonesProof,
     );
     assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones.foundationDate,
+      milestones.foundationDate,
+    );
+    assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
       PROJECT_VERIFICATION_STEPS.MILESTONES,
+    );
+  });
+  it('should update project verification with milestones form successfully and get it', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.MILESTONES,
+            milestones,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones
+        .achievedMilestones,
+      milestones.achievedMilestones,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones
+        .achievedMilestonesProof,
+      milestones.achievedMilestonesProof,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.milestones.foundationDate,
+      milestones.foundationDate,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.lastStep,
+      PROJECT_VERIFICATION_STEPS.MILESTONES,
+    );
+
+    const fetchedVerificationForm = await axios.post(
+      graphqlUrl,
+      {
+        query: getCurrentProjectVerificationFormQuery,
+        variables: {
+          slug: project.slug,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      fetchedVerificationForm.data.data.getCurrentProjectVerificationForm
+        .milestones.foundationDate,
+      milestones.foundationDate,
     );
   });
   it('should update project verification with managingFunds form successfully', async () => {
@@ -580,6 +636,11 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      projectContacts,
+      projectRegistry,
+      managingFunds,
+      milestones,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -591,61 +652,6 @@ function updateProjectVerificationFormMutationTestCases() {
             projectVerificationId: projectVerification.id,
             step: PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
             isTermAndConditionsAccepted: true,
-          },
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isOk(result.data.data.updateProjectVerificationForm);
-
-    assert.equal(
-      result.data.data.updateProjectVerificationForm.status,
-      PROJECT_VERIFICATION_STATUSES.DRAFT,
-    );
-    assert.equal(
-      result.data.data.updateProjectVerificationForm
-        .isTermAndConditionsAccepted,
-      true,
-    );
-    assert.equal(
-      result.data.data.updateProjectVerificationForm.lastStep,
-      PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
-    );
-  });
-  it('should update project verification with submit form successfully', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      statusId: ProjStatus.active,
-      admin: String(user.id),
-      verified: false,
-      listed: false,
-    });
-    const projectVerification = await ProjectVerificationForm.create({
-      project,
-      user,
-      personalInfo,
-      projectRegistry,
-      projectContacts,
-      milestones,
-      managingFunds,
-      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
-      emailConfirmed: true,
-      isTermAndConditionsAccepted: true,
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateProjectVerificationFormMutation,
-        variables: {
-          projectVerificationUpdateInput: {
-            projectVerificationId: projectVerification.id,
-            step: PROJECT_VERIFICATION_STEPS.SUBMIT,
           },
         },
       },
@@ -662,8 +668,13 @@ function updateProjectVerificationFormMutationTestCases() {
       PROJECT_VERIFICATION_STATUSES.SUBMITTED,
     );
     assert.equal(
+      result.data.data.updateProjectVerificationForm
+        .isTermAndConditionsAccepted,
+      true,
+    );
+    assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
-      PROJECT_VERIFICATION_STEPS.SUBMIT,
+      PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
     );
   });
 
@@ -680,8 +691,13 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      projectContacts,
+      projectRegistry,
+      managingFunds,
+      milestones,
+      emailConfirmed: true,
     }).save();
-    projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.SUBMIT;
+    projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS;
     await projectVerification.save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -691,8 +707,8 @@ function updateProjectVerificationFormMutationTestCases() {
         variables: {
           projectVerificationUpdateInput: {
             projectVerificationId: projectVerification.id,
-            step: PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
-            isTermAndConditionsAccepted: true,
+            step: PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY,
+            projectRegistry,
           },
         },
       },
@@ -708,14 +724,10 @@ function updateProjectVerificationFormMutationTestCases() {
       result.data.data.updateProjectVerificationForm.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
-    assert.equal(
-      result.data.data.updateProjectVerificationForm
-        .isTermAndConditionsAccepted,
-      true,
-    );
+
     assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
-      PROJECT_VERIFICATION_STEPS.SUBMIT,
+      PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS,
     );
   });
 
@@ -733,7 +745,7 @@ function updateProjectVerificationFormMutationTestCases() {
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
-    projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS;
+    projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY;
     await projectVerification.save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -743,8 +755,8 @@ function updateProjectVerificationFormMutationTestCases() {
         variables: {
           projectVerificationUpdateInput: {
             projectVerificationId: projectVerification.id,
-            step: PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
-            isTermAndConditionsAccepted: true,
+            step: PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS,
+            projectContacts,
           },
         },
       },
@@ -760,14 +772,10 @@ function updateProjectVerificationFormMutationTestCases() {
       result.data.data.updateProjectVerificationForm.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
-    assert.equal(
-      result.data.data.updateProjectVerificationForm
-        .isTermAndConditionsAccepted,
-      true,
-    );
+
     assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
-      PROJECT_VERIFICATION_STEPS.TERM_AND_CONDITION,
+      PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS,
     );
   });
 }
@@ -1047,6 +1055,10 @@ function projectVerificationSendEmailConfirmationTestCases() {
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
       personalInfo,
     }).save();
+    projectVerification.email = 'test email it should be over written';
+    projectVerification.emailConfirmed = true;
+    await projectVerification.save();
+
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
       graphqlUrl,
@@ -1063,6 +1075,13 @@ function projectVerificationSendEmailConfirmationTestCases() {
       },
     );
     assert.isOk(result.data.data.projectVerificationSendEmailConfirmation);
+    assert.isFalse(
+      result.data.data.projectVerificationSendEmailConfirmation.emailConfirmed,
+    );
+    assert.equal(
+      result.data.data.projectVerificationSendEmailConfirmation.email,
+      personalInfo.email,
+    );
     assert.equal(
       result.data.data.projectVerificationSendEmailConfirmation.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
@@ -1075,6 +1094,45 @@ function projectVerificationSendEmailConfirmationTestCases() {
     assert.isNotNull(
       result.data.data.projectVerificationSendEmailConfirmation
         .emailConfirmationToken,
+    );
+  });
+  it('should throw error when sending email confirmation when email didnt change and is confirmed', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      personalInfo,
+    }).save();
+    projectVerification.email = personalInfo.email;
+    projectVerification.emailConfirmed = true;
+    await projectVerification.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: projectVerificationSendEmailConfirmation,
+        variables: {
+          projectVerificationFormId: projectVerification.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.YOU_ALREADY_VERIFIED_THIS_EMAIL,
     );
   });
 }
@@ -1192,7 +1250,7 @@ function projectVerificationConfirmEmailTestCases() {
     assert.isFalse(
       projectVerificationReinitializedEmailParams!.emailConfirmationSent,
     );
-    assert.isNull(
+    assert.isNotOk(
       projectVerificationReinitializedEmailParams!.emailConfirmationSentAt,
     );
     assert.isNull(

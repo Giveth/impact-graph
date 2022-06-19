@@ -30,7 +30,7 @@ export const PROJECT_VERIFICATION_STEPS = {
   MANAGING_FUNDS: 'managingFunds',
   MILESTONES: 'milestones',
   TERM_AND_CONDITION: 'termAndCondition',
-  SUBMIT: 'submit',
+  // SUBMIT: 'submit',
 };
 
 // Representative of the project, no specifically the user
@@ -59,21 +59,16 @@ export class ProjectRegistry {
 @ObjectType()
 export class ProjectContacts {
   @Field({ nullable: true })
-  twitter?: string;
+  name?: string;
   @Field({ nullable: true })
-  facebook?: string;
-  @Field({ nullable: true })
-  linkedin?: string;
-  @Field({ nullable: true })
-  instagram?: string;
-  @Field({ nullable: true })
-  youtube?: string;
+  url?: string;
 }
 
 @ObjectType()
 export class Milestones {
-  @Field({ nullable: true })
-  foundationDate?: Date;
+  @Field(type => String, { nullable: true })
+  foundationDate?: String;
+
   @Field({ nullable: true })
   mission?: string;
   @Field({ nullable: true })
@@ -158,9 +153,9 @@ export class ProjectVerificationForm extends BaseEntity {
   @Column('jsonb', { nullable: true })
   projectRegistry: ProjectRegistry;
 
-  @Field(type => ProjectContacts, { nullable: true })
+  @Field(type => [ProjectContacts], { nullable: true })
   @Column('jsonb', { nullable: true })
-  projectContacts: ProjectContacts;
+  projectContacts: ProjectContacts[];
 
   @Field(type => Milestones, { nullable: true })
   @Column('jsonb', { nullable: true })
@@ -180,10 +175,14 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @Field(type => String, { nullable: true })
   @Column('text', { nullable: true })
+  email?: string;
+
+  @Field(type => String, { nullable: true })
+  @Column('text', { nullable: true })
   emailConfirmationToken: string | null;
 
   @Field(type => Date, { nullable: true })
-  @Column('text', { nullable: true })
+  @Column('timestamptz', { nullable: true })
   emailConfirmationTokenExpiredAt: Date | null;
 
   @Field(type => Boolean, { nullable: true })

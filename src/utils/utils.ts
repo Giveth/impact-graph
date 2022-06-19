@@ -302,3 +302,11 @@ export const generateRandomString = (len = 20): string => {
   }
   return randomString;
 };
+
+// we set ENVIRONMENT in docker-compose
+export const ENVIRONMENTS = {
+  PRODUCTION: 'production',
+  STAGING: 'staging',
+  DEVELOP: 'develop',
+  LOCAL: 'local',
+};

@@ -123,7 +123,7 @@ export const updateProjectVerificationLastStep = async (params: {
 
 export const updateProjectContactsOfProjectVerification = async (params: {
   projectVerificationId: number;
-  projectContacts: ProjectContacts;
+  projectContacts: ProjectContacts[];
 }): Promise<ProjectVerificationForm> => {
   const { projectContacts, projectVerificationId } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
