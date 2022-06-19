@@ -235,10 +235,6 @@ class Project extends BaseEntity {
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
   socialProfiles?: SocialProfile[];
 
-  @Field(type => [ProjectAddress], { nullable: true })
-  @OneToMany(type => ProjectAddress, projectAddress => projectAddress.project)
-  projectAddresses?: ProjectAddress[];
-
   @Field(type => Float)
   @Column({ type: 'real' })
   totalDonations: number;

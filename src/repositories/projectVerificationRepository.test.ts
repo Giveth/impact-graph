@@ -22,6 +22,8 @@ import {
   updateProjectPersonalInfoOfProjectVerification,
   updateProjectRegistryOfProjectVerification,
   updateProjectVerificationLastStep,
+  verifyForm,
+  verifyMultipleForms,
 } from './projectVerificationRepository';
 import { assert } from 'chai';
 
@@ -57,6 +59,10 @@ describe(
   'getInProgressProjectVerificationRequest test cases',
   getInProgressProjectVerificationRequestTestCases,
 );
+
+describe('verifyForm test cases', verifyFormTestCases);
+
+describe('verifyMultipleForm test cases', verifyMultipleFormTestCases);
 
 function createProjectVerificationFormTestCases() {
   it('should create projectVerification successfully', async () => {
@@ -323,6 +329,168 @@ function getInProgressProjectVerificationRequestTestCases() {
     assert.equal(
       foundProjectVerificationForm?.status,
       projectVerificationForm.status,
+    );
+  });
+}
+
+function verifyFormTestCases() {
+  it('Should verify submitted verification form', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm.save();
+
+    const updateProjectVerificationForm = await verifyForm({
+      formId: projectVerificationForm.id,
+      verificationStatus: PROJECT_VERIFICATION_STATUSES.VERIFIED,
+    });
+
+    assert.equal(
+      updateProjectVerificationForm?.status,
+      PROJECT_VERIFICATION_STATUSES.VERIFIED,
+    );
+  });
+  it('Should rejected submitted verification form', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm.save();
+
+    const updateProjectVerificationForm = await verifyForm({
+      formId: projectVerificationForm.id,
+      verificationStatus: PROJECT_VERIFICATION_STATUSES.REJECTED,
+    });
+
+    assert.equal(
+      updateProjectVerificationForm?.status,
+      PROJECT_VERIFICATION_STATUSES.REJECTED,
+    );
+  });
+}
+
+function verifyMultipleFormTestCases() {
+  it('Should verify multiple submitted verification forms', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm.save();
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm2 = await createProjectVerificationForm({
+      projectId: project2.id,
+      userId: user.id,
+    });
+    projectVerificationForm2.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm2.save();
+
+    assert.equal(
+      projectVerificationForm?.status,
+      PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+    );
+    assert.equal(
+      projectVerificationForm2?.status,
+      PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+    );
+
+    await verifyMultipleForms({
+      formIds: [projectVerificationForm.id, projectVerificationForm2.id],
+      verificationStatus: PROJECT_VERIFICATION_STATUSES.VERIFIED,
+    });
+
+    const updateProjectVerificationForm = await findProjectVerificationFormById(
+      projectVerificationForm.id,
+    );
+    const updateProjectVerificationForm2 =
+      await findProjectVerificationFormById(projectVerificationForm2.id);
+
+    assert.equal(
+      updateProjectVerificationForm?.status,
+      PROJECT_VERIFICATION_STATUSES.VERIFIED,
+    );
+    assert.equal(
+      updateProjectVerificationForm2?.status,
+      PROJECT_VERIFICATION_STATUSES.VERIFIED,
+    );
+  });
+  it('Should reject multiple submitted verification forms', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm.save();
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm2 = await createProjectVerificationForm({
+      projectId: project2.id,
+      userId: user.id,
+    });
+    projectVerificationForm2.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm2.save();
+
+    assert.equal(
+      projectVerificationForm?.status,
+      PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+    );
+    assert.equal(
+      projectVerificationForm2?.status,
+      PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+    );
+
+    await verifyMultipleForms({
+      formIds: [projectVerificationForm.id, projectVerificationForm2.id],
+      verificationStatus: PROJECT_VERIFICATION_STATUSES.REJECTED,
+    });
+
+    const updateProjectVerificationForm = await findProjectVerificationFormById(
+      projectVerificationForm.id,
+    );
+    const updateProjectVerificationForm2 =
+      await findProjectVerificationFormById(projectVerificationForm2.id);
+
+    assert.equal(
+      updateProjectVerificationForm?.status,
+      PROJECT_VERIFICATION_STATUSES.REJECTED,
+    );
+    assert.equal(
+      updateProjectVerificationForm2?.status,
+      PROJECT_VERIFICATION_STATUSES.REJECTED,
     );
   });
 }
