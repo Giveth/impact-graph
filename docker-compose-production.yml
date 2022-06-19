@@ -12,6 +12,7 @@ services:
     image: ghcr.io/giveth/impact-graph:latest
     environment:
       - NODE_ENV=production
+      - ENVIRONMENT=production
       - LOG_PATH=/usr/src/app/logs/impact-graph.log
     restart: always
     volumes:

@@ -11,7 +11,7 @@ import { ProjectStatus } from '../entities/projectStatus';
 import {
   CreateProjectInput,
   ImageUpload,
-  ProjectInput,
+  UpdateProjectInput,
 } from './types/project-input';
 import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
@@ -48,6 +48,7 @@ import {
 import { errorMessages } from '../utils/errorMessages';
 import {
   canUserVisitProject,
+  validateProjectRelatedAddresses,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
@@ -63,9 +64,15 @@ import {
 } from '../services/projectService';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
-import { propertyKeyRegex } from 'admin-bro/types/src/utils/flat/property-key-regex';
-import { PurpleAddress } from '../entities/purpleAddress';
 import { findUserById } from '../repositories/userRepository';
+import {
+  getPurpleListAddresses,
+  removeRelatedAddressOfProject,
+  isWalletAddressInPurpleList,
+  findProjectRecipientAddressByProjectId,
+  addBulkNewProjectAddress,
+} from '../repositories/projectAddressRepository';
+import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import { userIsOwnerOfProject } from '../repositories/projectRepository';
 
 const analytics = getAnalytics();
@@ -266,6 +273,7 @@ export class ProjectResolver {
   ): SelectQueryBuilder<Project> {
     const query = Project.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .innerJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoin('project.adminUser', 'user')
@@ -451,6 +459,8 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.users', 'users')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
       // you can alias it as user but it still is mapped as adminUser
       // like defined in our project entity
@@ -578,6 +588,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
@@ -614,6 +625,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
       .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
@@ -637,7 +649,7 @@ export class ProjectResolver {
   @Mutation(returns => Project)
   async updateProject(
     @Arg('projectId') projectId: number,
-    @Arg('newProjectData') newProjectData: CreateProjectInput,
+    @Arg('newProjectData') newProjectData: UpdateProjectInput,
     @Ctx() { req: { user } }: MyContext,
   ) {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
@@ -690,13 +702,13 @@ export class ProjectResolver {
     if (newProjectData.title) {
       await validateProjectTitleForEdit(newProjectData.title, projectId);
     }
-    if (newProjectData.walletAddress) {
-      await validateProjectWalletAddress(
-        newProjectData.walletAddress,
+
+    if (newProjectData.addresses) {
+      await validateProjectRelatedAddresses(
+        newProjectData.addresses,
         projectId,
       );
     }
-
     const slugBase = slugify(newProjectData.title);
     const newSlug = await getAppropriateSlug(slugBase, projectId);
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
@@ -712,6 +724,25 @@ export class ProjectResolver {
     project.listed = null;
 
     await project.save();
+    const adminUser = (await findUserById(Number(project.admin))) as User;
+    if (newProjectData.addresses) {
+      await removeRelatedAddressOfProject({ project });
+      await addBulkNewProjectAddress(
+        newProjectData?.addresses.map(relatedAddress => {
+          return {
+            project,
+            user: adminUser,
+            address: relatedAddress.address,
+            networkId: relatedAddress.networkId,
+            isRecipient: true,
+          };
+        }),
+      );
+    }
+    project.adminUser = adminUser;
+    project.addresses = await findProjectRecipientAddressByProjectId({
+      projectId,
+    });
 
     // Edit emails
     Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
@@ -798,7 +829,10 @@ export class ProjectResolver {
         errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
       );
     }
-    await validateProjectWalletAddress(projectInput.walletAddress);
+
+    await validateProjectRelatedAddresses(
+      projectInput.addresses as RelatedAddressInputType[],
+    );
     await validateProjectTitle(projectInput.title);
     const slugBase = slugify(projectInput.title);
     const slug = await getAppropriateSlug(slugBase);
@@ -833,6 +867,31 @@ export class ProjectResolver {
     });
 
     const newProject = await this.projectRepository.save(project);
+    const adminUser = (await findUserById(Number(newProject.admin))) as User;
+    newProject.adminUser = adminUser;
+    // for (const relatedAddress of projectInput?.addresses) {
+    //   await addNewProjectAddress({
+    //     project,
+    //     user: adminUser,
+    //     address: relatedAddress.address,
+    //     networkId: relatedAddress.networkId,
+    //     isRecipient: true,
+    //   });
+    // }
+    await addBulkNewProjectAddress(
+      projectInput?.addresses.map(relatedAddress => {
+        return {
+          project,
+          user: adminUser,
+          address: relatedAddress.address,
+          networkId: relatedAddress.networkId,
+          isRecipient: true,
+        };
+      }),
+    );
+    newProject.addresses = await findProjectRecipientAddressByProjectId({
+      projectId: project.id,
+    });
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,
@@ -1071,47 +1130,15 @@ export class ProjectResolver {
 
   @Query(returns => [String])
   async getPurpleList(): Promise<String[]> {
-    const recipients = await Project.query(
-      `
-          SELECT LOWER("walletAddress") as recipient
-          FROM project
-          WHERE verified=true
-      `,
-    );
-    const recipientsAddresses = recipients.map(({ recipient }) => recipient);
-    const purpleAddresses = await PurpleAddress.query(
-      `
-          SELECT LOWER(address) as "purpleAddress"
-          FROM purple_address
-      `,
-    );
-    return purpleAddresses
-      .map(({ purpleAddress }) => purpleAddress)
-      .concat(recipientsAddresses);
+    const relatedAddresses = await getPurpleListAddresses();
+    return relatedAddresses.map(({ projectAddress }) => projectAddress);
   }
 
   @Query(returns => Boolean)
   async walletAddressIsPurpleListed(
     @Arg('address') address: string,
   ): Promise<Boolean> {
-    const recipient = await Project.createQueryBuilder()
-      .where('verified = true')
-      .andWhere(`LOWER("walletAddress") = :walletAddress`, {
-        walletAddress: address.toLowerCase(),
-      })
-      .getOne();
-
-    if (recipient) return true;
-
-    const purpleAddress = await PurpleAddress.createQueryBuilder()
-      .where(`LOWER(address) = :walletAddress`, {
-        walletAddress: address.toLowerCase(),
-      })
-      .getOne();
-
-    if (purpleAddress) return true;
-
-    return false;
+    return isWalletAddressInPurpleList(address);
   }
 
   @Query(returns => [Token])
@@ -1201,6 +1228,7 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
@@ -1243,6 +1271,7 @@ export class ProjectResolver {
   ) {
     const viewedProject = await this.projectRepository
       .createQueryBuilder('project')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .innerJoinAndSelect('project.categories', 'categories')
       .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
         slug,
@@ -1325,6 +1354,7 @@ export class ProjectResolver {
         { userId },
       )
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
       .where(
