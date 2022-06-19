@@ -1,13 +1,25 @@
 import { UpdateResult } from 'typeorm';
-import { Project, ProjectUpdate } from '../entities/project';
+import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { ProjectAddress } from '../entities/projectAddress';
 import { errorMessages } from '../utils/errorMessages';
+import { Reaction } from '../entities/reaction';
+import { publicSelectionFields } from '../entities/user';
 
 export const findProjectById = (
   projectId: number,
 ): Promise<Project | undefined> => {
-  return Project.findOne({ id: projectId });
+  // return Project.findOne({ id: projectId });
+
+  return Project.createQueryBuilder('project')
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoin('project.adminUser', 'user')
+    .addSelect(publicSelectionFields)
+    .where({
+      id: projectId,
+    })
+    .getOne();
 };
 
 export const findProjectBySlug = (
@@ -23,7 +35,7 @@ export const findProjectBySlug = (
 
 export const verifyMultipleProjects = async (params: {
   verified: boolean;
-  projectsIds: string[];
+  projectsIds: string[] | number[];
 }): Promise<UpdateResult> => {
   return Project.createQueryBuilder('project')
     .update<Project>(Project, { verified: params.verified })
@@ -38,24 +50,21 @@ export const updateProjectWithVerificationForm = async (
   verificationForm: ProjectVerificationForm,
   project: Project,
 ): Promise<Project> => {
-  const relatedAddresses: ProjectAddress[] = [];
-
   for (const relatedAddress of verificationForm.managingFunds
     .relatedAddresses) {
-    relatedAddresses.push(
-      ProjectAddress.create({
-        title: relatedAddress.title,
-        address: relatedAddress.address,
-        networkId: relatedAddress.networkId,
-        projectId: verificationForm.projectId,
-        userId: verificationForm.userId,
-        isRecipient: false,
-      }),
-    );
+    await ProjectAddress.create({
+      title: relatedAddress.title,
+      address: relatedAddress.address,
+      networkId: relatedAddress.networkId,
+      projectId: verificationForm.projectId,
+      user: verificationForm.user,
+      project,
+      isRecipient: false,
+    }).save();
   }
   project.contacts = verificationForm.projectContacts;
-  project.projectAddresses = relatedAddresses;
-  return project.save();
+  await project.save();
+  return (await findProjectById(project.id)) as Project;
 };
 
 export const verifyProject = async (params: {
