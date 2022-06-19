@@ -143,6 +143,8 @@ export class ProjectVerificationForm extends BaseEntity {
   @OneToMany(
     type => SocialProfile,
     socialProfile => socialProfile.projectVerificationForm,
+    // table join name is too long breaks typeorm
+    // { eager: true } error: table name "ProjectVerificationForm_socialProfiles_project_ProjectVerificat" specified more than once
   )
   socialProfiles?: SocialProfile[];
 

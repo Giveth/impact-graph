@@ -332,6 +332,9 @@ const getAdminBroInstance = async () => {
                 edit: false,
                 new: false,
               },
+              components: {
+                show: AdminBro.bundle('./components/SocialProfiles'),
+              },
             },
             personalInfo: {
               type: 'mixed',
