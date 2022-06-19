@@ -66,7 +66,6 @@ import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { findUserById } from '../repositories/userRepository';
 import {
-  addNewProjectAddress,
   getPurpleListAddresses,
   removeRelatedAddressOfProject,
   isWalletAddressInPurpleList,
@@ -74,6 +73,7 @@ import {
   addBulkNewProjectAddress,
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
+import { userIsOwnerOfProject } from '../repositories/projectRepository';
 
 const analytics = getAnalytics();
 
@@ -406,6 +406,23 @@ export class ProjectResolver {
 
     return query;
   }
+
+  private static addProjectVerificationForm<T>(
+    query: SelectQueryBuilder<T>,
+    connectedWalletUserId?: number,
+    authenticatedUser?: any,
+  ): SelectQueryBuilder<T> {
+    const userId = connectedWalletUserId || authenticatedUser?.userId;
+    if (userId) {
+      return query.leftJoinAndSelect(
+        'project.projectVerificationForm',
+        'projectVerificationForm',
+      );
+    }
+
+    return query;
+  }
+
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
@@ -591,6 +608,14 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ) {
+    const viewerUserId = connectedWalletUserId || user?.userId;
+    let isOwnerOfProject = false;
+
+    // ensure it's the owner
+    if (viewerUserId) {
+      isOwnerOfProject = await userIsOwnerOfProject(viewerUserId, slug);
+    }
+
     let query = this.projectRepository
       .createQueryBuilder('project')
       // check current slug and previous slugs
@@ -603,7 +628,17 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
+
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+    if (isOwnerOfProject) {
+      query = ProjectResolver.addProjectVerificationForm(
+        query,
+        connectedWalletUserId,
+        user,
+      );
+    }
+
     const project = await query.getOne();
 
     canUserVisitProject(project, String(user?.userId));
@@ -1195,8 +1230,17 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .innerJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields) // aliased selection
-      .where('project.admin = :userId', { userId: String(userId) });
+      .addSelect(publicSelectionFields); // aliased selection
+
+    if (userId === user?.userId) {
+      query = ProjectResolver.addProjectVerificationForm(
+        query,
+        connectedWalletUserId,
+        user,
+      );
+    }
+
+    query = query.where('project.admin = :userId', { userId: String(userId) });
 
     if (userId !== user?.userId) {
       query = query.andWhere(

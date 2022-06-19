@@ -89,3 +89,15 @@ export const findProjectByWalletAddress = async (
     .leftJoinAndSelect('project.status', 'status')
     .getOne();
 };
+
+export const userIsOwnerOfProject = async (
+  viewerUserId: number,
+  slug: string,
+): Promise<boolean> => {
+  return (
+    await Project.query(
+      `SELECT EXISTS(SELECT * FROM project WHERE "adminUserId" = $1 AND slug = $2)`,
+      [viewerUserId, slug],
+    )
+  )[0].exists;
+};

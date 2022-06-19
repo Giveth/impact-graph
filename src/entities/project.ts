@@ -14,6 +14,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
 } from 'typeorm';
@@ -32,6 +33,7 @@ import { errorMessages } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
 import { SocialProfile } from './socialProfile';
+import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { ProjectContacts } from './projectVerificationForm';
 
@@ -230,6 +232,14 @@ class Project extends BaseEntity {
     projectStatusHistory => projectStatusHistory.project,
   )
   statusHistory?: ProjectStatusHistory[];
+
+  @Field(type => ProjectVerificationForm, { nullable: true })
+  @OneToOne(
+    type => ProjectVerificationForm,
+    projectVerificationForm => projectVerificationForm.project,
+    { nullable: true },
+  )
+  projectVerificationForm?: ProjectVerificationForm;
 
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
