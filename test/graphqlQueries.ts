@@ -439,6 +439,47 @@ export const fetchProjectsBySlugQuery = `
       traceCampaignId
       listed
       givingBlocksId
+      projectVerificationForm {
+        id
+        isTermAndConditionsAccepted
+        emailConfirmationTokenExpiredAt
+        email
+        emailConfirmationToken
+        emailConfirmationSent
+        emailConfirmationSentAt
+        emailConfirmedAt
+        emailConfirmed
+        projectRegistry {
+          organizationDescription
+          isNonProfitOrganization
+          organizationCountry
+          organizationWebsite
+        }
+        personalInfo {
+          email
+          walletAddress
+          fullName
+        }
+        projectContacts {
+          name
+          url
+        }
+        milestones {
+          mission
+          foundationDate
+          achievedMilestones
+          achievedMilestonesProof
+        }
+        managingFunds {
+          description
+          relatedAddresses {
+            address
+            networkId
+            title
+          }
+        }
+        status
+      }
       status {
         id
         symbol
@@ -731,6 +772,47 @@ export const projectsByUserIdQuery = `
           impactLocation
           listed
           givingBlocksId
+          projectVerificationForm {
+            id
+            isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
+            email
+            emailConfirmationToken
+            emailConfirmationSent
+            emailConfirmationSentAt
+            emailConfirmedAt
+            emailConfirmed
+            projectRegistry {
+              organizationDescription
+              isNonProfitOrganization
+              organizationCountry
+              organizationWebsite
+            }
+            personalInfo {
+              email
+              walletAddress
+              fullName
+            }
+            projectContacts {
+              name
+              url
+            }
+            milestones {
+              mission
+              foundationDate
+              achievedMilestones
+              achievedMilestonesProof
+            }
+            managingFunds {
+              description
+              relatedAddresses {
+                address
+                networkId
+                title
+              }
+            }
+            status
+          }
           categories {
             name
           }

@@ -44,6 +44,7 @@ import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { NETWORK_IDS } from '../provider';
 import { addNewProjectAddress } from '../repositories/projectAddressRepository';
+import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -803,6 +804,52 @@ function projectsTestCases() {
 }
 
 function projectsByUserIdTestCases() {
+  it('should return projects with verificationForm if userId is same as logged in user', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      admin: String(user.id),
+    });
+
+    const verificationForm = await ProjectVerificationForm.create({
+      project: project1,
+      user,
+      status: 'draft',
+    }).save();
+
+    const accessToken = await generateTestAccessToken(user!.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: projectsByUserIdQuery,
+        variables: {
+          userId: user!.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const projects = result.data.data.projectsByUserId.projects;
+    const projectWithAnotherOwner = projects.find(
+      project => Number(project.admin) !== user!.id,
+    );
+    assert.isNotOk(projectWithAnotherOwner);
+    projects.forEach(project => {
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.adminUser.firstName);
+      assert.isOk(project.projectVerificationForm);
+      assert.equal(project.projectVerificationForm.id, verificationForm.id);
+      assert.isNotOk(project.adminUser.email);
+    });
+  });
+
   it('should return projects with specific admin', async () => {
     const userId = SEED_DATA.FIRST_USER.id;
     const result = await axios.post(graphqlUrl, {
@@ -819,6 +866,7 @@ function projectsByUserIdTestCases() {
     projects.forEach(project => {
       assert.isOk(project.adminUser.walletAddress);
       assert.isOk(project.adminUser.firstName);
+      assert.isNull(project.projectVerificationForm);
       assert.isNotOk(project.adminUser.email);
     });
   });
@@ -3108,6 +3156,50 @@ function getProjectUpdatesTestCases() {
 }
 
 function projectBySlugTestCases() {
+  it('should return projects with indicated slug and verification form if owner', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const user = await User.findOne({
+      id: Number(project1.admin),
+    });
+
+    const verificationForm = await ProjectVerificationForm.create({
+      project: project1,
+      user,
+      status: 'draft',
+    }).save();
+
+    const accessToken = await generateTestAccessToken(user!.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchProjectsBySlugQuery,
+        variables: {
+          slug: project1.slug,
+          connectedWalletUserId: user!.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), project1.id);
+    assert.isOk(project.projectVerificationForm);
+    assert.equal(project.projectVerificationForm.id, verificationForm.id);
+    assert.isOk(project.adminUser.walletAddress);
+    assert.isOk(project.adminUser.firstName);
+    assert.isNotOk(project.adminUser.email);
+  });
+
   it('should return projects with indicated slug', async () => {
     const walletAddress = generateRandomEtheriumAddress();
     const project1 = await saveProjectDirectlyToDb({
@@ -3127,6 +3219,7 @@ function projectBySlugTestCases() {
     const project = result.data.data.projectBySlug;
     assert.equal(Number(project.id), project1.id);
     assert.isOk(project.adminUser.walletAddress);
+    assert.isNull(project.projectVerificationForm);
     assert.isOk(project.adminUser.firstName);
     assert.isNotOk(project.adminUser.email);
     assert.isNotEmpty(project.addresses);

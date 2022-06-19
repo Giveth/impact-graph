@@ -158,6 +158,7 @@ export const saveProjectVerificationFormDirectlyToDb = async (params: {
 };
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
+  owner?: User,
 ): Promise<Project> => {
   const relatedAddress = await findRelatedAddressByWalletAddress(
     projectData.walletAddress,
@@ -174,9 +175,11 @@ export const saveProjectDirectlyToDb = async (
   const organization = await Organization.findOne({
     label: organizationLabel,
   });
-  const user = (await User.findOne({
-    id: Number(projectData.admin),
-  })) as User;
+  const user =
+    owner ||
+    ((await User.findOne({
+      id: Number(projectData.admin),
+    })) as User);
   const categoriesPromise = Promise.all(
     projectData.categories
       ? projectData.categories.map(async category => {
