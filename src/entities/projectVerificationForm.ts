@@ -14,7 +14,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { SocialProfile } from './socialProfile';
-import { Comment } from './comment';
+// import { Comment } from './comment';
 
 export const PROJECT_VERIFICATION_STATUSES = {
   VERIFIED: 'verified',
@@ -143,12 +143,14 @@ export class ProjectVerificationForm extends BaseEntity {
   @OneToMany(
     type => SocialProfile,
     socialProfile => socialProfile.projectVerificationForm,
+    // table join name is too long breaks typeorm
+    // { eager: true } error: table name "ProjectVerificationForm_socialProfiles_project_ProjectVerificat" specified more than once
   )
   socialProfiles?: SocialProfile[];
 
-  @Field(type => [Comment], { nullable: true })
-  @OneToMany(type => Comment, comment => comment.projectVerificationForm)
-  comments?: Comment[];
+  // @Field(type => [Comment], { nullable: true })
+  // @OneToMany(type => Comment, comment => comment.projectVerificationForm)
+  // comments?: Comment[];
 
   @Field()
   @Column('text', { default: PROJECT_VERIFICATION_STATUSES.DRAFT })

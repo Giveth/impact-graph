@@ -32,8 +32,8 @@ import { errorMessages } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
 import { SocialProfile } from './socialProfile';
-import { RelatedAddress } from './relatedAddress';
 import { ProjectAddress } from './projectAddress';
+import { ProjectContacts } from './projectVerificationForm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -192,6 +192,10 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   qualityScore: number = 0;
 
+  @Field(type => [ProjectContacts], { nullable: true })
+  @Column('jsonb', { nullable: true })
+  contacts: ProjectContacts[];
+
   @ManyToMany(type => User, user => user.projects, { eager: true })
   @JoinTable()
   @Field(type => [User], { nullable: true })
@@ -231,9 +235,9 @@ class Project extends BaseEntity {
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
   socialProfiles?: SocialProfile[];
 
-  @Field(type => [RelatedAddress], { nullable: true })
-  @OneToMany(type => RelatedAddress, relatedAddress => relatedAddress.project)
-  relatedAddresses?: RelatedAddress[];
+  @Field(type => [ProjectAddress], { nullable: true })
+  @OneToMany(type => ProjectAddress, projectAddress => projectAddress.project)
+  projectAddresses?: ProjectAddress[];
 
   @Field(type => Float)
   @Column({ type: 'real' })

@@ -17,7 +17,7 @@ import { ThirdPartyProjectImport } from './thirdPartyProjectImport';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { SocialProfile } from './socialProfile';
-import { Comment } from './comment';
+// import { Comment } from './comment';
 
 export const entities: any = [
   Organization,
@@ -41,5 +41,5 @@ export const entities: any = [
   ProjectVerificationForm,
   ProjectAddress,
   SocialProfile,
-  Comment,
+  // Comment,
 ];

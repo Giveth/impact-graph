@@ -1,7 +1,7 @@
 import { UpdateResult } from 'typeorm';
 import { Project, ProjectUpdate } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
-import { RelatedAddress } from '../entities/relatedAddress';
+import { ProjectAddress } from '../entities/projectAddress';
 import { errorMessages } from '../utils/errorMessages';
 
 export const findProjectById = (
@@ -38,49 +38,23 @@ export const updateProjectWithVerificationForm = async (
   verificationForm: ProjectVerificationForm,
   project: Project,
 ): Promise<Project> => {
-  const projectUpdate = await ProjectUpdate.findOne({
-    isMain: true,
-    projectId: project.id,
-  });
-
-  if (!projectUpdate) throw new Error(errorMessages.PROJECT_UPDATE_NOT_FOUND);
-
-  projectUpdate.mission = verificationForm.milestones.mission!;
-  projectUpdate.achievedMilestones =
-    verificationForm.milestones.achievedMilestones!;
-  projectUpdate.foundationDate = new Date(
-    Date.parse(String(verificationForm.milestones.foundationDate)),
-  );
-  projectUpdate.managingFundDescription =
-    verificationForm.managingFunds.description!;
-  projectUpdate.isNonProfitOrganization =
-    verificationForm.projectRegistry.isNonProfitOrganization!;
-  projectUpdate.organizationCountry =
-    verificationForm.projectRegistry.organizationCountry!;
-  projectUpdate.organizationWebsite =
-    verificationForm.projectRegistry.organizationWebsite!;
-  projectUpdate.organizationDescription =
-    verificationForm.projectRegistry.organizationDescription!;
-
-  await projectUpdate.save();
-
-  // TODO: update links in project update. Or is it enough with the project one to many?
-  const relatedAddresses: RelatedAddress[] = [];
+  const relatedAddresses: ProjectAddress[] = [];
 
   for (const relatedAddress of verificationForm.managingFunds
     .relatedAddresses) {
     relatedAddresses.push(
-      RelatedAddress.create({
+      ProjectAddress.create({
         title: relatedAddress.title,
         address: relatedAddress.address,
         networkId: relatedAddress.networkId,
         projectId: verificationForm.projectId,
         userId: verificationForm.userId,
-        isPrimaryAddress: false,
+        isRecipient: false,
       }),
     );
   }
-  project.relatedAddresses = relatedAddresses;
+  project.contacts = verificationForm.projectContacts;
+  project.projectAddresses = relatedAddresses;
   return project.save();
 };
 
