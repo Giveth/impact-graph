@@ -33,6 +33,7 @@ import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
 import { SocialProfile } from './socialProfile';
 import { ProjectAddress } from './projectAddress';
+import { ProjectContacts } from './projectVerificationForm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -190,6 +191,10 @@ class Project extends BaseEntity {
   @Field(type => Float, { nullable: true })
   @Column({ nullable: true })
   qualityScore: number = 0;
+
+  @Field(type => [ProjectContacts], { nullable: true })
+  @Column('jsonb', { nullable: true })
+  contacts: ProjectContacts[];
 
   @ManyToMany(type => User, user => user.projects, { eager: true })
   @JoinTable()

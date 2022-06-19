@@ -38,33 +38,6 @@ export const updateProjectWithVerificationForm = async (
   verificationForm: ProjectVerificationForm,
   project: Project,
 ): Promise<Project> => {
-  const projectUpdate = await ProjectUpdate.findOne({
-    isMain: true,
-    projectId: project.id,
-  });
-
-  if (!projectUpdate) throw new Error(errorMessages.PROJECT_UPDATE_NOT_FOUND);
-
-  projectUpdate.mission = verificationForm.milestones.mission!;
-  projectUpdate.achievedMilestones =
-    verificationForm.milestones.achievedMilestones!;
-  projectUpdate.foundationDate = new Date(
-    Date.parse(String(verificationForm.milestones.foundationDate)),
-  );
-  projectUpdate.managingFundDescription =
-    verificationForm.managingFunds.description!;
-  projectUpdate.isNonProfitOrganization =
-    verificationForm.projectRegistry.isNonProfitOrganization!;
-  projectUpdate.organizationCountry =
-    verificationForm.projectRegistry.organizationCountry!;
-  projectUpdate.organizationWebsite =
-    verificationForm.projectRegistry.organizationWebsite!;
-  projectUpdate.organizationDescription =
-    verificationForm.projectRegistry.organizationDescription!;
-
-  await projectUpdate.save();
-
-  // TODO: update links in project update. Or is it enough with the project one to many?
   const relatedAddresses: ProjectAddress[] = [];
 
   for (const relatedAddress of verificationForm.managingFunds
@@ -80,6 +53,7 @@ export const updateProjectWithVerificationForm = async (
       }),
     );
   }
+  project.contacts = verificationForm.projectContacts;
   project.projectAddresses = relatedAddresses;
   return project.save();
 };
