@@ -1031,6 +1031,10 @@ function createProjectTestCases() {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.XDAI,
         },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
       ],
     };
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
@@ -1054,6 +1058,40 @@ function createProjectTestCases() {
       errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
     );
   });
+  it('Should get error, when sending one recipient address', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0], SEED_DATA.CATEGORIES[1]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT,
+    );
+  });
   it('Should get error, when walletAddress of project is repetitive', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
@@ -1064,6 +1102,10 @@ function createProjectTestCases() {
         {
           address: SEED_DATA.FIRST_PROJECT.walletAddress,
           networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: SEED_DATA.FIRST_PROJECT.walletAddress,
+          networkId: NETWORK_IDS.MAIN_NET,
         },
       ],
     };
@@ -1098,6 +1140,10 @@ function createProjectTestCases() {
           address: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
           networkId: NETWORK_IDS.XDAI,
         },
+        {
+          address: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
       ],
     };
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
@@ -1131,6 +1177,10 @@ function createProjectTestCases() {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.XDAI,
         },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
       ],
     };
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
@@ -1145,6 +1195,10 @@ function createProjectTestCases() {
               {
                 address: generateRandomEtheriumAddress(),
                 networkId: NETWORK_IDS.XDAI,
+              },
+              {
+                address: generateRandomEtheriumAddress(),
+                networkId: NETWORK_IDS.MAIN_NET,
               },
             ],
           },
@@ -1173,6 +1227,10 @@ function createProjectTestCases() {
         {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
         },
       ],
     };
@@ -1226,7 +1284,7 @@ function createProjectTestCases() {
       result.data.data.createProject.creationDate,
       result.data.data.createProject.updatedAt,
     );
-    assert.equal(result.data.data.createProject.addresses.length, 1);
+    assert.equal(result.data.data.createProject.addresses.length, 2);
     assert.equal(
       result.data.data.createProject.addresses[0].address,
       sampleProject.addresses[0].address,
@@ -1244,6 +1302,10 @@ function createProjectTestCases() {
         {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
         },
       ],
     };
@@ -1399,6 +1461,10 @@ function updateProjectTestCases() {
                 address: SEED_DATA.SECOND_PROJECT.walletAddress,
                 networkId: NETWORK_IDS.XDAI,
               },
+              {
+                address: SEED_DATA.SECOND_PROJECT.walletAddress,
+                networkId: NETWORK_IDS.MAIN_NET,
+              },
             ],
             title: SEED_DATA.FIRST_PROJECT.title,
           },
@@ -1428,6 +1494,10 @@ function updateProjectTestCases() {
               {
                 address: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
                 networkId: NETWORK_IDS.XDAI,
+              },
+              {
+                address: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
+                networkId: NETWORK_IDS.MAIN_NET,
               },
             ],
             title: SEED_DATA.FIRST_PROJECT.title,
@@ -1464,6 +1534,10 @@ function updateProjectTestCases() {
               {
                 address: newWalletAddress,
                 networkId: NETWORK_IDS.XDAI,
+              },
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.MAIN_NET,
               },
             ],
             title: `test title update addresses`,
@@ -1539,6 +1613,47 @@ function updateProjectTestCases() {
       NETWORK_IDS.MAIN_NET,
     );
   });
+  it('Should throw error when sending one address', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const newWalletAddress = generateRandomEtheriumAddress();
+    const newWalletAddress2 = generateRandomEtheriumAddress();
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            addresses: [
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.XDAI,
+              },
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.MAIN_NET,
+              },
+            ],
+            title: `test title should throw error when sending one address`,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      editProjectResult.data.errors[0].message,
+      errorMessages.IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT,
+    );
+  });
   it('Should get error when sent title is repetitive', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
     const editProjectResult = await axios.post(
@@ -1573,6 +1688,10 @@ function updateProjectTestCases() {
         {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
         },
       ],
     };
@@ -1627,6 +1746,10 @@ function updateProjectTestCases() {
         {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
         },
       ],
     };
@@ -1692,6 +1815,10 @@ function updateProjectTestCases() {
               {
                 address: walletAddress,
                 networkId: NETWORK_IDS.XDAI,
+              },
+              {
+                address: walletAddress,
+                networkId: NETWORK_IDS.MAIN_NET,
               },
             ],
           },
