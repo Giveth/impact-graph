@@ -55,15 +55,18 @@ import {
   PROJECT_VERIFICATION_STATUSES,
 } from '../entities/projectVerificationForm';
 import {
+  findProjectVerificationFormById,
   verifyForm,
   verifyMultipleForms,
 } from '../repositories/projectVerificationRepository';
 import {
+  findProjectById,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
 } from '../repositories/projectRepository';
 import { SocialProfile } from '../entities/socialProfile';
+import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
 // import { Comment } from '../entities/comment';
 
 // use redis for session data instead of in-memory storage
@@ -471,12 +474,7 @@ const getAdminBroInstance = async () => {
               actionType: 'record',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifySingleVerificationForm(
-                  context,
-                  request,
-                  true,
-                  response,
-                );
+                return verifySingleVerificationForm(context, request, true);
               },
               component: false,
             },
@@ -484,12 +482,7 @@ const getAdminBroInstance = async () => {
               actionType: 'record',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifySingleVerificationForm(
-                  context,
-                  request,
-                  false,
-                  response,
-                );
+                return verifySingleVerificationForm(context, request, false);
               },
               component: false,
             },
@@ -497,12 +490,7 @@ const getAdminBroInstance = async () => {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifyVerificationForms(
-                  context,
-                  request,
-                  true,
-                  response,
-                );
+                return verifyVerificationForms(context, request, true);
               },
               component: false,
             },
@@ -510,12 +498,7 @@ const getAdminBroInstance = async () => {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifyVerificationForms(
-                  context,
-                  request,
-                  false,
-                  response,
-                );
+                return verifyVerificationForms(context, request, false);
               },
               component: false,
             },
@@ -1458,27 +1441,48 @@ export const verifySingleVerificationForm = async (
   context: AdminBroContextInterface,
   request: AdminBroRequestInterface,
   verified: boolean,
-  response: any,
 ) => {
   const { records, currentAdmin } = context;
   let responseMessage = '';
   let responseType = 'success';
-  try {
-    const verificationStatus = verified
-      ? PROJECT_VERIFICATION_STATUSES.VERIFIED
-      : PROJECT_VERIFICATION_STATUSES.REJECTED;
-    const formId = Number(request?.params?.recordId);
-    // call repositories
-    const verificationForm = await verifyForm({ verificationStatus, formId });
-    const projectId = verificationForm.projectId;
-    const project = await verifyProject({ verified, projectId });
+  const verificationStatus = verified
+    ? PROJECT_VERIFICATION_STATUSES.VERIFIED
+    : PROJECT_VERIFICATION_STATUSES.REJECTED;
+  const formId = Number(request?.params?.recordId);
+  const verificationFormInDb = await findProjectVerificationFormById(formId);
 
+  try {
+    if (
+      verified &&
+      ![
+        PROJECT_VERIFICATION_STATUSES.REJECTED,
+        PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+      ].includes(verificationFormInDb?.status as string)
+    ) {
+      throw new Error(
+        errorMessages.YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS,
+      );
+    }
+    if (
+      !verified &&
+      PROJECT_VERIFICATION_STATUSES.SUBMITTED !== verificationFormInDb?.status
+    ) {
+      throw new Error(errorMessages.YOU_JUST_CAN_REJECT_SUBMITTED_FORMS);
+    }
+    // call repositories
     const segmentEvent = verified
       ? SegmentEvents.PROJECT_VERIFIED
       : SegmentEvents.PROJECT_REJECTED;
 
+    const verificationForm = await verifyForm({ verificationStatus, formId });
+    const projectId = verificationForm.projectId;
+    let project = (await findProjectById(projectId)) as Project;
+    if (verified) {
+      project = await verifyProject({ verified, projectId });
+      await updateProjectWithVerificationForm(verificationForm, project);
+    }
     Project.notifySegment(project, segmentEvent);
-    await updateProjectWithVerificationForm(verificationForm, project);
+
     responseMessage = `Project(s) successfully ${
       verified ? 'verified' : 'rejected'
     }`;
@@ -1487,22 +1491,30 @@ export const verifySingleVerificationForm = async (
     responseType = 'danger';
     responseMessage = 'Verify/Reject verification form failed ' + error.message;
   }
+  const x: RecordJSON = {
+    id: String(formId),
+    title: '',
+    bulkActions: [],
+    errors: {},
+    params: (context as any).record.params,
+    populated: (context as any).record.populated,
+    recordActions: [],
+  };
 
-  response.send({
-    redirectUrl: 'ProjectVerificationForm',
-    record: {},
+  return {
+    record: x,
+    redirectUrl: `/admin/resources/ProjectVerificationForm/ProjectVerificationForm/records`,
     notice: {
       message: responseMessage,
       type: responseType,
     },
-  });
+  };
 };
 
 export const verifyVerificationForms = async (
   context: AdminBroContextInterface,
   request: AdminBroRequestInterface,
   verified: boolean,
-  response: any,
 ) => {
   const { records, currentAdmin } = context;
   let responseMessage = '';
@@ -1554,14 +1566,17 @@ export const verifyVerificationForms = async (
     responseMessage = `Bulk verify failed ${error.message}`;
     responseType = 'danger';
   }
-  response.send({
+  return {
     redirectUrl: 'ProjectVerificationForm',
-    record: {},
+    // record: {},
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
     notice: {
       message: responseMessage,
       type: responseType,
     },
-  });
+  };
 };
 
 export const verifyProjects = async (

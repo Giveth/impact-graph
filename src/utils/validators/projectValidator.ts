@@ -39,6 +39,9 @@ export const validateProjectRelatedAddresses = async (
   relatedAddresses: RelatedAddressInputType[],
   projectId?: number,
 ): Promise<void> => {
+  if (relatedAddresses.length === 2) {
+    throw new Error(errorMessages.IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT);
+  }
   for (const relateAddress of relatedAddresses) {
     await validateProjectWalletAddress(relateAddress.address, projectId);
   }

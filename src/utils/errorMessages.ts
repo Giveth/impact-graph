@@ -2,7 +2,12 @@ export const errorMessages = {
   CHANGE_API_INVALID_TITLE_OR_EIN:
     'ChangeAPI title or EIN not found or invalid',
   INVALID_SOCIAL_NETWORK: 'Invalid social network',
+  IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT:
+    'It should have two wallet addresses recipients',
   NOT_IMPLEMENTED: 'Not implemented',
+  YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS:
+    'You just can verify rejected and submitted forms',
+  YOU_JUST_CAN_REJECT_SUBMITTED_FORMS: 'You just can reject submitted forms',
   INVALID_TRACK_ID_FOR_OAUTH2_LOGIN: 'Invalid trackId for oauth2 login',
   SOCIAL_NETWORK_IS_DIFFERENT_WITH_CLAIMED_ONE:
     'Social network is different with claimed one',
