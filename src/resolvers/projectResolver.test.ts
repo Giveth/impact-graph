@@ -1634,10 +1634,6 @@ function updateProjectTestCases() {
                 address: newWalletAddress,
                 networkId: NETWORK_IDS.XDAI,
               },
-              {
-                address: newWalletAddress,
-                networkId: NETWORK_IDS.MAIN_NET,
-              },
             ],
             title: `test title should throw error when sending one address`,
           },
