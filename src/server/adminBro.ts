@@ -331,7 +331,9 @@ const getAdminBroInstance = async () => {
               isVisible: {
                 list: false,
                 filter: false,
-                show: true,
+
+                // TODO we should change it later to show it correctly
+                show: false,
                 edit: false,
                 new: false,
               },
@@ -455,11 +457,12 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             edit: {
-              isAccessible: ({ currentAdmin }) =>
-                currentAdmin &&
-                (currentAdmin.role === UserRole.ADMIN ||
-                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
-              isVisible: true,
+              // isAccessible: ({ currentAdmin }) =>
+              //   currentAdmin &&
+              //   (currentAdmin.role === UserRole.ADMIN ||
+              //     currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
+              // isVisible: true,
+              isVisible: false,
             },
             show: {
               isVisible: true,
