@@ -17,15 +17,18 @@ export const sendMailConfirmationEmail = async (
       sendEmailUrl,
       {
         recipient: email,
-        template: 'notification',
+        template: 'email-confirmation',
         subject: 'Giveth - Please confirm your email!',
         secretIntro: 'Take action! Please confirm your email!',
         title: 'Take action! Your email needs confirmation!',
+
+        // TODO maybe we should delete below fields
         image: 'Giveth-donation-banner-email.png',
         text: '',
         cta: 'View Donations',
         ctaRelativeUrl: `/verification/${project.slug}/${token}`,
         unsubscribeType: 'donation-delegated',
+
         unsubscribeReason:
           'You receive this email because your email needs to be confirmed',
         dappUrl,
