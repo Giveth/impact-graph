@@ -471,7 +471,12 @@ const getAdminBroInstance = async () => {
               actionType: 'record',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifySingleVerificationForm(context, request, true);
+                return verifySingleVerificationForm(
+                  context,
+                  request,
+                  true,
+                  response,
+                );
               },
               component: false,
             },
@@ -479,7 +484,12 @@ const getAdminBroInstance = async () => {
               actionType: 'record',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifySingleVerificationForm(context, request, false);
+                return verifySingleVerificationForm(
+                  context,
+                  request,
+                  false,
+                  response,
+                );
               },
               component: false,
             },
@@ -487,7 +497,12 @@ const getAdminBroInstance = async () => {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifyVerificationForms(context, request, true);
+                return verifyVerificationForms(
+                  context,
+                  request,
+                  true,
+                  response,
+                );
               },
               component: false,
             },
@@ -495,7 +510,12 @@ const getAdminBroInstance = async () => {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return verifyVerificationForms(context, request, false);
+                return verifyVerificationForms(
+                  context,
+                  request,
+                  false,
+                  response,
+                );
               },
               component: false,
             },
@@ -1438,9 +1458,12 @@ export const verifySingleVerificationForm = async (
   context: AdminBroContextInterface,
   request: AdminBroRequestInterface,
   verified: boolean,
+  response: any,
 ) => {
+  const { records, currentAdmin } = context;
+  let responseMessage = '';
+  let responseType = 'success';
   try {
-    const { records, currentAdmin } = context;
     const verificationStatus = verified
       ? PROJECT_VERIFICATION_STATUSES.VERIFIED
       : PROJECT_VERIFICATION_STATUSES.REJECTED;
@@ -1456,39 +1479,39 @@ export const verifySingleVerificationForm = async (
 
     Project.notifySegment(project, segmentEvent);
     await updateProjectWithVerificationForm(verificationForm, project);
-    return {
-      redirectUrl: 'ProjectVerificationForm',
-      notice: {
-        message: `Project(s) successfully ${
-          verified ? 'verified' : 'rejected'
-        }`,
-        type: 'success',
-      },
-    };
+    responseMessage = `Project(s) successfully ${
+      verified ? 'verified' : 'rejected'
+    }`;
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
-    return {
-      redirectUrl: 'ProjectVerificationForm',
-      notice: {
-        message: 'Verify/Reject verification form failed ' + error.message,
-        type: 'danger',
-      },
-    };
+    responseType = 'danger';
+    responseMessage = 'Verify/Reject verification form failed ' + error.message;
   }
+
+  response.send({
+    redirectUrl: 'ProjectVerificationForm',
+    record: {},
+    notice: {
+      message: responseMessage,
+      type: responseType,
+    },
+  });
 };
 
 export const verifyVerificationForms = async (
   context: AdminBroContextInterface,
   request: AdminBroRequestInterface,
   verified: boolean,
+  response: any,
 ) => {
   const { records, currentAdmin } = context;
-  const verificationStatus = verified
-    ? PROJECT_VERIFICATION_STATUSES.VERIFIED
-    : PROJECT_VERIFICATION_STATUSES.REJECTED;
-  const formIds = request?.query?.recordIds?.split(',');
-
+  let responseMessage = '';
+  let responseType = 'success';
   try {
+    const verificationStatus = verified
+      ? PROJECT_VERIFICATION_STATUSES.VERIFIED
+      : PROJECT_VERIFICATION_STATUSES.REJECTED;
+    const formIds = request?.query?.recordIds?.split(',');
     // call repositories
     const projectsForms = await verifyMultipleForms({
       verificationStatus,
@@ -1523,20 +1546,22 @@ export const verifyVerificationForms = async (
         verificationForm.project,
       );
     }
+    responseMessage = `Project(s) successfully ${
+      verified ? 'verified' : 'rejected'
+    }`;
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
-    throw error;
+    responseMessage = `Bulk verify failed ${error.message}`;
+    responseType = 'danger';
   }
-  return {
+  response.send({
     redirectUrl: 'ProjectVerificationForm',
-    records: records.map(record => {
-      record.toJSON(context.currentAdmin);
-    }),
+    record: {},
     notice: {
-      message: `Project(s) successfully ${verified ? 'verified' : 'rejected'}`,
-      type: 'success',
+      message: responseMessage,
+      type: responseType,
     },
-  };
+  });
 };
 
 export const verifyProjects = async (
