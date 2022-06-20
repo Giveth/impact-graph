@@ -1474,7 +1474,11 @@ export const verifySingleVerificationForm = async (
       ? SegmentEvents.PROJECT_VERIFIED
       : SegmentEvents.PROJECT_REJECTED;
 
-    const verificationForm = await verifyForm({ verificationStatus, formId });
+    const verificationForm = await verifyForm({
+      verificationStatus,
+      formId,
+      adminId: currentAdmin.id,
+    });
     const projectId = verificationForm.projectId;
     let project = (await findProjectById(projectId)) as Project;
     if (verified) {

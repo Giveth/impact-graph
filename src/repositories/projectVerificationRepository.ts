@@ -42,7 +42,8 @@ export const verifyMultipleForms = async (params: {
 
 export const verifyForm = async (params: {
   verificationStatus: string;
-  formId?: number;
+  formId: number;
+  adminId: number;
 }): Promise<ProjectVerificationForm> => {
   const form = await ProjectVerificationForm.createQueryBuilder()
     .where('id = :id', { id: params.formId })
@@ -51,6 +52,7 @@ export const verifyForm = async (params: {
   if (!form) throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
 
   form.status = params.verificationStatus;
+  form.reviewer = await findUserById(params.adminId);
   return form.save();
 };
 

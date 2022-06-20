@@ -11,6 +11,7 @@ import {
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
+  SEED_DATA,
 } from '../../test/testUtils';
 import {
   createProjectVerificationForm,
@@ -351,11 +352,16 @@ function verifyFormTestCases() {
     const updateProjectVerificationForm = await verifyForm({
       formId: projectVerificationForm.id,
       verificationStatus: PROJECT_VERIFICATION_STATUSES.VERIFIED,
+      adminId: SEED_DATA.ADMIN_USER.id,
     });
 
     assert.equal(
       updateProjectVerificationForm?.status,
       PROJECT_VERIFICATION_STATUSES.VERIFIED,
+    );
+    assert.equal(
+      updateProjectVerificationForm.reviewer?.id,
+      SEED_DATA.ADMIN_USER.id,
     );
   });
   it('Should rejected submitted verification form', async () => {
@@ -375,11 +381,17 @@ function verifyFormTestCases() {
     const updateProjectVerificationForm = await verifyForm({
       formId: projectVerificationForm.id,
       verificationStatus: PROJECT_VERIFICATION_STATUSES.REJECTED,
+      adminId: SEED_DATA.ADMIN_USER.id,
     });
 
     assert.equal(
       updateProjectVerificationForm?.status,
       PROJECT_VERIFICATION_STATUSES.REJECTED,
+    );
+
+    assert.equal(
+      updateProjectVerificationForm.reviewer?.id,
+      SEED_DATA.ADMIN_USER.id,
     );
   });
 }
