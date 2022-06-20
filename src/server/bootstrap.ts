@@ -43,6 +43,8 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
+import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import { SocialProfile } from '../entities/socialProfile';
 
 // tslint:disable:no-var-requires
 const express = require('express');

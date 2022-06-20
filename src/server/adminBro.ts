@@ -49,6 +49,22 @@ import {
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
+import {
+  FormRelatedAddress,
+  ProjectVerificationForm,
+  PROJECT_VERIFICATION_STATUSES,
+} from '../entities/projectVerificationForm';
+import {
+  verifyForm,
+  verifyMultipleForms,
+} from '../repositories/projectVerificationRepository';
+import {
+  updateProjectWithVerificationForm,
+  verifyMultipleProjects,
+  verifyProject,
+} from '../repositories/projectRepository';
+import { SocialProfile } from '../entities/socialProfile';
+// import { Comment } from '../entities/comment';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -102,6 +118,9 @@ interface AdminBroRequestInterface {
   record?: any;
   query?: {
     recordIds?: string;
+  };
+  params?: {
+    recordId?: string;
   };
 }
 
@@ -240,6 +259,249 @@ const getAdminBroInstance = async () => {
       language: 'en',
     },
     resources: [
+      {
+        resource: ProjectVerificationForm,
+        options: {
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            status: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: true,
+                new: true,
+              },
+            },
+            projectId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            reviewerId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            userId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            createdAt: {
+              isVisible: true,
+            },
+            updatedAt: {
+              isVisible: true,
+            },
+            email: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            socialProfiles: {
+              isArray: true,
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/SocialProfiles'),
+              },
+            },
+            personalInfo: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            'personalInfo.fullName': { type: 'string' },
+            'personalInfo.walletAddress': { type: 'string' },
+            'personalInfo.email': { type: 'string' },
+            projectRegistry: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            'projectRegistry.isNonProfitOrganization': { type: 'boolean' },
+            'projectRegistry.organizationCountry': { type: 'string' },
+            'projectRegistry.organizationWebsite': { type: 'string' },
+            'projectRegistry.organizationDescription': { type: 'string' },
+            projectContacts: {
+              type: 'mixed',
+              isArray: true,
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            'projectContacts.name': { type: 'string' },
+            'projectContacts.url': { type: 'string' },
+            milestones: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            'milestones.foundationDate': { type: 'string' },
+            'milestones.mission': { type: 'string' },
+            'milestones.achievedMilestones': { type: 'string' },
+            'milestones.achievedMilestonesProof': { type: 'string' },
+            managingFunds: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            'managingFunds.description': { type: 'string' },
+            'managingFunds.relatedAddresses': { type: 'mixed', isArray: true },
+            'managingFunds.relatedAddresses.title': { type: 'string' },
+            'managingFunds.relatedAddresses.address': { type: 'string' },
+            'managingFunds.relatedAddresses.networkId': { type: 'integer' },
+            lastStep: {
+              isVisible: false,
+            },
+            emailConfirmed: {
+              isVisible: false,
+            },
+            emailConfirmationTokenExpiredAt: {
+              isVisible: false,
+            },
+            emailConfirmationToken: {
+              isVisible: false,
+            },
+            emailConfirmationSent: {
+              isVisible: false,
+            },
+            emailConfirmationSentAt: {
+              isVisible: false,
+            },
+            emailConfirmedAt: {
+              isVisible: false,
+            },
+            isTermAndConditionsAccepted: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            // comments: {
+            //   isArray: true,
+            //   type: [Comment],
+            //   isVisible: {
+            //     list: false,
+            //     filter: false,
+            //     show: true,
+            //     edit: true,
+            //     new: true,
+            //   },
+            // },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: false,
+            },
+            edit: {
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin &&
+                (currentAdmin.role === UserRole.ADMIN ||
+                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
+              isVisible: true,
+            },
+            show: {
+              isVisible: true,
+            },
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: false,
+            },
+            verifyProject: {
+              actionType: 'record',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifySingleVerificationForm(context, request, true);
+              },
+              component: false,
+            },
+            rejectProject: {
+              actionType: 'record',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifySingleVerificationForm(context, request, false);
+              },
+              component: false,
+            },
+            verifyProjects: {
+              actionType: 'bulk',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifyVerificationForms(context, request, true);
+              },
+              component: false,
+            },
+            rejectProjects: {
+              actionType: 'bulk',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return verifyVerificationForms(context, request, false);
+              },
+              component: false,
+            },
+          },
+        },
+      },
       {
         resource: Donation,
         options: {
@@ -1167,6 +1429,106 @@ export const listDelist = async (
     }),
     notice: {
       message: `Project(s) successfully ${list ? 'listed' : 'unlisted'}`,
+      type: 'success',
+    },
+  };
+};
+
+export const verifySingleVerificationForm = async (
+  context: AdminBroContextInterface,
+  request: AdminBroRequestInterface,
+  verified: boolean,
+) => {
+  const { records, currentAdmin } = context;
+  const verificationStatus = verified
+    ? PROJECT_VERIFICATION_STATUSES.VERIFIED
+    : PROJECT_VERIFICATION_STATUSES.REJECTED;
+  const formId = Number(request?.params?.recordId);
+  try {
+    // call repositories
+    const verificationForm = await verifyForm({ verificationStatus, formId });
+    const projectId = verificationForm.projectId;
+    const project = await verifyProject({ verified, projectId });
+
+    const segmentEvent = verified
+      ? SegmentEvents.PROJECT_VERIFIED
+      : SegmentEvents.PROJECT_REJECTED;
+
+    Project.notifySegment(project, segmentEvent);
+    await updateProjectWithVerificationForm(verificationForm, project);
+  } catch (error) {
+    logger.error('verifyVerificationForm() error', error);
+    throw error;
+  }
+  return {
+    redirectUrl: 'ProjectVerificationForm',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message: `Project(s) successfully ${verified ? 'verified' : 'rejected'}`,
+      type: 'success',
+    },
+  };
+};
+
+export const verifyVerificationForms = async (
+  context: AdminBroContextInterface,
+  request: AdminBroRequestInterface,
+  verified: boolean,
+) => {
+  const { records, currentAdmin } = context;
+  const verificationStatus = verified
+    ? PROJECT_VERIFICATION_STATUSES.VERIFIED
+    : PROJECT_VERIFICATION_STATUSES.REJECTED;
+  const formIds = request?.query?.recordIds?.split(',');
+
+  try {
+    // call repositories
+    const projectsForms = await verifyMultipleForms({
+      verificationStatus,
+      formIds,
+    });
+    const projectsIds = projectsForms.raw.map(projectForm => {
+      return projectForm.projectId;
+    });
+    const projects = await verifyMultipleProjects({ verified, projectsIds });
+
+    const segmentEvent = verified
+      ? SegmentEvents.PROJECT_VERIFIED
+      : SegmentEvents.PROJECT_REJECTED;
+
+    Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
+    const projectIds = projects.raw.map(project => {
+      return project.id;
+    });
+
+    // need to requery them as the RAW is not an entity
+    const verificationForms = await ProjectVerificationForm.createQueryBuilder(
+      'projectVerificationForm',
+    )
+      .innerJoinAndSelect('projectVerificationForm.project', 'project')
+      .where('"projectId" IN (:...ids)')
+      .setParameter('ids', projectIds)
+      .getMany();
+
+    for (const verificationForm of verificationForms) {
+      await updateProjectWithVerificationForm(
+        verificationForm,
+        verificationForm.project,
+      );
+    }
+  } catch (error) {
+    logger.error('verifyVerificationForm() error', error);
+    throw error;
+  }
+  return {
+    redirectUrl: 'ProjectVerificationForm',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message: `Project(s) successfully ${verified ? 'verified' : 'rejected'}`,
       type: 'success',
     },
   };

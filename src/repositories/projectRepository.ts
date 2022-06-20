@@ -1,9 +1,25 @@
-import { Project } from '../entities/project';
+import { UpdateResult } from 'typeorm';
+import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
+import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import { ProjectAddress } from '../entities/projectAddress';
+import { errorMessages } from '../utils/errorMessages';
+import { Reaction } from '../entities/reaction';
+import { publicSelectionFields } from '../entities/user';
 
 export const findProjectById = (
   projectId: number,
 ): Promise<Project | undefined> => {
-  return Project.findOne({ id: projectId });
+  // return Project.findOne({ id: projectId });
+
+  return Project.createQueryBuilder('project')
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoin('project.adminUser', 'user')
+    .addSelect(publicSelectionFields)
+    .where({
+      id: projectId,
+    })
+    .getOne();
 };
 
 export const findProjectBySlug = (
@@ -15,6 +31,52 @@ export const findProjectBySlug = (
       slug,
     })
     .getOne();
+};
+
+export const verifyMultipleProjects = async (params: {
+  verified: boolean;
+  projectsIds: string[] | number[];
+}): Promise<UpdateResult> => {
+  return Project.createQueryBuilder('project')
+    .update<Project>(Project, { verified: params.verified })
+    .where('project.id IN (:...ids)')
+    .setParameter('ids', params.projectsIds)
+    .returning('*')
+    .updateEntity(true)
+    .execute();
+};
+
+export const updateProjectWithVerificationForm = async (
+  verificationForm: ProjectVerificationForm,
+  project: Project,
+): Promise<Project> => {
+  for (const relatedAddress of verificationForm.managingFunds
+    .relatedAddresses) {
+    await ProjectAddress.create({
+      title: relatedAddress.title,
+      address: relatedAddress.address,
+      networkId: relatedAddress.networkId,
+      projectId: verificationForm.projectId,
+      user: verificationForm.user,
+      project,
+      isRecipient: false,
+    }).save();
+  }
+  project.contacts = verificationForm.projectContacts;
+  await project.save();
+  return (await findProjectById(project.id)) as Project;
+};
+
+export const verifyProject = async (params: {
+  verified: boolean;
+  projectId: number;
+}): Promise<Project> => {
+  const project = await Project.findOne({ id: params.projectId });
+
+  if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+
+  project.verified = params.verified;
+  return project.save();
 };
 
 export const findProjectByWalletAddress = async (

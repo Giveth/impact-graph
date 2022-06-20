@@ -9,7 +9,7 @@ import {
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
-import { Brackets } from 'typeorm';
+import { Brackets, UpdateResult } from 'typeorm';
 import { errorMessages } from '../utils/errorMessages';
 
 export const createProjectVerificationForm = async (params: {
@@ -23,6 +23,35 @@ export const createProjectVerificationForm = async (params: {
     project,
     user,
   }).save();
+};
+
+export const verifyMultipleForms = async (params: {
+  verificationStatus: string;
+  formIds?: number[] | string[];
+}): Promise<UpdateResult> => {
+  return ProjectVerificationForm.createQueryBuilder()
+    .update<ProjectVerificationForm>(ProjectVerificationForm, {
+      status: params.verificationStatus,
+    })
+    .where('id IN (:...ids)')
+    .setParameter('ids', params.formIds)
+    .returning('*')
+    .updateEntity(true)
+    .execute();
+};
+
+export const verifyForm = async (params: {
+  verificationStatus: string;
+  formId?: number;
+}): Promise<ProjectVerificationForm> => {
+  const form = await ProjectVerificationForm.createQueryBuilder()
+    .where('id = :id', { id: params.formId })
+    .getOne();
+
+  if (!form) throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+
+  form.status = params.verificationStatus;
+  return form.save();
 };
 
 export const findProjectVerificationFormById = async (

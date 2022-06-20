@@ -16,6 +16,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { SocialProfile } from './socialProfile';
+// import { Comment } from './comment';
 
 export const PROJECT_VERIFICATION_STATUSES = {
   VERIFIED: 'verified',
@@ -80,7 +81,7 @@ export class Milestones {
 }
 
 @ObjectType()
-export class RelatedAddress {
+export class FormRelatedAddress {
   @Field({ nullable: true })
   title: string;
   @Field({ nullable: true })
@@ -94,8 +95,8 @@ export class ManagingFunds {
   @Field({ nullable: true })
   description: string;
 
-  @Field(() => [RelatedAddress], { nullable: true })
-  relatedAddresses: RelatedAddress[];
+  @Field(() => [FormRelatedAddress], { nullable: true })
+  relatedAddresses: FormRelatedAddress[];
 }
 
 @Entity()
@@ -111,7 +112,7 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @Index()
   @Field(type => Project)
-  @OneToOne(type => Project, { eager: true })
+  @OneToOne(type => Project)
   @JoinColumn()
   project: Project;
 
@@ -120,6 +121,17 @@ export class ProjectVerificationForm extends BaseEntity {
       projectVerificationForm.project,
   )
   projectId: number;
+
+  @Index()
+  @Field(type => User, { nullable: true })
+  @ManyToOne(type => User, { eager: true })
+  reviewer?: User;
+
+  @RelationId(
+    (projectVerificationForm: ProjectVerificationForm) =>
+      projectVerificationForm.reviewer,
+  )
+  reviewerId: number;
 
   @Index()
   @Field(type => User, { nullable: true })
@@ -135,8 +147,14 @@ export class ProjectVerificationForm extends BaseEntity {
   @OneToMany(
     type => SocialProfile,
     socialProfile => socialProfile.projectVerificationForm,
+    // table join name is too long breaks typeorm
+    // { eager: true } error: table name "ProjectVerificationForm_socialProfiles_project_ProjectVerificat" specified more than once
   )
   socialProfiles?: SocialProfile[];
+
+  // @Field(type => [Comment], { nullable: true })
+  // @OneToMany(type => Comment, comment => comment.projectVerificationForm)
+  // comments?: Comment[];
 
   @Field()
   @Column('text', { default: PROJECT_VERIFICATION_STATUSES.DRAFT })
