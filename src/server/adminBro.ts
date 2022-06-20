@@ -1458,9 +1458,6 @@ export const verifySingleVerificationForm = async (
     await updateProjectWithVerificationForm(verificationForm, project);
     return {
       redirectUrl: 'ProjectVerificationForm',
-      records: records.map(record => {
-        record.toJSON(context.currentAdmin);
-      }),
       notice: {
         message: `Project(s) successfully ${
           verified ? 'verified' : 'rejected'
