@@ -1439,12 +1439,12 @@ export const verifySingleVerificationForm = async (
   request: AdminBroRequestInterface,
   verified: boolean,
 ) => {
-  const { records, currentAdmin } = context;
-  const verificationStatus = verified
-    ? PROJECT_VERIFICATION_STATUSES.VERIFIED
-    : PROJECT_VERIFICATION_STATUSES.REJECTED;
-  const formId = Number(request?.params?.recordId);
   try {
+    const { records, currentAdmin } = context;
+    const verificationStatus = verified
+      ? PROJECT_VERIFICATION_STATUSES.VERIFIED
+      : PROJECT_VERIFICATION_STATUSES.REJECTED;
+    const formId = Number(request?.params?.recordId);
     // call repositories
     const verificationForm = await verifyForm({ verificationStatus, formId });
     const projectId = verificationForm.projectId;
@@ -1456,20 +1456,28 @@ export const verifySingleVerificationForm = async (
 
     Project.notifySegment(project, segmentEvent);
     await updateProjectWithVerificationForm(verificationForm, project);
+    return {
+      redirectUrl: 'ProjectVerificationForm',
+      records: records.map(record => {
+        record.toJSON(context.currentAdmin);
+      }),
+      notice: {
+        message: `Project(s) successfully ${
+          verified ? 'verified' : 'rejected'
+        }`,
+        type: 'success',
+      },
+    };
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
-    throw error;
+    return {
+      redirectUrl: 'ProjectVerificationForm',
+      notice: {
+        message: 'Verify/Reject verification form failed ' + error.message,
+        type: 'danger',
+      },
+    };
   }
-  return {
-    redirectUrl: 'ProjectVerificationForm',
-    records: records.map(record => {
-      record.toJSON(context.currentAdmin);
-    }),
-    notice: {
-      message: `Project(s) successfully ${verified ? 'verified' : 'rejected'}`,
-      type: 'success',
-    },
-  };
 };
 
 export const verifyVerificationForms = async (
