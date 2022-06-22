@@ -110,6 +110,15 @@ export const verifySocialProfileById = async (params: {
   return socialProfile?.save();
 };
 
+export const findSocialProfilesByProjectId = async (params: {
+  projectId: number;
+}): Promise<SocialProfile[]> => {
+  const { projectId } = params;
+  return SocialProfile.createQueryBuilder()
+    .where(`"projectId" = :projectId`, { projectId })
+    .getMany();
+};
+
 export const removeSocialProfileById = async (params: {
   socialProfileId: number;
 }): Promise<void> => {

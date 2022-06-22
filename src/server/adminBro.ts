@@ -1,7 +1,7 @@
 import { Project, ProjStatus } from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
-import AdminBro from 'admin-bro';
+import AdminBro, { ActionResponse, After } from 'admin-bro';
 import { User, UserRole } from '../entities/user';
 import AdminBroExpress from '@admin-bro/express';
 import config from '../config';
@@ -67,6 +67,7 @@ import {
 } from '../repositories/projectRepository';
 import { SocialProfile } from '../entities/socialProfile';
 import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
+import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
 // import { Comment } from '../entities/comment';
 
 // use redis for session data instead of in-memory storage
@@ -194,6 +195,29 @@ export const adminBroQueryCache = async (req, res, next) => {
     );
   }
   next();
+};
+
+export const setProjectVerificationFormSocials: After<ActionResponse> = async (
+  response,
+  request,
+  context,
+) => {
+  const record: RecordJSON = response.record || {};
+  // both cases for projectVerificationForms and projects' ids
+  const projectId = record.params.projectId || record.params.id;
+
+  const projectSocials = (await findSocialProfilesByProjectId({ projectId }))
+    .map(social => social.socialNetwork)
+    .join(',');
+
+  response.record = {
+    ...record,
+    params: {
+      ...record.params,
+      socials: projectSocials,
+    },
+  };
+  return response;
 };
 
 // Get CurrentSession for external express middlewares
@@ -326,19 +350,14 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
-            socialProfiles: {
-              isArray: true,
+            socials: {
+              type: 'string',
               isVisible: {
                 list: false,
                 filter: false,
-
-                // TODO we should change it later to show it correctly
-                show: false,
+                show: true,
                 edit: false,
                 new: false,
-              },
-              components: {
-                show: AdminBro.bundle('./components/SocialProfiles'),
               },
             },
             personalInfo: {
@@ -466,6 +485,7 @@ const getAdminBroInstance = async () => {
             },
             show: {
               isVisible: true,
+              after: setProjectVerificationFormSocials,
             },
             delete: {
               isVisible: false,
@@ -804,6 +824,16 @@ const getAdminBroInstance = async () => {
             organizationId: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
+            socials: {
+              type: 'string',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
             qualityScore: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -911,6 +941,10 @@ const getAdminBroInstance = async () => {
             },
             bulkDelete: {
               isVisible: false,
+            },
+            show: {
+              isVisible: true,
+              after: setProjectVerificationFormSocials,
             },
             edit: {
               isAccessible: ({ currentAdmin }) =>
