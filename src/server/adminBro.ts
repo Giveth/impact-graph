@@ -197,7 +197,7 @@ export const adminBroQueryCache = async (req, res, next) => {
   next();
 };
 
-export const setProjectVerificationFormSocials: After<ActionResponse> = async (
+export const setSocialProfiles: After<ActionResponse> = async (
   response,
   request,
   context,
@@ -485,7 +485,7 @@ const getAdminBroInstance = async () => {
             },
             show: {
               isVisible: true,
-              after: setProjectVerificationFormSocials,
+              after: setSocialProfiles,
             },
             delete: {
               isVisible: false,
@@ -944,7 +944,7 @@ const getAdminBroInstance = async () => {
             },
             show: {
               isVisible: true,
-              after: setProjectVerificationFormSocials,
+              after: setSocialProfiles,
             },
             edit: {
               isAccessible: ({ currentAdmin }) =>
