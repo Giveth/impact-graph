@@ -3641,6 +3641,22 @@ function similarProjectsBySlugTestCases() {
     );
     assert.isUndefined(currentViewedProject);
   });
+  it('should not throw error if project doesnt have any category ', async () => {
+    const viewedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      categories: [],
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchSimilarProjectsBySlugQuery,
+      variables: {
+        slug: viewedProject.slug,
+      },
+    });
+    assert.isArray(result.data.data.similarProjectsBySlug.projects);
+  });
 }
 
 function addProjectUpdateTestCases() {
