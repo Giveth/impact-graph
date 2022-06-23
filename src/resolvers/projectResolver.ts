@@ -292,29 +292,31 @@ export class ProjectResolver {
   static async matchExactProjectCategories(
     allProjects: AllProjects,
     query: SelectQueryBuilder<Project>,
-    categoriesIds: number[],
+    categoriesIds: number[] | undefined,
     take: number,
     skip: number,
   ): Promise<AllProjects> {
-    query.andWhere(
-      new Brackets(innerQuery => {
-        innerQuery.where(
-          // Get Projects with the exact same categories
-          new Brackets(subQuery => {
-            for (const categoryId of categoriesIds) {
-              subQuery.where(
-                `project.id IN (
+    if (categoriesIds) {
+      query.andWhere(
+        new Brackets(innerQuery => {
+          innerQuery.where(
+            // Get Projects with the exact same categories
+            new Brackets(subQuery => {
+              for (const categoryId of categoriesIds) {
+                subQuery.where(
+                  `project.id IN (
                   SELECT "projectId"
                   FROM project_categories_category
                   WHERE "categoryId" = :category
                 )`,
-                { category: categoryId },
-              );
-            }
-          }),
-        );
-      }),
-    );
+                  { category: categoryId },
+                );
+              }
+            }),
+          );
+        }),
+      );
+    }
 
     const [projects, totalCount] = await query
       .orderBy('project.creationDate', 'DESC')
@@ -331,11 +333,13 @@ export class ProjectResolver {
   static async matchAnyProjectCategory(
     allProjects: AllProjects,
     query: SelectQueryBuilder<Project>,
-    categoriesIds: number[],
+    categoriesIds: number[] | undefined,
     take: number,
     skip: number,
   ): Promise<AllProjects> {
-    query.andWhere('categories.id IN (:...ids)', { ids: categoriesIds });
+    if (categoriesIds) {
+      query.andWhere('categories.id IN (:...ids)', { ids: categoriesIds });
+    }
     const [projects, totalCount] = await query
       .orderBy('project.creationDate', 'DESC')
       .take(take)
@@ -1269,48 +1273,34 @@ export class ProjectResolver {
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Ctx() { req: { user } }: MyContext,
   ) {
-    const viewedProject = await this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .innerJoinAndSelect('project.categories', 'categories')
-      .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
-        slug,
-      })
-      .getOne();
+    try {
+      const viewedProject = await this.projectRepository
+        .createQueryBuilder('project')
+        .leftJoinAndSelect('project.addresses', 'addresses')
+        .innerJoinAndSelect('project.categories', 'categories')
+        .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
+          slug,
+        })
+        .getOne();
 
-    const categoriesIds = viewedProject!.categories.map(
-      (category: Category) => {
-        return category.id;
-      },
-    );
+      const categoriesIds = viewedProject?.categories.map(
+        (category: Category) => {
+          return category.id;
+        },
+      );
 
-    // exclude the viewed project from the result set
-    let query = ProjectResolver.similarProjectsBaseQuery(
-      user?.userId,
-      viewedProject,
-    );
-
-    const allProjects: AllProjects = {
-      projects: [],
-      totalCount: 0,
-      categories: [],
-    };
-    await ProjectResolver.matchExactProjectCategories(
-      allProjects,
-      query,
-      categoriesIds,
-      take,
-      skip,
-    );
-
-    // if not all categories match, match ANY of them
-    if (allProjects.totalCount === 0) {
-      // overwrite previous query
-      query = ProjectResolver.similarProjectsBaseQuery(
+      // exclude the viewed project from the result set
+      let query = ProjectResolver.similarProjectsBaseQuery(
         user?.userId,
         viewedProject,
       );
-      await ProjectResolver.matchAnyProjectCategory(
+
+      const allProjects: AllProjects = {
+        projects: [],
+        totalCount: 0,
+        categories: [],
+      };
+      await ProjectResolver.matchExactProjectCategories(
         allProjects,
         query,
         categoriesIds,
@@ -1318,23 +1308,42 @@ export class ProjectResolver {
         skip,
       );
 
-      // if none match, just grab project owners projects
+      // if not all categories match, match ANY of them
       if (allProjects.totalCount === 0) {
+        // overwrite previous query
         query = ProjectResolver.similarProjectsBaseQuery(
           user?.userId,
           viewedProject,
         );
-        await ProjectResolver.matchOwnerProjects(
+        await ProjectResolver.matchAnyProjectCategory(
           allProjects,
           query,
+          categoriesIds,
           take,
           skip,
-          viewedProject?.admin,
         );
-      }
-    }
 
-    return allProjects;
+        // if none match, just grab project owners projects
+        if (allProjects.totalCount === 0) {
+          query = ProjectResolver.similarProjectsBaseQuery(
+            user?.userId,
+            viewedProject,
+          );
+          await ProjectResolver.matchOwnerProjects(
+            allProjects,
+            query,
+            take,
+            skip,
+            viewedProject?.admin,
+          );
+        }
+      }
+
+      return allProjects;
+    } catch (e) {
+      logger.error('**similarProjectsBySlug** error', e);
+      throw e;
+    }
   }
 
   @Query(returns => AllProjects, { nullable: true })
