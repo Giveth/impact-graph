@@ -303,6 +303,15 @@ export const generateRandomString = (len = 20): string => {
   return randomString;
 };
 
+export const removeUndefinedFieldsFromObject = (object: any): any => {
+  Object.keys(object).forEach(key => {
+    if (object[key] === undefined || object[key] === null) {
+      delete object[key];
+    }
+  });
+  return object;
+};
+
 // we set ENVIRONMENT in docker-compose
 export const ENVIRONMENTS = {
   PRODUCTION: 'production',

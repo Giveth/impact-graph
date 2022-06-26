@@ -30,6 +30,7 @@ import {
 } from '../repositories/projectVerificationRepository';
 import { errorMessages } from '../utils/errorMessages';
 import { ProjectVerificationUpdateInput } from '../resolvers/types/ProjectVerificationUpdateInput';
+import { removeUndefinedFieldsFromObject } from '../utils/utils';
 
 export const updateProjectVerificationFormByUser = async (params: {
   projectVerificationForm: ProjectVerificationForm;
@@ -127,20 +128,18 @@ export const updateProjectVerificationFormByUser = async (params: {
           projectVerificationId,
           isTermAndConditionsAccepted,
         });
-      validateWithJoiSchema(
-        {
-          projectRegistry: updatedProjectVerificationForm.projectRegistry,
-          projectContacts: updatedProjectVerificationForm.projectContacts || [],
-          milestones: updatedProjectVerificationForm.milestones,
-          managingFunds: updatedProjectVerificationForm.managingFunds,
-          socialProfiles: updatedProjectVerificationForm.socialProfiles,
-          status: updatedProjectVerificationForm.status,
-          emailConfirmed: updatedProjectVerificationForm.emailConfirmed,
-          isTermAndConditionsAccepted:
-            updatedProjectVerificationForm.isTermAndConditionsAccepted,
-        },
-        submitProjectVerificationStepValidator,
-      );
+      const data = removeUndefinedFieldsFromObject({
+        projectRegistry: updatedProjectVerificationForm.projectRegistry,
+        projectContacts: updatedProjectVerificationForm.projectContacts,
+        milestones: updatedProjectVerificationForm.milestones,
+        managingFunds: updatedProjectVerificationForm.managingFunds,
+        socialProfiles: updatedProjectVerificationForm.socialProfiles,
+        status: updatedProjectVerificationForm.status,
+        emailConfirmed: updatedProjectVerificationForm.emailConfirmed,
+        isTermAndConditionsAccepted:
+          updatedProjectVerificationForm.isTermAndConditionsAccepted,
+      });
+      validateWithJoiSchema(data, submitProjectVerificationStepValidator);
       updatedProjectVerificationForm = await submitProjectVerificationForm({
         projectVerificationId,
       });
