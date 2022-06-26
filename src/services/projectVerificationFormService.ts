@@ -130,7 +130,7 @@ export const updateProjectVerificationFormByUser = async (params: {
       validateWithJoiSchema(
         {
           projectRegistry: updatedProjectVerificationForm.projectRegistry,
-          projectContacts: updatedProjectVerificationForm.projectContacts,
+          projectContacts: updatedProjectVerificationForm.projectContacts || [],
           milestones: updatedProjectVerificationForm.milestones,
           managingFunds: updatedProjectVerificationForm.managingFunds,
           socialProfiles: updatedProjectVerificationForm.socialProfiles,
