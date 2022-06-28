@@ -454,6 +454,8 @@ export const fetchProjectsBySlugQuery = `
           isNonProfitOrganization
           organizationCountry
           organizationWebsite
+          attachment
+          organizationName
         }
         personalInfo {
           email
@@ -787,6 +789,8 @@ export const projectsByUserIdQuery = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
+              attachment
+              organizationName
             }
             personalInfo {
               email
@@ -948,6 +952,8 @@ export const createProjectVerificationFormMutation = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
+                      attachment
+                      organizationName
                     }
                     projectContacts {
                       name
@@ -998,6 +1004,8 @@ export const getCurrentProjectVerificationFormQuery = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
+                      attachment
+                      organizationName
                     }
                     projectContacts {
                       name
@@ -1062,6 +1070,8 @@ export const projectVerificationConfirmEmail = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
+              attachment
+              organizationName
             }
             personalInfo {
               email
@@ -1116,6 +1126,8 @@ export const projectVerificationSendEmailConfirmation = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
+              attachment
+              organizationName
             }
             personalInfo {
               email
@@ -1174,6 +1186,8 @@ export const updateProjectVerificationFormMutation = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
+                      attachment
+                      organizationName
                     }
                     personalInfo {
                       email
