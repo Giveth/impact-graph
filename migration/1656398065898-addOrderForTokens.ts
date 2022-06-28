@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class addOrderForTokens1656398065898 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "project" ADD IF NOT EXISTS "order" integer`,
+      `ALTER TABLE "token" ADD IF NOT EXISTS "order" integer`,
     );
 
     // GIV token

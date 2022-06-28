@@ -12,6 +12,7 @@ export class createTokensTable1646295724658 implements MigrationInterface {
           address text COLLATE pg_catalog."default" NOT NULL,
           "networkId" integer NOT NULL,
           decimals integer NOT NULL,
+          "order" integer,
           "mainnetAddress" text,
           CONSTRAINT "PK_82fae97f905930df5d62a702fc9" PRIMARY KEY (id)
            )`,
