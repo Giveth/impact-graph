@@ -68,7 +68,6 @@ import {
 import { SocialProfile } from '../entities/socialProfile';
 import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
-// import { Comment } from '../entities/comment';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -225,6 +224,34 @@ export const setSocialProfiles: After<ActionResponse> = async (
   return response;
 };
 
+export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
+  response,
+  request,
+  context,
+) => {
+  const { currentAdmin } = context;
+  const record: RecordJSON = response.record || {};
+
+  const projectVerificationForm =
+    await ProjectVerificationForm.createQueryBuilder()
+      .where('id = :id', { id: record.params.id })
+      .getOne();
+
+  if (!projectVerificationForm) return response;
+
+  // if none is created, nothing will be updated
+  if (projectVerificationForm?.commentsSection?.comments) {
+    for (const comment of projectVerificationForm.commentsSection.comments) {
+      if (comment.email) continue;
+      comment.email = currentAdmin!.email;
+      comment.createdAt = new Date();
+    }
+  }
+
+  await projectVerificationForm.save();
+  return response;
+};
+
 // Get CurrentSession for external express middlewares
 export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
   const cookieHeader = request.headers.cookie;
@@ -341,10 +368,22 @@ const getAdminBroInstance = async () => {
               },
             },
             createdAt: {
-              isVisible: true,
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             updatedAt: {
-              isVisible: true,
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             email: {
               isVisible: {
@@ -434,6 +473,47 @@ const getAdminBroInstance = async () => {
             'managingFunds.relatedAddresses.title': { type: 'string' },
             'managingFunds.relatedAddresses.address': { type: 'string' },
             'managingFunds.relatedAddresses.networkId': { type: 'integer' },
+            commentsSection: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: true,
+                new: true,
+              },
+            },
+            'commentsSection.comments': { type: 'mixed', isArray: true },
+            'commentsSection.comments.email': {
+              type: 'string',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: true,
+              },
+            },
+            'commentsSection.comments.content': {
+              type: 'string',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: true,
+                new: true,
+              },
+            },
+            'commentsSection.comments.createdAt': {
+              type: 'date',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
             lastStep: {
               isVisible: false,
             },
@@ -464,29 +544,18 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
-            // comments: {
-            //   isArray: true,
-            //   type: [Comment],
-            //   isVisible: {
-            //     list: false,
-            //     filter: false,
-            //     show: true,
-            //     edit: true,
-            //     new: true,
-            //   },
-            // },
           },
           actions: {
             bulkDelete: {
               isVisible: false,
             },
             edit: {
-              // isAccessible: ({ currentAdmin }) =>
-              //   currentAdmin &&
-              //   (currentAdmin.role === UserRole.ADMIN ||
-              //     currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
-              // isVisible: true,
-              isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin &&
+                (currentAdmin.role === UserRole.ADMIN ||
+                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
+              isVisible: true,
+              after: setCommentEmailAndTimeStamps,
             },
             show: {
               isVisible: true,

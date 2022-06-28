@@ -57,3 +57,28 @@ export const findTokenByNetworkAndAddress = async (
     symbol: token.symbol,
   };
 };
+
+export const sortTokensByOrderAndAlphabets = (tokens: Token[]): Token[] => {
+  // First sort alphabetically
+  tokens.sort((firstToken, secondToken) => {
+    if (firstToken.symbol.toLowerCase() < secondToken.symbol.toLowerCase()) {
+      return -1;
+    }
+    if (firstToken.symbol.toLowerCase() > secondToken.symbol.toLowerCase()) {
+      return 1;
+    }
+    return 0;
+  });
+
+  // Finally sort by order if exists
+  tokens.sort((firstToken, secondToken) => {
+    if (!firstToken.order) {
+      return 1;
+    }
+    if (!secondToken.order) {
+      return -1;
+    }
+    return firstToken.order - secondToken.order;
+  });
+  return tokens;
+};
