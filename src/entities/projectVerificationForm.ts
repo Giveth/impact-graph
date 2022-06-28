@@ -101,9 +101,11 @@ export class ManagingFunds {
 @ObjectType()
 export class Comment {
   @Field({ nullable: true })
-  userName: string;
+  email: string;
   @Field({ nullable: true })
   content: string;
+  @Field({ nullable: true })
+  createdAt: Date;
 }
 
 @ObjectType()

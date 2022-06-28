@@ -224,6 +224,34 @@ export const setSocialProfiles: After<ActionResponse> = async (
   return response;
 };
 
+export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
+  response,
+  request,
+  context,
+) => {
+  const { currentAdmin } = context;
+  const record: RecordJSON = response.record || {};
+  const paramsKeys = Object.keys(record.params);
+
+  const projectVerificationForm =
+    await ProjectVerificationForm.createQueryBuilder()
+      .where('id = :id', { id: record.params.id })
+      .getOne();
+
+  if (!projectVerificationForm) return response;
+
+  // if none is created, nothing will be updated
+  for (const comment of projectVerificationForm.commentsSection.comments) {
+    if (comment.email) continue;
+
+    comment.email = currentAdmin!.email;
+    comment.createdAt = new Date();
+  }
+
+  await projectVerificationForm.save();
+  return response;
+};
+
 // Get CurrentSession for external express middlewares
 export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
   const cookieHeader = request.headers.cookie;
@@ -340,10 +368,22 @@ const getAdminBroInstance = async () => {
               },
             },
             createdAt: {
-              isVisible: true,
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             updatedAt: {
-              isVisible: true,
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             email: {
               isVisible: {
@@ -444,10 +484,36 @@ const getAdminBroInstance = async () => {
               },
             },
             'commentsSection.comments': { type: 'mixed', isArray: true },
-            'commentsSection.comments.name': {
+            'commentsSection.comments.email': {
               type: 'string',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: true,
+              },
             },
-            'commentsSection.comments.message': { type: 'string' },
+            'commentsSection.comments.content': {
+              type: 'string',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: true,
+                new: true,
+              },
+            },
+            'commentsSection.comments.createdAt': {
+              type: 'date',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
             lastStep: {
               isVisible: false,
             },
@@ -489,6 +555,7 @@ const getAdminBroInstance = async () => {
                 (currentAdmin.role === UserRole.ADMIN ||
                   currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
               isVisible: true,
+              after: setCommentEmailAndTimeStamps,
             },
             show: {
               isVisible: true,
