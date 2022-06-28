@@ -16,7 +16,6 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { SocialProfile } from './socialProfile';
-// import { Comment } from './comment';
 
 export const PROJECT_VERIFICATION_STATUSES = {
   VERIFIED: 'verified',
@@ -99,6 +98,22 @@ export class ManagingFunds {
   relatedAddresses: FormRelatedAddress[];
 }
 
+@ObjectType()
+export class Comment {
+  @Field({ nullable: true })
+  email: string;
+  @Field({ nullable: true })
+  content: string;
+  @Field({ nullable: true })
+  createdAt: Date;
+}
+
+@ObjectType()
+export class CommentsSection {
+  @Field(() => [Comment], { nullable: true })
+  comments: Comment[];
+}
+
 @Entity()
 @ObjectType()
 export class ProjectVerificationForm extends BaseEntity {
@@ -147,14 +162,8 @@ export class ProjectVerificationForm extends BaseEntity {
   @OneToMany(
     type => SocialProfile,
     socialProfile => socialProfile.projectVerificationForm,
-    // table join name is too long breaks typeorm
-    // { eager: true } error: table name "ProjectVerificationForm_socialProfiles_project_ProjectVerificat" specified more than once
   )
   socialProfiles?: SocialProfile[];
-
-  // @Field(type => [Comment], { nullable: true })
-  // @OneToMany(type => Comment, comment => comment.projectVerificationForm)
-  // comments?: Comment[];
 
   @Field()
   @Column('text', { default: PROJECT_VERIFICATION_STATUSES.DRAFT })
@@ -186,6 +195,10 @@ export class ProjectVerificationForm extends BaseEntity {
   @Field(type => ManagingFunds, { nullable: true })
   @Column('jsonb', { nullable: true })
   managingFunds: ManagingFunds;
+
+  @Field(type => CommentsSection, { nullable: true })
+  @Column('jsonb', { nullable: true })
+  commentsSection: CommentsSection;
 
   @Field(type => String, { nullable: true })
   @Column('text', { nullable: true })
