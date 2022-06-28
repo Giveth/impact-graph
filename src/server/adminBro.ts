@@ -240,11 +240,12 @@ export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
   if (!projectVerificationForm) return response;
 
   // if none is created, nothing will be updated
-  for (const comment of projectVerificationForm.commentsSection.comments) {
-    if (comment.email) continue;
-
-    comment.email = currentAdmin!.email;
-    comment.createdAt = new Date();
+  if (projectVerificationForm?.commentsSection?.comments) {
+    for (const comment of projectVerificationForm.commentsSection.comments) {
+      if (comment.email) continue;
+      comment.email = currentAdmin!.email;
+      comment.createdAt = new Date();
+    }
   }
 
   await projectVerificationForm.save();
