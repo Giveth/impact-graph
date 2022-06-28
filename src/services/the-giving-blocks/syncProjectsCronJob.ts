@@ -9,16 +9,14 @@ import {
   fetchOrganizationById,
   GivingBlockProject,
 } from './api';
-import {
-  validateProjectTitle,
-  validateProjectWalletAddress,
-} from '../../utils/validators/projectValidator';
+
 import config from '../../config';
 import slugify from 'slugify';
 import { ProjectStatus } from '../../entities/projectStatus';
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
+import { findUserById } from '../../repositories/userRepository';
 
 const givingBlockCategoryName = 'The Giving Block';
 const givingBlockHandle = 'the-giving-block';
@@ -96,6 +94,7 @@ const createGivingProject = async (data: {
       accessToken,
       givingBlockProject.id,
     );
+    const adminUser = await findUserById(Number(adminId));
 
     // Await enough for full limit to regenerate
     await sleep(1000);
@@ -137,6 +136,7 @@ const createGivingProject = async (data: {
       verified: true,
       giveBacks: true,
       isImported: true,
+      adminUser,
     });
     await project.save();
     logger.debug(

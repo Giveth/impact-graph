@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User, UserRole } from '../src/entities/user';
-import { Donation } from '../src/entities/donation';
+import { Donation, DONATION_STATUS } from '../src/entities/donation';
 import {
   Category,
   Project,
@@ -16,7 +16,14 @@ import {
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
 import { findUserByWalletAddress } from '../src/repositories/userRepository';
-import { findProjectByWalletAddress } from '../src/repositories/projectRepository';
+import {
+  addNewProjectAddress,
+  findRelatedAddressByWalletAddress,
+} from '../src/repositories/projectAddressRepository';
+import {
+  PROJECT_VERIFICATION_STATUSES,
+  ProjectVerificationForm,
+} from '../src/entities/projectVerificationForm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -63,7 +70,13 @@ export const assertNotThrowsAsync = async fn => {
 export const generateTestAccessToken = async (id: number): Promise<string> => {
   const user = await User.findOne({ id });
   return jwt.sign(
-    { userId: id, firstName: user?.firstName },
+    {
+      userId: id,
+      firstName: user?.firstName,
+      walletAddress: user?.walletAddress,
+      name: user?.name,
+      lastName: user?.lastName,
+    },
     config.get('JWT_SECRET') as string,
     { expiresIn: '30d' },
   );
@@ -74,7 +87,7 @@ export const generateConfirmationEmailToken = async (
 ): Promise<string> => {
   return jwt.sign(
     { projectVerificationFormId: id },
-    config.get('JWT_SECRET') as string,
+    config.get('MAILER_JWT_SECRET') as string,
     { expiresIn: '120' },
   );
 };
@@ -97,6 +110,7 @@ export interface CreateProjectData {
   slug: string;
   description: string;
   admin: string;
+  // relatedAddresses: RelatedAddressInputType[];
   walletAddress: string;
   categories: string[];
   verified?: boolean;
@@ -125,16 +139,32 @@ export const saveUserDirectlyToDb = async (
   return User.create({
     loginType: 'wallet',
     walletAddress,
+    firstName: `testUser-${walletAddress}`,
+    email: `testEmail-${walletAddress}@giveth.io`,
+  }).save();
+};
+
+export const saveProjectVerificationFormDirectlyToDb = async (params: {
+  project: Project;
+  user: User;
+  status?: string;
+}): Promise<ProjectVerificationForm> => {
+  const { project, user, status } = params;
+  return ProjectVerificationForm.create({
+    project,
+    user,
+    status: status || PROJECT_VERIFICATION_STATUSES.DRAFT,
   }).save();
 };
 export const saveProjectDirectlyToDb = async (
   projectData: CreateProjectData,
+  owner?: User,
 ): Promise<Project> => {
-  const foundProject = await findProjectByWalletAddress(
+  const relatedAddress = await findRelatedAddressByWalletAddress(
     projectData.walletAddress,
   );
-  if (foundProject) {
-    return foundProject;
+  if (relatedAddress && relatedAddress.project) {
+    return relatedAddress.project;
   }
   const statusId = projectData?.statusId || ProjStatus.active;
   const status = await ProjectStatus.findOne({
@@ -145,9 +175,11 @@ export const saveProjectDirectlyToDb = async (
   const organization = await Organization.findOne({
     label: organizationLabel,
   });
-  const user = (await User.findOne({
-    id: Number(projectData.admin),
-  })) as User;
+  const user =
+    owner ||
+    ((await User.findOne({
+      id: Number(projectData.admin),
+    })) as User);
   const categoriesPromise = Promise.all(
     projectData.categories
       ? projectData.categories.map(async category => {
@@ -166,8 +198,18 @@ export const saveProjectDirectlyToDb = async (
     organization,
     categories,
     users: [user],
+    adminUser: user,
   }).save();
 
+  for (const networkId of Object.values(NETWORK_IDS)) {
+    await addNewProjectAddress({
+      project,
+      user,
+      isRecipient: true,
+      address: projectData.walletAddress,
+      networkId,
+    });
+  }
   // default projectUpdate for liking projects
   // this was breaking updateAt tests as it was running update hooks sometime in the future.
   // Found no other way to avoid triggering the hooks.
@@ -183,11 +225,12 @@ export const saveProjectDirectlyToDb = async (
 };
 export const createProjectData = (): CreateProjectData => {
   const title = String(new Date().getTime());
+  const walletAddress = generateRandomEtheriumAddress();
   return {
     // title: `test project`,
     title,
     description: 'test description',
-    walletAddress: generateRandomEtheriumAddress(),
+    walletAddress,
     categories: ['food1'],
     verified: true,
     listed: true,
@@ -204,13 +247,16 @@ export const createProjectData = (): CreateProjectData => {
     totalProjectUpdates: 1,
   };
 };
-export const createDonationData = (): CreateDonationData => {
+export const createDonationData = (params?: {
+  status?: string;
+}): CreateDonationData => {
   return {
     transactionId: generateRandomTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
     currency: 'ETH',
+    status: params?.status || DONATION_STATUS.PENDING,
     anonymous: false,
     amount: 15,
     valueUsd: 15,
@@ -221,15 +267,19 @@ export const createDonationData = (): CreateDonationData => {
 
 export const SEED_DATA = {
   FIRST_USER: {
-    name: 'firstUser',
+    name: 'firstUser name',
     lastName: 'firstUser lastName',
+    firstName: 'firstUser firstName',
+    email: 'firstUser@giveth.io',
     loginType: 'wallet',
     id: 1,
     walletAddress: generateRandomEtheriumAddress(),
   },
   SECOND_USER: {
     name: 'secondUser',
+    email: 'secondUser@giveth.io',
     lastName: 'secondUser lastName',
+    firstName: 'secondUser firstName',
     loginType: 'wallet',
     id: 2,
     walletAddress: generateRandomEtheriumAddress(),
@@ -237,6 +287,8 @@ export const SEED_DATA = {
   THIRD_USER: {
     name: 'thirdUser',
     lastName: 'thirdUser lastName',
+    firstName: 'thirdUser firstName',
+    email: 'thirdUser@giveth.io',
     loginType: 'wallet',
     id: 3,
     walletAddress: generateRandomEtheriumAddress(),
@@ -244,6 +296,8 @@ export const SEED_DATA = {
   ADMIN_USER: {
     name: 'adminUser',
     lastName: 'adminUser lastName',
+    firstName: 'adminUser firstName',
+    email: 'adminUser@giveth.io',
     loginType: 'wallet',
     id: 4,
     walletAddress: generateRandomEtheriumAddress(),
@@ -251,6 +305,7 @@ export const SEED_DATA = {
   PROJECT_OWNER_USER: {
     name: 'project owner user',
     lastName: 'projectOwner lastName',
+    email: 'projectOwnerUser@giveth.io',
     loginType: 'wallet',
     id: 5,
     walletAddress: generateRandomEtheriumAddress(),
@@ -1410,6 +1465,7 @@ export const saveDonationDirectlyToDb = async (
 export function generateRandomEtheriumAddress(): string {
   return `0x${generateHexNumber(40)}`;
 }
+
 export function generateRandomTxHash(): string {
   return `0x${generateHexNumber(64)}`;
 }

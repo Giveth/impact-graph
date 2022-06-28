@@ -67,25 +67,45 @@ async function seedDb() {
 
 async function seedTokens() {
   for (const token of SEED_DATA.TOKENS.xdai) {
-    await Token.create({
+    const tokenData = {
       ...token,
       networkId: 100,
       isGivbackEligible: true,
-    }).save();
+    };
+    if (token.symbol === 'GIV') {
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'XDAI') {
+      (tokenData as any).order = 2;
+    } else if (token.symbol === 'WETH') {
+      (tokenData as any).order = 3;
+    }
+    await Token.create(tokenData).save();
   }
   for (const token of SEED_DATA.TOKENS.mainnet) {
-    await Token.create({
+    const tokenData = {
       ...token,
       networkId: 1,
       isGivbackEligible: true,
-    }).save();
+    };
+    if (token.symbol === 'GIV') {
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData).save();
   }
   for (const token of SEED_DATA.TOKENS.ropsten) {
-    await Token.create({
+    const tokenData = {
       ...token,
       networkId: 3,
       isGivbackEligible: true,
-    }).save();
+    };
+    if (token.symbol === 'GIV') {
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData).save();
   }
 }
 

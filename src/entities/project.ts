@@ -8,11 +8,13 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   JoinTable,
   LessThan,
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
 } from 'typeorm';
@@ -30,6 +32,10 @@ import { ProjectStatusReason } from './projectStatusReason';
 import { errorMessages } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
+import { SocialProfile } from './socialProfile';
+import { ProjectVerificationForm } from './projectVerificationForm';
+import { ProjectAddress } from './projectAddress';
+import { ProjectContacts } from './projectVerificationForm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -164,8 +170,8 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   stripeAccountId?: string;
 
-  @Field()
-  @Column({ unique: true })
+  @Field({ nullable: true })
+  @Column({ unique: true, nullable: true })
   walletAddress?: string;
 
   @Field(type => Boolean)
@@ -188,6 +194,10 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   qualityScore: number = 0;
 
+  @Field(type => [ProjectContacts], { nullable: true })
+  @Column('jsonb', { nullable: true })
+  contacts: ProjectContacts[];
+
   @ManyToMany(type => User, user => user.projects, { eager: true })
   @JoinTable()
   @Field(type => [User], { nullable: true })
@@ -196,10 +206,25 @@ class Project extends BaseEntity {
   @OneToMany(type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
 
+  @Field(type => [ProjectAddress], { nullable: true })
+  @OneToMany(type => ProjectAddress, projectAddress => projectAddress.project)
+  addresses?: ProjectAddress[];
+
   @Index()
   @Field(type => ProjectStatus)
   @ManyToOne(type => ProjectStatus, { eager: true })
   status: ProjectStatus;
+
+  @RelationId((project: Project) => project.status)
+  statusId: number;
+
+  @Index()
+  @Field(type => User, { nullable: true })
+  @ManyToOne(() => User, { eager: true })
+  adminUser?: User;
+
+  @RelationId((project: Project) => project.adminUser)
+  adminUserId: number;
 
   @Field(type => [ProjectStatusHistory], { nullable: true })
   @OneToMany(
@@ -208,8 +233,17 @@ class Project extends BaseEntity {
   )
   statusHistory?: ProjectStatusHistory[];
 
-  @RelationId((project: Project) => project.status)
-  statusId: number;
+  @Field(type => ProjectVerificationForm, { nullable: true })
+  @OneToOne(
+    type => ProjectVerificationForm,
+    projectVerificationForm => projectVerificationForm.project,
+    { nullable: true },
+  )
+  projectVerificationForm?: ProjectVerificationForm;
+
+  @Field(type => [SocialProfile], { nullable: true })
+  @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
+  socialProfiles?: SocialProfile[];
 
   @Field(type => Float)
   @Column({ type: 'real' })
@@ -230,10 +264,6 @@ class Project extends BaseEntity {
   @Field(type => Boolean, { nullable: true })
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
-
-  // Virtual attribute to subquery result into
-  @Field(type => User, { nullable: true })
-  adminUser?: User;
 
   // Virtual attribute to subquery result into
   @Field(type => Int, { nullable: true })

@@ -19,11 +19,14 @@ export const SOCIAL_NETWORKS = {
   TWITTER: 'twitter',
   INSTAGRAM: 'instagram',
   YOUTUBE: 'youtube',
+  LINKEDIN: 'linkedin',
   DISCORD: 'discord',
+  GOOGLE: 'google',
 };
 
 @Entity()
 @ObjectType()
+@Index(['socialNetworkId', 'socialNetwork'])
 export class SocialProfile extends BaseEntity {
   /**
    * @see {@link https://github.com/Giveth/giveth-dapps-v2/issues/711#issuecomment-1128435255}
@@ -65,6 +68,10 @@ export class SocialProfile extends BaseEntity {
   @Field({ nullable: true })
   @Column('text', { nullable: true })
   socialNetworkId: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  socialNetwork: string;
 
   @Field()
   @Column('boolean', { default: false })

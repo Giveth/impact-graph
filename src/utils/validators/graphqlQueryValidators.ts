@@ -65,7 +65,7 @@ export const updateDonationQueryValidator = Joi.object({
 });
 
 export const createProjectVerificationRequestValidator = Joi.object({
-  projectId: projectIdValidator,
+  slug: Joi.string().required(),
 });
 
 export const getCurrentProjectVerificationRequestValidator = Joi.object({
@@ -87,15 +87,16 @@ const projectRegistryValidator = Joi.object({
   ),
   organizationWebsite: Joi.string().allow(''),
   organizationDescription: Joi.string().allow(''),
+  organizationName: Joi.string().allow(''),
+  attachment: Joi.string().allow(''),
 });
 
-const projectContactsValidator = Joi.object({
-  twitter: Joi.string().allow(''),
-  facebook: Joi.string().allow(''),
-  linkedin: Joi.string().allow(''),
-  youtube: Joi.string().allow(''),
-  instagram: Joi.string().allow(''),
-});
+const projectContactsValidator = Joi.array().items(
+  Joi.object({
+    name: Joi.string().required(),
+    url: Joi.string().required(),
+  }),
+);
 
 const milestonesValidator = Joi.object({
   foundationDate: Joi.date().allow(''),
@@ -112,7 +113,7 @@ const managingFundsValidator = Joi.object({
       address: Joi.string().required().pattern(ethereumWalletAddressRegex),
       networkId: Joi.number()?.valid(
         NETWORK_IDS.MAIN_NET,
-        NETWORK_IDS.XDAI,
+        NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.XDAI,
       ),
     }),

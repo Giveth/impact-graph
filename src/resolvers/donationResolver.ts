@@ -23,7 +23,7 @@ import { Project, ProjStatus } from '../entities/project';
 import { getAnalytics, SegmentEvents } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In, Brackets } from 'typeorm';
-import { User } from '../entities/user';
+import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
@@ -54,6 +54,7 @@ import {
 } from '../repositories/userRepository';
 import { findDonationById } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
+import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 
 const analytics = getAnalytics();
 
@@ -153,7 +154,8 @@ export class DonationResolver {
       validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
       const query = this.donationRepository
         .createQueryBuilder('donation')
-        .leftJoinAndSelect('donation.user', 'user')
+        .leftJoin('donation.user', 'user')
+        .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project');
 
       if (fromDate) {
@@ -169,6 +171,7 @@ export class DonationResolver {
     }
   }
 
+  // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
   async donationsFromWallets(
     @Ctx() ctx: MyContext,
@@ -178,14 +181,16 @@ export class DonationResolver {
     const fromWalletAddressesArray: string[] = fromWalletAddresses.map(o =>
       o.toLowerCase(),
     );
-    const donations = await this.donationRepository.find({
-      where: {
-        fromWalletAddress: In(fromWalletAddressesArray),
-      },
-    });
-    return donations;
+    return this.donationRepository
+      .createQueryBuilder('donation')
+      .where({ fromWalletAddress: In(fromWalletAddressesArray) })
+      .leftJoin('donation.user', 'user')
+      .addSelect(publicSelectionFields)
+      .leftJoinAndSelect('donation.project', 'project')
+      .getMany();
   }
 
+  // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
   async donationsToWallets(
     @Ctx() ctx: MyContext,
@@ -195,12 +200,13 @@ export class DonationResolver {
       o.toLowerCase(),
     );
 
-    const donations = await this.donationRepository.find({
-      where: {
-        toWalletAddress: In(toWalletAddressesArray),
-      },
-    });
-    return donations;
+    return this.donationRepository
+      .createQueryBuilder('donation')
+      .where({ toWalletAddress: In(toWalletAddressesArray) })
+      .leftJoin('donation.user', 'user')
+      .addSelect(publicSelectionFields)
+      .leftJoinAndSelect('donation.project', 'project')
+      .getMany();
   }
 
   @Query(returns => PaginateDonations, { nullable: true })
@@ -242,7 +248,8 @@ export class DonationResolver {
     } else {
       const query = this.donationRepository
         .createQueryBuilder('donation')
-        .leftJoinAndSelect('donation.user', 'user')
+        .leftJoin('donation.user', 'user')
+        .addSelect(publicSelectionFields)
         .where(`donation.projectId = ${projectId}`)
         .orderBy(
           `donation.${orderBy.field}`,
@@ -315,18 +322,18 @@ export class DonationResolver {
     return prices;
   }
 
+  // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
       throw new Error(errorMessages.DONATION_VIEWING_LOGIN_REQUIRED);
-
-    const donations = await this.donationRepository.find({
-      where: {
-        user: ctx.req.user.userId,
-      },
-    });
-
-    return donations;
+    return this.donationRepository
+      .createQueryBuilder('donation')
+      .where({ user: ctx.req.user.userId })
+      .leftJoin('donation.user', 'user')
+      .addSelect(publicSelectionFields)
+      .leftJoinAndSelect('donation.project', 'project')
+      .getMany();
   }
 
   @Query(returns => UserDonations, { nullable: true })
@@ -363,222 +370,6 @@ export class DonationResolver {
       donations,
       totalCount,
     };
-  }
-
-  // TODO we should remove this mutation when frontend used createDonation
-  @Mutation(returns => Number)
-  async saveDonation(
-    @Arg('fromAddress') fromAddress: string,
-    @Arg('toAddress') toAddress: string,
-    @Arg('amount') amount: number,
-    @Arg('transactionId', { nullable: true }) transactionId: string,
-    @Arg('transactionNetworkId') transactionNetworkId: number,
-    @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
-    @Arg('anonymous', { nullable: true }) anonymous: boolean,
-    @Arg('token') token: string,
-    @Arg('projectId') projectId: number,
-    @Arg('chainId') chainId: number,
-    @Arg('transakId', { nullable: true }) transakId: string,
-    // TODO should remove this in the future, we dont use transakStatus in creating donation
-    @Arg('transakStatus', { nullable: true }) transakStatus: string,
-    @Ctx() ctx: MyContext,
-  ): Promise<Number> {
-    try {
-      let userId = ctx?.req?.user?.userId || null;
-
-      if (!userId) {
-        SentryLogger.captureException(
-          `saveDonation() UserId was not assign for address ${fromAddress}`,
-        );
-        logger.error(
-          'saveDonation() error',
-          `UserId was not assign for address ${fromAddress}`,
-        );
-      }
-
-      if (!chainId) chainId = NETWORK_IDS.MAIN_NET;
-      const priceChainId =
-        chainId === NETWORK_IDS.ROPSTEN ? NETWORK_IDS.MAIN_NET : chainId;
-      let donorUser;
-
-      const project = await Project.createQueryBuilder('project')
-        .leftJoinAndSelect('project.organization', 'organization')
-        .leftJoinAndSelect('project.status', 'status')
-        .where(`project.id =${projectId}`)
-        .getOne();
-
-      if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
-      if (project.status.id !== ProjStatus.active) {
-        throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
-      }
-      const tokenInDb = await Token.findOne({
-        networkId: chainId,
-        symbol: token,
-      });
-      let isTokenEligibleForGivback = false;
-      if (!tokenInDb && !project.organization.supportCustomTokens) {
-        throw new Error(errorMessages.TOKEN_NOT_FOUND);
-      } else if (tokenInDb) {
-        const acceptsToken = await isTokenAcceptableForProject({
-          projectId,
-          tokenId: tokenInDb.id,
-        });
-        if (!acceptsToken && !project.organization.supportCustomTokens) {
-          throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
-        }
-        isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
-      }
-
-      if (project.walletAddress?.toLowerCase() !== toAddress.toLowerCase()) {
-        throw new Error(
-          errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
-        );
-      }
-
-      donorUser =
-        (await findUserById(ctx.req.user?.userId)) ||
-        (await findUserByWalletAddress(fromAddress.toString()));
-
-      // ONLY when logged in, allow setting the anonymous boolean
-      const donationAnonymous =
-        userId && anonymous !== undefined ? anonymous : !userId;
-      // I think this var is not longer than 10 english char
-      const maxValidLengthCurrency = 10;
-      if (amount <= 0) {
-        throw new Error(errorMessages.AMOUNT_IS_INVALID);
-      }
-      if (!/^[a-zA-Z]+$/.test(token) || token.length > maxValidLengthCurrency) {
-        throw new Error(errorMessages.CURRENCY_IS_INVALID);
-      }
-      const donation = await Donation.create({
-        amount: Number(amount),
-        transactionId: transactionId?.toLowerCase() || transakId,
-        isFiat: Boolean(transakId),
-        transactionNetworkId: Number(transactionNetworkId),
-        currency: token,
-        user: donorUser,
-        tokenAddress,
-        project,
-        isTokenEligibleForGivback,
-        isProjectVerified: project.verified,
-        createdAt: new Date(),
-        segmentNotified: true,
-        toWalletAddress: toAddress.toString().toLowerCase(),
-        fromWalletAddress: fromAddress.toString().toLowerCase(),
-        anonymous: donationAnonymous,
-      });
-      await donation.save();
-      const baseTokens =
-        Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
-
-      try {
-        const tokenPrices = await this.getMonoSwapTokenPrices(
-          token,
-          baseTokens,
-          Number(priceChainId),
-        );
-
-        if (tokenPrices.length !== 0) {
-          donation.priceUsd = Number(tokenPrices[0]);
-          donation.priceEth = Number(tokenPrices[1]);
-
-          donation.valueUsd = Number(amount) * donation.priceUsd;
-          donation.valueEth = Number(amount) * donation.priceEth;
-        }
-      } catch (e) {
-        logger.error('Error in getting price from monoswap', {
-          error: e,
-          donation,
-        });
-        addSegmentEventToQueue({
-          event: SegmentEvents.GET_DONATION_PRICE_FAILED,
-          analyticsUserId: userId,
-          properties: donation,
-          anonymousId: null,
-        });
-      }
-
-      await donation.save();
-
-      if (donorUser) {
-        // After updating, recalculate user total donated and owner total received
-        await updateUserTotalDonated(donorUser.id);
-      }
-      await updateUserTotalReceived(Number(project.admin));
-
-      // After updating price we update totalDonations
-      await updateTotalDonationsOfProject(projectId);
-
-      if (transakId) {
-        // we send segment event for transak donations after the transak call our webhook to verifying transactions
-        return donation.id;
-      }
-
-      const segmentDonationInfo = {
-        slug: project.slug,
-        title: project.title,
-        amount: Number(amount),
-        transactionId: transactionId.toLowerCase(),
-        toWalletAddress: toAddress.toLowerCase(),
-        fromWalletAddress: fromAddress.toLowerCase(),
-        donationValueUsd: donation.valueUsd,
-        donationValueEth: donation.valueEth,
-        verified: Boolean(project.verified),
-        projectOwnerId: project.admin,
-        transactionNetworkId: Number(transactionNetworkId),
-        currency: token,
-        projectWalletAddress: project.walletAddress,
-        segmentNotified: true,
-        createdAt: new Date(),
-      };
-
-      if (ctx.req.user && ctx.req.user.userId) {
-        userId = ctx.req.user.userId;
-        donorUser = await findUserById(userId);
-        analytics.identifyUser(donorUser);
-        if (!donorUser)
-          throw Error(`The logged in user doesn't exist - id ${userId}`);
-        logger.debug(donation.valueUsd);
-
-        const segmentDonationMade = {
-          ...segmentDonationInfo,
-          email: donorUser != null ? donorUser.email : '',
-          firstName: donorUser != null ? donorUser.firstName : '',
-          anonymous: !userId,
-        };
-
-        analytics.track(
-          SegmentEvents.MADE_DONATION,
-          donorUser.segmentUserId(),
-          segmentDonationMade,
-          donorUser.segmentUserId(),
-        );
-      }
-
-      const projectOwner = await findUserById(Number(project.admin));
-
-      if (projectOwner) {
-        analytics.identifyUser(projectOwner);
-
-        const segmentDonationReceived = {
-          ...segmentDonationInfo,
-          email: projectOwner.email,
-          firstName: projectOwner.firstName,
-        };
-
-        analytics.track(
-          SegmentEvents.DONATION_RECEIVED,
-          projectOwner.segmentUserId(),
-          segmentDonationReceived,
-          projectOwner.segmentUserId(),
-        );
-      }
-      return donation.id;
-    } catch (e) {
-      SentryLogger.captureException(e);
-      logger.error('saveDonation() error', e);
-      throw e;
-    }
   }
 
   @Mutation(returns => Number)
@@ -650,7 +441,17 @@ export class DonationResolver {
         }
         isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
       }
-      const toAddress = project.walletAddress?.toLowerCase() as string;
+      const projectRelatedAddress =
+        await findProjectRecipientAddressByNetworkId({
+          projectId,
+          networkId: transactionNetworkId,
+        });
+      if (!projectRelatedAddress) {
+        throw new Error(
+          errorMessages.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+        );
+      }
+      const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
       const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
 
       const donation = await Donation.create({

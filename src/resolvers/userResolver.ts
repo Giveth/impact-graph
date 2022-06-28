@@ -41,18 +41,14 @@ export class UserResolver {
     // return User.create(data).save();
   }
 
-  // TODO it seems this endpoint doesnt use https://github.com/Giveth/giveth-dapps-v2/blob/develop/src/apollo/gql/gqlUser.ts
   @Query(returns => User, { nullable: true })
-  async user(@Arg('userId', type => Int) userId: number) {
-    return await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['accountVerifications', 'projects'],
-    });
-  }
-
-  @Query(returns => User, { nullable: true })
-  userByAddress(@Arg('address', type => String) address: string) {
-    return findUserByWalletAddress(address);
+  userByAddress(
+    @Arg('address', type => String) address: string,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    const includeSensitiveFields =
+      user?.walletAddress?.toLowerCase() === address.toLowerCase();
+    return findUserByWalletAddress(address, includeSensitiveFields);
   }
 
   @Mutation(returns => Boolean)

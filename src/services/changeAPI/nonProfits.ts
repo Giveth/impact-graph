@@ -12,6 +12,7 @@ import { ProjectStatus } from '../../entities/projectStatus';
 import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
+import { findUserById } from '../../repositories/userRepository';
 
 const changeAPICategoryName = 'Change';
 const changeAPIHandle = 'change';
@@ -86,6 +87,7 @@ export const createProjectFromChangeNonProfit = async (
       label: ORGANIZATION_LABELS.CHANGE,
     });
 
+    const adminUser = await findUserById(Number(adminId));
     const slugBase = slugify(nonProfit.name, {
       remove: /[*+~.,()'"!:@]/g,
     });
@@ -109,6 +111,7 @@ export const createProjectFromChangeNonProfit = async (
       slugHistory: [],
       changeId: String(nonProfit.id),
       admin: adminId,
+      adminUser,
       status: activeStatus,
       qualityScore,
       totalDonations: 0,

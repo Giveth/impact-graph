@@ -1,14 +1,30 @@
 export const errorMessages = {
   CHANGE_API_INVALID_TITLE_OR_EIN:
     'ChangeAPI title or EIN not found or invalid',
+  INVALID_SOCIAL_NETWORK: 'Invalid social network',
+  IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT:
+    'It should have two wallet addresses recipients',
+  NOT_IMPLEMENTED: 'Not implemented',
+  YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS:
+    'You just can verify rejected and submitted forms',
+  YOU_JUST_CAN_REJECT_SUBMITTED_FORMS: 'You just can reject submitted forms',
+  INVALID_TRACK_ID_FOR_OAUTH2_LOGIN: 'Invalid trackId for oauth2 login',
+  SOCIAL_NETWORK_IS_DIFFERENT_WITH_CLAIMED_ONE:
+    'Social network is different with claimed one',
+  SOCIAL_PROFILE_NOT_FOUND: 'Social profile not gound',
   CHANGE_API_TITLE_OR_EIN_NOT_PRECISE:
     'Please query the exact project title or EIN ID from the ChangeAPI site',
   YOU_ARE_NOT_OWNER_OF_THIS_DONATION: 'You are now owner of this donation',
   NOT_SUPPORTED_THIRD_PARTY_API: 'Third Party API not supported',
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
+  YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL:
+    'You should fill email in personal info step before confirming it',
+  YOU_ALREADY_VERIFIED_THIS_EMAIL: 'You already verified this email',
   INVALID_FROM_DATE: 'Invalid fromDate',
   INVALID_TO_DATE: 'Invalid toDate',
-  INVALID_AUTHORIZATION_VERSION: 'Authorizatio version is not valid',
+  VERIFIED_USERNAME_IS_DIFFERENT_WITH_CLAIMED_ONE:
+    'Username is not the claimed one',
+  INVALID_AUTHORIZATION_VERSION: 'Authorization version is not valid',
   INVALID_STEP: 'Invalid step',
   DONOR_REPORTED_IT_AS_FAILED: 'Donor reported it as failed',
   INVALID_DATE_FORMAT: 'Date format should be YYYYMMDD HH:mm:ss',
@@ -27,6 +43,12 @@ export const errorMessages = {
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT: 'You are not the owner of this project.',
   YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM:
     'You are not the owner of this project verification form.',
+  YOU_ARE_NOT_THE_OWNER_OF_SOCIAL_PROFILE:
+    'You are not the owner of this social profile project verification form.',
+  PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES:
+    'project verification form is not draft, so you cant modify social profiles',
+  YOU_ALREADY_ADDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM:
+    'You already have added this social profile for this verification form',
   PROJECT_VERIFICATION_FORM_NOT_FOUND: 'Project verification form not found',
   PROJECT_IS_ALREADY_VERIFIED: 'Project is already verified.',
   YOU_JUST_CAN_EDIT_DRAFT_REQUESTS: 'Project is already verified.',
@@ -88,8 +110,15 @@ export const errorMessages = {
   AUTHENTICATION_REQUIRED: 'Authentication required.',
   SOMETHING_WENT_WRONG: 'Something went wrong.',
   PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN: 'Project doesnt support this token',
+  THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT:
+    'There is no recipient address for this project and networkId',
   AMOUNT_IS_INVALID: 'Amount is not valid',
   CURRENCY_IS_INVALID: 'Currency is not valid',
   SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT:
     'Should have one connected social network before submit',
+  SOCIAL_PROFILE_IS_ALREADY_VERIFIED: 'Social profile is already verified',
+  YOU_ARE_NOT_THE_OWNER_OF_THIS_SOCIAL_PROFILE:
+    'You are not the owner of social profile',
+  ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE:
+    'Error in getting accessToken by authorization code',
 };

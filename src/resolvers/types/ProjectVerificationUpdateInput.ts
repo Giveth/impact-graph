@@ -1,4 +1,6 @@
 import { Field, InputType } from 'type-graphql';
+import { ProjectContacts } from '../../entities/projectVerificationForm';
+import { Column } from 'typeorm';
 
 @InputType()
 class ProjectPersonalInfoInputType {
@@ -12,8 +14,8 @@ class ProjectPersonalInfoInputType {
 
 @InputType()
 class MilestonesInputType {
-  @Field({ nullable: true })
-  foundationDate?: Date;
+  @Field(type => String, { nullable: true })
+  foundationDate?: String;
   @Field({ nullable: true })
   mission?: string;
   @Field({ nullable: true })
@@ -25,21 +27,15 @@ class MilestonesInputType {
 @InputType()
 class ProjectContactsInputType {
   @Field({ nullable: true })
-  twitter?: string;
+  name?: string;
   @Field({ nullable: true })
-  facebook?: string;
-  @Field({ nullable: true })
-  linkedin?: string;
-  @Field({ nullable: true })
-  instagram?: string;
-  @Field({ nullable: true })
-  youtube?: string;
+  url?: string;
 }
 
 @InputType()
-class RelatedAddressInputType {
+export class RelatedAddressInputType {
   @Field({ nullable: true })
-  title: string;
+  title?: string;
   @Field({ nullable: true })
   address: string;
   @Field({ nullable: true })
@@ -65,6 +61,10 @@ class ProjectRegistryInputType {
   organizationWebsite?: string;
   @Field({ nullable: true })
   organizationDescription?: string;
+  @Field({ nullable: true })
+  organizationName?: string;
+  @Field({ nullable: true })
+  attachment?: string;
 }
 
 @InputType()
@@ -81,8 +81,8 @@ export class ProjectVerificationUpdateInput {
   @Field({ nullable: true })
   projectRegistry?: ProjectRegistryInputType;
 
-  @Field({ nullable: true })
-  projectContacts?: ProjectContactsInputType;
+  @Field(type => [ProjectContactsInputType], { nullable: true })
+  projectContacts?: ProjectContactsInputType[];
 
   @Field({ nullable: true })
   milestones?: MilestonesInputType;

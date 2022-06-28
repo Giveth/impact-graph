@@ -28,17 +28,32 @@ import * as jwt from 'jsonwebtoken';
 import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
+import { sendMailConfirmationEmail } from '../services/mailerService';
+import moment from 'moment';
 
 const analytics = getAnalytics();
 
+const dappUrl = process.env.FRONTEND_URL as string;
+
 @Resolver(of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
+  // https://github.com/Giveth/impact-graph/pull/519#issuecomment-1136845612
   @Mutation(returns => ProjectVerificationForm)
   async projectVerificationConfirmEmail(
     @Arg('emailConfirmationToken') emailConfirmationToken: string,
   ): Promise<ProjectVerificationForm> {
     try {
-      const secret = config.get('JWT_SECRET') as string;
+      const secret = config.get('MAILER_JWT_SECRET') as string;
+
+      const isValidToken =
+        await findProjectVerificationFormByEmailConfirmationToken(
+          emailConfirmationToken,
+        );
+
+      if (!isValidToken) {
+        throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+      }
+
       const decodedJwt: any = jwt.verify(emailConfirmationToken, secret);
       const projectVerificationFormId = decodedJwt.projectVerificationFormId;
       const projectVerificationForm = await findProjectVerificationFormById(
@@ -49,6 +64,8 @@ export class ProjectVerificationFormResolver {
         throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
       }
 
+      projectVerificationForm.emailConfirmationTokenExpiredAt = null;
+      projectVerificationForm.emailConfirmationToken = null;
       projectVerificationForm.emailConfirmedAt = new Date();
       projectVerificationForm.emailConfirmed = true;
       await projectVerificationForm.save();
@@ -66,6 +83,7 @@ export class ProjectVerificationFormResolver {
       }
 
       projectVerificationForm.emailConfirmed = false;
+      projectVerificationForm.emailConfirmationTokenExpiredAt = null;
       projectVerificationForm.emailConfirmationSent = false;
       projectVerificationForm.emailConfirmationSentAt = null;
       projectVerificationForm.emailConfirmationToken = null;
@@ -101,31 +119,55 @@ export class ProjectVerificationFormResolver {
           errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
         );
       }
+      const email = projectVerificationForm.personalInfo.email;
+      const project = await findProjectById(projectVerificationForm.projectId);
+      if (!project) {
+        throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      }
+      if (!email) {
+        throw new Error(
+          errorMessages.YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL,
+        );
+      }
+      if (
+        email === projectVerificationForm.email &&
+        projectVerificationForm.emailConfirmed
+      ) {
+        throw new Error(errorMessages.YOU_ALREADY_VERIFIED_THIS_EMAIL);
+      }
 
       const token = jwt.sign(
         { projectVerificationFormId },
-        config.get('JWT_SECRET') as string,
+        config.get('MAILER_JWT_SECRET') as string,
         {
-          expiresIn: '1h',
+          expiresIn: '2m',
         },
       );
 
-      const emailConfirmation = {
-        email: projectVerificationForm.personalInfo.email,
-        token,
+      projectVerificationForm.emailConfirmationTokenExpiredAt = moment()
+        .add(2, 'minutes')
+        .toDate();
+      projectVerificationForm.emailConfirmationToken = token;
+      projectVerificationForm.emailConfirmationSent = true;
+      projectVerificationForm.emailConfirmed = false;
+      projectVerificationForm.email = email;
+      projectVerificationForm.emailConfirmationSentAt = new Date();
+      await projectVerificationForm.save();
+
+      const callbackUrl = `https://${dappUrl}/verification/${project.slug}/${token}`;
+      const emailConfirmationData = {
+        email,
+        callbackUrl,
       };
+
+      await sendMailConfirmationEmail(email, project, token);
 
       analytics.track(
         SegmentEvents.SEND_EMAIL_CONFIRMATION,
         `givethId-${userId}`,
-        emailConfirmation,
+        emailConfirmationData,
         null,
       );
-
-      projectVerificationForm.emailConfirmationToken = token;
-      projectVerificationForm.emailConfirmationSent = true;
-      projectVerificationForm.emailConfirmationSentAt = new Date();
-      await projectVerificationForm.save();
 
       return projectVerificationForm;
     } catch (e) {
@@ -136,7 +178,7 @@ export class ProjectVerificationFormResolver {
 
   @Mutation(returns => ProjectVerificationForm)
   async createProjectVerificationForm(
-    @Arg('projectId') projectId: number,
+    @Arg('slug') slug: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectVerificationForm> {
     try {
@@ -146,11 +188,11 @@ export class ProjectVerificationFormResolver {
       }
       validateWithJoiSchema(
         {
-          projectId,
+          slug,
         },
         createProjectVerificationRequestValidator,
       );
-      const project = await findProjectById(projectId);
+      const project = await findProjectBySlug(slug);
       if (!project) {
         throw new Error(errorMessages.PROJECT_NOT_FOUND);
       }
@@ -162,14 +204,14 @@ export class ProjectVerificationFormResolver {
       }
 
       const inProjectVerificationRequest =
-        await getInProgressProjectVerificationRequest(projectId);
+        await getInProgressProjectVerificationRequest(project.id);
       if (inProjectVerificationRequest) {
         throw new Error(
           errorMessages.THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT,
         );
       }
       return createProjectVerificationForm({
-        projectId,
+        projectId: project.id,
         userId,
       });
     } catch (e) {
@@ -184,7 +226,6 @@ export class ProjectVerificationFormResolver {
     projectVerificationUpdateInput: ProjectVerificationUpdateInput,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectVerificationForm> {
-    // https://github.com/Giveth/impact-graph/pull/519#issuecomment-1136845612
     try {
       const userId = user?.userId;
       const { projectVerificationId } = projectVerificationUpdateInput;

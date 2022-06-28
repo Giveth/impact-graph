@@ -12,13 +12,26 @@ import { Project, ProjStatus } from './project';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
-import { ProjectStatusReason } from './projectStatusReason';
 import { ProjectStatusHistory } from './projectStatusHistory';
+import { ProjectVerificationForm } from './projectVerificationForm';
+
+export const publicSelectionFields = [
+  'user.id',
+  'user.walletAddress',
+  'user.name',
+  'user.firstName',
+  'user.lastName',
+  'user.url',
+  'user.avatar',
+  'user.totalDonated',
+  'user.totalReceived',
+];
 
 export enum UserRole {
   ADMIN = 'admin',
   RESTRICTED = 'restricted',
   OPERATOR = 'operator',
+  VERIFICATION_FORM_REVIEWER = 'reviewer',
 }
 
 @ObjectType()
@@ -28,13 +41,19 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field({ nullable: true })
   @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.RESTRICTED,
   })
   role: UserRole;
+
+  @Field(type => [AccountVerification], { nullable: true })
+  @OneToMany(
+    type => AccountVerification,
+    accountVerification => accountVerification.user,
+  )
+  accountVerifications?: AccountVerification[];
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -56,11 +75,9 @@ export class User extends BaseEntity {
   @Column({ unique: true })
   walletAddress?: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   password?: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   encryptedPassword?: string;
 
@@ -79,7 +96,6 @@ export class User extends BaseEntity {
   @Column()
   loginType: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   dId?: string;
 
@@ -94,12 +110,13 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   segmentIdentified: boolean;
 
-  @Field(type => [AccountVerification], { nullable: true })
+  // Admin Reviewing Forms
+  @Field(type => [ProjectVerificationForm], { nullable: true })
   @OneToMany(
-    type => AccountVerification,
-    accountVerification => accountVerification.user,
+    type => ProjectVerificationForm,
+    projectVerificationForm => projectVerificationForm.reviewer,
   )
-  accountVerifications?: AccountVerification[];
+  projectVerificationForms?: ProjectVerificationForm[];
 
   @Field(type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })

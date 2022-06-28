@@ -39,6 +39,12 @@ import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonat
 import { apiGivRouter } from '../routers/apiGivRoutes';
 import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
 import { authorizationHandler } from '../services/authorizationServices';
+import {
+  oauth2CallbacksRouter,
+  SOCIAL_PROFILES_PREFIX,
+} from '../routers/oauth2Callbacks';
+import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import { SocialProfile } from '../entities/socialProfile';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -91,7 +97,6 @@ export async function bootstrap() {
           const { headers } = req;
           const authVersion = headers.authversion || '1';
           logger.info(authVersion);
-
           if (headers.authorization) {
             token = headers.authorization.split(' ')[1].toString();
             const user = await authorizationHandler(authVersion, token);
@@ -219,6 +224,7 @@ export async function bootstrap() {
       }),
     );
     app.use('/apigive', apiGivRouter);
+    app.use(SOCIAL_PROFILES_PREFIX, oauth2CallbacksRouter);
     apolloServer.applyMiddleware({ app });
     app.post(
       '/stripe-webhook',

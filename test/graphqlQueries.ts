@@ -1,35 +1,3 @@
-export const saveDonation = `
-  mutation (
-    $chainId: Float!
-    $fromAddress: String!
-    $toAddress: String!
-    $transactionId: String
-    $transactionNetworkId: Float!
-    $amount: Float!
-    $token: String!
-    $projectId: Float!
-    $transakId: String
-    $transakStatus: String
-    $tokenAddress: String
-    $anonymous: Boolean
-  ) {
-    saveDonation(
-      chainId: $chainId
-      fromAddress: $fromAddress
-      toAddress: $toAddress
-      transactionId: $transactionId
-      transactionNetworkId: $transactionNetworkId
-      amount: $amount
-      token: $token
-      projectId: $projectId
-      transakId: $transakId
-      transakStatus: $transakStatus
-      tokenAddress: $tokenAddress
-      anonymous: $anonymous
-    )
-  }
-`;
-
 export const createDonationMutation = `
   mutation (
     $transactionId: String!
@@ -73,43 +41,48 @@ export const updateDonationStatusMutation = `
 `;
 
 export const createProjectQuery = `
-       mutation ($project: CreateProjectInput!) {
-          createProject(project: $project) {
-            id
-            title
-            description
-            admin
-            image
-            impactLocation
-            slug
-            walletAddress
-            listed
-            verified
-            organization {
-              id
-              name
-              label
-            }
-            status {
-              name
-              id
-              symbol
-            }
-            categories {
-              name
-            }
-            adminUser{
-              id
-              name
-              email
-              walletAddress
-            }
-          }
+   mutation ($project: CreateProjectInput!) {
+      createProject(project: $project) {
+        id
+        title
+        description
+        admin
+        image
+        impactLocation
+        slug
+        walletAddress
+        listed
+        verified
+        organization {
+          id
+          name
+          label
+        }
+        status {
+          name
+          id
+          symbol
+        }
+        categories {
+          name
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
+        }
+        adminUser{
+          id
+          name
+          email
+          walletAddress
+        }
       }
+  }
   `;
 
 export const updateProjectQuery = `
-  mutation ($projectId: Float!, $newProjectData: CreateProjectInput!) {
+  mutation ($projectId: Float!, $newProjectData: UpdateProjectInput!) {
     updateProject(projectId: $projectId, newProjectData: $newProjectData) {
       id
       title
@@ -126,12 +99,22 @@ export const updateProjectQuery = `
       categories {
         name
       }
+      addresses {
+        address
+        isRecipient
+        networkId
+      }
       adminUser{
         id
         name
         email
         walletAddress
       }
+     addresses {
+      address
+      isRecipient
+      networkId
+    }
     }
   }
  `;
@@ -173,6 +156,9 @@ export const fetchDonationsByDonorQuery = `
       amount
       user {
         id
+        firstName
+        email
+        walletAddress
       }
       project {
         id
@@ -214,6 +200,9 @@ export const fetchDonationsByProjectIdQuery = `
         status
         user {
           id
+          walletAddress
+          firstName
+          email
         }
         createdAt
       }
@@ -237,6 +226,12 @@ export const donationsFromWallets = `
     priceEth
     fromWalletAddress
     toWalletAddress
+    user {
+      id
+      email
+      firstName
+      walletAddress
+      }
     }
   }
 `;
@@ -256,6 +251,12 @@ export const donationsToWallets = `
     priceEth
     fromWalletAddress
     toWalletAddress
+    user {
+      id
+      email
+      firstName
+      walletAddress
+      }
     }
   }
 `;
@@ -280,6 +281,8 @@ export const fetchAllDonationsQuery = `
         amount
         user {
           id
+          walletAddress
+          firstName
           email
         }
         project {
@@ -323,6 +326,9 @@ export const fetchDonationsByUserIdQuery = `
         status
         user {
           id
+          walletAddress
+          email
+          firstName
         }
         project {
           id
@@ -382,10 +388,21 @@ export const fetchAllProjectsQuery = `
         reaction {
           id
         }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
         organization {
           name
           label
           supportCustomTokens
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
         }
         totalReactions
         totalDonations
@@ -422,6 +439,49 @@ export const fetchProjectsBySlugQuery = `
       traceCampaignId
       listed
       givingBlocksId
+      projectVerificationForm {
+        id
+        isTermAndConditionsAccepted
+        emailConfirmationTokenExpiredAt
+        email
+        emailConfirmationToken
+        emailConfirmationSent
+        emailConfirmationSentAt
+        emailConfirmedAt
+        emailConfirmed
+        projectRegistry {
+          organizationDescription
+          isNonProfitOrganization
+          organizationCountry
+          organizationWebsite
+          attachment
+          organizationName
+        }
+        personalInfo {
+          email
+          walletAddress
+          fullName
+        }
+        projectContacts {
+          name
+          url
+        }
+        milestones {
+          mission
+          foundationDate
+          achievedMilestones
+          achievedMilestonesProof
+        }
+        managingFunds {
+          description
+          relatedAddresses {
+            address
+            networkId
+            title
+          }
+        }
+        status
+      }
       status {
         id
         symbol
@@ -437,6 +497,17 @@ export const fetchProjectsBySlugQuery = `
         name
         label
         supportCustomTokens
+      }
+      addresses {
+        address
+        isRecipient
+        networkId
+      }
+      adminUser {
+        id
+        email
+        firstName
+        walletAddress
       }
       totalReactions
       totalDonations
@@ -483,6 +554,17 @@ export const fetchSimilarProjectsBySlugQuery = `
           id
           userId
           reaction
+        }
+       addresses {
+          address
+          isRecipient
+          networkId
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
         }
         totalReactions
         totalDonations
@@ -532,6 +614,17 @@ export const fetchLikedProjectsQuery = `
           userId
           reaction
         }
+        addresses {
+          address
+          isRecipient
+          networkId
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -574,22 +667,6 @@ export const updateUser = `
 export const userByAddress = `
   query ($address: String!) {
     userByAddress(address: $address) {
-      id
-      firstName
-      lastName
-      name
-      email
-      avatar
-      walletAddress
-      url
-      location
-    }
-  }
-`;
-
-export const userById = `
-  query ($userId:  Int!) {
-    user(userId: $userId) {
       id
       firstName
       lastName
@@ -697,6 +774,49 @@ export const projectsByUserIdQuery = `
           impactLocation
           listed
           givingBlocksId
+          projectVerificationForm {
+            id
+            isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
+            email
+            emailConfirmationToken
+            emailConfirmationSent
+            emailConfirmationSentAt
+            emailConfirmedAt
+            emailConfirmed
+            projectRegistry {
+              organizationDescription
+              isNonProfitOrganization
+              organizationCountry
+              organizationWebsite
+              attachment
+              organizationName
+            }
+            personalInfo {
+              email
+              walletAddress
+              fullName
+            }
+            projectContacts {
+              name
+              url
+            }
+            milestones {
+              mission
+              foundationDate
+              achievedMilestones
+              achievedMilestonesProof
+            }
+            managingFunds {
+              description
+              relatedAddresses {
+                address
+                networkId
+                title
+              }
+            }
+            status
+          }
           categories {
             name
           }
@@ -705,6 +825,18 @@ export const projectsByUserIdQuery = `
             id
             projectUpdateId
             userId
+          }    
+          addresses {
+            address
+            isRecipient
+            networkId
+          }
+              
+          adminUser {
+            firstName
+            email
+            id
+            walletAddress
           }
           qualityScore
         }
@@ -735,10 +867,21 @@ export const projectByIdQuery = `
       reaction {
         id
       }
+      addresses {
+        address
+        isRecipient
+        networkId
+      }
       organization {
         name
         label
         supportCustomTokens
+      }
+      adminUser {
+        firstName
+        email
+        id
+        walletAddress
       }
     }
   }
@@ -795,8 +938,8 @@ export const editProjectUpdateQuery = `
          }`;
 
 export const createProjectVerificationFormMutation = `
-        mutation createProjectVerificationForm($projectId: Float!){
-           createProjectVerificationForm(projectId: $projectId) {
+        mutation createProjectVerificationForm($slug: String!){
+           createProjectVerificationForm(slug: $slug) {
                     id
                     isTermAndConditionsAccepted
                     emailConfirmationToken
@@ -809,14 +952,12 @@ export const createProjectVerificationFormMutation = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
+                      attachment
+                      organizationName
                     }
                     projectContacts {
-                      youtube
-                      instagram
-                      linkedin
-                      facebook
-                      instagram
-                      twitter
+                      name
+                      url
                     }
                     milestones {
                       mission
@@ -851,6 +992,8 @@ export const getCurrentProjectVerificationFormQuery = `
            getCurrentProjectVerificationForm(slug: $slug) {
                     id
                     isTermAndConditionsAccepted
+                    emailConfirmationTokenExpiredAt
+                    email
                     emailConfirmationToken
                     emailConfirmationSent
                     emailConfirmationSentAt
@@ -861,20 +1004,23 @@ export const getCurrentProjectVerificationFormQuery = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
+                      attachment
+                      organizationName
                     }
                     projectContacts {
-                      youtube
-                      instagram
-                      linkedin
-                      facebook
-                      instagram
-                      twitter
+                      name
+                      url
                     }
                     milestones {
                       mission
                       foundationDate
                       achievedMilestones
                       achievedMilestonesProof
+                    }
+                    socialProfiles {
+                      socialNetworkId
+                      socialNetwork
+                      isVerified
                     }
                     managingFunds {
                       description
@@ -912,6 +1058,8 @@ export const projectVerificationConfirmEmail = `
           projectVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
             id
             isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
+            email
             emailConfirmationToken
             emailConfirmationSent
             emailConfirmationSentAt
@@ -922,6 +1070,8 @@ export const projectVerificationConfirmEmail = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
+              attachment
+              organizationName
             }
             personalInfo {
               email
@@ -929,12 +1079,8 @@ export const projectVerificationConfirmEmail = `
               fullName
             }
             projectContacts {
-              youtube
-              instagram
-              linkedin
-              facebook
-              instagram
-              twitter
+              name
+              url
             }
             milestones {
               mission
@@ -968,6 +1114,8 @@ export const projectVerificationSendEmailConfirmation = `
           projectVerificationSendEmailConfirmation(projectVerificationFormId: $projectVerificationFormId) {
             id
             isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
+            email
             emailConfirmationToken
             emailConfirmationSent
             emailConfirmationSentAt
@@ -978,6 +1126,8 @@ export const projectVerificationSendEmailConfirmation = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
+              attachment
+              organizationName
             }
             personalInfo {
               email
@@ -985,12 +1135,12 @@ export const projectVerificationSendEmailConfirmation = `
               fullName
             }
             projectContacts {
-              youtube
-              instagram
-              linkedin
-              facebook
-              instagram
-              twitter
+              name
+              url
+            }
+            socialProfiles {
+              socialNetwork
+              socialNetworkId
             }
             milestones {
               mission
@@ -1024,6 +1174,8 @@ export const updateProjectVerificationFormMutation = `
            updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
                     id
                     isTermAndConditionsAccepted
+                    emailConfirmationTokenExpiredAt
+                    email
                     emailConfirmationToken
                     emailConfirmationSent
                     emailConfirmationSentAt
@@ -1034,6 +1186,8 @@ export const updateProjectVerificationFormMutation = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
+                      attachment
+                      organizationName
                     }
                     personalInfo {
                       email
@@ -1041,12 +1195,8 @@ export const updateProjectVerificationFormMutation = `
                       fullName
                     }
                     projectContacts {
-                      youtube
-                      instagram
-                      linkedin
-                      facebook
-                      instagram
-                      twitter
+                      name
+                      url
                     }
                     milestones {
                       mission
@@ -1071,7 +1221,20 @@ export const updateProjectVerificationFormMutation = `
                       slug
                     }
                     status
+                    lastStep
                     }
                     
             }
+        `;
+
+export const addNewSocialProfileMutation = `
+        mutation addNewSocialProfile($projectVerificationId: Int!, $socialNetwork: String!){
+           addNewSocialProfile(projectVerificationId:$projectVerificationId, socialNetwork:$socialNetwork)
+          } 
+        `;
+
+export const removeSocialProfileMutation = `
+        mutation removeSocialProfile( $socialProfileId: Int!){
+           removeSocialProfile(socialProfileId:$socialProfileId)
+          } 
         `;

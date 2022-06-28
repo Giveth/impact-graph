@@ -9,7 +9,7 @@ import {
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
-import { Brackets } from 'typeorm';
+import { Brackets, UpdateResult } from 'typeorm';
 import { errorMessages } from '../utils/errorMessages';
 
 export const createProjectVerificationForm = async (params: {
@@ -23,6 +23,37 @@ export const createProjectVerificationForm = async (params: {
     project,
     user,
   }).save();
+};
+
+export const verifyMultipleForms = async (params: {
+  verificationStatus: string;
+  formIds?: number[] | string[];
+}): Promise<UpdateResult> => {
+  return ProjectVerificationForm.createQueryBuilder()
+    .update<ProjectVerificationForm>(ProjectVerificationForm, {
+      status: params.verificationStatus,
+    })
+    .where('id IN (:...ids)')
+    .setParameter('ids', params.formIds)
+    .returning('*')
+    .updateEntity(true)
+    .execute();
+};
+
+export const verifyForm = async (params: {
+  verificationStatus: string;
+  formId: number;
+  adminId: number;
+}): Promise<ProjectVerificationForm> => {
+  const form = await ProjectVerificationForm.createQueryBuilder()
+    .where('id = :id', { id: params.formId })
+    .getOne();
+
+  if (!form) throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+
+  form.status = params.verificationStatus;
+  form.reviewer = await findUserById(params.adminId);
+  return form.save();
 };
 
 export const findProjectVerificationFormById = async (
@@ -70,7 +101,7 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
   }
 
   projectVerificationForm.personalInfo = personalInfo;
-  return await projectVerificationForm?.save();
+  return projectVerificationForm?.save();
 };
 
 export const updateProjectRegistryOfProjectVerification = async (params: {
@@ -86,7 +117,7 @@ export const updateProjectRegistryOfProjectVerification = async (params: {
   }
 
   projectVerificationForm.projectRegistry = projectRegistry;
-  return await projectVerificationForm?.save();
+  return projectVerificationForm?.save();
 };
 
 export const updateProjectVerificationStatus = async (params: {
@@ -102,12 +133,28 @@ export const updateProjectVerificationStatus = async (params: {
   }
 
   projectVerificationForm.status = status;
-  return await projectVerificationForm?.save();
+  return projectVerificationForm?.save();
+};
+
+export const updateProjectVerificationLastStep = async (params: {
+  projectVerificationId: number;
+  lastStep: string;
+}): Promise<ProjectVerificationForm> => {
+  const { lastStep, projectVerificationId } = params;
+  const projectVerificationForm = await findProjectVerificationFormById(
+    projectVerificationId,
+  );
+  if (!projectVerificationForm) {
+    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+  }
+
+  projectVerificationForm.lastStep = lastStep;
+  return projectVerificationForm?.save();
 };
 
 export const updateProjectContactsOfProjectVerification = async (params: {
   projectVerificationId: number;
-  projectContacts: ProjectContacts;
+  projectContacts: ProjectContacts[];
 }): Promise<ProjectVerificationForm> => {
   const { projectContacts, projectVerificationId } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
@@ -163,14 +210,14 @@ export const updateManagingFundsOfProjectVerification = async (params: {
     throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
   }
   projectVerificationForm.managingFunds = managingFunds;
-  return await projectVerificationForm?.save();
+  return projectVerificationForm?.save();
 };
 
 export const getInProgressProjectVerificationRequest = async (
   projectId: number,
 ): Promise<ProjectVerificationForm | undefined> => {
   return ProjectVerificationForm.createQueryBuilder('project_verification_form')
-    .where(`"projectId"=:projectId`, {
+    .where(`project_verification_form.projectId=:projectId`, {
       projectId,
     })
     .andWhere(
@@ -184,6 +231,10 @@ export const getInProgressProjectVerificationRequest = async (
       }),
     )
     .leftJoinAndSelect('project_verification_form.project', 'project')
+    .leftJoinAndSelect(
+      'project_verification_form.socialProfiles',
+      'socialProfiles',
+    )
     .leftJoinAndSelect('project_verification_form.user', 'user')
     .getOne();
 };
