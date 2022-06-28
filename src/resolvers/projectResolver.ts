@@ -74,6 +74,7 @@ import {
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import { userIsOwnerOfProject } from '../repositories/projectRepository';
+import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 
 const analytics = getAnalytics();
 
@@ -1159,7 +1160,11 @@ export class ProjectResolver {
         )
         .leftJoinAndSelect('organization.tokens', 'tokens')
         .getOne();
-      return organization?.tokens as Token[];
+
+      if (!organization) {
+        return [];
+      }
+      return sortTokensByOrderAndAlphabets(organization.tokens);
     } catch (e) {
       logger.error('getProjectAcceptTokens error', e);
       throw e;

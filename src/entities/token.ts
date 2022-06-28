@@ -43,6 +43,11 @@ export class Token extends BaseEntity {
   @Column()
   decimals: number;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  // 1 is the order with most priority, and null means it doesn't have any priority
+  order?: number;
+
   @Field(type => Boolean, { nullable: true })
   @Column({ nullable: false, default: false })
   isGivbackEligible: boolean;
