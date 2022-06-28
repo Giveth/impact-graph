@@ -231,7 +231,6 @@ export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
 ) => {
   const { currentAdmin } = context;
   const record: RecordJSON = response.record || {};
-  const paramsKeys = Object.keys(record.params);
 
   const projectVerificationForm =
     await ProjectVerificationForm.createQueryBuilder()
