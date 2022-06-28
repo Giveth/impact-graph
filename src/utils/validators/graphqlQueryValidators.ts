@@ -87,6 +87,8 @@ const projectRegistryValidator = Joi.object({
   ),
   organizationWebsite: Joi.string().allow(''),
   organizationDescription: Joi.string().allow(''),
+  organizationName: Joi.string().allow(''),
+  attachment: Joi.string().allow(''),
 });
 
 const projectContactsValidator = Joi.array().items(

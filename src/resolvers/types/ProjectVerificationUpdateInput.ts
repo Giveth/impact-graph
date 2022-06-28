@@ -61,6 +61,10 @@ class ProjectRegistryInputType {
   organizationWebsite?: string;
   @Field({ nullable: true })
   organizationDescription?: string;
+  @Field({ nullable: true })
+  organizationName?: string;
+  @Field({ nullable: true })
+  attachment?: string;
 }
 
 @InputType()

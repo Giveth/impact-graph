@@ -252,6 +252,8 @@ function updateProjectVerificationFormMutationTestCases() {
     organizationCountry: 'France',
     isNonProfitOrganization: true,
     organizationDescription: '',
+    organizationName: 'organizationName',
+    attachment: 'an ipfs link',
   };
   const milestones: Milestones = {
     mission: 'mission',
