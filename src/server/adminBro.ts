@@ -431,6 +431,9 @@ const getAdminBroInstance = async () => {
             'projectRegistry.organizationCountry': { type: 'string' },
             'projectRegistry.organizationWebsite': { type: 'string' },
             'projectRegistry.organizationDescription': { type: 'string' },
+            'projectRegistry.organizationName': { type: 'string' },
+            'projectRegistry.attachment': { type: 'string' },
+
             projectContacts: {
               type: 'mixed',
               isArray: true,
