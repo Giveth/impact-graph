@@ -1898,15 +1898,7 @@ function updateProjectTestCases() {
         },
       },
     );
-    console.log(
-      'editProjectResult.data**',
-      JSON.stringify(editProjectResult.data, null, 4),
-    );
     assert.isOk(editProjectResult.data.data.updateProject);
-    // assert.equal(
-    //   editProjectResult.data.data.updateProject.walletAddress,
-    //   walletAddress,
-    // );
   });
   it('Should update successfully and verified(true) field would not change', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
