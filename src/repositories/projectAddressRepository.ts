@@ -44,6 +44,17 @@ export const findRelatedAddressByWalletAddress = async (
     .leftJoinAndSelect('projectAddress.project', 'project')
     .getOne();
 };
+export const findAllRelatedAddressByWalletAddress = async (
+  walletAddress: string,
+) => {
+  return ProjectAddress.createQueryBuilder('projectAddress')
+    .where(`LOWER(address) = :walletAddress`, {
+      walletAddress: walletAddress.toLowerCase(),
+    })
+    .leftJoinAndSelect('projectAddress.project', 'project')
+    .getMany();
+};
+
 export const findProjectRecipientAddressByNetworkId = async (params: {
   projectId: number;
   networkId: number;
@@ -84,12 +95,18 @@ export const addBulkNewProjectAddress = async (
   await ProjectAddress.insert(params.map(item => ProjectAddress.create(item)));
 };
 
-export const removeRelatedAddressOfProject = async (params: {
+export const removeRecipientAddressOfProject = async (params: {
   project: Project;
 }): Promise<void> => {
-  await ProjectAddress.delete({
-    project: params.project,
-  });
+  // await ProjectAddress.delete({
+  //   project: params.project,
+  //   isRecipient: true,
+  // });
+
+  return ProjectAddress.query(`
+    DELETE from project_address
+    WHERE "projectId"=${params.project.id} AND "isRecipient"=true
+  `);
 };
 
 export const findProjectRecipientAddressByProjectId = async (params: {

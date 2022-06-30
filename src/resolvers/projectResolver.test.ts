@@ -43,7 +43,11 @@ import { User } from '../entities/user';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { NETWORK_IDS } from '../provider';
-import { addNewProjectAddress } from '../repositories/projectAddressRepository';
+import {
+  addNewProjectAddress,
+  findAllRelatedAddressByWalletAddress,
+  findRelatedAddressByWalletAddress,
+} from '../repositories/projectAddressRepository';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 
 describe('createProject test cases --->', createProjectTestCases);
@@ -1613,6 +1617,74 @@ function updateProjectTestCases() {
       NETWORK_IDS.MAIN_NET,
     );
   });
+  it('Should update addresses with current addresses successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const walletAddress = generateRandomEtheriumAddress();
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      walletAddress,
+    });
+    const newWalletAddress = project.walletAddress;
+
+    const queriedAddress0 = await findAllRelatedAddressByWalletAddress(
+      walletAddress,
+    );
+
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            addresses: [
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.XDAI,
+              },
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.MAIN_NET,
+              },
+            ],
+            title: `test title update addresses with current addresses`,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    // assert.equal(JSON.stringify(editProjectResult.data, null, 4), 'hi');
+    assert.isOk(editProjectResult.data.data.updateProject);
+    assert.equal(editProjectResult.data.data.updateProject.addresses.length, 2);
+    assert.equal(
+      editProjectResult.data.data.updateProject.addresses[0].address,
+      newWalletAddress,
+    );
+    assert.equal(
+      editProjectResult.data.data.updateProject.addresses[0].networkId,
+      NETWORK_IDS.XDAI,
+    );
+    assert.equal(
+      editProjectResult.data.data.updateProject.addresses[1].address,
+      newWalletAddress,
+    );
+    assert.equal(
+      editProjectResult.data.data.updateProject.addresses[1].networkId,
+      NETWORK_IDS.MAIN_NET,
+    );
+    const queriedAddress = await findAllRelatedAddressByWalletAddress(
+      newWalletAddress as string,
+    );
+    assert.equal(queriedAddress.length, 2);
+  });
   it('Should throw error when sending one address', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
@@ -1827,10 +1899,6 @@ function updateProjectTestCases() {
       },
     );
     assert.isOk(editProjectResult.data.data.updateProject);
-    // assert.equal(
-    //   editProjectResult.data.data.updateProject.walletAddress,
-    //   walletAddress,
-    // );
   });
   it('Should update successfully and verified(true) field would not change', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
