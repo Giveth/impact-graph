@@ -1,12 +1,13 @@
 import {
   addBulkNewProjectAddress,
   addNewProjectAddress,
+  findAllRelatedAddressByWalletAddress,
   findProjectRecipientAddressByNetworkId,
   findProjectRecipientAddressByProjectId,
   findRelatedAddressByWalletAddress,
   getPurpleListAddresses,
   isWalletAddressInPurpleList,
-  removeRelatedAddressOfProject,
+  removeRecipientAddressOfProject,
 } from './projectAddressRepository';
 import {
   createProjectData,
@@ -85,7 +86,7 @@ function removeRelatedAddressOfProjectTestCases() {
         networkId: NETWORK_IDS.XDAI,
       }),
     );
-    await removeRelatedAddressOfProject({ project });
+    await removeRecipientAddressOfProject({ project });
     assert.isFalse(await isWalletAddressInPurpleList(walletAddress));
     assert.notOk(
       await findProjectRecipientAddressByNetworkId({
@@ -93,6 +94,26 @@ function removeRelatedAddressOfProjectTestCases() {
         networkId: NETWORK_IDS.XDAI,
       }),
     );
+  });
+  it('should delete recipient addresses sucessfully', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+    });
+    assert.isTrue(await isWalletAddressInPurpleList(walletAddress));
+    assert.isOk(
+      await findProjectRecipientAddressByNetworkId({
+        projectId: project.id,
+        networkId: NETWORK_IDS.XDAI,
+      }),
+    );
+    await removeRecipientAddressOfProject({ project });
+    const addresses = await findAllRelatedAddressByWalletAddress(
+      project.walletAddress as string,
+    );
+    assert.isEmpty(addresses);
   });
   it('should not return address of a non-verified project', async () => {
     const walletAddress = generateRandomEtheriumAddress();
@@ -201,12 +222,14 @@ function addBulkNewProjectAddressTestCases() {
     );
     assert.isOk(newRelatedAddress1);
     assert.equal(newRelatedAddress1?.address, newAddress1);
+    assert.equal(newRelatedAddress1?.project?.id, project.id);
     assert.isFalse(newRelatedAddress1?.isRecipient);
     const newRelatedAddress2 = await findRelatedAddressByWalletAddress(
       newAddress2,
     );
     assert.isOk(newRelatedAddress2);
     assert.equal(newRelatedAddress2?.address, newAddress2);
+    assert.equal(newRelatedAddress2?.project?.id, project.id);
     assert.isFalse(newRelatedAddress2?.isRecipient);
   });
 }

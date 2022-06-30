@@ -67,13 +67,17 @@ import { Token } from '../entities/token';
 import { findUserById } from '../repositories/userRepository';
 import {
   getPurpleListAddresses,
-  removeRelatedAddressOfProject,
+  removeRecipientAddressOfProject,
   isWalletAddressInPurpleList,
   findProjectRecipientAddressByProjectId,
   addBulkNewProjectAddress,
+  findAllRelatedAddressByWalletAddress,
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
-import { userIsOwnerOfProject } from '../repositories/projectRepository';
+import {
+  findProjectById,
+  userIsOwnerOfProject,
+} from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 
 const analytics = getAnalytics();
@@ -660,16 +664,24 @@ export class ProjectResolver {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
     const { image } = newProjectData;
 
-    const project = await Project.findOne({ id: projectId });
+    // const project = await Project.findOne({ id: projectId });
+    const project = await findProjectById(projectId);
 
     if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+
     logger.debug(`project.admin ---> : ${project.admin}`);
     logger.debug(`user.userId ---> : ${user.userId}`);
     logger.debug(`updateProject, inputData :`, newProjectData);
     if (project.admin !== String(user.userId))
       throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
 
-    for (const field in newProjectData) project[field] = newProjectData[field];
+    for (const field in newProjectData) {
+      if (field === 'addresses') {
+        // We will take care of addresses and relations manually
+        continue;
+      }
+      project[field] = newProjectData[field];
+    }
 
     if (!newProjectData.categories) {
       throw new Error(
@@ -731,7 +743,7 @@ export class ProjectResolver {
     await project.save();
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
-      await removeRelatedAddressOfProject({ project });
+      await removeRecipientAddressOfProject({ project });
       await addBulkNewProjectAddress(
         newProjectData?.addresses.map(relatedAddress => {
           return {
