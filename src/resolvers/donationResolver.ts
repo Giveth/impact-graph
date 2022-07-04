@@ -156,7 +156,8 @@ export class DonationResolver {
         .createQueryBuilder('donation')
         .leftJoin('donation.user', 'user')
         .addSelect(publicSelectionFields)
-        .leftJoinAndSelect('donation.project', 'project');
+        .leftJoinAndSelect('donation.project', 'project')
+        .leftJoinAndSelect('project.categories', 'categories');
 
       if (fromDate) {
         query.andWhere(`"createdAt" >= '${fromDate}'`);
