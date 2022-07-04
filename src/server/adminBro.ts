@@ -728,13 +728,7 @@ const getAdminBroInstance = async () => {
               },
             },
             currency: {
-              isVisible: {
-                list: true,
-                filter: true,
-                show: true,
-                edit: false,
-                new: false,
-              },
+              isVisible: true,
             },
             transactionNetworkId: {
               availableValues: [
@@ -1975,6 +1969,9 @@ export const createDonation = async (
       // transactions = await getDisperseTransactions(txHash, networkId);
       transactions = await getCsvAirdropTransactions(txHash, networkId);
     } else {
+      if (!currency) {
+        throw new Error(errorMessages.INVALID_TOKEN_SYMBOL);
+      }
       const txInfo = await findTransactionByHash({
         networkId,
         txHash,
