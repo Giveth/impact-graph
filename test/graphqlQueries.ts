@@ -291,6 +291,10 @@ export const fetchAllDonationsQuery = `
           slug
           admin
           title
+          categories {
+            name
+            id
+          }
         }
         createdAt
         status
