@@ -39,12 +39,13 @@ const moment = require('moment');
 describe('donations() test cases', donationsTestCases);
 describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
 describe('donationByUserId() test cases', donationsByUserIdTestCases);
-// describe('tokens() test cases', tokensTestCases);
 describe('donationsByDonor() test cases', donationsByDonorTestCases);
 describe('createDonation() test cases', createDonationTestCases);
 describe('updateDonationStatus() test cases', updateDonationStatusTestCases);
 describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
+
+// describe('tokens() test cases', tokensTestCases);
 
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
@@ -237,6 +238,16 @@ function donationsTestCases() {
         d => Number(d.id) === veryNewDonation.id,
       ),
     );
+  });
+  it('should project include categories', async () => {
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchAllDonationsQuery,
+      variables: {},
+    });
+    assert.isOk(donationsResponse.data.data.donations);
+    donationsResponse.data.data.donations.forEach(donation => {
+      assert.isArray(donation.project.categories);
+    });
   });
 }
 
