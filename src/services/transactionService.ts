@@ -399,3 +399,11 @@ export const getCsvAirdropTransactions = async (
     };
   });
 };
+
+export const getGnosisSafeTransactions = async (
+  txHash: string,
+  networkId: number,
+): Promise<NetworkTransactionInfo[]> => {
+  // It seems csv airdrop and gnosis safe multi sig transactions are similar so I reused that
+  return getCsvAirdropTransactions(txHash, networkId);
+};
