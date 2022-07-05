@@ -21,6 +21,7 @@ export const DONATION_STATUS = {
 
 export const DONATION_TYPES = {
   CSV_AIR_DROP: 'csvAirDrop',
+  GNOSIS_SAFE: 'gnosisSafe',
   POIGN_ART: 'poignArt',
 
   // TODO we should write a migration to fill this field for transak donations

@@ -28,7 +28,11 @@ import {
 } from '../entities/projectStatusHistory';
 import { ProjectStatus } from '../entities/projectStatus';
 import { NETWORK_IDS } from '../provider';
-import { Donation } from '../entities/donation';
+import {
+  Donation,
+  DONATION_STATUS,
+  DONATION_TYPES,
+} from '../entities/donation';
 import * as ChangeAPI from '../services/changeAPI/nonProfits';
 import sinon from 'sinon';
 import { errorMessages } from '../utils/errorMessages';
@@ -453,6 +457,72 @@ function createDonationTestCases() {
       assert.equal(
         donation.createdAt.getTime(),
         new Date('2022-02-28T00:05:35.000Z').getTime(),
+      );
+    }
+  });
+  it('Should create donations for gnosis safe', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0x43f82708d1608aa9355c0738659c658b138d54f618e3322e33a4410af48c200b
+
+    const tokenPrice = 1;
+    const txHash =
+      '0x43f82708d1608aa9355c0738659c658b138d54f618e3322e33a4410af48c200b';
+    const firstProjectAddress = '0x10E1439455BD2624878b243819E31CfEE9eb721C';
+    const firstProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: firstProjectAddress,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await createDonation(
+      {
+        query: {
+          recordIds: '',
+        },
+        payload: {
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: txHash,
+          priceUsd: tokenPrice,
+          txType: 'gnosisSafe',
+          segmentNotified: true,
+        },
+      },
+      {
+        send: () => {
+          //
+        },
+      },
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+    );
+
+    const firstDonation = await Donation.findOne({
+      transactionId: txHash,
+      toWalletAddress: firstProjectAddress.toLowerCase(),
+    });
+    assert.isOk(firstDonation);
+    assert.equal(firstDonation?.projectId, firstProject.id);
+
+    const allTxDonations = await Donation.find({
+      transactionId: txHash,
+    });
+    assert.equal(allTxDonations.length, 1);
+    for (const donation of allTxDonations) {
+      assert.equal(donation.donationType, DONATION_TYPES.GNOSIS_SAFE);
+      assert.equal(donation.status, DONATION_STATUS.VERIFIED);
+      assert.equal(donation.priceUsd, tokenPrice);
+      assert.equal(donation.segmentNotified, true);
+      assert.equal(donation.amount, 5);
+      assert.equal(
+        donation.fromWalletAddress.toLowerCase(),
+        '0x40a2accbd92bca938b02010e17a5b8929b49130d'.toLowerCase(),
+      );
+      assert.equal(donation.currency, 'USDC');
+      assert.equal(
+        donation.createdAt.getTime(),
+        new Date('2022-07-04T16:55:30.000Z').getTime(),
       );
     }
   });
