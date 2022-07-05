@@ -20,6 +20,7 @@ import {
 import {
   findTransactionByHash,
   getCsvAirdropTransactions,
+  getGnosisSafeTransactions,
 } from '../services/transactionService';
 import {
   projectExportSpreadsheet,
@@ -742,6 +743,7 @@ const getAdminBroInstance = async () => {
               availableValues: [
                 { value: 'normalTransfer', label: 'normalTransfer' },
                 { value: 'csvAirDrop', label: 'Using csv airdrop app' },
+                { value: 'gnosisSafe', label: 'Using gnosis safe multi sig' },
               ],
               isVisible: {
                 list: false,
@@ -1965,9 +1967,16 @@ export const createDonation = async (
     }
     const networkId = Number(transactionNetworkId);
     let transactions: NetworkTransactionInfo[] = [];
+    let donationType;
+
     if (txType === 'csvAirDrop') {
       // transactions = await getDisperseTransactions(txHash, networkId);
       transactions = await getCsvAirdropTransactions(txHash, networkId);
+      donationType = DONATION_TYPES.CSV_AIR_DROP;
+    } else if (txType === 'gnosisSafe') {
+      // transactions = await getDisperseTransactions(txHash, networkId);
+      transactions = await getGnosisSafeTransactions(txHash, networkId);
+      donationType = DONATION_TYPES.GNOSIS_SAFE;
     } else {
       if (!currency) {
         throw new Error(errorMessages.INVALID_TOKEN_SYMBOL);
@@ -2018,7 +2027,7 @@ export const createDonation = async (
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
-        donationType: DONATION_TYPES.CSV_AIR_DROP,
+        donationType,
         createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
         isTokenEligibleForGivback: true,

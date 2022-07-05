@@ -377,6 +377,7 @@ export const getCsvAirdropTransactions = async (
     const tokenAddress = log.address;
     const token = await findTokenByNetworkAndAddress(networkId, tokenAddress);
     return {
+      from: transferData.args[0].toLowerCase(),
       to: transferData.args[1].toLowerCase(),
       amount:
         Number(transferData.args[2].toString()) / 10 ** (token.decimals || 18),
@@ -393,9 +394,17 @@ export const getCsvAirdropTransactions = async (
       // Based on this comment the from address of csvAirDrop transactions should be toAddress of transaction , because
       // from is the one who initiated the transaction but we should consider multi sig wallet address
       // https://github.com/Giveth/impact-graph/issues/342#issuecomment-1056952221
-      from: (transaction.to as string).toLowerCase(),
+      // from: (transaction.to as string).toLowerCase(),
       hash: transaction.hash,
       timestamp: block.timestamp as number,
     };
   });
+};
+
+export const getGnosisSafeTransactions = async (
+  txHash: string,
+  networkId: number,
+): Promise<NetworkTransactionInfo[]> => {
+  // It seems csv airdrop and gnosis safe multi sig transactions are similar so I reused that
+  return getCsvAirdropTransactions(txHash, networkId);
 };
