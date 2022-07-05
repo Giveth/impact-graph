@@ -517,7 +517,7 @@ function createDonationTestCases() {
       assert.equal(donation.amount, 5);
       assert.equal(
         donation.fromWalletAddress.toLowerCase(),
-        '0x40a2accbd92bca938b02010e17a5b8929b49130d'.toLowerCase(),
+        '0x5f0253950c0a7715CBA25153a6ED5eBcFFEDe48e'.toLowerCase(),
       );
       assert.equal(donation.currency, 'USDC');
       assert.equal(
