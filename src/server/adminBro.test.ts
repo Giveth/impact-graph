@@ -28,7 +28,11 @@ import {
 } from '../entities/projectStatusHistory';
 import { ProjectStatus } from '../entities/projectStatus';
 import { NETWORK_IDS } from '../provider';
-import { Donation, DONATION_STATUS, DONATION_TYPES } from '../entities/donation';
+import {
+  Donation,
+  DONATION_STATUS,
+  DONATION_TYPES,
+} from '../entities/donation';
 import * as ChangeAPI from '../services/changeAPI/nonProfits';
 import sinon from 'sinon';
 import { errorMessages } from '../utils/errorMessages';

@@ -19,7 +19,8 @@ import {
 } from '../entities/donation';
 import {
   findTransactionByHash,
-  getCsvAirdropTransactions, getGnosisSafeTransactions,
+  getCsvAirdropTransactions,
+  getGnosisSafeTransactions,
 } from '../services/transactionService';
 import {
   projectExportSpreadsheet,
