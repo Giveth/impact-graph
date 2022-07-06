@@ -14,7 +14,7 @@ export const errorMessages = {
   SOCIAL_PROFILE_NOT_FOUND: 'Social profile not gound',
   CHANGE_API_TITLE_OR_EIN_NOT_PRECISE:
     'Please query the exact project title or EIN ID from the ChangeAPI site',
-  YOU_ARE_NOT_OWNER_OF_THIS_DONATION: 'You are now owner of this donation',
+  YOU_ARE_NOT_OWNER_OF_THIS_DONATION: 'You are not owner of this donation',
   NOT_SUPPORTED_THIRD_PARTY_API: 'Third Party API not supported',
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL:
