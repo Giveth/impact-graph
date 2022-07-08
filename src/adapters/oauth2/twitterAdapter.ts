@@ -5,6 +5,8 @@ import {
 import { auth, Client } from 'twitter-api-sdk';
 import { OAuth2User } from 'twitter-api-sdk/dist/OAuth2User';
 import { logger } from '../../utils/logger';
+import { generateRandomString } from '../../utils/utils';
+import axios from 'axios';
 
 export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
   private client: Client;
@@ -14,13 +16,15 @@ export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
       client_id: process.env.TWITTER_CLIENT_ID as string,
       client_secret: process.env.TWITTER_CLIENT_SECRET,
       callback: process.env.TWITTER_CALLBACK_URL as string,
-      scopes: ['users.read'],
+      scopes: ['users.read', 'offline.access'],
     });
     this.client = new Client(this.authClient);
   }
   async getAuthUrl(params: { trackId: string }): Promise<string> {
     return this.authClient.generateAuthURL({
       code_challenge_method: 's256',
+      // code_challenge_method: 'plain',
+      // code_challenge: generateRandomString(10),
       state: params.trackId,
     });
   }
@@ -29,16 +33,25 @@ export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
     oauth2Code: string;
   }): Promise<GetUserInfoByOauth2Output> {
     try {
-      logger.info('getUserInfoByOauth2Code code', params.oauth2Code)
+      logger.info('getUserInfoByOauth2Code code', params.oauth2Code);
       const accessToken = await this.authClient.requestAccessToken(
         params.oauth2Code,
       );
+      logger.info('getUserInfoByOauth2Code accessToken', accessToken);
+      const meResult =await axios.get('https://api.twitter.com/2/users/me', {
+        headers:{
+          Authorization: `Bearer ${accessToken.token.access_token}`
+        }
+      })
+      logger.info('getUserInfoByOauth2Code meResult', meResult.data);
+
       return {
-        username: accessToken.token.access_token as string,
+        // username: accessToken.token.access_token as string,
+        username: meResult?.data?.data?.username as string,
       };
     } catch (e) {
-      logger.error('getUserInfoByOauth2Code error', e)
-      throw e
+      logger.error('getUserInfoByOauth2Code error', e);
+      throw e;
     }
   }
 }
