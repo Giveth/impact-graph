@@ -191,45 +191,38 @@ oauth2CallbacksRouter.get(
   async (request: Request, response: Response) => {
     let projectVerificationId;
     try {
-      const result = await getSocialNetworkAdapter(
-        SOCIAL_NETWORKS.TWITTER,
-      ).getUserInfoByOauth2Code({
-        oauth2Code: request.query.code as string,
+      const { projectVerificationForm, userId } =
+        await getProjectVerificationFormByState({
+          socialNetwork: SOCIAL_NETWORKS.TWITTER,
+          state: request.query.state as string,
+        });
+      projectVerificationId = projectVerificationForm.id;
+
+      await oauth2CallbackHandler({
+        socialNetwork: SOCIAL_NETWORKS.TWITTER,
+        userId,
+        authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
+        projectVerificationForm,
       });
-      logger.info('twitter getUserInfoByOauth2Code result', result);
-      // const { projectVerificationForm, userId } =
-      //   await getProjectVerificationFormByState({
-      //     socialNetwork: SOCIAL_NETWORKS.LINKEDIN,
-      //     state: request.query.state as string,
-      //   });
-      // projectVerificationId = projectVerificationForm.id;
-      //
-      // await oauth2CallbackHandler({
-      //   socialNetwork: SOCIAL_NETWORKS.LINKEDIN,
-      //   userId,
-      //   authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
-      //   projectVerificationForm,
-      // });
-      // response.redirect(
-      //   await generateDappVerificationUrl({
-      //     success: true,
-      //     projectVerificationId,
-      //   }),
-      // );
+      response.redirect(
+        await generateDappVerificationUrl({
+          success: true,
+          projectVerificationId,
+        }),
+      );
     } catch (e) {
-      logger.error(`/callback/twitter error`, { e });
-      throw e;
-      // if (projectVerificationId) {
-      //   response.redirect(
-      //     await generateDappVerificationUrl({
-      //       success: false,
-      //       message: e.message,
-      //       projectVerificationId,
-      //     }),
-      //   );
-      // } else {
-      //   response.redirect(dappBaseUrl);
-      // }
+      logger.error(`/callback/twitter error`, { e, projectVerificationId });
+      if (projectVerificationId) {
+        response.redirect(
+          await generateDappVerificationUrl({
+            success: false,
+            message: e.message,
+            projectVerificationId,
+          }),
+        );
+      } else {
+        response.redirect(dappBaseUrl);
+      }
     }
   },
 );
