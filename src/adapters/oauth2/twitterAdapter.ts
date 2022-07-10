@@ -9,7 +9,6 @@ import { generateRandomString } from '../../utils/utils';
 import axios from 'axios';
 
 export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
-  private client: Client;
   private authClient: OAuth2User;
   constructor() {
     this.authClient = new auth.OAuth2User({
@@ -18,7 +17,6 @@ export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
       callback: process.env.TWITTER_CALLBACK_URL as string,
       scopes: ['users.read', 'tweet.read'],
     });
-    this.client = new Client(this.authClient);
   }
   async getAuthUrl(params: { trackId: string }): Promise<string> {
     return this.authClient.generateAuthURL({
