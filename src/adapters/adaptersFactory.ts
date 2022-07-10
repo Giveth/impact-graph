@@ -4,10 +4,12 @@ import { SOCIAL_NETWORKS } from '../entities/socialProfile';
 import { errorMessages } from '../utils/errorMessages';
 import { GoogleAdapter } from './oauth2/googleAdapter';
 import { LinkedinAdapter } from './oauth2/linkedinAdapter';
+import { TwitterAdapter } from './oauth2/twitterAdapter';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
 const linkedinAdapter = new LinkedinAdapter();
+const twitterAdapter = new TwitterAdapter();
 export const getSocialNetworkAdapter = (
   socialNetwork: string,
 ): SocialNetworkOauth2AdapterInterface => {
@@ -18,6 +20,8 @@ export const getSocialNetworkAdapter = (
       return googleAdapter;
     case SOCIAL_NETWORKS.LINKEDIN:
       return linkedinAdapter;
+    case SOCIAL_NETWORKS.TWITTER:
+      return twitterAdapter;
     default:
       throw new Error(errorMessages.INVALID_SOCIAL_NETWORK);
   }

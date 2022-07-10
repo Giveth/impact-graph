@@ -7,6 +7,7 @@ import {
   oauth2CallbackHandler,
 } from '../services/socialProfileService';
 import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository';
+import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 
 export const oauth2CallbacksRouter = express.Router();
 
@@ -143,6 +144,7 @@ oauth2CallbacksRouter.get(
     }
   },
 );
+
 oauth2CallbacksRouter.get(
   `/callback/linkedin`,
   async (request: Request, response: Response) => {
@@ -169,6 +171,47 @@ oauth2CallbacksRouter.get(
       );
     } catch (e) {
       logger.error(`/callback/linkedin error`, { e, projectVerificationId });
+      if (projectVerificationId) {
+        response.redirect(
+          await generateDappVerificationUrl({
+            success: false,
+            message: e.message,
+            projectVerificationId,
+          }),
+        );
+      } else {
+        response.redirect(dappBaseUrl);
+      }
+    }
+  },
+);
+
+oauth2CallbacksRouter.get(
+  `/callback/twitter`,
+  async (request: Request, response: Response) => {
+    let projectVerificationId;
+    try {
+      const { projectVerificationForm, userId } =
+        await getProjectVerificationFormByState({
+          socialNetwork: SOCIAL_NETWORKS.TWITTER,
+          state: request.query.state as string,
+        });
+      projectVerificationId = projectVerificationForm.id;
+
+      await oauth2CallbackHandler({
+        socialNetwork: SOCIAL_NETWORKS.TWITTER,
+        userId,
+        authorizationCodeOrAccessToken: decodeURI(request.query.code as string),
+        projectVerificationForm,
+      });
+      response.redirect(
+        await generateDappVerificationUrl({
+          success: true,
+          projectVerificationId,
+        }),
+      );
+    } catch (e) {
+      logger.error(`/callback/twitter error`, { e, projectVerificationId });
       if (projectVerificationId) {
         response.redirect(
           await generateDappVerificationUrl({
