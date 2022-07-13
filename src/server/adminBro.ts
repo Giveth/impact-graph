@@ -1,4 +1,4 @@
-import { Project, ProjStatus } from '../entities/project';
+import { Category, Project, ProjStatus } from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro, { ActionResponse, After } from 'admin-bro';
@@ -69,6 +69,7 @@ import {
 import { SocialProfile } from '../entities/socialProfile';
 import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
+import { MainCategory } from '../entities/mainCategory';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -1299,6 +1300,84 @@ const getAdminBroInstance = async () => {
             },
             bulkDelete: {
               isVisible: false,
+            },
+          },
+        },
+      },
+      {
+        resource: Category,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+            },
+            edit: {
+              isVisible: true,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            name: {
+              isVisible: true,
+            },
+            value: {
+              isVisible: true,
+            },
+            mainCategory: {
+              isVisible: true,
+            },
+          },
+        },
+      },
+      {
+        resource: MainCategory,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+            },
+            edit: {
+              isVisible: true,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            banner: {
+              isVisible: true,
+            },
+            title: {
+              isVisible: true,
+            },
+            description: {
+              isVisible: true,
             },
           },
         },
