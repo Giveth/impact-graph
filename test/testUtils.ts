@@ -334,6 +334,7 @@ export const SEED_DATA = {
     id: 3,
     admin: '3',
   },
+  MAIN_CATEGORIES: ['drink', 'food'],
   CATEGORIES: [
     'food1',
     'food2',

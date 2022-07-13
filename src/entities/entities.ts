@@ -17,6 +17,7 @@ import { ThirdPartyProjectImport } from './thirdPartyProjectImport';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { SocialProfile } from './socialProfile';
+import { MainCategory } from './mainCategory';
 
 export const entities: any = [
   Organization,
@@ -40,4 +41,5 @@ export const entities: any = [
   ProjectVerificationForm,
   ProjectAddress,
   SocialProfile,
+  MainCategory,
 ];
