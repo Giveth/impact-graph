@@ -352,6 +352,7 @@ export const fetchAllProjectsQuery = `
     $filterBy: FilterBy
     $searchTerm: String
     $category: String
+    $mainCategory: String
     $connectedWalletUserId: Int
   ) {
     projects(
@@ -361,6 +362,7 @@ export const fetchAllProjectsQuery = `
       filterBy: $filterBy
       searchTerm: $searchTerm
       category: $category
+      mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
     ) {
       projects {
@@ -388,6 +390,12 @@ export const fetchAllProjectsQuery = `
         }
         categories {
           name
+          mainCategory {
+            title
+            slug
+            banner
+            description
+          }
         }
         reaction {
           id
@@ -443,6 +451,15 @@ export const fetchProjectsBySlugQuery = `
       traceCampaignId
       listed
       givingBlocksId
+      categories {
+       name
+       mainCategory {
+         title
+         slug
+         banner
+         description
+       }
+      }
       projectVerificationForm {
         id
         isTermAndConditionsAccepted
@@ -880,6 +897,15 @@ export const projectByIdQuery = `
         name
         label
         supportCustomTokens
+      }
+      categories {
+        name
+        mainCategory {
+          title
+          slug
+          banner
+          description
+        }
       }
       adminUser {
         firstName

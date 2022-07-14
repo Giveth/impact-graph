@@ -771,6 +771,8 @@ const getAdminBroInstance = async () => {
 
             new: {
               handler: createDonation,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
               // component: true,
             },
           },
@@ -1313,9 +1315,13 @@ const getAdminBroInstance = async () => {
             },
             new: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
             },
             edit: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
             },
             bulkDelete: {
               isVisible: false,
@@ -1332,6 +1338,9 @@ const getAdminBroInstance = async () => {
               },
             },
             name: {
+              isVisible: true,
+            },
+            isActive: {
               isVisible: true,
             },
             value: {
@@ -1352,9 +1361,13 @@ const getAdminBroInstance = async () => {
             },
             new: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
             },
             edit: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
             },
             bulkDelete: {
               isVisible: false,
@@ -1371,6 +1384,9 @@ const getAdminBroInstance = async () => {
               },
             },
             banner: {
+              isVisible: true,
+            },
+            slug: {
               isVisible: true,
             },
             title: {

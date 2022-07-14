@@ -35,9 +35,15 @@ export class Category extends BaseEntity {
   @ManyToMany(type => Project, project => project.categories)
   projects: Project[];
 
-  @Field(_ => MainCategory)
+  @Field(_ => MainCategory, { nullable: true })
   @ManyToOne(_ => MainCategory)
   mainCategory: MainCategory;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  // There are some categories that exist, we cant delete them but we dont want allow users
+  // To use them anymore so we change set the isActive false for them
+  isActive: boolean;
 
   @RelationId((category: Category) => category.mainCategory)
   mainCategoryId: number;

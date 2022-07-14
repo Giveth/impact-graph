@@ -49,7 +49,7 @@ export class relateCategoriesToMainCategories1657701834486
     await queryRunner.query(
       `
                 UPDATE category SET "mainCategoryId" = 6
-                WHERE name in ('the-giving-block', 'community', 'inclusion')
+                WHERE name in ('the-giving-block','change', 'non-profit', 'other')
               `,
     );
   }

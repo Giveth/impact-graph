@@ -35,6 +35,7 @@ export class seedCategories1640767827635 implements MigrationInterface {
                     ('water','Water','adhoc'),
                     ('other','Other','adhoc'),
                     ('the-giving-block','The Giving block','adhoc')
+                    ('change','Change','adhoc')
                     ;`);
   }
 

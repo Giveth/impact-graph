@@ -6,8 +6,9 @@ import {
   BaseEntity,
   Index,
   ManyToMany,
+  OneToMany,
 } from 'typeorm';
-import { Project } from './project';
+import { Category, Project } from './project';
 
 @Entity()
 @ObjectType()
@@ -17,15 +18,23 @@ export class MainCategory extends BaseEntity {
   id: number;
 
   @Field()
-  @Column('text', { unique: true, nullable: true })
+  @Column('text', { unique: true })
   title: string;
 
+  @Field()
+  @Column('text', { unique: true })
+  slug: string;
+
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column('text', { nullable: true })
   description: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column('text', { nullable: true })
   // ipfs link
   banner: string;
+
+  @Field(type => [Category], { nullable: true })
+  @OneToMany(type => Category, category => category.mainCategory)
+  categories?: Category[];
 }

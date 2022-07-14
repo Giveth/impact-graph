@@ -182,6 +182,9 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   category: string;
 
+  @Field({ nullable: true })
+  mainCategory: string;
+
   @Field(type => FilterBy, {
     nullable: true,
     defaultValue: { field: null, value: null },
@@ -235,6 +238,24 @@ export class ProjectResolver {
       { category },
     );
   }
+
+  static addMainCategoryQuery(
+    query: SelectQueryBuilder<Project>,
+    mainCategory: string,
+  ) {
+    if (!mainCategory) return query;
+
+    query = query
+      .leftJoinAndSelect('project.categories', 'categoryForMainCategorySearch')
+      .innerJoinAndSelect(
+        'categoryForMainCategorySearch.mainCategory',
+        'filteredMainCategory',
+        'filteredMainCategory.slug = :mainCategory',
+        { mainCategory },
+      );
+    return query;
+  }
+
   static addSearchQuery(
     query: SelectQueryBuilder<Project>,
     searchTerm: string,
@@ -458,6 +479,7 @@ export class ProjectResolver {
       orderBy,
       searchTerm,
       category,
+      mainCategory,
       filterBy,
       admin,
       connectedWalletUserId,
@@ -475,13 +497,15 @@ export class ProjectResolver {
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
-      .innerJoinAndSelect('project.categories', 'c')
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
 
     // Filters
     query = ProjectResolver.addCategoryQuery(query, category);
+    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
     query = ProjectResolver.addSearchQuery(query, searchTerm);
     query = ProjectResolver.addFilterQuery(
       query,
@@ -574,7 +598,8 @@ export class ProjectResolver {
       .orderBy(`project.${field}`, direction)
       .limit(skip)
       .take(take)
-      .innerJoinAndSelect('project.categories', 'c');
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
@@ -597,6 +622,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoin('project.adminUser', 'user')
@@ -633,6 +659,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoin('project.adminUser', 'user')
@@ -690,7 +717,13 @@ export class ProjectResolver {
     }
 
     const categoriesPromise = newProjectData.categories.map(async category => {
-      const [c] = await this.categoryRepository.find({ name: category });
+      const [c] = await this.categoryRepository.find({
+        name: category,
+
+        // TODO if we check the isActive for categories when updating the project, we would face error when updating givingBlocks and change projects
+        // As those categories are not active , so we assuem frontend takce care of not showing non-active categories in update page
+        // isActive: true,
+      });
       if (c === undefined) {
         throw new Error(
           errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
@@ -830,7 +863,10 @@ export class ProjectResolver {
     const categories = await Promise.all(
       projectInput.categories
         ? projectInput.categories.map(async category => {
-            const [c] = await this.categoryRepository.find({ name: category });
+            const [c] = await this.categoryRepository.find({
+              name: category,
+              isActive: true,
+            });
             if (c === undefined) {
               throw new Error(
                 errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
