@@ -740,7 +740,7 @@ export class ProjectResolver {
     }
     project.categories = categories;
 
-    const [hearts, heartCount] = await Reaction.findAndCount({
+    const heartCount = await Reaction.count({
       projectId,
     });
 

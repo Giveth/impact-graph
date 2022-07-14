@@ -49,6 +49,7 @@ import {
   findRelatedAddressByWalletAddress,
 } from '../repositories/projectAddressRepository';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import { MainCategory } from '../entities/mainCategory';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -1063,6 +1064,48 @@ function createProjectTestCases() {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
       categories: ['invalid category'],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    );
+  });
+  it('Should get error, when selected category is not active', async () => {
+    const mainCategory = await MainCategory.findOne();
+    const nonActiveCategory = await Category.create({
+      name: 'nonActiveCategory',
+      value: 'nonActiveCategory',
+      isActive: false,
+      source: 'adhoc',
+      mainCategory: mainCategory as MainCategory,
+    }).save();
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [nonActiveCategory.name],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
