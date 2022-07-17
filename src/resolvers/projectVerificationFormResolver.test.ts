@@ -253,7 +253,7 @@ function updateProjectVerificationFormMutationTestCases() {
     isNonProfitOrganization: true,
     organizationDescription: '',
     organizationName: 'organizationName',
-    attachment: 'an ipfs link',
+    attachments: ['an ipfs link'],
   };
   const milestones: Milestones = {
     mission: 'mission',
