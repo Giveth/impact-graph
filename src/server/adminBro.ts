@@ -69,6 +69,8 @@ import {
 import { SocialProfile } from '../entities/socialProfile';
 import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
+import { updateTotalDonationsOfProject } from '../services/donationService';
+import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 
 // use redis for session data instead of in-memory storage
@@ -640,6 +642,9 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             donationType: {
+              isVisible: false,
+            },
+            isTokenEligibleForGivback: {
               isVisible: false,
             },
             transakStatus: {
@@ -2055,6 +2060,7 @@ export const createDonation = async (
       currency,
       priceUsd,
       txType,
+      isProjectVerified,
       segmentNotified,
     } = request.payload;
     if (!priceUsd) {
@@ -2122,6 +2128,7 @@ export const createDonation = async (
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
+        isProjectVerified,
         donationType,
         createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
@@ -2133,6 +2140,11 @@ export const createDonation = async (
         donation.user = donor;
       }
       await donation.save();
+      await updateTotalDonationsOfProject(project.id);
+      if (donor) {
+        await updateUserTotalDonated(donor.id);
+      }
+
       logger.debug('Donation has been created successfully', donation.id);
     }
   } catch (e) {
