@@ -7,6 +7,8 @@ export const errorMessages = {
   NOT_IMPLEMENTED: 'Not implemented',
   YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS:
     'You just can verify rejected and submitted forms',
+  YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS:
+    'You just can make draft rejected and submitted forms',
   YOU_JUST_CAN_REJECT_SUBMITTED_FORMS: 'You just can reject submitted forms',
   INVALID_TRACK_ID_FOR_OAUTH2_LOGIN: 'Invalid trackId for oauth2 login',
   SOCIAL_NETWORK_IS_DIFFERENT_WITH_CLAIMED_ONE:

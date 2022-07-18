@@ -17,6 +17,7 @@ import {
   createProjectVerificationForm,
   findProjectVerificationFormById,
   getInProgressProjectVerificationRequest,
+  makeFormDraft,
   updateManagingFundsOfProjectVerification,
   updateMilestonesOfProjectVerification,
   updateProjectContactsOfProjectVerification,
@@ -62,6 +63,7 @@ describe(
 );
 
 describe('verifyForm test cases', verifyFormTestCases);
+describe('makeFormDraft test cases', makeFormDraftTestCases);
 
 describe('verifyMultipleForm test cases', verifyMultipleFormTestCases);
 
@@ -387,6 +389,66 @@ function verifyFormTestCases() {
     assert.equal(
       updateProjectVerificationForm?.status,
       PROJECT_VERIFICATION_STATUSES.REJECTED,
+    );
+
+    assert.equal(
+      updateProjectVerificationForm.reviewer?.id,
+      SEED_DATA.ADMIN_USER.id,
+    );
+  });
+}
+
+function makeFormDraftTestCases() {
+  it('Should make draft submitted verification form', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm.save();
+
+    const updateProjectVerificationForm = await makeFormDraft({
+      formId: projectVerificationForm.id,
+      adminId: SEED_DATA.ADMIN_USER.id,
+    });
+
+    assert.equal(
+      updateProjectVerificationForm?.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      updateProjectVerificationForm.reviewer?.id,
+      SEED_DATA.ADMIN_USER.id,
+    );
+  });
+  it('Should make draft rejected verification form', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      verified: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.REJECTED;
+    await projectVerificationForm.save();
+
+    const updateProjectVerificationForm = await makeFormDraft({
+      formId: projectVerificationForm.id,
+      adminId: SEED_DATA.ADMIN_USER.id,
+    });
+
+    assert.equal(
+      updateProjectVerificationForm?.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
 
     assert.equal(

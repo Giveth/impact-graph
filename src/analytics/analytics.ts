@@ -22,6 +22,7 @@ export enum SegmentEvents {
   PROJECT_CREATED = 'Project created',
   UPDATED_PROFILE = 'Updated profile',
   GET_DONATION_PRICE_FAILED = 'Get Donation Price Failed',
+  VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN = 'Verification form got draft by admin',
 }
 
 const environment = config.get('ENVIRONMENT') as string;

@@ -59,7 +59,7 @@ export class ProjectRegistry {
   @Field({ nullable: true })
   organizationName?: string;
   @Field(type => [String], { nullable: true })
-  attachments: string[];
+  attachments?: string[];
 }
 
 @ObjectType()
