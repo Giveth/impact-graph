@@ -458,7 +458,7 @@ export const fetchProjectsBySlugQuery = `
           isNonProfitOrganization
           organizationCountry
           organizationWebsite
-          attachment
+          attachments
           organizationName
         }
         personalInfo {
@@ -793,7 +793,7 @@ export const projectsByUserIdQuery = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
-              attachment
+              attachments
               organizationName
             }
             personalInfo {
@@ -956,7 +956,7 @@ export const createProjectVerificationFormMutation = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
-                      attachment
+                      attachments
                       organizationName
                     }
                     projectContacts {
@@ -1008,7 +1008,7 @@ export const getCurrentProjectVerificationFormQuery = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
-                      attachment
+                      attachments
                       organizationName
                     }
                     projectContacts {
@@ -1074,7 +1074,7 @@ export const projectVerificationConfirmEmail = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
-              attachment
+              attachments
               organizationName
             }
             personalInfo {
@@ -1130,7 +1130,7 @@ export const projectVerificationSendEmailConfirmation = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
-              attachment
+              attachments
               organizationName
             }
             personalInfo {
@@ -1190,7 +1190,7 @@ export const updateProjectVerificationFormMutation = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
-                      attachment
+                      attachments
                       organizationName
                     }
                     personalInfo {

@@ -57,6 +57,7 @@ import {
 } from '../entities/projectVerificationForm';
 import {
   findProjectVerificationFormById,
+  makeFormDraft,
   verifyForm,
   verifyMultipleForms,
 } from '../repositories/projectVerificationRepository';
@@ -435,8 +436,10 @@ const getAdminBroInstance = async () => {
             'projectRegistry.organizationWebsite': { type: 'string' },
             'projectRegistry.organizationDescription': { type: 'string' },
             'projectRegistry.organizationName': { type: 'string' },
-            'projectRegistry.attachment': { type: 'string' },
-
+            'projectRegistry.attachments': {
+              type: 'string',
+              isArray: true,
+            },
             projectContacts: {
               type: 'mixed',
               isArray: true,
@@ -578,6 +581,14 @@ const getAdminBroInstance = async () => {
               isVisible: true,
               handler: async (request, response, context) => {
                 return verifySingleVerificationForm(context, request, true);
+              },
+              component: false,
+            },
+            makeEditableByUser: {
+              actionType: 'record',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return makeEditableByUser(context, request);
               },
               component: false,
             },
@@ -1605,6 +1616,64 @@ export const verifySingleVerificationForm = async (
     responseMessage = `Project(s) successfully ${
       verified ? 'verified' : 'rejected'
     }`;
+  } catch (error) {
+    logger.error('verifyVerificationForm() error', error);
+    responseType = 'danger';
+    responseMessage = 'Verify/Reject verification form failed ' + error.message;
+  }
+  const x: RecordJSON = {
+    id: String(formId),
+    title: '',
+    bulkActions: [],
+    errors: {},
+    params: (context as any).record.params,
+    populated: (context as any).record.populated,
+    recordActions: [],
+  };
+
+  return {
+    record: x,
+    redirectUrl: `/admin/resources/ProjectVerificationForm/ProjectVerificationForm/records`,
+    notice: {
+      message: responseMessage,
+      type: responseType,
+    },
+  };
+};
+
+export const makeEditableByUser = async (
+  context: AdminBroContextInterface,
+  request: AdminBroRequestInterface,
+) => {
+  const { records, currentAdmin } = context;
+  let responseMessage = '';
+  let responseType = 'success';
+  const formId = Number(request?.params?.recordId);
+  const verificationFormInDb = await findProjectVerificationFormById(formId);
+
+  try {
+    if (
+      ![
+        PROJECT_VERIFICATION_STATUSES.REJECTED,
+        PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+      ].includes(verificationFormInDb?.status as string)
+    ) {
+      throw new Error(
+        errorMessages.YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS,
+      );
+    }
+
+    const segmentEvent = SegmentEvents.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
+
+    const verificationForm = await makeFormDraft({
+      formId,
+      adminId: currentAdmin.id,
+    });
+    const projectId = verificationForm.projectId;
+    const project = (await findProjectById(projectId)) as Project;
+    Project.notifySegment(project, segmentEvent);
+
+    responseMessage = `Project(s) successfully got draft`;
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
     responseType = 'danger';

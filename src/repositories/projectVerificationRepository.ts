@@ -56,6 +56,21 @@ export const verifyForm = async (params: {
   return form.save();
 };
 
+export const makeFormDraft = async (params: {
+  formId: number;
+  adminId: number;
+}): Promise<ProjectVerificationForm> => {
+  const form = await ProjectVerificationForm.createQueryBuilder()
+    .where('id = :id', { id: params.formId })
+    .getOne();
+
+  if (!form) throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+
+  form.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
+  form.reviewer = await findUserById(params.adminId);
+  return form.save();
+};
+
 export const findProjectVerificationFormById = async (
   projectVerificationId: number,
 ): Promise<ProjectVerificationForm | undefined> => {
