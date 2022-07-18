@@ -257,7 +257,7 @@ function updateProjectVerificationFormMutationTestCases() {
   };
   const milestones: Milestones = {
     mission: 'mission',
-    achievedMilestonesProof: 'an ipfs hash',
+    achievedMilestonesProofs: ['an ipfs hash'],
     achievedMilestones: 'lots of work',
     foundationDate: new Date().toString(),
   };
@@ -482,8 +482,8 @@ function updateProjectVerificationFormMutationTestCases() {
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.milestones
-        .achievedMilestonesProof,
-      milestones.achievedMilestonesProof,
+        .achievedMilestonesProofs[0],
+      milestones?.achievedMilestonesProofs?.[0],
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.milestones.foundationDate,
@@ -540,8 +540,8 @@ function updateProjectVerificationFormMutationTestCases() {
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.milestones
-        .achievedMilestonesProof,
-      milestones.achievedMilestonesProof,
+        .achievedMilestonesProofs[0],
+      milestones?.achievedMilestonesProofs?.[0],
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.milestones.foundationDate,
@@ -1244,6 +1244,7 @@ function projectVerificationSendEmailConfirmationTestCases() {
     );
   });
 }
+
 function projectVerificationConfirmEmailTestCases() {
   const personalInfo: PersonalInfo = {
     email: 'test@example.com',

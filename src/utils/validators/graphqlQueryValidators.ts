@@ -102,7 +102,7 @@ const milestonesValidator = Joi.object({
   foundationDate: Joi.date().allow(''),
   mission: Joi.string().allow(''),
   achievedMilestones: Joi.string().allow(''),
-  achievedMilestonesProof: Joi.string().allow(''),
+  achievedMilestonesProofs: Joi.array()?.items(Joi.string()).max(5),
 });
 
 const managingFundsValidator = Joi.object({

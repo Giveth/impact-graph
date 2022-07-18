@@ -474,7 +474,7 @@ export const fetchProjectsBySlugQuery = `
           mission
           foundationDate
           achievedMilestones
-          achievedMilestonesProof
+          achievedMilestonesProofs
         }
         managingFunds {
           description
@@ -809,7 +809,7 @@ export const projectsByUserIdQuery = `
               mission
               foundationDate
               achievedMilestones
-              achievedMilestonesProof
+              achievedMilestonesProofs
             }
             managingFunds {
               description
@@ -967,7 +967,7 @@ export const createProjectVerificationFormMutation = `
                       mission
                       foundationDate
                       achievedMilestones
-                      achievedMilestonesProof
+                      achievedMilestonesProofs
                     }
                     managingFunds {
                       description
@@ -1019,7 +1019,7 @@ export const getCurrentProjectVerificationFormQuery = `
                       mission
                       foundationDate
                       achievedMilestones
-                      achievedMilestonesProof
+                      achievedMilestonesProofs
                     }
                     socialProfiles {
                       socialNetworkId
@@ -1090,7 +1090,7 @@ export const projectVerificationConfirmEmail = `
               mission
               foundationDate
               achievedMilestones
-              achievedMilestonesProof
+              achievedMilestonesProofs
             }
             managingFunds {
               description
@@ -1150,7 +1150,7 @@ export const projectVerificationSendEmailConfirmation = `
               mission
               foundationDate
               achievedMilestones
-              achievedMilestonesProof
+              achievedMilestonesProofs
             }
             managingFunds {
               description
@@ -1206,7 +1206,7 @@ export const updateProjectVerificationFormMutation = `
                       mission
                       foundationDate
                       achievedMilestones
-                      achievedMilestonesProof
+                      achievedMilestonesProofs
                     }
                     managingFunds {
                       description
