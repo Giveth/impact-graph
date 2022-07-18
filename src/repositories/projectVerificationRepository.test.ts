@@ -222,7 +222,7 @@ function updateMilestonesOfProjectVerificationTestCases() {
     });
     const milestones: Milestones = {
       achievedMilestones: 'We did lots of things',
-      achievedMilestonesProof: 'ipfsHash',
+      achievedMilestonesProofs: ['ipfsHash'],
       foundationDate: new Date().toString(),
       mission: 'Make world a better place',
     };
@@ -232,8 +232,8 @@ function updateMilestonesOfProjectVerificationTestCases() {
         milestones,
       });
     assert.equal(
-      updatedProjectVerification?.milestones.achievedMilestonesProof,
-      milestones.achievedMilestonesProof,
+      updatedProjectVerification?.milestones.achievedMilestonesProofs?.[0],
+      milestones.achievedMilestonesProofs?.[0],
     );
     assert.equal(
       updatedProjectVerification?.milestones.foundationDate,
