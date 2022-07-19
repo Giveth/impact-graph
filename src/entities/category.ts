@@ -42,7 +42,7 @@ export class Category extends BaseEntity {
   @Field()
   @Column({ default: true })
   // There are some categories that exist, we cant delete them but we dont want allow users
-  // To use them anymore so we change set the isActive false for them
+  // To use them anymore on project creation/updating, so we change set the isActive false for them
   isActive: boolean;
 
   @RelationId((category: Category) => category.mainCategory)
