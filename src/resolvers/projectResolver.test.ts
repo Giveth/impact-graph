@@ -1062,7 +1062,7 @@ function createProjectTestCases() {
       errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
     );
   });
-  it('Should get error, when sending one recipient address', async () => {
+  it('Should not get error, when sending one recipient address', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
       categories: [SEED_DATA.CATEGORIES[0], SEED_DATA.CATEGORIES[1]],
@@ -1091,9 +1091,48 @@ function createProjectTestCases() {
       },
     );
 
+    assert.isOk(result.data.data.createProject);
+  });
+  it('Should get error, when sending more thant two recipient address', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.CATEGORIES[0], SEED_DATA.CATEGORIES[1]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.BSC,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT,
+      errorMessages.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
     );
   });
   it('Should get error, when walletAddress of project is repetitive', async () => {
@@ -1685,7 +1724,7 @@ function updateProjectTestCases() {
     );
     assert.equal(queriedAddress.length, 2);
   });
-  it('Should throw error when sending one address', async () => {
+  it('Should not throw error when sending one address', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
@@ -1707,7 +1746,48 @@ function updateProjectTestCases() {
                 networkId: NETWORK_IDS.XDAI,
               },
             ],
-            title: `test title should throw error when sending one address`,
+            title: `test title should not throw error when sending one address`,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(editProjectResult.data.data.updateProject);
+  });
+  it('Should throw error when sending three address', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const newWalletAddress = generateRandomEtheriumAddress();
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            addresses: [
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.XDAI,
+              },
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.MAIN_NET,
+              },
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.BSC,
+              },
+            ],
+            title: `test title should throw error when sending three address`,
           },
         },
       },
@@ -1719,7 +1799,7 @@ function updateProjectTestCases() {
     );
     assert.equal(
       editProjectResult.data.errors[0].message,
-      errorMessages.IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT,
+      errorMessages.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
     );
   });
   it('Should get error when sent title is repetitive', async () => {
