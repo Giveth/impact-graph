@@ -2,8 +2,8 @@ export const errorMessages = {
   CHANGE_API_INVALID_TITLE_OR_EIN:
     'ChangeAPI title or EIN not found or invalid',
   INVALID_SOCIAL_NETWORK: 'Invalid social network',
-  IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT:
-    'It should have two wallet addresses recipients',
+  IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT:
+    'It should have one or two wallet recipient addresses',
   NOT_IMPLEMENTED: 'Not implemented',
   YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS:
     'You just can verify rejected and submitted forms',
