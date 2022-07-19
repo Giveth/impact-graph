@@ -69,6 +69,7 @@ export const makeFormDraft = async (params: {
 
   form.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
   form.lastStep = PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS;
+  form.isTermAndConditionsAccepted = false;
   form.reviewer = await findUserById(params.adminId);
   return form.save();
 };
