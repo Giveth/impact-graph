@@ -1,4 +1,4 @@
-import { Project, ProjStatus } from '../entities/project';
+import { Category, Project, ProjStatus } from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro, { ActionResponse, After } from 'admin-bro';
@@ -72,6 +72,7 @@ import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interf
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import { updateUserTotalDonated } from '../services/userService';
+import { MainCategory } from '../entities/mainCategory';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -786,6 +787,8 @@ const getAdminBroInstance = async () => {
 
             new: {
               handler: createDonation,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
               // component: true,
             },
           },
@@ -1315,6 +1318,98 @@ const getAdminBroInstance = async () => {
             },
             bulkDelete: {
               isVisible: false,
+            },
+          },
+        },
+      },
+      {
+        resource: Category,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            edit: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            name: {
+              isVisible: true,
+            },
+            isActive: {
+              isVisible: true,
+            },
+            value: {
+              isVisible: true,
+            },
+            mainCategory: {
+              isVisible: true,
+            },
+          },
+        },
+      },
+      {
+        resource: MainCategory,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            edit: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            banner: {
+              isVisible: true,
+            },
+            slug: {
+              isVisible: true,
+            },
+            title: {
+              isVisible: true,
+            },
+            description: {
+              isVisible: true,
             },
           },
         },

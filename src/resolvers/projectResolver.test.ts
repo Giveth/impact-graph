@@ -49,6 +49,7 @@ import {
   findRelatedAddressByWalletAddress,
 } from '../repositories/projectAddressRepository';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import { MainCategory } from '../entities/mainCategory';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -185,6 +186,7 @@ function projectsTestCases() {
       assert.isNotOk(project.adminUser.email);
       assert.isOk(project.adminUser.firstName);
       assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.categories[0].mainCategory.title);
     });
   });
 
@@ -768,6 +770,74 @@ function projectsTestCases() {
     });
     assert.equal(result.data.data.projects.projects[0].totalTraceDonations, 0);
   });
+  it('should return projects, filtered by sub category', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['food5'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        category: 'food5',
+      },
+    });
+    assert.isNotEmpty(result.data.data.projects.projects);
+    result.data.data.projects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(category => category.name === 'food5'),
+      );
+    });
+  });
+  it('should return projects, filtered by main category', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink2'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        mainCategory: 'drink',
+      },
+    });
+    assert.isNotEmpty(result.data.data.projects.projects);
+    result.data.data.projects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(
+          category => category.mainCategory.title === 'drink',
+        ),
+      );
+    });
+  });
+  it('should return projects, filtered by main category and sub category at the same time', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink2'],
+    });
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink3'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        mainCategory: 'drink',
+        category: 'drink3',
+      },
+    });
+    assert.isNotEmpty(result.data.data.projects.projects);
+    result.data.data.projects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(
+          category => category.mainCategory.title === 'drink',
+        ),
+      );
+
+      // Should not return projects with drink2 category
+      assert.isOk(
+        project.categories.find(category => category.name === 'drink3'),
+      );
+    });
+  });
 
   // TODO this test doesnt pass now, but we should fix it
   // it('should return projects, find by category', async () => {
@@ -1024,10 +1094,52 @@ function createProjectTestCases() {
       errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
     );
   });
+  it('Should get error, when selected category is not active', async () => {
+    const mainCategory = await MainCategory.findOne();
+    const nonActiveCategory = await Category.create({
+      name: 'nonActiveCategory',
+      value: 'nonActiveCategory',
+      isActive: false,
+      source: 'adhoc',
+      mainCategory: mainCategory as MainCategory,
+    }).save();
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [nonActiveCategory.name],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    );
+  });
   it('Should get error, when more than 5 categories sent', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
-      categories: SEED_DATA.CATEGORIES,
+      categories: SEED_DATA.FOOD_SUB_CATEGORIES,
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1065,7 +1177,10 @@ function createProjectTestCases() {
   it('Should not get error, when sending one recipient address', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
-      categories: [SEED_DATA.CATEGORIES[0], SEED_DATA.CATEGORIES[1]],
+      categories: [
+        SEED_DATA.FOOD_SUB_CATEGORIES[0],
+        SEED_DATA.FOOD_SUB_CATEGORIES[1],
+      ],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1138,7 +1253,7 @@ function createProjectTestCases() {
   it('Should get error, when walletAddress of project is repetitive', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1175,7 +1290,7 @@ function createProjectTestCases() {
   it('Should get error, when walletAddress of project is a smart contract address', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1212,7 +1327,7 @@ function createProjectTestCases() {
   it('Should get error, when title of project is repetitive', async () => {
     const sampleProject: CreateProjectInput = {
       title: SEED_DATA.FIRST_PROJECT.title,
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1261,7 +1376,7 @@ function createProjectTestCases() {
   it('Should create successfully', async () => {
     const sampleProject: CreateProjectInput = {
       title: 'title ' + new Date().getTime(),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       image:
         'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
@@ -1337,7 +1452,7 @@ function createProjectTestCases() {
   it('Should create draft successfully', async () => {
     const sampleProject: CreateProjectInput = {
       title: 'draftTitle1 ' + new Date().getTime(),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       isDraft: true,
       admin: String(SEED_DATA.FIRST_USER.id),
@@ -1475,7 +1590,7 @@ function updateProjectTestCases() {
           projectId: Number(SEED_DATA.FIRST_PROJECT.id),
           newProjectData: {
             title: String(new Date().getTime()),
-            categories: SEED_DATA.CATEGORIES,
+            categories: SEED_DATA.FOOD_SUB_CATEGORIES,
           },
         },
       },
@@ -1829,7 +1944,7 @@ function updateProjectTestCases() {
   it('Should update successfully when updating with old title', async () => {
     const sampleProject: UpdateProjectInput = {
       title: 'test ' + String(new Date().getTime()),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1887,7 +2002,7 @@ function updateProjectTestCases() {
     const slug = 'test-123456';
     const sampleProject: UpdateProjectInput = {
       title,
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -3025,6 +3140,7 @@ function projectByIdTestCases() {
     assert.isOk(result.data.data.projectById.adminUser.walletAddress);
     assert.isOk(result.data.data.projectById.adminUser.firstName);
     assert.isNotOk(result.data.data.projectById.adminUser.email);
+    assert.isOk(result.data.data.projectById.categories[0].mainCategory.title);
   });
   it('should return error for invalid id', async () => {
     const result = await axios.post(graphqlUrl, {
@@ -3469,6 +3585,7 @@ function projectBySlugTestCases() {
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
     assert.isNotOk(project.adminUser.email);
+    assert.isOk(project.categories[0].mainCategory.title);
   });
 
   it('should return projects with indicated slug', async () => {

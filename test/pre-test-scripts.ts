@@ -20,6 +20,7 @@ import {
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
+import { MainCategory } from '../src/entities/mainCategory';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -216,11 +217,29 @@ async function seedDonations() {
   );
 }
 async function seedCategories() {
-  for (const category of SEED_DATA.CATEGORIES) {
+  for (const mainCategory of SEED_DATA.MAIN_CATEGORIES) {
+    await MainCategory.create({
+      title: mainCategory,
+      slug: mainCategory,
+      description: mainCategory,
+    }).save();
+  }
+  const foodMainCategory = await MainCategory.findOne({ title: 'food' });
+  const drinkMainCategory = await MainCategory.findOne({ title: 'drink' });
+  for (const category of SEED_DATA.FOOD_SUB_CATEGORIES) {
     await Category.create({
       name: category,
       value: category,
       source: 'adhoc',
+      mainCategory: foodMainCategory as MainCategory,
+    }).save();
+  }
+  for (const category of SEED_DATA.DRINK_SUB_CATEGORIES) {
+    await Category.create({
+      name: category,
+      value: category,
+      source: 'adhoc',
+      mainCategory: drinkMainCategory as MainCategory,
     }).save();
   }
 }
