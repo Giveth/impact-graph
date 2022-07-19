@@ -246,8 +246,8 @@ export class ProjectResolver {
     if (!mainCategory) return query;
 
     query = query
-      .leftJoinAndSelect('project.categories', 'categoryForMainCategorySearch')
-      .innerJoinAndSelect(
+      .leftJoin('project.categories', 'categoryForMainCategorySearch')
+      .innerJoin(
         'categoryForMainCategorySearch.mainCategory',
         'filteredMainCategory',
         'filteredMainCategory.slug = :mainCategory',
