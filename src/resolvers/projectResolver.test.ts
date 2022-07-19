@@ -1211,7 +1211,10 @@ function createProjectTestCases() {
   it('Should get error, when sending more thant two recipient address', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
-      categories: [SEED_DATA.CATEGORIES[0], SEED_DATA.CATEGORIES[1]],
+      categories: [
+        SEED_DATA.FOOD_SUB_CATEGORIES[0],
+        SEED_DATA.FOOD_SUB_CATEGORIES[1],
+      ],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
