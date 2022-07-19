@@ -624,6 +624,11 @@ function updateProjectVerificationFormMutationTestCases() {
       result.data.data.updateProjectVerificationForm.lastStep,
       PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
     );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm
+        .isTermAndConditionsAccepted,
+      false,
+    );
   });
   it('should update project verification with termAndConditions form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

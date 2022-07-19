@@ -345,6 +345,15 @@ const getAdminBroInstance = async () => {
                 new: true,
               },
             },
+            lastStep: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
             projectId: {
               isVisible: {
                 list: true,
@@ -524,11 +533,14 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
-            lastStep: {
-              isVisible: false,
-            },
             emailConfirmed: {
-              isVisible: false,
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             emailConfirmationTokenExpiredAt: {
               isVisible: false,
