@@ -452,6 +452,11 @@ function makeFormDraftTestCases() {
     );
 
     assert.equal(
+      updateProjectVerificationForm?.lastStep,
+      PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
+    );
+
+    assert.equal(
       updateProjectVerificationForm.reviewer?.id,
       SEED_DATA.ADMIN_USER.id,
     );

@@ -6,6 +6,7 @@ import {
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
+  PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
@@ -67,6 +68,7 @@ export const makeFormDraft = async (params: {
   if (!form) throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
 
   form.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
+  form.lastStep = PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS;
   form.reviewer = await findUserById(params.adminId);
   return form.save();
 };
