@@ -41,8 +41,9 @@ export class DiscordAdapter implements SocialNetworkOauth2AdapterInterface {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      const username = result.data.username;
       return {
-        username: result.data.username,
+        username,
       };
     } catch (e) {
       logger.error('getUserInfoByOauth2Code discord error', e);

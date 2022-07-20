@@ -92,11 +92,19 @@ export class LinkedinAdapter implements SocialNetworkOauth2AdapterInterface {
                 }
            }
        */
+      const username = meResult.data.id;
+      let name = username;
+      if (
+        meResult.data?.firstName?.localized?.en_US ||
+        meResult.data?.lastName?.localized?.en_US
+      ) {
+        name = `${meResult.data?.firstName?.localized?.en_US || ''} ${
+          meResult.data?.lastName?.localized?.en_US || ''
+        }`.trim();
+      }
       return {
-        username: meResult.data.id,
-        name: `${meResult.data.firstName.localized.en_US || ''} ${
-          meResult.data.lastName.localized.en_US || ''
-        }`,
+        username,
+        name,
       };
     } catch (e) {
       logger.error('getUserInfoByOauth2Code linkedin error', e);
