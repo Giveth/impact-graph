@@ -7,11 +7,17 @@ import { findProjectVerificationFormById } from './projectVerificationRepository
 export const createSocialProfile = async (params: {
   projectVerificationId: number;
   socialNetwork: string;
+  name?: string;
   socialNetworkId: string;
   isVerified: boolean;
 }): Promise<SocialProfile> => {
-  const { projectVerificationId, socialNetworkId, isVerified, socialNetwork } =
-    params;
+  const {
+    projectVerificationId,
+    socialNetworkId,
+    name,
+    isVerified,
+    socialNetwork,
+  } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
     projectVerificationId,
   );
@@ -22,6 +28,7 @@ export const createSocialProfile = async (params: {
     socialNetwork,
     socialNetworkId,
     isVerified,
+    name,
   }).save();
 };
 

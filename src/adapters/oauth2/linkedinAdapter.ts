@@ -65,8 +65,38 @@ export class LinkedinAdapter implements SocialNetworkOauth2AdapterInterface {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      /**
+       * sample response
+           {
+               "id":"REDACTED",
+               "firstName":{
+                  "localized":{
+                     "en_US":"Tina"
+                  },
+                  "preferredLocale":{
+                     "country":"US",
+                     "language":"en"
+                  }
+               },
+               "lastName":{
+                  "localized":{
+                     "en_US":"Belcher"
+                  },
+                  "preferredLocale":{
+                     "country":"US",
+                     "language":"en"
+                  }
+               },
+                "profilePicture": {
+                    "displayImage": "urn:li:digitalmediaAsset:B54328XZFfe2134zTyq"
+                }
+           }
+       */
       return {
         username: meResult.data.id,
+        name: `${meResult.data.firstName.localized.en_US || ''} ${
+          meResult.data.lastName.localized.en_US || ''
+        }`,
       };
     } catch (e) {
       logger.error('getUserInfoByOauth2Code linkedin error', e);

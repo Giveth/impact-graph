@@ -1048,6 +1048,7 @@ export const getCurrentProjectVerificationFormQuery = `
                       achievedMilestonesProofs
                     }
                     socialProfiles {
+                      name
                       socialNetworkId
                       socialNetwork
                       isVerified
@@ -1169,6 +1170,7 @@ export const projectVerificationSendEmailConfirmation = `
               url
             }
             socialProfiles {
+              name
               socialNetwork
               socialNetworkId
             }

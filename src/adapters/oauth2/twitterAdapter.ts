@@ -42,9 +42,19 @@ export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
         },
       });
       logger.info('getUserInfoByOauth2Code meResult', meResult.data);
-
+      /**
+       * sample response
+       * {
+            "data": {
+              "id": "2244994945",
+              "name": "TwitterDev",
+              "username": "Twitter Dev"
+            }
+          }
+       */
       return {
         username: meResult?.data?.data?.username as string,
+        name: meResult?.data?.data?.name as string,
       };
     } catch (e) {
       logger.error('getUserInfoByOauth2Code error', e);
