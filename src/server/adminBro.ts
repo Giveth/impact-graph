@@ -213,9 +213,9 @@ export const setSocialProfiles: After<ActionResponse> = async (
   const projectSocials = (await findSocialProfilesByProjectId({ projectId }))
     .map(
       social =>
-        `${social.socialNetwork}  --->  ${social.socialNetworkId}  : ${
-          social.isVerified ? 'verified' : 'not verified'
-        }`,
+        `${social.socialNetwork}  ---> id =  ${social.socialNetworkId}  ${
+          social.name ? 'name : ' + social.name + '--->' : ''
+        } : ${social.isVerified ? 'verified' : 'not verified'}`,
     )
     .join(' , ');
 
