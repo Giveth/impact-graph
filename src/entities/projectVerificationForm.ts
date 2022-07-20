@@ -29,8 +29,8 @@ export const PROJECT_VERIFICATION_STEPS = {
   PERSONAL_INFO: 'personalInfo',
   PROJECT_REGISTRY: 'projectRegistry',
   PROJECT_CONTACTS: 'projectContacts',
-  MANAGING_FUNDS: 'managingFunds',
   MILESTONES: 'milestones',
+  MANAGING_FUNDS: 'managingFunds',
   TERM_AND_CONDITION: 'termAndCondition',
   SUBMIT: 'submit',
 };
