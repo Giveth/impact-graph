@@ -865,7 +865,8 @@ export class ProjectResolver {
         ? projectInput.categories.map(async category => {
             const [c] = await this.categoryRepository.find({
               name: category,
-              isActive: true,
+              // TODO When frontend got ready we should uncomment isActive filter
+              // isActive: true,
             });
             if (c === undefined) {
               throw new Error(

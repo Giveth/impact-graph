@@ -1131,10 +1131,12 @@ function createProjectTestCases() {
       },
     );
 
-    assert.equal(
-      result.data.errors[0].message,
-      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-    );
+    // assert.equal(
+    //   result.data.errors[0].message,
+    //   errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    // );
+    // TODO after frontend implementing main categories we should change backend and uncommet above assersion and remove below one
+    assert.isOk(result.data.data.createProject);
   });
   it('Should get error, when more than 5 categories sent', async () => {
     const sampleProject: CreateProjectInput = {
