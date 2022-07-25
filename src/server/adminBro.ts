@@ -1690,7 +1690,7 @@ export const verifySingleVerificationForm = async (
       ![
         PROJECT_VERIFICATION_STATUSES.REJECTED,
         PROJECT_VERIFICATION_STATUSES.SUBMITTED,
-      ].includes(verificationFormInDb?.status as string)
+      ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
     ) {
       throw new Error(
         errorMessages.YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS,
@@ -1763,7 +1763,7 @@ export const makeEditableByUser = async (
       ![
         PROJECT_VERIFICATION_STATUSES.REJECTED,
         PROJECT_VERIFICATION_STATUSES.SUBMITTED,
-      ].includes(verificationFormInDb?.status as string)
+      ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
     ) {
       throw new Error(
         errorMessages.YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS,

@@ -27,7 +27,7 @@ export const createProjectVerificationForm = async (params: {
 };
 
 export const verifyMultipleForms = async (params: {
-  verificationStatus: string;
+  verificationStatus: PROJECT_VERIFICATION_STATUSES;
   formIds?: number[] | string[];
 }): Promise<UpdateResult> => {
   return ProjectVerificationForm.createQueryBuilder()
@@ -42,7 +42,7 @@ export const verifyMultipleForms = async (params: {
 };
 
 export const verifyForm = async (params: {
-  verificationStatus: string;
+  verificationStatus: PROJECT_VERIFICATION_STATUSES;
   formId: number;
   adminId: number;
 }): Promise<ProjectVerificationForm> => {
@@ -140,7 +140,7 @@ export const updateProjectRegistryOfProjectVerification = async (params: {
 
 export const updateProjectVerificationStatus = async (params: {
   projectVerificationId: number;
-  status: string;
+  status: PROJECT_VERIFICATION_STATUSES;
 }): Promise<ProjectVerificationForm> => {
   const { status, projectVerificationId } = params;
   const projectVerificationForm = await findProjectVerificationFormById(

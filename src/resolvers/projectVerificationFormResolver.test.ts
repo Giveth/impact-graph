@@ -211,7 +211,7 @@ function createProjectVerificationFormMutationTestCases() {
     await ProjectVerificationForm.create({
       project,
       user,
-      status: 'draft',
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
     const result = await axios.post(
       graphqlUrl,
