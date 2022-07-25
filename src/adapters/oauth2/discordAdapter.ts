@@ -44,6 +44,7 @@ export class DiscordAdapter implements SocialNetworkOauth2AdapterInterface {
       const username = result.data.username;
       return {
         username,
+        link: `https://discordapp.com/users/${username}`,
       };
     } catch (e) {
       logger.error('getUserInfoByOauth2Code discord error', e);

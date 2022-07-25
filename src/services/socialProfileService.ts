@@ -60,7 +60,7 @@ export const oauth2CallbackHandler = async (params: {
     projectVerificationForm,
   } = params;
   const oauth2Adapter = getSocialNetworkAdapter(socialNetwork);
-  const { username, name } = await oauth2Adapter.getUserInfoByOauth2Code({
+  const { username, name, link } = await oauth2Adapter.getUserInfoByOauth2Code({
     oauth2Code: authorizationCodeOrAccessToken as string,
   });
   if (projectVerificationForm.user.id !== userId) {
@@ -89,6 +89,7 @@ export const oauth2CallbackHandler = async (params: {
     socialNetwork,
     socialNetworkId: username,
     name,
+    link,
     projectVerificationId: projectVerificationForm.id,
     isVerified: true,
   });

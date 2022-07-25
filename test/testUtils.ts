@@ -147,7 +147,7 @@ export const saveUserDirectlyToDb = async (
 export const saveProjectVerificationFormDirectlyToDb = async (params: {
   project: Project;
   user: User;
-  status?: string;
+  status?: PROJECT_VERIFICATION_STATUSES;
 }): Promise<ProjectVerificationForm> => {
   const { project, user, status } = params;
   return ProjectVerificationForm.create({

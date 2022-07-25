@@ -14,15 +14,15 @@ import {
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
-import { User } from './user';
+import { User, UserRole } from './user';
 import { SocialProfile } from './socialProfile';
 
-export const PROJECT_VERIFICATION_STATUSES = {
-  VERIFIED: 'verified',
-  DRAFT: 'draft',
-  SUBMITTED: 'submitted',
-  REJECTED: 'rejected',
-};
+export enum PROJECT_VERIFICATION_STATUSES {
+  VERIFIED = 'verified',
+  DRAFT = 'draft',
+  SUBMITTED = 'submitted',
+  REJECTED = 'rejected',
+}
 
 export const PROJECT_VERIFICATION_STEPS = {
   // Order of these steps are important, please see https://github.com/Giveth/giveth-dapps-v2/issues/893
@@ -131,7 +131,7 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @Index()
   @Field(type => Project)
-  @OneToOne(type => Project)
+  @ManyToOne(type => Project)
   @JoinColumn()
   project: Project;
 
@@ -169,9 +169,13 @@ export class ProjectVerificationForm extends BaseEntity {
   )
   socialProfiles?: SocialProfile[];
 
-  @Field()
-  @Column('text', { default: PROJECT_VERIFICATION_STATUSES.DRAFT })
-  status: string;
+  @Field(type => String, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: PROJECT_VERIFICATION_STATUSES,
+    default: PROJECT_VERIFICATION_STATUSES.DRAFT,
+  })
+  status: PROJECT_VERIFICATION_STATUSES;
 
   @UpdateDateColumn()
   updatedAt: Date;

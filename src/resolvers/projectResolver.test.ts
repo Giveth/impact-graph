@@ -46,9 +46,11 @@ import { NETWORK_IDS } from '../provider';
 import {
   addNewProjectAddress,
   findAllRelatedAddressByWalletAddress,
-  findRelatedAddressByWalletAddress,
 } from '../repositories/projectAddressRepository';
-import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import {
+  PROJECT_VERIFICATION_STATUSES,
+  ProjectVerificationForm,
+} from '../entities/projectVerificationForm';
 import { MainCategory } from '../entities/mainCategory';
 
 describe('createProject test cases --->', createProjectTestCases);
@@ -890,7 +892,7 @@ function projectsByUserIdTestCases() {
     const verificationForm = await ProjectVerificationForm.create({
       project: project1,
       user,
-      status: 'draft',
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
 
     const accessToken = await generateTestAccessToken(user!.id);
@@ -3562,7 +3564,7 @@ function projectBySlugTestCases() {
     const verificationForm = await ProjectVerificationForm.create({
       project: project1,
       user,
-      status: 'draft',
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
 
     const accessToken = await generateTestAccessToken(user!.id);

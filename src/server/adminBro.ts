@@ -210,20 +210,12 @@ export const setSocialProfiles: After<ActionResponse> = async (
   // both cases for projectVerificationForms and projects' ids
   const projectId = record.params.projectId || record.params.id;
 
-  const projectSocials = (await findSocialProfilesByProjectId({ projectId }))
-    .map(
-      social =>
-        `${social.socialNetwork}  ---> id =  ${social.socialNetworkId}  ${
-          social.name ? 'name : ' + social.name + '--->' : ''
-        } : ${social.isVerified ? 'verified' : 'not verified'}`,
-    )
-    .join(' , ');
-
+  const socials = await findSocialProfilesByProjectId({ projectId });
   response.record = {
     ...record,
     params: {
       ...record.params,
-      socials: projectSocials,
+      socials,
     },
   };
   return response;
@@ -326,6 +318,11 @@ const getAdminBroInstance = async () => {
       {
         resource: ProjectVerificationForm,
         options: {
+          sort: {
+            direction: 'desc',
+            sortBy: 'updatedAt',
+          },
+          filter: {},
           properties: {
             id: {
               isVisible: {
@@ -347,8 +344,8 @@ const getAdminBroInstance = async () => {
             },
             lastStep: {
               isVisible: {
-                list: true,
-                filter: true,
+                list: false,
+                filter: false,
                 show: true,
                 edit: false,
                 new: false,
@@ -409,13 +406,16 @@ const getAdminBroInstance = async () => {
               },
             },
             socials: {
-              type: 'string',
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
                 show: true,
                 edit: false,
                 new: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/VerificationFormSocials'),
               },
             },
             personalInfo: {
@@ -440,15 +440,11 @@ const getAdminBroInstance = async () => {
                 edit: false,
                 new: false,
               },
-            },
-            'projectRegistry.isNonProfitOrganization': { type: 'boolean' },
-            'projectRegistry.organizationCountry': { type: 'string' },
-            'projectRegistry.organizationWebsite': { type: 'string' },
-            'projectRegistry.organizationDescription': { type: 'string' },
-            'projectRegistry.organizationName': { type: 'string' },
-            'projectRegistry.attachments': {
-              type: 'string',
-              isArray: true,
+              components: {
+                show: AdminBro.bundle(
+                  './components/VerificationFormProjectRegistry',
+                ),
+              },
             },
             projectContacts: {
               type: 'mixed',
@@ -464,7 +460,7 @@ const getAdminBroInstance = async () => {
             'projectContacts.name': { type: 'string' },
             'projectContacts.url': { type: 'string' },
             milestones: {
-              type: 'mixed',
+              // type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
@@ -472,11 +468,12 @@ const getAdminBroInstance = async () => {
                 edit: false,
                 new: false,
               },
+              components: {
+                show: AdminBro.bundle(
+                  './components/VerificationFormMilestones',
+                ),
+              },
             },
-            'milestones.foundationDate': { type: 'string' },
-            'milestones.mission': { type: 'string' },
-            'milestones.achievedMilestones': { type: 'string' },
-            'milestones.achievedMilestonesProof': { type: 'string' },
             managingFunds: {
               type: 'mixed',
               isVisible: {
@@ -929,13 +926,16 @@ const getAdminBroInstance = async () => {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             socials: {
-              type: 'string',
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
                 show: true,
                 edit: false,
                 new: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/VerificationFormSocials'),
               },
             },
             qualityScore: {
@@ -1690,7 +1690,7 @@ export const verifySingleVerificationForm = async (
       ![
         PROJECT_VERIFICATION_STATUSES.REJECTED,
         PROJECT_VERIFICATION_STATUSES.SUBMITTED,
-      ].includes(verificationFormInDb?.status as string)
+      ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
     ) {
       throw new Error(
         errorMessages.YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS,
@@ -1763,7 +1763,7 @@ export const makeEditableByUser = async (
       ![
         PROJECT_VERIFICATION_STATUSES.REJECTED,
         PROJECT_VERIFICATION_STATUSES.SUBMITTED,
-      ].includes(verificationFormInDb?.status as string)
+      ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
     ) {
       throw new Error(
         errorMessages.YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS,
