@@ -55,6 +55,7 @@ export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
       const username = meResult?.data?.data?.username as string;
       return {
         username,
+        link: `https://twitter.com/${username}`,
         name: meResult?.data?.data?.name as string,
       };
     } catch (e) {

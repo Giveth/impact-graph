@@ -210,20 +210,12 @@ export const setSocialProfiles: After<ActionResponse> = async (
   // both cases for projectVerificationForms and projects' ids
   const projectId = record.params.projectId || record.params.id;
 
-  const projectSocials = (await findSocialProfilesByProjectId({ projectId }))
-    .map(
-      social =>
-        `${social.socialNetwork}  ---> id =  ${social.socialNetworkId}  ${
-          social.name ? 'name : ' + social.name + '--->' : ''
-        } : ${social.isVerified ? 'verified' : 'not verified'}`,
-    )
-    .join(' , ');
-
+  const socials = await findSocialProfilesByProjectId({ projectId });
   response.record = {
     ...record,
     params: {
       ...record.params,
-      socials: projectSocials,
+      socials,
     },
   };
   return response;
@@ -414,13 +406,16 @@ const getAdminBroInstance = async () => {
               },
             },
             socials: {
-              type: 'string',
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
                 show: true,
                 edit: false,
                 new: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/VerificationFormSocials'),
               },
             },
             personalInfo: {
@@ -931,13 +926,16 @@ const getAdminBroInstance = async () => {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             socials: {
-              type: 'string',
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
                 show: true,
                 edit: false,
                 new: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/VerificationFormSocials'),
               },
             },
             qualityScore: {

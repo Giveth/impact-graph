@@ -8,6 +8,7 @@ export const createSocialProfile = async (params: {
   projectVerificationId: number;
   socialNetwork: string;
   name?: string;
+  link?: string;
   socialNetworkId: string;
   isVerified: boolean;
 }): Promise<SocialProfile> => {
@@ -15,6 +16,7 @@ export const createSocialProfile = async (params: {
     projectVerificationId,
     socialNetworkId,
     name,
+    link,
     isVerified,
     socialNetwork,
   } = params;
@@ -29,6 +31,7 @@ export const createSocialProfile = async (params: {
     socialNetworkId,
     isVerified,
     name,
+    link,
   }).save();
 };
 
