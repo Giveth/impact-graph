@@ -11,7 +11,9 @@ const VerificationFormMilestones = props => {
       proofs.push(props.record.params[key])
     }
   })
-
+  const foundationDate = props?.record?.params?.['milestones.foundationDate'] || ''
+  const achievedMilestones = props?.record?.params?.['milestones.achievedMilestones'] || ''
+  const mission = props?.record?.params?.['milestones.mission'] || ''
   return (
     <section className='sc-dIsAE lcuJrN admin-bro_Box'>
       <label className='sc-dlnjPT fyQNXW admin-bro_Label'>Project Milestones</label>
@@ -21,19 +23,19 @@ const VerificationFormMilestones = props => {
             <label className='sc-dlnjPT fyQNXW admin-bro_Label'>
             Foundation date
             </label>
-            {props?.record?.params?.['milestones.foundationDate'] || ''}
+            {foundationDate}
           </section>
           <section className='sc-dIsAE lcuJrN admin-bro_Box'>
             <label className='sc-dlnjPT fyQNXW admin-bro_Label'>
             Mission
             </label>
-            {props?.record?.params?.['milestones.mission'] || ''}
+            {mission}
           </section>
           <section className='sc-dIsAE lcuJrN admin-bro_Box'>
             <label className='sc-dlnjPT fyQNXW admin-bro_Label'>
               Achieved Milestones
             </label>
-            {props?.record?.params?.['milestones.achievedMilestones'] || ''}
+            {achievedMilestones}
           </section>
 
           <section className='sc-dIsAE lcuJrN admin-bro_Box'>

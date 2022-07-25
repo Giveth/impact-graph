@@ -445,15 +445,11 @@ const getAdminBroInstance = async () => {
                 edit: false,
                 new: false,
               },
-            },
-            'projectRegistry.isNonProfitOrganization': { type: 'boolean' },
-            'projectRegistry.organizationCountry': { type: 'string' },
-            'projectRegistry.organizationWebsite': { type: 'string' },
-            'projectRegistry.organizationDescription': { type: 'string' },
-            'projectRegistry.organizationName': { type: 'string' },
-            'projectRegistry.attachments': {
-              type: 'string',
-              isArray: true,
+              components: {
+                show: AdminBro.bundle(
+                  './components/VerificationFormProjectRegistry',
+                ),
+              },
             },
             projectContacts: {
               type: 'mixed',
