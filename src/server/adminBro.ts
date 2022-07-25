@@ -326,6 +326,11 @@ const getAdminBroInstance = async () => {
       {
         resource: ProjectVerificationForm,
         options: {
+          sort: {
+            direction: 'desc',
+            sortBy: 'updatedAt',
+          },
+          filter: {},
           properties: {
             id: {
               isVisible: {
@@ -347,8 +352,8 @@ const getAdminBroInstance = async () => {
             },
             lastStep: {
               isVisible: {
-                list: true,
-                filter: true,
+                list: false,
+                filter: false,
                 show: true,
                 edit: false,
                 new: false,
@@ -464,7 +469,7 @@ const getAdminBroInstance = async () => {
             'projectContacts.name': { type: 'string' },
             'projectContacts.url': { type: 'string' },
             milestones: {
-              type: 'mixed',
+              // type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
@@ -472,11 +477,12 @@ const getAdminBroInstance = async () => {
                 edit: false,
                 new: false,
               },
+              components: {
+                show: AdminBro.bundle(
+                  './components/VerificationFormMilestones',
+                ),
+              },
             },
-            'milestones.foundationDate': { type: 'string' },
-            'milestones.mission': { type: 'string' },
-            'milestones.achievedMilestones': { type: 'string' },
-            'milestones.achievedMilestonesProof': { type: 'string' },
             managingFunds: {
               type: 'mixed',
               isVisible: {
