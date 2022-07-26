@@ -1,60 +1,57 @@
 import React from 'react'
 import { withTheme } from 'styled-components'
+import { Section, Label, Link } from '@admin-bro/design-system'
 
 const VerificationFormSocials = props => {
-  console.log('VerificationFormSocials props.record.params', props.record.params)
   const socials = props?.record?.params?.socials
 
   return (
-    <section className='sc-dIsAE lcuJrN admin-bro_Box'>
-      <label className='sc-dlnjPT fyQNXW admin-bro_Label'>Project Socials</label>
-      <section className='sc-dIsAE sc-ezzayL fbPpRS iCFaRU admin-bro_Section'>
-        <section className='sc-dIsAE fbPpRS admin-bro_Box'>
+    <div>
+      <Label>Project Socials</Label>
+      <Section>
+        {socials.map(social => {
+          const { link, name, socialNetworkId, isVerified, socialNetwork } = social
+          return (
+            <div key={socialNetworkId}>
+              <br />
 
-          {socials.map(social => {
-            const { link, name, socialNetworkId, isVerified, socialNetwork } = social
-            return (
-              <div key={socialNetworkId}>
-                <br />
-                <section className='sc-dIsAE sc-ezzayL fbPpRS iCFaRU admin-bro_Section'>
-                  <h1>
-                    {socialNetwork}
-                  </h1>
-                  <br />
-                  <section className='sc-dIsAE lcuJrN admin-bro_Box'>
-                    <label className='sc-dlnjPT fyQNXW admin-bro_Label'>
+              <h1>
+                {socialNetwork}
+              </h1>
+              <br />
+              <Section>
+                <Label>
                     Name
-                    </label>
-                    {name || ''}
-                  </section>
-                  <section className='sc-dIsAE lcuJrN admin-bro_Box'>
-                    <label className='sc-dlnjPT fyQNXW admin-bro_Label'>
+                </Label>
+                {name || ''}
+              </Section>
+              <Section>
+                <Label>
                     Social network id
-                    </label>
-                    {socialNetworkId}
-                  </section>
-                  <section className='sc-dIsAE lcuJrN admin-bro_Box'>
-                    <label className='sc-dlnjPT fyQNXW admin-bro_Label'>
+                </Label>
+                {socialNetworkId}
+              </Section>
+              <Section>
+                <Label>
                     Verified
-                    </label>
-                    <span fontSize='sm' className='sc-bdnylx efSokc admin-bro_Badge'>{isVerified ? 'Yes' : 'No'}</span>
-                  </section>
-                  <section className='sc-dIsAE lcuJrN admin-bro_Box'>
-                    <label className='sc-dlnjPT fyQNXW admin-bro_Label'>
+                </Label>
+                <span fontSize='sm' className='sc-bdnylx efSokc admin-bro_Badge'>{isVerified ? 'Yes' : 'No'}</span>
+              </Section>
+              <Section>
+                <Label>
                     Link
-                    </label>
-                    <a href={link || ''}>{link || ''}</a>
-                  </section>
+                </Label>
+                <Link href={link || ''}>{link || ''}</Link>
+              </Section>
 
-                </section>
-              </div>
+            </div>
 
-            )
-          })}
+          )
+        })}
 
-        </section>
-      </section>
-    </section>
+      </Section>
+      <br/>
+    </div>
   )
 }
 
