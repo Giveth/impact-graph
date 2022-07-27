@@ -156,7 +156,7 @@ export const updateProjectVerificationStatus = async (params: {
 
 export const updateProjectVerificationLastStep = async (params: {
   projectVerificationId: number;
-  lastStep: string;
+  lastStep: string | null;
 }): Promise<ProjectVerificationForm> => {
   const { lastStep, projectVerificationId } = params;
   const projectVerificationForm = await findProjectVerificationFormById(

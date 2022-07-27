@@ -37,12 +37,13 @@ const updateLastStep = async (params: {
   step: string;
 }): Promise<ProjectVerificationForm> => {
   const { step, projectVerificationForm } = params;
-  if (
-    step === PROJECT_VERIFICATION_STEPS.PERSONAL_INFO &&
-    !projectVerificationForm.emailConfirmed
-  ) {
-    // In this case we do not update last step https://github.com/Giveth/impact-graph/issues/567
-    return projectVerificationForm;
+  if (!projectVerificationForm.emailConfirmed) {
+    //  https://github.com/Giveth/impact-graph/issues/567, If user didn't confirmed his/her email, we
+    // set lastStep as null , so when they redirect verification form in frontend they would redirect to personalInfo page
+    return updateProjectVerificationLastStep({
+      projectVerificationId: projectVerificationForm.id,
+      lastStep: null,
+    });
   }
   const lastStep = projectVerificationForm.lastStep;
   const stepsArray = Object.values(PROJECT_VERIFICATION_STEPS);

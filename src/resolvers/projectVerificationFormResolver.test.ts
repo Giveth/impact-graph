@@ -288,6 +288,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const projectVerification = await ProjectVerificationForm.create({
       project,
       user,
+      emailConfirmed: true,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
@@ -331,7 +332,7 @@ function updateProjectVerificationFormMutationTestCases() {
       PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS,
     );
   });
-  it('should update project verification with personalinfo form successfully', async () => {
+  it('should update project verification with personalInfo form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -383,7 +384,7 @@ function updateProjectVerificationFormMutationTestCases() {
     );
     assert.isNotOk(result.data.data.updateProjectVerificationForm.lastStep);
   });
-  it('should update project verification with personalinfo form successfully and last step should get updated', async () => {
+  it('should update project verification with personalInfo form successfully and last step should get updated', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -452,6 +453,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -506,6 +508,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -564,6 +567,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -642,6 +646,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -914,6 +919,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY;
     await projectVerification.save();
@@ -1210,7 +1216,7 @@ function projectVerificationSendEmailConfirmationTestCases() {
     fullName: 'test',
     walletAddress: 'xxxxx',
   };
-  it('should send email confirmation for project verification for personalinfo step', async () => {
+  it('should send email confirmation for project verification for personalInfo step', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1314,7 +1320,7 @@ function projectVerificationConfirmEmailTestCases() {
     walletAddress: 'xxxxx',
   };
 
-  it('should confirm email for project verification in personalinfo step', async () => {
+  it('should confirm email for project verification in personalInfo step', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1376,7 +1382,7 @@ function projectVerificationConfirmEmailTestCases() {
       result.data.data.projectVerificationConfirmEmail.emailConfirmedAt,
     );
   });
-  it('should throw error when confirm email token invalid for project verification in personalinfo step', async () => {
+  it('should throw error when confirm email token invalid for project verification in personalInfo step', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
