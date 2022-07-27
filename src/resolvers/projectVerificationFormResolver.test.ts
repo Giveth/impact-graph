@@ -1371,6 +1371,10 @@ function projectVerificationConfirmEmailTestCases() {
     );
     assert.isOk(result.data.data.projectVerificationConfirmEmail);
     assert.equal(
+      result.data.data.projectVerificationConfirmEmail.lastStep,
+      PROJECT_VERIFICATION_STEPS.PERSONAL_INFO,
+    );
+    assert.equal(
       result.data.data.projectVerificationConfirmEmail.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );

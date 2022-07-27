@@ -1136,6 +1136,7 @@ export const projectVerificationConfirmEmail = `
               slug
             }
             status
+            lastStep
           }
         }
 `;
