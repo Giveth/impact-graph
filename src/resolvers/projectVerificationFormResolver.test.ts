@@ -381,6 +381,63 @@ function updateProjectVerificationFormMutationTestCases() {
       result.data.data.updateProjectVerificationForm.personalInfo.walletAddress,
       personalInfo.walletAddress,
     );
+    assert.isNotOk(result.data.data.updateProjectVerificationForm.lastStep);
+  });
+  it('should update project verification with personalinfo form successfully and last step should get updated', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.PERSONAL_INFO,
+            personalInfo,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.personalInfo.email,
+      personalInfo.email,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.personalInfo.fullName,
+      personalInfo.fullName,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.personalInfo.walletAddress,
+      personalInfo.walletAddress,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.lastStep,
+      PROJECT_VERIFICATION_STEPS.PERSONAL_INFO,
+    );
   });
   it('should update project verification with projectRegistry form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
