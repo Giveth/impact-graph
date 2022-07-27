@@ -11,7 +11,7 @@ const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
-const tokenSymbolRegex = /^[a-zA-Z]{3,10}$/;
+const tokenSymbolRegex = /^[a-zA-Z0-9]{3,10}$/;
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
   const validationResult = schema.validate(data);
