@@ -95,7 +95,6 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationToken = null;
 
       await projectVerificationForm.save();
-
       logger.error('confirmEmail() error', e);
       throw e;
     }
