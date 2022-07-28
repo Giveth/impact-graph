@@ -479,6 +479,41 @@ function projectsTestCases() {
       ].verified,
     );
   });
+  it('should return projects, filter by verified true and acceptGiv false', async () => {
+    const givingBlocksId = '123';
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      givingBlocksId,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        filterBy: [
+          {
+            field: 'Verified',
+            value: true,
+          },
+          {
+            field: 'AcceptGiv',
+            value: false,
+          },
+        ],
+      },
+    });
+    assert.isTrue(result.data.data.projects.projects[0].verified);
+    assert.isTrue(
+      result.data.data.projects.projects[0].givingBlocksId === givingBlocksId,
+    );
+    assert.isTrue(
+      result.data.data.projects.projects[
+        result.data.data.projects.projects.length - 1
+      ].verified,
+    );
+  });
   it('should return projects, filter by verified, false', async () => {
     await saveProjectDirectlyToDb({
       ...createProjectData(),
