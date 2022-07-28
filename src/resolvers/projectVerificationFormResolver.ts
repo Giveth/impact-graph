@@ -20,6 +20,7 @@ import {
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
+  PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
 import { updateProjectVerificationFormByUser } from '../services/projectVerificationFormService';
 import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdateInput';
@@ -68,6 +69,11 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationToken = null;
       projectVerificationForm.emailConfirmedAt = new Date();
       projectVerificationForm.emailConfirmed = true;
+      if (!projectVerificationForm.lastStep) {
+        // only incremental, parting from null
+        projectVerificationForm.lastStep =
+          PROJECT_VERIFICATION_STEPS.PERSONAL_INFO;
+      }
       await projectVerificationForm.save();
 
       return projectVerificationForm;
@@ -89,7 +95,6 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationToken = null;
 
       await projectVerificationForm.save();
-
       logger.error('confirmEmail() error', e);
       throw e;
     }
