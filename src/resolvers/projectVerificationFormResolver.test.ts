@@ -957,7 +957,7 @@ function updateProjectVerificationFormMutationTestCases() {
 }
 
 function getCurrentProjectVerificationFormTestCases() {
-  it('should throw error when the project is already verified', async () => {
+  it('should return verificationForm when the project is already verified', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -988,8 +988,8 @@ function getCurrentProjectVerificationFormTestCases() {
       },
     );
     assert.equal(
-      result.data.errors[0].message,
-      errorMessages.PROJECT_IS_ALREADY_VERIFIED,
+      result.data.data.getCurrentProjectVerificationForm.status,
+      projectVerificationForm.status,
     );
   });
   it('should get current project verification form with submitted status', async () => {
@@ -1006,6 +1006,116 @@ function getCurrentProjectVerificationFormTestCases() {
       userId: user.id,
     });
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm.save();
+    const socialProfileInfo = {
+      projectVerificationId: projectVerificationForm.id,
+      isVerified: true,
+      socialNetwork: SOCIAL_NETWORKS.DISCORD,
+      socialNetworkId: generateRandomString(),
+    };
+    await createSocialProfile(socialProfileInfo);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: getCurrentProjectVerificationFormQuery,
+        variables: {
+          slug: project.slug,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.status,
+      projectVerificationForm.status,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.id,
+      projectVerificationForm.id,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles.length,
+      1,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles[0]
+        .socialNetworkId,
+      socialProfileInfo.socialNetworkId,
+    );
+  });
+  it('should get current project verification form with rejected status', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.REJECTED;
+    await projectVerificationForm.save();
+    const socialProfileInfo = {
+      projectVerificationId: projectVerificationForm.id,
+      isVerified: true,
+      socialNetwork: SOCIAL_NETWORKS.DISCORD,
+      socialNetworkId: generateRandomString(),
+    };
+    await createSocialProfile(socialProfileInfo);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: getCurrentProjectVerificationFormQuery,
+        variables: {
+          slug: project.slug,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.status,
+      projectVerificationForm.status,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.id,
+      projectVerificationForm.id,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles.length,
+      1,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles[0]
+        .socialNetworkId,
+      socialProfileInfo.socialNetworkId,
+    );
+  });
+  it('should get current project verification form with verified status', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
     await projectVerificationForm.save();
     const socialProfileInfo = {
       projectVerificationId: projectVerificationForm.id,

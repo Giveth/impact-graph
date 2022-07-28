@@ -231,23 +231,13 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   return projectVerificationForm?.save();
 };
 
-export const getInProgressProjectVerificationRequest = async (
+export const getVerificationFormByProjectId = async (
   projectId: number,
 ): Promise<ProjectVerificationForm | undefined> => {
   return ProjectVerificationForm.createQueryBuilder('project_verification_form')
     .where(`project_verification_form.projectId=:projectId`, {
       projectId,
     })
-    .andWhere(
-      // https://stackoverflow.com/a/69165948/4650625
-      new Brackets(qb => {
-        qb.where('status = :draft', {
-          draft: PROJECT_VERIFICATION_STATUSES.DRAFT,
-        }).orWhere('status = :submitted', {
-          submitted: PROJECT_VERIFICATION_STATUSES.SUBMITTED,
-        });
-      }),
-    )
     .leftJoinAndSelect('project_verification_form.project', 'project')
     .leftJoinAndSelect(
       'project_verification_form.socialProfiles',

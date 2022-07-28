@@ -131,7 +131,7 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @Index()
   @Field(type => Project)
-  @ManyToOne(type => Project)
+  @OneToOne(type => Project)
   @JoinColumn()
   project: Project;
 

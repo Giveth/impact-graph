@@ -15,7 +15,7 @@ import {
   createProjectVerificationForm,
   findProjectVerificationFormByEmailConfirmationToken,
   findProjectVerificationFormById,
-  getInProgressProjectVerificationRequest,
+  getVerificationFormByProjectId,
 } from '../repositories/projectVerificationRepository';
 import {
   PROJECT_VERIFICATION_STATUSES,
@@ -203,9 +203,8 @@ export class ProjectVerificationFormResolver {
         throw new Error(errorMessages.PROJECT_IS_ALREADY_VERIFIED);
       }
 
-      const inProjectVerificationRequest =
-        await getInProgressProjectVerificationRequest(project.id);
-      if (inProjectVerificationRequest) {
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (verificationForm) {
         throw new Error(
           errorMessages.THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT,
         );
@@ -281,21 +280,17 @@ export class ProjectVerificationFormResolver {
       if (!project) {
         throw new Error(errorMessages.PROJECT_NOT_FOUND);
       }
-      if (project.verified) {
-        throw new Error(errorMessages.PROJECT_IS_ALREADY_VERIFIED);
-      }
       if (Number(project.admin) !== userId) {
         throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
       }
 
-      const inProjectVerificationRequest =
-        await getInProgressProjectVerificationRequest(project.id);
-      if (!inProjectVerificationRequest) {
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (!verificationForm) {
         throw new Error(
           errorMessages.THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT,
         );
       }
-      return inProjectVerificationRequest;
+      return verificationForm;
     } catch (e) {
       logger.error('getCurrentProjectVerificationForm() error', e);
       throw e;

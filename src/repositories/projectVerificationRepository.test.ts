@@ -16,7 +16,7 @@ import {
 import {
   createProjectVerificationForm,
   findProjectVerificationFormById,
-  getInProgressProjectVerificationRequest,
+  getVerificationFormByProjectId,
   makeFormDraft,
   updateManagingFundsOfProjectVerification,
   updateMilestonesOfProjectVerification,
@@ -303,8 +303,9 @@ function getInProgressProjectVerificationRequestTestCases() {
     });
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
     await projectVerificationForm.save();
-    const foundProjectVerificationForm =
-      await getInProgressProjectVerificationRequest(project.id);
+    const foundProjectVerificationForm = await getVerificationFormByProjectId(
+      project.id,
+    );
     assert.isOk(foundProjectVerificationForm);
     assert.equal(foundProjectVerificationForm?.id, projectVerificationForm.id);
     assert.equal(
@@ -325,8 +326,9 @@ function getInProgressProjectVerificationRequestTestCases() {
     });
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
     await projectVerificationForm.save();
-    const foundProjectVerificationForm =
-      await getInProgressProjectVerificationRequest(project.id);
+    const foundProjectVerificationForm = await getVerificationFormByProjectId(
+      project.id,
+    );
     assert.isOk(foundProjectVerificationForm);
     assert.equal(foundProjectVerificationForm?.id, projectVerificationForm.id);
     assert.equal(
