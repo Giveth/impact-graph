@@ -409,19 +409,19 @@ export class ProjectResolver {
         filterByArray.forEach(filterBy => {
           if (filterBy.field === 'givingBlocksId') {
             const acceptGiv = filterBy.value ? 'IS' : 'IS NOT';
-            return subquery.orWhere(
+            return subquery.andWhere(
               `project.${filterBy.field} ${acceptGiv} NULL`,
             );
           }
 
           if (filterBy.field === 'traceCampaignId') {
             const isRequested = filterBy.value ? 'IS NOT' : 'IS';
-            return subquery.orWhere(
+            return subquery.andWhere(
               `project.${filterBy.field} ${isRequested} NULL`,
             );
           }
 
-          return subquery.orWhere(
+          return subquery.andWhere(
             `project.${filterBy.field} = ${filterBy.value}`,
           );
         });
