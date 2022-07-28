@@ -349,7 +349,7 @@ export const fetchAllProjectsQuery = `
     $take: Int
     $skip: Int
     $orderBy: OrderBy
-    $filterBy: FilterBy
+    $filterBy: [FilterBy]
     $searchTerm: String
     $category: String
     $mainCategory: String

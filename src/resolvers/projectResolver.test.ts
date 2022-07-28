@@ -464,10 +464,12 @@ function projectsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        filterBy: {
-          field: 'Verified',
-          value: true,
-        },
+        filterBy: [
+          {
+            field: 'Verified',
+            value: true,
+          },
+        ],
       },
     });
     assert.isTrue(result.data.data.projects.projects[0].verified);
@@ -488,10 +490,12 @@ function projectsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        filterBy: {
-          field: 'Verified',
-          value: false,
-        },
+        filterBy: [
+          {
+            field: 'Verified',
+            value: false,
+          },
+        ],
       },
     });
     assert.isNotTrue(result.data.data.projects.projects[0].verified);
@@ -551,10 +555,12 @@ function projectsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        filterBy: {
-          field: 'Traceable',
-          value: true,
-        },
+        filterBy: [
+          {
+            field: 'Traceable',
+            value: true,
+          },
+        ],
       },
     });
     assert.exists(result.data.data.projects.projects[0].traceCampaignId);
@@ -574,10 +580,12 @@ function projectsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        filterBy: {
-          field: 'Traceable',
-          value: false,
-        },
+        filterBy: [
+          {
+            field: 'Traceable',
+            value: false,
+          },
+        ],
       },
     });
     assert.notExists(result.data.data.projects.projects[0].traceCampaignId);

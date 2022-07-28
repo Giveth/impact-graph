@@ -185,11 +185,11 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   mainCategory: string;
 
-  @Field(type => FilterBy, {
+  @Field(type => [FilterBy], {
     nullable: true,
-    defaultValue: { field: null, value: null },
+    defaultValue: [],
   })
-  filterBy: FilterBy;
+  filterBy: FilterBy[];
 
   @Field({ nullable: true })
   admin?: number;
@@ -400,22 +400,35 @@ export class ProjectResolver {
 
   static addFilterQuery(
     query: SelectQueryBuilder<Project>,
-    filter: string,
-    filterValue: boolean,
+    filterByArray: FilterBy[],
   ) {
-    if (!filter) return query;
+    if (filterByArray.length === 0) return query;
 
-    if (filter === 'givingBlocksId') {
-      const acceptGiv = filterValue ? 'IS' : 'IS NOT';
-      return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
-    }
+    query = query.andWhere(
+      new Brackets(subquery => {
+        filterByArray.forEach(filterBy => {
+          if (filterBy.field === 'givingBlocksId') {
+            const acceptGiv = filterBy.value ? 'IS' : 'IS NOT';
+            return subquery.orWhere(
+              `project.${filterBy.field} ${acceptGiv} NULL`,
+            );
+          }
 
-    if (filter === 'traceCampaignId') {
-      const isRequested = filterValue ? 'IS NOT' : 'IS';
-      return query.andWhere(`project.${filter} ${isRequested} NULL`);
-    }
+          if (filterBy.field === 'traceCampaignId') {
+            const isRequested = filterBy.value ? 'IS NOT' : 'IS';
+            return subquery.orWhere(
+              `project.${filterBy.field} ${isRequested} NULL`,
+            );
+          }
 
-    return query.andWhere(`project.${filter} = ${filterValue}`);
+          return subquery.orWhere(
+            `project.${filterBy.field} = ${filterBy.value}`,
+          );
+        });
+      }),
+    );
+
+    return query;
   }
 
   private static addUserReaction<T>(
@@ -507,11 +520,7 @@ export class ProjectResolver {
     query = ProjectResolver.addCategoryQuery(query, category);
     query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
     query = ProjectResolver.addSearchQuery(query, searchTerm);
-    query = ProjectResolver.addFilterQuery(
-      query,
-      filterBy?.field,
-      filterBy?.value,
-    );
+    query = ProjectResolver.addFilterQuery(query, filterBy);
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     switch (orderBy.field) {
