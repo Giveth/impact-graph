@@ -117,6 +117,7 @@ enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
   Traceable = 'traceCampaignId',
+  GivingBlock = 'fromGivingBlock',
 }
 
 enum OrderDirection {
@@ -448,6 +449,10 @@ export class ProjectResolver {
           if (filter === 'givingBlocksId') {
             // only giving Blocks do not accept Giv
             return subquery.andWhere(`project.${filter} IS NULL`);
+          }
+
+          if (filter === 'fromGivingBlock') {
+            return subquery.andWhere('project.givingBlocksId IS NOT NULL');
           }
 
           if (filter === 'traceCampaignId') {

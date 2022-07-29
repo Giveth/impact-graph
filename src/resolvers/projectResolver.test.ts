@@ -1050,6 +1050,45 @@ function allProjectsTestCases() {
       ].traceCampaignId,
     );
   });
+  it('should return projects, filter by acceptGiv, true', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptGiv'],
+      },
+    });
+    assert.notExists(result.data.data.allProjects.projects[0].givingblocksId);
+    assert.notExists(
+      result.data.data.allProjects.projects[
+        result.data.data.allProjects.projects.length - 1
+      ].givingBlocksId,
+    );
+  });
+  it('should return projects, filter from the givingblocks', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      givingBlocksId: '1234355',
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['GivingBlock'],
+      },
+    });
+    assert.exists(result.data.data.allProjects.projects[0].givingBlocksId);
+    assert.exists(
+      result.data.data.allProjects.projects[
+        result.data.data.allProjects.projects.length - 1
+      ].givingBlocksId,
+    );
+  });
   it('should return projects, sort by reactions, DESC', async () => {
     await saveProjectDirectlyToDb({
       ...createProjectData(),
