@@ -5,6 +5,7 @@ import {
   Project,
   ProjectUpdate,
   ProjStatus,
+  SortingField,
 } from '../entities/project';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -123,6 +124,11 @@ enum OrderDirection {
   DESC = 'DESC',
 }
 
+registerEnumType(SortingField, {
+  name: 'SortingField',
+  description: 'Sort by type',
+});
+
 registerEnumType(FilterField, {
   name: 'FilterField',
   description: 'Filter by field',
@@ -185,11 +191,23 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   mainCategory: string;
 
-  @Field(type => [FilterBy], {
+  @Field(type => FilterBy, {
+    nullable: true,
+    defaultValue: { field: null, value: null },
+  })
+  filterBy: FilterBy;
+
+  @Field(type => [FilterField], {
     nullable: true,
     defaultValue: [],
   })
-  filterBy: FilterBy[];
+  filters: FilterField[];
+
+  @Field(type => SortingField, {
+    nullable: true,
+    defaultValue: SortingField.Newest,
+  })
+  sortingBy: SortingField;
 
   @Field({ nullable: true })
   admin?: number;
@@ -400,30 +418,43 @@ export class ProjectResolver {
 
   static addFilterQuery(
     query: SelectQueryBuilder<Project>,
-    filterByArray: FilterBy[],
+    filter: string,
+    filterValue: boolean,
   ) {
-    if (filterByArray.length === 0) return query;
+    if (!filter) return query;
+
+    if (filter === 'givingBlocksId') {
+      const acceptGiv = filterValue ? 'IS' : 'IS NOT';
+      return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
+    }
+
+    if (filter === 'traceCampaignId') {
+      const isRequested = filterValue ? 'IS NOT' : 'IS';
+      return query.andWhere(`project.${filter} ${isRequested} NULL`);
+    }
+
+    return query.andWhere(`project.${filter} = ${filterValue}`);
+  }
+
+  static addFiltersQuery(
+    query: SelectQueryBuilder<Project>,
+    filtersArray: FilterField[],
+  ) {
+    if (filtersArray.length === 0) return query;
 
     query = query.andWhere(
       new Brackets(subquery => {
-        filterByArray.forEach(filterBy => {
-          if (filterBy.field === 'givingBlocksId') {
-            const acceptGiv = filterBy.value ? 'IS' : 'IS NOT';
-            return subquery.andWhere(
-              `project.${filterBy.field} ${acceptGiv} NULL`,
-            );
+        filtersArray.forEach(filter => {
+          if (filter === 'givingBlocksId') {
+            // only giving Blocks do not accept Giv
+            return subquery.andWhere(`project.${filter} IS NULL`);
           }
 
-          if (filterBy.field === 'traceCampaignId') {
-            const isRequested = filterBy.value ? 'IS NOT' : 'IS';
-            return subquery.andWhere(
-              `project.${filterBy.field} ${isRequested} NULL`,
-            );
+          if (filter === 'traceCampaignId') {
+            return subquery.andWhere(`project.${filter} IS NOT NULL`);
           }
 
-          return subquery.andWhere(
-            `project.${filterBy.field} = ${filterBy.value}`,
-          );
+          return subquery.andWhere(`project.${filter} = true`);
         });
       }),
     );
@@ -520,7 +551,11 @@ export class ProjectResolver {
     query = ProjectResolver.addCategoryQuery(query, category);
     query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
     query = ProjectResolver.addSearchQuery(query, searchTerm);
-    query = ProjectResolver.addFilterQuery(query, filterBy);
+    query = ProjectResolver.addFilterQuery(
+      query,
+      filterBy?.field,
+      filterBy?.value,
+    );
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     switch (orderBy.field) {
@@ -577,6 +612,71 @@ export class ProjectResolver {
         break;
       default:
         query.orderBy(`project.${orderBy.field}`, orderBy.direction);
+        break;
+    }
+
+    const [projects, totalCount] = await query
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+    return { projects, totalCount, categories };
+  }
+
+  @Query(returns => AllProjects)
+  async allProjects(
+    @Args()
+    {
+      take,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      admin,
+      connectedWalletUserId,
+    }: GetProjectsArgs,
+    @Ctx() { req: { user } }: MyContext,
+  ): Promise<AllProjects> {
+    const categories = await Category.find();
+    let query = this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.users', 'users')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
+      // you can alias it as user but it still is mapped as adminUser
+      // like defined in our project entity
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      );
+
+    // Filters
+    query = ProjectResolver.addCategoryQuery(query, category);
+    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
+    query = ProjectResolver.addSearchQuery(query, searchTerm);
+    query = ProjectResolver.addFiltersQuery(query, filters);
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+    switch (sortingBy) {
+      case SortingField.MostFunded:
+        query.orderBy('project.totalDonations', 'DESC');
+        break;
+      case SortingField.MostLiked:
+        query.orderBy('project.totalReactions', 'DESC');
+        break;
+      case SortingField.Newest:
+        query.orderBy('project.creationDate', 'DESC');
+        break;
+      case SortingField.Oldest:
+        query.orderBy('project.creationDate', 'ASC');
+        break;
+      default:
+        query.orderBy('project.creationDate', 'DESC');
         break;
     }
 

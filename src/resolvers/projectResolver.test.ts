@@ -21,6 +21,7 @@ import {
   editProjectUpdateQuery,
   fetchAllProjectsQuery,
   fetchLikedProjectsQuery,
+  fetchMultiFilterAllProjectsQuery,
   fetchProjectsBySlugQuery,
   fetchProjectUpdatesQuery,
   fetchSimilarProjectsBySlugQuery,
@@ -34,7 +35,12 @@ import {
 } from '../../test/graphqlQueries';
 import { CreateProjectInput, UpdateProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
-import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
+import {
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+  SortingField,
+} from '../entities/project';
 import { Category } from '../entities/category';
 import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -56,7 +62,10 @@ import { MainCategory } from '../entities/mainCategory';
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
 
+// search and filters
 describe('projects test cases --->', projectsTestCases);
+describe('all projects test cases --->', allProjectsTestCases);
+
 describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
 
 describe('deactivateProject test cases --->', deactivateProjectTestCases);
@@ -464,50 +473,13 @@ function projectsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        filterBy: [
-          {
-            field: 'Verified',
-            value: true,
-          },
-        ],
+        filterBy: {
+          field: 'Verified',
+          value: true,
+        },
       },
     });
     assert.isTrue(result.data.data.projects.projects[0].verified);
-    assert.isTrue(
-      result.data.data.projects.projects[
-        result.data.data.projects.projects.length - 1
-      ].verified,
-    );
-  });
-  it('should return projects, filter by verified true and acceptGiv false', async () => {
-    const givingBlocksId = '123';
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      verified: true,
-      givingBlocksId,
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        filterBy: [
-          {
-            field: 'Verified',
-            value: true,
-          },
-          {
-            field: 'AcceptGiv',
-            value: false,
-          },
-        ],
-      },
-    });
-    assert.isTrue(result.data.data.projects.projects[0].verified);
-    assert.isTrue(
-      result.data.data.projects.projects[0].givingBlocksId === givingBlocksId,
-    );
     assert.isTrue(
       result.data.data.projects.projects[
         result.data.data.projects.projects.length - 1
@@ -525,12 +497,10 @@ function projectsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        filterBy: [
-          {
-            field: 'Verified',
-            value: false,
-          },
-        ],
+        filterBy: {
+          field: 'Verified',
+          value: false,
+        },
       },
     });
     assert.isNotTrue(result.data.data.projects.projects[0].verified);
@@ -590,12 +560,10 @@ function projectsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        filterBy: [
-          {
-            field: 'Traceable',
-            value: true,
-          },
-        ],
+        filterBy: {
+          field: 'Traceable',
+          value: true,
+        },
       },
     });
     assert.exists(result.data.data.projects.projects[0].traceCampaignId);
@@ -615,12 +583,10 @@ function projectsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        filterBy: [
-          {
-            field: 'Traceable',
-            value: false,
-          },
-        ],
+        filterBy: {
+          field: 'Traceable',
+          value: false,
+        },
       },
     });
     assert.notExists(result.data.data.projects.projects[0].traceCampaignId);
@@ -920,6 +886,272 @@ function projectsTestCases() {
   //   assert.equal(result.data.data.projects.projects.length, 1);
   //   assert.equal(result.data.data.projects.projects[0].title, title);
   // });
+}
+
+function allProjectsTestCases() {
+  it('should return projects search by owner', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        searchTerm: SEED_DATA.SECOND_USER.name,
+      },
+    });
+
+    const projects = result.data.data.allProjects.projects;
+    const secondUserProjects = await Project.find({
+      admin: String(SEED_DATA.SECOND_USER.id),
+    });
+
+    assert.equal(projects.length, secondUserProjects.length);
+    assert.equal(Number(projects[0]?.admin), SEED_DATA.SECOND_USER.id);
+    assert.isNotEmpty(projects[0].addresses);
+    projects.forEach(project => {
+      assert.isNotOk(project.adminUser.email);
+      assert.isOk(project.adminUser.firstName);
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.categories[0].mainCategory.title);
+    });
+  });
+
+  it('should return projects with correct reaction', async () => {
+    const take = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+
+    // Project has not been liked
+    let result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        take,
+        searchTerm: SEED_DATA.SECOND_PROJECT.title,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    let projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, take);
+    assert.isNull(projects[0]?.reaction);
+
+    // Project has been liked, but connectedWalletUserIs is not filled
+    result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        take,
+        searchTerm: SEED_DATA.FIRST_PROJECT.title,
+      },
+    });
+
+    projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, take);
+    assert.isNull(projects[0]?.reaction);
+
+    // Project has been liked
+    result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        take,
+        searchTerm: SEED_DATA.FIRST_PROJECT.title,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, take);
+    assert.equal(
+      projects[0]?.reaction?.id,
+      REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION.id,
+    );
+    projects.forEach(project => {
+      assert.isNotOk(project.adminUser.email);
+      assert.isOk(project.adminUser.firstName);
+      assert.isOk(project.adminUser.walletAddress);
+    });
+  });
+
+  it('should return projects, sort by creationDate, DESC', async () => {
+    const firstProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const secondProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.Newest,
+      },
+    });
+    assert.equal(
+      Number(result.data.data.allProjects.projects[0].id),
+      secondProject.id,
+    );
+    assert.equal(
+      Number(result.data.data.allProjects.projects[1].id),
+      firstProject.id,
+    );
+  });
+  it('should return projects, sort by creationDate, ASC', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.Oldest,
+      },
+    });
+    const projectsCount = result.data.data.allProjects.projects.length;
+    const firstProjectIsOlder =
+      new Date(result.data.data.allProjects.projects[0].creationDate) <
+      new Date(
+        result.data.data.allProjects.projects[projectsCount - 1].creationDate,
+      );
+    assert.isTrue(firstProjectIsOlder);
+  });
+  it('should return projects, filter by verified, true', async () => {
+    // There is two verified projects so I just need to create a project with verified: false and listed:true
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['Verified'],
+      },
+    });
+    assert.isTrue(result.data.data.allProjects.projects[0].verified);
+    assert.isTrue(
+      result.data.data.allProjects.projects[
+        result.data.data.allProjects.projects.length - 1
+      ].verified,
+    );
+  });
+  it('should return projects, filter by traceable, true', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      traceCampaignId: '1234',
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['Traceable'],
+      },
+    });
+    assert.exists(result.data.data.allProjects.projects[0].traceCampaignId);
+    assert.exists(
+      result.data.data.allProjects.projects[
+        result.data.data.allProjects.projects.length - 1
+      ].traceCampaignId,
+    );
+  });
+  it('should return projects, sort by reactions, DESC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalReactions: 100,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.MostLiked,
+      },
+    });
+    assert.isTrue(
+      result.data.data.allProjects.projects[0].totalReactions >= 100,
+    );
+  });
+  it('should return projects, sort by donations, DESC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalDonations: 100,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.MostFunded,
+      },
+    });
+    assert.isTrue(
+      result.data.data.allProjects.projects[0].totalDonations >= 100,
+    );
+  });
+  it('should return projects, filtered by sub category', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['food5'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        category: 'food5',
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(category => category.name === 'food5'),
+      );
+    });
+  });
+  it('should return projects, filtered by main category', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink2'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        mainCategory: 'drink',
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(
+          category => category.mainCategory.title === 'drink',
+        ),
+      );
+    });
+  });
+  it('should return projects, filtered by main category and sub category at the same time', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink2'],
+    });
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink3'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        mainCategory: 'drink',
+        category: 'drink3',
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(
+          category => category.mainCategory.title === 'drink',
+        ),
+      );
+
+      // Should not return projects with drink2 category
+      assert.isOk(
+        project.categories.find(category => category.name === 'drink3'),
+      );
+    });
+  });
 }
 
 function projectsByUserIdTestCases() {
