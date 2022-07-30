@@ -14,6 +14,7 @@ import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice } from './givPriceService';
 import { findDonationById } from '../repositories/donationRepository';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -263,7 +264,7 @@ export const sendSegmentEventForDonation = async (params: {
     return;
   }
   const donorUser = await findUserById(donation.userId);
-  const projectOwner = await findUserById(Number(project.admin));
+  const projectOwner = project.adminUser;
   if (projectOwner) {
     new DonationTracker(
       donation,
@@ -271,6 +272,10 @@ export const sendSegmentEventForDonation = async (params: {
       projectOwner,
       SegmentEvents.DONATION_RECEIVED,
     ).track();
+    await getNotificationAdapter().donationReceived({
+      donation,
+      project,
+    });
   }
 
   if (donorUser) {
@@ -280,5 +285,10 @@ export const sendSegmentEventForDonation = async (params: {
       donorUser,
       SegmentEvents.MADE_DONATION,
     ).track();
+    await getNotificationAdapter().donationSent({
+      donation,
+      project,
+      donor: donorUser,
+    });
   }
 };

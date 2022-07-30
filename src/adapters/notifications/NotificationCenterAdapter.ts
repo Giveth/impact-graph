@@ -101,7 +101,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
     user: User;
   }): Promise<void> {
-    const { project } = params;
+    const { project, user } = params;
     return this.callSendNotification({
       notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_RECEIVED_HEART,
       email: project.adminUser?.email,
@@ -112,6 +112,8 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       projectId: String(project.id),
       metadata: {
         projectSlug: project.slug,
+        // user is who has liked the project
+        userName: user.name,
       },
     });
   }
