@@ -1023,11 +1023,9 @@ function allProjectsTestCases() {
         filters: ['Verified'],
       },
     });
-    assert.isTrue(result.data.data.allProjects.projects[0].verified);
-    assert.isTrue(
-      result.data.data.allProjects.projects[
-        result.data.data.allProjects.projects.length - 1
-      ].verified,
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.isTrue(project.verified),
     );
   });
   it('should return projects, filter by traceable, true', async () => {
@@ -1043,11 +1041,9 @@ function allProjectsTestCases() {
         filters: ['Traceable'],
       },
     });
-    assert.exists(result.data.data.allProjects.projects[0].traceCampaignId);
-    assert.exists(
-      result.data.data.allProjects.projects[
-        result.data.data.allProjects.projects.length - 1
-      ].traceCampaignId,
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.exists(project.traceCampaignId),
     );
   });
   it('should return projects, filter by acceptGiv, true', async () => {
@@ -1062,11 +1058,10 @@ function allProjectsTestCases() {
         filters: ['AcceptGiv'],
       },
     });
-    assert.notExists(result.data.data.allProjects.projects[0].givingblocksId);
-    assert.notExists(
-      result.data.data.allProjects.projects[
-        result.data.data.allProjects.projects.length - 1
-      ].givingBlocksId,
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      // currently givingBlocks projects doesnt accept GIV
+      assert.notExists(project.givingBlocksId),
     );
   });
   it('should return projects, filter from the givingblocks', async () => {
@@ -1082,11 +1077,9 @@ function allProjectsTestCases() {
         filters: ['GivingBlock'],
       },
     });
-    assert.exists(result.data.data.allProjects.projects[0].givingBlocksId);
-    assert.exists(
-      result.data.data.allProjects.projects[
-        result.data.data.allProjects.projects.length - 1
-      ].givingBlocksId,
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.exists(project.givingBlocksId),
     );
   });
   it('should return projects, sort by reactions, DESC', async () => {

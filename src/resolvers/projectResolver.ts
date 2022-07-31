@@ -444,22 +444,22 @@ export class ProjectResolver {
     if (filtersArray.length === 0) return query;
 
     query = query.andWhere(
-      new Brackets(subquery => {
+      new Brackets(subQuery => {
         filtersArray.forEach(filter => {
-          if (filter === 'givingBlocksId') {
+          if (filter === FilterField.AcceptGiv) {
             // only giving Blocks do not accept Giv
-            return subquery.andWhere(`project.${filter} IS NULL`);
+            return subQuery.andWhere(`project.${filter} IS NULL`);
           }
 
-          if (filter === 'fromGivingBlock') {
-            return subquery.andWhere('project.givingBlocksId IS NOT NULL');
+          if (filter === FilterField.GivingBlock) {
+            return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
           }
 
-          if (filter === 'traceCampaignId') {
-            return subquery.andWhere(`project.${filter} IS NOT NULL`);
+          if (filter === FilterField.Traceable) {
+            return subQuery.andWhere(`project.${filter} IS NOT NULL`);
           }
 
-          return subquery.andWhere(`project.${filter} = true`);
+          return subQuery.andWhere(`project.${filter} = true`);
         });
       }),
     );
