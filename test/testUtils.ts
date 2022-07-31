@@ -125,6 +125,7 @@ export interface CreateProjectData {
   totalTraceDonations?: number;
   totalReactions?: number;
   totalProjectUpdates?: number;
+  givingBlocksId?: string;
   traceCampaignId?: string;
   image?: string;
 }
