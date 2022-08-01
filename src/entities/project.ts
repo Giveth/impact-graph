@@ -57,6 +57,7 @@ export enum SortingField {
   MostLiked = 'MostLiked',
   Newest = 'Newest',
   Oldest = 'Oldest',
+  QualityScore = 'QualityScore',
 }
 
 export enum OrderField {

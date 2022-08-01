@@ -175,6 +175,11 @@ class GetProjectsArgs {
   @Max(50)
   take: number;
 
+  @Field(type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  limit: number;
+
   @Field(type => OrderBy, {
     defaultValue: {
       field: OrderField.QualityScore,
@@ -631,7 +636,7 @@ export class ProjectResolver {
   async allProjects(
     @Args()
     {
-      take,
+      limit,
       skip,
       searchTerm,
       category,
@@ -680,13 +685,16 @@ export class ProjectResolver {
       case SortingField.Oldest:
         query.orderBy('project.creationDate', 'ASC');
         break;
+      case SortingField.QualityScore:
+        query.orderBy('project.qualityScore', 'DESC');
+        break;
       default:
-        query.orderBy('project.creationDate', 'DESC');
+        query.orderBy('project.qualityScore', 'DESC');
         break;
     }
 
     const [projects, totalCount] = await query
-      .take(take)
+      .take(limit)
       .skip(skip)
       .getManyAndCount();
     return { projects, totalCount, categories };

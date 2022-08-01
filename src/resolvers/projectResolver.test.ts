@@ -914,48 +914,48 @@ function allProjectsTestCases() {
   });
 
   it('should return projects with correct reaction', async () => {
-    const take = 1;
+    const limit = 1;
     const USER_DATA = SEED_DATA.FIRST_USER;
 
     // Project has not been liked
     let result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        take,
+        limit,
         searchTerm: SEED_DATA.SECOND_PROJECT.title,
         connectedWalletUserId: USER_DATA.id,
       },
     });
 
     let projects = result.data.data.allProjects.projects;
-    assert.equal(projects.length, take);
+    assert.equal(projects.length, limit);
     assert.isNull(projects[0]?.reaction);
 
     // Project has been liked, but connectedWalletUserIs is not filled
     result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        take,
+        limit,
         searchTerm: SEED_DATA.FIRST_PROJECT.title,
       },
     });
 
     projects = result.data.data.allProjects.projects;
-    assert.equal(projects.length, take);
+    assert.equal(projects.length, limit);
     assert.isNull(projects[0]?.reaction);
 
     // Project has been liked
     result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        take,
+        limit,
         searchTerm: SEED_DATA.FIRST_PROJECT.title,
         connectedWalletUserId: USER_DATA.id,
       },
     });
 
     projects = result.data.data.allProjects.projects;
-    assert.equal(projects.length, take);
+    assert.equal(projects.length, limit);
     assert.equal(
       projects[0]?.reaction?.id,
       REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION.id,
@@ -1114,6 +1114,31 @@ function allProjectsTestCases() {
     });
     assert.isTrue(
       result.data.data.allProjects.projects[0].totalDonations >= 100,
+    );
+  });
+  it('should return projects, sort by qualityScore, DESC', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalDonations: 100,
+      qualityScore: 10000,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.QualityScore,
+      },
+    });
+    assert.isTrue(
+      Number(result.data.data.allProjects.projects[0].id) === project.id,
+    );
+
+    // default sort
+    const result2 = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+    });
+    assert.isTrue(
+      Number(result2.data.data.allProjects.projects[0].id) === project.id,
     );
   });
   it('should return projects, filtered by sub category', async () => {

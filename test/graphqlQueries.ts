@@ -346,7 +346,7 @@ export const fetchDonationsByUserIdQuery = `
 
 export const fetchMultiFilterAllProjectsQuery = `
   query (
-    $take: Int
+    $limit: Int
     $skip: Int
     $sortingBy: SortingField
     $filters: [FilterField!]
@@ -356,7 +356,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $connectedWalletUserId: Int
   ) {
     allProjects(
-      take: $take
+      limit: $limit
       skip: $skip
       sortingBy: $sortingBy
       filters: $filters
