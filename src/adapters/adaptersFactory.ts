@@ -7,6 +7,7 @@ import { LinkedinAdapter } from './oauth2/linkedinAdapter';
 import { TwitterAdapter } from './oauth2/twitterAdapter';
 import { NotificationAdapterInterface } from './notifications/NotificationAdapterInterface';
 import { NotificationCenterAdapter } from './notifications/NotificationCenterAdapter';
+import { MockNotificationAdapter } from './notifications/MockNotificationAdapter';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -30,7 +31,7 @@ export const getSocialNetworkAdapter = (
 };
 
 const notificationCenterAdapter = new NotificationCenterAdapter();
-const mockNotificationAdapter = new NotificationCenterAdapter();
+const mockNotificationAdapter = new MockNotificationAdapter();
 
 export const getNotificationAdapter = (): NotificationAdapterInterface => {
   switch (process.env.NOTIFICATION_CENTER_ADAPTER) {
