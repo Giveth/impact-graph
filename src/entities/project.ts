@@ -341,10 +341,7 @@ class Project extends BaseEntity {
       );
     }
 
-    if (
-      this.users.filter(o => o.id === user.id).length > 0 ||
-      user.id === Number(this.admin)
-    ) {
+    if (user.id === this.adminUser?.id) {
       return true;
     } else {
       throw new Error(

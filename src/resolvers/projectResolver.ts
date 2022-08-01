@@ -79,6 +79,7 @@ import {
   userIsOwnerOfProject,
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 const analytics = getAnalytics();
 
@@ -923,15 +924,6 @@ export class ProjectResolver {
     const newProject = await this.projectRepository.save(project);
     const adminUser = (await findUserById(Number(newProject.admin))) as User;
     newProject.adminUser = adminUser;
-    // for (const relatedAddress of projectInput?.addresses) {
-    //   await addNewProjectAddress({
-    //     project,
-    //     user: adminUser,
-    //     address: relatedAddress.address,
-    //     networkId: relatedAddress.networkId,
-    //     isRecipient: true,
-    //   });
-    // }
     await addBulkNewProjectAddress(
       projectInput?.addresses.map(relatedAddress => {
         return {
@@ -970,13 +962,6 @@ export class ProjectResolver {
       slug: project.slug,
       walletAddress: project.walletAddress,
     };
-    // -Mitch I'm not sure why formattedProject was added in here, the object is missing a few important pieces of
-    // information into the analytics
-
-    const formattedProject = {
-      ...projectInput,
-      description: projectInput?.description?.replace(/<img .*?>/g, ''),
-    };
     if (status?.id === ProjStatus.active) {
       analytics.track(
         SegmentEvents.PROJECT_CREATED,
@@ -988,8 +973,19 @@ export class ProjectResolver {
 
     await pubSub.publish('NOTIFICATIONS', payload);
 
-    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
+    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true') {
+      // TODO whats this? I think we can delete it
       triggerBuild(newProject.id);
+    }
+    if (projectInput.isDraft) {
+      await getNotificationAdapter().projectSavedAsDraft({
+        project: newProject,
+      });
+    } else {
+      await getNotificationAdapter().projectPublished({
+        project: newProject,
+      });
+    }
 
     return newProject;
   }
@@ -1445,7 +1441,7 @@ export class ProjectResolver {
     reasonId?: number;
   }): Promise<Project> {
     const { projectId, statusId, user, reasonId } = inputData;
-    const project = await Project.findOne({ id: projectId });
+    const project = await findProjectById(projectId);
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
@@ -1541,6 +1537,16 @@ export class ProjectResolver {
         segmentProject,
         null,
       );
+
+      if (project.prevStatusId === ProjStatus.drafted) {
+        await getNotificationAdapter().projectPublished({
+          project,
+        });
+      } else {
+        await getNotificationAdapter().projectReactivated({
+          project,
+        });
+      }
       return true;
     } catch (error) {
       logger.error('projectResolver.activateProject() error', error);

@@ -73,6 +73,7 @@ import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepo
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -1643,9 +1644,9 @@ export const listDelist = async (
       projects.raw,
       list ? SegmentEvents.PROJECT_LISTED : SegmentEvents.PROJECT_UNLISTED,
     );
-    projects.raw.forEach(project => {
-      dispatchProjectUpdateEvent(project);
-      Project.addProjectStatusHistoryRecord({
+    for (const project of projects.raw) {
+      await dispatchProjectUpdateEvent(project);
+      await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
         userId: currentAdmin.id,
@@ -1653,7 +1654,17 @@ export const listDelist = async (
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
       });
-    });
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+      if (list) {
+        await getNotificationAdapter().projectListed({
+          project: projectWithAdmin,
+        });
+      } else {
+        await getNotificationAdapter().projectDeListed({
+          project: projectWithAdmin,
+        });
+      }
+    }
   } catch (error) {
     logger.error('listDelist error', error);
     throw error;
@@ -1719,6 +1730,15 @@ export const verifySingleVerificationForm = async (
       await updateProjectWithVerificationForm(verificationForm, project);
     }
     Project.notifySegment(project, segmentEvent);
+    if (verified) {
+      await getNotificationAdapter().projectVerified({
+        project,
+      });
+    } else {
+      await getNotificationAdapter().projectUnVerified({
+        project,
+      });
+    }
 
     responseMessage = `Project(s) successfully ${
       verified ? 'verified' : 'rejected'
@@ -1911,6 +1931,15 @@ export const verifyProjects = async (
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
+      if (verified) {
+        getNotificationAdapter().projectVerified({
+          project,
+        });
+      } else {
+        getNotificationAdapter().projectUnVerified({
+          project,
+        });
+      }
     });
   } catch (error) {
     logger.error('verifyProjects() error', error);
@@ -1956,14 +1985,28 @@ export const updateStatusOfProjects = async (
         projects.raw,
         segmentProjectStatusEvents[projectStatus.symbol],
       );
-      projects.raw.forEach(project => {
-        dispatchProjectUpdateEvent(project);
-        Project.addProjectStatusHistoryRecord({
+      for (const project of projects.raw) {
+        await dispatchProjectUpdateEvent(project);
+        await Project.addProjectStatusHistoryRecord({
           project,
           status: projectStatus,
           userId: currentAdmin.id,
         });
-      });
+        const projectWithAdmin = (await findProjectById(project.id)) as Project;
+        if (status === ProjStatus.cancelled) {
+          await getNotificationAdapter().projectCancelled({
+            project: projectWithAdmin,
+          });
+        } else if (status === ProjStatus.active) {
+          await getNotificationAdapter().projectReactivated({
+            project: projectWithAdmin,
+          });
+        } else if (status === ProjStatus.deactive) {
+          await getNotificationAdapter().projectDeactivated({
+            project: projectWithAdmin,
+          });
+        }
+      }
     }
   } catch (error) {
     throw error;

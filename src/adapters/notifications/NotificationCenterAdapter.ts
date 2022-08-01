@@ -19,12 +19,24 @@ interface SendNotificationBody {
   userId: string;
 }
 
-const NOTIFICATION_TEMPLATES = {
-  DONATION_RECEIVED: 'donationReceived',
-  DONATION_SENT: 'donationSent',
-  PROJECT_GOT_VERIFIED: 'projectVerified',
-  PROJECT_RECEIVED_HEART: 'projectReceivedHeart',
-};
+enum NOTIFICATION_TEMPLATES {
+  // TODO these notification templates should be created in notification-center
+  DONATION_RECEIVED = 'donationReceived',
+  DONATION_SENT = 'donationSent',
+  PROJECT_VERIFIED = 'projectVerified',
+  PROJECT_UNVERIFIED = 'projectUnverified',
+  PROJECT_LISTED = 'projectListed',
+  PROJECT_DE_LISTED = 'projectDeListed',
+  PROJECT_CANCELLED = 'projectCancelled',
+  PROJECT_PUBLISHED = 'projectPublished',
+  PROJECT_DEACTIVATED = 'projectDeactivated',
+  PROJECT_ACTIVATED = 'projectActivated',
+  PROJECT_REACTIVATED = 'projectReactivated',
+  PROJECT_SAVED_AS_DRAFT = 'projectSavedAsDraft',
+  PROJECT_RECEIVED_HEART = 'projectReceivedHeart',
+  PROFILE_IS_COMPLETED = 'ProfileIsCompleted',
+  PROFILE_NEED_TO_BE_COMPLETED = 'ProfileNeedToBeCompleted',
+}
 
 export class NotificationCenterAdapter implements NotificationAdapterInterface {
   readonly authorizationHeader: string;
@@ -40,19 +52,13 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
   }): Promise<void> {
     const { project, donation } = params;
-    return this.callSendNotification({
+    return this.sendProjectRelatedNotification({
+      project,
       notificationTemplate: NOTIFICATION_TEMPLATES.DONATION_RECEIVED,
-      email: project.adminUser?.email,
-
-      // currently Segment handle sending emails, so notification-center doesnt need to send that
-      sendEmail: false,
-      userId: String(project.adminUserId),
-      projectId: String(project.id),
-      metadata: {
+      additionalMetadata: {
         amount: donation.amount,
         currency: donation.currency,
         valueUsd: donation.valueUsd,
-        projectSlug: project.slug,
       },
     });
   }
@@ -81,19 +87,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  async projectGotVerified(params: { project: Project }): Promise<void> {
+  async projectVerified(params: { project: Project }): Promise<void> {
     const { project } = params;
-    return this.callSendNotification({
-      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_GOT_VERIFIED,
-      email: project.adminUser?.email,
-
-      // currently Segment handle sending emails, so notification-center doesnt need to send that
-      sendEmail: false,
-      userId: String(project.adminUserId),
-      projectId: String(project.id),
-      metadata: {
-        projectSlug: project.slug,
-      },
+    return this.sendProjectRelatedNotification({
+      project,
+      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_VERIFIED,
     });
   }
 
@@ -102,18 +100,103 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     user: User;
   }): Promise<void> {
     const { project, user } = params;
-    return this.callSendNotification({
+    return this.sendProjectRelatedNotification({
+      project,
       notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_RECEIVED_HEART,
-      email: project.adminUser?.email,
+      additionalMetadata: {
+        userName: user.name || 'Someone',
+      },
+    });
+  }
 
+  ProfileIsCompleted(params: { user: User }): Promise<void> {
+    return Promise.resolve(undefined);
+  }
+
+  ProfileNeedToBeCompleted(params: { user: User }): Promise<void> {
+    return Promise.resolve(undefined);
+  }
+
+  projectCancelled(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    return this.sendProjectRelatedNotification({
+      project,
+      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_CANCELLED,
+    });
+  }
+
+  projectDeListed(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    return this.sendProjectRelatedNotification({
+      project,
+      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_DE_LISTED,
+    });
+  }
+
+  projectDeactivated(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    return this.sendProjectRelatedNotification({
+      project,
+      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_DEACTIVATED,
+    });
+  }
+
+  projectListed(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    return this.sendProjectRelatedNotification({
+      project,
+      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_LISTED,
+    });
+  }
+
+  projectPublished(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    return this.sendProjectRelatedNotification({
+      project,
+      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_PUBLISHED,
+    });
+  }
+
+  projectReactivated(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    return this.sendProjectRelatedNotification({
+      project,
+      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_REACTIVATED,
+    });
+  }
+
+  projectSavedAsDraft(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    return this.sendProjectRelatedNotification({
+      project,
+      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_SAVED_AS_DRAFT,
+    });
+  }
+
+  projectUnVerified(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    return this.sendProjectRelatedNotification({
+      project,
+      notificationTemplate: NOTIFICATION_TEMPLATES.PROJECT_UNVERIFIED,
+    });
+  }
+
+  private async sendProjectRelatedNotification(params: {
+    project: Project;
+    notificationTemplate: NOTIFICATION_TEMPLATES;
+    additionalMetadata?: any;
+  }): Promise<void> {
+    const { project, notificationTemplate, additionalMetadata } = params;
+    return this.callSendNotification({
+      notificationTemplate,
+      email: project.adminUser?.email,
       // currently Segment handle sending emails, so notification-center doesnt need to send that
       sendEmail: false,
       userId: String(project.adminUserId),
       projectId: String(project.id),
       metadata: {
         projectSlug: project.slug,
-        // user is who has liked the project
-        userName: user.name,
+        ...additionalMetadata,
       },
     });
   }
@@ -132,7 +215,8 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         errorResponse: e?.response?.data,
         data,
       });
-      throw e;
+      // We dont throw exception, because failing on sending notifications should not
+      // affect on our application flow
     }
   }
 }

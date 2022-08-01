@@ -30,8 +30,8 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  projectGotVerified(params: { project: Project }): Promise<void> {
-    logger.info('MockNotificationAdapter projectGotVerified', {
+  projectVerified(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter projectVerified', {
       projectSlug: params.project.slug,
     });
     return Promise.resolve(undefined);
@@ -44,6 +44,76 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     logger.info('MockNotificationAdapter projectReceivedHeartReaction', {
       projectSlug: params.project.slug,
       user: params.user,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  ProfileIsCompleted(params: { user: User }): Promise<void> {
+    logger.info('MockNotificationAdapter ProfileIsCompleted', {
+      user: params.user,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  ProfileNeedToBeCompleted(params: { user: User }): Promise<void> {
+    logger.info('MockNotificationAdapter ProfileNeedToBeCompleted', {
+      user: params.user,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectCancelled(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter projectCancelled', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectDeListed(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter projectDeListed', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectDeactivated(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter projectDeactivated', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectListed(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter projectListed', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectPublished(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter projectPublished', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectReactivated(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter projectReactivated', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectSavedAsDraft(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter projectSavedAsDraft', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectUnVerified(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter projectUnVerified', {
+      projectSlug: params.project.slug,
     });
     return Promise.resolve(undefined);
   }
