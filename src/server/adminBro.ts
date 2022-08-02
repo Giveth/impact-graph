@@ -43,7 +43,7 @@ import {
 } from '../entities/projectStatusHistory';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
-import { NETWORK_IDS } from '../provider';
+import { NETWORKS_IDS_TO_NAME, NETWORK_IDS } from '../provider';
 import { ProjectAddress } from '../entities/projectAddress';
 import {
   findAdminUserByEmail,
@@ -111,6 +111,10 @@ const headers = [
   'totalDonations',
   'totalProjectUpdates',
   'website',
+  'firstWalletAddress',
+  'firstWalletAddressNetwork',
+  'secondWalletAddress',
+  'secondWalletAddressNetwork',
 ];
 
 interface AdminBroContextInterface {
@@ -1029,6 +1033,18 @@ const getAdminBroInstance = async () => {
             slugHistory: {
               isVisible: false,
             },
+            addresses: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/ListProjectAddresses'),
+              },
+            },
             listed: {
               isVisible: true,
               components: {
@@ -1443,7 +1459,10 @@ interface AdminBroProjectsQuery {
 export const buildProjectsQuery = (
   queryStrings: AdminBroProjectsQuery,
 ): SelectQueryBuilder<Project> => {
-  const query = Project.createQueryBuilder('project');
+  const query = Project.createQueryBuilder('project').leftJoinAndSelect(
+    'project.addresses',
+    'addresses',
+  );
 
   if (queryStrings.title)
     query.andWhere('project.title ILIKE :title', {
@@ -1602,6 +1621,8 @@ const sendProjectsToGoogleSheet = async (
 
   // parse data and set headers
   const projectRows = projects.map((project: Project) => {
+    const projectAddresses = project.addresses || [];
+
     return {
       id: project.id,
       title: project.title,
@@ -1618,6 +1639,12 @@ const sendProjectsToGoogleSheet = async (
       totalDonations: project.totalDonations,
       totalProjectUpdates: project.totalProjectUpdates,
       website: project.website || '',
+      firstWalletAddress: projectAddresses![0]?.address,
+      firstWalletAddressNetwork:
+        NETWORKS_IDS_TO_NAME[projectAddresses![0]?.networkId] || '',
+      secondWalletAddress: projectAddresses![1]?.address || '',
+      secondWalletAddressNetwork:
+        NETWORKS_IDS_TO_NAME[projectAddresses![1]?.networkId] || '',
     };
   });
 

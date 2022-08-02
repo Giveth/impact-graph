@@ -207,7 +207,9 @@ class Project extends BaseEntity {
   reactions?: Reaction[];
 
   @Field(type => [ProjectAddress], { nullable: true })
-  @OneToMany(type => ProjectAddress, projectAddress => projectAddress.project)
+  @OneToMany(type => ProjectAddress, projectAddress => projectAddress.project, {
+    eager: true,
+  })
   addresses?: ProjectAddress[];
 
   @Index()

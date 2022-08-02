@@ -12,6 +12,13 @@ export const NETWORK_IDS = {
   BSC: 56,
 };
 
+export const NETWORKS_IDS_TO_NAME = {
+  1: 'MAIN_NET',
+  3: 'ROPSTEN',
+  100: 'GNOSIS',
+  56: 'BSC',
+};
+
 const NETWORK_NAMES = {
   BSC: 'bsc',
   XDAI: 'xdaichain',
