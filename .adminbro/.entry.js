@@ -11,5 +11,7 @@ import Component5 from '../src/server/components/ListOrganizationsNames'
 AdminBro.UserComponents.Component5 = Component5
 import Component6 from '../src/server/components/VerificationFormSocials'
 AdminBro.UserComponents.Component6 = Component6
-import Component7 from '../src/server/components/FilterListedComponent'
+import Component7 from '../src/server/components/ListProjectAddresses'
 AdminBro.UserComponents.Component7 = Component7
+import Component8 from '../src/server/components/FilterListedComponent'
+AdminBro.UserComponents.Component8 = Component8

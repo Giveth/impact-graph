@@ -38,7 +38,7 @@ export class ProjectAddress extends BaseEntity {
 
   @Index()
   @Field(type => Project)
-  @ManyToOne(type => Project, { eager: true })
+  @ManyToOne(type => Project)
   project: Project;
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.project)
   projectId: number;
