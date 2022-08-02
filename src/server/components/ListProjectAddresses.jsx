@@ -5,6 +5,7 @@ import { address } from 'faker/locale/zh_TW';
 
 const ListProjectAddresses = (props) => {
   const project = props.record.params;
+  console.log(project)
 
   const NETWORK_IDS = {
     1: "MAIN_NET",
@@ -19,10 +20,12 @@ const ListProjectAddresses = (props) => {
   const projectAddresses = [];
   console.log(addressesCount);
   for (var i = 0; i < addressesCount; i++) {
+    if (!project[`addresses.${i}.isRecipient`]) { continue; }
+
     projectAddresses.push(
       {
         address: project[`addresses.${i}.address`],
-        network: project[`addresses.${i}.networkId`]
+        network: project[`addresses.${i}.networkId`],
       }
     )
   }

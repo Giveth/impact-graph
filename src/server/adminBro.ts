@@ -1336,10 +1336,9 @@ interface AdminBroProjectsQuery {
 export const buildProjectsQuery = (
   queryStrings: AdminBroProjectsQuery,
 ): SelectQueryBuilder<Project> => {
-  const query = Project.createQueryBuilder('project').leftJoinAndSelect(
-    'project.addresses',
-    'addresses',
-  );
+  const query = Project.createQueryBuilder('project')
+    .leftJoinAndSelect('project.addresses', 'addresses')
+    .where('addresses.isRecipient = true');
 
   if (queryStrings.title)
     query.andWhere('project.title ILIKE :title', {
