@@ -211,7 +211,7 @@ class GetProjectsArgs {
 
   @Field(type => SortingField, {
     nullable: true,
-    defaultValue: SortingField.Newest,
+    defaultValue: SortingField.QualityScore,
   })
   sortingBy: SortingField;
 
