@@ -4,6 +4,10 @@ export class makeSomeFailedDonationsVerified1659516575436
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
+    const donationTableExists = await queryRunner.hasTable('donation');
+    if (!donationTableExists) {
+      return;
+    }
     /**
          * With below query I found donations that got failed through not finding receipt of them
          * I checked them one by one in blockscout and saw all of them are valid, so I wrote this migration the make them verified

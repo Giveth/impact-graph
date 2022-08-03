@@ -543,7 +543,7 @@ function getTransactionDetailTestCases() {
 
   it('should return transaction detail for GIV token transfer on XDAI', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x05a6e9dcab0e9561061e9b3be9dff36edda82d250468ad19c93e2926a5e97562
-    const amount = 23000;
+    const amount = 23000.000000000004;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0x05a6e9dcab0e9561061e9b3be9dff36edda82d250468ad19c93e2926a5e97562',
@@ -552,7 +552,7 @@ function getTransactionDetailTestCases() {
       fromAddress: '0x5D28FE1e9F895464aab52287d85Ebff32B351674',
       toAddress: '0x1079F830C09A886122eA11b46f450d9e4C4c0150',
       amount,
-      timestamp: 1658970155,
+      timestamp: 1658953955,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'GIV');
