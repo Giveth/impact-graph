@@ -43,6 +43,10 @@ export const addSheetWithRows = async (
     totalDonations: number;
     totalProjectUpdates: number;
     website: string;
+    firstWalletAddress: string;
+    firstWalletAddressNetwork: string;
+    secondWalletAddress: string;
+    secondWalletAddressNetwork: string;
   }[],
 ): Promise<void> => {
   try {
