@@ -1357,7 +1357,8 @@ export const buildProjectsQuery = (
   const query = Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.addresses', 'addresses')
     .leftJoinAndSelect('project.adminUser', 'adminUser')
-    .where('addresses.isRecipient = true');
+    .where('addresses.isRecipient = true')
+    .addOrderBy('addresses.networkId', 'ASC');
 
   if (queryStrings.title)
     query.andWhere('project.title ILIKE :title', {
