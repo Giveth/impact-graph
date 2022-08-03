@@ -111,6 +111,7 @@ const headers = [
   'totalDonations',
   'totalProjectUpdates',
   'website',
+  'email',
   'firstWalletAddress',
   'firstWalletAddressNetwork',
   'secondWalletAddress',
@@ -450,6 +451,12 @@ const getAdminBroInstance = async () => {
                 ),
               },
             },
+            'projectRegistry.isNonProfitOrganization': { type: 'boolean' },
+            'projectRegistry.organizationCountry': { type: 'string' },
+            'projectRegistry.organizationWebsite': { type: 'string' },
+            'projectRegistry.organizationDescription': { type: 'string' },
+            'projectRegistry.organizationName': { type: 'string' },
+            'projectRegistry.attachment': { type: 'string' },
             projectContacts: {
               type: 'mixed',
               isArray: true,
@@ -940,6 +947,24 @@ const getAdminBroInstance = async () => {
               },
               components: {
                 show: AdminBro.bundle('./components/VerificationFormSocials'),
+              },
+            },
+            adminUserId: {
+              isVisible: {
+                list: true,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            contacts: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: false,
+                edit: false,
+                new: false,
               },
             },
             qualityScore: {
@@ -1461,6 +1486,7 @@ export const buildProjectsQuery = (
 ): SelectQueryBuilder<Project> => {
   const query = Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoinAndSelect('project.adminUser', 'adminUser')
     .where('addresses.isRecipient = true');
 
   if (queryStrings.title)
@@ -1638,6 +1664,7 @@ const sendProjectsToGoogleSheet = async (
       totalDonations: project.totalDonations,
       totalProjectUpdates: project.totalProjectUpdates,
       website: project.website || '',
+      email: project?.adminUser?.email || '',
       firstWalletAddress: projectAddresses![0]?.address,
       firstWalletAddressNetwork:
         NETWORKS_IDS_TO_NAME[projectAddresses![0]?.networkId] || '',
