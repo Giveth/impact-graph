@@ -16,11 +16,11 @@ const ListProjectAddresses = (props) => {
   const projectAddresses = []
   console.log(addressesCount)
   for (let i = 0; i < addressesCount; i++) {
-    if (!project[`addresses.${i}.isRecipient`]) { continue }
     projectAddresses.push(
       {
         address: project[`addresses.${i}.address`],
-        network: project[`addresses.${i}.networkId`]
+        network: project[`addresses.${i}.networkId`],
+        isRecipient: project[`addresses.${i}.isRecipient`]
       }
     )
   }
@@ -43,6 +43,13 @@ const ListProjectAddresses = (props) => {
               </Label>
               {NETWORK_IDS[projectAddress.network] || ''}
             </Section>
+            <Section>
+              <Label>
+                This address is recipient for project
+              </Label>
+              <span fontSize='sm' className='sc-bdnylx efSokc admin-bro_Badge'>{projectAddress.isRecipient ? 'Yes' : 'No'}</span>
+            </Section>
+            <br />
           </div>
         )
       })}
