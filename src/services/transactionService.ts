@@ -182,13 +182,18 @@ async function getTransactionDetailForNormalTransfer(
   const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
     txHash,
   );
-  const receipt = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
-    txHash,
-  );
   if (!transaction) {
     return null;
   }
-  if (!receipt?.status) {
+  const receipt = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
+    txHash,
+  );
+  if (!receipt) {
+    // Transaction is not mined yet
+    // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
+    return null;
+  }
+  if (!receipt.status) {
     throw new Error(errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK);
   }
   const block = await getNetworkWeb3(networkId).eth.getBlock(
@@ -219,6 +224,9 @@ async function getTransactionDetailForTokenTransfer(
     input,
     token,
   });
+  if (!transaction) {
+    return null;
+  }
   if (
     transaction &&
     transaction.to?.toLowerCase() !== token.address.toLowerCase()
@@ -227,10 +235,13 @@ async function getTransactionDetailForTokenTransfer(
       errorMessages.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
     );
   }
-  if (!transaction) {
+
+  if (!receipt) {
+    // Transaction is not mined yet
+    // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
     return null;
   }
-  if (!receipt?.status) {
+  if (!receipt.status) {
     throw new Error(errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK);
   }
 
