@@ -483,6 +483,25 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.currency, 'XDAI');
     assert.equal(transactionInfo.amount, amount);
   });
+
+  it('should return transaction detail for normal transfer on xdai', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0x410796933522fdab4e909e53bc3c825e94ca0afb8bed12ee9b34dc82bfa31bd2
+    const amount = 0.01;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x410796933522fdab4e909e53bc3c825e94ca0afb8bed12ee9b34dc82bfa31bd2',
+      symbol: 'XDAI',
+      networkId: NETWORK_IDS.XDAI,
+      fromAddress: '0x57748ecb251f2ec36027bf8b7b2c13b69b8e5222',
+      toAddress: '0x2c0d12ecee29f36c39510ac41d6dd1287d4fbf8a',
+      amount,
+      timestamp: 1659325170,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'XDAI');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return error when transactionHash is wrong on  xdai', async () => {
     const amount = 0.001;
     const badFunc = async () => {
@@ -519,6 +538,24 @@ function getTransactionDetailTestCases() {
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'HNY');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for GIV token transfer on XDAI', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0x05a6e9dcab0e9561061e9b3be9dff36edda82d250468ad19c93e2926a5e97562
+    const amount = 23000;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x05a6e9dcab0e9561061e9b3be9dff36edda82d250468ad19c93e2926a5e97562',
+      symbol: 'GIV',
+      networkId: NETWORK_IDS.XDAI,
+      fromAddress: '0x5D28FE1e9F895464aab52287d85Ebff32B351674',
+      toAddress: '0x1079F830C09A886122eA11b46f450d9e4C4c0150',
+      amount,
+      timestamp: 1658970155,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'GIV');
     assert.equal(transactionInfo.amount, amount);
   });
 
