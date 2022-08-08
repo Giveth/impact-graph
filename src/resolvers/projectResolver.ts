@@ -1139,7 +1139,7 @@ export class ProjectResolver {
     const recipients = await Project.query(
       `
             SELECT "walletAddress" FROM project
-            WHERE verified=true 
+            WHERE verified=true and "walletAddress" IS NOT NULL
             `,
     );
     return recipients.map(({ walletAddress }) => walletAddress);
