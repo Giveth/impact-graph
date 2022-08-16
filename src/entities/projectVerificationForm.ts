@@ -14,23 +14,23 @@ import {
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
-import { User } from './user';
+import { User, UserRole } from './user';
 import { SocialProfile } from './socialProfile';
 
-export const PROJECT_VERIFICATION_STATUSES = {
-  VERIFIED: 'verified',
-  DRAFT: 'draft',
-  SUBMITTED: 'submitted',
-  REJECTED: 'rejected',
-};
+export enum PROJECT_VERIFICATION_STATUSES {
+  VERIFIED = 'verified',
+  DRAFT = 'draft',
+  SUBMITTED = 'submitted',
+  REJECTED = 'rejected',
+}
 
 export const PROJECT_VERIFICATION_STEPS = {
   // Order of these steps are important, please see https://github.com/Giveth/giveth-dapps-v2/issues/893
   PERSONAL_INFO: 'personalInfo',
   PROJECT_REGISTRY: 'projectRegistry',
   PROJECT_CONTACTS: 'projectContacts',
-  MANAGING_FUNDS: 'managingFunds',
   MILESTONES: 'milestones',
+  MANAGING_FUNDS: 'managingFunds',
   TERM_AND_CONDITION: 'termAndCondition',
   SUBMIT: 'submit',
 };
@@ -58,8 +58,8 @@ export class ProjectRegistry {
   organizationDescription?: string;
   @Field({ nullable: true })
   organizationName?: string;
-  @Field({ nullable: true })
-  attachment?: string;
+  @Field(type => [String], { nullable: true })
+  attachments?: string[];
 }
 
 @ObjectType()
@@ -79,8 +79,8 @@ export class Milestones {
   mission?: string;
   @Field({ nullable: true })
   achievedMilestones?: string;
-  @Field({ nullable: true })
-  achievedMilestonesProof?: string;
+  @Field(type => [String], { nullable: true })
+  achievedMilestonesProofs?: string[];
 }
 
 @ObjectType()
@@ -169,9 +169,13 @@ export class ProjectVerificationForm extends BaseEntity {
   )
   socialProfiles?: SocialProfile[];
 
-  @Field()
-  @Column('text', { default: PROJECT_VERIFICATION_STATUSES.DRAFT })
-  status: string;
+  @Field(type => String, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: PROJECT_VERIFICATION_STATUSES,
+    default: PROJECT_VERIFICATION_STATUSES.DRAFT,
+  })
+  status: PROJECT_VERIFICATION_STATUSES;
 
   @UpdateDateColumn()
   updatedAt: Date;

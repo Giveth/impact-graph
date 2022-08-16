@@ -550,6 +550,18 @@ export class DonationResolver {
         throw new Error(errorMessages.DONATION_NOT_FOUND);
       }
       if (donation.userId !== userId) {
+        logger.error(
+          'updateDonationStatus error because requester is not owner of donation',
+          {
+            user: ctx?.req?.user,
+            donationInfo: {
+              id: donationId,
+              userId: donation.userId,
+              status: donation.status,
+              txHash: donation.transactionId,
+            },
+          },
+        );
         throw new Error(errorMessages.YOU_ARE_NOT_OWNER_OF_THIS_DONATION);
       }
       validateWithJoiSchema(

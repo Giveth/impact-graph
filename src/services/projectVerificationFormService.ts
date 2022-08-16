@@ -32,6 +32,31 @@ import { errorMessages } from '../utils/errorMessages';
 import { ProjectVerificationUpdateInput } from '../resolvers/types/ProjectVerificationUpdateInput';
 import { removeUndefinedFieldsFromObject } from '../utils/utils';
 
+const updateLastStep = async (params: {
+  projectVerificationForm: ProjectVerificationForm;
+  step: string;
+}): Promise<ProjectVerificationForm> => {
+  const { step, projectVerificationForm } = params;
+  if (!projectVerificationForm.emailConfirmed) {
+    //  https://github.com/Giveth/impact-graph/issues/567, If user didn't confirmed his/her email, we
+    // set lastStep as null , so when they redirect verification form in frontend they would redirect to personalInfo page
+    return updateProjectVerificationLastStep({
+      projectVerificationId: projectVerificationForm.id,
+      lastStep: null,
+    });
+  }
+  const lastStep = projectVerificationForm.lastStep;
+  const stepsArray = Object.values(PROJECT_VERIFICATION_STEPS);
+  if (!lastStep || stepsArray.indexOf(step) > stepsArray.indexOf(lastStep)) {
+    // If you fill an step we and after that you fill previous step we won't change your lastStep
+    // in other word lastStep is incremental and it would not decrease
+    return updateProjectVerificationLastStep({
+      projectVerificationId: projectVerificationForm.id,
+      lastStep: step,
+    });
+  }
+  return projectVerificationForm;
+};
 export const updateProjectVerificationFormByUser = async (params: {
   projectVerificationForm: ProjectVerificationForm;
   projectVerificationUpdateInput: ProjectVerificationUpdateInput;
@@ -147,17 +172,11 @@ export const updateProjectVerificationFormByUser = async (params: {
     default:
       throw new Error(errorMessages.INVALID_STEP);
   }
-  const lastStep = projectVerificationForm.lastStep;
-  const stepsArray = Object.values(PROJECT_VERIFICATION_STEPS);
-  if (!lastStep || stepsArray.indexOf(step) > stepsArray.indexOf(lastStep)) {
-    // If you fill an step we and after that you fill previous step we won't change your lastStep
-    // in other word lastStep is incremental and it would not decrease
-    updatedProjectVerificationForm = await updateProjectVerificationLastStep({
-      projectVerificationId,
-      lastStep: step,
-    });
-  }
-  return updatedProjectVerificationForm;
+
+  return updateLastStep({
+    projectVerificationForm: updatedProjectVerificationForm,
+    step,
+  });
 };
 
 const submitProjectVerificationForm = async (params: {

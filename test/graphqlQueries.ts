@@ -344,23 +344,25 @@ export const fetchDonationsByUserIdQuery = `
   }
 `;
 
-export const fetchAllProjectsQuery = `
+export const fetchMultiFilterAllProjectsQuery = `
   query (
-    $take: Int
+    $limit: Int
     $skip: Int
-    $orderBy: OrderBy
-    $filterBy: FilterBy
+    $sortingBy: SortingField
+    $filters: [FilterField!]
     $searchTerm: String
     $category: String
+    $mainCategory: String
     $connectedWalletUserId: Int
   ) {
-    projects(
-      take: $take
+    allProjects(
+      limit: $limit
       skip: $skip
-      orderBy: $orderBy
-      filterBy: $filterBy
+      sortingBy: $sortingBy
+      filters: $filters
       searchTerm: $searchTerm
       category: $category
+      mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
     ) {
       projects {
@@ -388,6 +390,96 @@ export const fetchAllProjectsQuery = `
         }
         categories {
           name
+          mainCategory {
+            title
+            slug
+            banner
+            description
+          }
+        }
+        reaction {
+          id
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
+        organization {
+          name
+          label
+          supportCustomTokens
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
+        }
+        totalReactions
+        totalDonations
+        totalTraceDonations
+      }
+      totalCount
+      categories {
+        name
+      }
+    }
+  }
+`;
+
+export const fetchAllProjectsQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: OrderBy
+    $filterBy: FilterBy
+    $searchTerm: String
+    $category: String
+    $mainCategory: String
+    $connectedWalletUserId: Int
+  ) {
+    projects(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      filterBy: $filterBy
+      searchTerm: $searchTerm
+      category: $category
+      mainCategory: $mainCategory
+      connectedWalletUserId: $connectedWalletUserId
+    ) {
+      projects {
+        id
+        title
+        balance
+        image
+        slug
+        creationDate
+        updatedAt
+        admin
+        description
+        walletAddress
+        impactLocation
+        qualityScore
+        verified
+        traceCampaignId
+        listed
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        categories {
+          name
+          mainCategory {
+            title
+            slug
+            banner
+            description
+          }
         }
         reaction {
           id
@@ -443,6 +535,15 @@ export const fetchProjectsBySlugQuery = `
       traceCampaignId
       listed
       givingBlocksId
+      categories {
+       name
+       mainCategory {
+         title
+         slug
+         banner
+         description
+       }
+      }
       projectVerificationForm {
         id
         isTermAndConditionsAccepted
@@ -458,7 +559,7 @@ export const fetchProjectsBySlugQuery = `
           isNonProfitOrganization
           organizationCountry
           organizationWebsite
-          attachment
+          attachments
           organizationName
         }
         personalInfo {
@@ -474,7 +575,7 @@ export const fetchProjectsBySlugQuery = `
           mission
           foundationDate
           achievedMilestones
-          achievedMilestonesProof
+          achievedMilestonesProofs
         }
         managingFunds {
           description
@@ -793,7 +894,7 @@ export const projectsByUserIdQuery = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
-              attachment
+              attachments
               organizationName
             }
             personalInfo {
@@ -809,7 +910,7 @@ export const projectsByUserIdQuery = `
               mission
               foundationDate
               achievedMilestones
-              achievedMilestonesProof
+              achievedMilestonesProofs
             }
             managingFunds {
               description
@@ -880,6 +981,15 @@ export const projectByIdQuery = `
         name
         label
         supportCustomTokens
+      }
+      categories {
+        name
+        mainCategory {
+          title
+          slug
+          banner
+          description
+        }
       }
       adminUser {
         firstName
@@ -956,7 +1066,7 @@ export const createProjectVerificationFormMutation = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
-                      attachment
+                      attachments
                       organizationName
                     }
                     projectContacts {
@@ -967,7 +1077,7 @@ export const createProjectVerificationFormMutation = `
                       mission
                       foundationDate
                       achievedMilestones
-                      achievedMilestonesProof
+                      achievedMilestonesProofs
                     }
                     managingFunds {
                       description
@@ -1008,7 +1118,7 @@ export const getCurrentProjectVerificationFormQuery = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
-                      attachment
+                      attachments
                       organizationName
                     }
                     projectContacts {
@@ -1019,9 +1129,10 @@ export const getCurrentProjectVerificationFormQuery = `
                       mission
                       foundationDate
                       achievedMilestones
-                      achievedMilestonesProof
+                      achievedMilestonesProofs
                     }
                     socialProfiles {
+                      name
                       socialNetworkId
                       socialNetwork
                       isVerified
@@ -1074,7 +1185,7 @@ export const projectVerificationConfirmEmail = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
-              attachment
+              attachments
               organizationName
             }
             personalInfo {
@@ -1090,7 +1201,7 @@ export const projectVerificationConfirmEmail = `
               mission
               foundationDate
               achievedMilestones
-              achievedMilestonesProof
+              achievedMilestonesProofs
             }
             managingFunds {
               description
@@ -1109,6 +1220,7 @@ export const projectVerificationConfirmEmail = `
               slug
             }
             status
+            lastStep
           }
         }
 `;
@@ -1130,7 +1242,7 @@ export const projectVerificationSendEmailConfirmation = `
               isNonProfitOrganization
               organizationCountry
               organizationWebsite
-              attachment
+              attachments
               organizationName
             }
             personalInfo {
@@ -1143,6 +1255,7 @@ export const projectVerificationSendEmailConfirmation = `
               url
             }
             socialProfiles {
+              name
               socialNetwork
               socialNetworkId
             }
@@ -1150,7 +1263,7 @@ export const projectVerificationSendEmailConfirmation = `
               mission
               foundationDate
               achievedMilestones
-              achievedMilestonesProof
+              achievedMilestonesProofs
             }
             managingFunds {
               description
@@ -1190,7 +1303,7 @@ export const updateProjectVerificationFormMutation = `
                       isNonProfitOrganization
                       organizationCountry
                       organizationWebsite
-                      attachment
+                      attachments
                       organizationName
                     }
                     personalInfo {
@@ -1206,7 +1319,7 @@ export const updateProjectVerificationFormMutation = `
                       mission
                       foundationDate
                       achievedMilestones
-                      achievedMilestonesProof
+                      achievedMilestonesProofs
                     }
                     managingFunds {
                       description

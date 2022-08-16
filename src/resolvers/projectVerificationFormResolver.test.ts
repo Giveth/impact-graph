@@ -211,7 +211,7 @@ function createProjectVerificationFormMutationTestCases() {
     await ProjectVerificationForm.create({
       project,
       user,
-      status: 'draft',
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
     const result = await axios.post(
       graphqlUrl,
@@ -253,11 +253,11 @@ function updateProjectVerificationFormMutationTestCases() {
     isNonProfitOrganization: true,
     organizationDescription: '',
     organizationName: 'organizationName',
-    attachment: 'an ipfs link',
+    attachments: ['an ipfs link'],
   };
   const milestones: Milestones = {
     mission: 'mission',
-    achievedMilestonesProof: 'an ipfs hash',
+    achievedMilestonesProofs: ['an ipfs hash'],
     achievedMilestones: 'lots of work',
     foundationDate: new Date().toString(),
   };
@@ -288,6 +288,7 @@ function updateProjectVerificationFormMutationTestCases() {
     const projectVerification = await ProjectVerificationForm.create({
       project,
       user,
+      emailConfirmed: true,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
@@ -331,7 +332,7 @@ function updateProjectVerificationFormMutationTestCases() {
       PROJECT_VERIFICATION_STEPS.PROJECT_CONTACTS,
     );
   });
-  it('should update project verification with personalinfo form successfully', async () => {
+  it('should update project verification with personalInfo form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -381,6 +382,63 @@ function updateProjectVerificationFormMutationTestCases() {
       result.data.data.updateProjectVerificationForm.personalInfo.walletAddress,
       personalInfo.walletAddress,
     );
+    assert.isNotOk(result.data.data.updateProjectVerificationForm.lastStep);
+  });
+  it('should update project verification with personalInfo form successfully and last step should get updated', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.active,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerification = await ProjectVerificationForm.create({
+      project,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectVerificationFormMutation,
+        variables: {
+          projectVerificationUpdateInput: {
+            projectVerificationId: projectVerification.id,
+            step: PROJECT_VERIFICATION_STEPS.PERSONAL_INFO,
+            personalInfo,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(result.data.data.updateProjectVerificationForm);
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.personalInfo.email,
+      personalInfo.email,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.personalInfo.fullName,
+      personalInfo.fullName,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.personalInfo.walletAddress,
+      personalInfo.walletAddress,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.lastStep,
+      PROJECT_VERIFICATION_STEPS.PERSONAL_INFO,
+    );
   });
   it('should update project verification with projectRegistry form successfully', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -395,6 +453,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -449,6 +508,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -482,8 +542,8 @@ function updateProjectVerificationFormMutationTestCases() {
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.milestones
-        .achievedMilestonesProof,
-      milestones.achievedMilestonesProof,
+        .achievedMilestonesProofs[0],
+      milestones?.achievedMilestonesProofs?.[0],
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.milestones.foundationDate,
@@ -507,6 +567,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -540,8 +601,8 @@ function updateProjectVerificationFormMutationTestCases() {
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.milestones
-        .achievedMilestonesProof,
-      milestones.achievedMilestonesProof,
+        .achievedMilestonesProofs[0],
+      milestones?.achievedMilestonesProofs?.[0],
     );
     assert.equal(
       result.data.data.updateProjectVerificationForm.milestones.foundationDate,
@@ -585,6 +646,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -623,6 +685,11 @@ function updateProjectVerificationFormMutationTestCases() {
     assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
       PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
+    );
+    assert.equal(
+      result.data.data.updateProjectVerificationForm
+        .isTermAndConditionsAccepted,
+      false,
     );
   });
   it('should update project verification with termAndConditions form successfully', async () => {
@@ -852,6 +919,7 @@ function updateProjectVerificationFormMutationTestCases() {
       project,
       user,
       status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+      emailConfirmed: true,
     }).save();
     projectVerification.lastStep = PROJECT_VERIFICATION_STEPS.PROJECT_REGISTRY;
     await projectVerification.save();
@@ -889,7 +957,7 @@ function updateProjectVerificationFormMutationTestCases() {
 }
 
 function getCurrentProjectVerificationFormTestCases() {
-  it('should throw error when the project is already verified', async () => {
+  it('should return verificationForm when the project is already verified', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -920,8 +988,8 @@ function getCurrentProjectVerificationFormTestCases() {
       },
     );
     assert.equal(
-      result.data.errors[0].message,
-      errorMessages.PROJECT_IS_ALREADY_VERIFIED,
+      result.data.data.getCurrentProjectVerificationForm.status,
+      projectVerificationForm.status,
     );
   });
   it('should get current project verification form with submitted status', async () => {
@@ -938,6 +1006,116 @@ function getCurrentProjectVerificationFormTestCases() {
       userId: user.id,
     });
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.SUBMITTED;
+    await projectVerificationForm.save();
+    const socialProfileInfo = {
+      projectVerificationId: projectVerificationForm.id,
+      isVerified: true,
+      socialNetwork: SOCIAL_NETWORKS.DISCORD,
+      socialNetworkId: generateRandomString(),
+    };
+    await createSocialProfile(socialProfileInfo);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: getCurrentProjectVerificationFormQuery,
+        variables: {
+          slug: project.slug,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.status,
+      projectVerificationForm.status,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.id,
+      projectVerificationForm.id,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles.length,
+      1,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles[0]
+        .socialNetworkId,
+      socialProfileInfo.socialNetworkId,
+    );
+  });
+  it('should get current project verification form with rejected status', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.REJECTED;
+    await projectVerificationForm.save();
+    const socialProfileInfo = {
+      projectVerificationId: projectVerificationForm.id,
+      isVerified: true,
+      socialNetwork: SOCIAL_NETWORKS.DISCORD,
+      socialNetworkId: generateRandomString(),
+    };
+    await createSocialProfile(socialProfileInfo);
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: getCurrentProjectVerificationFormQuery,
+        variables: {
+          slug: project.slug,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.status,
+      projectVerificationForm.status,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.id,
+      projectVerificationForm.id,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles.length,
+      1,
+    );
+    assert.equal(
+      result.data.data.getCurrentProjectVerificationForm.socialProfiles[0]
+        .socialNetworkId,
+      socialProfileInfo.socialNetworkId,
+    );
+  });
+  it('should get current project verification form with verified status', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+      admin: String(user.id),
+      verified: false,
+      listed: false,
+    });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: user.id,
+    });
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
     await projectVerificationForm.save();
     const socialProfileInfo = {
       projectVerificationId: projectVerificationForm.id,
@@ -1148,7 +1326,7 @@ function projectVerificationSendEmailConfirmationTestCases() {
     fullName: 'test',
     walletAddress: 'xxxxx',
   };
-  it('should send email confirmation for project verification for personalinfo step', async () => {
+  it('should send email confirmation for project verification for personalInfo step', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1244,6 +1422,7 @@ function projectVerificationSendEmailConfirmationTestCases() {
     );
   });
 }
+
 function projectVerificationConfirmEmailTestCases() {
   const personalInfo: PersonalInfo = {
     email: 'test@example.com',
@@ -1251,7 +1430,7 @@ function projectVerificationConfirmEmailTestCases() {
     walletAddress: 'xxxxx',
   };
 
-  it('should confirm email for project verification in personalinfo step', async () => {
+  it('should confirm email for project verification in personalInfo step', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1302,6 +1481,10 @@ function projectVerificationConfirmEmailTestCases() {
     );
     assert.isOk(result.data.data.projectVerificationConfirmEmail);
     assert.equal(
+      result.data.data.projectVerificationConfirmEmail.lastStep,
+      PROJECT_VERIFICATION_STEPS.PERSONAL_INFO,
+    );
+    assert.equal(
       result.data.data.projectVerificationConfirmEmail.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
@@ -1313,7 +1496,7 @@ function projectVerificationConfirmEmailTestCases() {
       result.data.data.projectVerificationConfirmEmail.emailConfirmedAt,
     );
   });
-  it('should throw error when confirm email token invalid for project verification in personalinfo step', async () => {
+  it('should throw error when confirm email token invalid for project verification in personalInfo step', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),

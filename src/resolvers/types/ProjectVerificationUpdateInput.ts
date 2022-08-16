@@ -20,8 +20,8 @@ class MilestonesInputType {
   mission?: string;
   @Field({ nullable: true })
   achievedMilestones?: string;
-  @Field({ nullable: true })
-  achievedMilestonesProof?: string;
+  @Field(type => [String], { nullable: true })
+  achievedMilestonesProofs?: string[];
 }
 
 @InputType()
@@ -63,8 +63,8 @@ class ProjectRegistryInputType {
   organizationDescription?: string;
   @Field({ nullable: true })
   organizationName?: string;
-  @Field({ nullable: true })
-  attachment?: string;
+  @Field(type => [String], { nullable: true })
+  attachments: string[];
 }
 
 @InputType()

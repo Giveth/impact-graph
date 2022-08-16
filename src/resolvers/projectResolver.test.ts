@@ -21,6 +21,7 @@ import {
   editProjectUpdateQuery,
   fetchAllProjectsQuery,
   fetchLikedProjectsQuery,
+  fetchMultiFilterAllProjectsQuery,
   fetchProjectsBySlugQuery,
   fetchProjectUpdatesQuery,
   fetchSimilarProjectsBySlugQuery,
@@ -34,7 +35,12 @@ import {
 } from '../../test/graphqlQueries';
 import { CreateProjectInput, UpdateProjectInput } from './types/project-input';
 import { errorMessages } from '../utils/errorMessages';
-import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
+import {
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+  SortingField,
+} from '../entities/project';
 import { Category } from '../entities/category';
 import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -46,14 +52,20 @@ import { NETWORK_IDS } from '../provider';
 import {
   addNewProjectAddress,
   findAllRelatedAddressByWalletAddress,
-  findRelatedAddressByWalletAddress,
 } from '../repositories/projectAddressRepository';
-import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import {
+  PROJECT_VERIFICATION_STATUSES,
+  ProjectVerificationForm,
+} from '../entities/projectVerificationForm';
+import { MainCategory } from '../entities/mainCategory';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
 
+// search and filters
 describe('projects test cases --->', projectsTestCases);
+describe('all projects test cases --->', allProjectsTestCases);
+
 describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
 
 describe('deactivateProject test cases --->', deactivateProjectTestCases);
@@ -185,6 +197,7 @@ function projectsTestCases() {
       assert.isNotOk(project.adminUser.email);
       assert.isOk(project.adminUser.firstName);
       assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.categories[0].mainCategory.title);
     });
   });
 
@@ -768,6 +781,74 @@ function projectsTestCases() {
     });
     assert.equal(result.data.data.projects.projects[0].totalTraceDonations, 0);
   });
+  it('should return projects, filtered by sub category', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['food5'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        category: 'food5',
+      },
+    });
+    assert.isNotEmpty(result.data.data.projects.projects);
+    result.data.data.projects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(category => category.name === 'food5'),
+      );
+    });
+  });
+  it('should return projects, filtered by main category', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink2'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        mainCategory: 'drink',
+      },
+    });
+    assert.isNotEmpty(result.data.data.projects.projects);
+    result.data.data.projects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(
+          category => category.mainCategory.title === 'drink',
+        ),
+      );
+    });
+  });
+  it('should return projects, filtered by main category and sub category at the same time', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink2'],
+    });
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink3'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        mainCategory: 'drink',
+        category: 'drink3',
+      },
+    });
+    assert.isNotEmpty(result.data.data.projects.projects);
+    result.data.data.projects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(
+          category => category.mainCategory.title === 'drink',
+        ),
+      );
+
+      // Should not return projects with drink2 category
+      assert.isOk(
+        project.categories.find(category => category.name === 'drink3'),
+      );
+    });
+  });
 
   // TODO this test doesnt pass now, but we should fix it
   // it('should return projects, find by category', async () => {
@@ -807,6 +888,329 @@ function projectsTestCases() {
   // });
 }
 
+function allProjectsTestCases() {
+  it('should return projects search by owner', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        searchTerm: SEED_DATA.SECOND_USER.name,
+      },
+    });
+
+    const projects = result.data.data.allProjects.projects;
+    const secondUserProjects = await Project.find({
+      admin: String(SEED_DATA.SECOND_USER.id),
+    });
+
+    assert.equal(projects.length, secondUserProjects.length);
+    assert.equal(Number(projects[0]?.admin), SEED_DATA.SECOND_USER.id);
+    assert.isNotEmpty(projects[0].addresses);
+    projects.forEach(project => {
+      assert.isNotOk(project.adminUser.email);
+      assert.isOk(project.adminUser.firstName);
+      assert.isOk(project.adminUser.walletAddress);
+      assert.isOk(project.categories[0].mainCategory.title);
+    });
+  });
+
+  it('should return projects with correct reaction', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+
+    // Project has not been liked
+    let result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        searchTerm: SEED_DATA.SECOND_PROJECT.title,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    let projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, limit);
+    assert.isNull(projects[0]?.reaction);
+
+    // Project has been liked, but connectedWalletUserIs is not filled
+    result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        searchTerm: SEED_DATA.FIRST_PROJECT.title,
+      },
+    });
+
+    projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, limit);
+    assert.isNull(projects[0]?.reaction);
+
+    // Project has been liked
+    result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        searchTerm: SEED_DATA.FIRST_PROJECT.title,
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, limit);
+    assert.equal(
+      projects[0]?.reaction?.id,
+      REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION.id,
+    );
+    projects.forEach(project => {
+      assert.isNotOk(project.adminUser.email);
+      assert.isOk(project.adminUser.firstName);
+      assert.isOk(project.adminUser.walletAddress);
+    });
+  });
+
+  it('should return projects, sort by creationDate, DESC', async () => {
+    const firstProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const secondProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.Newest,
+      },
+    });
+    assert.equal(
+      Number(result.data.data.allProjects.projects[0].id),
+      secondProject.id,
+    );
+    assert.equal(
+      Number(result.data.data.allProjects.projects[1].id),
+      firstProject.id,
+    );
+  });
+  it('should return projects, sort by creationDate, ASC', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.Oldest,
+      },
+    });
+    const projectsCount = result.data.data.allProjects.projects.length;
+    const firstProjectIsOlder =
+      new Date(result.data.data.allProjects.projects[0].creationDate) <
+      new Date(
+        result.data.data.allProjects.projects[projectsCount - 1].creationDate,
+      );
+    assert.isTrue(firstProjectIsOlder);
+  });
+  it('should return projects, filter by verified, true', async () => {
+    // There is two verified projects so I just need to create a project with verified: false and listed:true
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['Verified'],
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.isTrue(project.verified),
+    );
+  });
+  it('should return projects, filter by traceable, true', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      traceCampaignId: '1234',
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['Traceable'],
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.exists(project.traceCampaignId),
+    );
+  });
+  it('should return projects, filter by acceptGiv, true', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptGiv'],
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      // currently givingBlocks projects doesnt accept GIV
+      assert.notExists(project.givingBlocksId),
+    );
+  });
+  it('should return projects, filter from the givingblocks', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      givingBlocksId: '1234355',
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['GivingBlock'],
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.exists(project.givingBlocksId),
+    );
+  });
+  it('should return projects, sort by reactions, DESC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalReactions: 100,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.MostLiked,
+      },
+    });
+    assert.isTrue(
+      result.data.data.allProjects.projects[0].totalReactions >= 100,
+    );
+  });
+  it('should return projects, sort by donations, DESC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalDonations: 100,
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.MostFunded,
+      },
+    });
+    assert.isTrue(
+      result.data.data.allProjects.projects[0].totalDonations >= 100,
+    );
+  });
+  it('should return projects, sort by qualityScore, DESC', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      totalDonations: 100,
+      qualityScore: 10000,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.QualityScore,
+      },
+    });
+    assert.isTrue(
+      Number(result.data.data.allProjects.projects[0].id) === project.id,
+    );
+
+    // default sort
+    const result2 = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+    });
+    assert.isTrue(
+      Number(result2.data.data.allProjects.projects[0].id) === project.id,
+    );
+  });
+  it('should return projects, filtered by sub category', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['food5'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        category: 'food5',
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(category => category.name === 'food5'),
+      );
+    });
+  });
+  it('should return projects, filtered by main category', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink2'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        mainCategory: 'drink',
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(
+          category => category.mainCategory.title === 'drink',
+        ),
+      );
+    });
+  });
+  it('should return projects, filtered by main category and sub category at the same time', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink2'],
+    });
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      categories: ['drink3'],
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        mainCategory: 'drink',
+        category: 'drink3',
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.categories.find(
+          category => category.mainCategory.title === 'drink',
+        ),
+      );
+
+      // Should not return projects with drink2 category
+      assert.isOk(
+        project.categories.find(category => category.name === 'drink3'),
+      );
+    });
+  });
+}
+
 function projectsByUserIdTestCases() {
   it('should return projects with verificationForm if userId is same as logged in user', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -820,7 +1224,7 @@ function projectsByUserIdTestCases() {
     const verificationForm = await ProjectVerificationForm.create({
       project: project1,
       user,
-      status: 'draft',
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
 
     const accessToken = await generateTestAccessToken(user!.id);
@@ -1024,10 +1428,54 @@ function createProjectTestCases() {
       errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
     );
   });
+  it('Should get error, when selected category is not active', async () => {
+    const mainCategory = await MainCategory.findOne();
+    const nonActiveCategory = await Category.create({
+      name: 'nonActiveCategory',
+      value: 'nonActiveCategory',
+      isActive: false,
+      source: 'adhoc',
+      mainCategory: mainCategory as MainCategory,
+    }).save();
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [nonActiveCategory.name],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    // assert.equal(
+    //   result.data.errors[0].message,
+    //   errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    // );
+    // TODO after frontend implementing main categories we should change backend and uncommet above assersion and remove below one
+    assert.isOk(result.data.data.createProject);
+  });
   it('Should get error, when more than 5 categories sent', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
-      categories: SEED_DATA.CATEGORIES,
+      categories: SEED_DATA.FOOD_SUB_CATEGORIES,
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1062,10 +1510,13 @@ function createProjectTestCases() {
       errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
     );
   });
-  it('Should get error, when sending one recipient address', async () => {
+  it('Should not get error, when sending one recipient address', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
-      categories: [SEED_DATA.CATEGORIES[0], SEED_DATA.CATEGORIES[1]],
+      categories: [
+        SEED_DATA.FOOD_SUB_CATEGORIES[0],
+        SEED_DATA.FOOD_SUB_CATEGORIES[1],
+      ],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1091,15 +1542,57 @@ function createProjectTestCases() {
       },
     );
 
+    assert.isOk(result.data.data.createProject);
+  });
+  it('Should get error, when sending more thant two recipient address', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [
+        SEED_DATA.FOOD_SUB_CATEGORIES[0],
+        SEED_DATA.FOOD_SUB_CATEGORIES[1],
+      ],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.BSC,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT,
+      errorMessages.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
     );
   });
   it('Should get error, when walletAddress of project is repetitive', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1136,7 +1629,7 @@ function createProjectTestCases() {
   it('Should get error, when walletAddress of project is a smart contract address', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1173,7 +1666,7 @@ function createProjectTestCases() {
   it('Should get error, when title of project is repetitive', async () => {
     const sampleProject: CreateProjectInput = {
       title: SEED_DATA.FIRST_PROJECT.title,
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1222,7 +1715,7 @@ function createProjectTestCases() {
   it('Should create successfully', async () => {
     const sampleProject: CreateProjectInput = {
       title: 'title ' + new Date().getTime(),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       image:
         'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
@@ -1298,7 +1791,7 @@ function createProjectTestCases() {
   it('Should create draft successfully', async () => {
     const sampleProject: CreateProjectInput = {
       title: 'draftTitle1 ' + new Date().getTime(),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       isDraft: true,
       admin: String(SEED_DATA.FIRST_USER.id),
@@ -1436,7 +1929,7 @@ function updateProjectTestCases() {
           projectId: Number(SEED_DATA.FIRST_PROJECT.id),
           newProjectData: {
             title: String(new Date().getTime()),
-            categories: SEED_DATA.CATEGORIES,
+            categories: SEED_DATA.FOOD_SUB_CATEGORIES,
           },
         },
       },
@@ -1685,7 +2178,7 @@ function updateProjectTestCases() {
     );
     assert.equal(queriedAddress.length, 2);
   });
-  it('Should throw error when sending one address', async () => {
+  it('Should not throw error when sending one address', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
@@ -1707,7 +2200,48 @@ function updateProjectTestCases() {
                 networkId: NETWORK_IDS.XDAI,
               },
             ],
-            title: `test title should throw error when sending one address`,
+            title: `test title should not throw error when sending one address`,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(editProjectResult.data.data.updateProject);
+  });
+  it('Should throw error when sending three address', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const newWalletAddress = generateRandomEtheriumAddress();
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            addresses: [
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.XDAI,
+              },
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.MAIN_NET,
+              },
+              {
+                address: newWalletAddress,
+                networkId: NETWORK_IDS.BSC,
+              },
+            ],
+            title: `test title should throw error when sending three address`,
           },
         },
       },
@@ -1719,7 +2253,7 @@ function updateProjectTestCases() {
     );
     assert.equal(
       editProjectResult.data.errors[0].message,
-      errorMessages.IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT,
+      errorMessages.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
     );
   });
   it('Should get error when sent title is repetitive', async () => {
@@ -1749,7 +2283,7 @@ function updateProjectTestCases() {
   it('Should update successfully when updating with old title', async () => {
     const sampleProject: UpdateProjectInput = {
       title: 'test ' + String(new Date().getTime()),
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -1807,7 +2341,7 @@ function updateProjectTestCases() {
     const slug = 'test-123456';
     const sampleProject: UpdateProjectInput = {
       title,
-      categories: [SEED_DATA.CATEGORIES[0]],
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
       description: 'description',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
@@ -2945,6 +3479,7 @@ function projectByIdTestCases() {
     assert.isOk(result.data.data.projectById.adminUser.walletAddress);
     assert.isOk(result.data.data.projectById.adminUser.firstName);
     assert.isNotOk(result.data.data.projectById.adminUser.email);
+    assert.isOk(result.data.data.projectById.categories[0].mainCategory.title);
   });
   it('should return error for invalid id', async () => {
     const result = await axios.post(graphqlUrl, {
@@ -3361,7 +3896,7 @@ function projectBySlugTestCases() {
     const verificationForm = await ProjectVerificationForm.create({
       project: project1,
       user,
-      status: 'draft',
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
     }).save();
 
     const accessToken = await generateTestAccessToken(user!.id);
@@ -3389,6 +3924,7 @@ function projectBySlugTestCases() {
     assert.isOk(project.adminUser.walletAddress);
     assert.isOk(project.adminUser.firstName);
     assert.isNotOk(project.adminUser.email);
+    assert.isOk(project.categories[0].mainCategory.title);
   });
 
   it('should return projects with indicated slug', async () => {

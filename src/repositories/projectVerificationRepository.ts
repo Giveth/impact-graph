@@ -6,6 +6,7 @@ import {
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
+  PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
@@ -26,7 +27,7 @@ export const createProjectVerificationForm = async (params: {
 };
 
 export const verifyMultipleForms = async (params: {
-  verificationStatus: string;
+  verificationStatus: PROJECT_VERIFICATION_STATUSES;
   formIds?: number[] | string[];
 }): Promise<UpdateResult> => {
   return ProjectVerificationForm.createQueryBuilder()
@@ -41,7 +42,7 @@ export const verifyMultipleForms = async (params: {
 };
 
 export const verifyForm = async (params: {
-  verificationStatus: string;
+  verificationStatus: PROJECT_VERIFICATION_STATUSES;
   formId: number;
   adminId: number;
 }): Promise<ProjectVerificationForm> => {
@@ -52,6 +53,23 @@ export const verifyForm = async (params: {
   if (!form) throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
 
   form.status = params.verificationStatus;
+  form.reviewer = await findUserById(params.adminId);
+  return form.save();
+};
+
+export const makeFormDraft = async (params: {
+  formId: number;
+  adminId: number;
+}): Promise<ProjectVerificationForm> => {
+  const form = await ProjectVerificationForm.createQueryBuilder()
+    .where('id = :id', { id: params.formId })
+    .getOne();
+
+  if (!form) throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+
+  form.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
+  form.lastStep = PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS;
+  form.isTermAndConditionsAccepted = false;
   form.reviewer = await findUserById(params.adminId);
   return form.save();
 };
@@ -122,7 +140,7 @@ export const updateProjectRegistryOfProjectVerification = async (params: {
 
 export const updateProjectVerificationStatus = async (params: {
   projectVerificationId: number;
-  status: string;
+  status: PROJECT_VERIFICATION_STATUSES;
 }): Promise<ProjectVerificationForm> => {
   const { status, projectVerificationId } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
@@ -138,7 +156,7 @@ export const updateProjectVerificationStatus = async (params: {
 
 export const updateProjectVerificationLastStep = async (params: {
   projectVerificationId: number;
-  lastStep: string;
+  lastStep: string | null;
 }): Promise<ProjectVerificationForm> => {
   const { lastStep, projectVerificationId } = params;
   const projectVerificationForm = await findProjectVerificationFormById(
@@ -213,23 +231,13 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   return projectVerificationForm?.save();
 };
 
-export const getInProgressProjectVerificationRequest = async (
+export const getVerificationFormByProjectId = async (
   projectId: number,
 ): Promise<ProjectVerificationForm | undefined> => {
   return ProjectVerificationForm.createQueryBuilder('project_verification_form')
     .where(`project_verification_form.projectId=:projectId`, {
       projectId,
     })
-    .andWhere(
-      // https://stackoverflow.com/a/69165948/4650625
-      new Brackets(qb => {
-        qb.where('status = :draft', {
-          draft: PROJECT_VERIFICATION_STATUSES.DRAFT,
-        }).orWhere('status = :submitted', {
-          submitted: PROJECT_VERIFICATION_STATUSES.SUBMITTED,
-        });
-      }),
-    )
     .leftJoinAndSelect('project_verification_form.project', 'project')
     .leftJoinAndSelect(
       'project_verification_form.socialProfiles',

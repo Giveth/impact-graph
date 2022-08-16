@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.4.6",
+  "version": "1.5.0",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -74,6 +74,7 @@
     "standard": "^14.3.4",
     "stripe": "^8.137.0",
     "tslint-config-airbnb": "^5.11.2",
+    "twitter-api-sdk": "^1.0.9",
     "type-graphql": "1.1.1",
     "typedi": "0.8.0",
     "typeorm": "0.2.38",

@@ -1,5 +1,7 @@
 export interface GetUserInfoByOauth2Output {
   username: string;
+  name?: string;
+  link?: string;
 }
 
 export interface SocialNetworkOauth2AdapterInterface {

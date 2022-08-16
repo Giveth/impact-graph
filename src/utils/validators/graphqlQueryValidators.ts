@@ -11,7 +11,7 @@ const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
-const tokenSymbolRegex = /^[a-zA-Z]{3,10}$/;
+const tokenSymbolRegex = /^[a-zA-Z0-9]{3,10}$/;
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
   const validationResult = schema.validate(data);
@@ -88,7 +88,7 @@ const projectRegistryValidator = Joi.object({
   organizationWebsite: Joi.string().allow(''),
   organizationDescription: Joi.string().allow(''),
   organizationName: Joi.string().allow(''),
-  attachment: Joi.string().allow(''),
+  attachments: Joi.array()?.items(Joi.string()).max(5),
 });
 
 const projectContactsValidator = Joi.array().items(
@@ -102,7 +102,7 @@ const milestonesValidator = Joi.object({
   foundationDate: Joi.date().allow(''),
   mission: Joi.string().allow(''),
   achievedMilestones: Joi.string().allow(''),
-  achievedMilestonesProof: Joi.string().allow(''),
+  achievedMilestonesProofs: Joi.array()?.items(Joi.string()).max(5),
 });
 
 const managingFundsValidator = Joi.object({

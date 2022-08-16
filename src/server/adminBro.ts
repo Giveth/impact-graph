@@ -1,4 +1,4 @@
-import { Project, ProjStatus } from '../entities/project';
+import { Category, Project, ProjStatus } from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro, { ActionResponse, After } from 'admin-bro';
@@ -57,6 +57,7 @@ import {
 } from '../entities/projectVerificationForm';
 import {
   findProjectVerificationFormById,
+  makeFormDraft,
   verifyForm,
   verifyMultipleForms,
 } from '../repositories/projectVerificationRepository';
@@ -69,6 +70,9 @@ import {
 import { SocialProfile } from '../entities/socialProfile';
 import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
+import { updateTotalDonationsOfProject } from '../services/donationService';
+import { updateUserTotalDonated } from '../services/userService';
+import { MainCategory } from '../entities/mainCategory';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -211,20 +215,12 @@ export const setSocialProfiles: After<ActionResponse> = async (
   // both cases for projectVerificationForms and projects' ids
   const projectId = record.params.projectId || record.params.id;
 
-  const projectSocials = (await findSocialProfilesByProjectId({ projectId }))
-    .map(
-      social =>
-        `${social.socialNetwork}  --->  ${social.socialNetworkId}  : ${
-          social.isVerified ? 'verified' : 'not verified'
-        }`,
-    )
-    .join(' , ');
-
+  const socials = await findSocialProfilesByProjectId({ projectId });
   response.record = {
     ...record,
     params: {
       ...record.params,
-      socials: projectSocials,
+      socials,
     },
   };
   return response;
@@ -327,6 +323,11 @@ const getAdminBroInstance = async () => {
       {
         resource: ProjectVerificationForm,
         options: {
+          sort: {
+            direction: 'desc',
+            sortBy: 'updatedAt',
+          },
+          filter: {},
           properties: {
             id: {
               isVisible: {
@@ -344,6 +345,15 @@ const getAdminBroInstance = async () => {
                 show: true,
                 edit: true,
                 new: true,
+              },
+            },
+            lastStep: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
               },
             },
             projectId: {
@@ -401,13 +411,16 @@ const getAdminBroInstance = async () => {
               },
             },
             socials: {
-              type: 'string',
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
                 show: true,
                 edit: false,
                 new: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/VerificationFormSocials'),
               },
             },
             personalInfo: {
@@ -432,6 +445,11 @@ const getAdminBroInstance = async () => {
                 edit: false,
                 new: false,
               },
+              components: {
+                show: AdminBro.bundle(
+                  './components/VerificationFormProjectRegistry',
+                ),
+              },
             },
             'projectRegistry.isNonProfitOrganization': { type: 'boolean' },
             'projectRegistry.organizationCountry': { type: 'string' },
@@ -453,7 +471,7 @@ const getAdminBroInstance = async () => {
             'projectContacts.name': { type: 'string' },
             'projectContacts.url': { type: 'string' },
             milestones: {
-              type: 'mixed',
+              // type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
@@ -461,11 +479,12 @@ const getAdminBroInstance = async () => {
                 edit: false,
                 new: false,
               },
+              components: {
+                show: AdminBro.bundle(
+                  './components/VerificationFormMilestones',
+                ),
+              },
             },
-            'milestones.foundationDate': { type: 'string' },
-            'milestones.mission': { type: 'string' },
-            'milestones.achievedMilestones': { type: 'string' },
-            'milestones.achievedMilestonesProof': { type: 'string' },
             managingFunds: {
               type: 'mixed',
               isVisible: {
@@ -522,11 +541,14 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
-            lastStep: {
-              isVisible: false,
-            },
             emailConfirmed: {
-              isVisible: false,
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
             },
             emailConfirmationTokenExpiredAt: {
               isVisible: false,
@@ -580,6 +602,14 @@ const getAdminBroInstance = async () => {
               isVisible: true,
               handler: async (request, response, context) => {
                 return verifySingleVerificationForm(context, request, true);
+              },
+              component: false,
+            },
+            makeEditableByUser: {
+              actionType: 'record',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return makeEditableByUser(context, request);
               },
               component: false,
             },
@@ -643,6 +673,9 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             donationType: {
+              isVisible: false,
+            },
+            isTokenEligibleForGivback: {
               isVisible: false,
             },
             transakStatus: {
@@ -774,6 +807,8 @@ const getAdminBroInstance = async () => {
 
             new: {
               handler: createDonation,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
               // component: true,
             },
           },
@@ -902,13 +937,16 @@ const getAdminBroInstance = async () => {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             socials: {
-              type: 'string',
+              type: 'mixed',
               isVisible: {
                 list: false,
                 filter: false,
                 show: true,
                 edit: false,
                 new: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/VerificationFormSocials'),
               },
             },
             adminUserId: {
@@ -1337,6 +1375,98 @@ const getAdminBroInstance = async () => {
           },
         },
       },
+      {
+        resource: Category,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            edit: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            name: {
+              isVisible: true,
+            },
+            isActive: {
+              isVisible: true,
+            },
+            value: {
+              isVisible: true,
+            },
+            mainCategory: {
+              isVisible: true,
+            },
+          },
+        },
+      },
+      {
+        resource: MainCategory,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            edit: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            banner: {
+              isVisible: true,
+            },
+            slug: {
+              isVisible: true,
+            },
+            title: {
+              isVisible: true,
+            },
+            description: {
+              isVisible: true,
+            },
+          },
+        },
+      },
     ],
     rootPath: adminBroRootPath,
   });
@@ -1614,7 +1744,7 @@ export const verifySingleVerificationForm = async (
       ![
         PROJECT_VERIFICATION_STATUSES.REJECTED,
         PROJECT_VERIFICATION_STATUSES.SUBMITTED,
-      ].includes(verificationFormInDb?.status as string)
+      ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
     ) {
       throw new Error(
         errorMessages.YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS,
@@ -1647,6 +1777,64 @@ export const verifySingleVerificationForm = async (
     responseMessage = `Project(s) successfully ${
       verified ? 'verified' : 'rejected'
     }`;
+  } catch (error) {
+    logger.error('verifyVerificationForm() error', error);
+    responseType = 'danger';
+    responseMessage = 'Verify/Reject verification form failed ' + error.message;
+  }
+  const x: RecordJSON = {
+    id: String(formId),
+    title: '',
+    bulkActions: [],
+    errors: {},
+    params: (context as any).record.params,
+    populated: (context as any).record.populated,
+    recordActions: [],
+  };
+
+  return {
+    record: x,
+    redirectUrl: `/admin/resources/ProjectVerificationForm/ProjectVerificationForm/records`,
+    notice: {
+      message: responseMessage,
+      type: responseType,
+    },
+  };
+};
+
+export const makeEditableByUser = async (
+  context: AdminBroContextInterface,
+  request: AdminBroRequestInterface,
+) => {
+  const { records, currentAdmin } = context;
+  let responseMessage = '';
+  let responseType = 'success';
+  const formId = Number(request?.params?.recordId);
+  const verificationFormInDb = await findProjectVerificationFormById(formId);
+
+  try {
+    if (
+      ![
+        PROJECT_VERIFICATION_STATUSES.REJECTED,
+        PROJECT_VERIFICATION_STATUSES.SUBMITTED,
+      ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
+    ) {
+      throw new Error(
+        errorMessages.YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS,
+      );
+    }
+
+    const segmentEvent = SegmentEvents.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
+
+    const verificationForm = await makeFormDraft({
+      formId,
+      adminId: currentAdmin.id,
+    });
+    const projectId = verificationForm.projectId;
+    const project = (await findProjectById(projectId)) as Project;
+    Project.notifySegment(project, segmentEvent);
+
+    responseMessage = `Project(s) successfully got draft`;
   } catch (error) {
     logger.error('verifyVerificationForm() error', error);
     responseType = 'danger';
@@ -2007,6 +2195,7 @@ export const createDonation = async (
       currency,
       priceUsd,
       txType,
+      isProjectVerified,
       segmentNotified,
     } = request.payload;
     if (!priceUsd) {
@@ -2074,6 +2263,7 @@ export const createDonation = async (
         amount: transactionInfo?.amount,
         valueUsd: (transactionInfo?.amount as number) * priceUsd,
         status: DONATION_STATUS.VERIFIED,
+        isProjectVerified,
         donationType,
         createdAt: new Date(transactionInfo?.timestamp * 1000),
         anonymous: true,
@@ -2085,6 +2275,11 @@ export const createDonation = async (
         donation.user = donor;
       }
       await donation.save();
+      await updateTotalDonationsOfProject(project.id);
+      if (donor) {
+        await updateUserTotalDonated(donor.id);
+      }
+
       logger.debug('Donation has been created successfully', donation.id);
     }
   } catch (e) {

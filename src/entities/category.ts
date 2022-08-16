@@ -6,8 +6,12 @@ import {
   BaseEntity,
   Index,
   ManyToMany,
+  ManyToOne,
+  RelationId,
 } from 'typeorm';
 import { Project } from './project';
+import { MainCategory } from './mainCategory';
+import { Organization } from './organization';
 
 @Entity()
 @ObjectType()
@@ -30,4 +34,17 @@ export class Category extends BaseEntity {
 
   @ManyToMany(type => Project, project => project.categories)
   projects: Project[];
+
+  @Field(_ => MainCategory, { nullable: true })
+  @ManyToOne(_ => MainCategory)
+  mainCategory: MainCategory;
+
+  @Field()
+  @Column({ default: true })
+  // There are some categories that exist, we cant delete them but we dont want allow users
+  // To use them anymore on project creation/updating, so we change set the isActive false for them
+  isActive: boolean;
+
+  @RelationId((category: Category) => category.mainCategory)
+  mainCategoryId: number;
 }

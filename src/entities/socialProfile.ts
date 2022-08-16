@@ -71,6 +71,14 @@ export class SocialProfile extends BaseEntity {
 
   @Field({ nullable: true })
   @Column('text', { nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  link?: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
   socialNetwork: string;
 
   @Field()

@@ -41,8 +41,11 @@ export class DiscordAdapter implements SocialNetworkOauth2AdapterInterface {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      const username = result.data.username;
       return {
-        username: result.data.username,
+        username,
+        // Can't open profile link with this address so I commented it
+        // link: `https://discordapp.com/users/${username}`,
       };
     } catch (e) {
       logger.error('getUserInfoByOauth2Code discord error', e);

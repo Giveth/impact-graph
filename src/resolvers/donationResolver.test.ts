@@ -1241,7 +1241,7 @@ function createDonationTestCases() {
       '"transactionNetworkId" must be one of [1, 3, 100, 56]',
     );
   });
-  it('should throw exception when currency is not valid when currency contain number', async () => {
+  it('should throw exception when currency is not valid when currency contain characters', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -1259,7 +1259,7 @@ function createDonationTestCases() {
           transactionId: generateRandomTxHash(),
           nonce: 15,
           amount: 10,
-          token: 'GIV999999',
+          token: 'GIV!!',
         },
       },
       {

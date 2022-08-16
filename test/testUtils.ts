@@ -125,6 +125,7 @@ export interface CreateProjectData {
   totalTraceDonations?: number;
   totalReactions?: number;
   totalProjectUpdates?: number;
+  givingBlocksId?: string;
   traceCampaignId?: string;
   image?: string;
 }
@@ -147,7 +148,7 @@ export const saveUserDirectlyToDb = async (
 export const saveProjectVerificationFormDirectlyToDb = async (params: {
   project: Project;
   user: User;
-  status?: string;
+  status?: PROJECT_VERIFICATION_STATUSES;
 }): Promise<ProjectVerificationForm> => {
   const { project, user, status } = params;
   return ProjectVerificationForm.create({
@@ -334,7 +335,8 @@ export const SEED_DATA = {
     id: 3,
     admin: '3',
   },
-  CATEGORIES: [
+  MAIN_CATEGORIES: ['drink', 'food'],
+  FOOD_SUB_CATEGORIES: [
     'food1',
     'food2',
     'food3',
@@ -343,6 +345,16 @@ export const SEED_DATA = {
     'food6',
     'food7',
     'food8',
+  ],
+  DRINK_SUB_CATEGORIES: [
+    'drink1',
+    'drink2',
+    'drink3',
+    'drink4',
+    'drink5',
+    'drink6',
+    'drink7',
+    'drink8',
   ],
   STATUS_REASONS: [
     {

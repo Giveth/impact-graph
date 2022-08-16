@@ -14,7 +14,6 @@ import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { findUserById } from '../../repositories/userRepository';
 
-const changeAPICategoryName = 'Change';
 const changeAPIHandle = 'change';
 
 const changeApiNonProfitUrl = config.get(
@@ -148,14 +147,6 @@ export const createProjectFromChangeNonProfit = async (
 };
 
 const findOrCreateChangeAPICategory = async (): Promise<Category> => {
-  let category = await Category.findOne({ name: changeAPIHandle });
-
-  if (!category) {
-    category = new Category();
-    category.name = changeAPIHandle;
-    category.value = changeAPICategoryName;
-    await category.save();
-  }
-
-  return category;
+  const category = await Category.findOne({ name: changeAPIHandle });
+  return category as Category;
 };

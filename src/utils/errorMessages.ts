@@ -2,11 +2,13 @@ export const errorMessages = {
   CHANGE_API_INVALID_TITLE_OR_EIN:
     'ChangeAPI title or EIN not found or invalid',
   INVALID_SOCIAL_NETWORK: 'Invalid social network',
-  IT_SHOULD_HAVE_TWO_ADDRESSES_FOR_RECIPIENT:
-    'It should have two wallet addresses recipients',
+  IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT:
+    'It should have one or two wallet recipient addresses',
   NOT_IMPLEMENTED: 'Not implemented',
   YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS:
     'You just can verify rejected and submitted forms',
+  YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS:
+    'You just can make draft rejected and submitted forms',
   YOU_JUST_CAN_REJECT_SUBMITTED_FORMS: 'You just can reject submitted forms',
   INVALID_TRACK_ID_FOR_OAUTH2_LOGIN: 'Invalid trackId for oauth2 login',
   SOCIAL_NETWORK_IS_DIFFERENT_WITH_CLAIMED_ONE:
@@ -14,7 +16,7 @@ export const errorMessages = {
   SOCIAL_PROFILE_NOT_FOUND: 'Social profile not gound',
   CHANGE_API_TITLE_OR_EIN_NOT_PRECISE:
     'Please query the exact project title or EIN ID from the ChangeAPI site',
-  YOU_ARE_NOT_OWNER_OF_THIS_DONATION: 'You are now owner of this donation',
+  YOU_ARE_NOT_OWNER_OF_THIS_DONATION: 'You are not owner of this donation',
   NOT_SUPPORTED_THIRD_PARTY_API: 'Third Party API not supported',
   IPFS_IMAGE_UPLOAD_FAILED: 'Image upload failed',
   YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL:

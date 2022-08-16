@@ -5,6 +5,7 @@ import {
   Project,
   ProjectUpdate,
   ProjStatus,
+  SortingField,
 } from '../entities/project';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -116,12 +117,18 @@ enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
   Traceable = 'traceCampaignId',
+  GivingBlock = 'fromGivingBlock',
 }
 
 enum OrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
+
+registerEnumType(SortingField, {
+  name: 'SortingField',
+  description: 'Sort by type',
+});
 
 registerEnumType(FilterField, {
   name: 'FilterField',
@@ -168,6 +175,11 @@ class GetProjectsArgs {
   @Max(50)
   take: number;
 
+  @Field(type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  limit: number;
+
   @Field(type => OrderBy, {
     defaultValue: {
       field: OrderField.QualityScore,
@@ -182,11 +194,26 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   category: string;
 
+  @Field({ nullable: true })
+  mainCategory: string;
+
   @Field(type => FilterBy, {
     nullable: true,
     defaultValue: { field: null, value: null },
   })
   filterBy: FilterBy;
+
+  @Field(type => [FilterField], {
+    nullable: true,
+    defaultValue: [],
+  })
+  filters: FilterField[];
+
+  @Field(type => SortingField, {
+    nullable: true,
+    defaultValue: SortingField.QualityScore,
+  })
+  sortingBy: SortingField;
 
   @Field({ nullable: true })
   admin?: number;
@@ -235,6 +262,24 @@ export class ProjectResolver {
       { category },
     );
   }
+
+  static addMainCategoryQuery(
+    query: SelectQueryBuilder<Project>,
+    mainCategory: string,
+  ) {
+    if (!mainCategory) return query;
+
+    query = query
+      .leftJoin('project.categories', 'categoryForMainCategorySearch')
+      .innerJoin(
+        'categoryForMainCategorySearch.mainCategory',
+        'filteredMainCategory',
+        'filteredMainCategory.slug = :mainCategory',
+        { mainCategory },
+      );
+    return query;
+  }
+
   static addSearchQuery(
     query: SelectQueryBuilder<Project>,
     searchTerm: string,
@@ -397,6 +442,36 @@ export class ProjectResolver {
     return query.andWhere(`project.${filter} = ${filterValue}`);
   }
 
+  static addFiltersQuery(
+    query: SelectQueryBuilder<Project>,
+    filtersArray: FilterField[],
+  ) {
+    if (filtersArray.length === 0) return query;
+
+    query = query.andWhere(
+      new Brackets(subQuery => {
+        filtersArray.forEach(filter => {
+          if (filter === FilterField.AcceptGiv) {
+            // only giving Blocks do not accept Giv
+            return subQuery.andWhere(`project.${filter} IS NULL`);
+          }
+
+          if (filter === FilterField.GivingBlock) {
+            return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
+          }
+
+          if (filter === FilterField.Traceable) {
+            return subQuery.andWhere(`project.${filter} IS NOT NULL`);
+          }
+
+          return subQuery.andWhere(`project.${filter} = true`);
+        });
+      }),
+    );
+
+    return query;
+  }
+
   private static addUserReaction<T>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
@@ -458,6 +533,7 @@ export class ProjectResolver {
       orderBy,
       searchTerm,
       category,
+      mainCategory,
       filterBy,
       admin,
       connectedWalletUserId,
@@ -475,13 +551,15 @@ export class ProjectResolver {
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
-      .innerJoinAndSelect('project.categories', 'c')
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
 
     // Filters
     query = ProjectResolver.addCategoryQuery(query, category);
+    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
     query = ProjectResolver.addSearchQuery(query, searchTerm);
     query = ProjectResolver.addFilterQuery(
       query,
@@ -554,6 +632,74 @@ export class ProjectResolver {
     return { projects, totalCount, categories };
   }
 
+  @Query(returns => AllProjects)
+  async allProjects(
+    @Args()
+    {
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      admin,
+      connectedWalletUserId,
+    }: GetProjectsArgs,
+    @Ctx() { req: { user } }: MyContext,
+  ): Promise<AllProjects> {
+    const categories = await Category.find();
+    let query = this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.users', 'users')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
+      // you can alias it as user but it still is mapped as adminUser
+      // like defined in our project entity
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      );
+
+    // Filters
+    query = ProjectResolver.addCategoryQuery(query, category);
+    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
+    query = ProjectResolver.addSearchQuery(query, searchTerm);
+    query = ProjectResolver.addFiltersQuery(query, filters);
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+    switch (sortingBy) {
+      case SortingField.MostFunded:
+        query.orderBy('project.totalDonations', 'DESC');
+        break;
+      case SortingField.MostLiked:
+        query.orderBy('project.totalReactions', 'DESC');
+        break;
+      case SortingField.Newest:
+        query.orderBy('project.creationDate', 'DESC');
+        break;
+      case SortingField.Oldest:
+        query.orderBy('project.creationDate', 'ASC');
+        break;
+      case SortingField.QualityScore:
+        query.orderBy('project.qualityScore', 'DESC');
+        break;
+      default:
+        query.orderBy('project.qualityScore', 'DESC');
+        break;
+    }
+
+    const [projects, totalCount] = await query
+      .take(limit)
+      .skip(skip)
+      .getManyAndCount();
+    return { projects, totalCount, categories };
+  }
+
   @Query(returns => TopProjects)
   async topProjects(
     @Args()
@@ -574,7 +720,8 @@ export class ProjectResolver {
       .orderBy(`project.${field}`, direction)
       .limit(skip)
       .take(take)
-      .innerJoinAndSelect('project.categories', 'c');
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
@@ -597,6 +744,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoin('project.adminUser', 'user')
@@ -633,6 +781,7 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoin('project.adminUser', 'user')
@@ -690,7 +839,13 @@ export class ProjectResolver {
     }
 
     const categoriesPromise = newProjectData.categories.map(async category => {
-      const [c] = await this.categoryRepository.find({ name: category });
+      const [c] = await this.categoryRepository.find({
+        name: category,
+
+        // TODO if we check the isActive for categories when updating the project, we would face error when updating givingBlocks and change projects
+        // As those categories are not active , so we assuem frontend takce care of not showing non-active categories in update page
+        // isActive: true,
+      });
       if (c === undefined) {
         throw new Error(
           errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
@@ -707,7 +862,7 @@ export class ProjectResolver {
     }
     project.categories = categories;
 
-    const [hearts, heartCount] = await Reaction.findAndCount({
+    const heartCount = await Reaction.count({
       projectId,
     });
 
@@ -830,7 +985,11 @@ export class ProjectResolver {
     const categories = await Promise.all(
       projectInput.categories
         ? projectInput.categories.map(async category => {
-            const [c] = await this.categoryRepository.find({ name: category });
+            const [c] = await this.categoryRepository.find({
+              name: category,
+              // TODO When frontend got ready we should uncomment isActive filter
+              // isActive: true,
+            });
             if (c === undefined) {
               throw new Error(
                 errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,

@@ -51,6 +51,15 @@ export enum ProjStatus {
   drafted = 8,
 }
 
+// Always use Enums to prevent sql injection with plain strings
+export enum SortingField {
+  MostFunded = 'MostFunded',
+  MostLiked = 'MostLiked',
+  Newest = 'Newest',
+  Oldest = 'Oldest',
+  QualityScore = 'QualityScore',
+}
+
 export enum OrderField {
   CreationDate = 'creationDate',
   CreationAt = 'createdAt',

@@ -2,8 +2,9 @@ import { Resolver, Query, Arg, Int } from 'type-graphql';
 import { Repository, In } from 'typeorm';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 
-import { User } from '../entities/user';
+import { publicSelectionFields, User } from '../entities/user';
 import { Category } from '../entities/category';
+import { MainCategory } from '../entities/mainCategory';
 
 @Resolver(of => User)
 export class CategoryResolver {
@@ -13,7 +14,15 @@ export class CategoryResolver {
   ) {}
 
   @Query(returns => [Category], { nullable: true })
-  categories() {
-    return this.categoryRepository.find();
+  async categories() {
+    return Category.createQueryBuilder('category')
+      .leftJoinAndSelect('category.mainCategory', 'mainCategory')
+      .getMany();
+  }
+  @Query(returns => [MainCategory], { nullable: true })
+  async mainCategories() {
+    return MainCategory.createQueryBuilder('mainCategory')
+      .leftJoinAndSelect('mainCategory.categories', 'categories')
+      .getMany();
   }
 }
