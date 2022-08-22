@@ -1195,6 +1195,26 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
+    goerli: [
+      {
+        name: 'Ethereum native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+      {
+        address: '0xdc31Ee1784292379Fbb2964b3B9C4124D8F89C60',
+        symbol: 'DAI',
+        name: 'DAI Goerli',
+        decimals: 18,
+      },
+      {
+        address: '0xA2470F25bb8b53Bd3924C7AC0C68d32BF2aBd5be',
+        symbol: 'DRGIV3',
+        name: 'GIV test',
+        decimals: 18,
+      },
+    ],
     xdai: [
       {
         name: 'XDAI native token',

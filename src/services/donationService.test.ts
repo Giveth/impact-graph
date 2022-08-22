@@ -103,6 +103,49 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
   });
 
+  it('should verify a goerli donation', async () => {
+    // https://goerli.etherscan.io/tx/0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1
+
+    const transactionInfo = {
+      txHash:
+        '0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1',
+      networkId: NETWORK_IDS.GOERLI,
+      amount: 0.117,
+      fromAddress: '0xc18c3cc1cf44e72dedfcbae981ef1ab32256ee60',
+      toAddress: '0x2d2b642c7407ebce201ed80711124fffd1777331',
+      currency: 'ETH',
+      timestamp: 1661114988,
+    };
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 100,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+      donationId: donation.id,
+    });
+    assert.isOk(updateDonation);
+    assert.equal(updateDonation.id, donation.id);
+    assert.isTrue(updateDonation.segmentNotified);
+    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+  });
+
   it('should verify a mainnet donation', async () => {
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
     const transactionInfo = {

@@ -114,6 +114,7 @@ const managingFundsValidator = Joi.object({
       networkId: Joi.number()?.valid(
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
+        NETWORK_IDS.GOERLI,
         NETWORK_IDS.XDAI,
       ),
     }),
