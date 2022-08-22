@@ -95,7 +95,7 @@ export class fillRelatedAddressesFromProjectsTable1654415838996
         await insertRelatedAddress({
           project,
           queryRunner,
-          networkId: NETWORK_IDS.GOERLI,
+          networkId: NETWORK_IDS.ROPSTEN,
         });
       }
     }
