@@ -108,6 +108,19 @@ async function seedTokens() {
     }
     await Token.create(tokenData).save();
   }
+  for (const token of SEED_DATA.TOKENS.goerli) {
+    const tokenData = {
+      ...token,
+      networkId: 5,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData).save();
+  }
 }
 
 async function seedOrganizations() {
@@ -144,6 +157,7 @@ async function relateOrganizationsToTokens() {
     where: [
       { symbol: 'ETH', networkId: NETWORK_IDS.MAIN_NET },
       { symbol: 'ETH', networkId: NETWORK_IDS.ROPSTEN },
+      { symbol: 'ETH', networkId: NETWORK_IDS.GOERLI },
     ],
   });
   change.tokens = changeTokens;

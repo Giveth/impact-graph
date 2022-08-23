@@ -615,6 +615,34 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
   });
+  it('should create ETH donation for CHANGE project on goerli successfully', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.CHANGE,
+    });
+    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const accessToken = await generateTestAccessToken(user!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.GOERLI,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          nonce: 11,
+          token: 'ETH',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+  });
   // for production they only accept ETH on mainnet
   it('should create ETH donation for CHANGE project on Mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb({
@@ -1238,7 +1266,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 100, 56]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 56]',
     );
   });
   it('should throw exception when currency is not valid when currency contain characters', async () => {

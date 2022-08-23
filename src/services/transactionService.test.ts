@@ -423,6 +423,24 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.currency, 'ETH');
     assert.equal(transactionInfo.amount, amount);
   });
+  it('should return transaction detail for normal transfer on goerli', async () => {
+    // https://goerli.etherscan.io/tx/0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1
+
+    const amount = 0.117;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.GOERLI,
+      fromAddress: '0xc18c3cc1cf44e72dedfcbae981ef1ab32256ee60',
+      toAddress: '0x2d2b642c7407ebce201ed80711124fffd1777331',
+      amount,
+      timestamp: 1661114988,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
 
   it('should return transaction detail for UNI token transfer on ropsten', async () => {
     // https://ropsten.etherscan.io/tx/0xba3c2627c9d3dd963455648b4f9d7239e8b5c80d0aa85ac354d2b762d99e4441

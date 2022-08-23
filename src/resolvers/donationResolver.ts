@@ -408,7 +408,8 @@ export class DonationResolver {
       );
 
       const priceChainId =
-        transactionNetworkId === NETWORK_IDS.ROPSTEN
+        transactionNetworkId === NETWORK_IDS.ROPSTEN ||
+        transactionNetworkId === NETWORK_IDS.GOERLI
           ? NETWORK_IDS.MAIN_NET
           : transactionNetworkId;
 
