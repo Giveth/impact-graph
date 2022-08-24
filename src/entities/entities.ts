@@ -18,6 +18,7 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { SocialProfile } from './socialProfile';
 import { MainCategory } from './mainCategory';
+import { PowerBoosting } from './powerBoosting';
 
 export const entities: any = [
   Organization,
@@ -42,4 +43,5 @@ export const entities: any = [
   ProjectAddress,
   SocialProfile,
   MainCategory,
+  PowerBoosting,
 ];
