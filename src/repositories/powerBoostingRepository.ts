@@ -6,6 +6,7 @@ import { logger } from '../utils/logger';
 import { errorMessages } from '../utils/errorMessages';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
+import { GetPowerBoostingArgs } from '../resolvers/givPowerResolver';
 
 export const findUserPowerBoosting = async (
   userId: number,
@@ -16,6 +17,34 @@ export const findUserPowerBoosting = async (
     .where(`"userId" =${userId}`)
     .andWhere(`percentage > 0`)
     .getMany();
+};
+
+export const findPowerBoostings = async (params: {
+  take: number;
+  skip: number;
+  orderBy: {
+    field: 'createdAt' | 'updatedAt' | 'percentage';
+    direction: 'ASC' | 'DESC';
+  };
+  userId?: number;
+  projectId?: number;
+}): Promise<[PowerBoosting[], number]> => {
+  const query = PowerBoosting.createQueryBuilder('powerBoosting')
+    .leftJoinAndSelect('powerBoosting.project', 'project')
+    .leftJoinAndSelect('powerBoosting.user', 'user')
+    .where(`percentage > 0`);
+
+  if (params.userId) {
+    query.andWhere(`"userId" =${params.userId}`);
+  }
+  if (params.projectId) {
+    query.andWhere(`"projectId" =${params.projectId}`);
+  }
+  return query
+    .orderBy(`powerBoosting.${params.orderBy.field}`, params.orderBy.direction)
+    .take(params.take)
+    .skip(params.skip)
+    .getManyAndCount();
 };
 
 export const insertSinglePowerBoosting = async (params: {
