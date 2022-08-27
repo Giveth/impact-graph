@@ -5,6 +5,8 @@ export const errorMessages = {
   IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT:
     'It should have one or two wallet recipient addresses',
   NOT_IMPLEMENTED: 'Not implemented',
+  SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID:
+    'Should send at least on of userId or projectId',
   YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS:
     'You just can verify rejected and submitted forms',
   YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS:

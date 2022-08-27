@@ -1,11 +1,13 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   RelationId,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
@@ -40,4 +42,10 @@ export class PowerBoosting extends BaseEntity {
   @Min(0)
   @Max(100)
   percentage: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
