@@ -30,6 +30,7 @@ export const findPowerBoostings = async (params: {
   projectId?: number;
 }): Promise<[PowerBoosting[], number]> => {
   const query = PowerBoosting.createQueryBuilder('powerBoosting')
+    // select some parameters of project and user not all fields
     .leftJoinAndSelect('powerBoosting.project', 'project')
     .leftJoinAndSelect('powerBoosting.user', 'user')
     .where(`percentage > 0`);
