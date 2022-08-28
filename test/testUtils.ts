@@ -24,6 +24,7 @@ import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
 } from '../src/entities/projectVerificationForm';
+import { MainCategory } from '../src/entities/mainCategory';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -251,6 +252,24 @@ export const createProjectData = (): CreateProjectData => {
 export const createDonationData = (params?: {
   status?: string;
 }): CreateDonationData => {
+  return {
+    transactionId: generateRandomTxHash(),
+    transactionNetworkId: NETWORK_IDS.MAIN_NET,
+    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
+    fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
+    currency: 'ETH',
+    status: params?.status || DONATION_STATUS.PENDING,
+    anonymous: false,
+    amount: 15,
+    valueUsd: 15,
+    createdAt: moment(),
+    segmentNotified: true,
+  };
+};
+
+export const createCategoryData = (params?: {
+  status?: string;
+}): CreateCategoryData => {
   return {
     transactionId: generateRandomTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
@@ -1476,7 +1495,58 @@ export interface CreateDonationData {
   status?: string;
 }
 
+export interface CategoryData {
+  id?: number;
+  value: string;
+  name: string;
+  mainCategoryId: number;
+  isActive: boolean;
+  mainCategory: MainCategory;
+  projects: Project[];
+  source?: string;
+}
+
+export interface MainCategoryData {
+  id?: number;
+  categories: Category[];
+  banner: string;
+  description: string;
+  slug: string;
+  title: string;
+}
+
 export const saveDonationDirectlyToDb = async (
+  donationData: CreateDonationData,
+  userId: number,
+  projectId: number,
+) => {
+  const user = (await User.findOne({
+    id: userId,
+  })) as User;
+  const project = (await Project.findOne({
+    id: projectId,
+  })) as Project;
+  return Donation.create({
+    ...donationData,
+    user,
+    project,
+  }).save();
+};
+
+export const saveCategoryDirectlyToDb = async (
+  categoryData: CategoryData,
+  projectId: number,
+) => {
+  const project = (await Project.findOne({
+    id: projectId,
+  })) as Project;
+  return Category.create({
+    ...categoryData,
+    project,
+  }).save();
+};
+
+export const saveMainCategoryDirectlyToDb = async (
   donationData: CreateDonationData,
   userId: number,
   projectId: number,
