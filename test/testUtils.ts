@@ -1535,32 +1535,22 @@ export const saveDonationDirectlyToDb = async (
 
 export const saveCategoryDirectlyToDb = async (
   categoryData: CategoryData,
-  projectId: number,
+  mainCategoryId: number,
 ) => {
-  const project = (await Project.findOne({
-    id: projectId,
-  })) as Project;
+  const mainCategory = (await MainCategory.findOne({
+    id: mainCategoryId,
+  })) as MainCategory;
   return Category.create({
     ...categoryData,
-    project,
+    mainCategory,
   }).save();
 };
 
 export const saveMainCategoryDirectlyToDb = async (
-  donationData: CreateDonationData,
-  userId: number,
-  projectId: number,
+  mainCategoryData: MainCategoryData,
 ) => {
-  const user = (await User.findOne({
-    id: userId,
-  })) as User;
-  const project = (await Project.findOne({
-    id: projectId,
-  })) as Project;
-  return Donation.create({
-    ...donationData,
-    user,
-    project,
+  return MainCategory.create({
+    ...mainCategoryData,
   }).save();
 };
 
