@@ -4,7 +4,7 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { TransakOrder } from './transak/order';
 import { User } from '../entities/user';
 import DonationTracker from './segment/DonationTracker';
-import { SegmentEvents } from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { Organization } from '../entities/organization';
 import { findUserById } from '../repositories/userRepository';
@@ -270,7 +270,7 @@ export const sendSegmentEventForDonation = async (params: {
       donation,
       project,
       projectOwner,
-      SegmentEvents.DONATION_RECEIVED,
+      NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
     ).track();
     await getNotificationAdapter().donationReceived({
       donation,
@@ -283,7 +283,7 @@ export const sendSegmentEventForDonation = async (params: {
       donation,
       project,
       donorUser,
-      SegmentEvents.MADE_DONATION,
+      NOTIFICATIONS_EVENT_NAMES.MADE_DONATION,
     ).track();
     await getNotificationAdapter().donationSent({
       donation,

@@ -9,7 +9,7 @@ import { redis } from '../redis';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
 import { SelectQueryBuilder } from 'typeorm';
-import { SegmentEvents } from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
 import {
@@ -90,9 +90,9 @@ const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminBroCookie = 'adminbro';
 
 const segmentProjectStatusEvents = {
-  activate: SegmentEvents.PROJECT_ACTIVATED,
-  deactivate: SegmentEvents.PROJECT_DEACTIVATED,
-  cancelled: SegmentEvents.PROJECT_CANCELLED,
+  activate: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
+  deactivate: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
+  cancelled: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
 };
 
 // headers defined by the verification team for exporting
@@ -1642,7 +1642,9 @@ export const listDelist = async (
 
     Project.sendBulkEventsToSegment(
       projects.raw,
-      list ? SegmentEvents.PROJECT_LISTED : SegmentEvents.PROJECT_UNLISTED,
+      list
+        ? NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED
+        : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
     );
     for (const project of projects.raw) {
       await dispatchProjectUpdateEvent(project);
@@ -1715,8 +1717,8 @@ export const verifySingleVerificationForm = async (
     }
     // call repositories
     const segmentEvent = verified
-      ? SegmentEvents.PROJECT_VERIFIED
-      : SegmentEvents.PROJECT_REJECTED;
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
+      : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
 
     const verificationForm = await verifyForm({
       verificationStatus,
@@ -1790,7 +1792,8 @@ export const makeEditableByUser = async (
       );
     }
 
-    const segmentEvent = SegmentEvents.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
+    const segmentEvent =
+      NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
 
     const verificationForm = await makeFormDraft({
       formId,
@@ -1850,8 +1853,8 @@ export const verifyVerificationForms = async (
     const projects = await verifyMultipleProjects({ verified, projectsIds });
 
     const segmentEvent = verified
-      ? SegmentEvents.PROJECT_VERIFIED
-      : SegmentEvents.PROJECT_REJECTED;
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
+      : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
     const projectIds = projects.raw.map(project => {
@@ -1913,11 +1916,11 @@ export const verifyProjects = async (
       .execute();
 
     let segmentEvent = verified
-      ? SegmentEvents.PROJECT_VERIFIED
-      : SegmentEvents.PROJECT_UNVERIFIED;
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
+      : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED;
 
     segmentEvent = revokeBadge
-      ? SegmentEvents.PROJECT_BADGE_REVOKED
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED
       : segmentEvent;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);

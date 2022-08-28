@@ -16,7 +16,10 @@ import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerification } from '../entities/accountVerification';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { MyContext } from '../types/MyContext';
-import { getAnalytics, SegmentEvents } from '../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../analytics/analytics';
 import { errorMessages } from '../utils/errorMessages';
 import { Project } from '../entities/project';
 import { validateEmail } from '../utils/validators/commonValidators';
@@ -113,7 +116,7 @@ export class UserResolver {
 
     analytics.identifyUser(dbUser);
     analytics.track(
-      SegmentEvents.UPDATED_PROFILE,
+      NOTIFICATIONS_EVENT_NAMES.UPDATED_PROFILE,
       dbUser.segmentUserId(),
       segmentUpdateProfile,
       null,

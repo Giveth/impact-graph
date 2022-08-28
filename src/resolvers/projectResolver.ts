@@ -20,7 +20,10 @@ import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { triggerBuild } from '../netlify/build';
 import { MyContext } from '../types/MyContext';
-import { getAnalytics, SegmentEvents } from '../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
@@ -796,7 +799,7 @@ export class ProjectResolver {
     });
 
     // Edit emails
-    Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
+    Project.notifySegment(project, NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED);
 
     // We dont wait for trace reponse, because it may increase our response time
     dispatchProjectUpdateEvent(project);
@@ -964,7 +967,7 @@ export class ProjectResolver {
     };
     if (status?.id === ProjStatus.active) {
       analytics.track(
-        SegmentEvents.PROJECT_CREATED,
+        NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
         null,
@@ -1031,7 +1034,7 @@ export class ProjectResolver {
     await updateTotalProjectUpdatesOfAProject(update.projectId);
 
     analytics.track(
-      SegmentEvents.PROJECT_UPDATED_OWNER,
+      NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_OWNER,
       `givethId-${user.userId}`,
       projectUpdateInfo,
       null,
@@ -1065,7 +1068,7 @@ export class ProjectResolver {
         firstName: donor.firstName,
       };
       analytics.track(
-        SegmentEvents.PROJECT_UPDATED_DONOR,
+        NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_DONOR,
         `givethId-${donor.id}`,
         donorUpdateInfo,
         null,
@@ -1491,7 +1494,7 @@ export class ProjectResolver {
       };
 
       analytics.track(
-        SegmentEvents.PROJECT_DEACTIVATED,
+        NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
         null,
@@ -1518,8 +1521,8 @@ export class ProjectResolver {
       });
       const segmentEventToDispatch =
         project.prevStatusId === ProjStatus.drafted
-          ? SegmentEvents.DRAFTED_PROJECT_ACTIVATED
-          : SegmentEvents.PROJECT_ACTIVATED;
+          ? NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED
+          : NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED;
 
       project.listed = null;
       await project.save();
