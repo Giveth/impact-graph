@@ -19,15 +19,16 @@ import { pinFile } from '../middleware/pinataUtils';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
-import { triggerBuild } from '../netlify/build';
 import { MyContext } from '../types/MyContext';
-import { getAnalytics, SegmentEvents } from '../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
 import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
-import config from '../config';
 import slugify from 'slugify';
 import SentryLogger from '../sentryLogger';
 import {
@@ -80,6 +81,7 @@ import {
   userIsOwnerOfProject,
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 const analytics = getAnalytics();
 
@@ -917,7 +919,7 @@ export class ProjectResolver {
     });
 
     // Edit emails
-    Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
+    Project.notifySegment(project, NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED);
 
     // We dont wait for trace reponse, because it may increase our response time
     dispatchProjectUpdateEvent(project);
@@ -1045,15 +1047,6 @@ export class ProjectResolver {
     const newProject = await this.projectRepository.save(project);
     const adminUser = (await findUserById(Number(newProject.admin))) as User;
     newProject.adminUser = adminUser;
-    // for (const relatedAddress of projectInput?.addresses) {
-    //   await addNewProjectAddress({
-    //     project,
-    //     user: adminUser,
-    //     address: relatedAddress.address,
-    //     networkId: relatedAddress.networkId,
-    //     isRecipient: true,
-    //   });
-    // }
     await addBulkNewProjectAddress(
       projectInput?.addresses.map(relatedAddress => {
         return {
@@ -1092,16 +1085,9 @@ export class ProjectResolver {
       slug: project.slug,
       walletAddress: project.walletAddress,
     };
-    // -Mitch I'm not sure why formattedProject was added in here, the object is missing a few important pieces of
-    // information into the analytics
-
-    const formattedProject = {
-      ...projectInput,
-      description: projectInput?.description?.replace(/<img .*?>/g, ''),
-    };
     if (status?.id === ProjStatus.active) {
       analytics.track(
-        SegmentEvents.PROJECT_CREATED,
+        NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
         null,
@@ -1110,8 +1096,15 @@ export class ProjectResolver {
 
     await pubSub.publish('NOTIFICATIONS', payload);
 
-    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
-      triggerBuild(newProject.id);
+    if (projectInput.isDraft) {
+      await getNotificationAdapter().projectSavedAsDraft({
+        project: newProject,
+      });
+    } else {
+      await getNotificationAdapter().projectPublished({
+        project: newProject,
+      });
+    }
 
     return newProject;
   }
@@ -1157,7 +1150,7 @@ export class ProjectResolver {
     await updateTotalProjectUpdatesOfAProject(update.projectId);
 
     analytics.track(
-      SegmentEvents.PROJECT_UPDATED_OWNER,
+      NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_OWNER,
       `givethId-${user.userId}`,
       projectUpdateInfo,
       null,
@@ -1191,7 +1184,7 @@ export class ProjectResolver {
         firstName: donor.firstName,
       };
       analytics.track(
-        SegmentEvents.PROJECT_UPDATED_DONOR,
+        NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_DONOR,
         `givethId-${donor.id}`,
         donorUpdateInfo,
         null,
@@ -1567,7 +1560,7 @@ export class ProjectResolver {
     reasonId?: number;
   }): Promise<Project> {
     const { projectId, statusId, user, reasonId } = inputData;
-    const project = await Project.findOne({ id: projectId });
+    const project = await findProjectById(projectId);
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
@@ -1617,7 +1610,7 @@ export class ProjectResolver {
       };
 
       analytics.track(
-        SegmentEvents.PROJECT_DEACTIVATED,
+        NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
         null,
@@ -1644,8 +1637,8 @@ export class ProjectResolver {
       });
       const segmentEventToDispatch =
         project.prevStatusId === ProjStatus.drafted
-          ? SegmentEvents.DRAFTED_PROJECT_ACTIVATED
-          : SegmentEvents.PROJECT_ACTIVATED;
+          ? NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED
+          : NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED;
 
       project.listed = null;
       await project.save();
@@ -1663,6 +1656,16 @@ export class ProjectResolver {
         segmentProject,
         null,
       );
+
+      if (project.prevStatusId === ProjStatus.drafted) {
+        await getNotificationAdapter().projectPublished({
+          project,
+        });
+      } else {
+        await getNotificationAdapter().projectReactivated({
+          project,
+        });
+      }
       return true;
     } catch (error) {
       logger.error('projectResolver.activateProject() error', error);

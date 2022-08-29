@@ -35,7 +35,6 @@ const envVars = [
   'NETLIFY_DEPLOY_HOOK',
   'ENVIRONMENT',
   'WEBSITE_URL',
-  'TRIGGER_BUILD_ON_NEW_PROJECT',
   'OUR_SECRET',
   // 'XDAI_NODE_HTTP_URL',
   'SEGMENT_API_KEY',
@@ -73,7 +72,6 @@ interface requiredEnv {
   DEFAULT_ORGANISATION: string;
   ENVIRONMENT: string;
   WEBSITE_URL: string;
-  TRIGGER_BUILD_ON_NEW_PROJECT: string;
   OUR_SECRET: string;
   XDAI_NODE_HTTP_URL: string;
   SEGMENT_API_KEY: string;

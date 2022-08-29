@@ -11,12 +11,16 @@ import {
 } from 'type-graphql';
 import { Reaction, REACTION_TYPE } from '../entities/reaction';
 import { Context } from '../context';
-import { Project, ProjectUpdate } from '../entities/project';
+import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
 import { MyContext } from '../types/MyContext';
 import { errorMessages } from '../utils/errorMessages';
 import { updateTotalReactionsOfAProject } from '../services/reactionsService';
 import { getConnection } from 'typeorm';
 import { logger } from '../utils/logger';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { findProjectById } from '../repositories/projectRepository';
+import { findUserById } from '../repositories/userRepository';
+import { User } from '../entities/user';
 
 @ObjectType()
 class ToggleResponse {
@@ -163,6 +167,13 @@ export class ReactionResolver {
   ): Promise<Reaction> {
     if (!user || !user?.userId)
       throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    const project = await findProjectById(projectId);
+    if (!project) {
+      throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    }
+    if (project.statusId !== ProjStatus.active) {
+      throw new Error(errorMessages.PROJECT_IS_NOT_ACTIVE);
+    }
 
     const queryRunner = getConnection().createQueryRunner();
 
@@ -195,6 +206,11 @@ export class ReactionResolver {
 
       // commit transaction now:
       await queryRunner.commitTransaction();
+      const userWhoLiked = (await findUserById(user.userId)) as User;
+      await getNotificationAdapter().projectReceivedHeartReaction({
+        project,
+        user: userWhoLiked,
+      });
       return reaction;
     } catch (e) {
       logger.error('like project error', e);

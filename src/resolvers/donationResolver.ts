@@ -20,7 +20,10 @@ import { getTokenPrices, getOurTokenList } from 'monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
-import { getAnalytics, SegmentEvents } from '../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In, Brackets } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
@@ -499,7 +502,7 @@ export class DonationResolver {
           donation,
         });
         addSegmentEventToQueue({
-          event: SegmentEvents.GET_DONATION_PRICE_FAILED,
+          event: NOTIFICATIONS_EVENT_NAMES.GET_DONATION_PRICE_FAILED,
           analyticsUserId: userId,
           properties: donation,
           anonymousId: null,

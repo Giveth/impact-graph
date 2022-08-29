@@ -2,7 +2,7 @@ import Analytics from 'analytics-node';
 import config from '../config';
 import { User } from '../entities/user';
 
-export enum SegmentEvents {
+export enum NOTIFICATIONS_EVENT_NAMES {
   DRAFTED_PROJECT_ACTIVATED = 'Draft published',
   PROJECT_LISTED = 'Project listed',
   PROJECT_UNLISTED = 'Project unlisted',
@@ -17,6 +17,7 @@ export enum SegmentEvents {
   SEND_EMAIL_CONFIRMATION = 'Send email confirmation',
   MADE_DONATION = 'Made donation',
   DONATION_RECEIVED = 'Donation received',
+  PROJECT_RECEIVED_HEART = 'Project received heart',
   PROJECT_UPDATED_DONOR = 'Project updated - donor',
   PROJECT_UPDATED_OWNER = 'Project updated - owner',
   PROJECT_CREATED = 'Project created',
@@ -44,7 +45,12 @@ class GraphAnalytics {
     });
   }
 
-  track(eventName: SegmentEvents, analyticsUserId, properties, anonymousId) {
+  track(
+    eventName: NOTIFICATIONS_EVENT_NAMES,
+    analyticsUserId,
+    properties,
+    anonymousId,
+  ) {
     let userId;
     if (!analyticsUserId) {
       userId = anonymousId;

@@ -1,6 +1,9 @@
 import { User } from '../../entities/user';
 import { Project } from '../../entities/project';
-import { getAnalytics, SegmentEvents } from '../../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../../analytics/analytics';
 import { addSegmentEventToQueue } from '../../analytics/segmentQueue';
 import { findUserById } from '../../repositories/userRepository';
 
@@ -11,10 +14,10 @@ const analytics = getAnalytics();
  */
 class ProjectTracker {
   project: Project;
-  eventName: SegmentEvents;
+  eventName: NOTIFICATIONS_EVENT_NAMES;
   projectOwner?: User;
 
-  constructor(projectToUpdate: Project, eventTitle: SegmentEvents) {
+  constructor(projectToUpdate: Project, eventTitle: NOTIFICATIONS_EVENT_NAMES) {
     this.project = projectToUpdate;
     this.eventName = eventTitle;
   }
