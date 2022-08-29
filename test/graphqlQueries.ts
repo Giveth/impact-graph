@@ -781,6 +781,7 @@ export const userByAddress = `
       walletAddress
       url
       location
+      isSignedIn
     }
   }
 `;

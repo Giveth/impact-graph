@@ -6,6 +6,7 @@ import {
   generateTestAccessToken,
   graphqlUrl,
   saveUserDirectlyToDb,
+  SEED_DATA,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { updateUser, userByAddress } from '../../test/graphqlQueries';
@@ -91,6 +92,74 @@ function userByAddressTestCases() {
       },
     });
     assert.equal(result.data.data.userByAddress, null);
+  });
+  it('Return isSignedIn true, for loggedIn user', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const user = await User.create(userData).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userByAddress,
+        variables: {
+          address: userData.walletAddress,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.userByAddress.walletAddress,
+      userData.walletAddress,
+    );
+    assert.isTrue(result.data.data.userByAddress.isSignedIn);
+  });
+  it('Return isSignedIn false, for not loggedIn user, getting another userInfo', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: SEED_DATA.FIRST_USER.walletAddress,
+      },
+    });
+    assert.equal(
+      result.data.data.userByAddress.walletAddress,
+      SEED_DATA.FIRST_USER.walletAddress,
+    );
+    assert.isFalse(result.data.data.userByAddress.isSignedIn);
+  });
+  it('Return isSignedIn true, for loggedIn user, getting another userInfo', async () => {
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: userByAddress,
+        variables: {
+          address: SEED_DATA.FIRST_USER.walletAddress,
+        },
+      },
+      {
+        headers: {
+          authorization: `Bearer ${await generateTestAccessToken(
+            SEED_DATA.SECOND_USER.id,
+          )}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.userByAddress.walletAddress,
+      SEED_DATA.FIRST_USER.walletAddress,
+    );
+    assert.isTrue(result.data.data.userByAddress.isSignedIn);
   });
 }
 

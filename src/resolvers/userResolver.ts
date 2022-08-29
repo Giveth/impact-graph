@@ -25,6 +25,7 @@ import {
   findUserByWalletAddress,
 } from '../repositories/userRepository';
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
+import { UserByAddressResponse } from './types/userResolver';
 
 const analytics = getAnalytics();
 
@@ -41,14 +42,21 @@ export class UserResolver {
     // return User.create(data).save();
   }
 
-  @Query(returns => User, { nullable: true })
-  userByAddress(
+  @Query(returns => UserByAddressResponse, { nullable: true })
+  async userByAddress(
     @Arg('address', type => String) address: string,
     @Ctx() { req: { user } }: MyContext,
   ) {
     const includeSensitiveFields =
       user?.walletAddress?.toLowerCase() === address.toLowerCase();
-    return findUserByWalletAddress(address, includeSensitiveFields);
+    const foundUser = await findUserByWalletAddress(
+      address,
+      includeSensitiveFields,
+    );
+    return {
+      isSignedIn: Boolean(user),
+      ...foundUser,
+    };
   }
 
   @Mutation(returns => Boolean)
