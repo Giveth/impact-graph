@@ -1499,10 +1499,10 @@ export interface CategoryData {
   id?: number;
   value: string;
   name: string;
-  mainCategoryId: number;
+  mainCategoryId?: number;
   isActive: boolean;
   mainCategory: MainCategory;
-  projects: Project[];
+  projects?: Project[];
   source?: string;
 }
 
