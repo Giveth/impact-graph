@@ -18,7 +18,6 @@ import { pinFile } from '../middleware/pinataUtils';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
-import { triggerBuild } from '../netlify/build';
 import { MyContext } from '../types/MyContext';
 import {
   getAnalytics,
@@ -29,7 +28,6 @@ import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
 import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
-import config from '../config';
 import slugify from 'slugify';
 import SentryLogger from '../sentryLogger';
 import {
@@ -976,10 +974,6 @@ export class ProjectResolver {
 
     await pubSub.publish('NOTIFICATIONS', payload);
 
-    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true') {
-      // TODO whats this? I think we can delete it
-      triggerBuild(newProject.id);
-    }
     if (projectInput.isDraft) {
       await getNotificationAdapter().projectSavedAsDraft({
         project: newProject,
