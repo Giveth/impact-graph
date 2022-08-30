@@ -12,6 +12,7 @@ import { ReactionResolver } from './reactionResolver';
 import { StatusReasonResolver } from './statusReasonResolver';
 import { ProjectVerificationFormResolver } from './projectVerificationFormResolver';
 import { SocialProfilesResolver } from './socialProfilesResolver';
+import { PowerBoostingResolver } from './powerBoostingResolver';
 
 export const resolvers: any = [
   UserResolver,
@@ -28,4 +29,5 @@ export const resolvers: any = [
   ReactionResolver,
   ProjectVerificationFormResolver,
   SocialProfilesResolver,
+  PowerBoostingResolver,
 ];
