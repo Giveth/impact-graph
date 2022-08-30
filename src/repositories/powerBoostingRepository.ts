@@ -90,7 +90,7 @@ export const setSingleBoosting = async (params: {
 
   const beforePB = await findUserPowerBoosting(userId);
 
-  const commitData: { projectId: number; percentage: number }[] = [];
+  const commitData: PowerBoosting[] = [];
 
   if (beforePB.length === 0) {
     if (percentage !== 100)
@@ -98,14 +98,18 @@ export const setSingleBoosting = async (params: {
         errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
       );
 
-    commitData.push({
-      projectId,
-      percentage: 100,
-    });
+    commitData.push(
+      PowerBoosting.create({
+        userId,
+        projectId,
+        percentage: 100,
+      }),
+    );
   } else {
     const otherProjectsBeforePB = beforePB.filter(
       pb => pb.projectId !== projectId,
     );
+    let projectBoost = beforePB.find(pb => pb.projectId === projectId);
 
     if (otherProjectsBeforePB.length + 1 > MAX_PROJECT_BOOST_LIMIT) {
       throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT);
@@ -117,32 +121,29 @@ export const setSingleBoosting = async (params: {
     );
     const otherProjectsAfterTotalPercentages = 100 - percentage;
 
-    commitData.push({
-      projectId,
-      percentage: formatPercentage(percentage),
-    });
+    if (projectBoost) {
+      projectBoost.percentage = percentage;
+    } else {
+      projectBoost = PowerBoosting.create({
+        userId,
+        projectId,
+        percentage,
+      });
+    }
+
+    commitData.push(projectBoost);
 
     otherProjectsBeforePB.forEach(_pb => {
-      commitData.push({
-        projectId: _pb.projectId,
-        percentage: formatPercentage(
-          (_pb.percentage * otherProjectsAfterTotalPercentages) /
-            otherProjectsBeforeTotalPercentages,
-        ),
-      });
+      _pb.percentage = formatPercentage(
+        (_pb.percentage * otherProjectsAfterTotalPercentages) /
+          otherProjectsBeforeTotalPercentages,
+      );
+      commitData.push(_pb);
     });
   }
 
   await queryRunner.startTransaction();
-  await Promise.all(
-    commitData.map(cd => {
-      return queryRunner.manager.save(PowerBoosting, {
-        userId,
-        projectId: cd.projectId,
-        percentage: cd.percentage,
-      });
-    }),
-  );
+  await queryRunner.manager.save(commitData);
   await queryRunner.commitTransaction();
 
   return findUserPowerBoosting(userId);

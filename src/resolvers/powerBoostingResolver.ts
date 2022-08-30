@@ -131,15 +131,7 @@ export class PowerBoostingResolver {
       throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
     }
 
-    await setSingleBoosting({ userId: user.userId, projectId, percentage });
-
-    // validate input data
-    // return setSingleBoosting({
-    //   userId: user?.userId,
-    //   projectId,
-    //   percentage,
-    // });
-    throw new Error(errorMessages.NOT_IMPLEMENTED);
+    return setSingleBoosting({ userId: user.userId, projectId, percentage });
   }
 
   @Query(returns => GivPowers)

@@ -16,6 +16,7 @@ import { Max, Min, IsNumber } from 'class-validator';
 
 @Entity()
 @ObjectType()
+@Index(['projectId', 'userId'], { unique: true })
 export class PowerBoosting extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -26,7 +27,6 @@ export class PowerBoosting extends BaseEntity {
   project: Project;
 
   @Index()
-  @Field(type => ID)
   @RelationId((powerBoosting: PowerBoosting) => powerBoosting.project)
   @Column({ nullable: false })
   projectId: number;
@@ -36,7 +36,6 @@ export class PowerBoosting extends BaseEntity {
   user: User;
 
   @Index()
-  @Field(type => User)
   @RelationId((powerBoosting: PowerBoosting) => powerBoosting.user)
   @Column({ nullable: false })
   userId: number;
