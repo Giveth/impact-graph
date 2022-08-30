@@ -10,6 +10,7 @@ import {
   Mutation,
   ObjectType,
   Query,
+  registerEnumType,
   Resolver,
 } from 'type-graphql';
 import { MyContext } from '../types/MyContext';
@@ -21,8 +22,9 @@ import {
 } from '../repositories/powerBoostingRepository';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
+import { OrderField } from '../entities/project';
 
-enum OrderDirection {
+enum PowerBoostingOrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
@@ -33,17 +35,26 @@ enum PowerBoostingOrderField {
   Percentage = 'percentage',
 }
 
+registerEnumType(PowerBoostingOrderField, {
+  name: 'PowerBoostingOrderField',
+  description: 'Order by field',
+});
+
+registerEnumType(PowerBoostingOrderDirection, {
+  name: 'PowerBoostingOrderDirection',
+  description: 'Order direction',
+});
+
 @InputType()
-class OrderBy {
+class PowerBoostingOrderBy {
   @Field(type => PowerBoostingOrderField)
   field: PowerBoostingOrderField;
 
-  @Field(type => OrderDirection)
-  direction: OrderDirection;
+  @Field(type => PowerBoostingOrderDirection)
+  direction: PowerBoostingOrderDirection;
 }
 
-@Service()
-@ArgsType()
+@InputType()
 export class GetPowerBoostingArgs {
   @Field(type => Int, { defaultValue: 0 })
   @Min(0)
@@ -54,13 +65,8 @@ export class GetPowerBoostingArgs {
   @Max(50)
   take: number;
 
-  @Field(type => OrderBy, {
-    defaultValue: {
-      field: PowerBoostingOrderField.UpdatedAt,
-      direction: OrderDirection.DESC,
-    },
-  })
-  orderBy: OrderBy;
+  @Field(type => PowerBoostingOrderBy)
+  orderBy: PowerBoostingOrderBy;
 
   @Field(type => Int, { nullable: true })
   projectId?: number;
@@ -116,9 +122,9 @@ export class GivPowerResolver {
     throw new Error(errorMessages.NOT_IMPLEMENTED);
   }
 
-  @Mutation(returns => GivPowers)
+  @Query(returns => GivPowers)
   async getPowerBoosting(
-    @Args()
+    @Arg('args')
     args: GetPowerBoostingArgs,
   ): Promise<GivPowers> {
     if (!args.projectId || !args.userId) {
