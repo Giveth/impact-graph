@@ -6,6 +6,7 @@
   "dependencies": {
     "@admin-bro/express": "3.1.0",
     "@admin-bro/typeorm": "1.4.0",
+    "@apollo/client": "^3.6.9",
     "@ethersproject/testcases": "^5.6.0",
     "@sentry/node": "6.16.1",
     "@sentry/tracing": "^6.2.0",
@@ -132,6 +133,7 @@
     "test:donationResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/donationResolver.test.ts",
     "test:projectResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/projectResolver.test.ts",
     "test:projectVerificationResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/projectVerificationFormResolver.test.ts",
+    "test:givPowerSubgraphAdapter": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/adapters/givpowerSubgraph/givPowerSubgraphAdapter.test.ts",
     "test:projectRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectRepository.test.ts",
     "test:powerBoostingRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerBoostingRepository.test.ts",
     "test:projectAddressRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectAddressRepository.test.ts",
