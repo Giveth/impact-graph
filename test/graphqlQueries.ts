@@ -1355,3 +1355,18 @@ export const removeSocialProfileMutation = `
            removeSocialProfile(socialProfileId:$socialProfileId)
           } 
         `;
+
+export const boostSingleProjectMutation = `
+        mutation ($projectId: Int!, $percentage: Float!) {
+          setSinglePowerBoosting(projectId: $projectId, percentage: $percentage) {
+            id
+            user {
+              id
+            }
+            project {
+              id
+            }
+            percentage
+          }
+        }
+ `;
