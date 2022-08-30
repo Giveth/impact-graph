@@ -34,5 +34,7 @@ declare namespace NodeJS {
     XDAI_NODE_HTTP_URL: string;
     SEGMENT_API_KEY: string;
     TRACE_FILE_UPLOADER_PASSWORD: string;
+    GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT: string;
+    GIVPOWER_BOOSTING_PERCENTAGE_PRECISION: string;
   }
 }

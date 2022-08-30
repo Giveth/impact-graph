@@ -6,7 +6,18 @@ import { logger } from '../utils/logger';
 import { errorMessages } from '../utils/errorMessages';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
-import { GetPowerBoostingArgs } from '../resolvers/givPowerResolver';
+
+const MAX_PROJECT_BOOST_LIMIT = Number(
+  process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
+);
+const PERCENTAGE_PRECISION = Number(
+  process.env.GIVPOWER_BOOSTING_PERCENTAGE_PRECISION || '2',
+);
+
+const formatPercentage = (p: number): number => {
+  const multiplier = Math.pow(10, PERCENTAGE_PRECISION);
+  return Math.ceil(p * multiplier) / multiplier;
+};
 
 export const findUserPowerBoosting = async (
   userId: number,
@@ -58,6 +69,83 @@ export const insertSinglePowerBoosting = async (params: {
     project: params.project,
     percentage: params.percentage,
   }).save();
+};
+
+export const setSingleBoosting = async (params: {
+  userId: number;
+  projectId: number;
+  percentage: number;
+}): Promise<PowerBoosting[]> => {
+  const { userId, projectId, percentage } = params;
+
+  if (percentage < 0 || percentage > 100) {
+    throw new Error(
+      errorMessages.ERROR_GIVPOWER_BOOSTING_PERCENTAGE_INVALID_RANGE,
+    );
+  }
+
+  const queryRunner = getConnection().createQueryRunner();
+
+  await queryRunner.connect();
+
+  const beforePB = await findUserPowerBoosting(userId);
+
+  const commitData: { projectId: number; percentage: number }[] = [];
+
+  if (beforePB.length === 0) {
+    if (percentage !== 100)
+      throw new Error(
+        errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
+      );
+
+    commitData.push({
+      projectId,
+      percentage: 100,
+    });
+  } else {
+    const otherProjectsBeforePB = beforePB.filter(
+      pb => pb.projectId !== projectId,
+    );
+
+    if (otherProjectsBeforePB.length + 1 > MAX_PROJECT_BOOST_LIMIT) {
+      throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT);
+    }
+
+    const otherProjectsBeforeTotalPercentages = beforePB.reduce(
+      (_sum, pb) => _sum + pb.percentage,
+      0,
+    );
+    const otherProjectsAfterTotalPercentages = 100 - percentage;
+
+    commitData.push({
+      projectId,
+      percentage: formatPercentage(percentage),
+    });
+
+    otherProjectsBeforePB.forEach(_pb => {
+      commitData.push({
+        projectId: _pb.projectId,
+        percentage: formatPercentage(
+          (_pb.percentage * otherProjectsAfterTotalPercentages) /
+            otherProjectsBeforeTotalPercentages,
+        ),
+      });
+    });
+  }
+
+  await queryRunner.startTransaction();
+  await Promise.all(
+    commitData.map(cd => {
+      return queryRunner.manager.save(PowerBoosting, {
+        userId,
+        projectId: cd.projectId,
+        percentage: cd.percentage,
+      });
+    }),
+  );
+  await queryRunner.commitTransaction();
+
+  return findUserPowerBoosting(userId);
 };
 
 export const setMultipleBoosting = async (params: {

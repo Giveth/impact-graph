@@ -17,8 +17,8 @@ import { MyContext } from '../types/MyContext';
 import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 import {
-  findPowerBoostings,
   setMultipleBoosting,
+  setSingleBoosting,
 } from '../repositories/powerBoostingRepository';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
@@ -85,17 +85,33 @@ class GivPowers {
 }
 
 @Resolver(of => PowerBoosting)
-export class GivPowerResolver {
+export class PowerBoostingResolver {
   @Mutation(returns => [PowerBoosting])
   async setMultiplePowerBoosting(
     @Arg('projectIds', type => [Int]) projectIds: number[],
-    @Arg('percentages', type => [Int]) percentages: number[],
+    @Arg('percentages', type => [Float]) percentages: number[],
     @Ctx() { req: { user } }: MyContext,
   ): Promise<PowerBoosting[]> {
     if (!user || !user?.userId) {
       throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
     }
 
+    if (percentages.length === 0 || percentages.length !== projectIds.length) {
+      throw new Error(
+        errorMessages.ERROR_GIVPOWER_BOOSTING_MULTISET_INVALID_DATA_LENGTH,
+      );
+    }
+
+    const total: number = percentages.reduce(
+      (_sum, _percentage) => _sum + _percentage,
+      0,
+    );
+
+    if (total < 99 || total > 100) {
+      throw new Error(
+        errorMessages.ERROR_GIVPOWER_BOOSTING_PERCENTAGE_INVALID_RANGE,
+      );
+    }
     // validator: sum of percentages should not be more than 100, all projects should active, ...
     return setMultipleBoosting({
       userId: user?.userId,
@@ -107,12 +123,15 @@ export class GivPowerResolver {
   @Mutation(returns => [PowerBoosting])
   async setSinglePowerBoosting(
     @Arg('projectId', type => Int) projectId: number,
-    @Arg('percentage', type => Int) percentage: number,
+    @Arg('percentage', type => Float) percentage: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<PowerBoosting[]> {
     if (!user || !user?.userId) {
       throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
     }
+
+    await setSingleBoosting({ userId: user.userId, projectId, percentage });
+
     // validate input data
     // return setSingleBoosting({
     //   userId: user?.userId,
@@ -122,20 +141,20 @@ export class GivPowerResolver {
     throw new Error(errorMessages.NOT_IMPLEMENTED);
   }
 
-  @Query(returns => GivPowers)
-  async getPowerBoosting(
-    @Arg('args')
-    args: GetPowerBoostingArgs,
-  ): Promise<GivPowers> {
-    if (!args.projectId || !args.userId) {
-      throw new Error(
-        errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
-      );
-    }
-    const [powerBoostings, totalCount] = await findPowerBoostings(args);
-    return {
-      powerBoostings,
-      totalCount,
-    };
-  }
+  // @Query(returns => GivPowers)
+  // async getPowerBoosting(
+  //   @Arg('args')
+  //   args: GetPowerBoostingArgs,
+  // ): Promise<GivPowers> {
+  //   if (!args.projectId || !args.userId) {
+  //     throw new Error(
+  //       errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
+  //     );
+  //   }
+  //   const [powerBoostings, totalCount] = await findPowerBoostings(args);
+  //   return {
+  //     powerBoostings,
+  //     totalCount,
+  //   };
+  // }
 }

@@ -1353,6 +1353,14 @@ export const removeSocialProfileMutation = `
           } 
         `;
 
+export const boostSingleProjectMutation = `
+        mutation ($projectId: Int!, $percentage: Float!) {
+          setSinglePowerBoosting(projectId: $projectId, percentage: $percentage) {
+            id
+          }
+        }
+ `;
+
 export const getAllowedCountries = `
     query {
         getAllowedCountries {
