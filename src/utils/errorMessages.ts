@@ -1,4 +1,5 @@
 export const errorMessages = {
+  SPECIFY_GIV_POWER_ADAPTER: 'Specify givPower adapter',
   CHANGE_API_INVALID_TITLE_OR_EIN:
     'ChangeAPI title or EIN not found or invalid',
   INVALID_SOCIAL_NETWORK: 'Invalid social network',

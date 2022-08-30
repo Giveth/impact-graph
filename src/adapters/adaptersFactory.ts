@@ -8,11 +8,14 @@ import { TwitterAdapter } from './oauth2/twitterAdapter';
 import { NotificationAdapterInterface } from './notifications/NotificationAdapterInterface';
 import { NotificationCenterAdapter } from './notifications/NotificationCenterAdapter';
 import { MockNotificationAdapter } from './notifications/MockNotificationAdapter';
+import { GivPowerSubgraphAdapter } from './givpowerSubgraph/givPowerSubgraphAdapter';
+import { GivPowerSubgraphMock } from './givpowerSubgraph/givPowerSubgraphMock';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
 const linkedinAdapter = new LinkedinAdapter();
 const twitterAdapter = new TwitterAdapter();
+
 export const getSocialNetworkAdapter = (
   socialNetwork: string,
 ): SocialNetworkOauth2AdapterInterface => {
@@ -41,5 +44,19 @@ export const getNotificationAdapter = (): NotificationAdapterInterface => {
       return mockNotificationAdapter;
     default:
       return mockNotificationAdapter;
+  }
+};
+
+const givPowerSubgraphAdapter = new GivPowerSubgraphAdapter();
+const givPowerMockAdapter = new GivPowerSubgraphMock();
+
+export const getGivPowerSubgraphAdapter = () => {
+  switch (process.env.GIV_POWER_SUBGRAPH_ADAPTER) {
+    case 'giwPower':
+      return givPowerSubgraphAdapter;
+    case 'mock':
+      return givPowerMockAdapter;
+    default:
+      throw new Error(errorMessages.SPECIFY_GIV_POWER_ADAPTER);
   }
 };
