@@ -1,7 +1,7 @@
 import { PowerBoosting } from '../entities/powerBoosting';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
-import { getConnection } from 'typeorm';
+import { Brackets, getConnection } from 'typeorm';
 import { logger } from '../utils/logger';
 import { errorMessages } from '../utils/errorMessages';
 import { findProjectById } from './projectRepository';
@@ -21,13 +21,26 @@ const formatPercentage = (p: number): number => {
 
 export const findUserPowerBoosting = async (
   userId: number,
+  projectId?: number,
 ): Promise<PowerBoosting[]> => {
-  return PowerBoosting.createQueryBuilder('powerBoosting')
+  const query = PowerBoosting.createQueryBuilder('powerBoosting')
     .leftJoinAndSelect('powerBoosting.project', 'project')
     .leftJoinAndSelect('powerBoosting.user', 'user')
-    .where(`"userId" =${userId}`)
-    .andWhere(`percentage > 0`)
-    .getMany();
+    .where(`"userId" =${userId}`);
+
+  if (!projectId) {
+    return query.andWhere(`percentage > 0`).getMany();
+  } else {
+    return query
+      .andWhere(
+        new Brackets(qb =>
+          qb
+            .where(`percentage > 0`)
+            .orWhere(`powerBoosting.projectId =${projectId}`),
+        ),
+      )
+      .getMany();
+  }
 };
 
 export const findPowerBoostings = async (params: {
@@ -85,41 +98,48 @@ export const setSingleBoosting = async (params: {
   }
 
   const queryRunner = getConnection().createQueryRunner();
-
   await queryRunner.connect();
+  await queryRunner.startTransaction();
 
-  const beforePB = await findUserPowerBoosting(userId);
+  let result: PowerBoosting[] = [];
 
-  const commitData: PowerBoosting[] = [];
+  try {
+    const beforePB = await findUserPowerBoosting(userId, projectId);
 
-  if (beforePB.length === 0) {
-    if (percentage !== 100)
-      throw new Error(
-        errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
-      );
-
-    commitData.push(
-      PowerBoosting.create({
-        userId,
-        projectId,
-        percentage: 100,
-      }),
-    );
-  } else {
     const otherProjectsBeforePB = beforePB.filter(
-      pb => pb.projectId !== projectId,
+      pb => +pb.projectId !== projectId,
     );
-    let projectBoost = beforePB.find(pb => pb.projectId === projectId);
 
-    if (otherProjectsBeforePB.length + 1 > MAX_PROJECT_BOOST_LIMIT) {
-      throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT);
+    let projectBoost = beforePB.find(pb => +pb.projectId === projectId);
+
+    const commitData: PowerBoosting[] = [];
+
+    if (otherProjectsBeforePB.length === 0) {
+      if (percentage !== 100)
+        throw new Error(
+          errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
+        );
+    } else {
+      if (otherProjectsBeforePB.length + 1 > MAX_PROJECT_BOOST_LIMIT) {
+        throw new Error(
+          errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
+        );
+      }
+
+      const otherProjectsBeforeTotalPercentages = otherProjectsBeforePB.reduce(
+        (_sum, pb) => _sum + pb.percentage,
+        0,
+      );
+      const otherProjectsAfterTotalPercentages = 100 - percentage;
+
+      otherProjectsBeforePB.forEach(_pb => {
+        _pb.percentage = formatPercentage(
+          (_pb.percentage * otherProjectsAfterTotalPercentages) /
+            otherProjectsBeforeTotalPercentages,
+        );
+        commitData.push(_pb);
+      });
     }
-
-    const otherProjectsBeforeTotalPercentages = beforePB.reduce(
-      (_sum, pb) => _sum + pb.percentage,
-      0,
-    );
-    const otherProjectsAfterTotalPercentages = 100 - percentage;
 
     if (projectBoost) {
       projectBoost.percentage = percentage;
@@ -133,20 +153,21 @@ export const setSingleBoosting = async (params: {
 
     commitData.push(projectBoost);
 
-    otherProjectsBeforePB.forEach(_pb => {
-      _pb.percentage = formatPercentage(
-        (_pb.percentage * otherProjectsAfterTotalPercentages) /
-          otherProjectsBeforeTotalPercentages,
-      );
-      commitData.push(_pb);
-    });
+    await queryRunner.manager.save(commitData);
+
+    await queryRunner.commitTransaction();
+
+    result = await findUserPowerBoosting(userId);
+  } catch (e) {
+    logger.error('setSingleBoosting error', e);
+
+    // since we have errors let's rollback changes we made
+    await queryRunner.rollbackTransaction();
+    if (Object.values(errorMessages).includes(e.message)) throw e;
+  } finally {
+    await queryRunner.release();
   }
-
-  await queryRunner.startTransaction();
-  await queryRunner.manager.save(commitData);
-  await queryRunner.commitTransaction();
-
-  return findUserPowerBoosting(userId);
+  return result;
 };
 
 export const setMultipleBoosting = async (params: {

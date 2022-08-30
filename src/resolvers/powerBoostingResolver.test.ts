@@ -10,14 +10,17 @@ import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 
 // Clean percentages after setting
-export const removePowerBoostings = async (ids: number[]): Promise<void> => {
-  await PowerBoosting.delete(ids);
+export const removePowerBoostings = async (
+  boosts: PowerBoosting[],
+): Promise<void> => {
+  await PowerBoosting.delete(boosts.map(b => b.id));
 };
 
 describe(
   'setGivPowerBoostingMutation test cases',
   setGivPowerBoostingTestCases,
 );
+
 function setGivPowerBoostingTestCases() {
   it('should get error when the user is not authenticated', async () => {
     const result = await axios.post(graphqlUrl, {
@@ -84,6 +87,55 @@ function setGivPowerBoostingTestCases() {
     );
   });
 
+  it('should get error when the user with single boosted project boosts it with a value other than 100%', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    let result = await axios.post(
+      graphqlUrl,
+      {
+        query: boostSingleProjectMutation,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          percentage: 100,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result);
+    const powerBoostings: PowerBoosting[] =
+      result.data.data.setSinglePowerBoosting;
+
+    result = await axios.post(
+      graphqlUrl,
+      {
+        query: boostSingleProjectMutation,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          percentage: 90,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.isOk(result);
+
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
+    );
+
+    // clean
+    await removePowerBoostings(powerBoostings);
+  });
+
   it('should set single project boost percentage 100%', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
     const result = await axios.post(
@@ -110,7 +162,7 @@ function setGivPowerBoostingTestCases() {
     assert.equal(powerBoostings[0].percentage, 100);
 
     // Clean
-    await removePowerBoostings(powerBoostings.map(({ id }) => id));
+    await removePowerBoostings(powerBoostings);
   });
 
   it('should adjust older boosting by setting a single boosting', async () => {
@@ -208,7 +260,7 @@ function setGivPowerBoostingTestCases() {
     assert.equal(thirdProjectBoost.percentage, 40);
 
     // Clean
-    await removePowerBoostings(powerBoostings.map(({ id }) => id));
+    await removePowerBoostings(powerBoostings);
   });
 
   it('should remove older boosting by setting a single 100% boosting', async () => {
@@ -275,6 +327,78 @@ function setGivPowerBoostingTestCases() {
     assert.equal(thirdProjectBoost.percentage, 100);
 
     // Clean
-    await removePowerBoostings(powerBoostings.map(({ id }) => id));
+    await removePowerBoostings(powerBoostings);
+  });
+
+  it('should update boosting by setting a single boosting', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    await axios.post(
+      graphqlUrl,
+      {
+        query: boostSingleProjectMutation,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          percentage: 100,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const a = await axios.post(
+      graphqlUrl,
+      {
+        query: boostSingleProjectMutation,
+        variables: {
+          projectId: SEED_DATA.SECOND_PROJECT.id,
+          percentage: 20,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    // Third project 40 percent
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: boostSingleProjectMutation,
+        variables: {
+          projectId: SEED_DATA.FIRST_PROJECT.id,
+          percentage: 40,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const powerBoostings = result.data.data.setSinglePowerBoosting;
+
+    assert.lengthOf(powerBoostings, 2);
+
+    const firstProjectBoost = powerBoostings.find(
+      pb => +pb.project.id === SEED_DATA.FIRST_PROJECT.id,
+    ) as PowerBoosting;
+    const secondProjectBoost = powerBoostings.find(
+      pb => +pb.project.id === SEED_DATA.SECOND_PROJECT.id,
+    ) as PowerBoosting;
+
+    assert.isDefined(firstProjectBoost);
+    assert.isDefined(secondProjectBoost);
+
+    assert.equal(firstProjectBoost.percentage, 40);
+    assert.equal(secondProjectBoost.percentage, 60);
+
+    // Clean
+    await removePowerBoostings(powerBoostings);
   });
 }
