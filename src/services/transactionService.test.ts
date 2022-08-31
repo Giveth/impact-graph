@@ -632,7 +632,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND);
   });
-  it('should return transaction_not_found_and_nonce_is_used when it has BEEN mined after an hour', async () => {
+  it('should return transaction_not_found_and_nonce_is_used when it has not been mined after an hour', async () => {
     const amount = 0.001;
     const badFunc = async () => {
       await getTransactionInfoFromNetwork({
