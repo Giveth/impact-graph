@@ -4,9 +4,8 @@ import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
 import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
-import { json, Request, Response } from 'express';
+import { json, Request, response, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
-import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
 import { resolvers } from '../resolvers/resolvers';
 import { entities } from '../entities/entities';
@@ -16,22 +15,39 @@ import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
 import { graphqlUploadExpress } from 'graphql-upload';
 import { Resource } from '@admin-bro/typeorm';
 import { validate } from 'class-validator';
+import SentryLogger from '../sentryLogger';
 
 import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
-import { adminBroRootPath, getAdminBroRouter } from './adminBro';
+import {
+  adminBroRootPath,
+  getAdminBroRouter,
+  adminBroQueryCache,
+} from './adminBro';
 import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
-import { runUpdateHistoricGivPrices } from '../services/cronJobs/syncGivPrices';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
-import { getCsvAirdropTransactions } from '../services/transactionService';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
+import { errorMessages } from '../utils/errorMessages';
+import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
+import { apiGivRouter } from '../routers/apiGivRoutes';
+import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
+import { authorizationHandler } from '../services/authorizationServices';
+import {
+  oauth2CallbacksRouter,
+  SOCIAL_PROFILES_PREFIX,
+} from '../routers/oauth2Callbacks';
+import { ProjectVerificationForm } from '../entities/projectVerificationForm';
+import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
+import { TwitterAdapter } from '../adapters/oauth2/twitterAdapter';
+import { generateRandomEtheriumAddress } from '../../test/testUtils';
+import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -41,6 +57,7 @@ const cors = require('cors');
 // register 3rd party IOC container
 
 Resource.validate = validate;
+
 // AdminBro.registerAdapter({ Database, Resource });
 
 export async function bootstrap() {
@@ -73,7 +90,7 @@ export async function bootstrap() {
     const apolloServer = new ApolloServer({
       uploads: false,
       schema,
-      context: ({ req, res }: any) => {
+      context: async ({ req, res }: any) => {
         let token;
         try {
           if (!req) {
@@ -81,53 +98,48 @@ export async function bootstrap() {
           }
 
           const { headers } = req;
+          const authVersion = headers.authversion || '1';
+          logger.info(authVersion);
           if (headers.authorization) {
             token = headers.authorization.split(' ')[1].toString();
-            const secret = config.get('JWT_SECRET') as string;
-
-            const decodedJwt: any = jwt.verify(token, secret);
-
-            let user;
-            if (decodedJwt.nextAuth) {
-              user = {
-                email: decodedJwt?.nextauth?.user?.email,
-                name: decodedJwt?.nextauth?.user?.name,
-                token,
-              };
-            } else {
-              user = {
-                email: decodedJwt?.email,
-                name: decodedJwt?.firstName,
-                userId: decodedJwt?.userId,
-                token,
-              };
-            }
-
+            const user = await authorizationHandler(authVersion, token);
             req.user = user;
           }
-
-          const userWalletAddress = headers['wallet-address'];
-          if (userWalletAddress) {
-            req.userwalletAddress = userWalletAddress;
-          }
         } catch (error) {
-          // console.error(
-          //   `Apollo Server error : ${JSON.stringify(error, null, 2)}`
-          // )
-          // Logger.captureMessage(
-          //   `Error with with token, check pm2 logs and search for - Error for token - to get the token`
-          // )
-          // console.error(`Error for token - ${token}`)
+          SentryLogger.captureException(`Error: ${error} for token ${token}`);
+          logger.error(`Error: ${error} for token ${token}`);
           req.auth = {};
           req.auth.token = token;
           req.auth.error = error;
-          // logger.debug(`ctx.req.auth : ${JSON.stringify(ctx.req.auth, null, 2)}`)
         }
 
         return {
           req,
           res,
         };
+      },
+      formatError: err => {
+        /**
+         * @see {@link https://www.apollographql.com/docs/apollo-server/data/errors/#for-client-responses}
+         */
+        // Don't give the specific errors to the client.
+
+        if (
+          err?.message?.includes(process.env.TYPEORM_DATABASE_HOST as string)
+        ) {
+          logger.error('DB connection error', err);
+          SentryLogger.captureException(err);
+          return new Error(errorMessages.INTERNAL_SERVER_ERROR);
+        } else if (err?.message?.startsWith('connect ECONNREFUSED')) {
+          // It could be error connecting DB, Redis, ...
+          logger.error('Apollo server client error', err);
+          SentryLogger.captureException(err);
+          return new Error(errorMessages.INTERNAL_SERVER_ERROR);
+        }
+
+        // Otherwise return the original error. The error can also
+        // be manipulated in other ways, as long as it's returned.
+        return err;
       },
       engine: {
         reportSchema: true,
@@ -174,7 +186,11 @@ export async function bootstrap() {
       },
     };
     app.use(cors(corsOptions));
-    app.use(bodyParser.json());
+    app.use(
+      bodyParser.json({
+        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
+      }),
+    );
     const limiter = new RateLimit({
       store: new RedisStore({
         prefix: 'rate-limit:',
@@ -200,7 +216,7 @@ export async function bootstrap() {
     app.use(
       '/graphql',
       json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000,
+        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '10mb',
       }),
     );
     app.use(
@@ -210,17 +226,17 @@ export async function bootstrap() {
         maxFiles: 10,
       }),
     );
+    app.use('/apigive', apiGivRouter);
+    app.use(SOCIAL_PROFILES_PREFIX, oauth2CallbacksRouter);
     apolloServer.applyMiddleware({ app });
     app.post(
       '/stripe-webhook',
       bodyParser.raw({ type: 'application/json' }),
       handleStripeWebhook,
     );
-    app.post(
-      '/netlify-build',
-      bodyParser.raw({ type: 'application/json' }),
-      netlifyDeployed,
-    );
+    app.get('/health', (req, res, next) => {
+      res.send('Hi every thing seems ok');
+    });
     app.post('/transak_webhook', webhookHandler);
 
     // Start the server
@@ -230,30 +246,37 @@ export async function bootstrap() {
     );
 
     // Admin Bruh!
-    app.use(adminBroRootPath, getAdminBroRouter());
+    app.use(adminBroQueryCache);
+    app.use(adminBroRootPath, await getAdminBroRouter());
 
-    app.use(
-      json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || 4000000,
-      }),
-    );
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
     processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
-    runUpdateHistoricGivPrices();
+    runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
     runCheckProjectVerificationStatus();
 
     // If we need to deactivate the process use the env var
-    if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
-      runGivingBlocksProjectSynchronization();
+    // if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
+    //   runGivingBlocksProjectSynchronization();
+    // }
+    if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
+      runSyncPoignArtDonations();
     }
-    await getCsvAirdropTransactions(
-      '0x0c452a7c116adb6162390f342cee84175f34e3c1bc0015e6f82773a54ace3061',
-      100,
-    );
+    const authUrl = await getSocialNetworkAdapter(
+      SOCIAL_NETWORKS.TWITTER,
+    ).getAuthUrl({
+      // trackId: generateRandomEtheriumAddress(),
+      trackId: 'STATE',
+    });
+    logger.info('twitter auth url', authUrl);
+    // const accessToken = await twitterAdapter.getUserInfoByOauth2Code({
+    //   oauth2Code:
+    //     'SDg1b1otX3lYaURDZjN3emQtTjVwVUMwMFNmeGFjQ0tLWlBNQnhobEszQ19hOjE2NTcxMTU5MjIzMjg6MTowOmFjOjE',
+    // });
+    // logger.info('twitter accessToken', accessToken);
   } catch (err) {
     logger.error(err);
   }

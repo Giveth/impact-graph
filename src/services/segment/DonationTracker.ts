@@ -1,7 +1,10 @@
 import { User } from '../../entities/user';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import { getAnalytics, SegmentEvents } from '../../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../../analytics/analytics';
 
 const analytics = getAnalytics();
 
@@ -10,7 +13,7 @@ const analytics = getAnalytics();
  */
 class DonationTracker {
   donation: Donation;
-  eventName: SegmentEvents;
+  eventName: NOTIFICATIONS_EVENT_NAMES;
   project: Project;
   user: User;
 
@@ -18,7 +21,7 @@ class DonationTracker {
     donationToUpdate: Donation,
     projectToNotify: Project,
     userToNotify: User,
-    eventTitle: SegmentEvents,
+    eventTitle: NOTIFICATIONS_EVENT_NAMES,
   ) {
     this.donation = donationToUpdate;
     this.project = projectToNotify;

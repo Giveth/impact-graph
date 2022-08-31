@@ -11,17 +11,23 @@ import {
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { Repository, In } from 'typeorm';
 
-import { OrganisationUser } from '../entities/organisationUser';
 import { User } from '../entities/user';
 import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerification } from '../entities/accountVerification';
 import { AccountVerificationInput } from './types/accountVerificationInput';
-import { Organisation } from '../entities/organisation';
 import { MyContext } from '../types/MyContext';
-import { getAnalytics, SegmentEvents } from '../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../analytics/analytics';
 import { errorMessages } from '../utils/errorMessages';
 import { Project } from '../entities/project';
 import { validateEmail } from '../utils/validators/commonValidators';
+import {
+  findUserById,
+  findUserByWalletAddress,
+} from '../repositories/userRepository';
+import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 
 const analytics = getAnalytics();
 
@@ -29,10 +35,6 @@ const analytics = getAnalytics();
 export class UserResolver {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(OrganisationUser)
-    private readonly organisationUserRepository: Repository<OrganisationUser>,
-    @InjectRepository(Organisation)
-    private readonly organisationRepository: Repository<Organisation>, // , // @InjectRepository(OrganisationUser) // private readonly organisationUserRepository: Repository<OrganisationUser>
     @InjectRepository(AccountVerification)
     @InjectRepository(Project)
     private readonly accountVerificationRepository: Repository<AccountVerification>,
@@ -43,16 +45,13 @@ export class UserResolver {
   }
 
   @Query(returns => User, { nullable: true })
-  async user(@Arg('userId', type => Int) userId: number) {
-    return await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['accountVerifications', 'projects'],
-    });
-  }
-
-  @Query(returns => User, { nullable: true })
-  userByAddress(@Arg('address', type => String) address: string) {
-    return this.userRepository.findOne({ walletAddress: address });
+  userByAddress(
+    @Arg('address', type => String) address: string,
+    @Ctx() { req: { user } }: MyContext,
+  ) {
+    const includeSensitiveFields =
+      user?.walletAddress?.toLowerCase() === address.toLowerCase();
+    return findUserByWalletAddress(address, includeSensitiveFields);
   }
 
   @Mutation(returns => Boolean)
@@ -66,7 +65,7 @@ export class UserResolver {
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-    const dbUser = await User.findOne({ id: user.userId });
+    const dbUser = await findUserById(user.userId);
     if (!dbUser) {
       return false;
     }
@@ -117,7 +116,7 @@ export class UserResolver {
 
     analytics.identifyUser(dbUser);
     analytics.track(
-      SegmentEvents.UPDATED_PROFILE,
+      NOTIFICATIONS_EVENT_NAMES.UPDATED_PROFILE,
       dbUser.segmentUserId(),
       segmentUpdateProfile,
       null,
@@ -136,7 +135,7 @@ export class UserResolver {
   ): Promise<boolean> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
-    const currentUser = await User.findOne({ id: user.userId });
+    const currentUser = await findUserById(user.userId);
     if (!currentUser) throw new Error(errorMessages.USER_NOT_FOUND);
 
     currentUser.dId = dId;
@@ -145,10 +144,9 @@ export class UserResolver {
     const associatedVerifications = verificationsInput.map(verification => {
       return { ...verification, user: currentUser, dId };
     });
-    const accountVerifications = this.accountVerificationRepository.create(
-      associatedVerifications,
-    );
-    await this.accountVerificationRepository.save(accountVerifications);
+
+    // I don't know wether we use this mutation or not, maybe it's useless
+    await createNewAccountVerification(associatedVerifications);
 
     return true;
   }

@@ -19,6 +19,15 @@ export const DONATION_STATUS = {
   FAILED: 'failed',
 };
 
+export const DONATION_TYPES = {
+  CSV_AIR_DROP: 'csvAirDrop',
+  GNOSIS_SAFE: 'gnosisSafe',
+  POIGN_ART: 'poignArt',
+
+  // TODO we should write a migration to fill this field for transak donations
+  TRANSAK: 'transak',
+};
+
 export enum SortField {
   CreationDate = 'createdAt',
   TokenAmount = 'amount',
@@ -49,7 +58,12 @@ export class Donation extends BaseEntity {
   transactionNetworkId: number;
 
   @Field()
-  @Column('text', { default: 'pending' })
+  @Column('boolean', { default: false })
+  // https://github.com/Giveth/impact-graph/issues/407#issuecomment-1066892258
+  isProjectVerified: boolean;
+
+  @Field()
+  @Column('text', { default: DONATION_STATUS.PENDING })
   status: string;
 
   @Field({ nullable: true })
@@ -59,6 +73,10 @@ export class Donation extends BaseEntity {
   @Field()
   @Column('boolean', { default: false })
   speedup: boolean;
+
+  @Field()
+  @Column('boolean', { default: false })
+  isCustomToken: boolean;
 
   @Field()
   @Column('boolean', { default: false })
@@ -118,6 +136,7 @@ export class Donation extends BaseEntity {
   @RelationId((donation: Donation) => donation.user)
   userId: number;
 
+  @Index()
   @Field(type => Date)
   @Column()
   createdAt: Date;
@@ -138,9 +157,22 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true, default: false })
   segmentNotified: boolean;
 
+  @Field(type => Boolean, { nullable: true })
+  @Column({ nullable: true, default: false })
+  isTokenEligibleForGivback: boolean;
+
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')
       .where(`donation.currency = 'GIV' AND donation."valueUsd" IS NULL `)
+      .getMany();
+  }
+
+  static async findStableCoinDonationsWithoutPrice() {
+    return this.createQueryBuilder('donation')
+      .where(
+        `donation.currency = 'DAI' OR donation.currency= 'XDAI' OR donation.currency= 'WXDAI' OR donation.currency= 'USDT' OR donation.currency= 'USDC'`,
+      )
+      .andWhere(`donation."valueUsd" IS NULL `)
       .getMany();
   }
 }

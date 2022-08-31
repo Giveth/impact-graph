@@ -9,14 +9,14 @@ import {
   fetchOrganizationById,
   GivingBlockProject,
 } from './api';
-import {
-  validateProjectTitle,
-  validateProjectWalletAddress,
-} from '../../utils/validators/projectValidator';
+
 import config from '../../config';
 import slugify from 'slugify';
 import { ProjectStatus } from '../../entities/projectStatus';
 import { logger } from '../../utils/logger';
+import { getAppropriateSlug, getQualityScore } from '../projectService';
+import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
+import { findUserById } from '../../repositories/userRepository';
 
 const givingBlockCategoryName = 'The Giving Block';
 const givingBlockHandle = 'the-giving-block';
@@ -27,7 +27,8 @@ const cronJobTime =
   '0 0 * * 0';
 
 // Admin Account assigned by Giveth to handle this projects
-const adminId = (config.get('GIVING_BLOCKS_ADMIN_USER_ID') as string) || '1';
+const adminId =
+  (config.get('THIRD_PARTY_PROJECTS_ADMIN_USER_ID') as string) || '1';
 
 export const runGivingBlocksProjectSynchronization = () => {
   logger.debug('runGivingBlocksProjectSynchronization() has been called');
@@ -41,6 +42,9 @@ const exportGivingBlocksProjects = async () => {
   const accessToken = authResponse.accessToken;
 
   const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
+  const organization = await Organization.findOne({
+    label: ORGANIZATION_LABELS.GIVING_BLOCK,
+  });
 
   const givingBlocksProjects = await fetchGivingBlockProjects(accessToken);
   const givingBlocksCategory = await findOrCreateGivingBlocksCategory();
@@ -50,6 +54,7 @@ const exportGivingBlocksProjects = async () => {
       accessToken,
       givingBlockProject,
       givingBlocksCategory,
+      organization,
       activeStatus,
     });
   }
@@ -59,6 +64,7 @@ const createGivingProject = async (data: {
   accessToken: string;
   givingBlockProject: GivingBlockProject;
   givingBlocksCategory: GivingBlocksCategory;
+  organization?: Organization;
   activeStatus?: ProjectStatus;
 }) => {
   const {
@@ -88,6 +94,7 @@ const createGivingProject = async (data: {
       accessToken,
       givingBlockProject.id,
     );
+    const adminUser = await findUserById(Number(adminId));
 
     // Await enough for full limit to regenerate
     await sleep(1000);
@@ -109,6 +116,7 @@ const createGivingProject = async (data: {
     const project = Project.create({
       title: givingBlockProject.name,
       description,
+      organization,
       categories: [givingBlocksCategory],
       walletAddress,
       creationDate: new Date(),
@@ -128,6 +136,7 @@ const createGivingProject = async (data: {
       verified: true,
       giveBacks: true,
       isImported: true,
+      adminUser,
     });
     await project.save();
     logger.debug(
@@ -150,32 +159,6 @@ const createGivingProject = async (data: {
     // Log Error but keep going with the rest of the projects
     logger.error('createGivingProject error', e);
   }
-};
-
-// Current Formula: This will be changed in the future
-const getQualityScore = (description, hasImageUpload): number => {
-  let qualityScore = 40;
-
-  // Some projects have no description
-  if (Number(description?.length) > 100) qualityScore = qualityScore + 10;
-  if (hasImageUpload) qualityScore = qualityScore + 30;
-
-  return qualityScore;
-};
-
-const getAppropriateSlug = async (slugBase: string): Promise<string> => {
-  let slug = slugBase.toLowerCase();
-  const projectCount = await Project.createQueryBuilder('project')
-    // check current slug and previous slugs
-    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-      slug,
-    })
-    .getCount();
-
-  if (projectCount > 0) {
-    slug = slugBase + '-' + (projectCount - 1);
-  }
-  return slug;
 };
 
 // The GivingBlocks itself will be the category

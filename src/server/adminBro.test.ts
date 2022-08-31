@@ -1,11 +1,19 @@
 import {
   createDonation,
+  createToken,
+  exportProjectsWithFiltersToCsv,
+  generateOrganizationList,
+  importThirdPartyProject,
+  linkOrganizations,
   listDelist,
+  permute,
   updateStatusOfProjects,
   verifyProjects,
 } from './adminBro';
 import {
   createProjectData,
+  generateRandomEtheriumAddress,
+  generateRandomTxHash,
   saveProjectDirectlyToDb,
   SEED_DATA,
   sleep,
@@ -20,15 +28,310 @@ import {
 } from '../entities/projectStatusHistory';
 import { ProjectStatus } from '../entities/projectStatus';
 import { NETWORK_IDS } from '../provider';
-import { Donation } from '../entities/donation';
+import {
+  Donation,
+  DONATION_STATUS,
+  DONATION_TYPES,
+} from '../entities/donation';
+import * as ChangeAPI from '../services/changeAPI/nonProfits';
+import sinon from 'sinon';
+import { errorMessages } from '../utils/errorMessages';
+import { Token } from '../entities/token';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 
 describe(
   'updateStatusOfProjects() test cases',
   updateStatusOfProjectsTestCases,
 );
+describe(
+  'generateOrganizationListTestCases',
+  generateOrganizationListTestCases,
+);
+describe('permuteTestCases', permuteTestCases);
 describe('verifyProjects() test cases', verifyProjectsTestCases);
 describe('listDelist() test cases', listDelistTestCases);
+describe('createToken() test cases', createTokenTestCases);
+describe('linkOrganizations() test cases', linkOrganizationsTestCases);
 describe('createDonation() test cases', createDonationTestCases);
+describe(
+  'exportProjectsWithFiltersToCsv() test cases',
+  exportProjectsWithFiltersToCsvTestCases,
+);
+describe(
+  'importThirdPartyProject() test cases',
+  importThirdPartyProjectTestCases,
+);
+
+const recursiveFactorial = (n: number) => {
+  if (n === 0) {
+    return 1;
+  }
+  return n * recursiveFactorial(n - 1);
+};
+
+function permuteTestCases() {
+  // it should follow the combination formula without repetition
+  // n = elements to choose from
+  // k = elements chosen (array lenghs to generate)
+  // Ck(n) = ( n  k )  = n! / k!(n−k)!
+  it('should permute 4 items with lenght 2 for a result of 6 combinations', async () => {
+    const n = 4;
+    const items = ['a', 'b', 'c', 'd'];
+    const k = 2;
+    const nFact = recursiveFactorial(n);
+    const kFact = recursiveFactorial(k);
+    const differenceFact = recursiveFactorial(n - k);
+    // Ck(n) = ( n  k )  = n! / k!(n−k)!
+    const result = nFact / (kFact * differenceFact);
+
+    const organizationsPermuted = permute(items, k);
+    assert.equal(organizationsPermuted.length, 6);
+    assert.equal(organizationsPermuted.length, result);
+  });
+  it('should permute 4 items with length 3 for a result of 4 combinations', async () => {
+    const n = 4;
+    const items = ['a', 'b', 'c', 'd'];
+    const k = 3;
+    const nFact = recursiveFactorial(n);
+    const kFact = recursiveFactorial(k);
+    const differenceFact = recursiveFactorial(n - k);
+    // Ck(n) = ( n  k )  = n! / k!(n−k)!
+    const result = nFact / (kFact * differenceFact);
+    const organizationsPermuted = permute(items, k);
+    assert.equal(organizationsPermuted.length, 4);
+    assert.equal(organizationsPermuted.length, result);
+  });
+}
+
+function generateOrganizationListTestCases() {
+  // this includes all organizations option
+  it('should return 15 permutations option when 4 organizations are present', async () => {
+    let totalPermutations = 0;
+    const [_, n] = await Organization.createQueryBuilder('organization')
+      .orderBy('organization.id')
+      .getManyAndCount();
+    // there is no take 0 elements case
+    for (let i = 1; i <= n; i++) {
+      const k = i;
+      const nFact = recursiveFactorial(n);
+      const kFact = recursiveFactorial(k);
+      const differenceFact = recursiveFactorial(n - k);
+      // Ck(n) = ( n  k )  = n! / k!(n−k)!
+      const result = nFact / (kFact * differenceFact);
+      totalPermutations = totalPermutations + result;
+    }
+
+    const organizationDropdown = await generateOrganizationList();
+    assert.equal(organizationDropdown.length, 15);
+    assert.equal(organizationDropdown.length, totalPermutations);
+  });
+  it('should return 31 permutations when 5 organizations are present', async () => {
+    let totalPermutations = 0;
+    const organization = Organization.create({
+      name: 'NewOrg',
+      label: 'neworg',
+      supportCustomTokens: true,
+      website: 'neworg.org',
+    });
+    await organization.save();
+
+    const [_, n] = await Organization.createQueryBuilder('organization')
+      .orderBy('organization.id')
+      .getManyAndCount();
+    // there is no take 0 elements case
+    for (let i = 1; i <= n; i++) {
+      const k = i;
+      const nFact = recursiveFactorial(n);
+      const kFact = recursiveFactorial(k);
+      const differenceFact = recursiveFactorial(n - k);
+      // Ck(n) = ( n  k )  = n! / k!(n−k)!
+      const result = nFact / (kFact * differenceFact);
+      totalPermutations = totalPermutations + result;
+    }
+
+    const organizationDropdown = await generateOrganizationList();
+    assert.equal(organizationDropdown.length, 31);
+    assert.equal(organizationDropdown.length, totalPermutations);
+  });
+}
+
+const DRGTTokenAddress = generateRandomTxHash();
+function createTokenTestCases() {
+  it('should create token when unique it is unique by network, address', async () => {
+    await createToken(
+      {
+        query: {},
+        payload: {
+          address: DRGTTokenAddress,
+          decimals: 18,
+          isGivbackEligible: true,
+          mainnetAddress: '',
+          name: 'DragonToken',
+          networkId: 1,
+          symbol: 'DRGT',
+          organizations: 'giveth,trace',
+        },
+      },
+      {
+        send: () => {
+          // ..
+        },
+      },
+    );
+
+    const newToken = await Token.findOne({ address: DRGTTokenAddress });
+    const organizations = await Organization.createQueryBuilder('organization')
+      .where(`organization.label = 'giveth' OR organization.label = 'trace'`)
+      .getMany();
+    assert.isOk(newToken);
+    assert.isTrue(newToken!.organizations.length === organizations.length);
+    assert.equal(newToken!.organizations[0].id, organizations[0].id);
+  });
+  it('should not create token when it is not unique by network and address', async () => {
+    await createToken(
+      {
+        query: {},
+        payload: {
+          address: DRGTTokenAddress,
+          decimals: 18,
+          isGivbackEligible: true,
+          mainnetAddress: '',
+          name: 'DragonToken',
+          networkId: 1,
+          symbol: 'DRGT',
+          organizations: 'giveth,trace',
+        },
+      },
+      {
+        send: () => {
+          // ..
+        },
+      },
+    );
+
+    const tokensWithAddress = await Token.find({ address: DRGTTokenAddress });
+    assert.isTrue(tokensWithAddress.length === 1);
+  });
+}
+
+function linkOrganizationsTestCases() {
+  it('should overwrite token organizations relationships when present', async () => {
+    const token = await Token.findOne({ address: DRGTTokenAddress });
+    await linkOrganizations({
+      query: {},
+      record: {
+        params: {
+          id: token!.id,
+          address: DRGTTokenAddress,
+          decimals: 18,
+          isGivbackEligible: true,
+          mainnetAddress: '',
+          name: 'DragonToken',
+          networkId: 1,
+          symbol: 'DRGT',
+          organizations: ORGANIZATION_LABELS.GIVING_BLOCK,
+        },
+      },
+    });
+
+    const tokenUpdated = await Token.findOne({ address: DRGTTokenAddress });
+    assert.isTrue(tokenUpdated!.organizations.length === 1);
+    assert.equal(
+      tokenUpdated!.organizations[0].label,
+      ORGANIZATION_LABELS.GIVING_BLOCK,
+    );
+  });
+}
+
+function importThirdPartyProjectTestCases() {
+  it('should throw error when change api throws error', async () => {
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const stub = sinon
+      .stub(ChangeAPI, 'getChangeNonProfitByNameOrIEN')
+      .rejects(errorMessages.CHANGE_API_INVALID_TITLE_OR_EIN);
+
+    await importThirdPartyProject(
+      {
+        query: {},
+        payload: {
+          thirdPartyAPI: 'Change',
+          projectName: 'ChangeApiTestProject',
+        },
+      },
+      {
+        send: () => {
+          // ..
+        },
+      },
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+    );
+
+    const createdProject = await Project.findOne({
+      title: 'ChangeApiTestProject',
+    });
+    assert.isUndefined(createdProject);
+    stub.restore();
+  });
+  it('creates the project succesfully when changeAPI returns data', async () => {
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    sinon.stub(ChangeAPI, 'getChangeNonProfitByNameOrIEN').resolves({
+      address_line: 'test',
+      category: 'test',
+      city: 'test',
+      classification: 'test',
+      crypto: {
+        ethereum_address: generateRandomEtheriumAddress(),
+        solana_address: generateRandomEtheriumAddress(),
+      },
+      ein: '1234',
+      icon_url: 'test',
+      id: 'test',
+      mission: 'test',
+      name: 'ChangeApiTestProject',
+      socials: {
+        facebook: 'test',
+        instagram: 'instagram',
+        twitter: 'twitter',
+        youtube: 'youtube',
+      },
+      state: 'test',
+      website: 'test',
+      zip_code: 'test',
+    });
+
+    await importThirdPartyProject(
+      {
+        query: {},
+        payload: {
+          thirdPartyAPI: 'Change',
+          projectName: 'ChangeApiTestProject',
+        },
+      },
+      {
+        send: () => {
+          // ..
+        },
+      },
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+    );
+
+    const createdProject = await Project.findOne({
+      title: 'ChangeApiTestProject',
+    });
+    assert(createdProject);
+    assert.isTrue(createdProject?.title === 'ChangeApiTestProject');
+  });
+}
 
 function createDonationTestCases() {
   it('Should create donations for csv airDrop', async () => {
@@ -154,6 +457,74 @@ function createDonationTestCases() {
       assert.equal(
         donation.createdAt.getTime(),
         new Date('2022-02-28T00:05:35.000Z').getTime(),
+      );
+    }
+  });
+  it('Should create donations for gnosis safe', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0x43f82708d1608aa9355c0738659c658b138d54f618e3322e33a4410af48c200b
+
+    const tokenPrice = 1;
+    const txHash =
+      '0x43f82708d1608aa9355c0738659c658b138d54f618e3322e33a4410af48c200b';
+    const firstProjectAddress = '0x10E1439455BD2624878b243819E31CfEE9eb721C';
+    const firstProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: firstProjectAddress,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    await createDonation(
+      {
+        query: {
+          recordIds: '',
+        },
+        payload: {
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: txHash,
+          priceUsd: tokenPrice,
+          txType: 'gnosisSafe',
+          segmentNotified: true,
+          isProjectVerified: true,
+        },
+      },
+      {
+        send: () => {
+          //
+        },
+      },
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+    );
+
+    const firstDonation = await Donation.findOne({
+      transactionId: txHash,
+      toWalletAddress: firstProjectAddress.toLowerCase(),
+    });
+    assert.isOk(firstDonation);
+    assert.equal(firstDonation?.projectId, firstProject.id);
+
+    const allTxDonations = await Donation.find({
+      transactionId: txHash,
+    });
+    assert.equal(allTxDonations.length, 1);
+    for (const donation of allTxDonations) {
+      assert.equal(donation.donationType, DONATION_TYPES.GNOSIS_SAFE);
+      assert.equal(donation.status, DONATION_STATUS.VERIFIED);
+      assert.equal(donation.priceUsd, tokenPrice);
+      assert.equal(donation.segmentNotified, true);
+      assert.equal(donation.isProjectVerified, true);
+      assert.equal(donation.amount, 5);
+      assert.equal(
+        donation.fromWalletAddress.toLowerCase(),
+        '0x5f0253950c0a7715CBA25153a6ED5eBcFFEDe48e'.toLowerCase(),
+      );
+      assert.equal(donation.currency, 'USDC');
+      assert.equal(
+        donation.createdAt.getTime(),
+        new Date('2022-07-04T16:55:30.000Z').getTime(),
       );
     }
   });
@@ -516,6 +887,44 @@ function verifyProjectsTestCases() {
       history?.description,
       HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
     );
+  });
+}
+
+function exportProjectsWithFiltersToCsvTestCases() {
+  it('should  return error because google api key is not set', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: false,
+    });
+    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const result = await exportProjectsWithFiltersToCsv(
+      {
+        query: {
+          recordIds: '',
+        },
+        payload: {},
+        record: {},
+      },
+      {
+        query: {
+          recordIds: String(project.id),
+        },
+      },
+      {
+        currentAdmin: adminUser as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+    );
+
+    assert.equal(result?.notice.type, 'danger');
+    // If we set GOOGLE_SPREADSHEETS_PRIVATE_KEY,GOOGLE_SPREADSHEETS_CLIENT_EMAIL,GOOGLE_PROJECT_EXPORTS_SPREADSHEET_ID
+    // to .env.test we would not get this error anymore
+    assert.equal(result?.notice.message, 'No key or keyFile set.');
   });
 }
 

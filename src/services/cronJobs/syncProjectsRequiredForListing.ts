@@ -3,7 +3,7 @@ import { schedule } from 'node-cron';
 import { getRepository } from 'typeorm';
 
 import config from '../../config';
-import { SegmentEvents } from '../../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import { logger } from '../../utils/logger';
 
 const cronJobTime =
@@ -14,7 +14,10 @@ const maximumDaysForListing =
   Number(config.get('MAXIMUM_DAYS_FOR_LISTING_PROJECTS')) || 21;
 
 export const runCheckPendingProjectListingCronJob = () => {
-  logger.debug('runCheckPendingProjectListingCronJob() has been called');
+  logger.debug(
+    'runCheckPendingProjectListingCronJob() has been called, cronJobTime',
+    cronJobTime,
+  );
   schedule(cronJobTime, async () => {
     await updateProjectListing();
   });
@@ -32,6 +35,6 @@ export const updateProjectListing = async () => {
       id: project.id,
       listed: true,
     });
-    Project.notifySegment(project, SegmentEvents.PROJECT_LISTED);
+    Project.notifySegment(project, NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED);
   }
 };

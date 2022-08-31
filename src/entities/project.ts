@@ -8,29 +8,34 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   JoinTable,
   LessThan,
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
-  SelectQueryBuilder,
-  UpdateDateColumn,
 } from 'typeorm';
 
-import { Organisation } from './organisation';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
-import { SegmentEvents } from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
 import { errorMessages } from '../utils/errorMessages';
+import { Organization } from './organization';
+import { findUserById } from '../repositories/userRepository';
+import { SocialProfile } from './socialProfile';
+import { ProjectVerificationForm } from './projectVerificationForm';
+import { ProjectAddress } from './projectAddress';
+import { ProjectContacts } from './projectVerificationForm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -44,6 +49,15 @@ export enum ProjStatus {
   deactive = 6,
   cancelled = 7,
   drafted = 8,
+}
+
+// Always use Enums to prevent sql injection with plain strings
+export enum SortingField {
+  MostFunded = 'MostFunded',
+  MostLiked = 'MostLiked',
+  Newest = 'Newest',
+  Oldest = 'Oldest',
+  QualityScore = 'QualityScore',
 }
 
 export enum OrderField {
@@ -81,7 +95,7 @@ class Project extends BaseEntity {
 
   @Index()
   @Field(type => [String], { nullable: true })
-  @Column('text', { array: true, nullable: true })
+  @Column('text', { array: true, default: '{}' })
   slugHistory?: string[];
 
   @Field({ nullable: true })
@@ -101,6 +115,11 @@ class Project extends BaseEntity {
   @Column({ default: null, nullable: true })
   givingBlocksId?: string;
 
+  @Index({ unique: true, where: '"changeId" IS NOT NULL' })
+  @Field({ nullable: true })
+  @Column({ default: null, nullable: true })
+  changeId?: string;
+
   @Field({ nullable: true })
   @Column({ default: null, nullable: true })
   website?: string;
@@ -118,13 +137,18 @@ class Project extends BaseEntity {
   creationDate: Date;
 
   @Field({ nullable: true })
-  @UpdateDateColumn({ nullable: true })
+  @Column({ nullable: true })
   updatedAt: Date;
 
-  @Field(type => [Organisation])
-  @ManyToMany(type => Organisation)
+  @Field(type => Organization)
+  @ManyToOne(type => Organization, {
+    eager: true,
+  })
   @JoinTable()
-  organisations: Organisation[];
+  organization: Organization;
+
+  @RelationId((project: Project) => project.organization)
+  organizationId: number;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -155,8 +179,8 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   stripeAccountId?: string;
 
-  @Field()
-  @Column({ unique: true })
+  @Field({ nullable: true })
+  @Column({ unique: true, nullable: true })
   walletAddress?: string;
 
   @Field(type => Boolean)
@@ -179,6 +203,10 @@ class Project extends BaseEntity {
   @Column({ nullable: true })
   qualityScore: number = 0;
 
+  @Field(type => [ProjectContacts], { nullable: true })
+  @Column('jsonb', { nullable: true })
+  contacts: ProjectContacts[];
+
   @ManyToMany(type => User, user => user.projects, { eager: true })
   @JoinTable()
   @Field(type => [User], { nullable: true })
@@ -187,10 +215,27 @@ class Project extends BaseEntity {
   @OneToMany(type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
 
+  @Field(type => [ProjectAddress], { nullable: true })
+  @OneToMany(type => ProjectAddress, projectAddress => projectAddress.project, {
+    eager: true,
+  })
+  addresses?: ProjectAddress[];
+
   @Index()
   @Field(type => ProjectStatus)
   @ManyToOne(type => ProjectStatus, { eager: true })
   status: ProjectStatus;
+
+  @RelationId((project: Project) => project.status)
+  statusId: number;
+
+  @Index()
+  @Field(type => User, { nullable: true })
+  @ManyToOne(() => User, { eager: true })
+  adminUser?: User;
+
+  @RelationId((project: Project) => project.adminUser)
+  adminUserId: number;
 
   @Field(type => [ProjectStatusHistory], { nullable: true })
   @OneToMany(
@@ -199,8 +244,17 @@ class Project extends BaseEntity {
   )
   statusHistory?: ProjectStatusHistory[];
 
-  @RelationId((project: Project) => project.status)
-  statusId: number;
+  @Field(type => ProjectVerificationForm, { nullable: true })
+  @OneToOne(
+    type => ProjectVerificationForm,
+    projectVerificationForm => projectVerificationForm.project,
+    { nullable: true },
+  )
+  projectVerificationForm?: ProjectVerificationForm;
+
+  @Field(type => [SocialProfile], { nullable: true })
+  @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
+  socialProfiles?: SocialProfile[];
 
   @Field(type => Float)
   @Column({ type: 'real' })
@@ -223,8 +277,8 @@ class Project extends BaseEntity {
   listed?: boolean | null;
 
   // Virtual attribute to subquery result into
-  @Field(type => User, { nullable: true })
-  adminUser?: User;
+  @Field(type => Int, { nullable: true })
+  prevStatusId?: number;
 
   // User reaction to the project
   @Field(type => Reaction, { nullable: true })
@@ -233,13 +287,13 @@ class Project extends BaseEntity {
    * Custom Query Builders to chain together
    */
 
-  static notifySegment(project: Project, eventName: SegmentEvents) {
+  static notifySegment(project: Project, eventName: NOTIFICATIONS_EVENT_NAMES) {
     new ProjectTracker(project, eventName).track();
   }
 
   static sendBulkEventsToSegment(
     projects: [Project],
-    eventName: SegmentEvents,
+    eventName: NOTIFICATIONS_EVENT_NAMES,
   ) {
     for (const project of projects) {
       this.notifySegment(project, eventName);
@@ -270,7 +324,7 @@ class Project extends BaseEntity {
     const { project, status, prevStatus, description, reasonId, userId } =
       inputData;
     let reason;
-    const user = await User.findOne({ id: userId });
+    const user = await findUserById(userId);
 
     if (reasonId) {
       reason = await ProjectStatusReason.findOne({ id: reasonId, status });
@@ -298,10 +352,7 @@ class Project extends BaseEntity {
       );
     }
 
-    if (
-      this.users.filter(o => o.id === user.id).length > 0 ||
-      user.id === Number(this.admin)
-    ) {
+    if (user.id === this.adminUser?.id) {
       return true;
     } else {
       throw new Error(
@@ -325,11 +376,6 @@ class Project extends BaseEntity {
 
   owner() {
     return this.users[0];
-  }
-
-  @AfterUpdate()
-  notifyProjectEdited() {
-    Project.notifySegment(this, SegmentEvents.PROJECT_EDITED);
   }
 }
 
@@ -372,15 +418,62 @@ class ProjectUpdate extends BaseEntity {
   @Field(type => Reaction, { nullable: true })
   reaction?: Reaction;
 
+  @Field()
+  @Column('boolean', { default: false })
+  isNonProfitOrganization: boolean;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  organizationCountry: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  organizationWebsite: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  organizationDescription: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  twitter: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  facebook: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  linkedin: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  instagram: string;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  youtube: string;
+
+  @Column({ nullable: true })
+  foundationDate: Date;
+
+  @Column('text', { nullable: true })
+  mission: string;
+
+  @Column('text', { nullable: true })
+  achievedMilestones: string;
+
+  @Column('text', { nullable: true })
+  managingFundDescription: string;
+
+  // does not call with createQueryBuilder
   @AfterInsert()
   async updateProjectStampOnCreation() {
-    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
-    // TODO: this should be moved to a subscriber as https://typeorm.io/#/listeners-and-subscribers/what-is-an-entity-listener says
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 }

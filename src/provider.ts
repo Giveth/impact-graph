@@ -8,8 +8,17 @@ const INFURA_API_KEY = config.get('INFURA_API_KEY');
 export const NETWORK_IDS = {
   MAIN_NET: 1,
   ROPSTEN: 3,
+  GOERLI: 5,
   XDAI: 100,
   BSC: 56,
+};
+
+export const NETWORKS_IDS_TO_NAME = {
+  1: 'MAIN_NET',
+  3: 'ROPSTEN',
+  5: 'GOERLI',
+  100: 'GNOSIS',
+  56: 'BSC',
 };
 
 const NETWORK_NAMES = {
@@ -17,6 +26,7 @@ const NETWORK_NAMES = {
   XDAI: 'xdaichain',
   MAINNET: 'mainnet',
   ROPSTEN: 'ropsten',
+  GOERLI: 'goerli',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -24,6 +34,7 @@ const NETWORK_NATIVE_TOKENS = {
   XDAI: 'XDAI',
   MAINNET: 'ETH',
   ROPSTEN: 'ETH',
+  GOERLI: 'ETH',
 };
 
 const networkNativeTokensList = [
@@ -47,10 +58,16 @@ const networkNativeTokensList = [
     networkId: NETWORK_IDS.ROPSTEN,
     nativeToken: NETWORK_NATIVE_TOKENS.ROPSTEN,
   },
+  {
+    networkName: NETWORK_NAMES.GOERLI,
+    networkId: NETWORK_IDS.GOERLI,
+    nativeToken: NETWORK_NATIVE_TOKENS.GOERLI,
+  },
 ];
 const NETWORK_ID_MAP = {
   1: NETWORK_NAMES.MAINNET,
   3: NETWORK_NAMES.ROPSTEN,
+  5: NETWORK_NAMES.GOERLI,
   100: NETWORK_NAMES.XDAI,
   56: NETWORK_NAMES.BSC,
 };
@@ -69,6 +86,8 @@ const mainnetNodeUrl = `https://${NETWORK_NAMES.MAINNET}.infura.io/v3/${INFURA_A
 const mainnetWeb3 = new Web3(mainnetNodeUrl);
 const ropstenNodeUrl = `https://${NETWORK_NAMES.ROPSTEN}.infura.io/v3/${INFURA_API_KEY}`;
 const ropstenWeb3 = new Web3(ropstenNodeUrl);
+const goerliNodeUrl = `https://${NETWORK_NAMES.GOERLI}.infura.io/v3/${INFURA_API_KEY}`;
+const goerliWeb3 = new Web3(goerliNodeUrl);
 const xdaiWeb3NodeUrl = config.get('XDAI_NODE_HTTP_URL') as string;
 const xdaiWeb3 = new Web3(xdaiWeb3NodeUrl);
 
@@ -79,7 +98,8 @@ export const getNetworkWeb3 = (networkId: number): Web3 => {
 
     case NETWORK_IDS.ROPSTEN:
       return ropstenWeb3;
-
+    case NETWORK_IDS.GOERLI:
+      return goerliWeb3;
     case NETWORK_IDS.XDAI:
       return xdaiWeb3;
     default:
@@ -114,6 +134,10 @@ export function getEtherscanOrBlockScoutUrl(networkId: number): string {
       )}`;
     case NETWORK_IDS.ROPSTEN:
       return `${config.get('ETHERSCAN_ROPSTEN_API_URL')}?apikey=${config.get(
+        'ETHERSCAN_API_KEY',
+      )}`;
+    case NETWORK_IDS.GOERLI:
+      return `${config.get('ETHERSCAN_GOERLI_API_URL')}?apikey=${config.get(
         'ETHERSCAN_API_KEY',
       )}`;
     default:

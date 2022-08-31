@@ -11,7 +11,6 @@ import {
 import axios from 'axios';
 import { erc20ABI } from '../assets/erc20ABI';
 import { disperseABI } from '../assets/disperseABI';
-import { csvAirDropABI } from '../assets/csvAirDropABI';
 import {
   getEtherscanOrBlockScoutUrl,
   getNetworkNativeToken,
@@ -51,6 +50,12 @@ export async function getTransactionInfoFromNetwork(
     transaction = await findTransactionByNonce({
       input,
     });
+  }
+
+  if (!transaction && (!nonce || userTransactionsCount > nonce)) {
+    // in this case we understand that the transaction will not happen anytime, because nonce is used
+    // so this is not speedup for sure
+    throw new Error(errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED);
   }
   if (!transaction) {
     throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
@@ -180,6 +185,17 @@ async function getTransactionDetailForNormalTransfer(
   if (!transaction) {
     return null;
   }
+  const receipt = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
+    txHash,
+  );
+  if (!receipt) {
+    // Transaction is not mined yet
+    // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
+    return null;
+  }
+  if (!receipt.status) {
+    throw new Error(errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK);
+  }
   const block = await getNetworkWeb3(networkId).eth.getBlock(
     transaction.blockNumber as number,
   );
@@ -198,14 +214,19 @@ async function getTransactionDetailForTokenTransfer(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId } = input;
-  const token = findTokenByNetworkAndSymbol(networkId, symbol);
+  const token = await findTokenByNetworkAndSymbol(networkId, symbol);
   const web3 = getNetworkWeb3(networkId);
   const transaction = await web3.eth.getTransaction(txHash);
+  const receipt = await web3.eth.getTransactionReceipt(txHash);
   logger.debug('getTransactionDetailForTokenTransfer', {
+    receipt,
     transaction,
     input,
     token,
   });
+  if (!transaction) {
+    return null;
+  }
   if (
     transaction &&
     transaction.to?.toLowerCase() !== token.address.toLowerCase()
@@ -214,8 +235,14 @@ async function getTransactionDetailForTokenTransfer(
       errorMessages.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
     );
   }
-  if (!transaction) {
+
+  if (!receipt) {
+    // Transaction is not mined yet
+    // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
     return null;
+  }
+  if (!receipt.status) {
+    throw new Error(errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK);
   }
 
   const transactionData = abiDecoder.decodeMethod(transaction.input);
@@ -253,7 +280,8 @@ function validateTransactionWithInputData(
       errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
     );
   }
-  if (transaction.amount !== input.amount) {
+  if (Math.abs(transaction.amount - input.amount) > 0.001) {
+    // We ignore small conflicts but for bigger amount we throw exception https://github.com/Giveth/impact-graph/issues/289
     throw new Error(
       errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
     );
@@ -300,7 +328,7 @@ export const getDisperseTransactions = async (
     amounts = transactionData.params[1].value;
   } else if (transactionData.name === 'disperseToken') {
     const tokenAddress = transactionData.params[0].value;
-    token = findTokenByNetworkAndAddress(networkId, tokenAddress);
+    token = await findTokenByNetworkAndAddress(networkId, tokenAddress);
 
     recipients = transactionData.params[1].value;
     amounts = transactionData.params[2].value;
@@ -336,28 +364,38 @@ export const getCsvAirdropTransactions = async (
   const receipts = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
     txHash,
   );
-  const transferLogs = receipts.logs.filter(
-    log =>
-      log.topics[0] === transferTopic &&
-      findTokenByNetworkAndAddress(networkId, log.address.toLowerCase()),
-  );
+  const transferLogs: any[] = [];
+  for (const receiptLog of receipts.logs) {
+    if (receiptLog.topics[0] !== transferTopic) {
+      continue;
+    }
+    const token = await findTokenByNetworkAndAddress(
+      networkId,
+      receiptLog.address.toLowerCase(),
+    );
+    if (token) {
+      transferLogs.push(receiptLog);
+    }
+  }
 
   // https://github.com/ethers-io/ethers.js/issues/487#issuecomment-481881691
   const abi = [
     'event Transfer(address indexed from, address indexed to, uint value)',
   ];
   const iface = new ethers.utils.Interface(abi);
-  const transfers = transferLogs.map(log => {
+  const transfersPromises = transferLogs.map(async log => {
     const transferData = iface.parseLog(log);
     const tokenAddress = log.address;
-    const token = findTokenByNetworkAndAddress(networkId, tokenAddress);
+    const token = await findTokenByNetworkAndAddress(networkId, tokenAddress);
     return {
+      from: transferData.args[0].toLowerCase(),
       to: transferData.args[1].toLowerCase(),
       amount:
         Number(transferData.args[2].toString()) / 10 ** (token.decimals || 18),
       currency: token.symbol,
     };
   });
+  const transfers = await Promise.all(transfersPromises);
   const block = await getNetworkWeb3(networkId).eth.getBlock(
     transaction.blockNumber as number,
   );
@@ -367,9 +405,17 @@ export const getCsvAirdropTransactions = async (
       // Based on this comment the from address of csvAirDrop transactions should be toAddress of transaction , because
       // from is the one who initiated the transaction but we should consider multi sig wallet address
       // https://github.com/Giveth/impact-graph/issues/342#issuecomment-1056952221
-      from: (transaction.to as string).toLowerCase(),
+      // from: (transaction.to as string).toLowerCase(),
       hash: transaction.hash,
       timestamp: block.timestamp as number,
     };
   });
+};
+
+export const getGnosisSafeTransactions = async (
+  txHash: string,
+  networkId: number,
+): Promise<NetworkTransactionInfo[]> => {
+  // It seems csv airdrop and gnosis safe multi sig transactions are similar so I reused that
+  return getCsvAirdropTransactions(txHash, networkId);
 };

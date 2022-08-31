@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType, Int } from 'type-graphql';
+import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -8,19 +8,30 @@ import {
   BaseEntity,
   JoinTable,
 } from 'typeorm';
-import { OrganisationUser } from './organisationUser';
-import { Organisation } from './organisation';
 import { Project, ProjStatus } from './project';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
-import { ProjectStatusReason } from './projectStatusReason';
 import { ProjectStatusHistory } from './projectStatusHistory';
+import { ProjectVerificationForm } from './projectVerificationForm';
+
+export const publicSelectionFields = [
+  'user.id',
+  'user.walletAddress',
+  'user.name',
+  'user.firstName',
+  'user.lastName',
+  'user.url',
+  'user.avatar',
+  'user.totalDonated',
+  'user.totalReceived',
+];
 
 export enum UserRole {
   ADMIN = 'admin',
   RESTRICTED = 'restricted',
   OPERATOR = 'operator',
+  VERIFICATION_FORM_REVIEWER = 'reviewer',
 }
 
 @ObjectType()
@@ -30,13 +41,19 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field({ nullable: true })
   @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.RESTRICTED,
   })
   role: UserRole;
+
+  @Field(type => [AccountVerification], { nullable: true })
+  @OneToMany(
+    type => AccountVerification,
+    accountVerification => accountVerification.user,
+  )
+  accountVerifications?: AccountVerification[];
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -58,11 +75,9 @@ export class User extends BaseEntity {
   @Column({ unique: true })
   walletAddress?: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   password?: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   encryptedPassword?: string;
 
@@ -81,22 +96,11 @@ export class User extends BaseEntity {
   @Column()
   loginType: string;
 
-  @Field({ nullable: true })
   @Column({ nullable: true })
   dId?: string;
 
   @Column('bool', { default: false })
   confirmed: boolean;
-
-  @OneToMany(
-    type => OrganisationUser,
-    organisationUser => organisationUser.user,
-  )
-  organisationUsers?: OrganisationUser[];
-
-  @Field(type => Organisation)
-  @ManyToMany(type => Organisation, organisation => organisation.users)
-  organisations: Organisation[];
 
   @Field(type => [Project])
   @ManyToMany(type => Project, project => project.users)
@@ -106,19 +110,20 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   segmentIdentified: boolean;
 
-  @Field(type => [AccountVerification], { nullable: true })
+  // Admin Reviewing Forms
+  @Field(type => [ProjectVerificationForm], { nullable: true })
   @OneToMany(
-    type => AccountVerification,
-    accountVerification => accountVerification.user,
+    type => ProjectVerificationForm,
+    projectVerificationForm => projectVerificationForm.reviewer,
   )
-  accountVerifications?: AccountVerification[];
+  projectVerificationForms?: ProjectVerificationForm[];
 
-  @Field(type => Int, { nullable: true })
-  @Column({ type: 'integer', nullable: true, default: 0 })
+  @Field(type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true, default: 0 })
   totalDonated: number;
 
-  @Field(type => Int, { nullable: true })
-  @Column({ type: 'integer', nullable: true, default: 0 })
+  @Field(type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true, default: 0 })
   totalReceived: number;
 
   @Field(type => [ProjectStatusHistory], { nullable: true })
@@ -131,7 +136,7 @@ export class User extends BaseEntity {
   @Field(type => Int, { nullable: true })
   async projectsCount() {
     const projectsCount = await Project.createQueryBuilder('project')
-      .where('admin = :id', { id: String(this.id) })
+      .where('project."admin" = :id', { id: String(this.id) })
       .getCount();
 
     return projectsCount;
@@ -140,7 +145,7 @@ export class User extends BaseEntity {
   @Field(type => Int, { nullable: true })
   async donationsCount() {
     const donationsCount = await Donation.createQueryBuilder('donation')
-      .where(`"userId" = :id`, { id: this.id })
+      .where(`donation."userId" = :id`, { id: this.id })
       .getCount();
 
     return donationsCount;

@@ -1,5 +1,4 @@
-import { Organisation } from './organisation';
-import { OrganisationUser } from './organisationUser';
+import { Organization } from './organization';
 import { User } from './user';
 import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
@@ -14,10 +13,14 @@ import { BankAccount, StripeTransaction } from './bankAccount';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusReason } from './projectStatusReason';
 import { ProjectStatusHistory } from './projectStatusHistory';
+import { ThirdPartyProjectImport } from './thirdPartyProjectImport';
+import { ProjectVerificationForm } from './projectVerificationForm';
+import { ProjectAddress } from './projectAddress';
+import { SocialProfile } from './socialProfile';
+import { MainCategory } from './mainCategory';
 
 export const entities: any = [
-  Organisation,
-  OrganisationUser,
+  Organization,
   User,
   Project,
   Notification,
@@ -34,4 +37,9 @@ export const entities: any = [
   ProjectStatusHistory,
   AccountVerification,
   ProjectImage,
+  ThirdPartyProjectImport,
+  ProjectVerificationForm,
+  ProjectAddress,
+  SocialProfile,
+  MainCategory,
 ];

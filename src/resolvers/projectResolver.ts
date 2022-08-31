@@ -5,29 +5,30 @@ import {
   Project,
   ProjectUpdate,
   ProjStatus,
+  SortingField,
 } from '../entities/project';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
 import {
   CreateProjectInput,
   ImageUpload,
-  ProjectInput,
+  UpdateProjectInput,
 } from './types/project-input';
 import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
-import { UserPermissions } from '../permissions';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
-import { triggerBuild } from '../netlify/build';
 import { MyContext } from '../types/MyContext';
-import { getAnalytics, SegmentEvents } from '../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
-import { User } from '../entities/user';
+import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
 import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
-import config from '../config';
 import slugify from 'slugify';
 import SentryLogger from '../sentryLogger';
 import {
@@ -48,6 +49,8 @@ import {
 } from 'type-graphql';
 import { errorMessages } from '../utils/errorMessages';
 import {
+  canUserVisitProject,
+  validateProjectRelatedAddresses,
   validateProjectTitle,
   validateProjectTitleForEdit,
   validateProjectWalletAddress,
@@ -57,6 +60,28 @@ import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { getLoggedInUser } from '../services/authorizationServices';
+import {
+  getQualityScore,
+  getAppropriateSlug,
+} from '../services/projectService';
+import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import { Token } from '../entities/token';
+import { findUserById } from '../repositories/userRepository';
+import {
+  getPurpleListAddresses,
+  removeRecipientAddressOfProject,
+  isWalletAddressInPurpleList,
+  findProjectRecipientAddressByProjectId,
+  addBulkNewProjectAddress,
+  findAllRelatedAddressByWalletAddress,
+} from '../repositories/projectAddressRepository';
+import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
+import {
+  findProjectById,
+  userIsOwnerOfProject,
+} from '../repositories/projectRepository';
+import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 const analytics = getAnalytics();
 
@@ -94,12 +119,18 @@ enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
   Traceable = 'traceCampaignId',
+  GivingBlock = 'fromGivingBlock',
 }
 
 enum OrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
+
+registerEnumType(SortingField, {
+  name: 'SortingField',
+  description: 'Sort by type',
+});
 
 registerEnumType(FilterField, {
   name: 'FilterField',
@@ -146,6 +177,11 @@ class GetProjectsArgs {
   @Max(50)
   take: number;
 
+  @Field(type => Int, { defaultValue: 10 })
+  @Min(0)
+  @Max(50)
+  limit: number;
+
   @Field(type => OrderBy, {
     defaultValue: {
       field: OrderField.QualityScore,
@@ -160,11 +196,26 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   category: string;
 
+  @Field({ nullable: true })
+  mainCategory: string;
+
   @Field(type => FilterBy, {
     nullable: true,
     defaultValue: { field: null, value: null },
   })
   filterBy: FilterBy;
+
+  @Field(type => [FilterField], {
+    nullable: true,
+    defaultValue: [],
+  })
+  filters: FilterField[];
+
+  @Field(type => SortingField, {
+    nullable: true,
+    defaultValue: SortingField.QualityScore,
+  })
+  sortingBy: SortingField;
 
   @Field({ nullable: true })
   admin?: number;
@@ -213,6 +264,24 @@ export class ProjectResolver {
       { category },
     );
   }
+
+  static addMainCategoryQuery(
+    query: SelectQueryBuilder<Project>,
+    mainCategory: string,
+  ) {
+    if (!mainCategory) return query;
+
+    query = query
+      .leftJoin('project.categories', 'categoryForMainCategorySearch')
+      .innerJoin(
+        'categoryForMainCategorySearch.mainCategory',
+        'filteredMainCategory',
+        'filteredMainCategory.slug = :mainCategory',
+        { mainCategory },
+      );
+    return query;
+  }
+
   static addSearchQuery(
     query: SelectQueryBuilder<Project>,
     searchTerm: string,
@@ -256,13 +325,11 @@ export class ProjectResolver {
   ): SelectQueryBuilder<Project> {
     const query = Project.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
       .innerJoinAndSelect('project.categories', 'categories')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .where('project.id != :id', { id: currentProject?.id })
       .andWhere(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -277,29 +344,31 @@ export class ProjectResolver {
   static async matchExactProjectCategories(
     allProjects: AllProjects,
     query: SelectQueryBuilder<Project>,
-    categoriesIds: number[],
+    categoriesIds: number[] | undefined,
     take: number,
     skip: number,
   ): Promise<AllProjects> {
-    query.andWhere(
-      new Brackets(innerQuery => {
-        innerQuery.where(
-          // Get Projects with the exact same categories
-          new Brackets(subQuery => {
-            for (const categoryId of categoriesIds) {
-              subQuery.where(
-                `project.id IN (
+    if (categoriesIds) {
+      query.andWhere(
+        new Brackets(innerQuery => {
+          innerQuery.where(
+            // Get Projects with the exact same categories
+            new Brackets(subQuery => {
+              for (const categoryId of categoriesIds) {
+                subQuery.where(
+                  `project.id IN (
                   SELECT "projectId"
                   FROM project_categories_category
                   WHERE "categoryId" = :category
                 )`,
-                { category: categoryId },
-              );
-            }
-          }),
-        );
-      }),
-    );
+                  { category: categoryId },
+                );
+              }
+            }),
+          );
+        }),
+      );
+    }
 
     const [projects, totalCount] = await query
       .orderBy('project.creationDate', 'DESC')
@@ -316,11 +385,13 @@ export class ProjectResolver {
   static async matchAnyProjectCategory(
     allProjects: AllProjects,
     query: SelectQueryBuilder<Project>,
-    categoriesIds: number[],
+    categoriesIds: number[] | undefined,
     take: number,
     skip: number,
   ): Promise<AllProjects> {
-    query.andWhere('categories.id IN (:...ids)', { ids: categoriesIds });
+    if (categoriesIds) {
+      query.andWhere('categories.id IN (:...ids)', { ids: categoriesIds });
+    }
     const [projects, totalCount] = await query
       .orderBy('project.creationDate', 'DESC')
       .take(take)
@@ -373,6 +444,36 @@ export class ProjectResolver {
     return query.andWhere(`project.${filter} = ${filterValue}`);
   }
 
+  static addFiltersQuery(
+    query: SelectQueryBuilder<Project>,
+    filtersArray: FilterField[],
+  ) {
+    if (filtersArray.length === 0) return query;
+
+    query = query.andWhere(
+      new Brackets(subQuery => {
+        filtersArray.forEach(filter => {
+          if (filter === FilterField.AcceptGiv) {
+            // only giving Blocks do not accept Giv
+            return subQuery.andWhere(`project.${filter} IS NULL`);
+          }
+
+          if (filter === FilterField.GivingBlock) {
+            return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
+          }
+
+          if (filter === FilterField.Traceable) {
+            return subQuery.andWhere(`project.${filter} IS NOT NULL`);
+          }
+
+          return subQuery.andWhere(`project.${filter} = true`);
+        });
+      }),
+    );
+
+    return query;
+  }
+
   private static addUserReaction<T>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
@@ -391,6 +492,23 @@ export class ProjectResolver {
 
     return query;
   }
+
+  private static addProjectVerificationForm<T>(
+    query: SelectQueryBuilder<T>,
+    connectedWalletUserId?: number,
+    authenticatedUser?: any,
+  ): SelectQueryBuilder<T> {
+    const userId = connectedWalletUserId || authenticatedUser?.userId;
+    if (userId) {
+      return query.leftJoinAndSelect(
+        'project.projectVerificationForm',
+        'projectVerificationForm',
+      );
+    }
+
+    return query;
+  }
+
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
@@ -401,7 +519,6 @@ export class ProjectResolver {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private userPermissions: UserPermissions,
     @InjectRepository(Donation)
     private readonly donationRepository: Repository<Donation>,
     @InjectRepository(ProjectImage)
@@ -418,6 +535,7 @@ export class ProjectResolver {
       orderBy,
       searchTerm,
       category,
+      mainCategory,
       filterBy,
       admin,
       connectedWalletUserId,
@@ -428,22 +546,22 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
-      // .leftJoinAndSelect('project.donations', 'donations')
       .leftJoinAndSelect('project.users', 'users')
-      .innerJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
-      .innerJoinAndSelect('project.categories', 'c')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
+      // you can alias it as user but it still is mapped as adminUser
+      // like defined in our project entity
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
 
     // Filters
     query = ProjectResolver.addCategoryQuery(query, category);
+    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
     query = ProjectResolver.addSearchQuery(query, searchTerm);
     query = ProjectResolver.addFilterQuery(
       query,
@@ -453,7 +571,7 @@ export class ProjectResolver {
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
     switch (orderBy.field) {
-      case OrderField.Traceable: // TODO: PRISMA will fix this, temporary fix inverting nulls.
+      case OrderField.Traceable:
         // const traceableDirection: {
         //   [key: string]: 'NULLS FIRST' | 'NULLS LAST';
         // } = {
@@ -467,7 +585,7 @@ export class ProjectResolver {
         //   traceableDirection[orderBy.direction],
         // );
 
-        query.where(
+        query.andWhere(
           `project.${orderBy.field} IS${
             orderBy.direction === OrderDirection.ASC ? '' : ' NOT'
           } NULL`,
@@ -490,7 +608,7 @@ export class ProjectResolver {
         //   orderBy.direction,
         //   acceptGivDirection[orderBy.direction],
         // );
-        query.where(
+        query.andWhere(
           `project.${orderBy.field} IS${
             orderBy.direction === OrderDirection.DESC ? '' : ' NOT'
           } NULL`,
@@ -499,6 +617,10 @@ export class ProjectResolver {
           `project.${OrderField.CreationDate}`,
           OrderDirection.DESC,
         );
+        break;
+      case OrderField.Verified:
+        query.andWhere(`project.${orderBy.field} = true`);
+        query.orderBy(`project.${OrderField.CreationDate}`, orderBy.direction);
         break;
       default:
         query.orderBy(`project.${orderBy.field}`, orderBy.direction);
@@ -509,7 +631,74 @@ export class ProjectResolver {
       .take(take)
       .skip(skip)
       .getManyAndCount();
+    return { projects, totalCount, categories };
+  }
 
+  @Query(returns => AllProjects)
+  async allProjects(
+    @Args()
+    {
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      admin,
+      connectedWalletUserId,
+    }: GetProjectsArgs,
+    @Ctx() { req: { user } }: MyContext,
+  ): Promise<AllProjects> {
+    const categories = await Category.find();
+    let query = this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.users', 'users')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
+      // you can alias it as user but it still is mapped as adminUser
+      // like defined in our project entity
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      );
+
+    // Filters
+    query = ProjectResolver.addCategoryQuery(query, category);
+    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
+    query = ProjectResolver.addSearchQuery(query, searchTerm);
+    query = ProjectResolver.addFiltersQuery(query, filters);
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+    switch (sortingBy) {
+      case SortingField.MostFunded:
+        query.orderBy('project.totalDonations', 'DESC');
+        break;
+      case SortingField.MostLiked:
+        query.orderBy('project.totalReactions', 'DESC');
+        break;
+      case SortingField.Newest:
+        query.orderBy('project.creationDate', 'DESC');
+        break;
+      case SortingField.Oldest:
+        query.orderBy('project.creationDate', 'ASC');
+        break;
+      case SortingField.QualityScore:
+        query.orderBy('project.qualityScore', 'DESC');
+        break;
+      default:
+        query.orderBy('project.qualityScore', 'DESC');
+        break;
+    }
+
+    const [projects, totalCount] = await query
+      .take(limit)
+      .skip(skip)
+      .getManyAndCount();
     return { projects, totalCount, categories };
   }
 
@@ -533,7 +722,8 @@ export class ProjectResolver {
       .orderBy(`project.${field}`, direction)
       .limit(skip)
       .take(take)
-      .innerJoinAndSelect('project.categories', 'c');
+      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
@@ -542,12 +732,6 @@ export class ProjectResolver {
     return { projects, totalCount };
   }
 
-  @Query(returns => [Project])
-  async project(@Args() { id }: GetProjectArgs): Promise<Project[]> {
-    return this.projectRepository.find({ id });
-  }
-
-  // Move this to it's own resolver latere
   @Query(returns => Project)
   async projectById(
     @Arg('id') id: number,
@@ -562,22 +746,15 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      );
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields); // aliased selection
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
     const project = await query.getOne();
 
-    if (
-      project?.statusId === ProjStatus.drafted &&
-      // If project is draft, just owner can view it
-      project?.admin !== String(user?.userId)
-    ) {
-      return null;
-    }
+    canUserVisitProject(project, String(user?.userId));
 
     return project;
   }
@@ -590,6 +767,14 @@ export class ProjectResolver {
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: MyContext,
   ) {
+    const viewerUserId = connectedWalletUserId || user?.userId;
+    let isOwnerOfProject = false;
+
+    // ensure it's the owner
+    if (viewerUserId) {
+      isOwnerOfProject = await userIsOwnerOfProject(viewerUserId, slug);
+    }
+
     let query = this.projectRepository
       .createQueryBuilder('project')
       // check current slug and previous slugs
@@ -598,151 +783,56 @@ export class ProjectResolver {
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.categories', 'categories')
-      // TODO It was very expensive query and made our backend down in production, maybe we should remove the reactions as well
-      // .leftJoinAndSelect('project.donations', 'donations')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      );
+      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields); // aliased selection
+
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+    if (isOwnerOfProject) {
+      query = ProjectResolver.addProjectVerificationForm(
+        query,
+        connectedWalletUserId,
+        user,
+      );
+    }
+
     const project = await query.getOne();
 
-    if (
-      project?.statusId === ProjStatus.drafted &&
-      // If project is draft, just owner can view it
-      project?.admin !== String(user?.userId)
-    ) {
-      return null;
-    }
+    canUserVisitProject(project, String(user?.userId));
 
-    return project;
-  }
-
-  // After finalizing new UI, we should remove this mutation and just use updateProject
-  @Mutation(returns => Project)
-  async editProject(
-    @Arg('projectId') projectId: number,
-    @Arg('newProjectData') newProjectData: ProjectInput,
-    @Ctx() { req: { user } }: MyContext,
-  ) {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
-
-    const project = await Project.findOne({ id: projectId });
-
-    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
-    logger.debug(`project.admin ---> : ${project.admin}`);
-    logger.debug(`user.userId ---> : ${user.userId}`);
-    if (project.admin !== String(user.userId))
-      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
-
-    for (const field in newProjectData) project[field] = newProjectData[field];
-
-    if (!newProjectData.categories) {
-      throw new Error(
-        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-      );
-    }
-
-    const categoriesPromise = newProjectData.categories.map(async category => {
-      const [c] = await this.categoryRepository.find({ name: category });
-      if (c === undefined) {
-        throw new Error(
-          errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-        );
-      }
-      return c;
-    });
-
-    const categories = await Promise.all(categoriesPromise);
-    if (categories.length > 5) {
-      throw new Error(
-        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
-      );
-    }
-    project.categories = categories;
-
-    let imagePromise: Promise<string | undefined> = Promise.resolve(undefined);
-
-    const { imageUpload, imageStatic } = newProjectData;
-    if (imageUpload) {
-      const { filename, createReadStream, encoding } = await imageUpload;
-
-      try {
-        imagePromise = pinFile(createReadStream(), filename, encoding).then(
-          response => {
-            return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.data.IpfsHash}`;
-          },
-        );
-      } catch (e) {
-        logger.error('editProject() error', e);
-        throw Error('Upload file failed');
-      }
-    } else if (imageStatic) {
-      imagePromise = Promise.resolve(imageStatic);
-    }
-
-    if (!!imageUpload || !!imageStatic) {
-      const [image] = await Promise.all([imagePromise]);
-      project.image = image;
-    }
-
-    const [hearts, heartCount] = await Reaction.findAndCount({
-      projectId,
-    });
-
-    const qualityScore = this.getQualityScore(
-      project.description,
-      !!imageUpload,
-      heartCount,
-    );
-    if (newProjectData.title) {
-      await validateProjectTitleForEdit(newProjectData.title, projectId);
-    }
-    if (newProjectData.walletAddress) {
-      await validateProjectWalletAddress(
-        newProjectData.walletAddress,
-        projectId,
-      );
-    }
-
-    const slugBase = slugify(newProjectData.title);
-    const newSlug = await this.getAppropriateSlug(slugBase);
-    if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
-      // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
-      project.slugHistory?.push(project.slug as string);
-    }
-    project.slug = newSlug;
-    project.qualityScore = qualityScore;
-    project.listed = null;
-    await project.save();
-    project.adminUser = await User.findOne({ id: Number(project.admin) });
-
-    // We dont wait for trace reponse, because it may increase our response time
-    dispatchProjectUpdateEvent(project);
     return project;
   }
 
   @Mutation(returns => Project)
   async updateProject(
     @Arg('projectId') projectId: number,
-    @Arg('newProjectData') newProjectData: CreateProjectInput,
+    @Arg('newProjectData') newProjectData: UpdateProjectInput,
     @Ctx() { req: { user } }: MyContext,
   ) {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
     const { image } = newProjectData;
 
-    const project = await Project.findOne({ id: projectId });
+    // const project = await Project.findOne({ id: projectId });
+    const project = await findProjectById(projectId);
 
     if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+
     logger.debug(`project.admin ---> : ${project.admin}`);
     logger.debug(`user.userId ---> : ${user.userId}`);
     logger.debug(`updateProject, inputData :`, newProjectData);
     if (project.admin !== String(user.userId))
       throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
 
-    for (const field in newProjectData) project[field] = newProjectData[field];
+    for (const field in newProjectData) {
+      if (field === 'addresses') {
+        // We will take care of addresses and relations manually
+        continue;
+      }
+      project[field] = newProjectData[field];
+    }
 
     if (!newProjectData.categories) {
       throw new Error(
@@ -751,7 +841,13 @@ export class ProjectResolver {
     }
 
     const categoriesPromise = newProjectData.categories.map(async category => {
-      const [c] = await this.categoryRepository.find({ name: category });
+      const [c] = await this.categoryRepository.find({
+        name: category,
+
+        // TODO if we check the isActive for categories when updating the project, we would face error when updating givingBlocks and change projects
+        // As those categories are not active , so we assuem frontend takce care of not showing non-active categories in update page
+        // isActive: true,
+      });
       if (c === undefined) {
         throw new Error(
           errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
@@ -768,11 +864,11 @@ export class ProjectResolver {
     }
     project.categories = categories;
 
-    const [hearts, heartCount] = await Reaction.findAndCount({
+    const heartCount = await Reaction.count({
       projectId,
     });
 
-    const qualityScore = this.getQualityScore(
+    const qualityScore = getQualityScore(
       project.description,
       Boolean(image),
       heartCount,
@@ -780,15 +876,15 @@ export class ProjectResolver {
     if (newProjectData.title) {
       await validateProjectTitleForEdit(newProjectData.title, projectId);
     }
-    if (newProjectData.walletAddress) {
-      await validateProjectWalletAddress(
-        newProjectData.walletAddress,
+
+    if (newProjectData.addresses) {
+      await validateProjectRelatedAddresses(
+        newProjectData.addresses,
         projectId,
       );
     }
-
     const slugBase = slugify(newProjectData.title);
-    const newSlug = await this.getAppropriateSlug(slugBase);
+    const newSlug = await getAppropriateSlug(slugBase, projectId);
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
       // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
       project.slugHistory?.push(project.slug as string);
@@ -798,27 +894,36 @@ export class ProjectResolver {
     }
     project.slug = newSlug;
     project.qualityScore = qualityScore;
+    project.updatedAt = new Date();
     project.listed = null;
+
     await project.save();
-    project.adminUser = await User.findOne({ id: Number(project.admin) });
+    const adminUser = (await findUserById(Number(project.admin))) as User;
+    if (newProjectData.addresses) {
+      await removeRecipientAddressOfProject({ project });
+      await addBulkNewProjectAddress(
+        newProjectData?.addresses.map(relatedAddress => {
+          return {
+            project,
+            user: adminUser,
+            address: relatedAddress.address,
+            networkId: relatedAddress.networkId,
+            isRecipient: true,
+          };
+        }),
+      );
+    }
+    project.adminUser = adminUser;
+    project.addresses = await findProjectRecipientAddressByProjectId({
+      projectId,
+    });
+
+    // Edit emails
+    Project.notifySegment(project, NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED);
 
     // We dont wait for trace reponse, because it may increase our response time
     dispatchProjectUpdateEvent(project);
     return project;
-  }
-
-  // getQualityScore (projectInput) {
-  getQualityScore(description, hasImageUpload, heartCount) {
-    const heartScore = 10;
-    let qualityScore = 40;
-
-    if (description.length > 100) qualityScore = qualityScore + 10;
-    if (hasImageUpload) qualityScore = qualityScore + 30;
-
-    if (heartCount) {
-      qualityScore = heartCount * heartScore;
-    }
-    return qualityScore;
   }
 
   @Mutation(returns => ImageResponse)
@@ -861,169 +966,6 @@ export class ProjectResolver {
     throw Error('Upload file failed');
   }
 
-  // We would use createProject mutation in future, after release giveth-typescript front we can remove this one
-  @Mutation(returns => Project)
-  async addProject(
-    @Arg('project') projectInput: ProjectInput,
-    @Ctx() ctx: MyContext,
-    @PubSub() pubSub: PubSubEngine,
-  ): Promise<Project> {
-    const user = await getLoggedInUser(ctx);
-
-    const qualityScore = this.getQualityScore(
-      projectInput.description,
-      !!projectInput.imageUpload,
-      0,
-    );
-
-    if (!projectInput.categories) {
-      throw new Error(
-        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-      );
-    }
-
-    // We do not create categories only use existing ones
-    const categoriesPromise = Promise.all(
-      projectInput.categories
-        ? projectInput.categories.map(async category => {
-            const [c] = await this.categoryRepository.find({ name: category });
-            if (c === undefined) {
-              throw new Error(
-                errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-              );
-            }
-            return c;
-          })
-        : [],
-    );
-
-    let imagePromise: Promise<string | undefined> = Promise.resolve(undefined);
-
-    const { imageUpload, imageStatic } = projectInput;
-    if (imageUpload) {
-      const { filename, createReadStream, encoding } = await imageUpload;
-      try {
-        imagePromise = pinFile(createReadStream(), filename, encoding).then(
-          response => {
-            return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.data.IpfsHash}`;
-          },
-        );
-      } catch (e) {
-        logger.error('addProject() error', e);
-        throw Error('Upload file failed');
-      }
-    } else if (imageStatic) {
-      imagePromise = Promise.resolve(imageStatic);
-    }
-
-    const [categories, image] = await Promise.all([
-      categoriesPromise,
-      imagePromise,
-    ]);
-    if (categories.length > 5) {
-      throw new Error(
-        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
-      );
-    }
-    await validateProjectWalletAddress(projectInput.walletAddress);
-    await validateProjectTitle(projectInput.title);
-    const slugBase = slugify(projectInput.title);
-    const slug = await this.getAppropriateSlug(slugBase);
-
-    const status = await this.projectStatusRepository.findOne({
-      id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
-    });
-
-    const project = this.projectRepository.create({
-      ...projectInput,
-      categories,
-      image,
-      creationDate: new Date(),
-      slug: slug.toLowerCase(),
-      slugHistory: [],
-      admin: ctx.req.user.userId,
-      users: [user],
-      status,
-      qualityScore,
-      totalDonations: 0,
-      totalReactions: 0,
-      totalProjectUpdates: 1,
-      verified: false,
-      giveBacks: false,
-    });
-
-    const newProject = await this.projectRepository.save(project);
-    newProject.adminUser = await User.findOne({ id: Number(newProject.admin) });
-
-    const update = await ProjectUpdate.create({
-      userId: ctx.req.user.userId,
-      projectId: newProject.id,
-      content: '',
-      title: '',
-      createdAt: new Date(),
-      isMain: true,
-    });
-    await ProjectUpdate.save(update);
-
-    logger.debug(
-      `projectInput.projectImageIds : ${JSON.stringify(
-        projectInput.projectImageIds,
-        null,
-        2,
-      )}`,
-    );
-
-    // Associate already uploaded images:
-    if (projectInput.projectImageIds) {
-      logger.debug(
-        'updating projectInput.projectImageIds',
-        projectInput.projectImageIds,
-      );
-
-      // await ProjectImage.update projectInput.projectImageIds
-      await this.projectImageRepository
-        .createQueryBuilder('project_image')
-        .update(ProjectImage)
-        .set({ projectId: newProject.id })
-        .where(`project_image.id IN (${projectInput.projectImageIds})`)
-        .execute();
-    }
-
-    const payload: NotificationPayload = {
-      id: 1,
-      message: 'A new project was created',
-    };
-    const segmentProject = {
-      email: user.email,
-      title: project.title,
-      lastName: user.lastName,
-      firstName: user.firstName,
-      OwnerId: user.id,
-      slug: project.slug,
-      walletAddress: project.walletAddress,
-    };
-    // -Mitch I'm not sure why formattedProject was added in here, the object is missing a few important pieces of
-    // information into the analytics
-
-    const formattedProject = {
-      ...projectInput,
-      description: projectInput?.description?.replace(/<img .*?>/g, ''),
-    };
-    analytics.track(
-      SegmentEvents.PROJECT_CREATED,
-      `givethId-${ctx.req.user.userId}`,
-      segmentProject,
-      null,
-    );
-
-    await pubSub.publish('NOTIFICATIONS', payload);
-
-    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
-      triggerBuild(newProject.id);
-
-    return newProject;
-  }
-
   @Mutation(returns => Project)
   async createProject(
     @Arg('project') projectInput: CreateProjectInput,
@@ -1033,7 +975,7 @@ export class ProjectResolver {
     const user = await getLoggedInUser(ctx);
     const { image, description } = projectInput;
 
-    const qualityScore = this.getQualityScore(description, Boolean(image), 0);
+    const qualityScore = getQualityScore(description, Boolean(image), 0);
 
     if (!projectInput.categories) {
       throw new Error(
@@ -1045,7 +987,11 @@ export class ProjectResolver {
     const categories = await Promise.all(
       projectInput.categories
         ? projectInput.categories.map(async category => {
-            const [c] = await this.categoryRepository.find({ name: category });
+            const [c] = await this.categoryRepository.find({
+              name: category,
+              // TODO When frontend got ready we should uncomment isActive filter
+              // isActive: true,
+            });
             if (c === undefined) {
               throw new Error(
                 errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
@@ -1061,20 +1007,29 @@ export class ProjectResolver {
         errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
       );
     }
-    await validateProjectWalletAddress(projectInput.walletAddress);
+
+    await validateProjectRelatedAddresses(
+      projectInput.addresses as RelatedAddressInputType[],
+    );
     await validateProjectTitle(projectInput.title);
     const slugBase = slugify(projectInput.title);
-    const slug = await this.getAppropriateSlug(slugBase);
+    const slug = await getAppropriateSlug(slugBase);
 
     const status = await this.projectStatusRepository.findOne({
       id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
     });
 
+    const organization = await Organization.findOne({
+      label: ORGANIZATION_LABELS.GIVETH,
+    });
+    const now = new Date();
     const project = this.projectRepository.create({
       ...projectInput,
       categories,
+      organization,
       image,
-      creationDate: new Date(),
+      creationDate: now,
+      updatedAt: now,
       slug: slug.toLowerCase(),
       slugHistory: [],
       admin: ctx.req.user.userId,
@@ -1086,10 +1041,26 @@ export class ProjectResolver {
       totalProjectUpdates: 1,
       verified: false,
       giveBacks: false,
+      adminUser: user,
     });
 
     const newProject = await this.projectRepository.save(project);
-    newProject.adminUser = await User.findOne({ id: Number(newProject.admin) });
+    const adminUser = (await findUserById(Number(newProject.admin))) as User;
+    newProject.adminUser = adminUser;
+    await addBulkNewProjectAddress(
+      projectInput?.addresses.map(relatedAddress => {
+        return {
+          project,
+          user: adminUser,
+          address: relatedAddress.address,
+          networkId: relatedAddress.networkId,
+          isRecipient: true,
+        };
+      }),
+    );
+    newProject.addresses = await findProjectRecipientAddressByProjectId({
+      projectId: project.id,
+    });
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,
@@ -1114,24 +1085,26 @@ export class ProjectResolver {
       slug: project.slug,
       walletAddress: project.walletAddress,
     };
-    // -Mitch I'm not sure why formattedProject was added in here, the object is missing a few important pieces of
-    // information into the analytics
-
-    const formattedProject = {
-      ...projectInput,
-      description: projectInput?.description?.replace(/<img .*?>/g, ''),
-    };
-    analytics.track(
-      SegmentEvents.PROJECT_CREATED,
-      `givethId-${ctx.req.user.userId}`,
-      segmentProject,
-      null,
-    );
+    if (status?.id === ProjStatus.active) {
+      analytics.track(
+        NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
+        `givethId-${ctx.req.user.userId}`,
+        segmentProject,
+        null,
+      );
+    }
 
     await pubSub.publish('NOTIFICATIONS', payload);
 
-    if (config.get('TRIGGER_BUILD_ON_NEW_PROJECT') === 'true')
-      triggerBuild(newProject.id);
+    if (projectInput.isDraft) {
+      await getNotificationAdapter().projectSavedAsDraft({
+        project: newProject,
+      });
+    } else {
+      await getNotificationAdapter().projectPublished({
+        project: newProject,
+      });
+    }
 
     return newProject;
   }
@@ -1145,7 +1118,7 @@ export class ProjectResolver {
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
-    const owner = await User.findOne({ id: user.userId });
+    const owner = await findUserById(user.userId);
 
     if (!owner) throw new Error(errorMessages.USER_NOT_FOUND);
 
@@ -1177,7 +1150,7 @@ export class ProjectResolver {
     await updateTotalProjectUpdatesOfAProject(update.projectId);
 
     analytics.track(
-      SegmentEvents.PROJECT_UPDATED_OWNER,
+      NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_OWNER,
       `givethId-${user.userId}`,
       projectUpdateInfo,
       null,
@@ -1211,7 +1184,7 @@ export class ProjectResolver {
         firstName: donor.firstName,
       };
       analytics.track(
-        SegmentEvents.PROJECT_UPDATED_DONOR,
+        NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_DONOR,
         `givethId-${donor.id}`,
         donorUpdateInfo,
         null,
@@ -1311,15 +1284,55 @@ export class ProjectResolver {
     return query.getMany();
   }
 
+  // TODO after finalizing getPurpleList and when Ashley filled that table we can remove this query and then change
+  // givback-calculation script to use  getPurpleList query
   @Query(returns => [String])
   async getProjectsRecipients(): Promise<String[]> {
     const recipients = await Project.query(
       `
             SELECT "walletAddress" FROM project
-            WHERE verified=true 
+            WHERE verified=true and "walletAddress" IS NOT NULL
             `,
     );
     return recipients.map(({ walletAddress }) => walletAddress);
+  }
+
+  @Query(returns => [String])
+  async getPurpleList(): Promise<String[]> {
+    const relatedAddresses = await getPurpleListAddresses();
+    return relatedAddresses.map(({ projectAddress }) => projectAddress);
+  }
+
+  @Query(returns => Boolean)
+  async walletAddressIsPurpleListed(
+    @Arg('address') address: string,
+  ): Promise<Boolean> {
+    return isWalletAddressInPurpleList(address);
+  }
+
+  @Query(returns => [Token])
+  async getProjectAcceptTokens(
+    @Arg('projectId') projectId: number,
+  ): Promise<Token[]> {
+    try {
+      const organization = await Organization.createQueryBuilder('organization')
+        .innerJoin(
+          'organization.projects',
+          'project',
+          'project.id = :projectId',
+          { projectId },
+        )
+        .leftJoinAndSelect('organization.tokens', 'tokens')
+        .getOne();
+
+      if (!organization) {
+        return [];
+      }
+      return sortTokensByOrderAndAlphabets(organization.tokens);
+    } catch (e) {
+      logger.error('getProjectAcceptTokens error', e);
+      throw e;
+    }
   }
 
   @Query(returns => [Reaction])
@@ -1368,22 +1381,6 @@ export class ProjectResolver {
     return validateProjectTitle(title);
   }
 
-  @Query(returns => Project, { nullable: true })
-  projectByAddress(
-    @Arg('address', type => String) address: string,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
-    connectedWalletUserId: number,
-    @Ctx() { req: { user } }: MyContext,
-  ) {
-    let query = this.projectRepository
-      .createQueryBuilder('project')
-      .where(`lower("walletAddress")=lower(:address)`, {
-        address,
-      });
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-    return query.getOne();
-  }
-
   @Query(returns => AllProjects, { nullable: true })
   async projectsByUserId(
     @Arg('userId', type => Int) userId: number,
@@ -1404,13 +1401,19 @@ export class ProjectResolver {
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
-      .innerJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
-      .where('project.admin = :userId', { userId: String(userId) });
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields); // aliased selection
+
+    if (userId === user?.userId) {
+      query = ProjectResolver.addProjectVerificationForm(
+        query,
+        connectedWalletUserId,
+        user,
+      );
+    }
+
+    query = query.where('project.admin = :userId', { userId: String(userId) });
 
     if (userId !== user?.userId) {
       query = query.andWhere(
@@ -1439,47 +1442,34 @@ export class ProjectResolver {
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Ctx() { req: { user } }: MyContext,
   ) {
-    const viewedProject = await this.projectRepository
-      .createQueryBuilder('project')
-      .innerJoinAndSelect('project.categories', 'categories')
-      .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
-        slug,
-      })
-      .getOne();
+    try {
+      const viewedProject = await this.projectRepository
+        .createQueryBuilder('project')
+        .leftJoinAndSelect('project.addresses', 'addresses')
+        .innerJoinAndSelect('project.categories', 'categories')
+        .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
+          slug,
+        })
+        .getOne();
 
-    const categoriesIds = viewedProject!.categories.map(
-      (category: Category) => {
-        return category.id;
-      },
-    );
+      const categoriesIds = viewedProject?.categories.map(
+        (category: Category) => {
+          return category.id;
+        },
+      );
 
-    // exclude the viewed project from the result set
-    let query = ProjectResolver.similarProjectsBaseQuery(
-      user?.userId,
-      viewedProject,
-    );
-
-    const allProjects: AllProjects = {
-      projects: [],
-      totalCount: 0,
-      categories: [],
-    };
-    await ProjectResolver.matchExactProjectCategories(
-      allProjects,
-      query,
-      categoriesIds,
-      take,
-      skip,
-    );
-
-    // if not all categories match, match ANY of them
-    if (allProjects.totalCount === 0) {
-      // overwrite previous query
-      query = ProjectResolver.similarProjectsBaseQuery(
+      // exclude the viewed project from the result set
+      let query = ProjectResolver.similarProjectsBaseQuery(
         user?.userId,
         viewedProject,
       );
-      await ProjectResolver.matchAnyProjectCategory(
+
+      const allProjects: AllProjects = {
+        projects: [],
+        totalCount: 0,
+        categories: [],
+      };
+      await ProjectResolver.matchExactProjectCategories(
         allProjects,
         query,
         categoriesIds,
@@ -1487,23 +1477,42 @@ export class ProjectResolver {
         skip,
       );
 
-      // if none match, just grab project owners projects
+      // if not all categories match, match ANY of them
       if (allProjects.totalCount === 0) {
+        // overwrite previous query
         query = ProjectResolver.similarProjectsBaseQuery(
           user?.userId,
           viewedProject,
         );
-        await ProjectResolver.matchOwnerProjects(
+        await ProjectResolver.matchAnyProjectCategory(
           allProjects,
           query,
+          categoriesIds,
           take,
           skip,
-          viewedProject?.admin,
         );
-      }
-    }
 
-    return allProjects;
+        // if none match, just grab project owners projects
+        if (allProjects.totalCount === 0) {
+          query = ProjectResolver.similarProjectsBaseQuery(
+            user?.userId,
+            viewedProject,
+          );
+          await ProjectResolver.matchOwnerProjects(
+            allProjects,
+            query,
+            take,
+            skip,
+            viewedProject?.admin,
+          );
+        }
+      }
+
+      return allProjects;
+    } catch (e) {
+      logger.error('**similarProjectsBySlug** error', e);
+      throw e;
+    }
   }
 
   @Query(returns => AllProjects, { nullable: true })
@@ -1523,12 +1532,9 @@ export class ProjectResolver {
         { userId },
       )
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndMapOne(
-        'project.adminUser',
-        User,
-        'user',
-        'user.id = CAST(project.admin AS INTEGER)',
-      )
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields) // aliased selection
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
@@ -1554,7 +1560,7 @@ export class ProjectResolver {
     reasonId?: number;
   }): Promise<Project> {
     const { projectId, statusId, user, reasonId } = inputData;
-    const project = await Project.findOne({ id: projectId });
+    const project = await findProjectById(projectId);
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
     }
@@ -1566,6 +1572,7 @@ export class ProjectResolver {
     }
     const prevStatus = project.status;
     project.status = status;
+    project.prevStatusId = prevStatus.id;
     await project.save();
 
     await Project.addProjectStatusHistoryRecord({
@@ -1603,7 +1610,7 @@ export class ProjectResolver {
       };
 
       analytics.track(
-        SegmentEvents.PROJECT_DEACTIVATED,
+        NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
         null,
@@ -1628,6 +1635,11 @@ export class ProjectResolver {
         statusId: ProjStatus.active,
         user,
       });
+      const segmentEventToDispatch =
+        project.prevStatusId === ProjStatus.drafted
+          ? NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED
+          : NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED;
+
       project.listed = null;
       await project.save();
       const segmentProject = {
@@ -1639,32 +1651,26 @@ export class ProjectResolver {
         slug: project.slug,
       };
       analytics.track(
-        SegmentEvents.PROJECT_ACTIVATED,
+        segmentEventToDispatch,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
         null,
       );
+
+      if (project.prevStatusId === ProjStatus.drafted) {
+        await getNotificationAdapter().projectPublished({
+          project,
+        });
+      } else {
+        await getNotificationAdapter().projectReactivated({
+          project,
+        });
+      }
       return true;
     } catch (error) {
       logger.error('projectResolver.activateProject() error', error);
       SentryLogger.captureException(error);
       throw error;
     }
-  }
-
-  private async getAppropriateSlug(slugBase: string): Promise<string> {
-    let slug = slugBase.toLowerCase();
-    const projectCount = await this.projectRepository
-      .createQueryBuilder('project')
-      // check current slug and previous slugs
-      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-        slug,
-      })
-      .getCount();
-
-    if (projectCount > 0) {
-      slug = slug + '-' + (projectCount - 1);
-    }
-    return slug;
   }
 }

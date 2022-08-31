@@ -1,105 +1,88 @@
-export const saveDonationQuery = `
-        mutation SaveDonation($chainId: Float! $projectId: Float! 
-                   $token: String! $transactionNetworkId: Float! $transactionId: String! 
-                   $amount: Float! $toAddress: String! $fromAddress: String!){
-       saveDonation(chainId: $chainId projectId: $projectId 
-                    token: $token transactionNetworkId: $transactionNetworkId 
-                    transactionId: $transactionId amount: $amount 
-                     toAddress: $toAddress fromAddress: $fromAddress) 
-         }`;
+export const createDonationMutation = `
+  mutation (
+    $transactionId: String!
+    $transactionNetworkId: Float!
+    $nonce: Float!
+    $amount: Float!
+    $token: String!
+    $projectId: Float!
+    $transakId: String
+    $tokenAddress: String
+    $anonymous: Boolean
+  ) {
+    createDonation(
+      transactionId: $transactionId
+      transactionNetworkId: $transactionNetworkId
+      nonce: $nonce
+      amount: $amount
+      token: $token
+      projectId: $projectId
+      transakId: $transakId
+      tokenAddress: $tokenAddress
+      anonymous: $anonymous
+    )
+  }
+`;
 
-export const addProjectQuery = `
-       mutation ($project: ProjectInput!) {
-          addProject(project: $project) {
-            id
-            title
-            description
-            admin
-            image
-            impactLocation
-            slug
-            walletAddress
-            listed
-            verified
-            status {
-              name
-              id
-              symbol
-            }
-            categories {
-              name
-            }
-            adminUser{
-              id
-              name
-              email
-              walletAddress
-            }
-          }
-      }
-  `;
-
-export const createProjectQuery = `
-       mutation ($project: CreateProjectInput!) {
-          createProject(project: $project) {
-            id
-            title
-            description
-            admin
-            image
-            impactLocation
-            slug
-            walletAddress
-            listed
-            verified
-            status {
-              name
-              id
-              symbol
-            }
-            categories {
-              name
-            }
-            adminUser{
-              id
-              name
-              email
-              walletAddress
-            }
-          }
-      }
-  `;
-
-export const editProjectQuery = `
-  mutation ($projectId: Float!, $newProjectData: ProjectInput!) {
-    editProject(projectId: $projectId, newProjectData: $newProjectData) {
+export const updateDonationStatusMutation = `
+  mutation (
+    $status: String
+    $donationId: Float!
+  ) {
+    updateDonationStatus(
+      status: $status
+      donationId: $donationId
+    ){
       id
-      title
-      description
-      image
-      slug
-      listed
-      verified
-      slugHistory
-      creationDate
-      admin
-      walletAddress
-      impactLocation
-      categories {
-        name
-      }
-      adminUser{
-        id
-        name
-        email
-        walletAddress
-      }
+      status
+      verifyErrorMessage
     }
   }
- `;
+`;
+
+export const createProjectQuery = `
+   mutation ($project: CreateProjectInput!) {
+      createProject(project: $project) {
+        id
+        title
+        description
+        admin
+        image
+        impactLocation
+        slug
+        walletAddress
+        listed
+        verified
+        organization {
+          id
+          name
+          label
+        }
+        status {
+          name
+          id
+          symbol
+        }
+        categories {
+          name
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
+        }
+        adminUser{
+          id
+          name
+          email
+          walletAddress
+        }
+      }
+  }
+  `;
 
 export const updateProjectQuery = `
-  mutation ($projectId: Float!, $newProjectData: CreateProjectInput!) {
+  mutation ($projectId: Float!, $newProjectData: UpdateProjectInput!) {
     updateProject(projectId: $projectId, newProjectData: $newProjectData) {
       id
       title
@@ -116,12 +99,22 @@ export const updateProjectQuery = `
       categories {
         name
       }
+      addresses {
+        address
+        isRecipient
+        networkId
+      }
       adminUser{
         id
         name
         email
         walletAddress
       }
+     addresses {
+      address
+      isRecipient
+      networkId
+    }
     }
   }
  `;
@@ -163,6 +156,9 @@ export const fetchDonationsByDonorQuery = `
       amount
       user {
         id
+        firstName
+        email
+        walletAddress
       }
       project {
         id
@@ -179,6 +175,7 @@ export const fetchDonationsByProjectIdQuery = `
     $traceable: Boolean
     $projectId: Int!
     $searchTerm: String
+    $status: String
     $orderBy: SortBy
   ) {
     donationsByProjectId(
@@ -187,6 +184,7 @@ export const fetchDonationsByProjectIdQuery = `
       traceable: $traceable
       projectId: $projectId
       searchTerm: $searchTerm
+      status: $status
       orderBy: $orderBy
     ) {
       donations {
@@ -199,8 +197,12 @@ export const fetchDonationsByProjectIdQuery = `
         anonymous
         valueUsd
         amount
+        status
         user {
           id
+          walletAddress
+          firstName
+          email
         }
         createdAt
       }
@@ -209,21 +211,65 @@ export const fetchDonationsByProjectIdQuery = `
     }
   }
 `;
-
-export const fetchDonationsByUserIdQuery = `
+export const donationsFromWallets = `
   query (
-    $take: Int
-    $skip: Int
-    $orderBy: SortBy
-    $userId: Int!
+    $fromWalletAddresses: [String!]!
+   
   ) {
-    donationsByUserId(
-      take: $take
-      skip: $skip
-      orderBy: $orderBy
-      userId: $userId
+    donationsFromWallets(
+      fromWalletAddresses: $fromWalletAddresses
     ) {
-      donations {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    user {
+      id
+      email
+      firstName
+      walletAddress
+      }
+    }
+  }
+`;
+
+export const donationsToWallets = `
+  query (
+    $toWalletAddresses: [String!]!
+   
+  ) {
+    donationsToWallets(
+      toWalletAddresses: $toWalletAddresses
+    ) {
+    transactionId
+    amount
+    currency
+    transactionNetworkId
+    priceEth
+    fromWalletAddress
+    toWalletAddress
+    user {
+      id
+      email
+      firstName
+      walletAddress
+      }
+    }
+  }
+`;
+
+export const fetchAllDonationsQuery = `
+  query (
+    $fromDate: String
+    $toDate: String
+  ) {
+    donations(
+      fromDate: $fromDate
+      toDate: $toDate
+    ) {
         id
         transactionId
         transactionNetworkId
@@ -235,6 +281,58 @@ export const fetchDonationsByUserIdQuery = `
         amount
         user {
           id
+          walletAddress
+          firstName
+          email
+        }
+        project {
+          listed
+          verified
+          slug
+          admin
+          title
+          categories {
+            name
+            id
+          }
+        }
+        createdAt
+        status
+    }
+  }
+`;
+
+export const fetchDonationsByUserIdQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $status: String
+    $orderBy: SortBy
+    $userId: Int!
+  ) {
+    donationsByUserId(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      userId: $userId
+      status: $status
+    ) {
+      donations {
+        id
+        transactionId
+        transactionNetworkId
+        toWalletAddress
+        fromWalletAddress
+        currency
+        anonymous
+        valueUsd
+        amount
+        status
+        user {
+          id
+          walletAddress
+          email
+          firstName
         }
         project {
           id
@@ -246,23 +344,25 @@ export const fetchDonationsByUserIdQuery = `
   }
 `;
 
-export const fetchAllProjectsQuery = `
+export const fetchMultiFilterAllProjectsQuery = `
   query (
-    $take: Int
+    $limit: Int
     $skip: Int
-    $orderBy: OrderBy
-    $filterBy: FilterBy
+    $sortingBy: SortingField
+    $filters: [FilterField!]
     $searchTerm: String
     $category: String
+    $mainCategory: String
     $connectedWalletUserId: Int
   ) {
-    projects(
-      take: $take
+    allProjects(
+      limit: $limit
       skip: $skip
-      orderBy: $orderBy
-      filterBy: $filterBy
+      sortingBy: $sortingBy
+      filters: $filters
       searchTerm: $searchTerm
       category: $category
+      mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
     ) {
       projects {
@@ -290,9 +390,115 @@ export const fetchAllProjectsQuery = `
         }
         categories {
           name
+          mainCategory {
+            title
+            slug
+            banner
+            description
+          }
         }
         reaction {
           id
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
+        organization {
+          name
+          label
+          supportCustomTokens
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
+        }
+        totalReactions
+        totalDonations
+        totalTraceDonations
+      }
+      totalCount
+      categories {
+        name
+      }
+    }
+  }
+`;
+
+export const fetchAllProjectsQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: OrderBy
+    $filterBy: FilterBy
+    $searchTerm: String
+    $category: String
+    $mainCategory: String
+    $connectedWalletUserId: Int
+  ) {
+    projects(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      filterBy: $filterBy
+      searchTerm: $searchTerm
+      category: $category
+      mainCategory: $mainCategory
+      connectedWalletUserId: $connectedWalletUserId
+    ) {
+      projects {
+        id
+        title
+        balance
+        image
+        slug
+        creationDate
+        updatedAt
+        admin
+        description
+        walletAddress
+        impactLocation
+        qualityScore
+        verified
+        traceCampaignId
+        listed
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        categories {
+          name
+          mainCategory {
+            title
+            slug
+            banner
+            description
+          }
+        }
+        reaction {
+          id
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
+        organization {
+          name
+          label
+          supportCustomTokens
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
         }
         totalReactions
         totalDonations
@@ -329,6 +535,58 @@ export const fetchProjectsBySlugQuery = `
       traceCampaignId
       listed
       givingBlocksId
+      categories {
+       name
+       mainCategory {
+         title
+         slug
+         banner
+         description
+       }
+      }
+      projectVerificationForm {
+        id
+        isTermAndConditionsAccepted
+        emailConfirmationTokenExpiredAt
+        email
+        emailConfirmationToken
+        emailConfirmationSent
+        emailConfirmationSentAt
+        emailConfirmedAt
+        emailConfirmed
+        projectRegistry {
+          organizationDescription
+          isNonProfitOrganization
+          organizationCountry
+          organizationWebsite
+          attachments
+          organizationName
+        }
+        personalInfo {
+          email
+          walletAddress
+          fullName
+        }
+        projectContacts {
+          name
+          url
+        }
+        milestones {
+          mission
+          foundationDate
+          achievedMilestones
+          achievedMilestonesProofs
+        }
+        managingFunds {
+          description
+          relatedAddresses {
+            address
+            networkId
+            title
+          }
+        }
+        status
+      }
       status {
         id
         symbol
@@ -339,6 +597,22 @@ export const fetchProjectsBySlugQuery = `
         id
         userId
         reaction
+      }
+      organization {
+        name
+        label
+        supportCustomTokens
+      }
+      addresses {
+        address
+        isRecipient
+        networkId
+      }
+      adminUser {
+        id
+        email
+        firstName
+        walletAddress
       }
       totalReactions
       totalDonations
@@ -385,6 +659,17 @@ export const fetchSimilarProjectsBySlugQuery = `
           id
           userId
           reaction
+        }
+       addresses {
+          address
+          isRecipient
+          networkId
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
         }
         totalReactions
         totalDonations
@@ -433,6 +718,17 @@ export const fetchLikedProjectsQuery = `
           id
           userId
           reaction
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
         }
         totalReactions
         totalDonations
@@ -488,9 +784,16 @@ export const userByAddress = `
     }
   }
 `;
+
 export const uploadImageToIpfsQuery = `
   mutation ($fileUpload: FileUploadInputType!) {
     upload(fileUpload: $fileUpload)
+  }
+`;
+
+export const traceImageUploadQuery = `
+  mutation ($traceFileUpload: TraceFileUploadInputType!) {
+    traceImageUpload(traceFileUpload: $traceFileUpload)
   }
 `;
 
@@ -499,6 +802,18 @@ export const unlikeProjectQuery = `
     unlikeProject(reactionId: $reactionId)
   }
 `;
+
+export const addProjectUpdateQuery = `
+        mutation addProjectUpdate($projectId: Float! $content: String! 
+                   $title: String!){
+       addProjectUpdate(content: $content projectId: $projectId 
+                    title: $title) {
+                    userId
+                    projectId
+                    id
+                    title
+                    }
+         }`;
 
 export const likeProjectUpdateQuery = `
   mutation ($projectUpdateId: Int!) {
@@ -564,6 +879,49 @@ export const projectsByUserIdQuery = `
           impactLocation
           listed
           givingBlocksId
+          projectVerificationForm {
+            id
+            isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
+            email
+            emailConfirmationToken
+            emailConfirmationSent
+            emailConfirmationSentAt
+            emailConfirmedAt
+            emailConfirmed
+            projectRegistry {
+              organizationDescription
+              isNonProfitOrganization
+              organizationCountry
+              organizationWebsite
+              attachments
+              organizationName
+            }
+            personalInfo {
+              email
+              walletAddress
+              fullName
+            }
+            projectContacts {
+              name
+              url
+            }
+            milestones {
+              mission
+              foundationDate
+              achievedMilestones
+              achievedMilestonesProofs
+            }
+            managingFunds {
+              description
+              relatedAddresses {
+                address
+                networkId
+                title
+              }
+            }
+            status
+          }
           categories {
             name
           }
@@ -572,6 +930,18 @@ export const projectsByUserIdQuery = `
             id
             projectUpdateId
             userId
+          }    
+          addresses {
+            address
+            isRecipient
+            networkId
+          }
+              
+          adminUser {
+            firstName
+            email
+            id
+            walletAddress
           }
           qualityScore
         }
@@ -602,7 +972,59 @@ export const projectByIdQuery = `
       reaction {
         id
       }
+      addresses {
+        address
+        isRecipient
+        networkId
+      }
+      organization {
+        name
+        label
+        supportCustomTokens
+      }
+      categories {
+        name
+        mainCategory {
+          title
+          slug
+          banner
+          description
+        }
+      }
+      adminUser {
+        firstName
+        email
+        id
+        walletAddress
+      }
     }
+  }
+`;
+export const getProjectsAcceptTokensQuery = `
+  query(
+      $projectId: Float!, 
+  ){
+    getProjectAcceptTokens(
+     projectId:$projectId){
+      id
+      symbol
+      networkId
+      decimals
+      mainnetAddress
+      name
+    }
+  }
+`;
+
+export const getPurpleList = `
+  query{
+    getPurpleList
+  }
+`;
+
+export const walletAddressIsPurpleListed = `
+  query walletAddressIsPurpleListed($address: String!) {
+    walletAddressIsPurpleListed(address: $address)
   }
 `;
 
@@ -611,3 +1033,325 @@ export const walletAddressIsValid = `
     walletAddressIsValid(address: $address)
   }
 `;
+
+export const deleteProjectUpdateQuery = `
+        mutation deleteProjectUpdate($updateId: Float!){
+       deleteProjectUpdate(updateId: $updateId 
+                    ) 
+         }`;
+
+export const editProjectUpdateQuery = `
+        mutation editProjectUpdate($updateId: Float! $content: String!
+                   $title: String!){
+       editProjectUpdate(content: $content updateId: $updateId 
+                    title: $title) {
+                    userId
+                    projectId
+                    title
+                    }
+         }`;
+
+export const createProjectVerificationFormMutation = `
+        mutation createProjectVerificationForm($slug: String!){
+           createProjectVerificationForm(slug: $slug) {
+                    id
+                    isTermAndConditionsAccepted
+                    emailConfirmationToken
+                    emailConfirmationSent
+                    emailConfirmationSentAt
+                    emailConfirmedAt
+                    emailConfirmed
+                    projectRegistry {
+                      organizationDescription
+                      isNonProfitOrganization
+                      organizationCountry
+                      organizationWebsite
+                      attachments
+                      organizationName
+                    }
+                    projectContacts {
+                      name
+                      url
+                    }
+                    milestones {
+                      mission
+                      foundationDate
+                      achievedMilestones
+                      achievedMilestonesProofs
+                    }
+                    managingFunds {
+                      description
+                      relatedAddresses {
+                        address
+                        networkId
+                        title
+                      }
+                    }
+                    user {
+                      id
+                      walletAddress
+                    }
+                    project {
+                      id
+                      slug
+                    }
+                    status
+                    }
+                    
+            }
+        `;
+
+export const getCurrentProjectVerificationFormQuery = `
+        query getCurrentProjectVerificationForm($slug: String!){
+           getCurrentProjectVerificationForm(slug: $slug) {
+                    id
+                    isTermAndConditionsAccepted
+                    emailConfirmationTokenExpiredAt
+                    email
+                    emailConfirmationToken
+                    emailConfirmationSent
+                    emailConfirmationSentAt
+                    emailConfirmedAt
+                    emailConfirmed
+                    projectRegistry {
+                      organizationDescription
+                      isNonProfitOrganization
+                      organizationCountry
+                      organizationWebsite
+                      attachments
+                      organizationName
+                    }
+                    projectContacts {
+                      name
+                      url
+                    }
+                    milestones {
+                      mission
+                      foundationDate
+                      achievedMilestones
+                      achievedMilestonesProofs
+                    }
+                    socialProfiles {
+                      name
+                      socialNetworkId
+                      socialNetwork
+                      isVerified
+                    }
+                    managingFunds {
+                      description
+                      relatedAddresses {
+                        address
+                        networkId
+                        title
+                      }
+                    }
+                    user {
+                      id
+                      walletAddress
+                    }
+                    project {
+                      id
+                      slug
+                    }
+                    status
+                    }
+                    
+            }
+        `;
+
+export const getAllowedCountries = `
+    query {
+        getAllowedCountries {
+            name
+            code
+        }
+    }
+        `;
+
+export const projectVerificationConfirmEmail = `
+        mutation projectVerificationConfirmEmail($emailConfirmationToken: String!){
+          projectVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
+            id
+            isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
+            email
+            emailConfirmationToken
+            emailConfirmationSent
+            emailConfirmationSentAt
+            emailConfirmedAt
+            emailConfirmed
+            projectRegistry {
+              organizationDescription
+              isNonProfitOrganization
+              organizationCountry
+              organizationWebsite
+              attachments
+              organizationName
+            }
+            personalInfo {
+              email
+              walletAddress
+              fullName
+            }
+            projectContacts {
+              name
+              url
+            }
+            milestones {
+              mission
+              foundationDate
+              achievedMilestones
+              achievedMilestonesProofs
+            }
+            managingFunds {
+              description
+              relatedAddresses {
+                address
+                networkId
+                title
+              }
+            }
+            user {
+              id
+              walletAddress
+            }
+            project {
+              id
+              slug
+            }
+            status
+            lastStep
+          }
+        }
+`;
+
+export const projectVerificationSendEmailConfirmation = `
+        mutation projectVerificationSendEmailConfirmation($projectVerificationFormId: Float!){
+          projectVerificationSendEmailConfirmation(projectVerificationFormId: $projectVerificationFormId) {
+            id
+            isTermAndConditionsAccepted
+            emailConfirmationTokenExpiredAt
+            email
+            emailConfirmationToken
+            emailConfirmationSent
+            emailConfirmationSentAt
+            emailConfirmedAt
+            emailConfirmed
+            projectRegistry {
+              organizationDescription
+              isNonProfitOrganization
+              organizationCountry
+              organizationWebsite
+              attachments
+              organizationName
+            }
+            personalInfo {
+              email
+              walletAddress
+              fullName
+            }
+            projectContacts {
+              name
+              url
+            }
+            socialProfiles {
+              name
+              socialNetwork
+              socialNetworkId
+            }
+            milestones {
+              mission
+              foundationDate
+              achievedMilestones
+              achievedMilestonesProofs
+            }
+            managingFunds {
+              description
+              relatedAddresses {
+                address
+                networkId
+                title
+              }
+            }
+            user {
+              id
+              walletAddress
+            }
+            project {
+              id
+              slug
+            }
+            status
+          }
+        }
+`;
+
+export const updateProjectVerificationFormMutation = `
+        mutation updateProjectVerificationForm($projectVerificationUpdateInput: ProjectVerificationUpdateInput!){
+           updateProjectVerificationForm(projectVerificationUpdateInput: $projectVerificationUpdateInput) {
+                    id
+                    isTermAndConditionsAccepted
+                    emailConfirmationTokenExpiredAt
+                    email
+                    emailConfirmationToken
+                    emailConfirmationSent
+                    emailConfirmationSentAt
+                    emailConfirmedAt
+                    emailConfirmed
+                    projectRegistry {
+                      organizationDescription
+                      isNonProfitOrganization
+                      organizationCountry
+                      organizationWebsite
+                      attachments
+                      organizationName
+                    }
+                    personalInfo {
+                      email
+                      walletAddress
+                      fullName
+                    }
+                    projectContacts {
+                      name
+                      url
+                    }
+                    milestones {
+                      mission
+                      foundationDate
+                      achievedMilestones
+                      achievedMilestonesProofs
+                    }
+                    managingFunds {
+                      description
+                      relatedAddresses {
+                        address
+                        networkId
+                        title
+                      }
+                    }
+                    user {
+                      id
+                      walletAddress
+                    }
+                    project {
+                      id
+                      slug
+                    }
+                    status
+                    lastStep
+                    }
+                    
+            }
+        `;
+
+export const addNewSocialProfileMutation = `
+        mutation addNewSocialProfile($projectVerificationId: Int!, $socialNetwork: String!){
+           addNewSocialProfile(projectVerificationId:$projectVerificationId, socialNetwork:$socialNetwork)
+          } 
+        `;
+
+export const removeSocialProfileMutation = `
+        mutation removeSocialProfile( $socialProfileId: Int!){
+           removeSocialProfile(socialProfileId:$socialProfileId)
+          } 
+        `;

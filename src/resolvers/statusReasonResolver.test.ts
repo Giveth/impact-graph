@@ -1,10 +1,7 @@
 import { assert } from 'chai';
 import axios from 'axios';
 import { graphqlUrl } from '../../test/testUtils';
-import {
-  activateProjectQuery,
-  projectStatusReasonsQuery,
-} from '../../test/graphqlQueries';
+import { projectStatusReasonsQuery } from '../../test/graphqlQueries';
 import { ProjStatus } from '../entities/project';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -47,7 +44,7 @@ function getStatusReasonsTestCases() {
     const result = await axios.post(graphqlUrl, {
       query: projectStatusReasonsQuery,
       variables: {
-        statusId: new Date().getTime(),
+        statusId: 1000000,
       },
     });
     assert.isArray(result.data.data.getStatusReasons);
