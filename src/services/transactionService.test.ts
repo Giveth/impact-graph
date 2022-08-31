@@ -7,6 +7,7 @@ import {
 import { assertThrowsAsync } from '../../test/testUtils';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
+import moment from 'moment';
 const ONE_DAY = 60 * 60 * 24;
 describe('getTransactionDetail test cases', getTransactionDetailTestCases);
 describe(
@@ -612,6 +613,43 @@ function getTransactionDetailTestCases() {
     await assertThrowsAsync(
       badFunc,
       errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
+    );
+  });
+  it('should return transaction_not_found when it has not being mined before an hour', async () => {
+    const amount = 0.001;
+    const badFunc = async () => {
+      await getTransactionInfoFromNetwork({
+        txHash:
+          '0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c722',
+        symbol: 'XDAI',
+        networkId: NETWORK_IDS.XDAI,
+        fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
+        toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
+        amount,
+        nonce: 0, // for it to skip nonce if
+        timestamp: new Date().getTime() / 1000,
+      });
+    };
+    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND);
+  });
+  it('should return transaction_not_found_and_nonce_is_used when it has not been mined after an hour', async () => {
+    const amount = 0.001;
+    const badFunc = async () => {
+      await getTransactionInfoFromNetwork({
+        txHash:
+          '0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c722',
+        symbol: 'XDAI',
+        networkId: NETWORK_IDS.XDAI,
+        fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
+        toAddress: '0x7ee789b7e6fa20eab7ecbce44626afa7f58a94b7',
+        amount,
+        nonce: 0, // for it to skip nonce if
+        timestamp: moment().add(2, 'hour').toDate().getTime() / 1000,
+      });
+    };
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
     );
   });
 

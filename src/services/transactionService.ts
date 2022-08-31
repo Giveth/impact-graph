@@ -23,6 +23,8 @@ import { logger } from '../utils/logger';
 const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 
+const ONE_HOUR = 60 * 60;
+
 export async function getTransactionInfoFromNetwork(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo> {
@@ -55,6 +57,11 @@ export async function getTransactionInfoFromNetwork(
   if (!transaction && (!nonce || userTransactionsCount > nonce)) {
     // in this case we understand that the transaction will not happen anytime, because nonce is used
     // so this is not speedup for sure
+    const timeNow = new Date().getTime() / 1000; // in seconds
+    if (input.timestamp - timeNow < ONE_HOUR) {
+      throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
+    }
+
     throw new Error(errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED);
   }
   if (!transaction) {
@@ -286,7 +293,7 @@ function validateTransactionWithInputData(
       errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
     );
   }
-  const ONE_HOUR = 60 * 60;
+
   if (input.timestamp - transaction.timestamp > ONE_HOUR) {
     // because we first create donation, then transaction will be mined, the transaction always should be greater than
     // donation created time, but we set one hour because maybe our server time is different with blockchain time server
