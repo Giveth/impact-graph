@@ -267,24 +267,6 @@ export const createDonationData = (params?: {
   };
 };
 
-export const createCategoryData = (params?: {
-  status?: string;
-}): CreateCategoryData => {
-  return {
-    transactionId: generateRandomTxHash(),
-    transactionNetworkId: NETWORK_IDS.MAIN_NET,
-    toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
-    fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
-    currency: 'ETH',
-    status: params?.status || DONATION_STATUS.PENDING,
-    anonymous: false,
-    amount: 15,
-    valueUsd: 15,
-    createdAt: moment(),
-    segmentNotified: true,
-  };
-};
-
 export const SEED_DATA = {
   FIRST_USER: {
     name: 'firstUser name',
@@ -1499,16 +1481,13 @@ export interface CategoryData {
   id?: number;
   value: string;
   name: string;
-  mainCategoryId?: number;
   isActive: boolean;
   mainCategory: MainCategory;
-  projects?: Project[];
   source?: string;
 }
 
 export interface MainCategoryData {
   id?: number;
-  categories: Category[];
   banner: string;
   description: string;
   slug: string;
@@ -1533,17 +1512,8 @@ export const saveDonationDirectlyToDb = async (
   }).save();
 };
 
-export const saveCategoryDirectlyToDb = async (
-  categoryData: CategoryData,
-  mainCategoryId: number,
-) => {
-  const mainCategory = (await MainCategory.findOne({
-    id: mainCategoryId,
-  })) as MainCategory;
-  return Category.create({
-    ...categoryData,
-    mainCategory,
-  }).save();
+export const saveCategoryDirectlyToDb = async (categoryData: CategoryData) => {
+  return Category.create(categoryData).save();
 };
 
 export const saveMainCategoryDirectlyToDb = async (

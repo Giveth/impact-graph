@@ -5,57 +5,63 @@ import {
   saveMainCategoryDirectlyToDb,
 } from '../../test/testUtils';
 import axios from 'axios';
-import { errorMessages } from '../utils/errorMessages';
 import {
-  fetchAllDonationsQuery,
+  getCategoryData,
   getMainCategoriesData,
 } from '../../test/graphqlQueries';
-import { logger } from '../utils/logger';
+import { generateRandomString } from '../utils/utils';
 
 describe('mainCategoryTestCases() test cases', mainCategoryTestCases);
 describe('categoryTestCases() test cases', categoryTestCases);
 
 function mainCategoryTestCases() {
   it('Should show main categories', async () => {
-    const mainCategory = await saveMainCategoryDirectlyToDb({
+    const title = generateRandomString(10);
+    await saveMainCategoryDirectlyToDb({
       banner: '',
       description: '',
-      slug: 'environment-and-energy-test',
-      title: 'Economics & Infrastructure test',
-      categories: [],
+      slug: generateRandomString(10),
+      title,
     });
 
-    const category = await saveCategoryDirectlyToDb(
-      {
-        name: 'agriculture',
-        mainCategory,
-        value: 'Agriculture',
-        isActive: true,
-      },
-      mainCategory.id,
-    );
     const categoryResponse = await axios.post(graphqlUrl, {
       query: getMainCategoriesData,
       variables: {},
     });
-    logger.debug('categoryResponse>>>', categoryResponse);
-    assert.equal(
-      categoryResponse.data.errors[0].message,
-      errorMessages.INVALID_DATE_FORMAT,
-    );
+    const result = categoryResponse.data.data.mainCategories;
+    assert.isNotEmpty(result);
+
+    assert.equal(result[result.length - 1].title, title);
   });
 }
 
-// function categoryTestCases() {
-//   it('Should show main categories', async () => {
-//     const categoryResponse = await axios.post(graphqlUrl, {
-//       query: fetchAllDonationsQuery,
-//       variables: {},
-//     });
-//
-//     assert.equal(
-//       categoryResponse.data.errors[0].message,
-//       errorMessages.INVALID_DATE_FORMAT,
-//     );
-//   });
-// }
+function categoryTestCases() {
+  it('Should show  categories', async () => {
+    const name = generateRandomString(10);
+    const mainCategory = await saveMainCategoryDirectlyToDb({
+      banner: '',
+      description: '',
+      slug: 'environment-and-energy-test2',
+      title: 'Economics & Infrastructure test2',
+    });
+
+    await saveCategoryDirectlyToDb({
+      name,
+      mainCategory,
+      value: 'Agriculture',
+      isActive: true,
+    });
+    const categoryResponse = await axios.post(graphqlUrl, {
+      query: getCategoryData,
+      variables: {},
+    });
+    const result = categoryResponse?.data?.data?.categories;
+    assert.isNotEmpty(result);
+    categoryResponse.data.data.categories.forEach(item => {
+      assert.isOk(item.mainCategory);
+      assert.isOk(item.mainCategory.title);
+    });
+
+    assert.equal(result[result.length - 1].name, name);
+  });
+}
