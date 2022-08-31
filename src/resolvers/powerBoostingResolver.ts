@@ -97,22 +97,6 @@ export class PowerBoostingResolver {
       throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
     }
 
-    if (percentages.length === 0 || percentages.length !== projectIds.length) {
-      throw new Error(
-        errorMessages.ERROR_GIVPOWER_BOOSTING_MULTISET_INVALID_DATA_LENGTH,
-      );
-    }
-
-    const total: number = percentages.reduce(
-      (_sum, _percentage) => _sum + _percentage,
-      0,
-    );
-
-    if (total < 99 || total > 100) {
-      throw new Error(
-        errorMessages.ERROR_GIVPOWER_BOOSTING_PERCENTAGE_INVALID_RANGE,
-      );
-    }
     // validator: sum of percentages should not be more than 100, all projects should active, ...
     return setMultipleBoosting({
       userId: user?.userId,
