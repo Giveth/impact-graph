@@ -3,17 +3,38 @@ import {
   graphqlUrl,
   SEED_DATA,
 } from '../../test/testUtils';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { boostSingleProjectMutation } from '../../test/graphqlQueries';
 import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 
 // Clean percentages after setting
-export const removePowerBoostings = async (
-  boosts: PowerBoosting[],
-): Promise<void> => {
+const removePowerBoostings = async (boosts: PowerBoosting[]): Promise<void> => {
   await PowerBoosting.delete(boosts.map(b => b.id));
+};
+
+const sendSingleBoostQuery = async (
+  userId: number,
+  projectId: number,
+  percentage: number,
+): Promise<AxiosResponse> => {
+  const accessToken = await generateTestAccessToken(userId);
+  return axios.post(
+    graphqlUrl,
+    {
+      query: boostSingleProjectMutation,
+      variables: {
+        projectId,
+        percentage,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
 };
 
 describe(
@@ -37,22 +58,12 @@ function setGivPowerBoostingTestCases() {
       errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
+
   it('should get error when the user wants to boost a project with invalid percentage value', async () => {
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          percentage: 101,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    const result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      101,
     );
 
     assert.isOk(result);
@@ -63,21 +74,10 @@ function setGivPowerBoostingTestCases() {
   });
 
   it('should get error when the user boosts for the first time with a value other than 100%', async () => {
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          percentage: 90,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    const result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      90,
     );
 
     assert.isOk(result);
@@ -88,41 +88,19 @@ function setGivPowerBoostingTestCases() {
   });
 
   it('should get error when the user with single boosted project boosts it with a value other than 100%', async () => {
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
-    let result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          percentage: 100,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    let result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      100,
     );
-
     assert.isOk(result);
     const powerBoostings: PowerBoosting[] =
       result.data.data.setSinglePowerBoosting;
 
-    result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          percentage: 90,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      90,
     );
 
     assert.isOk(result);
@@ -137,21 +115,10 @@ function setGivPowerBoostingTestCases() {
   });
 
   it('should set single project boost percentage 100%', async () => {
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          percentage: 100,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    const result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      100,
     );
 
     assert.isOk(result);
@@ -166,41 +133,20 @@ function setGivPowerBoostingTestCases() {
   });
 
   it('should adjust older boosting by setting a single boosting', async () => {
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
-    let result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          percentage: 100,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    let result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      100,
     );
 
     let powerBoostings: PowerBoosting[] =
       result.data.data.setSinglePowerBoosting;
 
     // Boost the second project 20 percent
-    result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.SECOND_PROJECT.id,
-          percentage: 20,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.SECOND_PROJECT.id,
+      20,
     );
 
     powerBoostings = result.data.data.setSinglePowerBoosting;
@@ -221,20 +167,10 @@ function setGivPowerBoostingTestCases() {
     assert.equal(secondProjectBoost.percentage, 20);
 
     // Third project 40 percent
-    result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.TRANSAK_PROJECT.id,
-          percentage: 40,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.TRANSAK_PROJECT.id,
+      40,
     );
 
     powerBoostings = result.data.data.setSinglePowerBoosting;
@@ -264,54 +200,23 @@ function setGivPowerBoostingTestCases() {
   });
 
   it('should remove older boosting by setting a single 100% boosting', async () => {
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
-    await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          percentage: 100,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      100,
     );
 
-    await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.SECOND_PROJECT.id,
-          percentage: 20,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.SECOND_PROJECT.id,
+      20,
     );
 
     // Third project 40 percent
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.TRANSAK_PROJECT.id,
-          percentage: 100,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    const result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.TRANSAK_PROJECT.id,
+      100,
     );
 
     const powerBoostings = result.data.data.setSinglePowerBoosting;
@@ -331,54 +236,22 @@ function setGivPowerBoostingTestCases() {
   });
 
   it('should update boosting by setting a single boosting', async () => {
-    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
-    await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          percentage: 100,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      100,
     );
 
-    const a = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.SECOND_PROJECT.id,
-          percentage: 20,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.SECOND_PROJECT.id,
+      20,
     );
 
-    // Third project 40 percent
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: boostSingleProjectMutation,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          percentage: 40,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+    const result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      40,
     );
 
     const powerBoostings = result.data.data.setSinglePowerBoosting;

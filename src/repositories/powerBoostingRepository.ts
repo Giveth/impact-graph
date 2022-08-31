@@ -21,22 +21,24 @@ const formatPercentage = (p: number): number => {
 
 export const findUserPowerBoosting = async (
   userId: number,
-  projectId?: number,
+  forceProjectIds?: number[],
 ): Promise<PowerBoosting[]> => {
   const query = PowerBoosting.createQueryBuilder('powerBoosting')
     .leftJoinAndSelect('powerBoosting.project', 'project')
     .leftJoinAndSelect('powerBoosting.user', 'user')
     .where(`"userId" =${userId}`);
 
-  if (!projectId) {
+  if (!forceProjectIds || forceProjectIds.length === 0) {
     return query.andWhere(`percentage > 0`).getMany();
   } else {
     return query
       .andWhere(
         new Brackets(qb =>
           qb
-            .where(`percentage > 0`)
-            .orWhere(`powerBoosting.projectId =${projectId}`),
+            .where('percentage > 0')
+            .orWhere(`powerBoosting.projectId IN (:...forceProjectIds)`, {
+              forceProjectIds,
+            }),
         ),
       )
       .getMany();
@@ -104,7 +106,7 @@ export const setSingleBoosting = async (params: {
   let result: PowerBoosting[] = [];
 
   try {
-    const beforePB = await findUserPowerBoosting(userId, projectId);
+    const beforePB = await findUserPowerBoosting(userId, [projectId]);
 
     const otherProjectsBeforePB = beforePB.filter(
       pb => +pb.projectId !== projectId,
