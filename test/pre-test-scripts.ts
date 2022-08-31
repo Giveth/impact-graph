@@ -174,6 +174,9 @@ async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.FIRST_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.SECOND_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.TRANSAK_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.FOURTH_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.FIFTH_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.SIXTH_PROJECT);
 }
 
 async function seedProjectUpdates() {
