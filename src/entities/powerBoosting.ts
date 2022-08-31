@@ -41,7 +41,7 @@ export class PowerBoosting extends BaseEntity {
   userId: number;
 
   @Field()
-  @Column()
+  @Column({ type: 'float' })
   // https://orkhan.gitbook.io/typeorm/docs/validation
   @IsNumber()
   @Min(0)

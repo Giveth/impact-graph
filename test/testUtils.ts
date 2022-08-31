@@ -362,7 +362,7 @@ export const SEED_DATA = {
     title: 'fifth project',
     slug: 'fifth-project',
     description: 'forth description',
-    id: 5,
+    id: 6,
     admin: '1',
   },
   MAIN_CATEGORIES: ['drink', 'food'],

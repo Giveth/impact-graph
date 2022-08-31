@@ -8,6 +8,7 @@ import { boostSingleProjectMutation } from '../../test/graphqlQueries';
 import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
+import { setMultipleBoosting } from '../repositories/powerBoostingRepository';
 
 // Clean percentages after setting
 const removePowerBoostings = async (boosts: PowerBoosting[]): Promise<void> => {
@@ -38,11 +39,16 @@ const sendSingleBoostQuery = async (
 };
 
 describe(
-  'setGivPowerBoostingMutation test cases',
-  setGivPowerBoostingTestCases,
+  'setSinglePowerBoostingMutation test cases',
+  setSinglePowerBoostingTestCases,
 );
 
-function setGivPowerBoostingTestCases() {
+describe(
+  'setMultiplePowerBoostingMutation test cases',
+  setMultiplePowerBoostingTestCases,
+);
+
+function setSinglePowerBoostingTestCases() {
   it('should get error when the user is not authenticated', async () => {
     const result = await axios.post(graphqlUrl, {
       query: boostSingleProjectMutation,
@@ -274,4 +280,74 @@ function setGivPowerBoostingTestCases() {
     // Clean
     await removePowerBoostings(powerBoostings);
   });
+
+  // GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT=5
+  it('should get error when number of boosted projects will be more than limit', async () => {
+    await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+      100,
+    );
+    await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.SECOND_PROJECT.id,
+      10,
+    );
+    await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.TRANSAK_PROJECT.id,
+      10,
+    );
+    await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FOURTH_PROJECT.id,
+      10,
+    );
+    let result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIFTH_PROJECT.id,
+      10,
+    );
+
+    assert.isOk(result);
+    let powerBoostings = result?.data?.data?.setSinglePowerBoosting;
+    assert.lengthOf(powerBoostings, 5);
+
+    ///  Must exceed limit
+    result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.SIXTH_PROJECT.id,
+      10,
+    );
+
+    assert.isOk(result);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
+    );
+
+    /// Zero one of previous boostings
+    result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIFTH_PROJECT.id,
+      0,
+    );
+    assert.isOk(result);
+    powerBoostings = result?.data?.data?.setSinglePowerBoosting;
+    assert.lengthOf(powerBoostings, 4);
+
+    /// Must be able to boost the sixth project now!
+    result = await sendSingleBoostQuery(
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.SIXTH_PROJECT.id,
+      30,
+    );
+    assert.isOk(result);
+    powerBoostings = result?.data?.data?.setSinglePowerBoosting;
+    assert.lengthOf(powerBoostings, 5);
+  });
+}
+
+function setMultiplePowerBoostingTestCases() {
+  // it('shoult get error when the user is not authenticated', async () => {});
 }
