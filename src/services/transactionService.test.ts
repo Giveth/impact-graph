@@ -615,7 +615,7 @@ function getTransactionDetailTestCases() {
       errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
   });
-  it('should return transaction_not_found when it has not being mined in an hour', async () => {
+  it('should return transaction_not_found when it has not being mined before an hour', async () => {
     const amount = 0.001;
     const badFunc = async () => {
       await getTransactionInfoFromNetwork({
