@@ -131,11 +131,12 @@ export const errorMessages = {
     'Error in getting accessToken by authorization code',
   ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT:
     'First project boosting value must be 100%',
-  ERROR_GIVPOWER_BOOSTING_PERCENTAGE_INVALID_RANGE: 'Invalid percentage value',
-  ERROR_GIVPOWER_BOOSTING_MULTI_PERCENTAGE_INVALID_SUM:
-    'Sum of all boosting percentages must be between 99% to 100%',
-  ERROR_GIVPOWER_BOOSTING_MULTISET_INVALID_DATA_LENGTH:
-    'Length of passed projects and percentages should be the same and more than zero',
+  ERROR_GIVPOWER_BOOSTING_INVALID_DATA: 'Invalid data',
+  // ERROR_GIVPOWER_BOOSTING_PERCENTAGE_INVALID_RANGE: 'Invalid percentage value',
+  // ERROR_GIVPOWER_BOOSTING_MULTI_PERCENTAGE_INVALID_SUM:
+  //   'Sum of all boosting percentages must be between 99% to 100%',
+  // ERROR_GIVPOWER_BOOSTING_MULTISET_INVALID_DATA_LENGTH:
+  //   'Length of passed projects and percentages should be the same and more than zero',
   ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT:
     'Number of boosted projects exceeds limit',
 };
