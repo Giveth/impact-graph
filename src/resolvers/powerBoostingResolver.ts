@@ -17,8 +17,9 @@ import { MyContext } from '../types/MyContext';
 import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 import {
-  findPowerBoostings,
   setMultipleBoosting,
+  setSingleBoosting,
+  findPowerBoostings,
 } from '../repositories/powerBoostingRepository';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
@@ -85,11 +86,11 @@ class GivPowers {
 }
 
 @Resolver(of => PowerBoosting)
-export class GivPowerResolver {
+export class PowerBoostingResolver {
   @Mutation(returns => [PowerBoosting])
   async setMultiplePowerBoosting(
     @Arg('projectIds', type => [Int]) projectIds: number[],
-    @Arg('percentages', type => [Int]) percentages: number[],
+    @Arg('percentages', type => [Float]) percentages: number[],
     @Ctx() { req: { user } }: MyContext,
   ): Promise<PowerBoosting[]> {
     if (!user || !user?.userId) {
@@ -107,19 +108,14 @@ export class GivPowerResolver {
   @Mutation(returns => [PowerBoosting])
   async setSinglePowerBoosting(
     @Arg('projectId', type => Int) projectId: number,
-    @Arg('percentage', type => Int) percentage: number,
+    @Arg('percentage', type => Float) percentage: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<PowerBoosting[]> {
     if (!user || !user?.userId) {
       throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
     }
-    // validate input data
-    // return setSingleBoosting({
-    //   userId: user?.userId,
-    //   projectId,
-    //   percentage,
-    // });
-    throw new Error(errorMessages.NOT_IMPLEMENTED);
+
+    return setSingleBoosting({ userId: user.userId, projectId, percentage });
   }
 
   @Query(returns => GivPowers)
