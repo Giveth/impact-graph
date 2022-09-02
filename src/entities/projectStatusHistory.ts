@@ -18,6 +18,7 @@ export const HISTORY_DESCRIPTIONS = {
   CHANGED_TO_VERIFIED: 'Changed to verified',
   CHANGED_TO_UNVERIFIED: 'Changed to unverified',
   CHANGED_TO_LISTED: 'Changed to listed',
+  CHANGED_TO_UNVERIFIED_BY_CRONJOB: 'Changed to unverified automatically',
   CHANGED_TO_UNLISTED: 'Changed to unlisted',
   HAS_BEEN_EDITED: 'Has been edited',
 };

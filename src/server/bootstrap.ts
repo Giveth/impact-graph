@@ -19,6 +19,7 @@ import SentryLogger from '../sentryLogger';
 
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
+import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 import {
@@ -255,6 +256,7 @@ export async function bootstrap() {
     initHandlingTraceCampaignUpdateEvents();
     runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
+    runCheckProjectVerificationStatus();
 
     // If we need to deactivate the process use the env var
     // if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {

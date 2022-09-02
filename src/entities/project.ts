@@ -319,12 +319,16 @@ class Project extends BaseEntity {
     project: Project;
     reasonId?: number;
     description?: string;
-    userId: number;
+    userId?: number;
   }) {
     const { project, status, prevStatus, description, reasonId, userId } =
       inputData;
     let reason;
-    const user = await findUserById(userId);
+    let user;
+
+    if (userId) {
+      user = await findUserById(userId);
+    }
 
     if (reasonId) {
       reason = await ProjectStatusReason.findOne({ id: reasonId, status });
