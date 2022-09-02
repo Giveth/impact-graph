@@ -1402,6 +1402,7 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
@@ -1533,6 +1534,7 @@ export class ProjectResolver {
       )
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
       .where(

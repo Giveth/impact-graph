@@ -730,6 +730,9 @@ export const fetchLikedProjectsQuery = `
           firstName
           walletAddress
         }
+        organization {
+          label
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -931,13 +934,15 @@ export const projectsByUserIdQuery = `
             id
             projectUpdateId
             userId
-          }    
+          }
           addresses {
             address
             isRecipient
             networkId
           }
-              
+          organization {
+            label
+          }
           adminUser {
             firstName
             email
