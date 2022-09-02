@@ -1615,6 +1615,9 @@ export class ProjectResolver {
         segmentProject,
         null,
       );
+      await getNotificationAdapter().projectDeactivated({
+        project,
+      });
       return true;
     } catch (error) {
       logger.error('projectResolver.deactivateProject() error', error);

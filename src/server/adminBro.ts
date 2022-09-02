@@ -1979,9 +1979,9 @@ export const verifyProjects = async (
       : segmentEvent;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
-    projects.raw.forEach((project: Project) => {
-      dispatchProjectUpdateEvent(project);
-      Project.addProjectStatusHistoryRecord({
+    for (const project of projects.raw) {
+      await dispatchProjectUpdateEvent(project);
+      await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
         userId: currentAdmin.id,
@@ -1989,16 +1989,18 @@ export const verifyProjects = async (
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+
       if (verified) {
-        getNotificationAdapter().projectVerified({
-          project,
+        await getNotificationAdapter().projectVerified({
+          project: projectWithAdmin,
         });
       } else {
-        getNotificationAdapter().projectUnVerified({
-          project,
+        await getNotificationAdapter().projectUnVerified({
+          project: projectWithAdmin,
         });
       }
-    });
+    }
   } catch (error) {
     logger.error('verifyProjects() error', error);
     throw error;
