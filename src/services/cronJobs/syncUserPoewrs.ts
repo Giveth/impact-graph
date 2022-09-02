@@ -5,18 +5,21 @@ import { logger } from '../../utils/logger';
 import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
 import { schedule } from 'node-cron';
 import { getGivPowerSubgraphAdapter } from '../../adapters/adaptersFactory';
-import { insertNewUserPower } from '../../repositories/userPowerRepository';
+import {
+  findUsersThatDidntSyncTheirPower,
+  insertNewUserPower,
+} from '../../repositories/userPowerRepository';
 import { findUserById } from '../../repositories/userRepository';
 import { errorMessages } from '../../utils/errorMessages';
 
-const verifyDonationsQueue = new Bull('verify-donations-queue', {
+const syncUserPowersQueue = new Bull('verify-donations-queue', {
   redis: redisConfig,
 });
 const TWO_MINUTES = 1000 * 60 * 2;
 setInterval(async () => {
-  const verifyDonationsQueueCount = await verifyDonationsQueue.count();
-  logger.debug(`Verify donations job queues count:`, {
-    verifyDonationsQueueCount,
+  const syncUserPowersQueueCount = await syncUserPowersQueue.count();
+  logger.debug(`Sync user powers job queues count:`, {
+    syncUserPowersQueueCount,
   });
 }, TWO_MINUTES);
 
@@ -41,13 +44,37 @@ export const runCheckPendingDonationsCronJob = () => {
 };
 
 async function addSyncUserPowerJobsToQueue() {
-  // TODO should calculate givbackRound
-  const givbackRound = 1;
+  const firstGivbackRoundTimeStamp = Number(
+    process.env.FIRST_GIVBACK_ROUND_TIME_STAMP,
+  );
+  const givbackRoundLength = 14 * 24 * 3600; // 14 days * 24 hours * 3600 seconds
+
+  const now = Math.floor(new Date().getTime() / 1000);
+
+  // use math.ceil because rounds starts from 1 not zero
+  const currentGivbackRound = Math.ceil(
+    (now - firstGivbackRoundTimeStamp) / givbackRoundLength,
+  );
+
+  const fromTimeStamp =
+    (currentGivbackRound - 1) * givbackRoundLength + firstGivbackRoundTimeStamp;
+  const toTimeStamp =
+    currentGivbackRound * givbackRoundLength + firstGivbackRoundTimeStamp;
+
+  const users = await findUsersThatDidntSyncTheirPower(currentGivbackRound);
+  users.forEach(user => {
+    syncUserPowersQueue.add({
+      userId: user.id,
+      fromTimeStamp,
+      toTimeStamp,
+      givbackRound: currentGivbackRound,
+    });
+  });
 }
 
 function processSyncUserPowerJobs() {
   logger.debug('processVerifyDonationsJobs() has been called');
-  verifyDonationsQueue.process(
+  syncUserPowersQueue.process(
     numberOfSyncUserPowersConcurrentJob,
     async (job, done) => {
       const { userId, fromTimestamp, toTimestamp, givbackRound } = job.data;
