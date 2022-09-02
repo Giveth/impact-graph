@@ -531,14 +531,14 @@ function setMultipleBoostingTestCases() {
     const userBoostings = await setMultipleBoosting({
       userId: user.id,
       projectIds: [firstProject.id, secondProject.id, thirdProject.id],
-      percentages: [12, 20, 14],
+      percentages: [40, 20, 40],
     });
     assert.equal(userBoostings.length, 3);
     assert.isOk(
       userBoostings.find(
         powerBoosting =>
           powerBoosting.project.id === firstProject.id &&
-          powerBoosting.percentage === 12,
+          powerBoosting.percentage === 40,
       ),
     );
     assert.isOk(
@@ -552,7 +552,7 @@ function setMultipleBoostingTestCases() {
       userBoostings.find(
         powerBoosting =>
           powerBoosting.project.id === thirdProject.id &&
-          powerBoosting.percentage === 14,
+          powerBoosting.percentage === 40,
       ),
     );
   });
@@ -572,7 +572,7 @@ function setMultipleBoostingTestCases() {
     const userBoostings = await setMultipleBoosting({
       userId: user.id,
       projectIds: [firstProject.id, secondProject.id, thirdProject.id],
-      percentages: [12, 20, 14],
+      percentages: [10, 10, 80],
     });
     assert.equal(userBoostings.length, 3);
     assert.isNotOk(
@@ -584,21 +584,21 @@ function setMultipleBoostingTestCases() {
       userBoostings.find(
         powerBoosting =>
           powerBoosting.project.id === firstProject.id &&
-          powerBoosting.percentage === 12,
+          powerBoosting.percentage === 10,
       ),
     );
     assert.isOk(
       userBoostings.find(
         powerBoosting =>
           powerBoosting.project.id === secondProject.id &&
-          powerBoosting.percentage === 20,
+          powerBoosting.percentage === 10,
       ),
     );
     assert.isOk(
       userBoostings.find(
         powerBoosting =>
           powerBoosting.project.id === thirdProject.id &&
-          powerBoosting.percentage === 14,
+          powerBoosting.percentage === 80,
       ),
     );
   });
