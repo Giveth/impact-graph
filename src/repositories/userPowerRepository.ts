@@ -14,11 +14,19 @@ export const insertNewUserPower = async (params: {
 };
 
 export const findUsersThatDidntSyncTheirPower = (givbackRound: number) => {
-  return User.createQueryBuilder('user')
-    .innerJoinAndSelect('user.userPower', 'userPower')
-    .where(`userPower.givbackRound `)
-    .getMany();
+  // left outer join
+  return (
+    User.createQueryBuilder('user')
+      // exclude other rounds by joining specified round
+      .leftJoinAndSelect(
+        'user.userPowers',
+        'userPowers',
+        'userPowers.givbackRound = :givbackRound',
+        { givbackRound },
+      )
+      // excluse those with already givbackround number Synced
+      .where('userPowers.userId IS NULL')
+      .getMany()
+  );
   // Return users that dont have any userPower with specified givbackRound
-
-  throw new Error(errorMessages.NOT_IMPLEMENTED);
 };
