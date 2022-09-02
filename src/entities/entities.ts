@@ -1,5 +1,6 @@
 import { Organization } from './organization';
 import { User } from './user';
+import { UserPower } from './userPower';
 import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
 import { Category } from './category';
@@ -44,4 +45,5 @@ export const entities: any = [
   SocialProfile,
   MainCategory,
   PowerBoosting,
+  UserPower,
 ];

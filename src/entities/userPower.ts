@@ -13,7 +13,7 @@ import { User } from './user';
 
 @ObjectType()
 @Entity()
-@Unique(['userId', 'givbackRound'])
+// @Unique(['userId', 'givbackRound'])
 export class UserPower extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
