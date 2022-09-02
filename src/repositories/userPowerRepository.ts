@@ -14,12 +14,11 @@ export const insertNewUserPower = async (params: {
 };
 
 export const findUsersThatDidntSyncTheirPower = (givbackRound: number) => {
-  // return Project.createQueryBuilder('user')
-  //   .innerJoinAndSelect('user.userPower', 'userPower')
-  //   .where({
-  //     id: projectId,
-  //   })
-  //   .getOne();
+  return User.createQueryBuilder('user')
+    .innerJoinAndSelect('user.userPower', 'userPower')
+    .where(`userPower.givbackRound `)
+    .getMany();
+  // Return users that dont have any userPower with specified givbackRound
 
   throw new Error(errorMessages.NOT_IMPLEMENTED);
 };
