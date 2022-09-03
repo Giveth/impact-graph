@@ -24,7 +24,7 @@ export const findUsersThatDidntSyncTheirPower = (givbackRound: number) => {
         'userPowers.givbackRound = :givbackRound',
         { givbackRound },
       )
-      // excluse those with already givbackround number Synced
+      // exclude those with already givbackround number Synced
       .where('userPowers.userId IS NULL')
       .getMany()
   );
