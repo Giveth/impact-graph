@@ -14,6 +14,7 @@ import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
+import { UserPower } from './userPower';
 
 export const publicSelectionFields = [
   'user.id',
@@ -132,6 +133,10 @@ export class User extends BaseEntity {
     projectStatusHistory => projectStatusHistory.user,
   )
   projectStatusHistories?: ProjectStatusHistory[];
+
+  @Field(type => [UserPower], { nullable: true })
+  @OneToMany(type => UserPower, userPower => userPower.user)
+  userPowers?: UserPower[];
 
   @Field(type => Int, { nullable: true })
   async projectsCount() {

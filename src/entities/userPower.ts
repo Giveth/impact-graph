@@ -3,6 +3,7 @@ import {
   Column,
   Entity,
   Index,
+  JoinTable,
   ManyToOne,
   PrimaryGeneratedColumn,
   RelationId,
@@ -13,7 +14,7 @@ import { User } from './user';
 
 @ObjectType()
 @Entity()
-@Unique(['userId', 'givbackRound'])
+@Unique(['user', 'givbackRound'])
 export class UserPower extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
