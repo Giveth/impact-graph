@@ -57,10 +57,10 @@ function categoryTestCases() {
     });
     const result = categoryResponse?.data?.data?.categories;
     assert.isNotEmpty(result);
-    categoryResponse.data.data.categories.forEach(item => {
-      assert.isOk(item.mainCategory);
-      assert.isOk(item.mainCategory.title);
-    });
+    assert.equal(
+      result[result.length - 1].mainCategory.title,
+      mainCategory.title,
+    );
 
     assert.equal(result[result.length - 1].name, name);
   });
