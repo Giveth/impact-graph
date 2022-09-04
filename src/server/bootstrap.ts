@@ -100,7 +100,6 @@ export async function bootstrap() {
 
           const { headers } = req;
           const authVersion = headers.authversion || '1';
-          logger.info(authVersion);
           if (headers.authorization) {
             token = headers.authorization.split(' ')[1].toString();
             const user = await authorizationHandler(authVersion, token);
@@ -108,7 +107,11 @@ export async function bootstrap() {
           }
         } catch (error) {
           SentryLogger.captureException(`Error: ${error} for token ${token}`);
-          logger.error(`Error: ${error} for token ${token}`);
+          logger.error(
+            `Error: ${error} for token ${token} authVersion ${
+              req?.headers?.authorization || '1'
+            }`,
+          );
           req.auth = {};
           req.auth.token = token;
           req.auth.error = error;

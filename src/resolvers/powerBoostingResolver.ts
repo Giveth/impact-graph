@@ -22,7 +22,8 @@ import {
 } from '../repositories/powerBoostingRepository';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
-import { OrderField } from '../entities/project';
+import { OrderField, SortingField } from '../entities/project';
+import { logger } from '../utils/logger';
 
 enum PowerBoostingOrderDirection {
   ASC = 'ASC',
@@ -47,14 +48,21 @@ registerEnumType(PowerBoostingOrderDirection, {
 
 @InputType()
 class PowerBoostingOrderBy {
-  @Field(type => PowerBoostingOrderField)
+  @Field(type => PowerBoostingOrderField, {
+    nullable: true,
+    defaultValue: PowerBoostingOrderField.UpdatedAt,
+  })
   field: PowerBoostingOrderField;
 
-  @Field(type => PowerBoostingOrderDirection)
+  @Field(type => PowerBoostingOrderDirection, {
+    nullable: true,
+    defaultValue: PowerBoostingOrderDirection.DESC,
+  })
   direction: PowerBoostingOrderDirection;
 }
 
-@InputType()
+@Service()
+@ArgsType()
 export class GetPowerBoostingArgs {
   @Field(type => Int, { defaultValue: 0 })
   @Min(0)
@@ -65,7 +73,13 @@ export class GetPowerBoostingArgs {
   @Max(50)
   take: number;
 
-  @Field(type => PowerBoostingOrderBy)
+  @Field(type => PowerBoostingOrderBy, {
+    nullable: true,
+    defaultValue: {
+      field: PowerBoostingOrderField.UpdatedAt,
+      direction: PowerBoostingOrderDirection.DESC,
+    },
+  })
   orderBy: PowerBoostingOrderBy;
 
   @Field(type => Int, { nullable: true })
@@ -117,20 +131,26 @@ export class PowerBoostingResolver {
     return setSingleBoosting({ userId: user.userId, projectId, percentage });
   }
 
-  // @Query(returns => GivPowers)
-  // async getPowerBoosting(
-  //   @Arg('args')
-  //   args: GetPowerBoostingArgs,
-  // ): Promise<GivPowers> {
-  //   if (!args.projectId || !args.userId) {
-  //     throw new Error(
-  //       errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
-  //     );
-  //   }
-  //   const [powerBoostings, totalCount] = await findPowerBoostings(args);
-  //   return {
-  //     powerBoostings,
-  //     totalCount,
-  //   };
-  // }
+  @Query(returns => GivPowers)
+  async getPowerBoosting(
+    @Args()
+    { take, skip, projectId, userId, orderBy }: GetPowerBoostingArgs,
+  ): Promise<GivPowers> {
+    if (!projectId && !userId) {
+      throw new Error(
+        errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
+      );
+    }
+    const [powerBoostings, totalCount] = await findPowerBoostings({
+      userId,
+      projectId,
+      skip,
+      orderBy,
+      take,
+    });
+    return {
+      powerBoostings,
+      totalCount,
+    };
+  }
 }

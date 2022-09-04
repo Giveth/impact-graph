@@ -1416,3 +1416,32 @@ export const setMultiplePowerBoostingMutation = `
           }
         }
  `;
+
+export const getPowerBoostingsQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: PowerBoostingOrderBy
+    $projectId: Int
+    $userId: Int
+  ) {
+    getPowerBoosting(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      projectId: $projectId
+      userId: $userId
+    ) {
+      powerBoostings {
+            id
+            user {
+              id
+            }
+            project {
+              id
+            }
+            percentage
+      }      
+    }
+  }
+`;
