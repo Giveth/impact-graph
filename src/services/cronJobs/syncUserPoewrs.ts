@@ -31,7 +31,7 @@ const numberOfSyncUserPowersConcurrentJob =
 const cronJobTime =
   (config.get('SYNC_USER_POWER_CRONJOB_EXPRESSION') as string) || '0 0 * * * *';
 
-export const runCheckPendingDonationsCronJob = () => {
+export const runSyncUserPowersCronJob = () => {
   logger.debug(
     'runSyncUserPowersCronJob() has been called, cronJobTime',
     cronJobTime,
@@ -73,7 +73,7 @@ async function addSyncUserPowerJobsToQueue() {
 }
 
 function processSyncUserPowerJobs() {
-  logger.debug('processVerifyDonationsJobs() has been called');
+  logger.debug('processSyncUserPowerJobs() has been called');
   syncUserPowersQueue.process(
     numberOfSyncUserPowersConcurrentJob,
     async (job, done) => {
@@ -91,17 +91,14 @@ function processSyncUserPowerJobs() {
             walletAddress: user.walletAddress as string,
           });
         await insertNewUserPower({
-          fromTimestamp,
-          toTimestamp,
+          fromTimestamp: new Date(fromTimestamp),
+          toTimestamp: new Date(fromTimestamp),
           user,
           power: averagePower,
           givbackRound,
         });
       } catch (e) {
-        logger.error(
-          'processVerifyDonationsJobs >> syncDonationStatusWithBlockchainNetwork error',
-          e,
-        );
+        logger.error('processSyncUserPowerJobs >> synUserPower error', e);
       } finally {
         done();
       }

@@ -5,8 +5,8 @@ import { errorMessages } from '../utils/errorMessages';
 
 export const insertNewUserPower = async (params: {
   user: User;
-  fromTimestamp: number;
-  toTimestamp: number;
+  fromTimestamp: Date;
+  toTimestamp: Date;
   givbackRound: number;
   power: number;
 }) => {

@@ -32,11 +32,11 @@ export class UserPower extends BaseEntity {
 
   @Field()
   @Column()
-  fromTimestamp: number;
+  fromTimestamp: Date;
 
   @Field()
   @Column()
-  toTimestamp: number;
+  toTimestamp: Date;
 
   @Field()
   @Column()
