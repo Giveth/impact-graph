@@ -1,16 +1,33 @@
 import {
+  createProjectData,
+  generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
+  saveProjectDirectlyToDb,
+  saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
 import axios, { AxiosResponse } from 'axios';
 import {
+  getPowerBoostingsQuery,
   setMultiplePowerBoostingMutation,
   setSinglePowerBoostingMutation,
 } from '../../test/graphqlQueries';
 import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
+import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
+
+describe(
+  'setSinglePowerBoostingMutation test cases',
+  setSinglePowerBoostingTestCases,
+);
+
+describe(
+  'setMultiplePowerBoostingMutation test cases',
+  setMultiplePowerBoostingTestCases,
+);
+describe('getPowerBoosting test cases', getPowerBoostingTestCases);
 
 // Clean percentages after setting
 const removePowerBoostings = async (boosts: PowerBoosting[]): Promise<void> => {
@@ -62,16 +79,6 @@ const sendMultipleBoostQuery = async (
     },
   );
 };
-
-describe(
-  'setSinglePowerBoostingMutation test cases',
-  setSinglePowerBoostingTestCases,
-);
-
-describe(
-  'setMultiplePowerBoostingMutation test cases',
-  setMultiplePowerBoostingTestCases,
-);
 
 function setSinglePowerBoostingTestCases() {
   it('should get error when the user is not authenticated', async () => {
@@ -655,5 +662,179 @@ function setMultiplePowerBoostingTestCases() {
     assert.equal(fourthProjectBoost.percentage, 50);
 
     await removePowerBoostings(powerBoostings);
+  });
+}
+
+function getPowerBoostingTestCases() {
+  // TODO write tests for different sorting params
+
+  it('should get error when the user doesnt send nether projectId nor userId', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {},
+    });
+
+    assert.isOk(result);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
+    );
+  });
+  it('should get list of power boostings filter by userId', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project: firstProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        userId: firstUser.id,
+      },
+    });
+    assert.isOk(result);
+    result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
+      assert.equal(powerBoosting.user.id, firstUser.id);
+    });
+  });
+  it('should get list of power boostings filter by projectId', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project: firstProject,
+      percentage: 3,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project: secondProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        projectId: firstProject.id,
+      },
+    });
+    assert.isOk(result);
+    result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
+      assert.equal(powerBoosting.project.id, firstProject.id);
+    });
+  });
+  it('should get list of power boostings filter by projectId and userId', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project: firstProject,
+      percentage: 3,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project: secondProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        projectId: firstProject.id,
+        userId: firstUser.id,
+      },
+    });
+    assert.isOk(result);
+    result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
+      assert.equal(powerBoosting.project.id, firstProject.id);
+      assert.equal(powerBoosting.user.id, firstUser.id);
+    });
+  });
+  it('should get list of power boostings filter by projectId and userId, should not send user email in response', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project: firstProject,
+      percentage: 3,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project: secondProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        projectId: firstProject.id,
+      },
+    });
+    assert.isOk(result);
+    result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
+      assert.isNotOk(powerBoosting.user.email);
+    });
   });
 }

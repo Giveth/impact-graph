@@ -1,6 +1,6 @@
 import { PowerBoosting } from '../entities/powerBoosting';
 import { Project } from '../entities/project';
-import { User } from '../entities/user';
+import { publicSelectionFields, User } from '../entities/user';
 import { Brackets, getConnection } from 'typeorm';
 import { logger } from '../utils/logger';
 import { errorMessages } from '../utils/errorMessages';
@@ -56,7 +56,8 @@ export const findPowerBoostings = async (params: {
   const query = PowerBoosting.createQueryBuilder('powerBoosting')
     // select some parameters of project and user not all fields
     .leftJoinAndSelect('powerBoosting.project', 'project')
-    .leftJoinAndSelect('powerBoosting.user', 'user')
+    .leftJoin('powerBoosting.user', 'user')
+    .addSelect(publicSelectionFields)
     .where(`percentage > 0`);
 
   if (params.userId) {
