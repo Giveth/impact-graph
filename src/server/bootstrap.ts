@@ -6,7 +6,6 @@ import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
 import { json, Request, response, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
-import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
 import { resolvers } from '../resolvers/resolvers';
 import { entities } from '../entities/entities';
@@ -234,11 +233,6 @@ export async function bootstrap() {
       '/stripe-webhook',
       bodyParser.raw({ type: 'application/json' }),
       handleStripeWebhook,
-    );
-    app.post(
-      '/netlify-build',
-      bodyParser.raw({ type: 'application/json' }),
-      netlifyDeployed,
     );
     app.get('/health', (req, res, next) => {
       res.send('Hi every thing seems ok');

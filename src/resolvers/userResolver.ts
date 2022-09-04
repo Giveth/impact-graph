@@ -16,7 +16,10 @@ import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerification } from '../entities/accountVerification';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { MyContext } from '../types/MyContext';
-import { getAnalytics, SegmentEvents } from '../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../analytics/analytics';
 import { errorMessages } from '../utils/errorMessages';
 import { Project } from '../entities/project';
 import { validateEmail } from '../utils/validators/commonValidators';
@@ -25,6 +28,7 @@ import {
   findUserByWalletAddress,
 } from '../repositories/userRepository';
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
+import { UserByAddressResponse } from './types/userResolver';
 
 const analytics = getAnalytics();
 
@@ -41,14 +45,21 @@ export class UserResolver {
     // return User.create(data).save();
   }
 
-  @Query(returns => User, { nullable: true })
-  userByAddress(
+  @Query(returns => UserByAddressResponse, { nullable: true })
+  async userByAddress(
     @Arg('address', type => String) address: string,
     @Ctx() { req: { user } }: MyContext,
   ) {
     const includeSensitiveFields =
       user?.walletAddress?.toLowerCase() === address.toLowerCase();
-    return findUserByWalletAddress(address, includeSensitiveFields);
+    const foundUser = await findUserByWalletAddress(
+      address,
+      includeSensitiveFields,
+    );
+    return {
+      isSignedIn: Boolean(user),
+      ...foundUser,
+    };
   }
 
   @Mutation(returns => Boolean)
@@ -113,7 +124,7 @@ export class UserResolver {
 
     analytics.identifyUser(dbUser);
     analytics.track(
-      SegmentEvents.UPDATED_PROFILE,
+      NOTIFICATIONS_EVENT_NAMES.UPDATED_PROFILE,
       dbUser.segmentUserId(),
       segmentUpdateProfile,
       null,

@@ -68,6 +68,7 @@ export const errorMessages = {
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'You dont have access to deactivate this project',
   PROJECT_NOT_FOUND: 'Project not found.',
+  PROJECT_IS_NOT_ACTIVE: 'Project is not active.',
   INVALID_FUNCTION: 'Invalid function name of transaction',
   PROJECT_UPDATE_NOT_FOUND: 'Project update not found.',
   DONATION_NOT_FOUND: 'donation not found',

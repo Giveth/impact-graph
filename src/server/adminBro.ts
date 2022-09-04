@@ -9,7 +9,7 @@ import { redis } from '../redis';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
 import { SelectQueryBuilder } from 'typeorm';
-import { SegmentEvents } from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
 import {
@@ -73,6 +73,7 @@ import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepo
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -89,9 +90,9 @@ const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminBroCookie = 'adminbro';
 
 const segmentProjectStatusEvents = {
-  activate: SegmentEvents.PROJECT_ACTIVATED,
-  deactivate: SegmentEvents.PROJECT_DEACTIVATED,
-  cancelled: SegmentEvents.PROJECT_CANCELLED,
+  activate: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
+  deactivate: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
+  cancelled: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
 };
 
 // headers defined by the verification team for exporting
@@ -823,6 +824,7 @@ const getAdminBroInstance = async () => {
               availableValues: [
                 { value: NETWORK_IDS.MAIN_NET, label: 'MAINNET' },
                 { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
+                { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
                 { value: NETWORK_IDS.XDAI, label: 'XDAI' },
                 { value: NETWORK_IDS.BSC, label: 'BSC' },
               ],
@@ -1695,11 +1697,13 @@ export const listDelist = async (
 
     Project.sendBulkEventsToSegment(
       projects.raw,
-      list ? SegmentEvents.PROJECT_LISTED : SegmentEvents.PROJECT_UNLISTED,
+      list
+        ? NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED
+        : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
     );
-    projects.raw.forEach(project => {
-      dispatchProjectUpdateEvent(project);
-      Project.addProjectStatusHistoryRecord({
+    for (const project of projects.raw) {
+      await dispatchProjectUpdateEvent(project);
+      await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
         userId: currentAdmin.id,
@@ -1707,7 +1711,17 @@ export const listDelist = async (
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
       });
-    });
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+      if (list) {
+        await getNotificationAdapter().projectListed({
+          project: projectWithAdmin,
+        });
+      } else {
+        await getNotificationAdapter().projectDeListed({
+          project: projectWithAdmin,
+        });
+      }
+    }
   } catch (error) {
     logger.error('listDelist error', error);
     throw error;
@@ -1758,8 +1772,8 @@ export const verifySingleVerificationForm = async (
     }
     // call repositories
     const segmentEvent = verified
-      ? SegmentEvents.PROJECT_VERIFIED
-      : SegmentEvents.PROJECT_REJECTED;
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
+      : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
 
     const verificationForm = await verifyForm({
       verificationStatus,
@@ -1773,6 +1787,15 @@ export const verifySingleVerificationForm = async (
       await updateProjectWithVerificationForm(verificationForm, project);
     }
     Project.notifySegment(project, segmentEvent);
+    if (verified) {
+      await getNotificationAdapter().projectVerified({
+        project,
+      });
+    } else {
+      await getNotificationAdapter().projectUnVerified({
+        project,
+      });
+    }
 
     responseMessage = `Project(s) successfully ${
       verified ? 'verified' : 'rejected'
@@ -1824,7 +1847,8 @@ export const makeEditableByUser = async (
       );
     }
 
-    const segmentEvent = SegmentEvents.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
+    const segmentEvent =
+      NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
 
     const verificationForm = await makeFormDraft({
       formId,
@@ -1884,8 +1908,8 @@ export const verifyVerificationForms = async (
     const projects = await verifyMultipleProjects({ verified, projectsIds });
 
     const segmentEvent = verified
-      ? SegmentEvents.PROJECT_VERIFIED
-      : SegmentEvents.PROJECT_REJECTED;
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
+      : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
     const projectIds = projects.raw.map(project => {
@@ -1947,17 +1971,17 @@ export const verifyProjects = async (
       .execute();
 
     let segmentEvent = verified
-      ? SegmentEvents.PROJECT_VERIFIED
-      : SegmentEvents.PROJECT_UNVERIFIED;
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
+      : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED;
 
     segmentEvent = revokeBadge
-      ? SegmentEvents.PROJECT_BADGE_REVOKED
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED
       : segmentEvent;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
-    projects.raw.forEach((project: Project) => {
-      dispatchProjectUpdateEvent(project);
-      Project.addProjectStatusHistoryRecord({
+    for (const project of projects.raw) {
+      await dispatchProjectUpdateEvent(project);
+      await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
         userId: currentAdmin.id,
@@ -1965,7 +1989,18 @@ export const verifyProjects = async (
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
-    });
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+
+      if (verified) {
+        await getNotificationAdapter().projectVerified({
+          project: projectWithAdmin,
+        });
+      } else {
+        await getNotificationAdapter().projectUnVerified({
+          project: projectWithAdmin,
+        });
+      }
+    }
   } catch (error) {
     logger.error('verifyProjects() error', error);
     throw error;
@@ -2010,14 +2045,28 @@ export const updateStatusOfProjects = async (
         projects.raw,
         segmentProjectStatusEvents[projectStatus.symbol],
       );
-      projects.raw.forEach(project => {
-        dispatchProjectUpdateEvent(project);
-        Project.addProjectStatusHistoryRecord({
+      for (const project of projects.raw) {
+        await dispatchProjectUpdateEvent(project);
+        await Project.addProjectStatusHistoryRecord({
           project,
           status: projectStatus,
           userId: currentAdmin.id,
         });
-      });
+        const projectWithAdmin = (await findProjectById(project.id)) as Project;
+        if (status === ProjStatus.cancelled) {
+          await getNotificationAdapter().projectCancelled({
+            project: projectWithAdmin,
+          });
+        } else if (status === ProjStatus.active) {
+          await getNotificationAdapter().projectReactivated({
+            project: projectWithAdmin,
+          });
+        } else if (status === ProjStatus.deactive) {
+          await getNotificationAdapter().projectDeactivated({
+            project: projectWithAdmin,
+          });
+        }
+      }
     }
   } catch (error) {
     throw error;

@@ -25,7 +25,7 @@ import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
-import { SegmentEvents } from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
@@ -287,13 +287,13 @@ class Project extends BaseEntity {
    * Custom Query Builders to chain together
    */
 
-  static notifySegment(project: Project, eventName: SegmentEvents) {
+  static notifySegment(project: Project, eventName: NOTIFICATIONS_EVENT_NAMES) {
     new ProjectTracker(project, eventName).track();
   }
 
   static sendBulkEventsToSegment(
     projects: [Project],
-    eventName: SegmentEvents,
+    eventName: NOTIFICATIONS_EVENT_NAMES,
   ) {
     for (const project of projects) {
       this.notifySegment(project, eventName);
@@ -352,10 +352,7 @@ class Project extends BaseEntity {
       );
     }
 
-    if (
-      this.users.filter(o => o.id === user.id).length > 0 ||
-      user.id === Number(this.admin)
-    ) {
+    if (user.id === this.adminUser?.id) {
       return true;
     } else {
       throw new Error(

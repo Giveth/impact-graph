@@ -1255,6 +1255,7 @@ function projectsByUserIdTestCases() {
       assert.isOk(project.projectVerificationForm);
       assert.equal(project.projectVerificationForm.id, verificationForm.id);
       assert.isNotOk(project.adminUser.email);
+      assert.equal(project.organization.label, ORGANIZATION_LABELS.GIVETH);
     });
   });
 
@@ -3341,6 +3342,7 @@ function likedProjectsByUserIdTestCases() {
       assert.isOk(project.adminUser.walletAddress);
       assert.isOk(project.adminUser.firstName);
       assert.isNotOk(project.adminUser.email);
+      assert.equal(project.organization.label, ORGANIZATION_LABELS.GIVETH);
     });
     const reaction = await Reaction.findOne({
       userId: SEED_DATA.FIRST_USER.id,
