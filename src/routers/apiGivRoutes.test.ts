@@ -42,4 +42,31 @@ describe('createDonation in apiGiv test cases', () => {
     assert.isOk(result.data);
     assert.equal(result.data.transactionId, donationData.transactionId);
   });
+  it('should not create donation becaus project not found ', async () => {
+    // const project = await saveProjectDirectlyToDb(createProjectData());
+    const donationData = {
+      toWalletAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      transactionNetworkId: NETWORK_IDS.XDAI,
+      fromWalletAddress: generateRandomEtheriumAddress(),
+      amount: 100,
+      priceUsd: 0.3,
+      valueUsd: 30,
+      donationType: 'apiGivProject',
+      status: DONATION_STATUS.VERIFIED,
+      isFiat: false,
+      transactionId: generateRandomTxHash(),
+    };
+    const basicAuthentication = createBasicAuthentication({
+      userName: process.env.API_GIV_USERNAME,
+      password: process.env.API_GIV_PASSWORD,
+    });
+
+    const result = await axios.post(`${restUrl}/donations`, donationData, {
+      headers: {
+        Authorization: basicAuthentication,
+      },
+    });
+    assert.equal(result.data.transactionId, donationData.transactionId);
+  });
 });
