@@ -23,15 +23,15 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       user: user1,
       // error: error: value "1662127058871" is out of range for type integer
       // consider making the timestamps Dates for easier saving and manipulation
-      fromTimestamp: 1233,
-      toTimestamp: 12345,
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
       givbackRound: 1,
       power: 10,
     });
     const userPowerGivbackRound2 = await insertNewUserPower({
       user: user1,
-      fromTimestamp: 1233,
-      toTimestamp: 12345,
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
       givbackRound: 2,
       power: 10,
     });
@@ -39,8 +39,8 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     // power for user 2
     const user2PowerGivbackRound2 = await insertNewUserPower({
       user: user2,
-      fromTimestamp: 12345,
-      toTimestamp: 123456,
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
       givbackRound: 2,
       power: 10,
     });
@@ -63,15 +63,15 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       user: user1,
       // error: error: value "1662127058871" is out of range for type integer
       // consider making the timestamps Dates for easier saving and manipulation
-      fromTimestamp: 1233,
-      toTimestamp: 12345,
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
       givbackRound: 1,
       power: 10,
     });
     const userPowerGivbackRound2 = await insertNewUserPower({
       user: user1,
-      fromTimestamp: 1233,
-      toTimestamp: 12345,
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
       givbackRound: 2,
       power: 10,
     });
@@ -79,8 +79,8 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     // power for user 2
     const user2PowerGivbackRound2 = await insertNewUserPower({
       user: user2,
-      fromTimestamp: 12345,
-      toTimestamp: 123456,
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
       givbackRound: 2,
       power: 10,
     });
