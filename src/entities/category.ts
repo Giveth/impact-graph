@@ -45,6 +45,10 @@ export class Category extends BaseEntity {
   // To use them anymore on project creation/updating, so we change set the isActive false for them
   isActive: boolean;
 
+  @Field()
+  @Column('integer', { unique: false })
+  priority: number;
+
   @RelationId((category: Category) => category.mainCategory)
   mainCategoryId: number;
 }

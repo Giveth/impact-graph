@@ -17,8 +17,6 @@ export class CategoryResolver {
   async categories() {
     return Category.createQueryBuilder('category')
       .leftJoinAndSelect('category.mainCategory', 'mainCategory')
-      .orderBy('mainCategory.priority', 'ASC')
-      .orderBy('category.priority', 'ASC')
       .getMany();
   }
   @Query(returns => [MainCategory], { nullable: true })

@@ -24,6 +24,7 @@ import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
 } from '../src/entities/projectVerificationForm';
+import { MainCategory } from '../src/entities/mainCategory';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -1476,6 +1477,25 @@ export interface CreateDonationData {
   status?: string;
 }
 
+export interface CategoryData {
+  id?: number;
+  value: string;
+  name: string;
+  isActive: boolean;
+  mainCategory: MainCategory;
+  source?: string;
+  priority: number;
+}
+
+export interface MainCategoryData {
+  id?: number;
+  banner: string;
+  description: string;
+  slug: string;
+  title: string;
+  priority: number;
+}
+
 export const saveDonationDirectlyToDb = async (
   donationData: CreateDonationData,
   userId: number,
@@ -1491,6 +1511,18 @@ export const saveDonationDirectlyToDb = async (
     ...donationData,
     user,
     project,
+  }).save();
+};
+
+export const saveCategoryDirectlyToDb = async (categoryData: CategoryData) => {
+  return Category.create(categoryData).save();
+};
+
+export const saveMainCategoryDirectlyToDb = async (
+  mainCategoryData: MainCategoryData,
+) => {
+  return MainCategory.create({
+    ...mainCategoryData,
   }).save();
 };
 

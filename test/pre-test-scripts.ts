@@ -236,6 +236,7 @@ async function seedCategories() {
       title: mainCategory,
       slug: mainCategory,
       description: mainCategory,
+      priority: Math.floor(Math.random() * 3),
     }).save();
   }
   const foodMainCategory = await MainCategory.findOne({ title: 'food' });
@@ -245,6 +246,7 @@ async function seedCategories() {
       name: category,
       value: category,
       source: 'adhoc',
+      priority: Math.floor(Math.random() * 3),
       mainCategory: foodMainCategory as MainCategory,
     }).save();
   }
@@ -253,6 +255,7 @@ async function seedCategories() {
       name: category,
       value: category,
       source: 'adhoc',
+      priority: Math.floor(Math.random() * 3),
       mainCategory: drinkMainCategory as MainCategory,
     }).save();
   }

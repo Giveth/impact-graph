@@ -1361,3 +1361,32 @@ export const removeSocialProfileMutation = `
            removeSocialProfile(socialProfileId:$socialProfileId)
           } 
         `;
+
+export const getMainCategoriesData = `
+query {
+    mainCategories{
+        title
+        banner
+        slug
+        description
+        priority
+        categories {
+            name
+            value
+            isActive
+            priority
+        }
+    }
+}`;
+
+export const getCategoryData = `query {
+    categories{
+        name
+        priority
+        mainCategory {
+            title
+            banner
+            priority
+        }
+    }
+}`;
