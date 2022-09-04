@@ -52,22 +52,23 @@ async function addSyncUserPowerJobsToQueue() {
   const now = Math.floor(new Date().getTime() / 1000);
 
   // use math.ceil because rounds starts from 1 not zero
-  const currentGivbackRound = Math.ceil(
+  const previousGivbackRound = Math.ceil(
     (now - firstGivbackRoundTimeStamp) / givbackRoundLength,
   );
 
   const fromTimeStamp =
-    (currentGivbackRound - 1) * givbackRoundLength + firstGivbackRoundTimeStamp;
+    (previousGivbackRound - 1) * givbackRoundLength +
+    firstGivbackRoundTimeStamp;
   const toTimeStamp =
-    currentGivbackRound * givbackRoundLength + firstGivbackRoundTimeStamp;
+    previousGivbackRound * givbackRoundLength + firstGivbackRoundTimeStamp;
 
-  const users = await findUsersThatDidntSyncTheirPower(currentGivbackRound);
+  const users = await findUsersThatDidntSyncTheirPower(previousGivbackRound);
   users.forEach(user => {
     syncUserPowersQueue.add({
       userId: user.id,
       fromTimeStamp,
       toTimeStamp,
-      givbackRound: currentGivbackRound,
+      givbackRound: previousGivbackRound,
     });
   });
 }
