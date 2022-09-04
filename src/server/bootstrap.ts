@@ -48,6 +48,7 @@ import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
 import { TwitterAdapter } from '../adapters/oauth2/twitterAdapter';
 import { generateRandomEtheriumAddress } from '../../test/testUtils';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
+import { runSyncUserPowersCronJob } from '../services/cronJobs/syncUserPoewrs';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -256,6 +257,9 @@ export async function bootstrap() {
     initHandlingTraceCampaignUpdateEvents();
     runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
+    if (process.env.ENABLE_SYNC_USER_POWER_CRONJOB === 'true') {
+      runSyncUserPowersCronJob();
+    }
 
     if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
       runCheckProjectVerificationStatus();
