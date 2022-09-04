@@ -1436,6 +1436,7 @@ export const getPowerBoostingsQuery = `
             id
             user {
               id
+              email
             }
             project {
               id
