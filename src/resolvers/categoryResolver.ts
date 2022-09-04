@@ -15,14 +15,33 @@ export class CategoryResolver {
 
   @Query(returns => [Category], { nullable: true })
   async categories() {
-    return Category.createQueryBuilder('category')
-      .leftJoinAndSelect('category.mainCategory', 'mainCategory')
-      .getMany();
+    const query = `
+      SELECT * FROM category
+      LEFT JOIN main_category
+      ON category."mainCategoryId" = "main_category".id
+      ORDER BY "main_category".priority
+      NULLS LAST,
+      category.priority;
+    `;
+    // return Category.createQueryBuilder('category')
+    //   .leftJoinAndSelect('category.mainCategory', 'mainCategory')
+    //   .getMany();
+    return Category.query(query);
   }
   @Query(returns => [MainCategory], { nullable: true })
   async mainCategories() {
-    return MainCategory.createQueryBuilder('mainCategory')
-      .leftJoinAndSelect('mainCategory.categories', 'categories')
-      .getMany();
+    const query = `
+      SELECT * FROM main_category
+      LEFT JOIN category
+      ON category."mainCategoryId" = "main_category".id
+      ORDER BY category.priority
+      NULLS LAST,
+      "main_category".priority;
+    `;
+    return MainCategory.query(query);
+
+    // return MainCategory.createQueryBuilder('mainCategory')
+    //   .leftJoinAndSelect('mainCategory.categories', 'categories')
+    //   .getMany();
   }
 }
