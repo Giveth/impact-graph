@@ -89,13 +89,13 @@ function processSyncUserPowerJobs() {
           await getGivPowerSubgraphAdapter().getUserPowerInTimeRange({
             fromTimestamp,
             toTimestamp,
-            walletAddress: user.walletAddress as string,
+            walletAddresses: [user.walletAddress as string],
           });
         await insertNewUserPower({
           fromTimestamp: new Date(fromTimestamp),
           toTimestamp: new Date(fromTimestamp),
           user,
-          power: averagePower,
+          power: averagePower[user.walletAddress as string] as number,
           givbackRound,
         });
       } catch (e) {

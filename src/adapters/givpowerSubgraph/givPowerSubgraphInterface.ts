@@ -1,7 +1,7 @@
 export interface GivPowerSubgraphInterface {
   getUserPowerInTimeRange(params: {
-    walletAddress: string;
+    walletAddresses: string[];
     fromTimestamp: number;
     toTimestamp: number;
-  }): Promise<number>;
+  }): Promise<{ [walletAddress: string]: number }>;
 }
