@@ -1434,6 +1434,8 @@ export const getPowerBoostingsQuery = `
     ) {
       powerBoostings {
             id
+            updatedAt
+            createdAt
             user {
               id
               email
