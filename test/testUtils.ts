@@ -1484,7 +1484,6 @@ export interface CategoryData {
   isActive: boolean;
   mainCategory: MainCategory;
   source?: string;
-  priority: number;
 }
 
 export interface MainCategoryData {
@@ -1493,7 +1492,6 @@ export interface MainCategoryData {
   description: string;
   slug: string;
   title: string;
-  priority: number;
 }
 
 export const saveDonationDirectlyToDb = async (

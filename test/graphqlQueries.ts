@@ -1165,15 +1165,6 @@ export const getCurrentProjectVerificationFormQuery = `
             }
         `;
 
-export const getAllowedCountries = `
-    query {
-        getAllowedCountries {
-            name
-            code
-        }
-    }
-        `;
-
 export const projectVerificationConfirmEmail = `
         mutation projectVerificationConfirmEmail($emailConfirmationToken: String!){
           projectVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
@@ -1362,6 +1353,15 @@ export const removeSocialProfileMutation = `
           } 
         `;
 
+export const getAllowedCountries = `
+    query {
+        getAllowedCountries {
+            name
+            code
+        }
+    }
+        `;
+
 export const getMainCategoriesData = `
 query {
     mainCategories{
@@ -1369,12 +1369,10 @@ query {
         banner
         slug
         description
-        priority
         categories {
             name
             value
             isActive
-            priority
         }
     }
 }`;
@@ -1382,11 +1380,9 @@ query {
 export const getCategoryData = `query {
     categories{
         name
-        priority
         mainCategory {
             title
             banner
-            priority
         }
     }
 }`;
