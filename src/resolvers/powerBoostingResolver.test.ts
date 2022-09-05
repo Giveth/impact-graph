@@ -666,8 +666,6 @@ function setMultiplePowerBoostingTestCases() {
 }
 
 function getPowerBoostingTestCases() {
-  // TODO write tests for different sorting params
-
   it('should get error when the user doesnt send nether projectId nor userId', async () => {
     const result = await axios.post(graphqlUrl, {
       query: getPowerBoostingsQuery,
@@ -711,6 +709,7 @@ function getPowerBoostingTestCases() {
       },
     });
     assert.isOk(result);
+    assert.equal(result.data.data.getPowerBoosting.powerBoostings.length, 2);
     result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
       assert.equal(powerBoosting.user.id, firstUser.id);
     });
@@ -751,6 +750,8 @@ function getPowerBoostingTestCases() {
       },
     });
     assert.isOk(result);
+    assert.equal(result.data.data.getPowerBoosting.powerBoostings.length, 2);
+
     result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
       assert.equal(powerBoosting.project.id, firstProject.id);
     });
@@ -792,6 +793,8 @@ function getPowerBoostingTestCases() {
       },
     });
     assert.isOk(result);
+    assert.equal(result.data.data.getPowerBoosting.powerBoostings.length, 1);
+
     result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
       assert.equal(powerBoosting.project.id, firstProject.id);
       assert.equal(powerBoosting.user.id, firstUser.id);
@@ -836,5 +839,236 @@ function getPowerBoostingTestCases() {
     result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
       assert.isNotOk(powerBoosting.user.email);
     });
+  });
+
+  it('should get list of power boostings filter by userId, sort by updatedAt DESC', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: thirdProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        userId: firstUser.id,
+        orderBy: {
+          field: 'UpdatedAt',
+          direction: 'DESC',
+        },
+      },
+    });
+    assert.isOk(result);
+    const powerBoostings = result.data.data.getPowerBoosting.powerBoostings;
+    assert.equal(powerBoostings.length, 3);
+    assert.isTrue(powerBoostings[0].updatedAt >= powerBoostings[1].updatedAt);
+    assert.isTrue(powerBoostings[1].updatedAt >= powerBoostings[2].updatedAt);
+  });
+  it('should get list of power boostings filter by userId, sort by updatedAt ASC', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: thirdProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        userId: firstUser.id,
+        orderBy: {
+          field: 'UpdatedAt',
+          direction: 'ASC',
+        },
+      },
+    });
+    assert.isOk(result);
+    const powerBoostings = result.data.data.getPowerBoosting.powerBoostings;
+    assert.equal(powerBoostings.length, 3);
+    assert.isTrue(powerBoostings[0].updatedAt <= powerBoostings[1].updatedAt);
+    assert.isTrue(powerBoostings[1].updatedAt <= powerBoostings[2].updatedAt);
+  });
+
+  it('should get list of power boostings filter by userId, sort by createdAt DESC', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: thirdProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        userId: firstUser.id,
+        orderBy: {
+          field: 'CreationAt',
+          direction: 'DESC',
+        },
+      },
+    });
+    assert.isOk(result);
+    const powerBoostings = result.data.data.getPowerBoosting.powerBoostings;
+    assert.equal(powerBoostings.length, 3);
+    assert.isTrue(powerBoostings[0].createdAt >= powerBoostings[1].createdAt);
+    assert.isTrue(powerBoostings[1].createdAt >= powerBoostings[2].createdAt);
+  });
+  it('should get list of power boostings filter by userId, sort by createdAt ASC', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: thirdProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        userId: firstUser.id,
+        orderBy: {
+          field: 'CreationAt',
+          direction: 'ASC',
+        },
+      },
+    });
+    assert.isOk(result);
+    const powerBoostings = result.data.data.getPowerBoosting.powerBoostings;
+    assert.equal(powerBoostings.length, 3);
+    assert.isTrue(powerBoostings[0].createdAt <= powerBoostings[1].createdAt);
+    assert.isTrue(powerBoostings[1].createdAt <= powerBoostings[2].createdAt);
+  });
+
+  it('should get list of power boostings filter by userId, sort by percentage DESC', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: thirdProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        userId: firstUser.id,
+        orderBy: {
+          field: 'Percentage',
+          direction: 'DESC',
+        },
+      },
+    });
+    assert.isOk(result);
+    const powerBoostings = result.data.data.getPowerBoosting.powerBoostings;
+    assert.equal(powerBoostings.length, 3);
+    assert.isTrue(powerBoostings[0].percentage >= powerBoostings[1].percentage);
+    assert.isTrue(powerBoostings[1].percentage >= powerBoostings[2].percentage);
+  });
+  it('should get list of power boostings filter by userId, sort by percentage ASC', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: thirdProject,
+      percentage: 3,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        userId: firstUser.id,
+        orderBy: {
+          field: 'Percentage',
+          direction: 'ASC',
+        },
+      },
+    });
+    assert.isOk(result);
+    const powerBoostings = result.data.data.getPowerBoosting.powerBoostings;
+    assert.equal(powerBoostings.length, 3);
+    assert.isTrue(powerBoostings[0].percentage <= powerBoostings[1].percentage);
+    assert.isTrue(powerBoostings[1].percentage <= powerBoostings[2].percentage);
   });
 }

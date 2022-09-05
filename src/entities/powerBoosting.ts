@@ -62,8 +62,10 @@ export class PowerBoosting extends BaseEntity {
   percentage: number;
 
   @CreateDateColumn()
+  @Field()
   createdAt: Date;
 
   @UpdateDateColumn()
+  @Field()
   updatedAt: Date;
 }
