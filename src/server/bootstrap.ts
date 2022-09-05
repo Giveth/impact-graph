@@ -48,7 +48,7 @@ import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
 import { TwitterAdapter } from '../adapters/oauth2/twitterAdapter';
 import { generateRandomEtheriumAddress } from '../../test/testUtils';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
-import { runSyncUserPowersCronJob } from '../services/cronJobs/syncUserPoewrs';
+import { runSyncUserPowersCronJob } from '../services/cronJobs/syncUserPowers';
 
 // tslint:disable:no-var-requires
 const express = require('express');
