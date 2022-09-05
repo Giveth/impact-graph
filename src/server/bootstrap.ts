@@ -108,7 +108,7 @@ export async function bootstrap() {
           SentryLogger.captureException(`Error: ${error} for token ${token}`);
           logger.error(
             `Error: ${error} for token ${token} authVersion ${
-              req?.headers?.authorization || '1'
+              req?.headers?.authversion || '1'
             }`,
           );
           req.auth = {};
