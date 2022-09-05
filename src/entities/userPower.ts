@@ -20,11 +20,13 @@ export class UserPower extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })
   user: User;
+
+  @Index()
   @RelationId((userPower: UserPower) => userPower.user)
+  @Column({ nullable: false })
   userId: number;
 
   @Field()
