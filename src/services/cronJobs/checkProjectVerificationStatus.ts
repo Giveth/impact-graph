@@ -9,6 +9,7 @@ import { User } from '../../entities/user';
 import config from '../../config';
 import { logger } from '../../utils/logger';
 import moment = require('moment');
+import { projectsWithoutStatusAfterTimeFrame } from '../../repositories/projectRepository';
 
 const analytics = getAnalytics();
 
@@ -35,24 +36,9 @@ export const runCheckProjectVerificationStatus = () => {
 };
 
 export const checkProjectVerificationStatus = async () => {
-  const projects = await Project.createQueryBuilder('project')
-    .innerJoinAndSelect(
-      ProjectUpdate,
-      'projectUpdate',
-      `project.id = projectUpdate.projectId AND projectUpdate.id = (
-          SELECT project_update.id
-          FROM project_update
-          WHERE project_update."projectId" = project.id
-          ORDER BY project_update.id DESC
-          LIMIT 1
-        )`,
-    )
-    .where('project.isImported = false')
-    .andWhere('project.verified = true')
-    .andWhere('projectUpdate.createdAt < :badgeRevokingDate', {
-      badgeRevokingDate: maxDaysForRevokingBadge,
-    })
-    .getMany();
+  const projects = await projectsWithoutStatusAfterTimeFrame(
+    maxDaysForRevokingBadge.toDate(),
+  );
 
   for (const project of projects) {
     await revokeBadge(project);

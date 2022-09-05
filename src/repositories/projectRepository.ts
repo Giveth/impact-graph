@@ -22,6 +22,27 @@ export const findProjectById = (
     .getOne();
 };
 
+export const projectsWithoutStatusAfterTimeFrame = async (date: Date) => {
+  return Project.createQueryBuilder('project')
+    .innerJoinAndSelect(
+      ProjectUpdate,
+      'projectUpdate',
+      `project.id = projectUpdate.projectId AND projectUpdate.id = (
+          SELECT project_update.id
+          FROM project_update
+          WHERE project_update."projectId" = project.id
+          ORDER BY project_update.id DESC
+          LIMIT 1
+        )`,
+    )
+    .where('project.isImported = false')
+    .andWhere('project.verified = true')
+    .andWhere('projectUpdate.createdAt < :badgeRevokingDate', {
+      badgeRevokingDate: date,
+    })
+    .getMany();
+};
+
 export const findProjectBySlug = (
   slug: string,
 ): Promise<Project | undefined> => {

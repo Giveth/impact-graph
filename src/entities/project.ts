@@ -77,6 +77,13 @@ export enum OrderField {
   AcceptGiv = 'givingBlocksId',
 }
 
+export enum RevokeStep {
+  Reminder = 'reminder',
+  Warning = 'warning',
+  LastChance = 'lastChance',
+  Revoked = 'revoked',
+}
+
 @Entity()
 @ObjectType()
 class Project extends BaseEntity {
@@ -186,6 +193,10 @@ class Project extends BaseEntity {
   @Field(type => Boolean)
   @Column()
   verified: boolean;
+
+  @Field(type => String)
+  @Column({ default: null, nullable: true })
+  verificationStatus?: string | null;
 
   @Field(type => Boolean, { nullable: true })
   @Column({ default: false })
