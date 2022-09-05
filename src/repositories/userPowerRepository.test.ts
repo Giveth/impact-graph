@@ -45,7 +45,11 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       averagePowers: { [user2.walletAddress as string]: 10 },
     });
 
-    const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(1);
+    const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
+      1,
+      0,
+      user2.id + 1, // Take
+    );
 
     // There are lots of users that dont have power
     assert.isNotEmpty(usersWithoutPowerSync);
@@ -85,7 +89,11 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       users: [user2],
     });
 
-    const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(2);
+    const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
+      2,
+      0,
+      user2.id + 1,
+    );
     // There are lots of users that dont have power
     assert.isNotEmpty(usersWithoutPowerSync);
 

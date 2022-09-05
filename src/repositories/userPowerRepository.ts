@@ -30,6 +30,7 @@ export const insertNewUserPowers = async ({
 export const findUsersThatDidntSyncTheirPower = (
   givbackRound: number,
   skip: number = 0,
+  take: number = 50,
 ): Promise<[User[], number]> => {
   // left outer join
   return (
@@ -45,7 +46,7 @@ export const findUsersThatDidntSyncTheirPower = (
       .where('userPowers.userId IS NULL')
       .select(['user.id', 'user.walletAddress'])
       .skip(skip)
-      .take(50)
+      .take(take)
       .getManyAndCount()
   );
   // Return users that dont have any userPower with specified givbackRound
