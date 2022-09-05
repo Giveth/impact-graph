@@ -13,6 +13,7 @@ import {
   findUserByWalletAddress,
 } from '../../repositories/userRepository';
 import { errorMessages } from '../../utils/errorMessages';
+import { User } from '../../entities/user';
 
 const syncUserPowersQueue = new Bull('verify-donations-queue', {
   redis: redisConfig,
@@ -65,9 +66,11 @@ async function addSyncUserPowerJobsToQueue() {
     previousGivbackRound * givbackRoundLength + firstGivbackRoundTimeStamp;
 
   let totalFetched = 0;
+  let users: User[] = [];
+  let count = 0;
 
-  while (true) {
-    const [users, count] = await findUsersThatDidntSyncTheirPower(
+  do {
+    [users, count] = await findUsersThatDidntSyncTheirPower(
       previousGivbackRound,
       totalFetched,
     );
@@ -80,8 +83,7 @@ async function addSyncUserPowerJobsToQueue() {
     });
 
     totalFetched += users.length;
-    if (totalFetched >= count) break;
-  }
+  } while (totalFetched < count);
 }
 
 function processSyncUserPowerJobs() {
