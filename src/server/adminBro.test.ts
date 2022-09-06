@@ -1,3 +1,4 @@
+// @ts-ignore-start
 import {
   createDonation,
   createToken,
@@ -1128,3 +1129,4 @@ function listDelistTestCases() {
     );
   });
 }
+// @ts-ignore-end
