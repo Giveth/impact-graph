@@ -41,6 +41,7 @@ const envVars = [
   'TRACE_FILE_UPLOADER_PASSWORD',
   'GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT',
   'GIVPOWER_BOOSTING_PERCENTAGE_PRECISION',
+  'GIVPOWER_ROUND_DURATION',
 ];
 // tslint:disable-next-line:class-name
 interface requiredEnv {
@@ -80,6 +81,7 @@ interface requiredEnv {
   TRACE_FILE_UPLOADER_PASSWORD: string;
   GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT: string;
   GIVPOWER_BOOSTING_PERCENTAGE_PRECISION: string;
+  GIVPOWER_ROUND_DURATION: string;
 }
 
 class Config {

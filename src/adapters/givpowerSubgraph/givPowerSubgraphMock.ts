@@ -2,10 +2,14 @@ import { GivPowerSubgraphInterface } from './givPowerSubgraphInterface';
 
 export class GivPowerSubgraphMock implements GivPowerSubgraphInterface {
   getUserPowerInTimeRange(params: {
-    walletAddress: string;
+    walletAddresses: [string];
     fromTimestamp: number;
     toTimestamp: number;
-  }): Promise<number> {
-    return Promise.resolve(Math.floor(Math.random() * 1000));
+  }): Promise<{ [walletAddress: string]: number }> {
+    const result = {};
+    params.walletAddresses.forEach(walletAddress => {
+      result[walletAddress] = Math.floor(Math.random() * 1000);
+    });
+    return Promise.resolve(result);
   }
 }

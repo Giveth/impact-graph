@@ -2,15 +2,18 @@ import Bull from 'bull';
 import config from '../../config';
 import { redisConfig } from '../../redis';
 import { logger } from '../../utils/logger';
-import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
 import { schedule } from 'node-cron';
 import { getGivPowerSubgraphAdapter } from '../../adapters/adaptersFactory';
 import {
   findUsersThatDidntSyncTheirPower,
-  insertNewUserPower,
+  insertNewUserPowers,
 } from '../../repositories/userPowerRepository';
-import { findUserById } from '../../repositories/userRepository';
+import {
+  findUserById,
+  findUserByWalletAddress,
+} from '../../repositories/userRepository';
 import { errorMessages } from '../../utils/errorMessages';
+import { User } from '../../entities/user';
 
 const syncUserPowersQueue = new Bull('verify-donations-queue', {
   redis: redisConfig,
@@ -47,7 +50,7 @@ async function addSyncUserPowerJobsToQueue() {
   const firstGivbackRoundTimeStamp = Number(
     process.env.FIRST_GIVBACK_ROUND_TIME_STAMP,
   );
-  const givbackRoundLength = 14 * 24 * 3600; // 14 days * 24 hours * 3600 seconds
+  const givbackRoundLength = Number(process.env.GIVPOWER_ROUND_DURATION);
 
   const now = Math.floor(new Date().getTime() / 1000);
 
@@ -62,15 +65,25 @@ async function addSyncUserPowerJobsToQueue() {
   const toTimeStamp =
     previousGivbackRound * givbackRoundLength + firstGivbackRoundTimeStamp;
 
-  const users = await findUsersThatDidntSyncTheirPower(previousGivbackRound);
-  users.forEach(user => {
+  let totalFetched = 0;
+  let users: User[] = [];
+  let count = 0;
+
+  do {
+    [users, count] = await findUsersThatDidntSyncTheirPower(
+      previousGivbackRound,
+      totalFetched,
+    );
+
     syncUserPowersQueue.add({
-      userId: user.id,
+      users,
       fromTimeStamp,
       toTimeStamp,
       givbackRound: previousGivbackRound,
     });
-  });
+
+    totalFetched += users.length;
+  } while (totalFetched < count);
 }
 
 function processSyncUserPowerJobs() {
@@ -78,25 +91,21 @@ function processSyncUserPowerJobs() {
   syncUserPowersQueue.process(
     numberOfSyncUserPowersConcurrentJob,
     async (job, done) => {
-      const { userId, fromTimestamp, toTimestamp, givbackRound } = job.data;
+      const { users, fromTimestamp, toTimestamp, givbackRound } = job.data;
       logger.debug('processing syncUserPower job', { jobData: job.data });
       try {
-        const user = await findUserById(userId);
-        if (!user) {
-          throw new Error(errorMessages.USER_NOT_FOUND);
-        }
-        const averagePower =
+        const averagePowers =
           await getGivPowerSubgraphAdapter().getUserPowerInTimeRange({
             fromTimestamp,
             toTimestamp,
-            walletAddress: user.walletAddress as string,
+            walletAddresses: users.map(user => user.walletAddress),
           });
-        await insertNewUserPower({
+        await insertNewUserPowers({
           fromTimestamp: new Date(fromTimestamp),
           toTimestamp: new Date(fromTimestamp),
-          user,
-          power: averagePower,
+          averagePowers,
           givbackRound,
+          users,
         });
       } catch (e) {
         logger.error('processSyncUserPowerJobs >> synUserPower error', e);
