@@ -256,7 +256,10 @@ export async function bootstrap() {
     initHandlingTraceCampaignUpdateEvents();
     runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
-    runCheckProjectVerificationStatus();
+
+    if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
+      runCheckProjectVerificationStatus();
+    }
 
     // If we need to deactivate the process use the env var
     // if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
