@@ -60,7 +60,10 @@ export const verifyMultipleProjects = async (params: {
   projectsIds: string[] | number[];
 }): Promise<UpdateResult> => {
   return Project.createQueryBuilder('project')
-    .update<Project>(Project, { verified: params.verified })
+    .update<Project>(Project, {
+      verified: params.verified,
+      verificationStatus: null,
+    })
     .where('project.id IN (:...ids)')
     .setParameter('ids', params.projectsIds)
     .returning('*')
@@ -98,6 +101,7 @@ export const verifyProject = async (params: {
   if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
 
   project.verified = params.verified;
+  project.verificationStatus = null; // reset this field
   return project.save();
 };
 
