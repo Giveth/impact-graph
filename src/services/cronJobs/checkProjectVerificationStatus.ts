@@ -97,45 +97,35 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   ) {
     project.verificationStatus = RevokeSteps.Revoked;
     project.verified = false;
-  }
-
-  // Projects that already expired verification are given a last chance
-  // for this feature
-  if (
+  } else if (
+    // Projects that already expired verification are given a last chance
+    // for this feature
     project.projectUpdate.createdAt <= maxDaysForSendingUpdateLastWarning &&
     project.verificationStatus === null
   ) {
     project.verificationStatus = RevokeSteps.UpForRevoking;
-  }
-
-  // Projects that had the last chance and failed to add an update are revoked
-  if (
+  } else if (
+    // Projects that had the last chance and failed to add an update are revoked
     project.projectUpdate.createdAt <= maxDaysForRevokingBadge &&
     project.verificationStatus === RevokeSteps.LastChance
   ) {
     project.verificationStatus = RevokeSteps.Revoked;
     project.verified = false;
-  }
-
-  // projects that were warned are not sent a last chance warning
-  if (
+  } else if (
+    // projects that were warned are sent a last chance warning
     project.projectUpdate.createdAt <= maxDaysForSendingUpdateLastWarning &&
     project.projectUpdate.createdAt > maxDaysForRevokingBadge &&
     project.verificationStatus === RevokeSteps.Warning
   ) {
     project.verificationStatus = RevokeSteps.LastChance;
-  }
-
-  // After reminder at 60/75 days
-  if (
+  } else if (
+    // After reminder at 60/75 days
     project.projectUpdate.createdAt <= maxDaysForSendingUpdateWarning &&
     project.projectUpdate.createdAt > maxDaysForSendingUpdateLastWarning
   ) {
     project.verificationStatus = RevokeSteps.Warning;
-  }
-
-  // First email for reminding to add an update
-  if (
+  } else if (
+    // First email for reminding to add an update
     project.projectUpdate.createdAt <= maxDaysForSendingUpdateReminder &&
     project.projectUpdate.createdAt > maxDaysForSendingUpdateWarning
   ) {
