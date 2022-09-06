@@ -124,7 +124,7 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
       2,
       0,
-      user2.id + 1,
+      user3.id + 1,
     );
     // There are lots of users that dont have power
     assert.isNotEmpty(usersWithoutPowerSync);
@@ -155,7 +155,7 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
       2,
       0,
-      user2.id + 1,
+      user3.id + 1,
     );
 
     // usersWithoutPowerSync should include user1
