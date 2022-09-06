@@ -77,10 +77,11 @@ export enum OrderField {
   AcceptGiv = 'givingBlocksId',
 }
 
-export enum RevokeStep {
+export enum RevokeSteps {
   Reminder = 'reminder',
   Warning = 'warning',
   LastChance = 'lastChance',
+  UpForRevoking = 'upForRevoking', // exceeded last chance and revoked dates case
   Revoked = 'revoked',
 }
 
@@ -195,7 +196,7 @@ class Project extends BaseEntity {
   verified: boolean;
 
   @Field(type => String)
-  @Column({ default: null, nullable: true })
+  @Column('text', { nullable: true })
   verificationStatus?: string | null;
 
   @Field(type => Boolean, { nullable: true })
@@ -290,6 +291,10 @@ class Project extends BaseEntity {
   // Virtual attribute to subquery result into
   @Field(type => Int, { nullable: true })
   prevStatusId?: number;
+
+  // Virtual attribute for projectUpdate
+  @Field(type => ProjectUpdate, { nullable: true })
+  projectUpdate?: any;
 
   // User reaction to the project
   @Field(type => Reaction, { nullable: true })

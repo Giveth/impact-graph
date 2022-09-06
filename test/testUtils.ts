@@ -127,7 +127,8 @@ export interface CreateProjectData {
   totalProjectUpdates?: number;
   givingBlocksId?: string;
   traceCampaignId?: string;
-  projectUpdateCreationDate: Date;
+  projectUpdateCreationDate?: Date;
+  verificationStatus?: string;
   image?: string;
 }
 
@@ -215,7 +216,8 @@ export const saveProjectDirectlyToDb = async (
   // default projectUpdate for liking projects
   // this was breaking updateAt tests as it was running update hooks sometime in the future.
   // Found no other way to avoid triggering the hooks.
-  const projectUpdateCreatedAt = projectData.projectUpdateCreationDate;
+  const projectUpdateCreatedAt =
+    projectData.projectUpdateCreationDate || new Date();
   await ProjectUpdate.query(`
     INSERT INTO public.project_update (
       "userId","projectId",content,title,"createdAt","isMain"
