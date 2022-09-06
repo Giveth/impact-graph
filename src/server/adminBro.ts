@@ -972,6 +972,24 @@ const getAdminBroInstance = async () => {
             qualityScore: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
+            verified: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: true,
+                new: false,
+              },
+            },
+            verificationStatus: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: true,
+                new: false,
+              },
+            },
             totalDonations: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },

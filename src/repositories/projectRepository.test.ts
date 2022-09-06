@@ -1,6 +1,7 @@
 import {
   findProjectBySlug,
   findProjectByWalletAddress,
+  projectsWithoutUpdateAfterTimeFrame,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
@@ -16,15 +17,60 @@ import { findProjectById } from './projectRepository';
 import { createProjectVerificationForm } from './projectVerificationRepository';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { NETWORK_IDS } from '../provider';
+import moment from 'moment';
 
 describe(
   'findProjectByWalletAddress test cases',
   findProjectByWalletAddressTestCases,
 );
+
+describe(
+  'projectsWithoutUpdateAfterTimeFrame Test Cases',
+  projectsWithoutUpdateAfterTimeFrameTestCases,
+);
 describe(
   'updateProjectWithVerificationForm test cases',
   updateProjectWithVerificationFormTestCases,
 );
+
+function projectsWithoutUpdateAfterTimeFrameTestCases() {
+  it('should return projects created a long time ago', async () => {
+    const superExpiredProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      projectUpdateCreationDate: moment()
+        .subtract(1000, 'days')
+        .endOf('day')
+        .toDate(),
+    });
+
+    const nonExpiredProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      projectUpdateCreationDate: moment()
+        .subtract(900, 'days')
+        .endOf('day')
+        .toDate(),
+    });
+
+    const projects = await projectsWithoutUpdateAfterTimeFrame(
+      moment().subtract(999, 'days').toDate(),
+    );
+
+    assert.isOk(projects);
+    assert.isOk(
+      projects.find(project => project.id === superExpiredProject.id),
+    );
+    assert.isNotOk(
+      projects.find(project => project.id === nonExpiredProject.id),
+    );
+  });
+}
+
 describe('verifyProject test cases', verifyProjectTestCases);
 describe('verifyMultipleProjects test cases', verifyMultipleProjectsTestCases);
 describe('findProjectById test cases', () => {

@@ -125,6 +125,7 @@
     "test:socialProfileRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/socialProfileRepository.test.ts",
     "test:projectVerificationRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectVerificationRepository.test.ts",
     "test:notifyDonationsWithSegment": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/cronJobs/notifyDonationsWithSegment.test.ts",
+    "test:checkProjectVerificationStatus": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/cronJobs/checkProjectVerificationStatus.test.ts",
     "test:statusReasonResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/statusReasonResolver.test.ts",
     "test:uploadResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/uploadResolver.test.ts",
     "test:traceImageUpload": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/traceImageUpload.test.ts",

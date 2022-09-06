@@ -77,6 +77,14 @@ export enum OrderField {
   AcceptGiv = 'givingBlocksId',
 }
 
+export enum RevokeSteps {
+  Reminder = 'reminder',
+  Warning = 'warning',
+  LastChance = 'lastChance',
+  UpForRevoking = 'upForRevoking', // exceeded last chance and revoked dates case
+  Revoked = 'revoked',
+}
+
 @Entity()
 @ObjectType()
 class Project extends BaseEntity {
@@ -187,6 +195,10 @@ class Project extends BaseEntity {
   @Column()
   verified: boolean;
 
+  @Field(type => String)
+  @Column('text', { nullable: true })
+  verificationStatus?: string | null;
+
   @Field(type => Boolean, { nullable: true })
   @Column({ default: false })
   isImported: boolean;
@@ -280,6 +292,10 @@ class Project extends BaseEntity {
   @Field(type => Int, { nullable: true })
   prevStatusId?: number;
 
+  // Virtual attribute for projectUpdate
+  @Field(type => ProjectUpdate, { nullable: true })
+  projectUpdate?: any;
+
   // User reaction to the project
   @Field(type => Reaction, { nullable: true })
   reaction?: Reaction;
@@ -319,12 +335,16 @@ class Project extends BaseEntity {
     project: Project;
     reasonId?: number;
     description?: string;
-    userId: number;
+    userId?: number;
   }) {
     const { project, status, prevStatus, description, reasonId, userId } =
       inputData;
     let reason;
-    const user = await findUserById(userId);
+    let user;
+
+    if (userId) {
+      user = await findUserById(userId);
+    }
 
     if (reasonId) {
       reason = await ProjectStatusReason.findOne({ id: reasonId, status });
