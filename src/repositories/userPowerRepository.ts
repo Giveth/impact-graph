@@ -27,15 +27,15 @@ export const insertNewUserPowers = async ({
   return UserPower.save(newEntities);
 };
 
-export const findUsersThatDidntSyncTheirPower = (
+export const findUsersThatDidntSyncTheirPower = async (
   givbackRound: number,
   skip: number = 0,
   take: number = 50,
 ): Promise<[User[], number]> => {
-  // left outer join
   return (
     User.createQueryBuilder('user')
       // exclude other rounds by joining specified round
+      .innerJoin('user.powerBoostings', 'powerBoostings')
       .leftJoinAndSelect(
         'user.userPowers',
         'userPowers',
