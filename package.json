@@ -138,6 +138,7 @@
     "test:projectVerificationResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/projectVerificationFormResolver.test.ts",
     "test:givPowerSubgraphAdapter": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/adapters/givpowerSubgraph/givPowerSubgraphAdapter.test.ts",
     "test:projectRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectRepository.test.ts",
+    "test:syncUserPowers": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/cronJobs/syncUserPowers.test.ts",
     "test:powerBoostingRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerBoostingRepository.test.ts",
     "test:userPowerRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userPowerRepository.test.ts",
     "test:powerBoostingResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/powerBoostingResolver.test.ts",
