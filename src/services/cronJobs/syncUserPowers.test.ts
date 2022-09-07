@@ -2,6 +2,7 @@ import {
   addSyncUserPowerJobsToQueue,
   getPreviousGivbackRoundInfo,
   processSyncUserPowerJobs,
+  runSyncUserPowersCronJob,
 } from './syncUserPowers';
 import {
   generateRandomEtheriumAddress,
@@ -13,6 +14,7 @@ import {
   findUsersThatDidntSyncTheirPower,
 } from '../../repositories/userPowerRepository';
 import { assert } from 'chai';
+import { logger } from '../../utils/logger';
 
 describe(
   'runSyncUserPowersCronJob() test cases',
@@ -36,7 +38,7 @@ function runSyncUserPowersCronJobTestCases() {
     await addSyncUserPowerJobsToQueue();
 
     // make sure queue runs all the job
-    await sleep(3000);
+    await sleep(10000);
 
     const userPowerAfterRunningJob = await findUserPowerByUserIdAndRound({
       userId: firstUser.id,
@@ -44,7 +46,20 @@ function runSyncUserPowersCronJobTestCases() {
     });
     assert.isOk(userPowerAfterRunningJob);
     assert.equal(userPowerAfterRunningJob?.givbackRound, previousGivbackRound);
-    const [_, count] = await findUsersThatDidntSyncTheirPower(
+  });
+
+  it('should Fill lots of user powers after calling addSyncUserPowerJobsToQueue', async () => {
+    for (let i = 0; i < 220; i++) {
+      await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    }
+    await addSyncUserPowerJobsToQueue();
+
+    // make sure queue runs all the job
+    await sleep(2000);
+
+    const { previousGivbackRound } = getPreviousGivbackRoundInfo();
+
+    const [users, count] = await findUsersThatDidntSyncTheirPower(
       previousGivbackRound,
     );
     assert.equal(

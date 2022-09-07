@@ -10,10 +10,14 @@ import {
 } from '../../repositories/userPowerRepository';
 
 import { User } from '../../entities/user';
+import { length } from 'class-validator';
 
-const syncUserPowersQueue = new Bull('verify-donations-queue', {
-  redis: redisConfig,
-});
+const syncUserPowersQueue = new Bull<SyncUserPowersJobData>(
+  'verify-userPower-queue',
+  {
+    redis: redisConfig,
+  },
+);
 const TWO_MINUTES = 1000 * 60 * 2;
 setInterval(async () => {
   const syncUserPowersQueueCount = await syncUserPowersQueue.count();
@@ -84,10 +88,12 @@ export async function addSyncUserPowerJobsToQueue() {
       previousGivbackRound,
       totalFetched,
     );
+    totalFetched += users.length;
     logger.info('addSyncUserPowerJobsToQueue ', {
-      users,
       count,
+      totalFetched,
       previousGivbackRound,
+      usersLength: users.length,
     });
 
     syncUserPowersQueue.add({
@@ -96,8 +102,6 @@ export async function addSyncUserPowerJobsToQueue() {
       toTimestamp,
       givbackRound: previousGivbackRound,
     });
-
-    totalFetched += users.length;
   } while (totalFetched < count);
 }
 
@@ -113,7 +117,7 @@ export function processSyncUserPowerJobs() {
           await getGivPowerSubgraphAdapter().getUserPowerInTimeRange({
             fromTimestamp,
             toTimestamp,
-            walletAddresses: users.map(user => user.walletAddress),
+            walletAddresses: users.map(user => user.walletAddress as string),
           });
 
         await insertNewUserPowers({
@@ -123,6 +127,7 @@ export function processSyncUserPowerJobs() {
           givbackRound,
           users,
         });
+        logger.debug('inserting userPowers...', users.length);
       } catch (e) {
         logger.error('processSyncUserPowerJobs >> synUserPower error', e);
       } finally {
@@ -130,4 +135,11 @@ export function processSyncUserPowerJobs() {
       }
     },
   );
+}
+
+interface SyncUserPowersJobData {
+  users: User[];
+  fromTimestamp: number;
+  toTimestamp: number;
+  givbackRound: number;
 }
