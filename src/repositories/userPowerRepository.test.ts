@@ -135,7 +135,7 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     // usersWithoutPowerSync should not include user1
     assert.isNotOk(usersWithoutPowerSync.find(user => user.id === user1.id));
   });
-  it('should return users without a boosted any project', async () => {
+  it('should not return users without any boosted project', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
