@@ -52,7 +52,7 @@ const givPowerMockAdapter = new GivPowerSubgraphMock();
 
 export const getGivPowerSubgraphAdapter = () => {
   switch (process.env.GIV_POWER_SUBGRAPH_ADAPTER) {
-    case 'giwPower':
+    case 'givPower':
       return givPowerSubgraphAdapter;
     case 'mock':
       return givPowerMockAdapter;

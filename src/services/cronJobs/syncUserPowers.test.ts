@@ -49,7 +49,7 @@ function runSyncUserPowersCronJobTestCases() {
     await addSyncUserPowerJobsToQueue();
 
     // make sure queue runs all the job
-    await sleep(10000);
+    await sleep(2000);
 
     const userPowerAfterRunningJob = await findUserPowerByUserIdAndRound({
       userId: firstUser.id,
