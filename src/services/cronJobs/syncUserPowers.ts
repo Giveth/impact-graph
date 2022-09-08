@@ -82,7 +82,7 @@ export async function addSyncUserPowerJobsToQueue() {
   let totalFetched = 0;
   let users: User[] = [];
   let count = 0;
-
+  const jobDatas: SyncUserPowersJobData[] = [];
   do {
     [users, count] = await findUsersThatDidntSyncTheirPower(
       previousGivbackRound,
@@ -95,14 +95,16 @@ export async function addSyncUserPowerJobsToQueue() {
       previousGivbackRound,
       usersLength: users.length,
     });
-
-    syncUserPowersQueue.add({
+    jobDatas.push({
       users,
       fromTimestamp,
       toTimestamp,
       givbackRound: previousGivbackRound,
     });
   } while (totalFetched < count);
+  jobDatas.forEach(jobData => {
+    syncUserPowersQueue.add(jobData);
+  });
 }
 
 export function processSyncUserPowerJobs() {
