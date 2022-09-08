@@ -1,5 +1,10 @@
 import { GivPowerSubgraphAdapter } from './givPowerSubgraphAdapter';
 import { assert } from 'chai';
+import {
+  generateRandomEtheriumAddress,
+  saveProjectDirectlyToDb,
+  saveUserDirectlyToDb,
+} from '../../../test/testUtils';
 
 describe(
   'getUserPowerInTimeRange() test cases',
@@ -34,5 +39,22 @@ function getUserPowerInTimeRangeTestCases() {
     assert.deepEqual(average, {
       '0x5f672d71399d8cdba64f596394b4f4381247e025': 0,
     });
+  });
+
+  it('should get result of 50 addresses at same time', async () => {
+    const walletAddresses: string[] = [];
+    for (let i = 0; i < 50; i++) {
+      const walletAddress = generateRandomEtheriumAddress();
+      await saveUserDirectlyToDb(walletAddress);
+      walletAddresses.push(walletAddress);
+    }
+    const averages = await givPowerSubgraphAdapter.getUserPowerInTimeRange({
+      walletAddresses,
+      fromTimestamp: 1660302770,
+      toTimestamp: 1660038050,
+    });
+    walletAddresses.forEach(walletAddress =>
+      assert.exists(averages[walletAddress]),
+    );
   });
 }

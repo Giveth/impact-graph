@@ -8,16 +8,16 @@ import {
   findUsersThatDidntSyncTheirPower,
   insertNewUserPowers,
 } from '../../repositories/userPowerRepository';
-import {
-  findUserById,
-  findUserByWalletAddress,
-} from '../../repositories/userRepository';
-import { errorMessages } from '../../utils/errorMessages';
-import { User } from '../../entities/user';
 
-const syncUserPowersQueue = new Bull('verify-donations-queue', {
-  redis: redisConfig,
-});
+import { User } from '../../entities/user';
+import { length } from 'class-validator';
+
+const syncUserPowersQueue = new Bull<SyncUserPowersJobData>(
+  'verify-userPower-queue',
+  {
+    redis: redisConfig,
+  },
+);
 const TWO_MINUTES = 1000 * 60 * 2;
 setInterval(async () => {
   const syncUserPowersQueueCount = await syncUserPowersQueue.count();
@@ -46,7 +46,11 @@ export const runSyncUserPowersCronJob = () => {
   });
 };
 
-async function addSyncUserPowerJobsToQueue() {
+export const getPreviousGivbackRoundInfo = (): {
+  previousGivbackRound: number;
+  fromTimestamp: number;
+  toTimestamp: number;
+} => {
   const firstGivbackRoundTimeStamp = Number(
     process.env.FIRST_GIVBACK_ROUND_TIME_STAMP,
   );
@@ -59,11 +63,21 @@ async function addSyncUserPowerJobsToQueue() {
     (now - firstGivbackRoundTimeStamp) / givbackRoundLength,
   );
 
-  const fromTimeStamp =
+  const fromTimestamp =
     (previousGivbackRound - 1) * givbackRoundLength +
     firstGivbackRoundTimeStamp;
-  const toTimeStamp =
+  const toTimestamp =
     previousGivbackRound * givbackRoundLength + firstGivbackRoundTimeStamp;
+  return {
+    previousGivbackRound,
+    fromTimestamp,
+    toTimestamp,
+  };
+};
+
+export async function addSyncUserPowerJobsToQueue() {
+  const { previousGivbackRound, fromTimestamp, toTimestamp } =
+    getPreviousGivbackRoundInfo();
 
   let totalFetched = 0;
   let users: User[] = [];
@@ -74,19 +88,24 @@ async function addSyncUserPowerJobsToQueue() {
       previousGivbackRound,
       totalFetched,
     );
+    totalFetched += users.length;
+    logger.info('addSyncUserPowerJobsToQueue ', {
+      count,
+      totalFetched,
+      previousGivbackRound,
+      usersLength: users.length,
+    });
 
     syncUserPowersQueue.add({
       users,
-      fromTimeStamp,
-      toTimeStamp,
+      fromTimestamp,
+      toTimestamp,
       givbackRound: previousGivbackRound,
     });
-
-    totalFetched += users.length;
   } while (totalFetched < count);
 }
 
-function processSyncUserPowerJobs() {
+export function processSyncUserPowerJobs() {
   logger.debug('processSyncUserPowerJobs() has been called');
   syncUserPowersQueue.process(
     numberOfSyncUserPowersConcurrentJob,
@@ -98,15 +117,17 @@ function processSyncUserPowerJobs() {
           await getGivPowerSubgraphAdapter().getUserPowerInTimeRange({
             fromTimestamp,
             toTimestamp,
-            walletAddresses: users.map(user => user.walletAddress),
+            walletAddresses: users.map(user => user.walletAddress as string),
           });
+
         await insertNewUserPowers({
-          fromTimestamp: new Date(fromTimestamp),
-          toTimestamp: new Date(fromTimestamp),
+          fromTimestamp: new Date(fromTimestamp * 1000),
+          toTimestamp: new Date(toTimestamp * 1000),
           averagePowers,
           givbackRound,
           users,
         });
+        logger.debug('inserting userPowers...', users.length);
       } catch (e) {
         logger.error('processSyncUserPowerJobs >> synUserPower error', e);
       } finally {
@@ -114,4 +135,11 @@ function processSyncUserPowerJobs() {
       }
     },
   );
+}
+
+interface SyncUserPowersJobData {
+  users: User[];
+  fromTimestamp: number;
+  toTimestamp: number;
+  givbackRound: number;
 }

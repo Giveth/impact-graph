@@ -51,3 +51,18 @@ export const findUsersThatDidntSyncTheirPower = async (
   );
   // Return users that dont have any userPower with specified givbackRound
 };
+
+export const findUserPowerByUserIdAndRound = (params: {
+  userId: number;
+  givbackRound: number;
+}): Promise<UserPower | undefined> => {
+  const { userId, givbackRound } = params;
+  return UserPower.createQueryBuilder('user_power')
+    .where('"userId" = :userId', {
+      userId,
+    })
+    .andWhere('"givbackRound" = :givbackRound', {
+      givbackRound,
+    })
+    .getOne();
+};
