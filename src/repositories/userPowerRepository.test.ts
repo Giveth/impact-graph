@@ -5,12 +5,12 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { User } from '../entities/user';
 import {
   findUsersThatDidntSyncTheirPower,
   insertNewUserPowers,
 } from './userPowerRepository';
 import { insertSinglePowerBoosting } from './powerBoostingRepository';
+import { UserPower } from '../entities/userPower';
 
 describe(
   'findUsersThatDidntSyncTheirPowerTestCases -->',
@@ -18,6 +18,45 @@ describe(
 );
 
 function findUsersThatDidntSyncTheirPowerTestCases() {
+  it('should save userPower correctly', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const userPowerGivbackRound2 = await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound: 2,
+      users: [user1],
+      averagePowers: { [user1.walletAddress as string]: 9999.9999 },
+    });
+
+    // power for user 2
+    const user2PowerGivbackRound2 = await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound: 2,
+      users: [user2],
+      averagePowers: { [user2.walletAddress as string]: 10 },
+    });
+
+    const user1Powers = await UserPower.find({
+      where: {
+        userId: user1.id,
+      },
+      select: ['userId', 'power', 'givbackRound'],
+    });
+    const user2Powers = await UserPower.find({
+      where: {
+        userId: user2.id,
+      },
+      select: ['userId', 'power', 'givbackRound'],
+    });
+
+    assert.lengthOf(user1Powers, 1);
+    assert.lengthOf(user2Powers, 1);
+    assert.equal(user1Powers[0].power, 9999.9999);
+    assert.equal(user2Powers[0].power, 10);
+  });
   it('should return users without a specific givbackround power sync', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

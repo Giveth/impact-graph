@@ -9,7 +9,7 @@ import {
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, Float, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { Max, Min, IsNumber } from 'class-validator';
@@ -49,7 +49,7 @@ export class PowerBoosting extends BaseEntity {
   @Column({ nullable: false })
   userId: number;
 
-  @Field()
+  @Field(type => Float)
   @Column('numeric', {
     precision: 5, // 100.00
     scale: 2,
