@@ -13,7 +13,7 @@ export class GivPowerSubgraphMock implements GivPowerSubgraphInterface {
     });
 
     // To simulate real adapter condition
-    await sleep(200);
+    await sleep(500);
     return Promise.resolve(result);
   }
 }
