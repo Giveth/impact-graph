@@ -13,6 +13,10 @@ ImpactQL is a GraphQL server, that enables rapid development of serverless impac
 ```
 git clone git@github.com:topiahq/impact-graph.git
 cd impact-graph
+
+// we specief version in .nvmrc file, so when you just enter nvm use it will use exact version of required npm 
+nvm use
+
 // You should have installed chromium on your system, it can be installed by your or package maneger (apt,brew, ..)
 npm i
 // If you had problem on npm install, you can see https://stackoverflow.com/a/66044814/9372962 (Mac os users)

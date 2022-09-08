@@ -1,0 +1,27 @@
+diff --git a/node_modules/admin-bro/src/admin-bro.ts b/node_modules/admin-bro/src/admin-bro.ts
+index 5fa6ff3..46d8e5c 100644
+--- a/node_modules/admin-bro/src/admin-bro.ts
++++ b/node_modules/admin-bro/src/admin-bro.ts
+@@ -1,3 +1,4 @@
++// @ts-nocheck
+ import * as _ from 'lodash'
+ import * as path from 'path'
+ import * as fs from 'fs'
+diff --git a/node_modules/admin-bro/src/backend/bundler/generate-user-component-entry.ts b/node_modules/admin-bro/src/backend/bundler/generate-user-component-entry.ts
+index cfe5cfc..2323373 100644
+--- a/node_modules/admin-bro/src/backend/bundler/generate-user-component-entry.ts
++++ b/node_modules/admin-bro/src/backend/bundler/generate-user-component-entry.ts
+@@ -1,3 +1,4 @@
++// @ts-nocheck
+ import * as path from 'path'
+ import slash from 'slash'
+ 
+diff --git a/node_modules/admin-bro/src/frontend/components/login/index.tsx b/node_modules/admin-bro/src/frontend/components/login/index.tsx
+index 82bb26a..6ca42fa 100644
+--- a/node_modules/admin-bro/src/frontend/components/login/index.tsx
++++ b/node_modules/admin-bro/src/frontend/components/login/index.tsx
+@@ -1,3 +1,4 @@
++// @ts-nocheck
+ import React from 'react'
+ import styled, { createGlobalStyle } from 'styled-components'
+ 

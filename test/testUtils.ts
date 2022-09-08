@@ -24,6 +24,7 @@ import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
 } from '../src/entities/projectVerificationForm';
+import { MainCategory } from '../src/entities/mainCategory';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -127,6 +128,8 @@ export interface CreateProjectData {
   totalProjectUpdates?: number;
   givingBlocksId?: string;
   traceCampaignId?: string;
+  projectUpdateCreationDate?: Date;
+  verificationStatus?: string;
   image?: string;
 }
 
@@ -214,12 +217,14 @@ export const saveProjectDirectlyToDb = async (
   // default projectUpdate for liking projects
   // this was breaking updateAt tests as it was running update hooks sometime in the future.
   // Found no other way to avoid triggering the hooks.
+  const projectUpdateCreatedAt =
+    projectData.projectUpdateCreationDate || new Date();
   await ProjectUpdate.query(`
     INSERT INTO public.project_update (
       "userId","projectId",content,title,"createdAt","isMain"
     ) VALUES (
       ${user.id}, ${project.id}, '', '', '${
-    new Date().toISOString().split('T')[0]
+    projectUpdateCreatedAt.toISOString().split('T')[0]
   }', true
     )`);
   return project;
@@ -246,6 +251,7 @@ export const createProjectData = (): CreateProjectData => {
     totalDonations: 10,
     totalReactions: 0,
     totalProjectUpdates: 1,
+    projectUpdateCreationDate: new Date(),
   };
 };
 export const createDonationData = (params?: {
@@ -1500,6 +1506,23 @@ export interface CreateDonationData {
   status?: string;
 }
 
+export interface CategoryData {
+  id?: number;
+  value: string;
+  name: string;
+  isActive: boolean;
+  mainCategory: MainCategory;
+  source?: string;
+}
+
+export interface MainCategoryData {
+  id?: number;
+  banner: string;
+  description: string;
+  slug: string;
+  title: string;
+}
+
 export const saveDonationDirectlyToDb = async (
   donationData: CreateDonationData,
   userId: number,
@@ -1515,6 +1538,18 @@ export const saveDonationDirectlyToDb = async (
     ...donationData,
     user,
     project,
+  }).save();
+};
+
+export const saveCategoryDirectlyToDb = async (categoryData: CategoryData) => {
+  return Category.create(categoryData).save();
+};
+
+export const saveMainCategoryDirectlyToDb = async (
+  mainCategoryData: MainCategoryData,
+) => {
+  return MainCategory.create({
+    ...mainCategoryData,
   }).save();
 };
 

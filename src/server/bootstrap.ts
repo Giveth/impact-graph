@@ -19,6 +19,7 @@ import SentryLogger from '../sentryLogger';
 
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
+import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 import {
@@ -261,6 +262,10 @@ export async function bootstrap() {
     runUpdateTraceableProjectsTotalDonations();
     if (process.env.ENABLE_SYNC_USER_POWER_CRONJOB === 'true') {
       runSyncUserPowersCronJob();
+    }
+
+    if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
+      runCheckProjectVerificationStatus();
     }
 
     // If we need to deactivate the process use the env var
