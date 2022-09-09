@@ -321,7 +321,7 @@ export class ProjectResolver {
 
   static similarProjectsBaseQuery(
     userId?: number,
-    currentProject?: Project,
+    currentProject?: Project | null,
   ): SelectQueryBuilder<Project> {
     const query = Project.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
@@ -842,11 +842,13 @@ export class ProjectResolver {
 
     const categoriesPromise = newProjectData.categories.map(async category => {
       const [c] = await this.categoryRepository.find({
-        name: category,
+        where: {
+          name: category,
 
-        // TODO if we check the isActive for categories when updating the project, we would face error when updating givingBlocks and change projects
-        // As those categories are not active , so we assuem frontend takce care of not showing non-active categories in update page
-        // isActive: true,
+          // TODO if we check the isActive for categories when updating the project, we would face error when updating givingBlocks and change projects
+          // As those categories are not active , so we assuem frontend takce care of not showing non-active categories in update page
+          // isActive: true,
+        },
       });
       if (c === undefined) {
         throw new Error(
@@ -864,9 +866,7 @@ export class ProjectResolver {
     }
     project.categories = categories;
 
-    const heartCount = await Reaction.count({
-      projectId,
-    });
+    const heartCount = await Reaction.count({ where: { projectId } });
 
     const qualityScore = getQualityScore(
       project.description,
@@ -988,9 +988,11 @@ export class ProjectResolver {
       projectInput.categories
         ? projectInput.categories.map(async category => {
             const [c] = await this.categoryRepository.find({
-              name: category,
-              // TODO When frontend got ready we should uncomment isActive filter
-              // isActive: true,
+              where: {
+                name: category,
+                // TODO When frontend got ready we should uncomment isActive filter
+                // isActive: true,
+              },
             });
             if (c === undefined) {
               throw new Error(
@@ -1016,16 +1018,21 @@ export class ProjectResolver {
     const slug = await getAppropriateSlug(slugBase);
 
     const status = await this.projectStatusRepository.findOne({
-      id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
+      where: {
+        id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
+      },
     });
 
     const organization = await Organization.findOne({
-      label: ORGANIZATION_LABELS.GIVETH,
+      where: {
+        label: ORGANIZATION_LABELS.GIVETH,
+      },
     });
     const now = new Date();
-    const project = this.projectRepository.create({
+    const [project] = this.projectRepository.create({
       ...projectInput,
-      categories,
+
+      categories: categories as Category[],
       organization,
       image,
       creationDate: now,
@@ -1122,7 +1129,7 @@ export class ProjectResolver {
 
     if (!owner) throw new Error(errorMessages.USER_NOT_FOUND);
 
-    const project = await Project.findOne({ id: projectId });
+    const project = await Project.findOne({ where: { id: projectId } });
 
     if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
     if (project.admin !== String(user.userId))
@@ -1202,10 +1209,10 @@ export class ProjectResolver {
   ): Promise<ProjectUpdate> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
-    const update = await ProjectUpdate.findOne({ id: updateId });
+    const update = await ProjectUpdate.findOne({ where: { id: updateId } });
     if (!update) throw new Error('Project Update not found.');
 
-    const project = await Project.findOne({ id: update.projectId });
+    const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project) throw new Error('Project not found');
     if (project.admin !== String(user.userId))
       throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
@@ -1223,10 +1230,10 @@ export class ProjectResolver {
   ): Promise<Boolean> {
     if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
 
-    const update = await ProjectUpdate.findOne({ id: updateId });
+    const update = await ProjectUpdate.findOne({ where: { id: updateId } });
     if (!update) throw new Error('Project Update not found.');
 
-    const project = await Project.findOne({ id: update.projectId });
+    const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project) throw new Error('Project not found');
     if (project.admin !== String(user.userId))
       throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
@@ -1568,7 +1575,7 @@ export class ProjectResolver {
     }
 
     project.mayUpdateStatus(user);
-    const status = await ProjectStatus.findOne({ id: statusId });
+    const status = await ProjectStatus.findOne({ where: { id: statusId } });
     if (!status) {
       throw new Error(errorMessages.PROJECT_STATUS_NOT_FOUND);
     }

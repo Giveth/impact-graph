@@ -13,7 +13,7 @@ import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
 import { graphqlUploadExpress } from 'graphql-upload';
-import { Resource } from '@admin-bro/typeorm';
+import { Resource } from '@adminjs/typeorm';
 import { validate } from 'class-validator';
 import SentryLogger from '../sentryLogger';
 

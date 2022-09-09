@@ -15,7 +15,7 @@ const analytics = getAnalytics();
 class ProjectTracker {
   project: Project;
   eventName: NOTIFICATIONS_EVENT_NAMES;
-  projectOwner?: User;
+  projectOwner?: User | null;
 
   constructor(projectToUpdate: Project, eventTitle: NOTIFICATIONS_EVENT_NAMES) {
     this.project = projectToUpdate;

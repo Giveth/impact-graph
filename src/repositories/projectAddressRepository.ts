@@ -58,7 +58,7 @@ export const findAllRelatedAddressByWalletAddress = async (
 export const findProjectRecipientAddressByNetworkId = async (params: {
   projectId: number;
   networkId: number;
-}): Promise<ProjectAddress | undefined> => {
+}): Promise<ProjectAddress | null> => {
   const { projectId, networkId } = params;
   return ProjectAddress.createQueryBuilder('projectAddress')
     .where(`"projectId" = :projectId`, {

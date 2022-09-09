@@ -5,6 +5,7 @@ import { errorMessages } from '../errorMessages';
 import { logger } from '../logger';
 import { findRelatedAddressByWalletAddress } from '../../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
+import { findProjectById } from '../../repositories/projectRepository';
 
 export function isWalletAddressValid(address) {
   return Boolean(
@@ -55,7 +56,7 @@ export const validateProjectTitleForEdit = async (
   title: string,
   projectId: number,
 ) => {
-  const project = await Project.findOne(projectId);
+  const project = await findProjectById(projectId);
   if (
     getSimilarTitleInProjectsRegex(project?.title as string).test(
       title.replace(titleReplacerRegex, ''),
@@ -124,7 +125,10 @@ function isSmartContract(provider) {
   };
 }
 
-export const canUserVisitProject = (project?: Project, userId?: string) => {
+export const canUserVisitProject = (
+  project?: Project | null,
+  userId?: string,
+) => {
   if (!project) {
     throw new Error(errorMessages.PROJECT_NOT_FOUND);
   }

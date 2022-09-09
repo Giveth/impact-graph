@@ -347,10 +347,14 @@ class Project extends BaseEntity {
     }
 
     if (reasonId) {
-      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+      reason = await ProjectStatusReason.findOne({
+        where: { id: reasonId, status },
+      });
     }
     if (reasonId) {
-      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+      reason = await ProjectStatusReason.findOne({
+        where: { id: reasonId, status },
+      });
     }
 
     await ProjectStatusHistory.create({
