@@ -9,7 +9,11 @@ export enum SegmentEvents {
   PROJECT_EDITED = 'Project edited',
   PROJECT_BADGE_REVOKED = 'Project badge revoked',
   PROJECT_VERIFIED = 'Project verified',
-  PROJECT_REJECTED = 'Project rejected',
+
+  // We dont have journey for "Project rejected" in autopilot so temporarily we send "Project unverified" event
+  // https://github.com/Giveth/impact-graph/issues/624#issuecomment-1240364389
+  PROJECT_REJECTED = 'Project unverified',
+
   PROJECT_UNVERIFIED = 'Project unverified',
   PROJECT_ACTIVATED = 'Project activated',
   PROJECT_DEACTIVATED = 'Project deactivated',
