@@ -1,7 +1,7 @@
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { getConnection } from 'typeorm';
 
-export const getProjectPowers = async (
+export const getUserProjectPowers = async (
   projectId: number,
   take: number = 50,
   skip: number = 0,

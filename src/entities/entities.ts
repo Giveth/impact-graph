@@ -22,6 +22,7 @@ import { MainCategory } from './mainCategory';
 import { PowerBoosting } from './powerBoosting';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { PowerRound } from './powerRound';
+import { ProjectPowerView } from '../views/projectPowerView';
 
 export const entities: any = [
   Organization,
@@ -52,4 +53,5 @@ export const entities: any = [
 
   // View
   UserProjectPowerView,
+  ProjectPowerView,
 ];

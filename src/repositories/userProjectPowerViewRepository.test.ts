@@ -9,9 +9,9 @@ import { insertSinglePowerBoosting } from './powerBoostingRepository';
 import { insertNewUserPowers } from './userPowerRepository';
 import { setPowerRound } from './powerRoundRepository';
 import {
-  getProjectPowers,
+  getUserProjectPowers,
   refreshUserProjectPowerView,
-} from './userProjectPowerView';
+} from './userProjectPowerViewRepository';
 
 describe('userProjectPowerViewRepository test', () => {
   it('should not be filled till refresh', async () => {
@@ -32,12 +32,12 @@ describe('userProjectPowerViewRepository test', () => {
     });
     await setPowerRound(2);
 
-    let projectPowers = await getProjectPowers(project.id);
+    let projectPowers = await getUserProjectPowers(project.id);
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, 0);
 
     await refreshUserProjectPowerView();
-    projectPowers = await getProjectPowers(project.id);
+    projectPowers = await getUserProjectPowers(project.id);
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, 1);
   });
@@ -72,7 +72,7 @@ describe('userProjectPowerViewRepository test', () => {
     await setPowerRound(2);
 
     await refreshUserProjectPowerView();
-    const projectPowers = await getProjectPowers(project1.id);
+    const projectPowers = await getUserProjectPowers(project1.id);
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, 2);
 
@@ -118,7 +118,7 @@ describe('userProjectPowerViewRepository test', () => {
     await setPowerRound(1);
     await refreshUserProjectPowerView();
 
-    let projectPowers = await getProjectPowers(project1.id);
+    let projectPowers = await getUserProjectPowers(project1.id);
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, 1);
 
@@ -130,7 +130,7 @@ describe('userProjectPowerViewRepository test', () => {
     await setPowerRound(2);
     await refreshUserProjectPowerView();
 
-    projectPowers = await getProjectPowers(project1.id);
+    projectPowers = await getUserProjectPowers(project1.id);
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, 1);
 
@@ -162,7 +162,7 @@ describe('userProjectPowerViewRepository test', () => {
     await setPowerRound(1);
     await refreshUserProjectPowerView();
 
-    let projectPowers = await getProjectPowers(project1.id);
+    let projectPowers = await getUserProjectPowers(project1.id);
     let user1power = projectPowers.find(p => p.userId === user1.id);
 
     assert.isDefined(user1power);
@@ -173,7 +173,7 @@ describe('userProjectPowerViewRepository test', () => {
 
     await refreshUserProjectPowerView();
 
-    projectPowers = await getProjectPowers(project1.id);
+    projectPowers = await getUserProjectPowers(project1.id);
     user1power = projectPowers.find(p => p.userId === user1.id);
     expect(user1power?.boostedPower).to.be.closeTo((90 * 10000) / 100, 0.00001);
   });

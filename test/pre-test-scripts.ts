@@ -23,6 +23,7 @@ import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
 import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
+import { ProjectPowerView1662915983382 } from '../migration/1662915983382-ProjectPowerView';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -280,7 +281,10 @@ async function createMaterializedViews() {
 
   try {
     const userProjectPowerView = new UserProjectPowerView1662877385339();
+    const projectPowerView = new ProjectPowerView1662915983382();
+
     await userProjectPowerView.up(queryRunner);
+    await projectPowerView.up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
