@@ -141,6 +141,8 @@
     "test:syncUserPowers": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/cronJobs/syncUserPowers.test.ts",
     "test:powerBoostingRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerBoostingRepository.test.ts",
     "test:userPowerRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userPowerRepository.test.ts",
+    "test:powerRoundRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerRoundRepository.test.ts",
+    "test:userProjectPowerRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userProjectPowerView.test.ts",
     "test:powerBoostingResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/powerBoostingResolver.test.ts",
     "test:projectAddressRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectAddressRepository.test.ts",
     "test:donationService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/donationService.test.ts",

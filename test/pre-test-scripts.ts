@@ -21,6 +21,8 @@ import {
 } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
+import { getConnection } from 'typeorm';
+import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -272,11 +274,26 @@ async function seedStatusReasons() {
   }
 }
 
+async function createMaterializedViews() {
+  const queryRunner = getConnection().createQueryRunner();
+  await queryRunner.connect();
+
+  try {
+    const userProjectPowerView = new UserProjectPowerView1662877385339();
+    await userProjectPowerView.up(queryRunner);
+  } catch (e) {
+    throw e;
+  } finally {
+    await queryRunner.release();
+  }
+}
+
 before(async () => {
   try {
     await dropDatabaseAndCreateFreshOne();
     await bootstrap();
     await seedDb();
+    await createMaterializedViews();
   } catch (e) {
     throw new Error(`Could not setup tests requirements \n${e.message}`);
   }
