@@ -15,7 +15,7 @@ export class createUserTable1662877385100 implements MigrationInterface {
           
           CREATE TABLE IF NOT EXISTS public."user"
           (
-              id integer NOT NULL DEFAULT nextval('user_id_seq'::regclass),
+              id SERIAL NOT NULL,
               role user_role_enum NOT NULL DEFAULT 'restricted'::user_role_enum,
               email character varying COLLATE pg_catalog."default",
               "firstName" character varying COLLATE pg_catalog."default",
