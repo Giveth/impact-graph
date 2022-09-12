@@ -10,7 +10,8 @@ import {
 } from '../../repositories/userPowerRepository';
 
 import { User } from '../../entities/user';
-import { length } from 'class-validator';
+import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
+import { refreshProjectPowerView } from '../../repositories/projectPowerViewRepository';
 
 const syncUserPowersQueue = new Bull<SyncUserPowersJobData>(
   'verify-userPower-queue',
@@ -129,7 +130,17 @@ export function processSyncUserPowerJobs() {
           givbackRound,
           users,
         });
-        logger.debug('inserting userPowers...', users.length);
+        const remainingJobsCount = await syncUserPowersQueue.count();
+        if (remainingJobsCount === 0) {
+          // We know there is not any sync userPower jobs , so we refresh DB views
+          await refreshUserProjectPowerView();
+          await refreshProjectPowerView();
+        }
+
+        logger.debug('inserting userPowers...', {
+          usersLength: users.length,
+          remainingJobsCount,
+        });
       } catch (e) {
         logger.error('processSyncUserPowerJobs >> synUserPower error', e);
       } finally {
