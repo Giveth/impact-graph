@@ -11,6 +11,8 @@ export class createUserTable1662877385100 implements MigrationInterface {
     }
     await queryRunner.query(
       `
+          CREATE TYPE user_role_enum AS ENUM ('reviewer', 'operator', 'restricted', 'admin');
+          
           CREATE TABLE IF NOT EXISTS public."user"
           (
               id integer NOT NULL DEFAULT nextval('user_id_seq'::regclass),
