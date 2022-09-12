@@ -73,6 +73,19 @@ export const findPowerBoostings = async (params: {
     .getManyAndCount();
 };
 
+export const findPowerBoostingsCountByUserId = async (
+  userId: number,
+): Promise<number> => {
+  const query = PowerBoosting.createQueryBuilder('powerBoosting')
+    // select some parameters of project and user not all fields
+    .leftJoinAndSelect('powerBoosting.project', 'project')
+    .leftJoin('powerBoosting.user', 'user')
+    .addSelect(publicSelectionFields)
+    .where(`percentage > 0`)
+    .andWhere(`"userId" =${userId}`);
+  return query.getCount();
+};
+
 export const insertSinglePowerBoosting = async (params: {
   user: User;
   project: Project;

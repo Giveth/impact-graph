@@ -785,6 +785,10 @@ export const userByAddress = `
       url
       location
       isSignedIn
+      boostedProjectsCount
+      likedProjectsCount
+      donationsCount
+      projectsCount
     }
   }
 `;
