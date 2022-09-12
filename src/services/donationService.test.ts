@@ -21,6 +21,8 @@ import { ORGANIZATION_LABELS } from '../entities/organization';
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { errorMessages } from '../utils/errorMessages';
+import { findDonationById } from '../repositories/donationRepository';
+import { findProjectById } from '../repositories/projectRepository';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -54,7 +56,7 @@ function sendSegmentEventForDonationTestCases() {
     await sendSegmentEventForDonation({
       donation,
     });
-    const updatedDonation = await Donation.findOne({ id: donation.id });
+    const updatedDonation = await findDonationById(donation.id);
     assert.isTrue(updatedDonation?.segmentNotified);
   });
 }
@@ -374,8 +376,10 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
 function isProjectAcceptTokenTestCases() {
   it('should return true for giveth projects accepting GIV on xdai', async () => {
     const token = await Token.findOne({
-      symbol: 'GIV',
-      networkId: NETWORK_IDS.XDAI,
+      where: {
+        symbol: 'GIV',
+        networkId: NETWORK_IDS.XDAI,
+      },
     });
     const project = await saveProjectDirectlyToDb(createProjectData());
     const result = await isTokenAcceptableForProject({
@@ -386,8 +390,10 @@ function isProjectAcceptTokenTestCases() {
   });
   it('should return true for giveth projects accepting GIV on mainnet', async () => {
     const token = await Token.findOne({
-      symbol: 'GIV',
-      networkId: NETWORK_IDS.MAIN_NET,
+      where: {
+        symbol: 'GIV',
+        networkId: NETWORK_IDS.MAIN_NET,
+      },
     });
     const project = await saveProjectDirectlyToDb(createProjectData());
     const result = await isTokenAcceptableForProject({
@@ -398,8 +404,10 @@ function isProjectAcceptTokenTestCases() {
   });
   it('should return true for giveth projects accepting WETH on xdai', async () => {
     const token = await Token.findOne({
-      symbol: 'WETH',
-      networkId: NETWORK_IDS.XDAI,
+      where: {
+        symbol: 'WETH',
+        networkId: NETWORK_IDS.XDAI,
+      },
     });
     const project = await saveProjectDirectlyToDb(createProjectData());
     const result = await isTokenAcceptableForProject({
@@ -410,8 +418,10 @@ function isProjectAcceptTokenTestCases() {
   });
   it('should return true for trace projects accepting GIV on xdai', async () => {
     const token = await Token.findOne({
-      symbol: 'GIV',
-      networkId: NETWORK_IDS.XDAI,
+      where: {
+        symbol: 'GIV',
+        networkId: NETWORK_IDS.XDAI,
+      },
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -425,8 +435,10 @@ function isProjectAcceptTokenTestCases() {
   });
   it('should return true for trace projects accepting GIV on mainnet', async () => {
     const token = await Token.findOne({
-      symbol: 'GIV',
-      networkId: NETWORK_IDS.MAIN_NET,
+      where: {
+        symbol: 'GIV',
+        networkId: NETWORK_IDS.MAIN_NET,
+      },
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -440,8 +452,10 @@ function isProjectAcceptTokenTestCases() {
   });
   it('should return true for trace projects accepting WETH on xdai', async () => {
     const token = await Token.findOne({
-      symbol: 'WETH',
-      networkId: NETWORK_IDS.XDAI,
+      where: {
+        symbol: 'WETH',
+        networkId: NETWORK_IDS.XDAI,
+      },
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -455,8 +469,10 @@ function isProjectAcceptTokenTestCases() {
   });
   it('should return true for givingBlock projects accepting ETH on mainnet', async () => {
     const token = await Token.findOne({
-      symbol: 'ETH',
-      networkId: NETWORK_IDS.MAIN_NET,
+      where: {
+        symbol: 'ETH',
+        networkId: NETWORK_IDS.MAIN_NET,
+      },
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -470,8 +486,10 @@ function isProjectAcceptTokenTestCases() {
   });
   it('should return false for givingblock projects accepting GIV on xdai', async () => {
     const token = await Token.findOne({
-      symbol: 'GIV',
-      networkId: NETWORK_IDS.XDAI,
+      where: {
+        symbol: 'GIV',
+        networkId: NETWORK_IDS.XDAI,
+      },
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -485,8 +503,10 @@ function isProjectAcceptTokenTestCases() {
   });
   it('should return false for givingblock projects accepting XDAI on xdai', async () => {
     const token = await Token.findOne({
-      symbol: 'XDAI',
-      networkId: NETWORK_IDS.XDAI,
+      where: {
+        symbol: 'XDAI',
+        networkId: NETWORK_IDS.XDAI,
+      },
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -500,8 +520,10 @@ function isProjectAcceptTokenTestCases() {
   });
   it('should return false for givingblock projects accepting GIV on mainnet', async () => {
     const token = await Token.findOne({
-      symbol: 'GIV',
-      networkId: NETWORK_IDS.MAIN_NET,
+      where: {
+        symbol: 'GIV',
+        networkId: NETWORK_IDS.MAIN_NET,
+      },
     });
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -519,9 +541,7 @@ function fillTotalDonationsOfProjectTestCases() {
   it('should not change updatedAt', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     await updateTotalDonationsOfProject(project.id);
-    const updatedProject = (await Project.findOne({
-      id: project.id,
-    })) as Project;
+    const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(
       new Date(project.updatedAt).getTime(),
       new Date(updatedProject.updatedAt).getTime(),
@@ -536,9 +556,7 @@ function fillTotalDonationsOfProjectTestCases() {
       project.id,
     );
     await updateTotalDonationsOfProject(project.id);
-    const updatedProject = (await Project.findOne({
-      id: project.id,
-    })) as Project;
+    const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(updatedProject.totalDonations, donation.valueUsd);
     assert.equal(
       new Date(updatedProject.updatedAt).getTime(),
@@ -561,7 +579,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
     );
     assert.isNotOk(donation.valueUsd);
     await updateOldStableCoinDonationsPrice();
-    const updatedDonation = await Donation.findOne(donation.id);
+    const updatedDonation = await findDonationById(donation.id);
     assert.equal(updatedDonation?.valueUsd, updatedDonation?.amount);
     assert.equal(updatedDonation?.priceUsd, 1);
   });

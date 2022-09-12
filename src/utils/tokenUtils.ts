@@ -14,8 +14,10 @@ export const findTokenByNetworkAndSymbol = async (
   isGivbackEligible: boolean;
 }> => {
   const token = await Token.findOne({
-    symbol,
-    networkId,
+    where: {
+      symbol,
+      networkId,
+    },
   });
   if (!token) {
     throw new Error(errorMessages.TOKEN_NOT_FOUND);

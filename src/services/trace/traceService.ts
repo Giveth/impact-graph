@@ -113,7 +113,9 @@ export const initHandlingTraceCampaignUpdateEvents = () => {
       }
       if (statusId) {
         const projectStatus = (await ProjectStatus.findOne({
-          id: statusId,
+          where: {
+            id: statusId,
+          },
         })) as ProjectStatus;
         project.status = projectStatus;
       }

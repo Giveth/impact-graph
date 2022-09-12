@@ -1029,11 +1029,33 @@ export class ProjectResolver {
       },
     });
     const now = new Date();
-    const [project] = this.projectRepository.create({
+    // const [project] = Project.create({
+    //   ...projectInput,
+    //
+    //   // categories: categories as Category[],
+    //   organization,
+    //   image,
+    //   creationDate: now,
+    //   updatedAt: now,
+    //   slug: slug.toLowerCase(),
+    //   slugHistory: [],
+    //   admin: ctx.req.user.userId,
+    //   users: [user],
+    //   // status,
+    //   qualityScore,
+    //   totalDonations: 0,
+    //   totalReactions: 0,
+    //   totalProjectUpdates: 1,
+    //   verified: false,
+    //   giveBacks: false,
+    //   // adminUser: user,
+    // });
+
+    const project = Project.create({
       ...projectInput,
 
       categories: categories as Category[],
-      organization,
+      organization: organization as Organization,
       image,
       creationDate: now,
       updatedAt: now,
@@ -1041,7 +1063,7 @@ export class ProjectResolver {
       slugHistory: [],
       admin: ctx.req.user.userId,
       users: [user],
-      status,
+      status: status as ProjectStatus,
       qualityScore,
       totalDonations: 0,
       totalReactions: 0,
@@ -1051,7 +1073,7 @@ export class ProjectResolver {
       adminUser: user,
     });
 
-    const newProject = await this.projectRepository.save(project);
+    const newProject = await project.save();
     const adminUser = (await findUserById(Number(newProject.admin))) as User;
     newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(

@@ -11,6 +11,7 @@ import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
 import { ApiGivStandardError, handleExpressError } from './standardError';
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import { findUserByWalletAddress } from '../repositories/userRepository';
+import { User } from '../entities/user';
 
 export const apiGivRouter = express.Router();
 apiGivRouter.post(
@@ -51,7 +52,7 @@ apiGivRouter.post(
           400,
         );
       }
-      const donor = await findUserByWalletAddress(fromWalletAddress);
+      const donor = (await findUserByWalletAddress(fromWalletAddress)) as User;
       if (amount <= 0) {
         throw new ApiGivStandardError(errorMessages.AMOUNT_IS_INVALID, 400);
       }

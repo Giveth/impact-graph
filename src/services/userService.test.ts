@@ -18,6 +18,7 @@ import {
 } from '../services/userService';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { create } from 'domain';
+import { findUserById } from '../repositories/userRepository';
 
 describe(
   'updateUserTotalDonated() test cases',
@@ -45,7 +46,7 @@ function updateUserTotalDonatedTestCases() {
 
     await updateUserTotalDonated(user.id);
 
-    const updatedUser = await User.findOne({ id: user.id });
+    const updatedUser = await findUserById(user.id);
     assert.equal(updatedUser?.totalDonated, valueUsd);
   });
 }
@@ -63,13 +64,13 @@ function updateUserTotalReceivedTestCases() {
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
       totalDonations: 180,
     });
-    const owner = (await User.findOne({ id: user.id })) as User;
+    const owner = (await findUserById(user.id)) as User;
     owner.totalReceived = 0;
     await owner?.save();
 
     await updateUserTotalReceived(user.id);
 
-    const updatedOwner = await User.findOne({ id: user.id });
+    const updatedOwner = await findUserById(user.id);
     assert.notEqual(owner!.totalReceived, updatedOwner!.totalReceived);
     assert.equal(updatedOwner!.totalReceived, 180);
   });

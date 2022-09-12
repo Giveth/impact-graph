@@ -5,8 +5,10 @@ import { logger } from '../utils/logger';
 export const updateTotalReactionsOfAProject = async (projectId: number) => {
   try {
     const totalReactions = await Reaction.count({
-      projectId,
-      reaction: 'heart',
+      where: {
+        projectId,
+        reaction: 'heart',
+      },
     });
     await Project.update(
       { id: projectId },

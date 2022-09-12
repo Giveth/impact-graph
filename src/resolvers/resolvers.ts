@@ -4,7 +4,6 @@ import { NotificationResolver } from './notificationResolver';
 import { LoginResolver } from '../user/LoginResolver';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { MeResolver } from '../user/MeResolver';
-import { BankAccountResolver } from './bankAccountResolver';
 import { UploadResolver } from './uploadResolver';
 import { CategoryResolver } from './categoryResolver';
 import { DonationResolver } from './donationResolver';
@@ -22,7 +21,6 @@ export const resolvers: any = [
   LoginResolver,
   RegisterResolver,
   MeResolver,
-  BankAccountResolver,
   UploadResolver,
   CategoryResolver,
   DonationResolver,

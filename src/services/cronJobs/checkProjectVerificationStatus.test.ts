@@ -9,6 +9,7 @@ import {
   createProjectData,
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
+import { findProjectById } from '../../repositories/projectRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -37,14 +38,12 @@ function checkProjectVerificationStatusTestCases() {
     });
     await checkProjectVerificationStatus();
 
-    const reminderProjectUpdated = await Project.findOne({
-      id: remindableProject.id,
-    });
-    const nonRevokableProjectUpdated = await Project.findOne({
-      id: nonRevokableProject.id,
-    });
+    const reminderProjectUpdated = await findProjectById(remindableProject.id);
+    const nonRevokableProjectUpdated = await findProjectById(
+      nonRevokableProject.id,
+    );
 
-    assert.isTrue(reminderProjectUpdated!.verified);
+    assert.isTrue(reminderProjectUpdated?.verified);
     assert.equal(
       reminderProjectUpdated!.verificationStatus,
       RevokeSteps.Reminder,
@@ -62,9 +61,7 @@ function checkProjectVerificationStatusTestCases() {
 
     await checkProjectVerificationStatus();
 
-    const warnableProjectUpdate = await Project.findOne({
-      id: warnableProject.id,
-    });
+    const warnableProjectUpdate = await findProjectById(warnableProject.id);
 
     assert.isTrue(warnableProjectUpdate!.verified);
     assert.equal(
@@ -84,9 +81,9 @@ function checkProjectVerificationStatusTestCases() {
 
     await checkProjectVerificationStatus();
 
-    const lastWarningProjectUpdated = await Project.findOne({
-      id: lastWarningProject.id,
-    });
+    const lastWarningProjectUpdated = await findProjectById(
+      lastWarningProject.id,
+    );
 
     assert.isTrue(lastWarningProjectUpdated!.verified);
     assert.equal(
@@ -106,9 +103,7 @@ function checkProjectVerificationStatusTestCases() {
 
     await checkProjectVerificationStatus();
 
-    const revokableProjectUpdated = await Project.findOne({
-      id: revokableProject.id,
-    });
+    const revokableProjectUpdated = await findProjectById(revokableProject.id);
 
     assert.isFalse(revokableProjectUpdated!.verified);
     assert.equal(
@@ -140,9 +135,7 @@ function checkProjectVerificationStatusTestCases() {
 
     await checkProjectVerificationStatus();
 
-    const expiredProjectUpdated = await Project.findOne({
-      id: expiredProject.id,
-    });
+    const expiredProjectUpdated = await findProjectById(expiredProject.id);
 
     assert.isTrue(expiredProjectUpdated!.verified);
     assert.equal(
@@ -162,9 +155,9 @@ function checkProjectVerificationStatusTestCases() {
 
     await checkProjectVerificationStatus();
 
-    const expiredRevokableProjectUpdated = await Project.findOne({
-      id: expiredRevokableProject.id,
-    });
+    const expiredRevokableProjectUpdated = await findProjectById(
+      expiredRevokableProject.id,
+    );
 
     assert.isFalse(expiredRevokableProjectUpdated!.verified);
     assert.equal(

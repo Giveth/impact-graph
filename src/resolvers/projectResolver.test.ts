@@ -136,7 +136,9 @@ function getProjectsAcceptTokensTestCases() {
       organizationLabel: ORGANIZATION_LABELS.TRACE,
     });
     const traceOrganization = (await Organization.findOne({
-      label: ORGANIZATION_LABELS.TRACE,
+      where: {
+        label: ORGANIZATION_LABELS.TRACE,
+      },
     })) as Organization;
 
     const allTokens = (
@@ -187,7 +189,9 @@ function projectsTestCases() {
 
     const projects = result.data.data.projects.projects;
     const secondUserProjects = await Project.find({
-      admin: String(SEED_DATA.SECOND_USER.id),
+      where: {
+        admin: String(SEED_DATA.SECOND_USER.id),
+      },
     });
 
     assert.equal(projects.length, secondUserProjects.length);
@@ -899,7 +903,9 @@ function allProjectsTestCases() {
 
     const projects = result.data.data.allProjects.projects;
     const secondUserProjects = await Project.find({
-      admin: String(SEED_DATA.SECOND_USER.id),
+      where: {
+        admin: String(SEED_DATA.SECOND_USER.id),
+      },
     });
 
     assert.equal(projects.length, secondUserProjects.length);
@@ -1430,7 +1436,7 @@ function createProjectTestCases() {
     );
   });
   it('Should get error, when selected category is not active', async () => {
-    const mainCategory = await MainCategory.findOne();
+    const mainCategory = await MainCategory.findOne({});
     const nonActiveCategory = await Category.create({
       name: 'nonActiveCategory',
       value: 'nonActiveCategory',
@@ -2785,7 +2791,9 @@ function deactivateProjectTestCases() {
     );
     const project = await saveProjectDirectlyToDb(createProjectData());
     const deactiveStatus = await ProjectStatus.findOne({
-      id: ProjStatus.cancelled,
+      where: {
+        id: ProjStatus.cancelled,
+      },
     });
     project.status = deactiveStatus as ProjectStatus;
     await project.save();
@@ -2830,7 +2838,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
   });
@@ -2857,11 +2867,15 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     const projectStatusHistory = await ProjectStatusHistory.findOne({
-      project,
+      where: {
+        project,
+      },
     });
     assert.isOk(projectStatusHistory);
     assert.equal(projectStatusHistory?.reasonId, 1);
@@ -2887,11 +2901,15 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     const projectStatusHistory = await ProjectStatusHistory.findOne({
-      project,
+      where: {
+        project,
+      },
     });
     assert.isOk(projectStatusHistory);
     assert.isNotOk(projectStatusHistory?.reasonId);
@@ -2921,7 +2939,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isTrue(updatedProject?.listed);
@@ -2951,7 +2971,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isFalse(updatedProject?.listed);
@@ -2981,7 +3003,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isTrue(updatedProject?.verified);
@@ -3011,7 +3035,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isFalse(updatedProject?.verified);
@@ -3085,7 +3111,9 @@ function activateProjectTestCases() {
     );
     const project = await saveProjectDirectlyToDb(createProjectData());
     const deactiveStatus = await ProjectStatus.findOne({
-      id: ProjStatus.cancelled,
+      where: {
+        id: ProjStatus.cancelled,
+      },
     });
     project.status = deactiveStatus as ProjectStatus;
     await project.save();
@@ -3133,7 +3161,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
   });
@@ -3162,7 +3192,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
   });
@@ -3191,11 +3223,15 @@ function activateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     const projectStatusHistory = await ProjectStatusHistory.findOne({
-      project,
+      where: {
+        project,
+      },
     });
     assert.isOk(projectStatusHistory);
     assert.isNotOk(projectStatusHistory?.reasonId);
@@ -3227,7 +3263,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isNull(updatedProject?.listed);
@@ -3258,7 +3296,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isNull(updatedProject?.listed);
@@ -3288,7 +3328,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isTrue(updatedProject?.verified);
@@ -3318,7 +3360,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isFalse(updatedProject?.verified);
@@ -3345,8 +3389,10 @@ function likedProjectsByUserIdTestCases() {
       assert.equal(project.organization.label, ORGANIZATION_LABELS.GIVETH);
     });
     const reaction = await Reaction.findOne({
-      userId: SEED_DATA.FIRST_USER.id,
-      projectId: SEED_DATA.FIRST_PROJECT.id,
+      where: {
+        userId: SEED_DATA.FIRST_USER.id,
+        projectId: SEED_DATA.FIRST_PROJECT.id,
+      },
     });
 
     assert.equal(projects[0].id, reaction?.projectId);
@@ -3891,9 +3937,11 @@ function projectBySlugTestCases() {
       slug: String(new Date().getTime()),
     });
 
-    const user = await User.findOne({
-      id: Number(project1.admin),
-    });
+    const user = (await User.findOne({
+      where: {
+        id: Number(project1.admin),
+      },
+    })) as User;
 
     const verificationForm = await ProjectVerificationForm.create({
       project: project1,
@@ -4178,7 +4226,7 @@ function similarProjectsBySlugTestCases() {
       },
     });
 
-    const c = await Category.findOne({ name: 'food8' });
+    const c = await Category.findOne({ where: { name: 'food8' } });
     const [_, relatedCount] = await Project.createQueryBuilder('project')
       .innerJoinAndSelect('project.categories', 'categories')
       .where('categories.id IN (:...ids)', { ids: [c?.id] })

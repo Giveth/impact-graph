@@ -396,7 +396,9 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.GIVETH,
     });
-    const user = (await User.findOne({ id: SEED_DATA.ADMIN_USER.id })) as User;
+    const user = (await User.findOne({
+      where: { id: SEED_DATA.ADMIN_USER.id },
+    })) as User;
     const accessToken = await generateTestAccessToken(user.id);
     const token = Token.create({
       name: 'Not eligible',
@@ -408,7 +410,9 @@ function createDonationTestCases() {
     });
     await token.save();
     const givethOrganization = (await Organization.findOne({
-      label: ORGANIZATION_LABELS.GIVETH,
+      where: {
+        label: ORGANIZATION_LABELS.GIVETH,
+      },
     })) as Organization;
 
     await Token.query(
@@ -592,7 +596,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -620,7 +624,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -649,7 +653,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -678,7 +682,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -710,7 +714,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -852,7 +856,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.equal(donation?.userId, user.id);
@@ -889,7 +895,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.isOk(donation?.valueUsd);
@@ -925,7 +933,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.isFalse(donation?.segmentNotified);
@@ -994,7 +1004,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.isTrue(donation?.isProjectVerified);
@@ -1031,7 +1043,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.isFalse(donation?.isProjectVerified);

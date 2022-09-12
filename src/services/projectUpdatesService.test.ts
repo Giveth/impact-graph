@@ -6,6 +6,7 @@ import {
 } from '../../test/testUtils';
 import { Project, ProjectUpdate } from '../entities/project';
 import { updateTotalProjectUpdatesOfAProject } from './projectUpdatesService';
+import { findProjectById } from '../repositories/projectRepository';
 
 describe(
   'updateTotalProjectUpdatesOfAProject test cases',
@@ -16,9 +17,7 @@ function updateTotalProjectUpdatesOfAProjectTestCases() {
   it('should not change updatedAt', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     await updateTotalProjectUpdatesOfAProject(project.id);
-    const updatedProject = (await Project.findOne({
-      id: project.id,
-    })) as Project;
+    const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(
       new Date(project.updatedAt).getTime(),
       new Date(updatedProject.updatedAt).getTime(),
@@ -38,9 +37,7 @@ function updateTotalProjectUpdatesOfAProjectTestCases() {
     }', false
     )`);
     await updateTotalProjectUpdatesOfAProject(project.id);
-    const updatedProject = (await Project.findOne({
-      id: project.id,
-    })) as Project;
+    const updatedProject = (await findProjectById(project.id)) as Project;
 
     assert.equal(updatedProject.totalProjectUpdates, 1);
     assert.equal(

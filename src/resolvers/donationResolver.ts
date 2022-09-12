@@ -15,15 +15,11 @@ import {
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
 import { InjectRepository } from 'typeorm-typedi-extensions';
-// import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In, Brackets } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
@@ -51,15 +47,10 @@ import {
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
 import { logger } from '../utils/logger';
-import {
-  findUserById,
-  findUserByWalletAddress,
-} from '../repositories/userRepository';
+import { findUserById } from '../repositories/userRepository';
 import { findDonationById } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
-
-const analytics = getAnalytics();
 
 @ObjectType()
 class PaginateDonations {
@@ -232,7 +223,9 @@ export class DonationResolver {
     orderBy: SortBy,
   ) {
     const project = await Project.findOne({
-      id: projectId,
+      where: {
+        id: projectId,
+      },
     });
     if (!project) {
       throw new Error(errorMessages.PROJECT_NOT_FOUND);
@@ -429,8 +422,10 @@ export class DonationResolver {
         throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
       }
       const tokenInDb = await Token.findOne({
-        networkId: transactionNetworkId,
-        symbol: token,
+        where: {
+          networkId: transactionNetworkId,
+          symbol: token,
+        },
       });
       const isCustomToken = !Boolean(tokenInDb);
       let isTokenEligibleForGivback = false;

@@ -3,12 +3,9 @@ import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { ProjectAddress } from '../entities/projectAddress';
 import { errorMessages } from '../utils/errorMessages';
-import { Reaction } from '../entities/reaction';
 import { publicSelectionFields } from '../entities/user';
 
-export const findProjectById = (
-  projectId: number,
-): Promise<Project | undefined> => {
+export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
 
   return Project.createQueryBuilder('project')
@@ -44,9 +41,7 @@ export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
     .getMany();
 };
 
-export const findProjectBySlug = (
-  slug: string,
-): Promise<Project | undefined> => {
+export const findProjectBySlug = (slug: string): Promise<Project | null> => {
   // check current slug and previous slugs
   return Project.createQueryBuilder('project')
     .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
@@ -96,7 +91,7 @@ export const verifyProject = async (params: {
   verified: boolean;
   projectId: number;
 }): Promise<Project> => {
-  const project = await Project.findOne({ id: params.projectId });
+  const project = await Project.findOne({ where: { id: params.projectId } });
 
   if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
 
@@ -107,7 +102,7 @@ export const verifyProject = async (params: {
 
 export const findProjectByWalletAddress = async (
   walletAddress: string,
-): Promise<Project | undefined> => {
+): Promise<Project | null> => {
   return Project.createQueryBuilder('project')
     .where(`LOWER("walletAddress") = :walletAddress`, {
       walletAddress: walletAddress.toLowerCase(),

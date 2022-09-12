@@ -1,13 +1,13 @@
 import { Category, Project, ProjStatus } from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
-import AdminBro, { ActionResponse, After } from 'admin-bro';
+import AdminBro, { ActionResponse, After } from 'adminjs';
 import { User, UserRole } from '../entities/user';
-import AdminBroExpress from '@admin-bro/express';
+import AdminBroExpress from '@adminjs/express';
 import config from '../config';
 import { redis } from '../redis';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
-import { Database, Resource } from '@admin-bro/typeorm';
+import { Database, Resource } from '@adminjs/typeorm';
 import { SelectQueryBuilder } from 'typeorm';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
@@ -67,8 +67,7 @@ import {
   verifyMultipleProjects,
   verifyProject,
 } from '../repositories/projectRepository';
-import { SocialProfile } from '../entities/socialProfile';
-import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import { updateUserTotalDonated } from '../services/userService';
@@ -2044,7 +2043,9 @@ export const updateStatusOfProjects = async (
 ) => {
   const { h, resource, records, currentAdmin } = context;
   try {
-    const projectStatus = await ProjectStatus.findOne({ id: status });
+    const projectStatus = await ProjectStatus.findOne({
+      where: { id: status },
+    });
     if (projectStatus) {
       const updateData: any = { status: projectStatus };
       if (status === ProjStatus.cancelled) {

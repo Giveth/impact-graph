@@ -55,7 +55,7 @@ export const findUsersThatDidntSyncTheirPower = async (
 export const findUserPowerByUserIdAndRound = (params: {
   userId: number;
   givbackRound: number;
-}): Promise<UserPower | undefined> => {
+}): Promise<UserPower | null> => {
   const { userId, givbackRound } = params;
   return UserPower.createQueryBuilder('user_power')
     .where('"userId" = :userId', {

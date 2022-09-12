@@ -188,7 +188,9 @@ function updateUserTestCases() {
     );
     assert.isTrue(result.data.data.updateUser);
     const updatedUser = await User.findOne({
-      id: user.id,
+      where: {
+        id: user.id,
+      },
     });
     assert.equal(updatedUser?.firstName, updateUserData.firstName);
     assert.equal(updatedUser?.lastName, updateUserData.lastName);
@@ -224,7 +226,9 @@ function updateUserTestCases() {
     );
     assert.isTrue(result.data.data.updateUser);
     const updatedUser = await User.findOne({
-      id: user.id,
+      where: {
+        id: user.id,
+      },
     });
     assert.equal(updatedUser?.firstName, updateUserData.firstName);
     assert.equal(updatedUser?.lastName, updateUserData.lastName);
@@ -396,7 +400,9 @@ function updateUserTestCases() {
 
     assert.isTrue(result.data.data.updateUser);
     const updatedUser = await User.findOne({
-      id: user.id,
+      where: {
+        id: user.id,
+      },
     });
     assert.equal(updatedUser?.email, updateUserData.email);
     assert.equal(updatedUser?.avatar, updateUserData.avatar);
@@ -433,7 +439,9 @@ function updateUserTestCases() {
 
     assert.isTrue(result.data.data.updateUser);
     const updatedUser = await User.findOne({
-      id: user.id,
+      where: {
+        id: user.id,
+      },
     });
     assert.equal(updatedUser?.email, updateUserData.email);
     assert.equal(updatedUser?.avatar, updateUserData.avatar);
@@ -465,7 +473,9 @@ function updateUserTestCases() {
     );
     assert.isTrue(result.data.data.updateUser);
     const updatedUser = await User.findOne({
-      id: user.id,
+      where: {
+        id: user.id,
+      },
     });
     assert.equal(updatedUser?.firstName, updateUserData.firstName);
     assert.equal(updatedUser?.lastName, updateUserData.lastName);

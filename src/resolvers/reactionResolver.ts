@@ -57,11 +57,10 @@ export class ReactionResolver {
 
     await queryRunner.startTransaction();
 
-    const projectUpdate = await queryRunner.manager.findOne(
-      ProjectUpdate,
-      { id: projectUpdateId },
-      { select: ['projectId'] },
-    );
+    const projectUpdate = await queryRunner.manager.findOne(ProjectUpdate, {
+      where: { id: projectUpdateId },
+      select: ['projectId'],
+    });
 
     if (!projectUpdate) throw Error(errorMessages.PROJECT_UPDATE_NOT_FOUND);
 
@@ -118,16 +117,17 @@ export class ReactionResolver {
 
     try {
       const reaction = await queryRunner.manager.findOne(Reaction, {
-        id: reactionId,
-        userId: user?.userId,
+        where: {
+          id: reactionId,
+          userId: user?.userId,
+        },
       });
       if (!reaction) return false;
 
-      const projectUpdate = await queryRunner.manager.findOne(
-        ProjectUpdate,
-        { id: reaction.projectUpdateId },
-        { select: ['projectId'] },
-      );
+      const projectUpdate = await queryRunner.manager.findOne(ProjectUpdate, {
+        where: { id: reaction.projectUpdateId },
+        select: ['projectId'],
+      });
 
       if (!projectUpdate) return false;
 
@@ -240,8 +240,10 @@ export class ReactionResolver {
 
     try {
       const reaction = await queryRunner.manager.findOne(Reaction, {
-        id: reactionId,
-        userId: user?.userId,
+        where: {
+          id: reactionId,
+          userId: user?.userId,
+        },
       });
       if (!reaction) return false;
 

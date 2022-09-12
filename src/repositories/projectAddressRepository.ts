@@ -1,6 +1,7 @@
 import { ProjectAddress } from '../entities/projectAddress';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
+import { BaseEntity } from 'typeorm';
 
 export const getPurpleListAddresses = async (): Promise<
   { projectAddress: string }[]
@@ -79,7 +80,8 @@ export const addNewProjectAddress = async (params: {
   isRecipient?: boolean;
   networkId: number;
 }): Promise<ProjectAddress> => {
-  return ProjectAddress.create(params).save();
+  const projectAddress = await ProjectAddress.create(params as ProjectAddress);
+  return projectAddress.save();
 };
 
 export const addBulkNewProjectAddress = async (
@@ -92,7 +94,9 @@ export const addBulkNewProjectAddress = async (
     networkId: number;
   }[],
 ): Promise<void> => {
-  await ProjectAddress.insert(params.map(item => ProjectAddress.create(item)));
+  await ProjectAddress.insert(
+    params.map(item => ProjectAddress.create(item as ProjectAddress)),
+  );
 };
 
 export const removeRecipientAddressOfProject = async (params: {

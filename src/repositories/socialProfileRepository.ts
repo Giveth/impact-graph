@@ -32,12 +32,12 @@ export const createSocialProfile = async (params: {
     isVerified,
     name,
     link,
-  }).save();
+  } as SocialProfile).save();
 };
 
 export const findSocialProfileById = async (
   socialProfileId: number,
-): Promise<SocialProfile | undefined> => {
+): Promise<SocialProfile | null> => {
   return SocialProfile.createQueryBuilder('social_profile')
     .where({
       id: socialProfileId,
@@ -55,7 +55,7 @@ export const findSocialProfileBySocialNetworkIdAndSocialNetwork =
   async (params: {
     socialNetworkId: string;
     socialNetwork: string;
-  }): Promise<SocialProfile | undefined> => {
+  }): Promise<SocialProfile | null> => {
     const { socialNetworkId, socialNetwork } = params;
     return SocialProfile.createQueryBuilder('social_profile')
       .where({

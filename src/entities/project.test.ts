@@ -17,9 +17,13 @@ describe(
 function addProjectStatusHistoryRecord() {
   it('Should create a history entity without reason', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
+    const activeStatus = await ProjectStatus.findOne({
+      where: { id: ProjStatus.active },
+    });
     const cancelStatus = await ProjectStatus.findOne({
-      id: ProjStatus.cancelled,
+      where: {
+        id: ProjStatus.cancelled,
+      },
     });
     await Project.addProjectStatusHistoryRecord({
       project,
@@ -28,7 +32,9 @@ function addProjectStatusHistoryRecord() {
       userId: SEED_DATA.ADMIN_USER.id,
     });
     const history = await ProjectStatusHistory.findOne({
-      project,
+      where: {
+        project,
+      },
     });
     assert.isOk(history);
     assert.equal(history?.statusId, cancelStatus?.id);
@@ -38,9 +44,13 @@ function addProjectStatusHistoryRecord() {
   it('Should create a history entity with reason', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const reason = await ProjectStatusReason.findOne({});
-    const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
+    const activeStatus = await ProjectStatus.findOne({
+      where: { id: ProjStatus.active },
+    });
     const cancelStatus = await ProjectStatus.findOne({
-      id: ProjStatus.deactive,
+      where: {
+        id: ProjStatus.deactive,
+      },
     });
     await Project.addProjectStatusHistoryRecord({
       project,
@@ -50,7 +60,9 @@ function addProjectStatusHistoryRecord() {
       userId: SEED_DATA.ADMIN_USER.id,
     });
     const history = await ProjectStatusHistory.findOne({
-      project,
+      where: {
+        project,
+      },
     });
     assert.isOk(history);
     assert.equal(history?.statusId, cancelStatus?.id);

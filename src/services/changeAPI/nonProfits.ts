@@ -13,6 +13,8 @@ import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { findUserById } from '../../repositories/userRepository';
+import { BaseEntity } from 'typeorm';
+import { User } from '../../entities/user';
 
 const changeAPIHandle = 'change';
 
@@ -81,12 +83,16 @@ export const createProjectFromChangeNonProfit = async (
 ): Promise<Project> => {
   try {
     const changeCategory = await findOrCreateChangeAPICategory();
-    const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
+    const activeStatus = await ProjectStatus.findOne({
+      where: { id: ProjStatus.active },
+    });
     const organization = await Organization.findOne({
-      label: ORGANIZATION_LABELS.CHANGE,
+      where: {
+        label: ORGANIZATION_LABELS.CHANGE,
+      },
     });
 
-    const adminUser = await findUserById(Number(adminId));
+    const adminUser = (await findUserById(Number(adminId))) as User;
     const slugBase = slugify(nonProfit.name, {
       remove: /[*+~.,()'"!:@]/g,
     });
@@ -95,10 +101,9 @@ export const createProjectFromChangeNonProfit = async (
     const image = nonProfit?.cover_image_url || nonProfit?.icon_url;
 
     const qualityScore = getQualityScore(nonProfit.mission, Boolean(image));
-
-    const project = Project.create({
+    const projectData = {
       title: nonProfit.name,
-      organization,
+      organization: organization as Organization,
       description: nonProfit.mission,
       categories: [changeCategory],
       walletAddress: nonProfit.crypto.ethereum_address,
@@ -111,7 +116,7 @@ export const createProjectFromChangeNonProfit = async (
       changeId: String(nonProfit.id),
       admin: adminId,
       adminUser,
-      status: activeStatus,
+      status: activeStatus as ProjectStatus,
       qualityScore,
       totalDonations: 0,
       totalReactions: 0,
@@ -120,7 +125,8 @@ export const createProjectFromChangeNonProfit = async (
       verified: true,
       giveBacks: true,
       isImported: true,
-    });
+    };
+    const project = Project.create(projectData);
     await project.save();
     logger.debug(
       'This changeAPI project has been created in our db with ID:',
@@ -147,6 +153,6 @@ export const createProjectFromChangeNonProfit = async (
 };
 
 const findOrCreateChangeAPICategory = async (): Promise<Category> => {
-  const category = await Category.findOne({ name: changeAPIHandle });
+  const category = await Category.findOne({ where: { name: changeAPIHandle } });
   return category as Category;
 };

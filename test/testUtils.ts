@@ -69,7 +69,7 @@ export const assertNotThrowsAsync = async fn => {
 };
 
 export const generateTestAccessToken = async (id: number): Promise<string> => {
-  const user = await User.findOne({ id });
+  const user = await User.findOne({ where: { id } });
   return jwt.sign(
     {
       userId: id,
@@ -97,7 +97,7 @@ export const generateConfirmationEmailToken = async (
 export const generateUserIdLessAccessToken = async (
   id: number,
 ): Promise<string> => {
-  const user = await User.findOne({ id });
+  const user = await User.findOne({ where: { id } });
   return jwt.sign(
     { firstName: user?.firstName },
     config.get('JWT_SECRET') as string,
@@ -171,23 +171,29 @@ export const saveProjectDirectlyToDb = async (
     return relatedAddress.project;
   }
   const statusId = projectData?.statusId || ProjStatus.active;
-  const status = await ProjectStatus.findOne({
-    id: statusId,
-  });
+  const status = (await ProjectStatus.findOne({
+    where: {
+      id: statusId,
+    },
+  })) as ProjectStatus;
   const organizationLabel =
     projectData.organizationLabel || ORGANIZATION_LABELS.GIVETH;
-  const organization = await Organization.findOne({
-    label: organizationLabel,
-  });
+  const organization = (await Organization.findOne({
+    where: {
+      label: organizationLabel,
+    },
+  })) as Organization;
   const user =
     owner ||
     ((await User.findOne({
-      id: Number(projectData.admin),
+      where: {
+        id: Number(projectData.admin),
+      },
     })) as User);
   const categoriesPromise = Promise.all(
     projectData.categories
       ? projectData.categories.map(async category => {
-          const c = await Category.findOne({ name: category });
+          const c = await Category.findOne({ where: { name: category } });
           if (!c) {
             throw new Error('Invalid category');
           }
@@ -1529,10 +1535,14 @@ export const saveDonationDirectlyToDb = async (
   projectId: number,
 ) => {
   const user = (await User.findOne({
-    id: userId,
+    where: {
+      id: userId,
+    },
   })) as User;
   const project = (await Project.findOne({
-    id: projectId,
+    where: {
+      id: projectId,
+    },
   })) as Project;
   return Donation.create({
     ...donationData,
@@ -1542,7 +1552,7 @@ export const saveDonationDirectlyToDb = async (
 };
 
 export const saveCategoryDirectlyToDb = async (categoryData: CategoryData) => {
-  return Category.create(categoryData).save();
+  return Category.create(categoryData as Category).save();
 };
 
 export const saveMainCategoryDirectlyToDb = async (
