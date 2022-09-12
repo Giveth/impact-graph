@@ -15,31 +15,66 @@ import {
 
 describe('userProjectPowerViewRepository test', () => {
   it('should not be filled till refresh', async () => {
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
     const project = await saveProjectDirectlyToDb(createProjectData());
     await insertSinglePowerBoosting({
-      user,
+      user: firstUser,
       project,
       percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project,
+      percentage: 15,
     });
 
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
       givbackRound: 2,
-      users: [user],
-      averagePowers: { [user.walletAddress as string]: 9999.9999 },
+      users: [firstUser, secondUser],
+      averagePowers: {
+        [firstUser.walletAddress as string]: 9999.9999,
+        [secondUser.walletAddress as string]: 200,
+      },
     });
+
     await setPowerRound(2);
 
-    let projectPowers = await getUserProjectPowers(project.id);
+    let [projectPowers, count] = await getUserProjectPowers({
+      take: 20,
+      skip: 0,
+      projectId: project.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, 0);
+    assert.equal(count, 0);
 
     await refreshUserProjectPowerView();
-    projectPowers = await getUserProjectPowers(project.id);
+    [projectPowers, count] = await getUserProjectPowers({
+      take: 20,
+      skip: 0,
+      projectId: project.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
     assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, 1);
+    assert.lengthOf(projectPowers, 2);
+    assert.equal(count, 2);
+    assert.isTrue(
+      projectPowers[0].boostedPower > projectPowers[1].boostedPower,
+    );
   });
 
   it('should set correct power amount for different users', async () => {
@@ -72,7 +107,15 @@ describe('userProjectPowerViewRepository test', () => {
     await setPowerRound(2);
 
     await refreshUserProjectPowerView();
-    const projectPowers = await getUserProjectPowers(project1.id);
+    const [projectPowers] = await getUserProjectPowers({
+      take: 20,
+      skip: 0,
+      projectId: project1.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, 2);
 
@@ -118,7 +161,15 @@ describe('userProjectPowerViewRepository test', () => {
     await setPowerRound(1);
     await refreshUserProjectPowerView();
 
-    let projectPowers = await getUserProjectPowers(project1.id);
+    let [projectPowers] = await getUserProjectPowers({
+      take: 20,
+      skip: 0,
+      projectId: project1.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, 1);
 
@@ -130,7 +181,15 @@ describe('userProjectPowerViewRepository test', () => {
     await setPowerRound(2);
     await refreshUserProjectPowerView();
 
-    projectPowers = await getUserProjectPowers(project1.id);
+    [projectPowers] = await getUserProjectPowers({
+      take: 20,
+      skip: 0,
+      projectId: project1.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, 1);
 
@@ -162,7 +221,15 @@ describe('userProjectPowerViewRepository test', () => {
     await setPowerRound(1);
     await refreshUserProjectPowerView();
 
-    let projectPowers = await getUserProjectPowers(project1.id);
+    let [projectPowers] = await getUserProjectPowers({
+      take: 20,
+      skip: 0,
+      projectId: project1.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
     let user1power = projectPowers.find(p => p.userId === user1.id);
 
     assert.isDefined(user1power);
@@ -173,7 +240,15 @@ describe('userProjectPowerViewRepository test', () => {
 
     await refreshUserProjectPowerView();
 
-    projectPowers = await getUserProjectPowers(project1.id);
+    [projectPowers] = await getUserProjectPowers({
+      take: 20,
+      skip: 0,
+      projectId: project1.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
     user1power = projectPowers.find(p => p.userId === user1.id);
     expect(user1power?.boostedPower).to.be.closeTo((90 * 10000) / 100, 0.00001);
   });

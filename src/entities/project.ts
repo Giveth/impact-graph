@@ -69,6 +69,7 @@ export enum OrderField {
   Balance = 'balance',
 
   QualityScore = 'qualityScore',
+  GivPower = 'givPower',
   Verified = 'verified',
   Reactions = 'totalReactions',
   Traceable = 'traceCampaignId',
