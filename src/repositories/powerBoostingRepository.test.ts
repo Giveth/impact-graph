@@ -556,6 +556,61 @@ function setMultipleBoostingTestCases() {
       ),
     );
   });
+  it('should set multiple boosting for one user when js summation shows a little greater number', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    const fourthProject = await saveProjectDirectlyToDb(createProjectData());
+    const fifthProject = await saveProjectDirectlyToDb(createProjectData());
+    const userBoostings = await setMultipleBoosting({
+      userId: user.id,
+      projectIds: [
+        firstProject.id,
+        secondProject.id,
+        thirdProject.id,
+        fourthProject.id,
+        fifthProject.id,
+      ],
+      percentages: [50.46, 18, 12.62, 9.46, 9.46],
+    });
+    assert.equal(userBoostings.length, 5);
+    assert.isOk(
+      userBoostings.find(
+        powerBoosting =>
+          powerBoosting.project.id === firstProject.id &&
+          powerBoosting.percentage === 50.46,
+      ),
+    );
+    assert.isOk(
+      userBoostings.find(
+        powerBoosting =>
+          powerBoosting.project.id === secondProject.id &&
+          powerBoosting.percentage === 18,
+      ),
+    );
+    assert.isOk(
+      userBoostings.find(
+        powerBoosting =>
+          powerBoosting.project.id === thirdProject.id &&
+          powerBoosting.percentage === 12.62,
+      ),
+    );
+    assert.isOk(
+      userBoostings.find(
+        powerBoosting =>
+          powerBoosting.project.id === fourthProject.id &&
+          powerBoosting.percentage === 9.46,
+      ),
+    );
+    assert.isOk(
+      userBoostings.find(
+        powerBoosting =>
+          powerBoosting.project.id === fifthProject.id &&
+          powerBoosting.percentage === 9.46,
+      ),
+    );
+  });
   it('should set multiple boosting for one user and remove previous boostings', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const firstProject = await saveProjectDirectlyToDb(createProjectData());
