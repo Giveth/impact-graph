@@ -113,6 +113,20 @@ function userProjectPowersTestCases() {
       project: secondProject,
       percentage: 3,
     });
+
+    const givbackRound = 3;
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound,
+      users: [firstUser, secondUser],
+      averagePowers: {
+        [firstUser.walletAddress as string]: 10000,
+        [secondUser.walletAddress as string]: 20000,
+      },
+    });
+    await setPowerRound(givbackRound);
+    await refreshUserProjectPowerView();
     const result = await axios.post(graphqlUrl, {
       query: getUserProjectPowerQuery,
       variables: {
@@ -127,7 +141,7 @@ function userProjectPowersTestCases() {
 
     result.data.data.userProjectPowers.userProjectPowers.forEach(
       userProjectPower => {
-        assert.equal(userProjectPower.project.id, firstProject.id);
+        assert.equal(userProjectPower.projectId, firstProject.id);
       },
     );
   });
@@ -160,6 +174,20 @@ function userProjectPowersTestCases() {
       project: secondProject,
       percentage: 3,
     });
+
+    const givbackRound = 3;
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound,
+      users: [firstUser, secondUser],
+      averagePowers: {
+        [firstUser.walletAddress as string]: 10000,
+        [secondUser.walletAddress as string]: 20000,
+      },
+    });
+    await setPowerRound(givbackRound);
+    await refreshUserProjectPowerView();
     const result = await axios.post(graphqlUrl, {
       query: getUserProjectPowerQuery,
       variables: {
@@ -175,8 +203,8 @@ function userProjectPowersTestCases() {
 
     result.data.data.userProjectPowers.userProjectPowers.forEach(
       userProjectPower => {
-        assert.equal(userProjectPower.project.id, firstProject.id);
-        assert.equal(userProjectPower.user.id, firstUser.id);
+        assert.equal(userProjectPower.projectId, firstProject.id);
+        assert.equal(userProjectPower.userId, firstUser.id);
       },
     );
   });
@@ -223,180 +251,6 @@ function userProjectPowersTestCases() {
     );
   });
 
-  it('should get list of userProjectPowers filter by userId, sort by updatedAt DESC', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const secondProject = await saveProjectDirectlyToDb(createProjectData());
-    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: firstProject,
-      percentage: 2,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: secondProject,
-      percentage: 10,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: thirdProject,
-      percentage: 3,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: getUserProjectPowerQuery,
-      variables: {
-        userId: firstUser.id,
-        orderBy: {
-          field: 'UpdatedAt',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.isOk(result);
-    const userProjectPowers =
-      result.data.data.userProjectPowers.userProjectPowers;
-    assert.equal(userProjectPowers.length, 3);
-    assert.isTrue(
-      userProjectPowers[0].updatedAt >= userProjectPowers[1].updatedAt,
-    );
-    assert.isTrue(
-      userProjectPowers[1].updatedAt >= userProjectPowers[2].updatedAt,
-    );
-  });
-  it('should get list of userProjectPowers filter by userId, sort by updatedAt ASC', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const secondProject = await saveProjectDirectlyToDb(createProjectData());
-    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: firstProject,
-      percentage: 2,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: secondProject,
-      percentage: 10,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: thirdProject,
-      percentage: 3,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: getUserProjectPowerQuery,
-      variables: {
-        userId: firstUser.id,
-        orderBy: {
-          field: 'UpdatedAt',
-          direction: 'ASC',
-        },
-      },
-    });
-    assert.isOk(result);
-    const userProjectPowers =
-      result.data.data.userProjectPowers.userProjectPowers;
-    assert.equal(userProjectPowers.length, 3);
-    assert.isTrue(
-      userProjectPowers[0].updatedAt <= userProjectPowers[1].updatedAt,
-    );
-    assert.isTrue(
-      userProjectPowers[1].updatedAt <= userProjectPowers[2].updatedAt,
-    );
-  });
-
-  it('should get list of userProjectPowers filter by userId, sort by createdAt DESC', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const secondProject = await saveProjectDirectlyToDb(createProjectData());
-    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: firstProject,
-      percentage: 2,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: secondProject,
-      percentage: 10,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: thirdProject,
-      percentage: 3,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: getUserProjectPowerQuery,
-      variables: {
-        userId: firstUser.id,
-        orderBy: {
-          field: 'CreationAt',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.isOk(result);
-    const userProjectPowers =
-      result.data.data.userProjectPowers.userProjectPowers;
-    assert.equal(userProjectPowers.length, 3);
-    assert.isTrue(
-      userProjectPowers[0].createdAt >= userProjectPowers[1].createdAt,
-    );
-    assert.isTrue(
-      userProjectPowers[1].createdAt >= userProjectPowers[2].createdAt,
-    );
-  });
-  it('should get list of userProjectPowers filter by userId, sort by createdAt ASC', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const secondProject = await saveProjectDirectlyToDb(createProjectData());
-    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: firstProject,
-      percentage: 2,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: secondProject,
-      percentage: 10,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: thirdProject,
-      percentage: 3,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: getUserProjectPowerQuery,
-      variables: {
-        userId: firstUser.id,
-        orderBy: {
-          field: 'CreationAt',
-          direction: 'ASC',
-        },
-      },
-    });
-    assert.isOk(result);
-    const userProjectPowers =
-      result.data.data.userProjectPowers.userProjectPowers;
-    assert.equal(userProjectPowers.length, 3);
-    assert.isTrue(
-      userProjectPowers[0].createdAt <= userProjectPowers[1].createdAt,
-    );
-    assert.isTrue(
-      userProjectPowers[1].createdAt <= userProjectPowers[2].createdAt,
-    );
-  });
-
   it('should get list of userProjectPowers filter by userId, sort by percentage DESC', async () => {
     const firstUser = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
@@ -419,6 +273,18 @@ function userProjectPowersTestCases() {
       project: thirdProject,
       percentage: 3,
     });
+    const givbackRound = 3;
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound,
+      users: [firstUser],
+      averagePowers: {
+        [firstUser.walletAddress as string]: 10000,
+      },
+    });
+    await setPowerRound(givbackRound);
+    await refreshUserProjectPowerView();
     const result = await axios.post(graphqlUrl, {
       query: getUserProjectPowerQuery,
       variables: {
@@ -462,6 +328,18 @@ function userProjectPowersTestCases() {
       project: thirdProject,
       percentage: 3,
     });
+    const givbackRound = 3;
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound,
+      users: [firstUser],
+      averagePowers: {
+        [firstUser.walletAddress as string]: 10000,
+      },
+    });
+    await setPowerRound(givbackRound);
+    await refreshUserProjectPowerView();
     const result = await axios.post(graphqlUrl, {
       query: getUserProjectPowerQuery,
       variables: {

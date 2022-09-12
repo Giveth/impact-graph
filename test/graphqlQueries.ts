@@ -1461,13 +1461,14 @@ export const getUserProjectPowerQuery = `
     $projectId: Int
     $userId: Int
   ) {
-    userProjectPowers(
+    userProjectPowers (
       take: $take
       skip: $skip
       orderBy: $orderBy
       projectId: $projectId
       userId: $userId
     ) {
+      totalCount
       userProjectPowers {
             id
             userId

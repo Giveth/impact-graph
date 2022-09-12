@@ -34,8 +34,6 @@ enum UserPowerOrderDirection {
 }
 
 enum UserPowerOrderField {
-  CreationAt = 'createdAt',
-  UpdatedAt = 'updatedAt',
   Percentage = 'percentage',
   UserPower = 'userPower',
   BoostedPower = 'boostedPower',
@@ -55,7 +53,7 @@ registerEnumType(UserPowerOrderDirection, {
 class UserPowerOrderBy {
   @Field(type => UserPowerOrderField, {
     nullable: true,
-    defaultValue: UserPowerOrderField.UpdatedAt,
+    defaultValue: UserPowerOrderField.BoostedPower,
   })
   field: UserPowerOrderField;
 
@@ -81,7 +79,7 @@ export class UserProjectPowerArgs {
   @Field(type => UserPowerOrderBy, {
     nullable: true,
     defaultValue: {
-      field: UserPowerOrderField.UpdatedAt,
+      field: UserPowerOrderField.BoostedPower,
       direction: UserPowerOrderDirection.DESC,
     },
   })
@@ -105,7 +103,7 @@ class UserProjectPowers {
 
 @Resolver(of => PowerBoosting)
 export class UserProjectPowerResolver {
-  @Query(returns => UserProjectPowerView)
+  @Query(returns => UserProjectPowers)
   async userProjectPowers(
     @Args()
     { take, skip, projectId, userId, orderBy }: UserProjectPowerArgs,
