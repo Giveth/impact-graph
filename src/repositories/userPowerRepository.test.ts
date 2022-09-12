@@ -5,12 +5,12 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { User } from '../entities/user';
 import {
   findUsersThatDidntSyncTheirPower,
   insertNewUserPowers,
 } from './userPowerRepository';
 import { insertSinglePowerBoosting } from './powerBoostingRepository';
+import { UserPower } from '../entities/userPower';
 
 describe(
   'findUsersThatDidntSyncTheirPowerTestCases -->',
@@ -18,6 +18,45 @@ describe(
 );
 
 function findUsersThatDidntSyncTheirPowerTestCases() {
+  it('should save userPower correctly', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const userPowerGivbackRound2 = await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound: 2,
+      users: [user1],
+      averagePowers: { [user1.walletAddress as string]: 9999.9999 },
+    });
+
+    // power for user 2
+    const user2PowerGivbackRound2 = await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound: 2,
+      users: [user2],
+      averagePowers: { [user2.walletAddress as string]: 10 },
+    });
+
+    const user1Powers = await UserPower.find({
+      where: {
+        userId: user1.id,
+      },
+      select: ['userId', 'power', 'givbackRound'],
+    });
+    const user2Powers = await UserPower.find({
+      where: {
+        userId: user2.id,
+      },
+      select: ['userId', 'power', 'givbackRound'],
+    });
+
+    assert.lengthOf(user1Powers, 1);
+    assert.lengthOf(user2Powers, 1);
+    assert.equal(user1Powers[0].power, 9999.9999);
+    assert.equal(user2Powers[0].power, 10);
+  });
   it('should return users without a specific givbackround power sync', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -25,12 +64,12 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     await insertSinglePowerBoosting({
       user: user1,
       project: firstProject,
-      percentage: 1,
+      percentage: 61,
     });
     await insertSinglePowerBoosting({
       user: user2,
       project: firstProject,
-      percentage: 1,
+      percentage: 49.32,
     });
 
     // power for user 1
@@ -41,14 +80,14 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       toTimestamp: new Date(),
       givbackRound: 1,
       users: [user1],
-      averagePowers: { [user1.walletAddress as string]: 10 },
+      averagePowers: { [user1.walletAddress as string]: 999.99 },
     });
     const userPowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
       givbackRound: 2,
       users: [user1],
-      averagePowers: { [user1.walletAddress as string]: 10 },
+      averagePowers: { [user1.walletAddress as string]: 82.12 },
     });
 
     // power for user 2
@@ -57,7 +96,7 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       toTimestamp: new Date(),
       givbackRound: 2,
       users: [user2],
-      averagePowers: { [user2.walletAddress as string]: 10 },
+      averagePowers: { [user2.walletAddress as string]: 0 },
     });
 
     const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
@@ -82,17 +121,17 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     await insertSinglePowerBoosting({
       user: user1,
       project: firstProject,
-      percentage: 1,
+      percentage: 23.33,
     });
     await insertSinglePowerBoosting({
       user: user2,
       project: firstProject,
-      percentage: 1,
+      percentage: 12.0,
     });
     await insertSinglePowerBoosting({
       user: user3,
       project: firstProject,
-      percentage: 1,
+      percentage: 0,
     });
     // power for user 1
     const userPowerGivbackRound1 = await insertNewUserPowers({
@@ -101,14 +140,14 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
       givbackRound: 1,
-      averagePowers: { [user1.walletAddress as string]: 10 },
+      averagePowers: { [user1.walletAddress as string]: 388.99 },
       users: [user1],
     });
     const userPowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
       givbackRound: 2,
-      averagePowers: { [user1.walletAddress as string]: 10 },
+      averagePowers: { [user1.walletAddress as string]: 32.11 },
       users: [user1],
     });
 
@@ -117,7 +156,7 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
       givbackRound: 2,
-      averagePowers: { [user2.walletAddress as string]: 10 },
+      averagePowers: { [user2.walletAddress as string]: 4.1 },
       users: [user2],
     });
 
@@ -144,12 +183,12 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     await insertSinglePowerBoosting({
       user: user1,
       project: firstProject,
-      percentage: 1,
+      percentage: 0,
     });
     await insertSinglePowerBoosting({
       user: user2,
       project: secondProject,
-      percentage: 1,
+      percentage: 32.1,
     });
 
     const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
