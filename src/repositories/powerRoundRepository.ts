@@ -11,7 +11,7 @@ export const setPowerRound = async (round: number): Promise<PowerRound> => {
   } else {
     powerRound.round = round;
   }
-
+  // TODO maybe we can refresh views here
   return powerRound.save();
 };
 

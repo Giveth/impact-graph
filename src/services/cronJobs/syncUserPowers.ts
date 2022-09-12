@@ -27,6 +27,17 @@ setInterval(async () => {
   });
 }, TWO_MINUTES);
 
+const refreshUserProjectPowerViewsInterval = process.env
+  .REFRESH_USER_PROJECT_POWER_VIEW_MINUTESS
+  ? Number(process.env.REFRESH_USER_PROJECT_POWER_VIEW_MINUTESS) * 1000 * 60
+  : TWO_MINUTES;
+
+setInterval(async () => {
+  logger.debug('Refreshing userProjectPower and projectpower table');
+  await refreshProjectPowerView();
+  await refreshUserProjectPowerView();
+}, refreshUserProjectPowerViewsInterval);
+
 // As etherscan free plan support 5 request per second I think it's better the concurrent jobs should not be
 // more than 5 with free plan https://etherscan.io/apis
 const numberOfSyncUserPowersConcurrentJob =
