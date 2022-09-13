@@ -18,10 +18,6 @@ export class UserProjectPowerView1662877385339 implements MigrationInterface {
                    JOIN user_power "userPower" ON "userPower"."givbackRound" = "powerRound".round
                    JOIN power_boosting "powerBoosting" ON "powerBoosting"."userId" = "userPower"."userId";
   
-                ALTER TABLE public.user_project_power_view
-                    OWNER TO postgres;
-  
-  
                 CREATE INDEX IF NOT EXISTS "user_project_power_view_project_id"
                     ON public.user_project_power_view USING hash
                     ("projectId")

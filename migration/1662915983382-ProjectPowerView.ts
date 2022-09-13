@@ -14,9 +14,6 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
                 GROUP BY "powerBoosting"."projectId"
                 ORDER BY "totalPower" DESC;
   
-              ALTER TABLE public.user_project_power_view
-                  OWNER TO postgres;
-
               CREATE INDEX IF NOT EXISTS "project_power_view_project_id"
                   ON public.project_power_view USING hash
                   ("projectId")
