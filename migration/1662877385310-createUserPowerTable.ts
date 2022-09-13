@@ -2,6 +2,13 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class createUserPowerTable1662877385310 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
+    const puserPowerTableExists = await queryRunner.hasTable('user_power');
+
+    if (puserPowerTableExists) {
+      // tslint:disable-next-line:no-console
+      console.log('createPowerBoostingTable user_power table exists');
+      return;
+    }
     await queryRunner.query(
       `
                 CREATE TABLE IF NOT EXISTS public.user_power

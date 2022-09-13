@@ -2,6 +2,13 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class createPowerRoundTable1662877385311 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
+    const powerRoundTableExists = await queryRunner.hasTable('power_round');
+
+    if (powerRoundTableExists) {
+      // tslint:disable-next-line:no-console
+      console.log('createPowerRoundTable power_round table exists');
+      return;
+    }
     await queryRunner.query(
       `
 
