@@ -96,7 +96,10 @@ function categoryTestCases() {
     });
     const result = categoryResponse?.data?.data?.categories;
     assert.isNotEmpty(result);
-    assert.equal(result[0].mainCategory.title, mainCategory.title);
+    assert.equal(
+      result[result.length - 1].mainCategory.title,
+      mainCategory.title,
+    );
 
     assert.equal(result[0].name, category2.name);
     assert.equal(result[result.length - 1].name, category1.name);
