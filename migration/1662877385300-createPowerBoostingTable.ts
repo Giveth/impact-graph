@@ -35,11 +35,6 @@ export class createPowerBoostingTable1662877385300
                     ON DELETE NO ACTION
             )
             
-            TABLESPACE pg_default;
-            
-            ALTER TABLE public.power_boosting
-                OWNER to postgres;
-            
             CREATE INDEX "IDX_6efb547c681f29c39e1c539185"
                 ON public.power_boosting USING btree
                 ("userId" ASC NULLS LAST)

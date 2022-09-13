@@ -27,10 +27,6 @@ export class createUserPowerTable1662877385310 implements MigrationInterface {
                         ON DELETE NO ACTION
                 )
                 
-                TABLESPACE pg_default;
-                
-                ALTER TABLE public.user_power
-                    OWNER to postgres;
                 
                 CREATE INDEX "IDX_2020cfc98924d29b236fb5de54"
                     ON public.user_power USING btree

@@ -19,11 +19,6 @@ export class createPowerRoundTable1662877385311 implements MigrationInterface {
                     CONSTRAINT "PK_20f1201b836ac3669274c9bbb08" PRIMARY KEY (id),
                     CONSTRAINT "CHK_c667c3ba68987e3761531fe585" CHECK (id)
                 )
-                
-                TABLESPACE pg_default;
-                
-                ALTER TABLE public.power_round
-                    OWNER to postgres;
           `,
     );
   }
