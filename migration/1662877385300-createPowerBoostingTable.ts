@@ -34,7 +34,7 @@ export class createPowerBoostingTable1662877385300
                     ON UPDATE NO ACTION
                     ON DELETE NO ACTION
             )
-            
+            TABLESPACE pg_default;
             CREATE INDEX "IDX_6efb547c681f29c39e1c539185"
                 ON public.power_boosting USING btree
                 ("userId" ASC NULLS LAST)

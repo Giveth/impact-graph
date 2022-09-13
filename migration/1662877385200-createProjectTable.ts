@@ -62,7 +62,7 @@ export class createProjectTable1662877385200 implements MigrationInterface {
                       ON UPDATE NO ACTION
                       ON DELETE NO ACTION
               )
-              
+              TABLESPACE pg_default;
               CREATE UNIQUE INDEX "IDX_230ef230f8b5b301813465b3d5"
                   ON public.project USING btree
                   ("changeId" COLLATE pg_catalog."default" ASC NULLS LAST)
