@@ -11,7 +11,6 @@ export const setPowerRound = async (round: number): Promise<PowerRound> => {
   } else {
     powerRound.round = round;
   }
-
   return powerRound.save();
 };
 
