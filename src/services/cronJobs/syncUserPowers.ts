@@ -12,6 +12,7 @@ import {
 import { User } from '../../entities/user';
 import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
 import { refreshProjectPowerView } from '../../repositories/projectPowerViewRepository';
+import { setPowerRound } from '../../repositories/powerRoundRepository';
 
 const syncUserPowersQueue = new Bull<SyncUserPowersJobData>(
   'verify-userPower-queue',
@@ -143,6 +144,7 @@ export function processSyncUserPowerJobs() {
         });
         const remainingJobsCount = await syncUserPowersQueue.count();
         if (remainingJobsCount === 0) {
+          await setPowerRound(givbackRound);
           // We know there is not any sync userPower jobs , so we refresh DB views
           await refreshUserProjectPowerView();
           await refreshProjectPowerView();
