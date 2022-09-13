@@ -89,7 +89,7 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const userPowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: roundNumber,
+      givbackRound: roundNumber + 1,
       users: [user1],
       averagePowers: { [user1.walletAddress as string]: 82.12 },
     });
@@ -98,13 +98,13 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const user2PowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: roundNumber,
+      givbackRound: roundNumber + 1,
       users: [user2],
       averagePowers: { [user2.walletAddress as string]: 0 },
     });
 
     const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
-      1,
+      roundNumber,
       0,
       user2.id + 1, // Take
     );
