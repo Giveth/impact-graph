@@ -34,7 +34,6 @@ export const getUserProjectPowers = async (params: {
         projectId: params.projectId,
       });
     }
-    logger.info('getUserProjectPowers raw query', query.getSql());
     return await query
       .orderBy(
         `userProjectPower.${params.orderBy.field}`,
