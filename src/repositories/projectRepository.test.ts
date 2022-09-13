@@ -18,6 +18,12 @@ import { createProjectVerificationForm } from './projectVerificationRepository';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { NETWORK_IDS } from '../provider';
 import moment from 'moment';
+import { setPowerRound } from './powerRoundRepository';
+import { refreshProjectPowerView } from './projectPowerViewRepository';
+import { insertNewUserPowers } from './userPowerRepository';
+import { insertSinglePowerBoosting } from './powerBoostingRepository';
+import { OrderField, Project } from '../entities/project';
+import { User } from '../entities/user';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -32,6 +38,7 @@ describe(
   'updateProjectWithVerificationForm test cases',
   updateProjectWithVerificationFormTestCases,
 );
+describe('order by totalPower', orderByTotalPower);
 
 function projectsWithoutUpdateAfterTimeFrameTestCases() {
   it('should return projects created a long time ago', async () => {
@@ -270,5 +277,61 @@ function verifyMultipleProjectsTestCases() {
     const fetchedProject2 = await findProjectById(project2.id);
     assert.isFalse(fetchedProject?.verified);
     assert.isFalse(fetchedProject2?.verified);
+  });
+}
+
+function orderByTotalPower() {
+  it.only('order by totalPower DESC', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+
+    await Promise.all(
+      [
+        [user1, project1, 10],
+        [user1, project2, 20],
+        [user1, project3, 30],
+        [user2, project1, 20],
+        [user2, project2, 40],
+        [user2, project3, 60],
+      ].map(item => {
+        const [user, project, percentage] = item as [User, Project, number];
+        return insertSinglePowerBoosting({
+          user,
+          project,
+          percentage,
+        });
+      }),
+    );
+
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound: 3232,
+      users: [user1, user2],
+      averagePowers: {
+        [user1.walletAddress as string]: 10000,
+        [user2.walletAddress as string]: 20000,
+      },
+    });
+
+    await setPowerRound(3232);
+    await refreshProjectPowerView();
+    const query = Project.createQueryBuilder('project')
+      .leftJoinAndSelect('project.powerView', 'powerView')
+      .select('project.id')
+      .addSelect('powerView.totalPower')
+      .take(project3.id)
+      .orderBy('powerView.totalPower', 'DESC', 'NULLS LAST')
+      .take(project3.id + 1);
+
+    const [projects] = await query.getManyAndCount();
+    assert.isArray(projects);
+    assert.equal(projects[0]?.id, project3.id);
+    assert.equal(projects[1]?.id, project2.id);
+    assert.equal(projects[2]?.id, project1.id);
   });
 }
