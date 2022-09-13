@@ -1,5 +1,7 @@
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { getConnection } from 'typeorm';
+import { publicSelectionFields } from '../entities/user';
+import { logger } from '../utils/logger';
 
 export const getUserProjectPowers = async (params: {
   take: number;
@@ -16,35 +18,35 @@ export const getUserProjectPowers = async (params: {
   userId?: number;
   projectId?: number;
 }): Promise<[UserProjectPowerView[], number]> => {
-  const query = UserProjectPowerView.createQueryBuilder('userProjectPower')
-    // select some parameters of project and user not all fields
-    // .leftJoinAndSelect(
-    //   'userProjectPower.project',
-    //   'project',
-    //   'userProjectPower."projectId" = project.id',
-    // )
-    // .leftJoin(
-    //   'userProjectPower.user',
-    //   'user',
-    //   'userProjectPower."userId" = user.id',
-    // )
-    // .addSelect(publicSelectionFields)
-    .where(`"boostedPower" > 0`);
+  try {
+    const query = UserProjectPowerView.createQueryBuilder('userProjectPower')
+      .leftJoin('userProjectPower.user', 'user')
+      .addSelect(publicSelectionFields)
+      .where(`"boostedPower" > 0`);
 
-  if (params.userId) {
-    query.andWhere(`"userId" =${params.userId}`);
+    if (params.userId) {
+      query.andWhere(`"userId" =:userId`, {
+        userId: params.userId,
+      });
+    }
+    if (params.projectId) {
+      query.andWhere(`"projectId" =:projectId`, {
+        projectId: params.projectId,
+      });
+    }
+    return await query
+      .orderBy(
+        `userProjectPower.${params.orderBy.field}`,
+        params.orderBy.direction,
+      )
+      .take(params.take)
+      .skip(params.skip)
+      .getManyAndCount();
+    // return [await query.getMany(), await query.getCount()]
+  } catch (e) {
+    logger.error('getUserProjectPowers error', e);
+    throw e;
   }
-  if (params.projectId) {
-    query.andWhere(`"projectId" =${params.projectId}`);
-  }
-  return query
-    .orderBy(
-      `userProjectPower.${params.orderBy.field}`,
-      params.orderBy.direction,
-    )
-    .take(params.take)
-    .skip(params.skip)
-    .getManyAndCount();
 };
 
 export const refreshUserProjectPowerView = async (): Promise<void> => {

@@ -84,6 +84,62 @@ function userProjectPowersTestCases() {
       },
     );
   });
+  it('should have name of users within the response', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project: firstProject,
+      percentage: 3,
+    });
+    const givbackRound = 3;
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound,
+      users: [firstUser, secondUser],
+      averagePowers: {
+        [firstUser.walletAddress as string]: 10000,
+        [secondUser.walletAddress as string]: 20000,
+      },
+    });
+    await setPowerRound(givbackRound);
+    await refreshUserProjectPowerView();
+
+    const result = await axios.post(graphqlUrl, {
+      query: getUserProjectPowerQuery,
+      variables: {
+        userId: firstUser.id,
+      },
+    });
+    assert.isOk(result);
+    assert.equal(
+      result.data.data.userProjectPowers.userProjectPowers.length,
+      2,
+    );
+    result.data.data.userProjectPowers.userProjectPowers.forEach(
+      userProjectPower => {
+        assert.equal(userProjectPower.userId, firstUser.id);
+        assert.exists(userProjectPower.user.firstName);
+      },
+    );
+  });
   it('should get list of userProjectPowers filter by projectId', async () => {
     const firstUser = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
