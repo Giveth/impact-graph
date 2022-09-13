@@ -62,6 +62,10 @@ function mainCategoryTestCases() {
     // assert categories ordered alphabetically for maincategory1
     assert.equal(result[result.length - 1].categories[0].name, category2.name);
     assert.equal(result[result.length - 1].categories[1].name, category1.name);
+
+    // clean up for subsequent test
+    await category1.remove();
+    await category2.remove();
   });
 }
 
@@ -74,7 +78,7 @@ function categoryTestCases() {
       title: 'Economics & Infrastructure test2',
     });
 
-    const name = 'zz' + generateRandomString(10); // ensure it's last
+    const name = 'z' + generateRandomString(10); // ensure it's last
     const category1 = await saveCategoryDirectlyToDb({
       name,
       mainCategory,
@@ -82,7 +86,7 @@ function categoryTestCases() {
       isActive: true,
     });
 
-    const name2 = 'aa' + generateRandomString(10); // assert it's first
+    const name2 = 'a' + generateRandomString(10); // assert it's first
     const category2 = await saveCategoryDirectlyToDb({
       name: name2,
       mainCategory,
