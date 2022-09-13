@@ -471,8 +471,10 @@ function projectsTestCases() {
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const project1 = await saveProjectDirectlyToDb(createProjectData());
-    const project3 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = project3.id * 10;
 
     await Promise.all(
       [
@@ -495,7 +497,7 @@ function projectsTestCases() {
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber,
       users: [user1, user2],
       averagePowers: {
         [user1.walletAddress as string]: 10000,
@@ -503,7 +505,7 @@ function projectsTestCases() {
       },
     });
 
-    await setPowerRound(2);
+    await setPowerRound(roundNumber);
     await refreshProjectPowerView();
 
     let result = await axios.post(graphqlUrl, {

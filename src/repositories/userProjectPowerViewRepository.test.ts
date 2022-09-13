@@ -33,10 +33,12 @@ describe('userProjectPowerViewRepository test', () => {
       percentage: 15,
     });
 
+    const roundNumber = project.id * 10;
+
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber,
       users: [firstUser, secondUser],
       averagePowers: {
         [firstUser.walletAddress as string]: 9999.9999,
@@ -44,7 +46,7 @@ describe('userProjectPowerViewRepository test', () => {
       },
     });
 
-    await setPowerRound(2);
+    await setPowerRound(roundNumber);
 
     let [projectPowers, count] = await getUserProjectPowers({
       take: 20,
@@ -83,6 +85,8 @@ describe('userProjectPowerViewRepository test', () => {
 
     const project1 = await saveProjectDirectlyToDb(createProjectData());
 
+    const roundNumber = project1.id * 10;
+
     await insertSinglePowerBoosting({
       user: user1,
       project: project1,
@@ -97,14 +101,14 @@ describe('userProjectPowerViewRepository test', () => {
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber,
       users: [user1, user2],
       averagePowers: {
         [user1.walletAddress as string]: 10000,
         [user2.walletAddress as string]: 20000,
       },
     });
-    await setPowerRound(2);
+    await setPowerRound(roundNumber);
 
     await refreshUserProjectPowerView();
     const [projectPowers] = await getUserProjectPowers({
@@ -132,6 +136,7 @@ describe('userProjectPowerViewRepository test', () => {
   it('should have correct power amount for different rounds', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const roundNumber = project1.id * 10;
 
     await insertSinglePowerBoosting({
       user: user1,
@@ -142,7 +147,7 @@ describe('userProjectPowerViewRepository test', () => {
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 1,
+      givbackRound: roundNumber,
       users: [user1],
       averagePowers: {
         [user1.walletAddress as string]: 10000,
@@ -151,14 +156,14 @@ describe('userProjectPowerViewRepository test', () => {
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber,
       users: [user1],
       averagePowers: {
         [user1.walletAddress as string]: 20000,
       },
     });
 
-    await setPowerRound(1);
+    await setPowerRound(roundNumber);
     await refreshUserProjectPowerView();
 
     let [projectPowers] = await getUserProjectPowers({
@@ -178,7 +183,7 @@ describe('userProjectPowerViewRepository test', () => {
     assert.isDefined(user1power);
     expect(user1power?.boostedPower).to.be.closeTo((10 * 10000) / 100, 0.00001);
 
-    await setPowerRound(2);
+    await setPowerRound(roundNumber);
     await refreshUserProjectPowerView();
 
     [projectPowers] = await getUserProjectPowers({
@@ -201,6 +206,7 @@ describe('userProjectPowerViewRepository test', () => {
   it('should change power amount by boost change', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const roundNumber = project1.id * 10;
 
     const powerBoosting = await insertSinglePowerBoosting({
       user: user1,
@@ -211,14 +217,14 @@ describe('userProjectPowerViewRepository test', () => {
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 1,
+      givbackRound: roundNumber,
       users: [user1],
       averagePowers: {
         [user1.walletAddress as string]: 10000,
       },
     });
 
-    await setPowerRound(1);
+    await setPowerRound(roundNumber);
     await refreshUserProjectPowerView();
 
     let [projectPowers] = await getUserProjectPowers({

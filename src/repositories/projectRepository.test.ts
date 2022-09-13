@@ -286,8 +286,8 @@ function orderByTotalPower() {
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const project1 = await saveProjectDirectlyToDb(createProjectData());
-    const project3 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
 
     await Promise.all(
       [
@@ -307,10 +307,11 @@ function orderByTotalPower() {
       }),
     );
 
+    const roundNumber = project3.id * 10;
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 3232,
+      givbackRound: roundNumber,
       users: [user1, user2],
       averagePowers: {
         [user1.walletAddress as string]: 10000,
@@ -318,7 +319,7 @@ function orderByTotalPower() {
       },
     });
 
-    await setPowerRound(3232);
+    await setPowerRound(roundNumber);
     await refreshProjectPowerView();
     const query = Project.createQueryBuilder('project')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
