@@ -4,14 +4,17 @@ import {
   ViewEntity,
   JoinColumn,
   RelationId,
+  BaseEntity,
+  PrimaryColumn,
 } from 'typeorm';
 import { Project } from '../entities/project';
 import { Field, ObjectType } from 'type-graphql';
 
 @ViewEntity('project_power_view', { synchronize: false })
 @ObjectType()
-export class ProjectPowerView {
+export class ProjectPowerView extends BaseEntity {
   @ViewColumn()
+  @PrimaryColumn()
   @RelationId((projectPowerView: ProjectPowerView) => projectPowerView.project)
   projectId: number;
 

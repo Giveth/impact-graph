@@ -5,7 +5,7 @@ export const getProjectPowers = async (
   take: number = 50,
   skip: number = 0,
 ): Promise<ProjectPowerView[]> => {
-  return getConnection().manager.find(ProjectPowerView, { take, skip });
+  return ProjectPowerView.find({ take, skip });
 };
 
 export const refreshProjectPowerView = async (): Promise<void> => {
