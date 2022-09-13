@@ -11,8 +11,7 @@ export class createProjectTable1662877385200 implements MigrationInterface {
     }
     await queryRunner.query(
       `
-              
-              CREATE TABLE IF NOT EXISTS public.project
+            CREATE TABLE IF NOT EXISTS public.project
               (
                   id SERIAL NOT NULL,
                   title character varying COLLATE pg_catalog."default" NOT NULL,
