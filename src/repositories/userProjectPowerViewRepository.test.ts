@@ -156,7 +156,7 @@ describe('userProjectPowerViewRepository test', () => {
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: roundNumber,
+      givbackRound: roundNumber + 1,
       users: [user1],
       averagePowers: {
         [user1.walletAddress as string]: 20000,
@@ -183,7 +183,7 @@ describe('userProjectPowerViewRepository test', () => {
     assert.isDefined(user1power);
     expect(user1power?.boostedPower).to.be.closeTo((10 * 10000) / 100, 0.00001);
 
-    await setPowerRound(roundNumber);
+    await setPowerRound(roundNumber + 1);
     await refreshUserProjectPowerView();
 
     [projectPowers] = await getUserProjectPowers({
