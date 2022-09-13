@@ -58,6 +58,10 @@ import {
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
 import { MainCategory } from '../entities/mainCategory';
+import { setPowerRound } from '../repositories/powerRoundRepository';
+import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
+import { insertNewUserPowers } from '../repositories/userPowerRepository';
+import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -461,6 +465,76 @@ function projectsTestCases() {
       projects[0].creationDate < projects[projects.length - 1].creationDate,
     );
   });
+
+  it('should return projects, sort by project power', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+
+    await Promise.all(
+      [
+        [user1, project1, 10],
+        [user1, project2, 20],
+        [user1, project3, 30],
+        [user2, project1, 20],
+        [user2, project2, 40],
+        [user2, project3, 60],
+      ].map(item => {
+        const [user, project, percentage] = item as [User, Project, number];
+        return insertSinglePowerBoosting({
+          user,
+          project,
+          percentage,
+        });
+      }),
+    );
+
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound: 2,
+      users: [user1, user2],
+      averagePowers: {
+        [user1.walletAddress as string]: 10000,
+        [user2.walletAddress as string]: 20000,
+      },
+    });
+
+    await setPowerRound(2);
+    await refreshProjectPowerView();
+
+    let result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        orderBy: {
+          field: 'GIVPower',
+          direction: 'DESC',
+        },
+      },
+    });
+    let projects = result.data.data.projects.projects;
+    assert.equal(projects[0].id, project3.id);
+    assert.equal(projects[1].id, project2.id);
+    assert.equal(projects[2].id, project1.id);
+
+    result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        orderBy: {
+          field: 'GIVPower',
+          direction: 'ASC',
+        },
+      },
+    });
+    projects = result.data.data.projects.projects;
+    assert.equal(projects[0].id, project1.id);
+    assert.equal(projects[1].id, project2.id);
+    assert.equal(projects[2].id, project3.id);
+  });
+
   it('should return projects, filter by verified, true', async () => {
     // There is two verified projects so I just need to create a project with verified: false and listed:true
     await saveProjectDirectlyToDb({

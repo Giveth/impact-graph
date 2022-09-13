@@ -503,6 +503,9 @@ export const fetchAllProjectsQuery = `
         totalReactions
         totalDonations
         totalTraceDonations
+        projectPower {
+          totalPower
+        }
       }
       totalCount
       categories {

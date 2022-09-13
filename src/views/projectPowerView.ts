@@ -2,7 +2,6 @@ import {
   OneToOne,
   ViewColumn,
   ViewEntity,
-  PrimaryColumn,
   JoinColumn,
   RelationId,
 } from 'typeorm';
@@ -12,8 +11,7 @@ import { Field, ObjectType } from 'type-graphql';
 @ViewEntity('project_power_view', { synchronize: false })
 @ObjectType()
 export class ProjectPowerView {
-  @PrimaryColumn()
-  @Field()
+  @ViewColumn()
   @RelationId((projectPowerView: ProjectPowerView) => projectPowerView.project)
   projectId: number;
 
@@ -21,7 +19,8 @@ export class ProjectPowerView {
   @Field()
   totalPower: number;
 
-  @OneToOne(type => Project, project => project.powerView)
+  @Field(type => Project)
+  @OneToOne(type => Project, project => project.projectPower)
   @JoinColumn({ referencedColumnName: 'id' })
   project: Project;
 }

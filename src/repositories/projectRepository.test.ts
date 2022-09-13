@@ -281,7 +281,7 @@ function verifyMultipleProjectsTestCases() {
 }
 
 function orderByTotalPower() {
-  it.only('order by totalPower DESC', async () => {
+  it('order by totalPower DESC', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
@@ -321,11 +321,11 @@ function orderByTotalPower() {
     await setPowerRound(3232);
     await refreshProjectPowerView();
     const query = Project.createQueryBuilder('project')
-      .leftJoinAndSelect('project.powerView', 'powerView')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
       .select('project.id')
-      .addSelect('powerView.totalPower')
+      .addSelect('projectPower.totalPower')
       .take(project3.id)
-      .orderBy('powerView.totalPower', 'DESC', 'NULLS LAST')
+      .orderBy('projectPower.totalPower', 'DESC', 'NULLS LAST')
       .take(project3.id + 1);
 
     const [projects] = await query.getManyAndCount();

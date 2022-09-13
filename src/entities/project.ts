@@ -267,14 +267,11 @@ class Project extends BaseEntity {
   projectVerificationForm?: ProjectVerificationForm;
 
   @Field(type => ProjectPowerView, { nullable: true })
-  @OneToOne(type => ProjectPowerView)
-  projectPower?: ProjectPowerView;
-
   @OneToOne(
     type => ProjectPowerView,
     projectPowerView => projectPowerView.project,
   )
-  powerView: ProjectPowerView;
+  projectPower?: ProjectPowerView;
 
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
