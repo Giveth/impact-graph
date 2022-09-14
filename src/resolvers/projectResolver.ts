@@ -795,6 +795,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 

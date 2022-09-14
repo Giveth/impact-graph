@@ -61,7 +61,10 @@ import { MainCategory } from '../entities/mainCategory';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import { insertNewUserPowers } from '../repositories/userPowerRepository';
-import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
+import {
+  getProjectPowers,
+  refreshProjectPowerView,
+} from '../repositories/projectPowerViewRepository';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -4029,6 +4032,46 @@ function projectBySlugTestCases() {
     assert.isNotOk(project.adminUser.email);
     assert.isNotEmpty(project.addresses);
     assert.equal(project.addresses[0].address, walletAddress);
+  });
+  it('should return projects including projectPower', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      walletAddress,
+    });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const roundNumber = project1.id * 10;
+    await insertSinglePowerBoosting({
+      user,
+      project: project1,
+      percentage: 10,
+    });
+
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound: roundNumber,
+      users: [user],
+      averagePowers: { [user.walletAddress as string]: 200 },
+    });
+
+    await setPowerRound(roundNumber);
+
+    await refreshProjectPowerView();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: project1.slug,
+      },
+    });
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), project1.id);
+
+    assert.exists(project.projectPower);
+    assert.isTrue(project.projectPower.totalPower > 0);
   });
   it('should not return drafted if not logged in', async () => {
     const draftedProject = await saveProjectDirectlyToDb({

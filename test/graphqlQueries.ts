@@ -538,6 +538,9 @@ export const fetchProjectsBySlugQuery = `
       traceCampaignId
       listed
       givingBlocksId
+      projectPower {
+        totalPower
+      }
       categories {
        name
        mainCategory {
