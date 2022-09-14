@@ -197,7 +197,7 @@ class Project extends BaseEntity {
   @Column()
   verified: boolean;
 
-  @Field(type => String)
+  @Field(type => String, { nullable: true })
   @Column('text', { nullable: true })
   verificationStatus?: string | null;
 
