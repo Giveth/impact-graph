@@ -61,7 +61,7 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4",
     "monoswap": "0.3.14",
-    "node-cron": "^3.0.0",
+    "node-cron": "^3.0.2",
     "nodemailer": "^6.5.0",
     "npm": "^7.6.1",
     "pg": "^8.5.1",
