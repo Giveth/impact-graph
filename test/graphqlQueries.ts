@@ -1486,6 +1486,7 @@ export const getUserProjectPowerQuery = `
             percentage
             userPower
             boostedPower
+            updateTime
             user {
               id
               firstName
