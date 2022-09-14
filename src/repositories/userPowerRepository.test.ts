@@ -22,10 +22,12 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
+    const roundNumber = 1;
+
     const userPowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber,
       users: [user1],
       averagePowers: { [user1.walletAddress as string]: 9999.9999 },
     });
@@ -34,7 +36,7 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const user2PowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber,
       users: [user2],
       averagePowers: { [user2.walletAddress as string]: 10 },
     });
@@ -61,6 +63,8 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const roundNumber = firstProject.id * 10;
+
     await insertSinglePowerBoosting({
       user: user1,
       project: firstProject,
@@ -78,14 +82,14 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       // consider making the timestamps Dates for easier saving and manipulation
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 1,
+      givbackRound: roundNumber,
       users: [user1],
       averagePowers: { [user1.walletAddress as string]: 999.99 },
     });
     const userPowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber + 1,
       users: [user1],
       averagePowers: { [user1.walletAddress as string]: 82.12 },
     });
@@ -94,13 +98,13 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const user2PowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber + 1,
       users: [user2],
       averagePowers: { [user2.walletAddress as string]: 0 },
     });
 
     const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
-      1,
+      roundNumber,
       0,
       user2.id + 1, // Take
     );
@@ -118,6 +122,9 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const firstProject = await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = firstProject.id * 10;
+
     await insertSinglePowerBoosting({
       user: user1,
       project: firstProject,
@@ -139,14 +146,14 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
       // consider making the timestamps Dates for easier saving and manipulation
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 1,
+      givbackRound: roundNumber,
       averagePowers: { [user1.walletAddress as string]: 388.99 },
       users: [user1],
     });
     const userPowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber + 1,
       averagePowers: { [user1.walletAddress as string]: 32.11 },
       users: [user1],
     });
@@ -155,13 +162,13 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const user2PowerGivbackRound2 = await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
-      givbackRound: 2,
+      givbackRound: roundNumber + 1,
       averagePowers: { [user2.walletAddress as string]: 4.1 },
       users: [user2],
     });
 
     const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
-      2,
+      roundNumber + 1,
       0,
       user3.id + 1,
     );
@@ -180,6 +187,9 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const firstProject = await saveProjectDirectlyToDb(createProjectData());
     const secondProject = await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = secondProject.id * 10;
+
     await insertSinglePowerBoosting({
       user: user1,
       project: firstProject,
@@ -192,7 +202,7 @@ function findUsersThatDidntSyncTheirPowerTestCases() {
     });
 
     const [usersWithoutPowerSync] = await findUsersThatDidntSyncTheirPower(
-      2,
+      roundNumber,
       0,
       user3.id + 1,
     );

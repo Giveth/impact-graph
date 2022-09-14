@@ -9,8 +9,9 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
               AS
               SELECT "powerBoosting"."projectId",
                 sum("userPower".power * "powerBoosting".percentage::double precision / 100::double precision) AS "totalPower"
-                FROM power_boosting "powerBoosting"
-                JOIN user_power "userPower" ON "userPower"."userId" = "powerBoosting"."userId"
+                FROM power_round "powerRound"
+                JOIN user_power "userPower" ON "userPower"."givbackRound" = "powerRound".round
+                JOIN power_boosting "powerBoosting" ON "userPower"."userId" = "powerBoosting"."userId"
                 GROUP BY "powerBoosting"."projectId"
                 ORDER BY "totalPower" DESC;
   

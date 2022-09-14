@@ -1,13 +1,29 @@
-import { Connection, ViewColumn, ViewEntity } from 'typeorm';
-import { PowerBoosting } from '../entities/powerBoosting';
-import { UserPower } from '../entities/userPower';
-import { PowerRound } from '../entities/powerRound';
+import {
+  OneToOne,
+  ViewColumn,
+  ViewEntity,
+  JoinColumn,
+  RelationId,
+  BaseEntity,
+  PrimaryColumn,
+} from 'typeorm';
+import { Project } from '../entities/project';
+import { Field, ObjectType } from 'type-graphql';
 
 @ViewEntity('project_power_view', { synchronize: false })
-export class ProjectPowerView {
+@ObjectType()
+export class ProjectPowerView extends BaseEntity {
   @ViewColumn()
+  @PrimaryColumn()
+  @RelationId((projectPowerView: ProjectPowerView) => projectPowerView.project)
   projectId: number;
 
   @ViewColumn()
+  @Field()
   totalPower: number;
+
+  @Field(type => Project)
+  @OneToOne(type => Project, project => project.projectPower)
+  @JoinColumn({ referencedColumnName: 'id' })
+  project: Project;
 }
