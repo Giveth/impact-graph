@@ -583,7 +583,8 @@ const getAdminBroInstance = async () => {
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin &&
                 (currentAdmin.role === UserRole.ADMIN ||
-                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
+                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER ||
+                  currentAdmin.role === UserRole.OPERATOR),
               isVisible: true,
               after: setCommentEmailAndTimeStamps,
             },
