@@ -80,7 +80,7 @@
     "typeorm": "0.2.38",
     "typeorm-typedi-extensions": "0.2.3",
     "typescript": "^3.9.9",
-    "web3": "^1.6.0",
+    "web3": "^1.7.5",
     "wkhtmltopdf": "^0.3.4"
   },
   "lint-staged": {
