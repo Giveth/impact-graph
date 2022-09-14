@@ -8,7 +8,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import { Project } from '../entities/project';
-import { Field, ObjectType } from 'type-graphql';
+import { Field, Int, ObjectType } from 'type-graphql';
 
 @ViewEntity('project_power_view', { synchronize: false })
 @ObjectType()
@@ -26,4 +26,12 @@ export class ProjectPowerView extends BaseEntity {
   @OneToOne(type => Project, project => project.projectPower)
   @JoinColumn({ referencedColumnName: 'id' })
   project: Project;
+
+  @ViewColumn()
+  @Field(type => Int)
+  powerRank: number;
+
+  @ViewColumn()
+  @Field(type => Date)
+  updateTime: Date;
 }

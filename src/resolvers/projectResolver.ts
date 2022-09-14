@@ -556,8 +556,13 @@ export class ProjectResolver {
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      );
-
+      )
+      .leftJoin('project.projectPower', 'projectPower')
+      .addSelect([
+        'projectPower.totalPower',
+        'projectPower.updateTime',
+        'projectPower.powerRank',
+      ]);
     // Filters
     query = ProjectResolver.addCategoryQuery(query, category);
     query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
@@ -623,8 +628,6 @@ export class ProjectResolver {
         break;
       case OrderField.GIVPower:
         query
-          .leftJoin('project.projectPower', 'projectPower')
-          .addSelect('projectPower.totalPower')
           .orderBy('projectPower.totalPower', orderBy.direction, 'NULLS LAST')
           .addOrderBy(
             `project.${OrderField.CreationDate}`,

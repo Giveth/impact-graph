@@ -525,6 +525,10 @@ function projectsTestCases() {
     assert.equal(projects[1].id, project2.id);
     assert.equal(projects[2].id, project1.id);
 
+    assert.equal(projects[0].projectPower.powerRank, 1);
+    assert.equal(projects[1].projectPower.powerRank, 2);
+    assert.equal(projects[2].projectPower.powerRank, 3);
+
     result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
@@ -538,6 +542,10 @@ function projectsTestCases() {
     assert.equal(projects[0].id, project1.id);
     assert.equal(projects[1].id, project2.id);
     assert.equal(projects[2].id, project3.id);
+
+    assert.equal(projects[0].projectPower.powerRank, 3);
+    assert.equal(projects[1].projectPower.powerRank, 2);
+    assert.equal(projects[2].projectPower.powerRank, 1);
   });
 
   it('should return projects, filter by verified, true', async () => {
