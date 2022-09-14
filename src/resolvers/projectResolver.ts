@@ -1057,7 +1057,7 @@ export class ProjectResolver {
         return {
           project,
           user: adminUser,
-          address: relatedAddress.address,
+          address: relatedAddress.address.toLowerCase(),
           networkId: relatedAddress.networkId,
           isRecipient: true,
         };
