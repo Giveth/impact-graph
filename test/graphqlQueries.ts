@@ -505,6 +505,8 @@ export const fetchAllProjectsQuery = `
         totalTraceDonations
         projectPower {
           totalPower
+          powerRank
+          updateTime
         }
       }
       totalCount
@@ -540,6 +542,8 @@ export const fetchProjectsBySlugQuery = `
       givingBlocksId
       projectPower {
         totalPower
+        powerRank
+        updateTime
       }
       categories {
        name
