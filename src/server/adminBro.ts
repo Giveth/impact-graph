@@ -982,6 +982,13 @@ const getAdminBroInstance = async () => {
               },
             },
             verificationStatus: {
+              availableValues: [
+                { value: 'reminder', label: 'Reminder' },
+                { value: 'warning', label: 'Warning' },
+                { value: 'lastChance', label: 'Last Chance' },
+                { value: 'upForRevoking', label: 'Ready for Revoking' },
+                { value: 'revoked', label: 'Revoked' },
+              ],
               isVisible: {
                 list: false,
                 filter: true,
