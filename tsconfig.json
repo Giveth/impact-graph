@@ -7,7 +7,8 @@
       /* Specify library files to be included in the compilation. */
       "es2018",
       "es2019",
-      "esnext.asynciterable"
+      "esnext.asynciterable",
+      "dom"
     ],
     // "allowJs": true,                       /* Allow javascript files to be compiled. */
     // "checkJs": true,                       /* Report errors in .js files. */
