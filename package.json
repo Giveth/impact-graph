@@ -158,7 +158,7 @@
     "db:migrate:seedToken:run": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:run",
     "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert",
     "postinstall": "patch-package",
-    "build-dev": "tsc && mkdir ./build/config && cp ./config/development.env ./build/config/development.env",
+    "build-dev": "rm -rf ./build && tsc && mkdir ./build/config && cp ./config/development.env ./build/config/development.env && mkdir ./build/src/server/components && cp -r ./src/server/components/ ./build/src/server/components/",
     "dev": "NODE_ENV=development node ./build/src/index.js"
   },
   "husky": {

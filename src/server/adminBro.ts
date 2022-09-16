@@ -421,11 +421,7 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show:
-                  AdminBro.bundle('./components/VerificationFormSocials') ||
-                  AdminBro.bundle(
-                    '../../../src/server/components/VerificationFormSocials',
-                  ),
+                show: AdminBro.bundle('./components/VerificationFormSocials'),
               },
             },
             personalInfo: {
@@ -451,13 +447,9 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show:
-                  AdminBro.bundle(
-                    './components/VerificationFormProjectRegistry',
-                  ) ||
-                  AdminBro.bundle(
-                    '../../../src/server/components/VerificationFormProjectRegistry',
-                  ),
+                show: AdminBro.bundle(
+                  './components/VerificationFormProjectRegistry',
+                ),
               },
             },
             'projectRegistry.isNonProfitOrganization': { type: 'boolean' },
@@ -489,11 +481,9 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show:
-                  AdminBro.bundle('./components/VerificationFormMilestones') ||
-                  AdminBro.bundle(
-                    '../../../src/server/components/VerificationFormMilestones',
-                  ),
+                show: AdminBro.bundle(
+                  './components/VerificationFormMilestones',
+                ),
               },
             },
             managingFunds: {
@@ -861,16 +851,8 @@ const getAdminBroInstance = async () => {
                 list: true,
               },
               components: {
-                show:
-                  AdminBro.bundle('./components/ListOrganizationsNames') ||
-                  AdminBro.bundle(
-                    '../../../src/server/components/ListOrganizationsNames',
-                  ),
-                list:
-                  AdminBro.bundle('./components/ListOrganizationsNames') ||
-                  AdminBro.bundle(
-                    '../../../src/server/components/ListOrganizationsNames',
-                  ),
+                show: AdminBro.bundle('./components/ListOrganizationsNames'),
+                list: AdminBro.bundle('./components/ListOrganizationsNames'),
               },
               availableValues: await generateOrganizationList(),
             },
@@ -966,11 +948,7 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show:
-                  AdminBro.bundle('./components/VerificationFormSocials') ||
-                  AdminBro.bundle(
-                    '../../../src/server/components/VerificationFormSocials',
-                  ),
+                show: AdminBro.bundle('./components/VerificationFormSocials'),
               },
             },
             adminUserId: {
@@ -1109,21 +1087,13 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show:
-                  AdminBro.bundle('./components/ListProjectAddresses') ||
-                  AdminBro.bundle(
-                    '../../../src/server/components/ListProjectAddresses',
-                  ),
+                show: AdminBro.bundle('./components/ListProjectAddresses'),
               },
             },
             listed: {
               isVisible: true,
               components: {
-                filter:
-                  AdminBro.bundle('./components/FilterListedComponent') ||
-                  AdminBro.bundle(
-                    '../../../src/server/components/FilterListedComponent',
-                  ),
+                filter: AdminBro.bundle('./components/FilterListedComponent'),
               },
             },
           },
