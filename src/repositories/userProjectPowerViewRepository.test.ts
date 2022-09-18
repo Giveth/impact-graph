@@ -258,4 +258,96 @@ describe('userProjectPowerViewRepository test', () => {
     user1power = projectPowers.find(p => p.userId === user1.id);
     expect(user1power?.boostedPower).to.be.closeTo((90 * 10000) / 100, 0.00001);
   });
+
+  it('should set rank correctly', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = project1.id * 10;
+
+    const user1boost = await insertSinglePowerBoosting({
+      user: user1,
+      project: project1,
+      percentage: 10,
+    });
+    const user2boost = await insertSinglePowerBoosting({
+      user: user2,
+      project: project1,
+      percentage: 20,
+    });
+    const user3boost = await insertSinglePowerBoosting({
+      user: user3,
+      project: project1,
+      percentage: 30,
+    });
+
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound: roundNumber,
+      users: [user1, user2, user3],
+      averagePowers: {
+        [user1.walletAddress as string]: 10000,
+        [user2.walletAddress as string]: 20000,
+        [user3.walletAddress as string]: 30000,
+      },
+    });
+    await setPowerRound(roundNumber);
+
+    await refreshUserProjectPowerView();
+    let [projectPowers] = await getUserProjectPowers({
+      take: 20,
+      skip: 0,
+      projectId: project1.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
+
+    assert.isArray(projectPowers);
+    assert.lengthOf(projectPowers, 3);
+
+    assert.deepEqual(
+      projectPowers.map(p => p.userId),
+      [user3.id, user2.id, user1.id],
+    );
+
+    projectPowers.forEach((p, i) => {
+      assert.equal(p.rank, i + 1);
+    });
+
+    /// Change boosts and see the rank change
+
+    user1boost.percentage = 30;
+    user3boost.percentage = 10;
+
+    await user1boost.save();
+    await user3boost.save();
+    await refreshUserProjectPowerView();
+
+    [projectPowers] = await getUserProjectPowers({
+      take: 20,
+      skip: 0,
+      projectId: project1.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
+
+    assert.equal(projectPowers[0].userId, user2.id); // 4000
+    assert.equal(projectPowers[0].rank, 1);
+
+    assert.includeMembers(
+      projectPowers.slice(1).map(p => p.userId),
+      [user1.id, user3.id],
+    );
+
+    assert.equal(projectPowers[1].rank, 2); // 3000
+    assert.equal(projectPowers[2].rank, 2); // 3000
+  });
 });

@@ -13,15 +13,7 @@ import { Field, Float, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { Max, Min, IsNumber } from 'class-validator';
-
-class ColumnNumericTransformer {
-  to(data: number): number {
-    return data;
-  }
-  from(data: string): number {
-    return parseFloat(data);
-  }
-}
+import { ColumnNumericTransformer } from '../utils/entities';
 
 @Entity()
 @ObjectType()
