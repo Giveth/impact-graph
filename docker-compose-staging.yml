@@ -10,6 +10,8 @@ services:
     # 2. docker-compose -f docker-compose-staging.yml down
     # 3. docker-compose -f docker-compose-staging.yml up -d
     image: ghcr.io/giveth/impact-graph:staging
+    command:
+      - npm run start:docker:server
     environment:
       - NODE_ENV=production
       - ENVIRONMENT=staging

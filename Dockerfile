@@ -15,6 +15,4 @@ RUN apk add git python3
 RUN apk add --no-cache  chromium --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main
 RUN npm ci
 RUN npm i -g ts-node
-RUN npm run build-prod
-CMD npm run typeorm:cli:live -- migration:run && npm run production
-EXPOSE 4000
+RUN npm run build
