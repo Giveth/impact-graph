@@ -23,6 +23,9 @@ import { PowerBoosting } from './powerBoosting';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { PowerRound } from './powerRound';
 import { ProjectPowerView } from '../views/projectPowerView';
+import { PowerSnapshot } from './powerSnapshot';
+import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
+import { PowerPercentageSnapshot } from './powerPercentageSnapshot';
 
 export const entities: any = [
   Organization,
@@ -50,6 +53,9 @@ export const entities: any = [
   PowerBoosting,
   UserPower,
   PowerRound,
+  PowerSnapshot,
+  PowerBalanceSnapshot,
+  PowerPercentageSnapshot,
 
   // View
   UserProjectPowerView,
