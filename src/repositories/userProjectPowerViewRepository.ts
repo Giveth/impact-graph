@@ -43,8 +43,8 @@ export const getUserProjectPowers = async (params: {
         `userProjectPower.${params.orderBy.field}`,
         params.orderBy.direction,
       )
-      .take(params.take)
-      .skip(params.skip)
+      .limit(params.take)
+      .offset(params.skip)
       .getManyAndCount();
     // return [await query.getMany(), await query.getCount()]
   } catch (e) {
