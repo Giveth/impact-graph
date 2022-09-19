@@ -350,4 +350,60 @@ describe('userProjectPowerViewRepository test', () => {
     assert.equal(projectPowers[1].rank, 2); // 3000
     assert.equal(projectPowers[2].rank, 2); // 3000
   });
+
+  it('should set rank correctly - pagination', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = project1.id * 10;
+
+    const user1boost = await insertSinglePowerBoosting({
+      user: user1,
+      project: project1,
+      percentage: 10,
+    });
+    const user2boost = await insertSinglePowerBoosting({
+      user: user2,
+      project: project1,
+      percentage: 20,
+    });
+    const user3boost = await insertSinglePowerBoosting({
+      user: user3,
+      project: project1,
+      percentage: 30,
+    });
+
+    await insertNewUserPowers({
+      fromTimestamp: new Date(),
+      toTimestamp: new Date(),
+      givbackRound: roundNumber,
+      users: [user1, user2, user3],
+      averagePowers: {
+        [user1.walletAddress as string]: 10000,
+        [user2.walletAddress as string]: 20000,
+        [user3.walletAddress as string]: 30000,
+      },
+    });
+    await setPowerRound(roundNumber);
+
+    await refreshUserProjectPowerView();
+    const [projectPowers] = await getUserProjectPowers({
+      take: 1,
+      skip: 2,
+      projectId: project1.id,
+      orderBy: {
+        field: 'boostedPower',
+        direction: 'DESC',
+      },
+    });
+
+    assert.isArray(projectPowers);
+    assert.lengthOf(projectPowers, 1);
+
+    assert.equal(projectPowers[0].userId, user1.id);
+    assert.equal(projectPowers[0].rank, 3);
+  });
 });
