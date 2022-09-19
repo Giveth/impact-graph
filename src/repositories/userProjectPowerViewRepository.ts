@@ -22,6 +22,10 @@ export const getUserProjectPowers = async (params: {
     const query = UserProjectPowerView.createQueryBuilder('userProjectPower')
       .leftJoin('userProjectPower.user', 'user')
       .addSelect(publicSelectionFields)
+      .addSelect(
+        'RANK () OVER (ORDER BY "boostedPower" DESC)',
+        'userProjectPower_rank',
+      )
       .where(`"boostedPower" > 0`);
 
     if (params.userId) {

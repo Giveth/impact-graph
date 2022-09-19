@@ -147,6 +147,9 @@ function userProjectPowersTestCases() {
     const secondUser = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );
+    const thirdUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
     const firstProject = await saveProjectDirectlyToDb(createProjectData());
     const secondProject = await saveProjectDirectlyToDb(createProjectData());
     await insertSinglePowerBoosting({
@@ -169,16 +172,27 @@ function userProjectPowersTestCases() {
       project: secondProject,
       percentage: 3,
     });
+    await insertSinglePowerBoosting({
+      user: thirdUser,
+      project: firstProject,
+      percentage: 13,
+    });
+    await insertSinglePowerBoosting({
+      user: thirdUser,
+      project: secondProject,
+      percentage: 70,
+    });
 
     const givbackRound = 3;
     await insertNewUserPowers({
       fromTimestamp: new Date(),
       toTimestamp: new Date(),
       givbackRound,
-      users: [firstUser, secondUser],
+      users: [firstUser, secondUser, thirdUser],
       averagePowers: {
         [firstUser.walletAddress as string]: 10000,
         [secondUser.walletAddress as string]: 20000,
+        [thirdUser.walletAddress as string]: 30000,
       },
     });
     await setPowerRound(givbackRound);
@@ -192,12 +206,16 @@ function userProjectPowersTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.data.userProjectPowers.userProjectPowers.length,
-      2,
+      3,
     );
-
+    let lastBoostedPower =
+      result.data.data.userProjectPowers.userProjectPowers[0].boostedPower;
     result.data.data.userProjectPowers.userProjectPowers.forEach(
-      userProjectPower => {
+      (userProjectPower, index) => {
         assert.equal(userProjectPower.projectId, firstProject.id);
+        assert.equal(userProjectPower.rank, index + 1);
+        assert.isTrue(userProjectPower.boostedPower <= lastBoostedPower);
+        lastBoostedPower = userProjectPower.boostedPower;
       },
     );
   });
@@ -361,6 +379,9 @@ function userProjectPowersTestCases() {
     assert.isTrue(
       userProjectPowers[1].percentage >= userProjectPowers[2].percentage,
     );
+    assert.equal(userProjectPowers[0].rank, 1);
+    assert.equal(userProjectPowers[1].rank, 2);
+    assert.equal(userProjectPowers[2].rank, 3);
   });
   it('should get list of userProjectPowers filter by userId, sort by percentage ASC', async () => {
     const firstUser = await saveUserDirectlyToDb(
@@ -416,5 +437,8 @@ function userProjectPowersTestCases() {
     assert.isTrue(
       userProjectPowers[1].percentage <= userProjectPowers[2].percentage,
     );
+    assert.equal(userProjectPowers[0].rank, 3);
+    assert.equal(userProjectPowers[1].rank, 2);
+    assert.equal(userProjectPowers[2].rank, 1);
   });
 }

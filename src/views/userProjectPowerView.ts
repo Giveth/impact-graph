@@ -1,5 +1,6 @@
 import {
   BaseEntity,
+  Column,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -53,4 +54,13 @@ export class UserProjectPowerView extends BaseEntity {
   @ViewColumn()
   @Field(type => Date)
   updateTime: Date;
+
+  @Field()
+  @Column({
+    select: false,
+    nullable: true,
+    insert: false,
+    update: false,
+  })
+  rank?: number;
 }
