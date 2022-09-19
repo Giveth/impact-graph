@@ -222,7 +222,7 @@ export const setSocialProfiles: After<ActionResponse> = async (
     ...record,
     params: {
       ...record.params,
-      projectUrl: `${process.env.GIVETH_IO_DAPP_BASE_URL}/projects/${
+      projectUrl: `${process.env.GIVETH_IO_DAPP_BASE_URL}/project/${
         project!.slug
       }`,
       socials,
