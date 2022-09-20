@@ -285,7 +285,7 @@ function importThirdPartyProjectTestCases() {
         title: 'ChangeApiTestProject',
       },
     });
-    assert.isUndefined(createdProject);
+    assert.isNull(createdProject);
     stub.restore();
   });
   it('creates the project succesfully when changeAPI returns data', async () => {

@@ -83,7 +83,7 @@ describe('findProjectById test cases', () => {
 
   it('should not find project when project doesnt exists', async () => {
     const foundProject = await findProjectById(1000000000);
-    assert.isUndefined(foundProject);
+    assert.isNull(foundProject);
   });
 });
 describe('findProjectBySlug test cases', () => {
@@ -96,7 +96,7 @@ describe('findProjectBySlug test cases', () => {
 
   it('should not find project when project doesnt exists', async () => {
     const foundProject = await findProjectBySlug(new Date().toString());
-    assert.isUndefined(foundProject);
+    assert.isNull(foundProject);
   });
 });
 

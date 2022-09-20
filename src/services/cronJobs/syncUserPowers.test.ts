@@ -45,7 +45,7 @@ function runSyncUserPowersCronJobTestCases() {
       userId: firstUser.id,
       givbackRound: previousGivbackRound,
     });
-    assert.isUndefined(userPower);
+    assert.isNull(userPower);
     await addSyncUserPowerJobsToQueue();
 
     // make sure queue runs all the job
