@@ -149,9 +149,11 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      projectUpdateCreationDate: moment().subtract(150, 'days').endOf('day'),
+      projectUpdateCreationDate: moment().subtract(300, 'days').endOf('day'),
       verificationStatus: RevokeSteps.UpForRevoking,
     });
+
+    // setup an old date in the test.env (last year), so this is instantly revoked
 
     await checkProjectVerificationStatus();
 

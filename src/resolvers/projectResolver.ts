@@ -799,6 +799,11 @@ export class ProjectResolver {
       );
     }
 
+    query = query.orderBy({
+      'mainCategory.title': 'ASC',
+      'categories.name': 'ASC',
+    });
+
     const project = await query.getOne();
 
     canUserVisitProject(project, String(user?.userId));
@@ -1081,7 +1086,7 @@ export class ProjectResolver {
         return {
           project,
           user: adminUser,
-          address: relatedAddress.address,
+          address: relatedAddress.address.toLowerCase(),
           networkId: relatedAddress.networkId,
           isRecipient: true,
         };

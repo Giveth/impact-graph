@@ -195,7 +195,7 @@ class Project extends BaseEntity {
   @Column()
   verified: boolean;
 
-  @Field(type => String)
+  @Field(type => String, { nullable: true })
   @Column('text', { nullable: true })
   verificationStatus?: string | null;
 
@@ -287,6 +287,9 @@ class Project extends BaseEntity {
   @Field(type => Boolean, { nullable: true })
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
+
+  @Field(type => String, { nullable: true })
+  projectUrl?: string;
 
   // Virtual attribute to subquery result into
   @Field(type => Int, { nullable: true })

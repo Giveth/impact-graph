@@ -47,6 +47,10 @@ const projectUpdatesExpiredRevokeAdditionalDays = Number(
   config.get('PROJECT_UPDATES_EXPIRED_ADDITIONAL_REVOKE_DAYS') || 30,
 );
 
+const projectUpdatesFirstRevokeBatchDate = String(
+  config.get('PROJECT_UPDATES_FIRST_REVOKE_BATCH_DATE') || '2022-10-22',
+);
+
 const maxDaysForSendingUpdateReminder = moment()
   .subtract(projectUpdatesReminderDays, 'days')
   .endOf('day')
@@ -80,19 +84,18 @@ export const checkProjectVerificationStatus = async () => {
     maxDaysForSendingUpdateReminder,
   );
 
-  for (const project of projects) {
-    await remindUpdatesOrRevokeVerification(project);
-  }
+  // Run all iterations async, resulting in array of promises
+  await Promise.all(
+    projects.map(async project => {
+      await remindUpdatesOrRevokeVerification(project);
+    }),
+  );
 };
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
   // Projects up for revoking when 30 days are done after feature release
-  const lastChanceRevokeDate = new Date().setDate(
-    maxDaysForSendingUpdateLastWarning.getDate() -
-      projectUpdatesExpiredRevokeAdditionalDays,
-  );
   if (
-    project.projectUpdate.createdAt <= lastChanceRevokeDate &&
+    new Date() >= new Date(projectUpdatesFirstRevokeBatchDate) &&
     project.verificationStatus === RevokeSteps.UpForRevoking
   ) {
     project.verificationStatus = RevokeSteps.Revoked;

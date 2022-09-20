@@ -1,20 +1,22 @@
-import React from 'react'
-import Select from 'react-select/async'
-import { withTheme } from 'styled-components'
-import { FormGroup, filterStyles, Label } from '@admin-bro/design-system'
+import React from 'react';
+import Select from 'react-select/async';
+import { withTheme } from 'styled-components';
+import { FormGroup, filterStyles, Label } from '@admin-bro/design-system';
 
 const FilterListedComponent = props => {
-  const { onChange, property, theme } = props;
+  const { onChange, property, theme, value } = props;
 
-  const handleChange = (selected) => {
-    onChange(property.path, selected ? selected.value : '')
-  }
+  console.log(props);
+
+  const handleChange = selected => {
+    onChange(property.path, selected ? selected.value : '');
+  };
 
   return (
     <FormGroup>
       <Label>{property.label}</Label>
       <Select
-        value={typeof selected === 'undefined' ? undefined : selected}
+        value={value === undefined ? undefined : value}
         isClearable
         cacheOptions
         onChange={handleChange}
@@ -26,7 +28,7 @@ const FilterListedComponent = props => {
         ]}
       />
     </FormGroup>
-  )
-}
+  );
+};
 
 export default withTheme(FilterListedComponent);

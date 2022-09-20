@@ -59,11 +59,11 @@
     "ioredis": "5.0.4",
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
-    "moment": "^2.29.1",
+    "moment": "^2.29.4",
     "monoswap": "0.3.14",
-    "node-cron": "^3.0.0",
+    "node-cron": "^3.0.2",
     "nodemailer": "^6.5.0",
-    "npm": "^7.6.1",
+    "npm": "^8.11.0",
     "pg": "^8.5.1",
     "pgtools": "^0.3.2",
     "querystring": "^0.2.1",
@@ -103,7 +103,7 @@
     "husky": "^4.3.8",
     "lint-staged": "^10.5.4",
     "mocha": "^8.3.0",
-    "node-fetch": ">=2.6.1",
+    "node-fetch": ">=3.2.10",
     "object-path": ">=0.11.5",
     "patch-package": "^6.4.7",
     "prettier": "^2.4.1",
@@ -162,7 +162,12 @@
     "prettify": "prettier --write '**/*.ts*'",
     "db:migrate:seedToken:run": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:run",
     "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "build": "rm -rf ./build && tsc && mkdir ./build/config && cp ./config/* ./build/config && mkdir ./build/src/server/components && cp -r ./src/server/components/* ./build/src/server/components/",
+    "dev": "NODE_ENV=development node ./build/src/index.js",
+    "production": "NODE_ENV=production node ./build/src/index.js",
+    "start:docker:server": "npm run typeorm:cli:live -- migration:run && npm run production",
+    "start:docker:locally": "npm run typeorm:cli -- migration:run && npm run dev"
   },
   "husky": {
     "hooks": {
