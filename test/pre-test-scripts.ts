@@ -26,36 +26,13 @@ import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-Us
 import { ProjectPowerView1662915983382 } from '../migration/1662915983382-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895750 } from '../migration/1663594895750-takePowerSnapshotProcedure';
 
-// This can also be a connection string
-// (in which case the database part is ignored and replaced with postgres)
-
-async function dropDatabaseAndCreateFreshOne() {
+async function createDatabaseIFNotExists() {
   const config = {
     user: process.env.TYPEORM_DATABASE_USER,
     password: process.env.TYPEORM_DATABASE_PASSWORD,
     port: process.env.TYPEORM_DATABASE_PORT,
     host: process.env.TYPEORM_DATABASE_HOST,
   };
-
-  // tslint:disable-next-line:no-console
-  console.log('Dropping DB');
-  try {
-    await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
-    // don't drop cron db, because it will be used by pg_cron extension
-  } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('drop db error', e);
-  }
-
-  // tslint:disable-next-line:no-console
-  console.log('Create Fresh DB');
-  try {
-    await createdb(config, process.env.TYPEORM_DATABASE_NAME);
-  } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('Create Fresh db error', e);
-  }
-
   try {
     // Don't drop cron database since it will be used by the extension
     await createdb(config, process.env.TYPEORM_DATABASE_NAME + '-cron');
@@ -308,7 +285,7 @@ async function runMigrations() {
 
 before(async () => {
   try {
-    // await dropDatabaseAndCreateFreshOne();
+    await createDatabaseIFNotExists();
     await bootstrap();
     await seedDb();
     await runMigrations();

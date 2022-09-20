@@ -69,6 +69,7 @@ export async function bootstrap() {
       resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver]);
     }
 
+    // DANGER!!!  You just should set DROP_DATABASE=true in test ENV
     const dropSchema = config.get('DROP_DATABASE') === 'true';
     await TypeORM.createConnections([
       {
