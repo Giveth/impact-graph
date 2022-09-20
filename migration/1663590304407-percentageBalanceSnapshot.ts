@@ -6,7 +6,7 @@ export class percentageBalanceSnapshot1663590304407
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-    CREATE TABLE IF NOT EXISTS "power_percentage_snapshot" (
+    CREATE TABLE IF NOT EXISTS "power_boosting_snapshot" (
         id SERIAL NOT NULL,
         "userId" integer NOT NULL,
         "projectId" integer NOT NULL,
@@ -16,12 +16,12 @@ export class percentageBalanceSnapshot1663590304407
     )
       `);
     await queryRunner.query(
-      `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_3d53595c8d181c5eac9423d69b" ON public.power_percentage_snapshot USING btree ("userId" ASC NULLS LAST, "projectId" ASC NULLS LAST, "powerSnapshotId" ASC NULLS LAST)`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_3d53595c8d181c5eac9423d69b" ON public.power_boosting_snapshot USING btree ("userId" ASC NULLS LAST, "projectId" ASC NULLS LAST, "powerSnapshotId" ASC NULLS LAST)`,
     );
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS "power_percentage_snapshot"`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "power_boosting_snapshot"`);
     await queryRunner.query(`DROP INDEX "IDX_3d53595c8d181c5eac9423d69b"`);
   }
 }

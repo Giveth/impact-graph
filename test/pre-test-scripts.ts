@@ -24,6 +24,7 @@ import { MainCategory } from '../src/entities/mainCategory';
 import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
 import { ProjectPowerView1662915983382 } from '../migration/1662915983382-ProjectPowerView';
+import { TakePowerBoostingSnapshotProcedure1663594895750 } from '../migration/1663594895750-takePowerSnapshotProcedure';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -282,9 +283,11 @@ async function createMaterializedViews() {
   try {
     const userProjectPowerView = new UserProjectPowerView1662877385339();
     const projectPowerView = new ProjectPowerView1662915983382();
+    const takeSnapshot = new TakePowerBoostingSnapshotProcedure1663594895750();
 
     await userProjectPowerView.up(queryRunner);
     await projectPowerView.up(queryRunner);
+    await takeSnapshot.up(queryRunner);
   } catch (e) {
     throw e;
   } finally {

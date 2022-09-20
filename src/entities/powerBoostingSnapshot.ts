@@ -11,7 +11,7 @@ import { ColumnNumericTransformer } from '../utils/entities';
 @Entity()
 @ObjectType()
 @Index(['userId', 'projectId', 'powerSnapshotId'], { unique: true })
-export class PowerPercentageSnapshot extends BaseEntity {
+export class PowerBoostingSnapshot extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   id: number;

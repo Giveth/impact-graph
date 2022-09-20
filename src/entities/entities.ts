@@ -25,7 +25,7 @@ import { PowerRound } from './powerRound';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { PowerSnapshot } from './powerSnapshot';
 import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
-import { PowerPercentageSnapshot } from './powerPercentageSnapshot';
+import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
 
 export const entities: any = [
   Organization,
@@ -55,7 +55,7 @@ export const entities: any = [
   PowerRound,
   PowerSnapshot,
   PowerBalanceSnapshot,
-  PowerPercentageSnapshot,
+  PowerBoostingSnapshot,
 
   // View
   UserProjectPowerView,

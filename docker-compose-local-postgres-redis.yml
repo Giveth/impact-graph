@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   impact-graph-postgress:
-    image: postgres
+    build: docker/postgres
     container_name: impact-graph-postgress
     restart: always
     environment:
@@ -18,7 +18,7 @@ services:
   impact-graph-postgress-test:
     # CAUTION: Running tests will delete all records of this db, so just use this container for test
     # For running application use above container port: 5442
-    image: postgres
+    build: docker/postgres
     container_name: impact-graph-postgress-test
     restart: always
     environment:
