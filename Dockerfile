@@ -3,11 +3,10 @@ FROM node:16.14.2-alpine3.15
 
 WORKDIR /usr/src/app
 
-COPY tsconfig.json .
+
 COPY package*.json ./
-COPY src ./src
-COPY test ./test
-COPY migration ./migration
+COPY patches ./patches
+COPY tsconfig.json .
 
 
 RUN apk add --update alpine-sdk
@@ -15,6 +14,13 @@ RUN apk add git python3
 RUN apk add --no-cache  chromium --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main
 RUN npm ci
 RUN npm i -g ts-node
-RUN npm run build-prod
-CMD npm run typeorm:cli:live -- migration:run && npm run production
-EXPOSE 4000
+
+# When building docker images, docker caches the steps, so it's better to put the lines that would have lots of changes
+# last, then when changing these steps the previous steps would use cache and move forward fast
+
+COPY config ./config
+COPY src ./src
+COPY test ./test
+COPY migration ./migration
+
+RUN npm run build
