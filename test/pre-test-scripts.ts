@@ -41,6 +41,7 @@ async function dropDatabaseAndCreateFreshOne() {
   console.log('Dropping DB');
   try {
     await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
+    // don't drop cron db, because it will be used by pg_cron extension
   } catch (e) {
     // tslint:disable-next-line:no-console
     console.log('drop db error', e);
@@ -53,6 +54,15 @@ async function dropDatabaseAndCreateFreshOne() {
   } catch (e) {
     // tslint:disable-next-line:no-console
     console.log('Create Fresh db error', e);
+  }
+
+  try {
+    // Don't drop cron database since it will be used by the extension
+    await createdb(config, process.env.TYPEORM_DATABASE_NAME + '-cron');
+  } catch (e) {
+    if (e?.name !== 'duplicate_database')
+      // tslint:disable-next-line:no-console
+      console.log('Create cron database error', e);
   }
 }
 
@@ -276,18 +286,19 @@ async function seedStatusReasons() {
   }
 }
 
-async function createMaterializedViews() {
+async function runMigrations() {
   const queryRunner = getConnection().createQueryRunner();
   await queryRunner.connect();
 
   try {
     const userProjectPowerView = new UserProjectPowerView1662877385339();
     const projectPowerView = new ProjectPowerView1662915983382();
-    const takeSnapshot = new TakePowerBoostingSnapshotProcedure1663594895750();
+    const takeSnapshotProcedure =
+      new TakePowerBoostingSnapshotProcedure1663594895750();
 
     await userProjectPowerView.up(queryRunner);
     await projectPowerView.up(queryRunner);
-    await takeSnapshot.up(queryRunner);
+    await takeSnapshotProcedure.up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
@@ -297,10 +308,10 @@ async function createMaterializedViews() {
 
 before(async () => {
   try {
-    await dropDatabaseAndCreateFreshOne();
+    // await dropDatabaseAndCreateFreshOne();
     await bootstrap();
     await seedDb();
-    await createMaterializedViews();
+    await runMigrations();
   } catch (e) {
     throw new Error(`Could not setup tests requirements \n${e.message}`);
   }

@@ -70,20 +70,34 @@ export async function bootstrap() {
     }
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
-    await TypeORM.createConnection({
-      type: 'postgres',
-      database: config.get('TYPEORM_DATABASE_NAME') as string,
-      username: config.get('TYPEORM_DATABASE_USER') as string,
-      password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-      port: config.get('TYPEORM_DATABASE_PORT') as number,
-      host: config.get('TYPEORM_DATABASE_HOST') as string,
-      entities,
-      synchronize: true,
-      logger: 'advanced-console',
-      logging: ['error'],
-      dropSchema,
-      cache: true,
-    });
+    await TypeORM.createConnections([
+      {
+        name: 'default',
+        type: 'postgres',
+        database: config.get('TYPEORM_DATABASE_NAME') as string,
+        username: config.get('TYPEORM_DATABASE_USER') as string,
+        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+        port: config.get('TYPEORM_DATABASE_PORT') as number,
+        host: config.get('TYPEORM_DATABASE_HOST') as string,
+        entities,
+        synchronize: true,
+        logger: 'advanced-console',
+        logging: ['error'],
+        dropSchema,
+        cache: true,
+      },
+      {
+        name: 'cronJob',
+        type: 'postgres',
+        database: (config.get('TYPEORM_DATABASE_NAME') as string) + '-cron',
+        username: config.get('TYPEORM_DATABASE_USER') as string,
+        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+        port: config.get('TYPEORM_DATABASE_PORT') as number,
+        host: config.get('TYPEORM_DATABASE_HOST') as string,
+        synchronize: false,
+        dropSchema,
+      },
+    ]);
 
     const schema = await createSchema();
 
