@@ -13,11 +13,15 @@ services:
     command: npm run start:docker:server
     environment:
       - ENVIRONMENT=staging
-      - NODE_ENV=production
       - LOG_PATH=/usr/src/app/logs/impact-graph.log
     restart: always
     volumes:
       # You should have a production.env file in the config folder
+      # We should bind config in two path, I think because running migrations(ts) needs one and running
+      # application(js) read from another path, if we change migrations two run them as js files then we need just on binding
+      - type: bind
+        source: ./config
+        target: /usr/src/app/config
       - type: bind
         source: ./config
         target: /usr/src/app/build/config
