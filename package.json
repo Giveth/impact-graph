@@ -154,19 +154,21 @@
     "test:bootstrap": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/server/bootstrap.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
     "typeorm:cli:test": "NODE_ENV=test ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
-    "typeorm:cli": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
+    "typeorm:cli": "NODE_ENV=development npx typeorm-ts-node-esm migration:run -d ./src/ormconfig.ts",
     "typeorm:cli:live": "NODE_ENV=production ts-node ./node_modules/typeorm/cli -f ./src/ormconfig.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
-    "db:migrate:run": "NODE_ENV=development npm run typeorm:cli -- migration:run",
-    "db:migrate:revert": "NODE_ENV=development npm run typeorm:cli -- migration:revert",
+    "db:migrate:run:local": "NODE_ENV=development npx typeorm-ts-node-esm migration:run -d ./src/ormconfig.ts",
+    "db:migrate:revert:local": "NODE_ENV=development npx typeorm-ts-node-esm migration:revert -d ./src/ormconfig.ts",
+    "db:migrate:run:production": "NODE_ENV=production npx typeorm-ts-node-esm migration:run -d ./src/ormconfig.ts",
+    "db:migrate:rever:productiont": "NODE_ENV=production npx typeorm-ts-node-esm migration:revert -d ./src/ormconfig.ts",
     "prettify": "prettier --write '**/*.ts*'",
     "db:migrate:seedToken:run": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:run",
     "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert",
     "build": "rm -rf ./build && tsc && mkdir ./build/config && cp ./config/* ./build/config && mkdir ./build/src/server/components && cp -r ./src/server/components/* ./build/src/server/components/",
     "dev": "NODE_ENV=development node ./build/src/index.js",
     "production": "NODE_ENV=production node ./build/src/index.js",
-    "start:docker:server": "npm run typeorm:cli:live -- migration:run && npm run production",
-    "start:docker:locally": "npm run typeorm:cli -- migration:run && npm run dev"
+    "start:docker:server": "npm run db:migrate:run:production && npm run production",
+    "start:docker:locally": "npm run db:migrate:run:local && npm run dev"
   },
   "husky": {
     "hooks": {

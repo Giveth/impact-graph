@@ -142,25 +142,22 @@ After a site is live or if you want to keep your database you need to use databa
 
 This can be done either by creating a new migration file with:
 
-```
-npm run typeorm:cli migration:create -- -n UpdateUserEmailUnique -d migration
-```
-
-Or by changing the entities and generating the migrations with:
-```
-npm run typeorm:cli migration:generate -- -n UpdateUserEmailUnique
-```
-
-Then you need to run the migrations like so:
+#### Create new Migration file
 
 ```
-npm run typeorm:cli -- migration:run
+typeorm migration:create ./migrations/createAccessTokenTable
 ```
 
+#### Run migrations
+```
+npm run db:migrate:run:local
+```
+
+#### Revert migrations
 If you want to revert last migration :
 
 ```
-npm run typeorm:cli -- migration:revert
+npm run db:migrate:revert:local
 ```
 
 ### TEST

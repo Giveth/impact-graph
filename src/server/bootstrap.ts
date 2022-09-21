@@ -49,6 +49,7 @@ import { TwitterAdapter } from '../adapters/oauth2/twitterAdapter';
 import { generateRandomEtheriumAddress } from '../../test/testUtils';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 import { runSyncUserPowersCronJob } from '../services/cronJobs/syncUserPowers';
+import { AppDataSource } from '../ormconfig';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -69,21 +70,7 @@ export async function bootstrap() {
       resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver]);
     }
 
-    const dropSchema = config.get('DROP_DATABASE') === 'true';
-    await TypeORM.createConnection({
-      type: 'postgres',
-      database: config.get('TYPEORM_DATABASE_NAME') as string,
-      username: config.get('TYPEORM_DATABASE_USER') as string,
-      password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-      port: config.get('TYPEORM_DATABASE_PORT') as number,
-      host: config.get('TYPEORM_DATABASE_HOST') as string,
-      entities,
-      synchronize: true,
-      logger: 'advanced-console',
-      logging: ['error'],
-      dropSchema,
-      cache: true,
-    });
+    await AppDataSource.initialize();
 
     const schema = await createSchema();
 
