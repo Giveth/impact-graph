@@ -60,6 +60,7 @@ describe('db cron job test', () => {
     assert.equal(count, 0);
   });
 
+  // This test takes one minutes to become complete, just will run it in special cases manually
   it.skip('should fill givpower boosting snapshot', async () => {
     await PowerBoosting.clear();
 
