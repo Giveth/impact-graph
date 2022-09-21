@@ -36,6 +36,7 @@ import { SocialProfile } from './socialProfile';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { ProjectContacts } from './projectVerificationForm';
+import { ProjectPowerView } from '../views/projectPowerView';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -75,6 +76,7 @@ export enum OrderField {
   Donations = 'totalDonations',
   TraceDonations = 'totalTraceDonations',
   AcceptGiv = 'givingBlocksId',
+  GIVPower = 'givPower',
 }
 
 export enum RevokeSteps {
@@ -259,6 +261,13 @@ class Project extends BaseEntity {
     { nullable: true },
   )
   projectVerificationForm?: ProjectVerificationForm;
+
+  @Field(type => ProjectPowerView, { nullable: true })
+  @OneToOne(
+    type => ProjectPowerView,
+    projectPowerView => projectPowerView.project,
+  )
+  projectPower?: ProjectPowerView;
 
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)

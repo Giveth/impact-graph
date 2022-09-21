@@ -132,6 +132,8 @@ export const errorMessages = {
   ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT:
     'First project boosting value must be 100%',
   ERROR_GIVPOWER_BOOSTING_INVALID_DATA: 'Invalid data',
+  ERROR_GIV_POWER_BOOSTING_SUM_IS_GREATER_THAN_MAXIMUM:
+    'Giv power boosting summation is greater than 100',
   // ERROR_GIVPOWER_BOOSTING_PERCENTAGE_INVALID_RANGE: 'Invalid percentage value',
   // ERROR_GIVPOWER_BOOSTING_MULTI_PERCENTAGE_INVALID_SUM:
   //   'Sum of all boosting percentages must be between 99% to 100%',

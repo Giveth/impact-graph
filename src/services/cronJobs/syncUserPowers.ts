@@ -10,7 +10,9 @@ import {
 } from '../../repositories/userPowerRepository';
 
 import { User } from '../../entities/user';
-import { length } from 'class-validator';
+import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
+import { refreshProjectPowerView } from '../../repositories/projectPowerViewRepository';
+import { setPowerRound } from '../../repositories/powerRoundRepository';
 
 const syncUserPowersQueue = new Bull<SyncUserPowersJobData>(
   'verify-userPower-queue',
@@ -25,6 +27,17 @@ setInterval(async () => {
     syncUserPowersQueueCount,
   });
 }, TWO_MINUTES);
+
+const refreshUserProjectPowerViewsInterval = process.env
+  .REFRESH_USER_PROJECT_POWER_VIEW_MINUTESS
+  ? Number(process.env.REFRESH_USER_PROJECT_POWER_VIEW_MINUTESS) * 1000 * 60
+  : TWO_MINUTES;
+
+setInterval(async () => {
+  logger.debug('Refreshing userProjectPower and projectpower table');
+  await refreshProjectPowerView();
+  await refreshUserProjectPowerView();
+}, refreshUserProjectPowerViewsInterval);
 
 // As etherscan free plan support 5 request per second I think it's better the concurrent jobs should not be
 // more than 5 with free plan https://etherscan.io/apis
@@ -129,7 +142,18 @@ export function processSyncUserPowerJobs() {
           givbackRound,
           users,
         });
-        logger.debug('inserting userPowers...', users.length);
+        const remainingJobsCount = await syncUserPowersQueue.count();
+        if (remainingJobsCount === 0) {
+          await setPowerRound(givbackRound);
+          // We know there is not any sync userPower jobs , so we refresh DB views
+          await refreshUserProjectPowerView();
+          await refreshProjectPowerView();
+        }
+
+        logger.debug('inserting userPowers...', {
+          usersLength: users.length,
+          remainingJobsCount,
+        });
       } catch (e) {
         logger.error('processSyncUserPowerJobs >> synUserPower error', e);
       } finally {

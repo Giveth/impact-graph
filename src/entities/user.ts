@@ -16,6 +16,7 @@ import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { UserPower } from './userPower';
 import { PowerBoosting } from './powerBoosting';
+import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
 
 export const publicSelectionFields = [
   'user.id',
@@ -172,6 +173,10 @@ export class User extends BaseEntity {
       .getCount();
 
     return likedProjectsCount;
+  }
+  @Field(type => Int, { nullable: true })
+  async boostedProjectsCount() {
+    return findPowerBoostingsCountByUserId(this.id);
   }
 
   segmentUserId() {

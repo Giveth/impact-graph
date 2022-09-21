@@ -73,6 +73,19 @@ export const findPowerBoostings = async (params: {
     .getManyAndCount();
 };
 
+export const findPowerBoostingsCountByUserId = async (
+  userId: number,
+): Promise<number> => {
+  const query = PowerBoosting.createQueryBuilder('powerBoosting')
+    // select some parameters of project and user not all fields
+    .leftJoinAndSelect('powerBoosting.project', 'project')
+    .leftJoin('powerBoosting.user', 'user')
+    .addSelect(publicSelectionFields)
+    .where(`percentage > 0`)
+    .andWhere(`"userId" =${userId}`);
+  return query.getCount();
+};
+
 export const insertSinglePowerBoosting = async (params: {
   user: User;
   project: Project;
@@ -202,7 +215,14 @@ export const setMultipleBoosting = async (params: {
     0,
   );
 
-  if (total < 100 - 0.01 * percentages.length || total > 100) {
+  // Sometimes js add some tiny numbers at the end of number for instance if you
+  // calculate 50.46+18+12.62+9.46+9.46 with calculator you would get 100 but with js you will get
+  // 100.00000000000003 so we have to ignore small different changes in this webservice
+  const MAX_TOTAL_PERCENTAGES = 100.00001;
+  if (
+    total < 100 - 0.01 * percentages.length ||
+    total > MAX_TOTAL_PERCENTAGES
+  ) {
     throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA);
   }
 

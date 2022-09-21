@@ -9,8 +9,9 @@ import {
   RelationId,
   Unique,
 } from 'typeorm';
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, Float, ID, ObjectType } from 'type-graphql';
 import { User } from './user';
+import { IsNumber, Min } from 'class-validator';
 
 @ObjectType()
 @Entity()
@@ -29,8 +30,10 @@ export class UserPower extends BaseEntity {
   @Column({ nullable: false })
   userId: number;
 
-  @Field()
-  @Column()
+  @Field(type => Float)
+  @Column({ type: 'float', nullable: true })
+  @IsNumber()
+  @Min(0)
   power: number;
 
   @Field()

@@ -503,6 +503,11 @@ export const fetchAllProjectsQuery = `
         totalReactions
         totalDonations
         totalTraceDonations
+        projectPower {
+          totalPower
+          powerRank
+          updateTime
+        }
       }
       totalCount
       categories {
@@ -535,6 +540,11 @@ export const fetchProjectsBySlugQuery = `
       traceCampaignId
       listed
       givingBlocksId
+      projectPower {
+        totalPower
+        powerRank
+        updateTime
+      }
       categories {
        name
        mainCategory {
@@ -785,6 +795,10 @@ export const userByAddress = `
       url
       location
       isSignedIn
+      boostedProjectsCount
+      likedProjectsCount
+      donationsCount
+      projectsCount
     }
   }
 `;
@@ -1444,6 +1458,43 @@ export const getPowerBoostingsQuery = `
               id
             }
             percentage
+      }      
+    }
+  }
+`;
+
+export const getUserProjectPowerQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: UserPowerOrderBy
+    $projectId: Int
+    $userId: Int
+  ) {
+    userProjectPowers (
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      projectId: $projectId
+      userId: $userId
+    ) {
+      totalCount
+      userProjectPowers {
+            id
+            userId
+            projectId
+            percentage
+            userPower
+            boostedPower
+            updateTime
+            rank
+            user {
+              id
+              firstName
+              lastName
+              name
+            }
+            
       }      
     }
   }
