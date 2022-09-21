@@ -168,7 +168,12 @@
     "prettify": "prettier --write '**/*.ts*'",
     "db:migrate:seedToken:run": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:run",
     "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "build": "rm -rf ./build && tsc && mkdir ./build/config && mkdir ./build/src/server/components && cp -r ./src/server/components/* ./build/src/server/components/",
+    "dev": "NODE_ENV=development node ./build/src/index.js",
+    "production": "NODE_ENV=production node ./build/src/index.js",
+    "start:docker:server": "npm run typeorm:cli:live -- migration:run && npm run production",
+    "start:docker:locally": "npm run typeorm:cli -- migration:run && npm run dev"
   },
   "husky": {
     "hooks": {

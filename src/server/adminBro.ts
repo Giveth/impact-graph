@@ -217,10 +217,14 @@ export const setSocialProfiles: After<ActionResponse> = async (
   const projectId = record.params.projectId || record.params.id;
 
   const socials = await findSocialProfilesByProjectId({ projectId });
+  const project = await findProjectById(projectId);
   response.record = {
     ...record,
     params: {
       ...record.params,
+      projectUrl: `${process.env.GIVETH_IO_DAPP_BASE_URL}/project/${
+        project!.slug
+      }`,
       socials,
     },
   };
@@ -982,6 +986,13 @@ const getAdminBroInstance = async () => {
               },
             },
             verificationStatus: {
+              availableValues: [
+                { value: 'reminder', label: 'Reminder' },
+                { value: 'warning', label: 'Warning' },
+                { value: 'lastChance', label: 'Last Chance' },
+                { value: 'upForRevoking', label: 'Ready for Revoking' },
+                { value: 'revoked', label: 'Revoked' },
+              ],
               isVisible: {
                 list: false,
                 filter: true,
@@ -1017,6 +1028,18 @@ const getAdminBroInstance = async () => {
             },
             slug: {
               isVisible: { list: true, filter: true, show: true, edit: true },
+            },
+            projectUrl: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/ClickableLink'),
+              },
             },
             organisationId: {
               isVisible: false,
