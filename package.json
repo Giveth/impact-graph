@@ -144,6 +144,7 @@
     "test:powerRoundRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerRoundRepository.test.ts",
     "test:userProjectPowerRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userProjectPowerViewRepository.test.ts",
     "test:projectPowerRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectPowerViewRepository.test.ts",
+    "test:dbCronRepository": "NODE_ENV=test mocha  -t 90000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/dbCronRepository.test.ts",
     "test:powerBoostingResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/powerBoostingResolver.test.ts",
     "test:userProjectPowerResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/userProjectPowerResolver.test.ts",
     "test:projectAddressRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectAddressRepository.test.ts",

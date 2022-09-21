@@ -43,12 +43,13 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import { ProjectVerificationForm } from '../entities/projectVerificationForm';
-import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
-import { TwitterAdapter } from '../adapters/oauth2/twitterAdapter';
-import { generateRandomEtheriumAddress } from '../../test/testUtils';
-import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 import { runSyncUserPowersCronJob } from '../services/cronJobs/syncUserPowers';
+import { CronJob } from '../entities/CronJob';
+import { getConnection } from 'typeorm';
+import {
+  dropDbCronExtension,
+  schedulePowerBoostingSnapshot,
+} from '../repositories/dbCronRepository';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -73,6 +74,7 @@ export async function bootstrap() {
     await TypeORM.createConnections([
       {
         name: 'default',
+        schema: 'public',
         type: 'postgres',
         database: config.get('TYPEORM_DATABASE_NAME') as string,
         username: config.get('TYPEORM_DATABASE_USER') as string,
@@ -87,19 +89,41 @@ export async function bootstrap() {
         cache: true,
       },
       {
-        name: 'cronJob',
+        name: 'cron',
         type: 'postgres',
-        database: (config.get('TYPEORM_DATABASE_NAME') as string) + '-cron',
+        database: config.get('TYPEORM_DATABASE_NAME') as string,
         username: config.get('TYPEORM_DATABASE_USER') as string,
         password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
         port: config.get('TYPEORM_DATABASE_PORT') as number,
         host: config.get('TYPEORM_DATABASE_HOST') as string,
+        entities: [CronJob],
         synchronize: false,
-        dropSchema,
+        dropSchema: false,
       },
     ]);
 
+    if (dropSchema) {
+      try {
+        await dropDbCronExtension();
+      } catch (e) {
+        logger.error('drop pg_cron extension error', e);
+      }
+    }
+
     const schema = await createSchema();
+
+    const enableDbCronJob =
+      config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
+    if (enableDbCronJob) {
+      try {
+        const scheduleExpression = config.get(
+          'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
+        ) as string;
+        await schedulePowerBoostingSnapshot(scheduleExpression);
+      } catch (e) {
+        logger.error('Enabling power boosting snapshot ', e);
+      }
+    }
 
     // Create GraphQL server
     const apolloServer = new ApolloServer({

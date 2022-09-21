@@ -8,7 +8,7 @@ import {
   PROJECT_UPDATE_SEED_DATA,
 } from './testUtils';
 import { User } from '../src/entities/user';
-import { dropdb, createdb } from 'pgtools';
+import { createdb } from 'pgtools';
 import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import { Project, ProjectUpdate } from '../src/entities/project';
@@ -29,7 +29,7 @@ import { TakePowerBoostingSnapshotProcedure1663594895750 } from '../migration/16
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
 
-async function dropDatabaseAndCreateFreshOne() {
+async function CreateDatabase() {
   const config = {
     user: process.env.TYPEORM_DATABASE_USER,
     password: process.env.TYPEORM_DATABASE_PASSWORD,
@@ -37,32 +37,24 @@ async function dropDatabaseAndCreateFreshOne() {
     host: process.env.TYPEORM_DATABASE_HOST,
   };
 
-  // tslint:disable-next-line:no-console
-  console.log('Dropping DB');
-  try {
-    await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
-    // don't drop cron db, because it will be used by pg_cron extension
-  } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('drop db error', e);
-  }
-
+  // // tslint:disable-next-line:no-console
+  // console.log('Dropping DB');
+  // try {
+  //   await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
+  //   // don't drop cron db, because it will be used by pg_cron extension
+  // } catch (e) {
+  //   // tslint:disable-next-line:no-console
+  //   console.log('drop db error', e);
+  // }
+  //
   // tslint:disable-next-line:no-console
   console.log('Create Fresh DB');
   try {
     await createdb(config, process.env.TYPEORM_DATABASE_NAME);
   } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('Create Fresh db error', e);
-  }
-
-  try {
-    // Don't drop cron database since it will be used by the extension
-    await createdb(config, process.env.TYPEORM_DATABASE_NAME + '-cron');
-  } catch (e) {
     if (e?.name !== 'duplicate_database')
       // tslint:disable-next-line:no-console
-      console.log('Create cron database error', e);
+      console.log('Create Fresh db error', e);
   }
 }
 
@@ -308,7 +300,7 @@ async function runMigrations() {
 
 before(async () => {
   try {
-    // await dropDatabaseAndCreateFreshOne();
+    await CreateDatabase();
     await bootstrap();
     await seedDb();
     await runMigrations();

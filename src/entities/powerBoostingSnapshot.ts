@@ -1,11 +1,18 @@
-import { Field, ID, Int, ObjectType } from 'type-graphql';
 import {
-  PrimaryGeneratedColumn,
-  Column,
-  Entity,
   BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
   Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  RelationId,
+  UpdateDateColumn,
 } from 'typeorm';
+import { Field, Float, ID, ObjectType } from 'type-graphql';
+import { Project } from './project';
+import { User } from './user';
+import { Max, Min, IsNumber } from 'class-validator';
 import { ColumnNumericTransformer } from '../utils/entities';
 
 @Entity()
@@ -28,7 +35,7 @@ export class PowerBoostingSnapshot extends BaseEntity {
   @Column()
   powerSnapshotId: number;
 
-  @Field()
+  @Field(type => Float)
   @Column('numeric', {
     precision: 5, // 100.00
     scale: 2,
