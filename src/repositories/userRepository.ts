@@ -30,7 +30,11 @@ export const findUserByWalletAddress = async (
 };
 
 export const findUserById = (userId: number): Promise<User | null> => {
-  return User.findOne({ where: { id: userId } });
+  return User.createQueryBuilder('user')
+    .where(`id=:userId`, {
+      userId,
+    })
+    .getOne();
 };
 
 export const createUserWithPublicAddress = async (

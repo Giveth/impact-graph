@@ -230,4 +230,10 @@ describe('findUserById test cases', () => {
     const foundUser = await findUserById(1000000000);
     assert.isNull(foundUser);
   });
+
+  it('should not find  user when userId is undefined', async () => {
+    // @ts-ignore
+    const foundUser = await findUserById(undefined);
+    assert.isNull(foundUser);
+  });
 });
