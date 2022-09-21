@@ -1,23 +1,11 @@
-import {
-  assertThrowsAsync,
-  createProjectData,
-  generateRandomEtheriumAddress,
-  saveProjectDirectlyToDb,
-  saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import {
-  findPowerBoostings,
-  findUserPowerBoosting,
-  insertSinglePowerBoosting,
-  setMultipleBoosting,
-} from './powerBoostingRepository';
+import { assertThrowsAsync } from '../../test/testUtils';
 import { assert, use } from 'chai';
 import { getPowerRound, setPowerRound } from './powerRoundRepository';
 import { PowerRound } from '../entities/powerRound';
 
 describe('powerRoundRepository testCases', () => {
   it('should return correct round after setting', async () => {
-    let round: PowerRound | undefined = await setPowerRound(12);
+    let round: PowerRound | null = await setPowerRound(12);
     assert.equal(round.round, 12);
     assert.equal(await PowerRound.count(), 1);
 
@@ -32,7 +20,7 @@ describe('powerRoundRepository testCases', () => {
   });
 
   it('should reject having multiple power rounds', async () => {
-    let round: PowerRound | undefined = await setPowerRound(12);
+    let round: PowerRound | null = await setPowerRound(12);
     assert.equal(round.round, 12);
     round = await getPowerRound();
     assert.isDefined(round);

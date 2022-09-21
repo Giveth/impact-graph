@@ -1,7 +1,7 @@
 import { PowerRound } from '../entities/powerRound';
 
 export const setPowerRound = async (round: number): Promise<PowerRound> => {
-  let powerRound = await PowerRound.findOne();
+  let powerRound = await PowerRound.findOne({ where: {} });
 
   if (!powerRound) {
     powerRound = PowerRound.create({
@@ -14,5 +14,5 @@ export const setPowerRound = async (round: number): Promise<PowerRound> => {
   return powerRound.save();
 };
 
-export const getPowerRound = (): Promise<PowerRound | undefined> =>
-  PowerRound.findOne();
+export const getPowerRound = (): Promise<PowerRound | null> =>
+  PowerRound.findOne({ where: {} });
