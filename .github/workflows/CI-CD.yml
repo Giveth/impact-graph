@@ -42,7 +42,7 @@ jobs:
       - name: Run tslint
         run: npm run tslint
       - name: Run migrations
-        run: npm run typeorm:cli:test -- migration:run
+        run: npm run db:migrate:run:test
       - name: Run tests
         run: npm run test
         env:

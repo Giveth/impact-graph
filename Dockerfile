@@ -17,7 +17,6 @@ RUN npm i -g ts-node
 # When building docker images, docker caches the steps, so it's better to put the lines that would have lots of changes
 # last, then when changing these steps the previous steps would use cache and move forward fast
 
-COPY config ./config
 COPY src ./src
 COPY test ./test
 COPY migration ./migration
