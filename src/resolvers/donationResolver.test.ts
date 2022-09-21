@@ -280,9 +280,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should create GIV donation for giveth project on mainnet successfully', async () => {
@@ -314,9 +316,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.isFalse(donation?.anonymous);
     assert.isFalse(donation?.segmentNotified);
@@ -350,9 +354,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isFalse(donation?.isTokenEligibleForGivback);
   });
   it('should create GIV donation for trace project on mainnet successfully', async () => {
@@ -386,9 +392,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should create Not Eligible donation donation for projects in mainnet as nonEligible', async () => {
@@ -440,9 +448,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     // DOGE is in the list but not eligible
     assert.isFalse(donation?.isTokenEligibleForGivback);
   });
@@ -478,9 +488,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isFalse(donation?.isTokenEligibleForGivback);
   });
 
@@ -515,9 +527,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should throw error when create GIV donation for givingBlock project on xdai', async () => {
@@ -771,9 +785,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should throw exception when creating donation for not logged-in users', async () => {

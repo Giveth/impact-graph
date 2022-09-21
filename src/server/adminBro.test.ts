@@ -41,6 +41,7 @@ import { Token } from '../entities/token';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { findUserById } from '../repositories/userRepository';
 import { findProjectById } from '../repositories/projectRepository';
+import { findOneProjectStatusHistory } from '../repositories/projectSatusHistoryRepository';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -680,12 +681,11 @@ function updateStatusOfProjectsTestCases() {
 
     // We should wait to history be created because creating histories use fire and forget strategy
     await sleep(50);
-    const history = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-        user: adminUser,
-        status,
-      },
+
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
+      statusId: status?.id,
     });
     assert.isOk(history);
   });
@@ -872,11 +872,9 @@ function verifyProjectsTestCases() {
     // because we didn't put await before creating history item
     await sleep(10);
 
-    const history = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-        user: adminUser,
-      },
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
     });
     assert.equal(
       history?.description,
@@ -914,11 +912,9 @@ function verifyProjectsTestCases() {
     // because we didn't put await before creating history item
     await sleep(10);
 
-    const history = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-        user: adminUser,
-      },
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
     });
     assert.equal(
       history?.description,
@@ -1127,11 +1123,9 @@ function listDelistTestCases() {
     // because we didn't put await before creating history item
     await sleep(50);
 
-    const history = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-        user: adminUser,
-      },
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
     });
     assert.equal(history?.description, HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED);
   });
@@ -1169,11 +1163,9 @@ function listDelistTestCases() {
     // because we didn't put await before creating history item
     await sleep(10);
 
-    const history = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-        user: adminUser,
-      },
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
     });
     assert.equal(
       history?.description,

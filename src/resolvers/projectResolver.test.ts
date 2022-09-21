@@ -58,6 +58,7 @@ import {
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
 import { MainCategory } from '../entities/mainCategory';
+import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSatusHistoryRepository';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -1436,7 +1437,7 @@ function createProjectTestCases() {
     );
   });
   it('Should get error, when selected category is not active', async () => {
-    const mainCategory = await MainCategory.findOne({});
+    const mainCategory = await MainCategory.findOne({ where: {} });
     const nonActiveCategory = await Category.create({
       name: 'nonActiveCategory',
       value: 'nonActiveCategory',
@@ -2872,11 +2873,9 @@ function deactivateProjectTestCases() {
       },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
-    const projectStatusHistory = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-      },
-    });
+    const projectStatusHistory = await findOneProjectStatusHistoryByProjectId(
+      project.id,
+    );
     assert.isOk(projectStatusHistory);
     assert.equal(projectStatusHistory?.reasonId, 1);
   });
@@ -2906,11 +2905,9 @@ function deactivateProjectTestCases() {
       },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
-    const projectStatusHistory = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-      },
-    });
+    const projectStatusHistory = await findOneProjectStatusHistoryByProjectId(
+      project.id,
+    );
     assert.isOk(projectStatusHistory);
     assert.isNotOk(projectStatusHistory?.reasonId);
   });
@@ -3228,11 +3225,9 @@ function activateProjectTestCases() {
       },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
-    const projectStatusHistory = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-      },
-    });
+    const projectStatusHistory = await findOneProjectStatusHistoryByProjectId(
+      project.id,
+    );
     assert.isOk(projectStatusHistory);
     assert.isNotOk(projectStatusHistory?.reasonId);
   });

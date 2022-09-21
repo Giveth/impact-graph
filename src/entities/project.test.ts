@@ -8,7 +8,7 @@ import {
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatus } from './projectStatus';
 import { ProjectStatusReason } from './projectStatusReason';
-import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSattusHistoryRepository';
+import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSatusHistoryRepository';
 
 describe(
   'addProjectStatusHistoryRecord() test cases',
