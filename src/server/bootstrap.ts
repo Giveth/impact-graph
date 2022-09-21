@@ -70,7 +70,24 @@ export async function bootstrap() {
       resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver]);
     }
 
-    await AppDataSource.initialize();
+    const dropSchema = config.get('DROP_DATABASE') === 'true';
+
+    // Actually we should use await AppDataSource.initialize(); but it throw errors I think because some changes
+    // are needed in using typeorm repositories, so currently I kept this
+    await TypeORM.createConnection({
+      type: 'postgres',
+      database: config.get('TYPEORM_DATABASE_NAME') as string,
+      username: config.get('TYPEORM_DATABASE_USER') as string,
+      password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+      port: config.get('TYPEORM_DATABASE_PORT') as number,
+      host: config.get('TYPEORM_DATABASE_HOST') as string,
+      entities,
+      synchronize: true,
+      logger: 'advanced-console',
+      logging: ['error'],
+      dropSchema,
+      cache: true,
+    });
 
     const schema = await createSchema();
 
