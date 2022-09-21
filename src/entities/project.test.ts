@@ -8,6 +8,7 @@ import {
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatus } from './projectStatus';
 import { ProjectStatusReason } from './projectStatusReason';
+import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSattusHistoryRepository';
 
 describe(
   'addProjectStatusHistoryRecord() test cases',
@@ -31,11 +32,7 @@ function addProjectStatusHistoryRecord() {
       prevStatus: activeStatus as ProjectStatus,
       userId: SEED_DATA.ADMIN_USER.id,
     });
-    const history = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-      },
-    });
+    const history = await findOneProjectStatusHistoryByProjectId(project.id);
     assert.isOk(history);
     assert.equal(history?.statusId, cancelStatus?.id);
     assert.equal(history?.prevStatusId, activeStatus?.id);
@@ -43,7 +40,9 @@ function addProjectStatusHistoryRecord() {
   });
   it('Should create a history entity with reason', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const reason = await ProjectStatusReason.findOne({});
+    const reason = await ProjectStatusReason.findOne({
+      where: {},
+    });
     const activeStatus = await ProjectStatus.findOne({
       where: { id: ProjStatus.active },
     });
@@ -59,11 +58,7 @@ function addProjectStatusHistoryRecord() {
       reasonId: reason?.id,
       userId: SEED_DATA.ADMIN_USER.id,
     });
-    const history = await ProjectStatusHistory.findOne({
-      where: {
-        project,
-      },
-    });
+    const history = await findOneProjectStatusHistoryByProjectId(project.id);
     assert.isOk(history);
     assert.equal(history?.statusId, cancelStatus?.id);
     assert.equal(history?.prevStatusId, activeStatus?.id);
