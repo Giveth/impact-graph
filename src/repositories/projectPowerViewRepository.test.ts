@@ -12,6 +12,7 @@ import {
   getProjectPowers,
   refreshProjectPowerView,
 } from './projectPowerViewRepository';
+import { Project } from '../entities/project';
 
 describe('projectPowerViewRepository test', () => {
   it('should not be filled till refresh', async () => {
@@ -37,13 +38,14 @@ describe('projectPowerViewRepository test', () => {
     });
 
     let projectPowers = await getProjectPowers();
+    const projectCount = await Project.count();
     assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, 0);
+    assert.lengthOf(projectPowers, projectCount);
 
     await refreshProjectPowerView();
     projectPowers = await getProjectPowers(project.id);
     assert.isArray(projectPowers);
-    assert.isTrue(projectPowers.length > 0);
+    assert.lengthOf(projectPowers, projectCount);
   });
 
   it('should not change updateAt time without refresh', async () => {
