@@ -18,16 +18,20 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
               FROM 
                 (
                   SELECT 
-                    "powerBoosting"."projectId", 
-                    sum(
-                      "userPower".power * "powerBoosting".percentage :: double precision / 100 :: double precision
+                    "project"."id" AS "projectId", 
+                    COALESCE(
+                      SUM(
+                        "userPower".POWER * "powerBoosting".PERCENTAGE :: double precision / 100 :: double precision
+                      ), 
+                      0
                     ) AS "totalPower" 
                   FROM 
-                    power_round "powerRound" 
-                    JOIN user_power "userPower" ON "userPower"."givbackRound" = "powerRound".round 
-                    JOIN power_boosting "powerBoosting" ON "userPower"."userId" = "powerBoosting"."userId" 
+                    PROJECT "project" 
+                    LEFT JOIN POWER_BOOSTING "powerBoosting" ON "powerBoosting"."projectId" = "project"."id" 
+                    LEFT JOIN USER_POWER "userPower" ON "userPower"."userId" = "powerBoosting"."userId" 
+                    LEFT JOIN POWER_ROUND "powerRound" ON "userPower"."givbackRound" = "powerRound".ROUND 
                   GROUP BY 
-                    "powerBoosting"."projectId" 
+                    "project"."id" 
                   ORDER BY 
                     (
                       sum(
