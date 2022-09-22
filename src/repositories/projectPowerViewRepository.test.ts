@@ -15,17 +15,17 @@ import {
 import { Project } from '../entities/project';
 
 describe('projectPowerViewRepository test', () => {
-  it('should not be filled till refresh', async () => {
+  it('should include boosted and not boosted projects', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const roundNumber = project.id * 10;
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
 
-    await setPowerRound(roundNumber);
-    await refreshProjectPowerView();
+    const roundNumber = project1.id * 10;
 
     await insertSinglePowerBoosting({
       user,
-      project,
+      project: project1,
       percentage: 10,
     });
 
@@ -37,13 +37,10 @@ describe('projectPowerViewRepository test', () => {
       averagePowers: { [user.walletAddress as string]: 9999.9999 },
     });
 
-    let projectPowers = await getProjectPowers();
-    const projectCount = await Project.count();
-    assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, projectCount);
-
+    await setPowerRound(roundNumber);
     await refreshProjectPowerView();
-    projectPowers = await getProjectPowers(project.id);
+    const projectPowers = await getProjectPowers(project3.id);
+    const projectCount = await Project.count();
     assert.isArray(projectPowers);
     assert.lengthOf(projectPowers, projectCount);
   });
