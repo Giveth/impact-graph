@@ -515,7 +515,7 @@ function projectsTestCases() {
     let result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        take: project4.id,
+        take: 4,
         orderBy: {
           field: 'GIVPower',
           direction: 'DESC',
@@ -523,6 +523,7 @@ function projectsTestCases() {
       },
     });
     let projects = result.data.data.projects.projects;
+    const totalCount = result.data.data.projects.totalCount;
     assert.equal(projects[0].id, project3.id);
     assert.equal(projects[1].id, project2.id);
     assert.equal(projects[2].id, project1.id);
@@ -536,7 +537,8 @@ function projectsTestCases() {
     result = await axios.post(graphqlUrl, {
       query: fetchAllProjectsQuery,
       variables: {
-        take: project4.id,
+        skip: Math.max(0, totalCount - 4),
+        take: 4,
         orderBy: {
           field: 'GIVPower',
           direction: 'ASC',
@@ -544,14 +546,14 @@ function projectsTestCases() {
       },
     });
     projects = result.data.data.projects.projects;
-    assert.equal(projects[projects.length - 3].id, project1.id);
-    assert.equal(projects[projects.length - 2].id, project2.id);
-    assert.equal(projects[projects.length - 1].id, project3.id);
+    assert.equal(projects[1].id, project1.id);
+    assert.equal(projects[2].id, project2.id);
+    assert.equal(projects[3].id, project3.id);
 
     assert.equal(projects[0].projectPower.powerRank, 4);
-    assert.equal(projects[projects.length - 3].projectPower.powerRank, 3);
-    assert.equal(projects[projects.length - 2].projectPower.powerRank, 2);
-    assert.equal(projects[projects.length - 1].projectPower.powerRank, 1);
+    assert.equal(projects[1].projectPower.powerRank, 3);
+    assert.equal(projects[2].projectPower.powerRank, 2);
+    assert.equal(projects[3].projectPower.powerRank, 1);
   });
 
   it('should return projects, filter by verified, true', async () => {
