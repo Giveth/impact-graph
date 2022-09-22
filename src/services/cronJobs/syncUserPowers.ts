@@ -13,6 +13,7 @@ import { User } from '../../entities/user';
 import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
 import { refreshProjectPowerView } from '../../repositories/projectPowerViewRepository';
 import { setPowerRound } from '../../repositories/powerRoundRepository';
+import { getTimestampInSeconds } from '../../utils/utils';
 
 const syncUserPowersQueue = new Bull<SyncUserPowersJobData>(
   'verify-userPower-queue',
@@ -64,12 +65,22 @@ export const getPreviousGivbackRoundInfo = (): {
   fromTimestamp: number;
   toTimestamp: number;
 } => {
+  return getRoundNumberByDate(new Date());
+};
+
+export const getRoundNumberByDate = (
+  date: Date,
+): {
+  previousGivbackRound: number;
+  fromTimestamp: number;
+  toTimestamp: number;
+} => {
   const firstGivbackRoundTimeStamp = Number(
     process.env.FIRST_GIVBACK_ROUND_TIME_STAMP,
   );
   const givbackRoundLength = Number(process.env.GIVPOWER_ROUND_DURATION);
 
-  const now = Math.floor(new Date().getTime() / 1000);
+  const now = getTimestampInSeconds(date);
 
   // use math.ceil because rounds starts from 1 not zero
   const previousGivbackRound = Math.ceil(

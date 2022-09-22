@@ -50,6 +50,7 @@ import {
   dropDbCronExtension,
   schedulePowerBoostingSnapshot,
 } from '../repositories/dbCronRepository';
+import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -312,6 +313,11 @@ export async function bootstrap() {
     // }
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
+    }
+    if (
+      (config.get('FILL_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
+    ) {
+      runFillBlockNumbersOfSnapshotsCronjob();
     }
   } catch (err) {
     logger.error(err);
