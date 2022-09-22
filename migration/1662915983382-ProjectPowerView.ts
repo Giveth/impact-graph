@@ -6,7 +6,7 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
       `
               DROP 
                 MATERIALIZED VIEW IF EXISTS public.project_power_view;
-              CREATE MATERIALIZED VIEW IF NOT EXISTS public.project_power_view TABLESPACE pg_default AS 
+              CREATE MATERIALIZED VIEW public.project_power_view AS 
               SELECT 
                 innerview."projectId", 
                 innerview."totalPower", 
