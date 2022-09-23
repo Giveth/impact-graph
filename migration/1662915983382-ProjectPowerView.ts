@@ -8,35 +8,45 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
                 MATERIALIZED VIEW IF EXISTS public.project_power_view;
               CREATE MATERIALIZED VIEW public.project_power_view AS 
               SELECT 
-                innerView."projectId" as "projectId", 
-                innerView."totalPower" as "totalPower", 
-                RANK () OVER (
+                innerview."projectId", 
+                innerview."totalPower", 
+                rank() OVER (
                   ORDER BY 
-                    innerView."totalPower" DESC
-                ) as "powerRank",
-                NOW() as "updateTime"
+                    innerview."totalPower" DESC
+                ) AS "powerRank", 
+                now() AS "updateTime" 
               FROM 
                 (
                   SELECT 
-                    "powerBoosting"."projectId", 
-                    sum(
-                      "userPower".power * "powerBoosting".percentage :: double precision / 100 :: double precision
+                    project.id AS "projectId", 
+                    COALESCE(
+                      sum(
+                        pp.power * pp.percentage :: double precision / 100 :: double precision
+                      ), 
+                      0 :: double precision
                     ) AS "totalPower" 
                   FROM 
-                    power_round "powerRound" 
-                    JOIN user_power "userPower" ON "userPower"."givbackRound" = "powerRound".round 
-                    JOIN power_boosting "powerBoosting" ON "userPower"."userId" = "powerBoosting"."userId" 
+                    project project 
+                    LEFT JOIN (
+                      select 
+                        "powerBoosting".percentage, 
+                        "powerBoosting"."projectId", 
+                        "userPower".power 
+                      from 
+                        power_boosting "powerBoosting" 
+                        JOIN user_power "userPower" ON "userPower"."userId" = "powerBoosting"."userId" 
+                        JOIN power_round "powerRound" ON "userPower"."givbackRound" = "powerRound".round
+                    ) AS "pp" on "pp"."projectId" = project.id 
                   GROUP BY 
-                    "powerBoosting"."projectId" 
-                  ORDER BY 
-                    (
-                      sum(
-                        "userPower".power * "powerBoosting".percentage :: double precision / 100 :: double precision
-                      )
-                    ) DESC
-                ) as innerView;
-              CREATE INDEX IF NOT EXISTS "project_power_view_project_id" ON public.project_power_view USING hash ("projectId") TABLESPACE pg_default;
-              CREATE INDEX IF NOT EXISTS "project_power_view_total_power" ON public.project_power_view USING btree ("totalPower" DESC NULLS LAST) TABLESPACE pg_default;
+                    project.id
+                ) innerview 
+              order by 
+                "totalPower" DESC WITH DATA;
+              ALTER TABLE 
+                IF EXISTS public.project_power_view OWNER TO postgres;
+              CREATE INDEX project_power_view_project_id ON public.project_power_view USING hash ("projectId") TABLESPACE pg_default;
+              CREATE INDEX project_power_view_total_power ON public.project_power_view USING btree ("totalPower" DESC) TABLESPACE pg_default;
+
           `,
     );
   }
