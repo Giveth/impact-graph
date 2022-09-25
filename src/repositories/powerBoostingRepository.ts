@@ -5,6 +5,7 @@ import { Brackets, getConnection } from 'typeorm';
 import { logger } from '../utils/logger';
 import { errorMessages } from '../utils/errorMessages';
 import { PowerSnapshot } from '../entities/powerSnapshot';
+import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
@@ -278,15 +279,5 @@ export const takePowerBoostingSnapshot = async () => {
 export const getPowerBoostingSnapshotRound = (
   snapshot: PowerSnapshot,
 ): number => {
-  const firstGivbackRoundTimeStamp = Number(
-    process.env.FIRST_GIVBACK_ROUND_TIME_STAMP,
-  );
-  const givbackRoundLength = Number(process.env.GIVPOWER_ROUND_DURATION);
-  // use math.ceil because rounds starts from 1 not zero
-  return (
-    Math.floor(
-      (snapshot.time.getTime() / 1000 - firstGivbackRoundTimeStamp) /
-        givbackRoundLength,
-    ) + 1
-  );
+  return getRoundNumberByDate(snapshot.time).previousGivbackRound;
 };

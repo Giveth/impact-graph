@@ -1,28 +1,12 @@
 import { Field, ID, ObjectType, Int, Float } from 'type-graphql';
-import {
-  PrimaryGeneratedColumn,
-  Column,
-  Entity,
-  OneToMany,
-  ManyToMany,
-  BaseEntity,
-  JoinTable,
-} from 'typeorm';
-import { Project, ProjStatus } from './project';
-import { Donation } from './donation';
-import { Reaction } from './reaction';
-import { AccountVerification } from './accountVerification';
-import { ProjectStatusHistory } from './projectStatusHistory';
-import { ProjectVerificationForm } from './projectVerificationForm';
-import { UserPower } from './userPower';
-import { PowerBoosting } from './powerBoosting';
-import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
+import { PrimaryGeneratedColumn, Column, Entity, BaseEntity } from 'typeorm';
 
 @ObjectType()
 @Entity('job', {
   schema: 'cron',
   synchronize: false,
 })
+// Postgres cron jobs
 export class CronJob extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn({ name: 'jobid' })

@@ -13,6 +13,8 @@ import { User } from '../../entities/user';
 import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
 import { refreshProjectPowerView } from '../../repositories/projectPowerViewRepository';
 import { setPowerRound } from '../../repositories/powerRoundRepository';
+import { getTimestampInSeconds } from '../../utils/utils';
+import { getRoundNumberByDate } from '../../utils/powerBoostingUtils';
 
 const syncUserPowersQueue = new Bull<SyncUserPowersJobData>(
   'verify-userPower-queue',
@@ -64,28 +66,7 @@ export const getPreviousGivbackRoundInfo = (): {
   fromTimestamp: number;
   toTimestamp: number;
 } => {
-  const firstGivbackRoundTimeStamp = Number(
-    process.env.FIRST_GIVBACK_ROUND_TIME_STAMP,
-  );
-  const givbackRoundLength = Number(process.env.GIVPOWER_ROUND_DURATION);
-
-  const now = Math.floor(new Date().getTime() / 1000);
-
-  // use math.ceil because rounds starts from 1 not zero
-  const previousGivbackRound = Math.ceil(
-    (now - firstGivbackRoundTimeStamp) / givbackRoundLength,
-  );
-
-  const fromTimestamp =
-    (previousGivbackRound - 1) * givbackRoundLength +
-    firstGivbackRoundTimeStamp;
-  const toTimestamp =
-    previousGivbackRound * givbackRoundLength + firstGivbackRoundTimeStamp;
-  return {
-    previousGivbackRound,
-    fromTimestamp,
-    toTimestamp,
-  };
+  return getRoundNumberByDate(new Date());
 };
 
 export async function addSyncUserPowerJobsToQueue() {
