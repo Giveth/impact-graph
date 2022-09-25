@@ -19,7 +19,7 @@ jobs:
         ports:
           - 6379:6379
       postgres:
-        image: postgres:13.8-bullseye
+        image: ghcr.io/giveth/postgres-givethio:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
