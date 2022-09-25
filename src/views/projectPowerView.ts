@@ -30,8 +30,4 @@ export class ProjectPowerView extends BaseEntity {
   @ViewColumn()
   @Field(type => Int)
   powerRank: number;
-
-  @ViewColumn()
-  @Field(type => Date)
-  updateTime: Date;
 }
