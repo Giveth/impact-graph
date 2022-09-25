@@ -22,16 +22,10 @@ export const findPowerSnapshotById = async (
 export const updatePowerSnapShots = async (params: {
   blockNumber: number;
   roundNumber: number;
-  powerSnapShotId: number;
+  powerSnapshot: PowerSnapshot;
 }): Promise<void> => {
-  const { blockNumber, roundNumber, powerSnapShotId } = params;
-  await PowerSnapshot.createQueryBuilder()
-    .update<PowerSnapshot>(PowerSnapshot, {
-      blockNumber,
-      roundNumber,
-    })
-    .where(`id = ${powerSnapShotId}`)
-    .returning('*')
-    .updateEntity(true)
-    .execute();
+  const { blockNumber, roundNumber, powerSnapshot } = params;
+  powerSnapshot.blockNumber = blockNumber;
+  powerSnapshot.roundNumber = roundNumber;
+  await powerSnapshot.save();
 };

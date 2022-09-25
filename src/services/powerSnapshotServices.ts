@@ -2,9 +2,9 @@ import {
   findInCompletePowerSnapShots,
   updatePowerSnapShots,
 } from '../repositories/powerSnapshotRepository';
-import { getRoundNumberByDate } from './cronJobs/syncUserPowers';
 import { getBlockByTime } from './blockByDateService';
 import { getTimestampInSeconds } from '../utils/utils';
+import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 
 export const fillIncompletePowerSnapshots = async (): Promise<void> => {
   const incompletePowerSnapshots = await findInCompletePowerSnapShots();
@@ -16,7 +16,7 @@ export const fillIncompletePowerSnapshots = async (): Promise<void> => {
       getTimestampInSeconds(powerSnapshot.time),
     );
     await updatePowerSnapShots({
-      powerSnapShotId: powerSnapshot.id,
+      powerSnapshot,
       roundNumber,
       blockNumber,
     });
