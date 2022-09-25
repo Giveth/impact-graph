@@ -312,6 +312,10 @@ export const removeUndefinedFieldsFromObject = (object: any): any => {
   return object;
 };
 
+export const getTimestampInSeconds = (date: Date): number => {
+  return Math.floor(date.getTime() / 1000);
+};
+
 // we set ENVIRONMENT in docker-compose
 export const ENVIRONMENTS = {
   PRODUCTION: 'production',
