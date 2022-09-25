@@ -5,7 +5,10 @@ import {
   Entity,
   BaseEntity,
   Index,
+  RelationId,
+  ManyToOne,
 } from 'typeorm';
+import { PowerSnapshot } from './powerSnapshot';
 
 @Entity()
 @ObjectType()
@@ -20,10 +23,18 @@ export class PowerBalanceSnapshot extends BaseEntity {
   userId: number;
 
   @Field(type => ID)
+  @RelationId(
+    (powerBalanceSnapshot: PowerBalanceSnapshot) =>
+      powerBalanceSnapshot.powerSnapshot,
+  )
   @Column()
   powerSnapshotId: number;
 
   @Field()
   @Column('float')
   balance: number;
+
+  @Field(type => PowerSnapshot, { nullable: false })
+  @ManyToOne(type => PowerSnapshot, { nullable: false })
+  powerSnapshot: PowerSnapshot;
 }

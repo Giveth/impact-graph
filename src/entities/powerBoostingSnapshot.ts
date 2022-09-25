@@ -14,6 +14,7 @@ import { Project } from './project';
 import { User } from './user';
 import { Max, Min, IsNumber } from 'class-validator';
 import { ColumnNumericTransformer } from '../utils/entities';
+import { PowerSnapshot } from './powerSnapshot';
 
 @Entity()
 @ObjectType()
@@ -32,8 +33,16 @@ export class PowerBoostingSnapshot extends BaseEntity {
   projectId: number;
 
   @Field(type => ID)
+  @RelationId(
+    (powerBoostingSnapshot: PowerBoostingSnapshot) =>
+      powerBoostingSnapshot.powerSnapshot,
+  )
   @Column()
   powerSnapshotId: number;
+
+  @Field(type => PowerSnapshot, { nullable: false })
+  @ManyToOne(type => PowerSnapshot, { nullable: false })
+  powerSnapshot: PowerSnapshot;
 
   @Field(type => Float)
   @Column('numeric', {

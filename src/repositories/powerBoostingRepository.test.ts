@@ -16,6 +16,7 @@ import { assert, use } from 'chai';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { getConnection } from 'typeorm';
 
 describe('findUserPowerBoosting() testCases', findUserPowerBoostingTestCases);
 describe('findPowerBoostings() testCases', findPowerBoostingsTestCases);
@@ -668,7 +669,7 @@ function setMultipleBoostingTestCases() {
 function powerBoostingSnapshotTests() {
   it('should take snapshot of power boosting', async () => {
     await PowerBoosting.clear();
-    await PowerSnapshot.clear();
+    await getConnection().query('truncate power_snapshot cascade');
 
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -726,7 +727,7 @@ function powerBoostingSnapshotTests() {
   });
 
   it('should return snapshot corresponding round correctly', async () => {
-    await PowerSnapshot.clear();
+    await getConnection().query('truncate power_snapshot cascade');
     await takePowerBoostingSnapshot();
 
     let snapshot = (await PowerSnapshot.findOne()) as PowerSnapshot;
