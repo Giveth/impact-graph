@@ -5,7 +5,10 @@ import {
   Entity,
   BaseEntity,
   Index,
+  OneToMany,
 } from 'typeorm';
+import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
+import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
 
 @Entity()
 @ObjectType()
@@ -27,4 +30,18 @@ export class PowerSnapshot extends BaseEntity {
   @Field()
   @Column({ type: 'integer', nullable: true })
   roundNumber: number;
+
+  @Field(type => [PowerBoostingSnapshot], { nullable: true })
+  @OneToMany(
+    type => PowerBoostingSnapshot,
+    powerBoostingSnapshot => powerBoostingSnapshot.powerSnapshot,
+  )
+  powerBoostingSnapshots?: PowerBoostingSnapshot[];
+
+  @Field(type => [PowerBalanceSnapshot], { nullable: true })
+  @OneToMany(
+    type => PowerBalanceSnapshot,
+    powerBalanceSnapshot => powerBalanceSnapshot.powerSnapshot,
+  )
+  powerBalanceSnapshots?: PowerBalanceSnapshot[];
 }
