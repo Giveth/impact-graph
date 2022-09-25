@@ -138,6 +138,7 @@ describe('test balance snapshot functions', () => {
     assert.deepEqual(result[0], {
       userId: user2.id,
       powerSnapshotId: powerSnapshots[0].id,
+      blockNumber: powerSnapshots[0].blockNumber,
     });
   });
 
