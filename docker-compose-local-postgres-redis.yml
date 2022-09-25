@@ -47,3 +47,8 @@ volumes:
   db-data:
   db-data-test:
   redis-data:
+
+networks:
+  giveth:
+    external: true
+
