@@ -14,6 +14,7 @@ import {
 } from '../../test/testUtils';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { getConnection } from 'typeorm';
 
 describe(
   'findInCompletePowerSnapShots() test cases',
@@ -73,6 +74,7 @@ describe('test balance snapshot functions', () => {
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
 
+    await getConnection().query('truncate power_snapshot cascade');
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
@@ -147,6 +149,7 @@ describe('test balance snapshot functions', () => {
     const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
 
+    await getConnection().query('truncate power_snapshot cascade');
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
