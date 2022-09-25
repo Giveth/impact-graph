@@ -200,6 +200,7 @@ describe('test balance snapshot functions', () => {
     assert.deepEqual(result[0], {
       userId: user3.id,
       powerSnapshotId: powerSnapshots[0].id,
+      blockNumber: powerSnapshots[0].blockNumber,
     });
 
     // Must return 2 last items in order
@@ -209,10 +210,12 @@ describe('test balance snapshot functions', () => {
       {
         userId: user2.id,
         powerSnapshotId: powerSnapshots[1].id,
+        blockNumber: powerSnapshots[1].blockNumber,
       },
       {
         userId: user1.id,
         powerSnapshotId: powerSnapshots[2].id,
+        blockNumber: powerSnapshots[2].blockNumber,
       },
     ]);
   });

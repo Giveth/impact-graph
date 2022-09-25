@@ -34,10 +34,15 @@ export const updatePowerSnapShots = async (params: {
 export const getPowerBoostingSnapshotWithoutBalance = async (
   limit = 50,
   offset = 0,
-): Promise<Partial<PowerBoostingSnapshot>[]> => {
+): Promise<
+  Pick<
+    PowerSnapshot & PowerBoostingSnapshot,
+    'userId' | 'powerSnapshotId' | 'blockNumber'
+  >[]
+> => {
   return await getConnection().query(
     `
-    select "userId", "powerSnapshotId" from power_boosting_snapshot as boosting
+    select "userId", "powerSnapshotId", "blockNumber" from power_boosting_snapshot as boosting
     inner join power_snapshot as "snapshot" on boosting."powerSnapshotId" = snapshot.id
     where snapshot."blockNumber" is not NULL
     and not exists (
@@ -46,7 +51,7 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
       where balance."powerSnapshotId" = boosting."powerSnapshotId" and
       balance."userId" = boosting."userId"
     )
-    order by "powerSnapshotId" ASC
+    order by "blockNumber" ASC
     LIMIT $1
     OFFSET $2
   `,
