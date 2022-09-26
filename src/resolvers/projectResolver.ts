@@ -560,8 +560,8 @@ export class ProjectResolver {
       .leftJoin('project.projectPower', 'projectPower')
       .addSelect([
         'projectPower.totalPower',
-        'projectPower.updateTime',
         'projectPower.powerRank',
+        'projectPower.round',
       ]);
     // Filters
     query = ProjectResolver.addCategoryQuery(query, category);

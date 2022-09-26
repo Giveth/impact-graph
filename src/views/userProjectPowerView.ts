@@ -41,7 +41,7 @@ export class UserProjectPowerView extends BaseEntity {
 
   @ViewColumn()
   @Field()
-  averagePower: number;
+  boostedPower: number;
 
   @Field()
   @Column({

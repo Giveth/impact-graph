@@ -59,12 +59,21 @@ import {
 } from '../entities/projectVerificationForm';
 import { MainCategory } from '../entities/mainCategory';
 import { setPowerRound } from '../repositories/powerRoundRepository';
-import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
-import { insertNewUserPowers } from '../repositories/userPowerRepository';
+import {
+  insertSinglePowerBoosting,
+  takePowerBoostingSnapshot,
+} from '../repositories/powerBoostingRepository';
 import {
   getProjectPowers,
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
+import {
+  findInCompletePowerSnapShots,
+  insertSinglePowerBalanceSnapshot,
+} from '../repositories/powerSnapshotRepository';
+import { getConnection } from 'typeorm';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -470,6 +479,10 @@ function projectsTestCases() {
   });
 
   it('should return projects, sort by project power', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
@@ -498,15 +511,23 @@ function projectsTestCases() {
       }),
     );
 
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber,
-      users: [user1, user2],
-      averagePowers: {
-        [user1.walletAddress as string]: 10000,
-        [user2.walletAddress as string]: 20000,
-      },
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 20000,
     });
 
     await setPowerRound(roundNumber);
@@ -4050,6 +4071,10 @@ function projectBySlugTestCases() {
     assert.equal(project.addresses[0].address, walletAddress);
   });
   it('should return projects including projectPower', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
     const walletAddress = generateRandomEtheriumAddress();
     const project1 = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -4065,12 +4090,18 @@ function projectBySlugTestCases() {
       percentage: 10,
     });
 
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber,
-      users: [user],
-      averagePowers: { [user.walletAddress as string]: 200 },
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
     });
 
     await setPowerRound(roundNumber);

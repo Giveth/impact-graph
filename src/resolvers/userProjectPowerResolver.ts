@@ -23,7 +23,6 @@ enum UserPowerOrderDirection {
 
 enum UserPowerOrderField {
   Percentage = 'percentage',
-  UserPower = 'userPower',
   BoostedPower = 'boostedPower',
 }
 

@@ -14,7 +14,7 @@ export class UserProjectPowerView1662877385339 implements MigrationInterface {
                 "powerBoostingSnapshot"."userId" as "userId", 
                 avg(
                   "powerBalanceSnapshot".balance * "powerBoostingSnapshot".PERCENTAGE :: double precision / 100 :: double precision
-                ) AS "averagePower", 
+                ) AS "boostedPower" 
               FROM 
                 POWER_ROUND "powerRound" 
                 JOIN POWER_SNAPSHOT "powerSnapshot" ON "powerSnapshot"."roundNumber" = "powerRound".ROUND 
@@ -27,7 +27,7 @@ export class UserProjectPowerView1662877385339 implements MigrationInterface {
                 "powerBoostingSnapshot"."userId";
               ALTER TABLE 
                 IF EXISTS PUBLIC.USER_PROJECT_POWER_VIEW OWNER TO POSTGRES;
-              CREATE INDEX USER_PROJECT_POWER_VIEW_POWER_BOOSTED ON PUBLIC.USER_PROJECT_POWER_VIEW USING BTREE ("averagePower" DESC) TABLESPACE PG_DEFAULT;
+              CREATE INDEX USER_PROJECT_POWER_VIEW_POWER_BOOSTED ON PUBLIC.USER_PROJECT_POWER_VIEW USING BTREE ("boostedPower" DESC) TABLESPACE PG_DEFAULT;
               CREATE INDEX USER_PROJECT_POWER_VIEW_PROJECT_ID ON PUBLIC.USER_PROJECT_POWER_VIEW USING HASH ("projectId") TABLESPACE PG_DEFAULT;
           `,
     );

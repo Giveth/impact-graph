@@ -13,16 +13,16 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
                 rank() OVER (
                   ORDER BY 
                     innerview."totalPower" DESC
-                ) AS "powerRank", 
-                now() AS "updateTime" 
+                ) AS "powerRank",
+                "powerRound".round 
               FROM 
                 (
                   SELECT 
                     project.id AS "projectId", 
                     COALESCE(
-                      sum(pp."averagePower"), 
+                      sum(pp."boostedPower"), 
                       0 :: double precision
-                    ) AS "totalPower" 
+                    ) AS "totalPower"
                   FROM 
                     project project 
                     LEFT JOIN (
@@ -32,7 +32,7 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
                         "powerBoostingSnapshot"."userId" as "userId", 
                         avg(
                           "powerBalanceSnapshot".balance * "powerBoostingSnapshot".PERCENTAGE :: double precision / 100 :: double precision
-                        ) AS "averagePower", 
+                        ) AS "boostedPower", 
                         NOW() AS "updateTime" 
                       FROM 
                         POWER_ROUND "powerRound" 
@@ -47,7 +47,7 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
                     ) pp ON pp."projectId" = project.id 
                   GROUP BY 
                     project.id
-                ) innerview 
+                ) innerview, power_round as "powerRound"
               ORDER BY 
                 innerview."totalPower" DESC WITH DATA;
               ALTER TABLE 
