@@ -43,7 +43,6 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import { runSyncUserPowersCronJob } from '../services/cronJobs/syncUserPowers';
 import { CronJob } from '../entities/CronJob';
 import { getConnection } from 'typeorm';
 import {
@@ -299,9 +298,6 @@ export async function bootstrap() {
     initHandlingTraceCampaignUpdateEvents();
     runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
-    if (process.env.ENABLE_SYNC_USER_POWER_CRONJOB === 'true') {
-      runSyncUserPowersCronJob();
-    }
 
     if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
       runCheckProjectVerificationStatus();

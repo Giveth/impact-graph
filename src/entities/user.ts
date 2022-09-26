@@ -14,7 +14,6 @@ import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
-import { UserPower } from './userPower';
 import { PowerBoosting } from './powerBoosting';
 import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
 
@@ -135,10 +134,6 @@ export class User extends BaseEntity {
     projectStatusHistory => projectStatusHistory.user,
   )
   projectStatusHistories?: ProjectStatusHistory[];
-
-  @Field(type => [UserPower], { nullable: true })
-  @OneToMany(type => UserPower, userPower => userPower.user)
-  userPowers?: UserPower[];
 
   @Field(type => [PowerBoosting], { nullable: true })
   @OneToMany(type => PowerBoosting, powerBoosting => powerBoosting.user)
