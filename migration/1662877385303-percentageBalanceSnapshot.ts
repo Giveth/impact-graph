@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 // tslint:disable-next-line:class-name
-export class percentageBalanceSnapshot1663590304407
+export class percentageBalanceSnapshot1662877385303
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
