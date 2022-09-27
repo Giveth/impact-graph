@@ -13,13 +13,13 @@ describe(
 );
 
 function createPowerSnapshotBalancesTestCases() {
-  it('should update power snapshot balance', async () => {
+  it('should create power snapshot balance', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     let powerSnapshotTime = user.id * 1000;
 
     const powerSnapshot = await PowerSnapshot.create({
       time: new Date(powerSnapshotTime++),
-      blockNumber: 1000,
+      blockNumber: powerSnapshotTime,
     }).save();
 
     await assertNotThrowsAsync(async () => {
