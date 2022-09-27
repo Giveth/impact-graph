@@ -19,7 +19,9 @@ describe(
   processFillPowerSnapshotJobsTestCases,
 );
 
-function processFillPowerSnapshotJobsTestCases() {
+async function processFillPowerSnapshotJobsTestCases() {
+  await processFillPowerSnapshotJobs();
+
   it('should fill snapShotBalances for powerSnapshots', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -69,7 +71,47 @@ function processFillPowerSnapshotJobsTestCases() {
     await PowerBoostingSnapshot.save(powerBoostingSnapshots);
     assert.isNotEmpty(await getPowerBoostingSnapshotWithoutBalance());
     await addFillPowerSnapshotBalanceJobsToQueue();
-    await processFillPowerSnapshotJobs();
+    await sleep(5000);
+    assert.isEmpty(await getPowerBoostingSnapshotWithoutBalance());
+  });
+
+  it('should fill more than 100 snapShotBalances for powerSnapshots', async () => {
+    for (let i = 0; i < 110; i++) {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      const project = await saveProjectDirectlyToDb(createProjectData());
+
+      let powerSnapshotTime = user.id * 1000;
+      const powerSnapshots = PowerSnapshot.create([
+        {
+          time: new Date(powerSnapshotTime++),
+          blockNumber: 10000 + i,
+        },
+        {
+          time: new Date(powerSnapshotTime++),
+        },
+      ]);
+      await PowerSnapshot.save(powerSnapshots);
+
+      const powerBoostingSnapshots = PowerBoostingSnapshot.create([
+        {
+          userId: user.id,
+          projectId: project.id,
+          percentage: 10,
+          powerSnapshot: powerSnapshots[0],
+        },
+        {
+          userId: user2.id,
+          projectId: project.id,
+          percentage: 20,
+          powerSnapshot: powerSnapshots[0],
+        },
+      ]);
+      await PowerBoostingSnapshot.save(powerBoostingSnapshots);
+    }
+
+    assert.isNotEmpty(await getPowerBoostingSnapshotWithoutBalance());
+    await addFillPowerSnapshotBalanceJobsToQueue();
     await sleep(2000);
     assert.isEmpty(await getPowerBoostingSnapshotWithoutBalance());
   });

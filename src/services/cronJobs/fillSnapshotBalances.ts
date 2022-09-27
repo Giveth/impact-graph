@@ -30,7 +30,7 @@ const cronJobTime =
   (config.get('FILL_POWER_SNAPSHOT_BALANCE_CRONJOB_EXPRESSION') as string) ||
   '0 0 * * * *';
 
-export const runSyncUserPowersCronJob = () => {
+export const runFillPowerSnapshotBalanceCronJob = () => {
   logger.debug(
     'runSyncUserPowersCronJob() has been called, cronJobTime',
     cronJobTime,
@@ -70,13 +70,16 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
       }
     });
   }
-
+  logger.debug('jobs', {
+    groupByBlockNumbers: JSON.stringify(groupByBlockNumbers, null, 2),
+  });
   Object.keys(groupByBlockNumbers).forEach(key => {
     const chunkSize = 50;
     const jobDataArray = groupByBlockNumbers[key];
     for (let i = 0; i < jobDataArray.length; i += chunkSize) {
       // Our batches length would not be greater than 50, so we convert the array to multiple chunks and add them to queue
       const chunk = jobDataArray.slice(i, i + chunkSize);
+
       fillSnapshotBalanceQueue.add({
         blockNumber: Number(key),
         data: chunk,
@@ -86,11 +89,13 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
 }
 
 export function processFillPowerSnapshotJobs() {
-  logger.debug('processFillPowerSnapshotJobs() has been called');
+  logger.debug('processFillPowerSnapshotJobs() has been called ', {
+    numberOfFillPowerSnapshotBAlancesConcurrentJob,
+  });
   fillSnapshotBalanceQueue.process(
     numberOfFillPowerSnapshotBAlancesConcurrentJob,
     async (job, done) => {
-      logger.debug('processing syncUserPower job', { jobData: job.data });
+      logger.debug('processing fill powerSnapshot job', job.data);
       const { blockNumber, data } = job.data;
       try {
         const balances =
@@ -111,7 +116,7 @@ export function processFillPowerSnapshotJobs() {
           }),
         );
       } catch (e) {
-        logger.error('processFillPowerSnapshotJobs >> synUserPower error', e);
+        logger.error('processFillPowerSnapshotJobs >> error', e);
       } finally {
         done();
       }
