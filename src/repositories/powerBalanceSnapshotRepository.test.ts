@@ -1,4 +1,3 @@
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import {
   generateRandomEtheriumAddress,
   saveUserDirectlyToDb,

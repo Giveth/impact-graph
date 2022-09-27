@@ -4,8 +4,8 @@ import { logger } from '../../utils/logger';
 import config from '../../config';
 import { schedule } from 'node-cron';
 import { getGivPowerSubgraphAdapter } from '../../adapters/adaptersFactory';
-import { updatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
 import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository';
+import { createPowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
 
 const fillSnapshotBalanceQueue = new Bull<FillSnapShotBalanceData>(
   'fill-snapshot-balance',
@@ -96,7 +96,7 @@ export function processFillPowerSnapshotJobs() {
 
         await Promise.all(
           data.map(item => {
-            updatePowerSnapshotBalances({
+            createPowerSnapshotBalances({
               balance: balances[item.walletAddress],
               powerSnapshotId: item.powerSnapshotId,
               userId: item.userId,
