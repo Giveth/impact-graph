@@ -27,12 +27,12 @@ export class PowerBalanceSnapshot extends BaseEntity {
     (powerBalanceSnapshot: PowerBalanceSnapshot) =>
       powerBalanceSnapshot.powerSnapshot,
   )
-  @Column()
-  powerSnapshotId: number;
-
   @Field()
   @Column('float')
   balance: number;
+
+  @Column()
+  powerSnapshotId: number;
 
   @Field(type => PowerSnapshot, { nullable: false })
   @ManyToOne(type => PowerSnapshot, { nullable: false })

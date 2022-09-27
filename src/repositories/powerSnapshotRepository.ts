@@ -1,6 +1,7 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { getConnection } from 'typeorm';
+import { User } from '../entities/user';
 
 export const findInCompletePowerSnapShots = async (): Promise<
   PowerSnapshot[]
@@ -35,14 +36,17 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
   limit = 50,
   offset = 0,
 ): Promise<
-  Pick<
-    PowerSnapshot & PowerBoostingSnapshot,
-    'userId' | 'powerSnapshotId' | 'blockNumber'
-  >[]
+  {
+    userId: number;
+    powerSnapshotId: number;
+    blockNumber: number;
+    walletAddress: string;
+  }[]
 > => {
   return await getConnection().query(
     `
-    select "userId", "powerSnapshotId", "blockNumber" from power_boosting_snapshot as boosting
+    select "userId", "powerSnapshotId", "blockNumber", u."walletAddress" from power_boosting_snapshot as boosting
+    left join public."user" as u on  "userId"= u.id 
     inner join power_snapshot as "snapshot" on boosting."powerSnapshotId" = snapshot.id
     where snapshot."blockNumber" is not NULL
     and not exists (

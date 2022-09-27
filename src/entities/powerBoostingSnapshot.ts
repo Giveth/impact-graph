@@ -25,8 +25,16 @@ export class PowerBoostingSnapshot extends BaseEntity {
   id: number;
 
   @Field(type => ID)
+  @RelationId(
+    (powerBoostingSnapshot: PowerBoostingSnapshot) =>
+      powerBoostingSnapshot.user,
+  )
   @Column()
   userId: number;
+
+  @Field(type => User, { nullable: false })
+  @ManyToOne(type => User, { nullable: false })
+  user: User;
 
   @Field(type => ID)
   @Column()
