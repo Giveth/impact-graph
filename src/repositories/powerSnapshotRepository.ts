@@ -1,7 +1,6 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { getConnection } from 'typeorm';
-import { User } from '../entities/user';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 
 export const findInCompletePowerSnapShots = async (): Promise<
   PowerSnapshot[]
@@ -30,6 +29,12 @@ export const updatePowerSnapShots = async (params: {
   powerSnapshot.blockNumber = blockNumber;
   powerSnapshot.roundNumber = roundNumber;
   await powerSnapshot.save();
+};
+
+export const insertSinglePowerBalanceSnapshot = async (
+  param: Pick<PowerBalanceSnapshot, 'userId' | 'powerSnapshotId' | 'balance'>,
+) => {
+  return PowerBalanceSnapshot.create(param).save();
 };
 
 export const getPowerBoostingSnapshotWithoutBalance = async (

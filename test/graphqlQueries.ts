@@ -506,7 +506,7 @@ export const fetchAllProjectsQuery = `
         projectPower {
           totalPower
           powerRank
-          updateTime
+          round
         }
       }
       totalCount
@@ -543,7 +543,7 @@ export const fetchProjectsBySlugQuery = `
       projectPower {
         totalPower
         powerRank
-        updateTime
+        round
       }
       categories {
        name
@@ -1483,10 +1483,8 @@ export const getUserProjectPowerQuery = `
             id
             userId
             projectId
-            percentage
-            userPower
+            round
             boostedPower
-            updateTime
             rank
             user {
               id

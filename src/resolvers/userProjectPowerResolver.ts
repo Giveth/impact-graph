@@ -1,30 +1,18 @@
 import {
-  Arg,
   Args,
   ArgsType,
-  Ctx,
   Field,
-  Float,
   InputType,
   Int,
-  Mutation,
   ObjectType,
   Query,
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { MyContext } from '../types/MyContext';
 import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
-import {
-  setMultipleBoosting,
-  setSingleBoosting,
-  findPowerBoostings,
-} from '../repositories/powerBoostingRepository';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
-import { OrderField, SortingField } from '../entities/project';
-import { logger } from '../utils/logger';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository';
 
@@ -35,7 +23,6 @@ enum UserPowerOrderDirection {
 
 enum UserPowerOrderField {
   Percentage = 'percentage',
-  UserPower = 'userPower',
   BoostedPower = 'boostedPower',
 }
 

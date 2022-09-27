@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class GivpowerSnapshot1663588664793 implements MigrationInterface {
+export class GivpowerSnapshot1662877385301 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
     CREATE TABLE IF NOT EXISTS "power_snapshot" (

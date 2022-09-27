@@ -41,19 +41,7 @@ export class UserProjectPowerView extends BaseEntity {
 
   @ViewColumn()
   @Field()
-  percentage: number;
-
-  @ViewColumn()
-  @Field()
-  userPower: number;
-
-  @ViewColumn()
-  @Field()
   boostedPower: number;
-
-  @ViewColumn()
-  @Field(type => Date)
-  updateTime: Date;
 
   @Field()
   @Column({
