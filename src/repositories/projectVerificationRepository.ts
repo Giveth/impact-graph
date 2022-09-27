@@ -26,6 +26,16 @@ export const createProjectVerificationForm = async (params: {
   }).save();
 };
 
+export const updateProjectVerificationFormStatusOnly = async (
+  projectVerificationFormId: number,
+  verificationStatus: PROJECT_VERIFICATION_STATUSES,
+): Promise<UpdateResult> => {
+  return ProjectVerificationForm.update(
+    { id: projectVerificationFormId },
+    { status: verificationStatus },
+  );
+};
+
 export const verifyMultipleForms = async (params: {
   verificationStatus: PROJECT_VERIFICATION_STATUSES;
   formIds?: number[] | string[];

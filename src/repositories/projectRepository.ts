@@ -24,6 +24,10 @@ export const findProjectById = (
 
 export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
   return Project.createQueryBuilder('project')
+    .leftJoinAndSelect(
+      'project.projectVerificationForm',
+      'projectVerificationForm',
+    )
     .innerJoinAndMapOne(
       'project.projectUpdate',
       ProjectUpdate,

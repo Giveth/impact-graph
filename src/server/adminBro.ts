@@ -57,7 +57,9 @@ import {
 } from '../entities/projectVerificationForm';
 import {
   findProjectVerificationFormById,
+  getVerificationFormByProjectId,
   makeFormDraft,
+  updateProjectVerificationFormStatusOnly,
   verifyForm,
   verifyMultipleForms,
 } from '../repositories/projectVerificationRepository';
@@ -2032,11 +2034,22 @@ export const verifyProjects = async (
       });
       const projectWithAdmin = (await findProjectById(project.id)) as Project;
 
-      if (verified) {
+      if (verificationStatus) {
         await getNotificationAdapter().projectVerified({
           project: projectWithAdmin,
         });
       } else {
+        // any project rejected or revoked will reset form to draft to reapply
+        const verificationForm = await getVerificationFormByProjectId(
+          project.id,
+        );
+        if (verificationForm) {
+          await updateProjectVerificationFormStatusOnly(
+            verificationForm.id,
+            PROJECT_VERIFICATION_STATUSES.DRAFT,
+          );
+        }
+
         await getNotificationAdapter().projectUnVerified({
           project: projectWithAdmin,
         });

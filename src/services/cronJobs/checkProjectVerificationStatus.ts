@@ -16,6 +16,11 @@ import { logger } from '../../utils/logger';
 import moment = require('moment');
 import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository';
 import { errorMessages } from '../../utils/errorMessages';
+import {
+  ProjectVerificationForm,
+  PROJECT_VERIFICATION_STATUSES,
+} from '../../entities/projectVerificationForm';
+import { updateProjectVerificationFormStatusOnly } from '../../repositories/projectVerificationRepository';
 
 const analytics = getAnalytics();
 
@@ -136,6 +141,17 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   }
 
   await project.save();
+
+  // draft the verification form to allow reapply
+  if (
+    project.projectVerificationForm &&
+    project.verificationStatus === RevokeSteps.Revoked
+  ) {
+    await updateProjectVerificationFormStatusOnly(
+      project.projectVerificationForm.id,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+  }
 
   // save status changes history
   if (project.verificationStatus === RevokeSteps.Revoked) {
