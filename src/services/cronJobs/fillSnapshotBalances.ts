@@ -70,11 +70,18 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
       }
     });
   }
+
   Object.keys(groupByBlockNumbers).forEach(key => {
-    fillSnapshotBalanceQueue.add({
-      blockNumber: Number(key),
-      data: groupByBlockNumbers[key],
-    });
+    const chunkSize = 50;
+    const jobDataArray = groupByBlockNumbers[key];
+    for (let i = 0; i < jobDataArray.length; i += chunkSize) {
+      // Our batches length would not be greater than 50, so we convert the array to multiple chunks and add them to queue
+      const chunk = jobDataArray.slice(i, i + chunkSize);
+      fillSnapshotBalanceQueue.add({
+        blockNumber: Number(key),
+        data: chunk,
+      });
+    }
   });
 }
 
