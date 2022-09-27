@@ -51,7 +51,7 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
   return await getConnection().query(
     `
     select "userId", "powerSnapshotId", "blockNumber","walletAddress" from power_boosting_snapshot as boosting
-    inner join public."user" as u on  "userId"= u.id 
+    inner join public."user" as "user" on  "userId"= "user".id 
     inner join power_snapshot as "snapshot" on boosting."powerSnapshotId" = snapshot.id
     where snapshot."blockNumber" is not NULL
     and not exists (

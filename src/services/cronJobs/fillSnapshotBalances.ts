@@ -94,13 +94,13 @@ export function processFillPowerSnapshotJobs() {
             ),
           });
 
-        await Promise.all(
+        await createPowerSnapshotBalances(
           data.map(item => {
-            createPowerSnapshotBalances({
+            return {
               balance: balances[item.walletAddress],
               powerSnapshotId: item.powerSnapshotId,
               userId: item.userId,
-            });
+            };
           }),
         );
       } catch (e) {

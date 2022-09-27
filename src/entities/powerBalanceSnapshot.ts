@@ -22,15 +22,15 @@ export class PowerBalanceSnapshot extends BaseEntity {
   @Column()
   userId: number;
 
+  @Field()
+  @Column('float')
+  balance: number;
+
   @Field(type => ID)
   @RelationId(
     (powerBalanceSnapshot: PowerBalanceSnapshot) =>
       powerBalanceSnapshot.powerSnapshot,
   )
-  @Field()
-  @Column('float')
-  balance: number;
-
   @Column()
   powerSnapshotId: number;
 

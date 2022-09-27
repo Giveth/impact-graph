@@ -1,4 +1,5 @@
 import {
+  assertNotThrowsAsync,
   generateRandomEtheriumAddress,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
@@ -20,12 +21,15 @@ function createPowerSnapshotBalancesTestCases() {
       time: new Date(powerSnapshotTime++),
       blockNumber: 1000,
     }).save();
-    const powerSnapshotBalance = await createPowerSnapshotBalances({
-      powerSnapshotId: powerSnapshot.id,
-      userId: user.id,
-      balance: 100,
-    });
 
-    assert.equal(powerSnapshotBalance?.balance, 100);
+    await assertNotThrowsAsync(async () => {
+      await createPowerSnapshotBalances([
+        {
+          powerSnapshotId: powerSnapshot.id,
+          userId: user.id,
+          balance: 100,
+        },
+      ]);
+    });
   });
 }

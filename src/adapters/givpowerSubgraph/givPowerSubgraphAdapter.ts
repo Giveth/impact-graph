@@ -10,9 +10,12 @@ const _queryBuilder = (params: {
   unipoolContractId: string;
 }): string => {
   const { addresses, blockNumber, unipoolContractId } = params;
-  let usersIn = '[';
-  addresses.forEach(address => (usersIn += `"${address}",`));
-  usersIn += ']';
+  const usersIn =
+    '[' +
+    Array.from(addresses)
+      .map(address => `"${address}"`)
+      .join(',') +
+    ']';
   return `query {
     unipoolBalances(
       first: ${addresses.size}
