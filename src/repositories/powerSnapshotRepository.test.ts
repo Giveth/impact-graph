@@ -140,6 +140,82 @@ describe('test balance snapshot functions', () => {
     assert.deepEqual(result[0], {
       userId: user2.id,
       powerSnapshotId: powerSnapshots[0].id,
+      walletAddress: user2.walletAddress,
+      blockNumber: powerSnapshots[0].blockNumber,
+    });
+  });
+  it('should return user wallet address alongside power snapshots', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    let powerSnapshotTime = user1.id * 1000;
+
+    const powerSnapshots = PowerSnapshot.create([
+      {
+        time: new Date(powerSnapshotTime++),
+        blockNumber: 100,
+      },
+      {
+        time: new Date(powerSnapshotTime++),
+      },
+    ]);
+    await PowerSnapshot.save(powerSnapshots);
+
+    const powerBoostingSnapshots = PowerBoostingSnapshot.create([
+      {
+        userId: user1.id,
+        projectId: project1.id,
+        percentage: 10,
+        powerSnapshot: powerSnapshots[0],
+      },
+      {
+        userId: user2.id,
+        projectId: project1.id,
+        percentage: 20,
+        powerSnapshot: powerSnapshots[0],
+      },
+      {
+        userId: user1.id,
+        projectId: project1.id,
+        percentage: 11,
+        powerSnapshot: powerSnapshots[1],
+      },
+      {
+        userId: user2.id,
+        projectId: project1.id,
+        percentage: 21,
+        powerSnapshot: powerSnapshots[1],
+      },
+    ]);
+    await PowerBoostingSnapshot.save(powerBoostingSnapshots);
+
+    const powerBalances = PowerBalanceSnapshot.create([
+      {
+        userId: user1.id,
+        balance: 1,
+        powerSnapshot: powerSnapshots[0],
+      },
+    ]);
+
+    await PowerBalanceSnapshot.save(powerBalances);
+
+    PowerBalanceSnapshot.create({
+      userId: user1.id,
+      powerSnapshot: powerSnapshots[0],
+      balance: 10,
+    });
+
+    const result = await getPowerBoostingSnapshotWithoutBalance();
+    assert.lengthOf(result, 1);
+    assert.deepEqual(result[0], {
+      userId: user2.id,
+      powerSnapshotId: powerSnapshots[0].id,
+      walletAddress: user2.walletAddress,
       blockNumber: powerSnapshots[0].blockNumber,
     });
   });
@@ -201,6 +277,7 @@ describe('test balance snapshot functions', () => {
     assert.deepEqual(result[0], {
       userId: user3.id,
       powerSnapshotId: powerSnapshots[0].id,
+      walletAddress: user3.walletAddress,
       blockNumber: powerSnapshots[0].blockNumber,
     });
 
@@ -210,11 +287,13 @@ describe('test balance snapshot functions', () => {
     assert.deepEqual(result, [
       {
         userId: user2.id,
+        walletAddress: user2.walletAddress,
         powerSnapshotId: powerSnapshots[1].id,
         blockNumber: powerSnapshots[1].blockNumber,
       },
       {
         userId: user1.id,
+        walletAddress: user1.walletAddress,
         powerSnapshotId: powerSnapshots[2].id,
         blockNumber: powerSnapshots[2].blockNumber,
       },

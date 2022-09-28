@@ -1,5 +1,4 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 
@@ -42,14 +41,17 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
   limit = 50,
   offset = 0,
 ): Promise<
-  Pick<
-    PowerSnapshot & PowerBoostingSnapshot,
-    'userId' | 'powerSnapshotId' | 'blockNumber'
-  >[]
+  {
+    userId: number;
+    powerSnapshotId: number;
+    blockNumber: number;
+    walletAddress: string;
+  }[]
 > => {
   return await getConnection().query(
     `
-    select "userId", "powerSnapshotId", "blockNumber" from power_boosting_snapshot as boosting
+    select "userId", "powerSnapshotId", "blockNumber","walletAddress" from power_boosting_snapshot as boosting
+    inner join public."user" as "user" on  "userId"= "user".id 
     inner join power_snapshot as "snapshot" on boosting."powerSnapshotId" = snapshot.id
     where snapshot."blockNumber" is not NULL
     and not exists (
