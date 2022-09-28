@@ -9,14 +9,29 @@ import axios from 'axios';
 import { getUserProjectPowerQuery } from '../../test/graphqlQueries';
 import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
-import { insertNewUserPowers } from '../repositories/userPowerRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
-import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
+import {
+  insertSinglePowerBoosting,
+  takePowerBoostingSnapshot,
+} from '../repositories/powerBoostingRepository';
+import { getConnection } from 'typeorm';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import {
+  findInCompletePowerSnapShots,
+  insertSinglePowerBalanceSnapshot,
+} from '../repositories/powerSnapshotRepository';
 
 describe('userProjectPowers test cases', userProjectPowersTestCases);
 
 function userProjectPowersTestCases() {
+  beforeEach(async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+  });
+
   it('should get error when the user doesnt send nether projectId nor userId', async () => {
     const result = await axios.post(graphqlUrl, {
       query: getUserProjectPowerQuery,
@@ -38,6 +53,9 @@ function userProjectPowersTestCases() {
     );
     const firstProject = await saveProjectDirectlyToDb(createProjectData());
     const secondProject = await saveProjectDirectlyToDb(createProjectData());
+
+    const givbackRound = secondProject.id * 10;
+
     await insertSinglePowerBoosting({
       user: firstUser,
       project: firstProject,
@@ -53,17 +71,26 @@ function userProjectPowersTestCases() {
       project: firstProject,
       percentage: 3,
     });
-    const givbackRound = 3;
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound,
-      users: [firstUser, secondUser],
-      averagePowers: {
-        [firstUser.walletAddress as string]: 10000,
-        [secondUser.walletAddress as string]: 20000,
-      },
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = givbackRound;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: firstUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
     });
+    await insertSinglePowerBalanceSnapshot({
+      userId: secondUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 20000,
+    });
+
     await setPowerRound(givbackRound);
     await refreshUserProjectPowerView();
 
@@ -108,17 +135,27 @@ function userProjectPowersTestCases() {
       project: firstProject,
       percentage: 3,
     });
-    const givbackRound = 3;
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound,
-      users: [firstUser, secondUser],
-      averagePowers: {
-        [firstUser.walletAddress as string]: 10000,
-        [secondUser.walletAddress as string]: 20000,
-      },
+    const givbackRound = secondProject.id * 10;
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = givbackRound;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: firstUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
     });
+    await insertSinglePowerBalanceSnapshot({
+      userId: secondUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 20000,
+    });
+
     await setPowerRound(givbackRound);
     await refreshUserProjectPowerView();
 
@@ -183,18 +220,32 @@ function userProjectPowersTestCases() {
       percentage: 70,
     });
 
-    const givbackRound = 3;
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound,
-      users: [firstUser, secondUser, thirdUser],
-      averagePowers: {
-        [firstUser.walletAddress as string]: 10000,
-        [secondUser.walletAddress as string]: 20000,
-        [thirdUser.walletAddress as string]: 30000,
-      },
+    const givbackRound = secondProject.id * 10;
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = givbackRound;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: firstUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
     });
+    await insertSinglePowerBalanceSnapshot({
+      userId: secondUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 20000,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: thirdUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 30000,
+    });
+
     await setPowerRound(givbackRound);
     await refreshUserProjectPowerView();
     const result = await axios.post(graphqlUrl, {
@@ -219,6 +270,7 @@ function userProjectPowersTestCases() {
       },
     );
   });
+
   it('should get list of userProjectPowers filter by projectId and userId', async () => {
     const firstUser = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
@@ -249,17 +301,27 @@ function userProjectPowersTestCases() {
       percentage: 3,
     });
 
-    const givbackRound = 3;
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound,
-      users: [firstUser, secondUser],
-      averagePowers: {
-        [firstUser.walletAddress as string]: 10000,
-        [secondUser.walletAddress as string]: 20000,
-      },
+    const givbackRound = secondProject.id * 10;
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = givbackRound;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: firstUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
     });
+    await insertSinglePowerBalanceSnapshot({
+      userId: secondUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 20000,
+    });
+
     await setPowerRound(givbackRound);
     await refreshUserProjectPowerView();
     const result = await axios.post(graphqlUrl, {
@@ -311,6 +373,31 @@ function userProjectPowersTestCases() {
       project: secondProject,
       percentage: 3,
     });
+
+    const givbackRound = secondProject.id * 10;
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = givbackRound;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: firstUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: secondUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 20000,
+    });
+
+    await setPowerRound(givbackRound);
+    await refreshUserProjectPowerView();
+
     const result = await axios.post(graphqlUrl, {
       query: getUserProjectPowerQuery,
       variables: {
@@ -323,122 +410,5 @@ function userProjectPowersTestCases() {
         assert.isNotOk(userProjectPower.user.email);
       },
     );
-  });
-
-  it('should get list of userProjectPowers filter by userId, sort by percentage DESC', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const secondProject = await saveProjectDirectlyToDb(createProjectData());
-    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: firstProject,
-      percentage: 2,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: secondProject,
-      percentage: 10,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: thirdProject,
-      percentage: 3,
-    });
-    const givbackRound = 3;
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound,
-      users: [firstUser],
-      averagePowers: {
-        [firstUser.walletAddress as string]: 10000,
-      },
-    });
-    await setPowerRound(givbackRound);
-    await refreshUserProjectPowerView();
-    const result = await axios.post(graphqlUrl, {
-      query: getUserProjectPowerQuery,
-      variables: {
-        userId: firstUser.id,
-        orderBy: {
-          field: 'Percentage',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.isOk(result);
-    const userProjectPowers =
-      result.data.data.userProjectPowers.userProjectPowers;
-    assert.equal(userProjectPowers.length, 3);
-    assert.isTrue(
-      userProjectPowers[0].percentage >= userProjectPowers[1].percentage,
-    );
-    assert.isTrue(
-      userProjectPowers[1].percentage >= userProjectPowers[2].percentage,
-    );
-    assert.equal(userProjectPowers[0].rank, 1);
-    assert.equal(userProjectPowers[1].rank, 2);
-    assert.equal(userProjectPowers[2].rank, 3);
-  });
-  it('should get list of userProjectPowers filter by userId, sort by percentage ASC', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const secondProject = await saveProjectDirectlyToDb(createProjectData());
-    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: firstProject,
-      percentage: 2,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: secondProject,
-      percentage: 10,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: thirdProject,
-      percentage: 3,
-    });
-    const givbackRound = 3;
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound,
-      users: [firstUser],
-      averagePowers: {
-        [firstUser.walletAddress as string]: 10000,
-      },
-    });
-    await setPowerRound(givbackRound);
-    await refreshUserProjectPowerView();
-    const result = await axios.post(graphqlUrl, {
-      query: getUserProjectPowerQuery,
-      variables: {
-        userId: firstUser.id,
-        orderBy: {
-          field: 'Percentage',
-          direction: 'ASC',
-        },
-      },
-    });
-    assert.isOk(result);
-    const userProjectPowers =
-      result.data.data.userProjectPowers.userProjectPowers;
-    assert.equal(userProjectPowers.length, 3);
-    assert.isTrue(
-      userProjectPowers[0].percentage <= userProjectPowers[1].percentage,
-    );
-    assert.isTrue(
-      userProjectPowers[1].percentage <= userProjectPowers[2].percentage,
-    );
-    assert.equal(userProjectPowers[0].rank, 3);
-    assert.equal(userProjectPowers[1].rank, 2);
-    assert.equal(userProjectPowers[2].rank, 1);
   });
 }

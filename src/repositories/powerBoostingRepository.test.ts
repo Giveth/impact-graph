@@ -7,14 +7,21 @@ import {
 import {
   findPowerBoostings,
   findUserPowerBoosting,
+  getPowerBoostingSnapshotRound,
   insertSinglePowerBoosting,
   setMultipleBoosting,
+  takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
 import { assert, use } from 'chai';
+import { PowerBoosting } from '../entities/powerBoosting';
+import { PowerSnapshot } from '../entities/powerSnapshot';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { getConnection } from 'typeorm';
 
 describe('findUserPowerBoosting() testCases', findUserPowerBoostingTestCases);
 describe('findPowerBoostings() testCases', findPowerBoostingsTestCases);
 describe('setMultipleBoosting() testCases', setMultipleBoostingTestCases);
+describe('power boosting snapshot testCases', powerBoostingSnapshotTests);
 
 function findUserPowerBoostingTestCases() {
   it('should return all non-zero power boostings', async () => {
@@ -656,5 +663,93 @@ function setMultipleBoostingTestCases() {
           powerBoosting.percentage === 80,
       ),
     );
+  });
+}
+
+function powerBoostingSnapshotTests() {
+  it('should take snapshot of power boosting', async () => {
+    await PowerBoosting.clear();
+    await getConnection().query('truncate power_snapshot cascade');
+
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+
+    await insertSinglePowerBoosting({
+      user: user1,
+      project: project1,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: user1,
+      project: project2,
+      percentage: 30,
+    });
+    await insertSinglePowerBoosting({
+      user: user2,
+      project: project1,
+      percentage: 30,
+    });
+    await insertSinglePowerBoosting({
+      user: user2,
+      project: project2,
+      percentage: 40,
+    });
+
+    await takePowerBoostingSnapshot();
+
+    const snapshot = await PowerSnapshot.findOne();
+    assert.isDefined(snapshot);
+
+    const [powerBoostings, powerBoostingCounts] =
+      await PowerBoosting.findAndCount({
+        take: 4,
+        select: ['id', 'projectId', 'userId', 'percentage'],
+      });
+    const [powerBoostingSnapshots, powerBoostingSnapshotsCounts] =
+      await PowerBoostingSnapshot.findAndCount({
+        where: { powerSnapshotId: snapshot?.id },
+        take: 4,
+      });
+
+    assert.equal(powerBoostingCounts, powerBoostingSnapshotsCounts);
+    powerBoostings.forEach(pb => {
+      const pbs = powerBoostingSnapshots.find(
+        p =>
+          p.projectId === pb.projectId &&
+          p.userId === pb.userId &&
+          p.percentage === pb.percentage &&
+          p.powerSnapshotId === snapshot?.id,
+      );
+      assert.isDefined(pbs);
+    });
+  });
+
+  it('should return snapshot corresponding round correctly', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await takePowerBoostingSnapshot();
+
+    let snapshot = (await PowerSnapshot.findOne()) as PowerSnapshot;
+    assert.isDefined(snapshot);
+
+    const round = getPowerBoostingSnapshotRound(snapshot as PowerSnapshot);
+
+    const firstGivbackRoundTimeStamp = Number(
+      process.env.FIRST_GIVBACK_ROUND_TIME_STAMP,
+    );
+    const givbackRoundLength = Number(process.env.GIVPOWER_ROUND_DURATION);
+
+    const startBoundary =
+      firstGivbackRoundTimeStamp + (round - 1) * givbackRoundLength;
+    const endBoundary = startBoundary + givbackRoundLength;
+    const snapshotTime = (snapshot.time.getTime() as number) / 1000;
+    assert.isAtLeast(snapshotTime, startBoundary);
+    assert.isBelow(snapshotTime, endBoundary);
+
+    snapshot.roundNumber = round;
+    await snapshot.save();
+    snapshot = (await PowerSnapshot.findOne()) as PowerSnapshot;
+    assert.equal(snapshot.roundNumber, round);
   });
 }

@@ -43,12 +43,14 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import { ProjectVerificationForm } from '../entities/projectVerificationForm';
-import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
-import { TwitterAdapter } from '../adapters/oauth2/twitterAdapter';
-import { generateRandomEtheriumAddress } from '../../test/testUtils';
-import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
-import { runSyncUserPowersCronJob } from '../services/cronJobs/syncUserPowers';
+import { CronJob } from '../entities/CronJob';
+import { getConnection } from 'typeorm';
+import {
+  dropDbCronExtension,
+  schedulePowerBoostingSnapshot,
+} from '../repositories/dbCronRepository';
+import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
+import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -70,22 +72,59 @@ export async function bootstrap() {
     }
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
-    await TypeORM.createConnection({
-      type: 'postgres',
-      database: config.get('TYPEORM_DATABASE_NAME') as string,
-      username: config.get('TYPEORM_DATABASE_USER') as string,
-      password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-      port: config.get('TYPEORM_DATABASE_PORT') as number,
-      host: config.get('TYPEORM_DATABASE_HOST') as string,
-      entities,
-      synchronize: true,
-      logger: 'advanced-console',
-      logging: ['error'],
-      dropSchema,
-      cache: true,
-    });
+    await TypeORM.createConnections([
+      {
+        name: 'default',
+        schema: 'public',
+        type: 'postgres',
+        database: config.get('TYPEORM_DATABASE_NAME') as string,
+        username: config.get('TYPEORM_DATABASE_USER') as string,
+        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+        port: config.get('TYPEORM_DATABASE_PORT') as number,
+        host: config.get('TYPEORM_DATABASE_HOST') as string,
+        entities,
+        synchronize: true,
+        logger: 'advanced-console',
+        logging: ['error'],
+        dropSchema,
+        cache: true,
+      },
+      {
+        name: 'cron',
+        type: 'postgres',
+        database: config.get('TYPEORM_DATABASE_NAME') as string,
+        username: config.get('TYPEORM_DATABASE_USER') as string,
+        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+        port: config.get('TYPEORM_DATABASE_PORT') as number,
+        host: config.get('TYPEORM_DATABASE_HOST') as string,
+        entities: [CronJob],
+        synchronize: false,
+        dropSchema: false,
+      },
+    ]);
+
+    if (dropSchema) {
+      try {
+        await dropDbCronExtension();
+      } catch (e) {
+        logger.error('drop pg_cron extension error', e);
+      }
+    }
 
     const schema = await createSchema();
+
+    const enableDbCronJob =
+      config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
+    if (enableDbCronJob) {
+      try {
+        const scheduleExpression = config.get(
+          'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
+        ) as string;
+        await schedulePowerBoostingSnapshot(scheduleExpression);
+      } catch (e) {
+        logger.error('Enabling power boosting snapshot ', e);
+      }
+    }
 
     // Create GraphQL server
     const apolloServer = new ApolloServer({
@@ -260,9 +299,6 @@ export async function bootstrap() {
     initHandlingTraceCampaignUpdateEvents();
     runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
-    if (process.env.ENABLE_SYNC_USER_POWER_CRONJOB === 'true') {
-      runSyncUserPowersCronJob();
-    }
 
     if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
       runCheckProjectVerificationStatus();
@@ -274,6 +310,17 @@ export async function bootstrap() {
     // }
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
+    }
+    if (
+      (config.get('FILL_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
+    ) {
+      runFillBlockNumbersOfSnapshotsCronjob();
+    }
+    if (
+      (config.get('FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE') as string) ===
+      'true'
+    ) {
+      runFillPowerSnapshotBalanceCronJob();
     }
   } catch (err) {
     logger.error(err);

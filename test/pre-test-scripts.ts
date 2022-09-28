@@ -8,7 +8,7 @@ import {
   PROJECT_UPDATE_SEED_DATA,
 } from './testUtils';
 import { User } from '../src/entities/user';
-import { dropdb, createdb } from 'pgtools';
+import { createdb } from 'pgtools';
 import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import { Project, ProjectUpdate } from '../src/entities/project';
@@ -24,11 +24,12 @@ import { MainCategory } from '../src/entities/mainCategory';
 import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
 import { ProjectPowerView1662915983382 } from '../migration/1662915983382-ProjectPowerView';
+import { TakePowerBoostingSnapshotProcedure1663594895750 } from '../migration/1663594895750-takePowerSnapshotProcedure';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
 
-async function dropDatabaseAndCreateFreshOne() {
+async function CreateDatabase() {
   const config = {
     user: process.env.TYPEORM_DATABASE_USER,
     password: process.env.TYPEORM_DATABASE_PASSWORD,
@@ -36,22 +37,24 @@ async function dropDatabaseAndCreateFreshOne() {
     host: process.env.TYPEORM_DATABASE_HOST,
   };
 
-  // tslint:disable-next-line:no-console
-  console.log('Dropping DB');
-  try {
-    await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
-  } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('drop db error', e);
-  }
-
+  // // tslint:disable-next-line:no-console
+  // console.log('Dropping DB');
+  // try {
+  //   await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
+  //   // don't drop cron db, because it will be used by pg_cron extension
+  // } catch (e) {
+  //   // tslint:disable-next-line:no-console
+  //   console.log('drop db error', e);
+  // }
+  //
   // tslint:disable-next-line:no-console
   console.log('Create Fresh DB');
   try {
     await createdb(config, process.env.TYPEORM_DATABASE_NAME);
   } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('Create Fresh db error', e);
+    if (e?.name !== 'duplicate_database')
+      // tslint:disable-next-line:no-console
+      console.log('Create Fresh db error', e);
   }
 }
 
@@ -275,16 +278,19 @@ async function seedStatusReasons() {
   }
 }
 
-async function createMaterializedViews() {
+async function runMigrations() {
   const queryRunner = getConnection().createQueryRunner();
   await queryRunner.connect();
 
   try {
     const userProjectPowerView = new UserProjectPowerView1662877385339();
     const projectPowerView = new ProjectPowerView1662915983382();
+    const takeSnapshotProcedure =
+      new TakePowerBoostingSnapshotProcedure1663594895750();
 
     await userProjectPowerView.up(queryRunner);
     await projectPowerView.up(queryRunner);
+    await takeSnapshotProcedure.up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
@@ -294,10 +300,10 @@ async function createMaterializedViews() {
 
 before(async () => {
   try {
-    await dropDatabaseAndCreateFreshOne();
+    await CreateDatabase();
     await bootstrap();
     await seedDb();
-    await createMaterializedViews();
+    await runMigrations();
   } catch (e) {
     throw new Error(`Could not setup tests requirements \n${e.message}`);
   }

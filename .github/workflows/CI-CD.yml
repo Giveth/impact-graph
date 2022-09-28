@@ -19,11 +19,13 @@ jobs:
         ports:
           - 6379:6379
       postgres:
-        image: postgres:12
+        # Use this postgres image https://github.com/Giveth/postgres-givethio
+        image: ghcr.io/giveth/postgres-givethio:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: givethio
+          PGDATA: /var/lib/postgresql/data/pgdata
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
