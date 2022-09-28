@@ -50,19 +50,20 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
 > => {
   return await getConnection().query(
     `
-    select "userId", "powerSnapshotId", "blockNumber","walletAddress" from power_boosting_snapshot as boosting
-    inner join public."user" as "user" on  "userId"= "user".id 
-    inner join power_snapshot as "snapshot" on boosting."powerSnapshotId" = snapshot.id
-    where snapshot."blockNumber" is not NULL
-    and not exists (
-      select 
-      from power_balance_snapshot as "balance"
-      where balance."powerSnapshotId" = boosting."powerSnapshotId" and
-      balance."userId" = boosting."userId"
-    )
-    order by "blockNumber" ASC
-    LIMIT $1
-    OFFSET $2
+        select "userId", "powerSnapshotId", "blockNumber","walletAddress" 
+        from (select DISTINCT "powerSnapshotId", "userId" from power_boosting_snapshot) as boosting
+        inner join public."user" as "user" on  "userId"= "user".id 
+        inner join power_snapshot as "snapshot" on boosting."powerSnapshotId" = snapshot.id
+        where snapshot."blockNumber" is not NULL
+        and not exists (
+          select 
+          from power_balance_snapshot as "balance"
+          where balance."powerSnapshotId" = boosting."powerSnapshotId" and
+          balance."userId" = boosting."userId"
+        )
+        order by "blockNumber" ASC
+        LIMIT $1
+        OFFSET $2
   `,
     [limit, offset],
   );
