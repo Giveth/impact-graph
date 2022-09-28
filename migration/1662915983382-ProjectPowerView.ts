@@ -50,8 +50,6 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
                 ) innerview, power_round as "powerRound"
               ORDER BY 
                 innerview."totalPower" DESC WITH DATA;
-              ALTER TABLE 
-                IF EXISTS public.project_power_view OWNER TO postgres;
               CREATE INDEX project_power_view_project_id ON public.project_power_view USING hash ("projectId") TABLESPACE pg_default;
               CREATE INDEX project_power_view_total_power ON public.project_power_view USING btree ("totalPower" DESC) TABLESPACE pg_default;
 

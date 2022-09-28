@@ -25,8 +25,6 @@ export class UserProjectPowerView1662877385339 implements MigrationInterface {
                 round, 
                 "powerBoostingSnapshot"."projectId", 
                 "powerBoostingSnapshot"."userId";
-              ALTER TABLE 
-                IF EXISTS PUBLIC.USER_PROJECT_POWER_VIEW OWNER TO POSTGRES;
               CREATE INDEX USER_PROJECT_POWER_VIEW_POWER_BOOSTED ON PUBLIC.USER_PROJECT_POWER_VIEW USING BTREE ("boostedPower" DESC) TABLESPACE PG_DEFAULT;
               CREATE INDEX USER_PROJECT_POWER_VIEW_PROJECT_ID ON PUBLIC.USER_PROJECT_POWER_VIEW USING HASH ("projectId") TABLESPACE PG_DEFAULT;
           `,
