@@ -25,14 +25,23 @@ export class changeMainCategoriesAndSubCategories1664367797442
   // based on https://docs.google.com/spreadsheets/d/1DAB5UHCYO4hkw_RLRtz8DLXpGduVDRMHfiW-71H0m8o/edit#gid=122470553
   // and https://github.com/Giveth/GIVeconomy/issues/723
   async up(queryRunner: QueryRunner): Promise<void> {
+    const lastMainCategory = (
+      await queryRunner.query(
+        `
+              SELECT * FROM main_category
+              ORDER BY id DESC
+            `,
+      )
+    )[0];
+    let lastId = lastMainCategory.id;
     await queryRunner.query(`
-           INSERT INTO public.main_category(title, slug, description, banner) VALUES
-             ('Nature','nature', '', ''),
-             ('Community','community', '', ''),
-             ('Finance','finance', '', ''),
-             ('Education','education', '', ''),
-             ('Equality','equality', '', ''),
-             ('Other','other', '', '');
+           INSERT INTO public.main_category(id, title, slug, description, banner) VALUES
+             (${++lastId}, 'Nature','nature', '', ''),
+             (${++lastId}, 'Community','community', '', ''),
+             (${++lastId}, 'Finance','finance', '', ''),
+             (${++lastId}, 'Education','education', '', ''),
+             (${++lastId}, 'Equality','equality', '', ''),
+             (${++lastId}, 'Other','other', '', '');
         `);
 
     await queryRunner.query(`
@@ -162,47 +171,52 @@ export class changeMainCategoriesAndSubCategories1664367797442
       subCategoryArray.map(item => updateSubCategory(queryRunner, item)),
     );
 
-    const changeCategory = (
-      await queryRunner.query(`SELECT * FROM category
+    const projectCategoryRelationTableExists = await queryRunner.hasTable(
+      'project_categories_category',
+    );
+    if (projectCategoryRelationTableExists) {
+      const changeCategory = (
+        await queryRunner.query(`SELECT * FROM category
         WHERE name='change'`)
-    )[0];
-    const givingBlockCategory = (
-      await queryRunner.query(`SELECT * FROM category
+      )[0];
+      const givingBlockCategory = (
+        await queryRunner.query(`SELECT * FROM category
         WHERE name='the-giving-block'`)
-    )[0];
-    const registeredNonProfitsCategory = (
-      await queryRunner.query(`SELECT * FROM category
+      )[0];
+      const registeredNonProfitsCategory = (
+        await queryRunner.query(`SELECT * FROM category
         WHERE name='registered-non-profits'`)
-    )[0];
-    if (changeCategory) {
-      await queryRunner.query(`
+      )[0];
+      if (changeCategory) {
+        await queryRunner.query(`
            UPDATE project_categories_category 
            SET "categoryId"=${registeredNonProfitsCategory.id}
            WHERE "categoryId"=${changeCategory.id}
         `);
-    }
-    if (givingBlockCategory) {
-      await queryRunner.query(`
+      }
+      if (givingBlockCategory) {
+        await queryRunner.query(`
            UPDATE project_categories_category 
            SET "categoryId"=${registeredNonProfitsCategory.id}
            WHERE "categoryId"=${givingBlockCategory.id}
         `);
-    }
+      }
 
-    const wasteCategory = (
-      await queryRunner.query(`SELECT * FROM category
+      const wasteCategory = (
+        await queryRunner.query(`SELECT * FROM category
         WHERE name='waste'`)
-    )[0];
-    const waterAndSanitationCategory = (
-      await queryRunner.query(`SELECT * FROM category
+      )[0];
+      const waterAndSanitationCategory = (
+        await queryRunner.query(`SELECT * FROM category
         WHERE name='water-and-sanitation'`)
-    )[0];
+      )[0];
 
-    await queryRunner.query(`
+      await queryRunner.query(`
            UPDATE project_categories_category 
            SET "categoryId"=${waterAndSanitationCategory.id}
            WHERE "categoryId"=${wasteCategory.id} 
         `);
+    }
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {}
