@@ -14,14 +14,18 @@ export const fillIncompletePowerSnapshots = async (): Promise<void> => {
     JSON.stringify(incompletePowerSnapshots, null, 2),
   );
   for (const powerSnapshot of incompletePowerSnapshots) {
-    const roundNumber = getRoundNumberByDate(powerSnapshot.time).round;
-    const blockNumber = await getBlockByTime(
-      getTimestampInSeconds(powerSnapshot.time),
-    );
-    await updatePowerSnapShots({
-      powerSnapshot,
-      roundNumber,
-      blockNumber,
-    });
+    try {
+      const roundNumber = getRoundNumberByDate(powerSnapshot.time).round;
+      const blockNumber = await getBlockByTime(
+        getTimestampInSeconds(powerSnapshot.time),
+      );
+      await updatePowerSnapShots({
+        powerSnapshot,
+        roundNumber,
+        blockNumber,
+      });
+    } catch (e) {
+      logger.error('fillIncompletePowerSnapshots error', e);
+    }
   }
 };
