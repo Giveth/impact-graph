@@ -9,9 +9,7 @@ import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 export const fillIncompletePowerSnapshots = async (): Promise<void> => {
   const incompletePowerSnapshots = await findInCompletePowerSnapShots();
   for (const powerSnapshot of incompletePowerSnapshots) {
-    const roundNumber = getRoundNumberByDate(
-      powerSnapshot.time,
-    ).previousGivbackRound;
+    const roundNumber = getRoundNumberByDate(powerSnapshot.time).round;
     const blockNumber = await getBlockByTime(
       getTimestampInSeconds(powerSnapshot.time),
     );

@@ -279,5 +279,5 @@ export const takePowerBoostingSnapshot = async () => {
 export const getPowerBoostingSnapshotRound = (
   snapshot: PowerSnapshot,
 ): number => {
-  return getRoundNumberByDate(snapshot.time).previousGivbackRound;
+  return getRoundNumberByDate(snapshot.time).round;
 };
