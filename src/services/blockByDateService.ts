@@ -145,9 +145,9 @@ class BlockByDate {
   }
 }
 
-const blockByDate = new BlockByDate(getNetworkWeb3(NETWORK_IDS.XDAI));
-
 export const getBlockByTime = async (timeSecond: number): Promise<number> => {
+  // Create the object again because using the same object caused returns null after a while!
+  const blockByDate = new BlockByDate(getNetworkWeb3(NETWORK_IDS.XDAI));
   const block = await blockByDate.getDate(timeSecond * 1000);
   return block.block;
 };
