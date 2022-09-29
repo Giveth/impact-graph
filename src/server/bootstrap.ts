@@ -51,6 +51,7 @@ import {
 } from '../repositories/dbCronRepository';
 import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
+import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -321,6 +322,11 @@ export async function bootstrap() {
       'true'
     ) {
       runFillPowerSnapshotBalanceCronJob();
+    }
+    if (
+      (config.get('UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
+    ) {
+      runUpdatePowerRoundCronJob();
     }
   } catch (err) {
     logger.error(err);

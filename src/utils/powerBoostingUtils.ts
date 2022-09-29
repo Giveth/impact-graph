@@ -14,10 +14,8 @@ export const getRoundNumberByDate = (
 
   const now = getTimestampInSeconds(date);
 
-  // use math.ceil because rounds starts from 1 not zero
-  const previousGivbackRound = Math.ceil(
-    (now - firstGivbackRoundTimeStamp) / givbackRoundLength,
-  );
+  const previousGivbackRound =
+    Math.floor((now - firstGivbackRoundTimeStamp) / givbackRoundLength) + 1;
 
   const fromTimestamp =
     (previousGivbackRound - 1) * givbackRoundLength +
