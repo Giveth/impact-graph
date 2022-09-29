@@ -13,6 +13,7 @@ import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { findUserById } from '../../repositories/userRepository';
+import { CATEGORY_NAMES } from '../../entities/category';
 
 const changeAPIHandle = 'change';
 
@@ -147,6 +148,18 @@ export const createProjectFromChangeNonProfit = async (
 };
 
 const findOrCreateChangeAPICategory = async (): Promise<Category> => {
-  const category = await Category.findOne({ name: changeAPIHandle });
-  return category as Category;
+  const category = await Category.findOne({
+    name: CATEGORY_NAMES.registeredNonProfits,
+  });
+
+  if (!category) {
+    logger.error(
+      'There isnt any category with name registered-non-profits, probably you forgot to run migrations',
+    );
+    throw new Error(
+      'There isnt any category with name registered-non-profits, probably you forgot to run migrations',
+    );
+  }
+
+  return category;
 };

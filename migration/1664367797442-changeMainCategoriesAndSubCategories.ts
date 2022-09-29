@@ -15,7 +15,7 @@ const updateSubCategory = async (
   )[0];
 
   await queryRunner.query(`
-           UPDATE category SET name='${params.newName}', value='${params.newValue}', mainCategoryId=${mainCategory.id} WHERE name='${params.oldName}'
+           UPDATE category SET name='${params.newName}', value='${params.newValue}', "mainCategoryId"=${mainCategory.id} WHERE name='${params.oldName}'
         `);
 };
 
@@ -42,7 +42,6 @@ export class changeMainCategoriesAndSubCategories1664367797442
     await queryRunner.query(`
            UPDATE main_category SET title='NGO', slug='ngo' where slug='non-profit'
         `);
-
 
     await queryRunner.query(`
            UPDATE main_category SET title='Technology', slug='technology' where slug='technology-and-education'
@@ -86,12 +85,6 @@ export class changeMainCategoriesAndSubCategories1664367797442
         newName: 'climate-action',
       },
       {
-        oldName: 'waste',
-        mainCategorySlug: 'community',
-        newValue: 'Water & Sanitation',
-        newName: 'water-and-sanitation',
-      },
-      {
         oldName: 'water',
         mainCategorySlug: 'community',
         newValue: 'Water & Sanitation',
@@ -102,6 +95,12 @@ export class changeMainCategoriesAndSubCategories1664367797442
         mainCategorySlug: 'community',
         newValue: 'Housing',
         newName: 'housing',
+      },
+      {
+        oldName: 'employment',
+        mainCategorySlug: 'economic-and-infrastructure',
+        newValue: 'Employment',
+        newName: 'employment',
       },
       {
         oldName: 'finance',
@@ -137,13 +136,73 @@ export class changeMainCategoriesAndSubCategories1664367797442
       {
         oldName: 'art-culture',
         mainCategorySlug: 'art-and-culture',
-        newValue: 'art',
+        newValue: 'Art',
         newName: 'art',
+      },
+      {
+        oldName: 'inclusion',
+        mainCategorySlug: 'equality',
+        newValue: 'Inclusion',
+        newName: 'inclusion',
+      },
+      {
+        oldName: 'non-profit',
+        mainCategorySlug: 'ngo',
+        newValue: 'Registered Non-profits',
+        newName: 'registered-non-profits',
+      },
+      {
+        oldName: 'other',
+        mainCategorySlug: 'other',
+        newValue: 'Other',
+        newName: 'other',
       },
     ];
     await Promise.all(
       subCategoryArray.map(item => updateSubCategory(queryRunner, item)),
     );
+
+    const changeCategory = (
+      await queryRunner.query(`SELECT * FROM category
+        WHERE name='change'`)
+    )[0];
+    const givingBlockCategory = (
+      await queryRunner.query(`SELECT * FROM category
+        WHERE name='the-giving-block'`)
+    )[0];
+    const registeredNonProfitsCategory = (
+      await queryRunner.query(`SELECT * FROM category
+        WHERE name='registered-non-profits'`)
+    )[0];
+    if (changeCategory) {
+      await queryRunner.query(`
+           UPDATE project_categories_category 
+           SET "categoryId"=${registeredNonProfitsCategory.id}
+           WHERE "categoryId"=${changeCategory.id}
+        `);
+    }
+    if (givingBlockCategory) {
+      await queryRunner.query(`
+           UPDATE project_categories_category 
+           SET "categoryId"=${registeredNonProfitsCategory.id}
+           WHERE "categoryId"=${givingBlockCategory.id}
+        `);
+    }
+
+    const wasteCategory = (
+      await queryRunner.query(`SELECT * FROM category
+        WHERE name='waste'`)
+    )[0];
+    const waterAndSanitationCategory = (
+      await queryRunner.query(`SELECT * FROM category
+        WHERE name='water-and-sanitation'`)
+    )[0];
+
+    await queryRunner.query(`
+           UPDATE project_categories_category 
+           SET "categoryId"=${waterAndSanitationCategory.id}
+           WHERE "categoryId"=${wasteCategory.id} 
+        `);
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {}

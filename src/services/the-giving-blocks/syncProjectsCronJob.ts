@@ -1,6 +1,6 @@
 import { schedule } from 'node-cron';
 import { Project, ProjStatus, ProjectUpdate } from '../../entities/project';
-import { Category } from '../../entities/category';
+import { Category, CATEGORY_NAMES } from '../../entities/category';
 import { sleep } from '../../utils/utils';
 import {
   loginGivingBlocks,
@@ -17,9 +17,6 @@ import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
 import { findUserById } from '../../repositories/userRepository';
-
-const givingBlockCategoryName = 'The Giving Block';
-const givingBlockHandle = 'the-giving-block';
 
 // Every week once on sunday at 0 hours
 const cronJobTime =
@@ -169,13 +166,17 @@ type GivingBlocksCategory = {
 };
 
 const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
-  let category = await Category.findOne({ name: givingBlockHandle });
+  const category = await Category.findOne({
+    name: CATEGORY_NAMES.registeredNonProfits,
+  });
 
   if (!category) {
-    category = new Category();
-    category.name = givingBlockHandle;
-    category.value = givingBlockCategoryName;
-    await category.save();
+    logger.error(
+      'There isnt any category with name registered-non-profits, probably you forgot to run migrations',
+    );
+    throw new Error(
+      'There isnt any category with name registered-non-profits, probably you forgot to run migrations',
+    );
   }
 
   return category;
