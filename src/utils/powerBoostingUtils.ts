@@ -3,7 +3,7 @@ import { getTimestampInSeconds } from './utils';
 export const getRoundNumberByDate = (
   date: Date,
 ): {
-  previousGivbackRound: number;
+  round: number;
   fromTimestamp: number;
   toTimestamp: number;
 } => {
@@ -14,18 +14,14 @@ export const getRoundNumberByDate = (
 
   const now = getTimestampInSeconds(date);
 
-  // use math.ceil because rounds starts from 1 not zero
-  const previousGivbackRound = Math.ceil(
-    (now - firstGivbackRoundTimeStamp) / givbackRoundLength,
-  );
+  const round =
+    Math.floor((now - firstGivbackRoundTimeStamp) / givbackRoundLength) + 1;
 
   const fromTimestamp =
-    (previousGivbackRound - 1) * givbackRoundLength +
-    firstGivbackRoundTimeStamp;
-  const toTimestamp =
-    previousGivbackRound * givbackRoundLength + firstGivbackRoundTimeStamp;
+    (round - 1) * givbackRoundLength + firstGivbackRoundTimeStamp;
+  const toTimestamp = round * givbackRoundLength + firstGivbackRoundTimeStamp;
   return {
-    previousGivbackRound,
+    round,
     fromTimestamp,
     toTimestamp,
   };
