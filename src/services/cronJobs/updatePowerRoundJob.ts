@@ -16,9 +16,9 @@ export const runUpdatePowerRoundCronJob = () => {
     cronJobTime,
   );
   schedule(cronJobTime, async () => {
-    const roundNumber = getRoundNumberByDate(new Date()).round;
-    logger.debug('runUpdatePowerRoundCronJob roundNumber', roundNumber);
-    await setPowerRound(roundNumber);
+    const powerRound = getRoundNumberByDate(new Date()).round - 1;
+    logger.debug('runUpdatePowerRoundCronJob powerRound', powerRound);
+    await setPowerRound(powerRound);
     await refreshProjectPowerView();
     await refreshUserProjectPowerView();
   });
