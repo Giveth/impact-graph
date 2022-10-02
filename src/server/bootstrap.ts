@@ -43,10 +43,7 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
-import { TwitterAdapter } from '../adapters/oauth2/twitterAdapter';
-import { generateRandomEtheriumAddress } from '../../test/testUtils';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 
 // tslint:disable:no-var-requires
@@ -268,18 +265,6 @@ export async function bootstrap() {
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
     }
-    const authUrl = await getSocialNetworkAdapter(
-      SOCIAL_NETWORKS.TWITTER,
-    ).getAuthUrl({
-      // trackId: generateRandomEtheriumAddress(),
-      trackId: 'STATE',
-    });
-    logger.info('twitter auth url', authUrl);
-    // const accessToken = await twitterAdapter.getUserInfoByOauth2Code({
-    //   oauth2Code:
-    //     'SDg1b1otX3lYaURDZjN3emQtTjVwVUMwMFNmeGFjQ0tLWlBNQnhobEszQ19hOjE2NTcxMTU5MjIzMjg6MTowOmFjOjE',
-    // });
-    // logger.info('twitter accessToken', accessToken);
   } catch (err) {
     logger.error(err);
   }
