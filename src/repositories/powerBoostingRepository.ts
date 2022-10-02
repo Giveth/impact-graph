@@ -15,8 +15,7 @@ const PERCENTAGE_PRECISION = Number(
 );
 
 const formatPercentage = (p: number): number => {
-  const multiplier = Math.pow(10, PERCENTAGE_PRECISION);
-  return Math.ceil(p * multiplier) / multiplier;
+  return +p.toFixed(PERCENTAGE_PRECISION);
 };
 
 export const findUserPowerBoosting = async (
