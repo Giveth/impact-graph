@@ -17,6 +17,7 @@ import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
 import { findUserById } from '../../repositories/userRepository';
+import { errorMessages } from '../../utils/errorMessages';
 
 // Every week once on sunday at 0 hours
 const cronJobTime =
@@ -171,12 +172,8 @@ const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
   });
 
   if (!category) {
-    logger.error(
-      'There isnt any category with name registered-non-profits, probably you forgot to run migrations',
-    );
-    throw new Error(
-      'There isnt any category with name registered-non-profits, probably you forgot to run migrations',
-    );
+    logger.error(errorMessages.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST);
+    throw new Error(errorMessages.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST);
   }
 
   return category;

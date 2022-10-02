@@ -153,12 +153,8 @@ const findOrCreateChangeAPICategory = async (): Promise<Category> => {
   });
 
   if (!category) {
-    logger.error(
-      'There isnt any category with name registered-non-profits, probably you forgot to run migrations',
-    );
-    throw new Error(
-      'There isnt any category with name registered-non-profits, probably you forgot to run migrations',
-    );
+    logger.error(errorMessages.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST);
+    throw new Error(errorMessages.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST);
   }
 
   return category;

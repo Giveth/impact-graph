@@ -28,8 +28,10 @@ export class changeMainCategoriesAndSubCategories1664367797442
     const lastMainCategory = (
       await queryRunner.query(
         `
-              SELECT * FROM main_category
-              ORDER BY id DESC
+                SELECT id
+                FROM main_category
+                ORDER BY id DESC
+                LIMIT 1
             `,
       )
     )[0];

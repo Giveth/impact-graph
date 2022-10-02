@@ -126,4 +126,6 @@ export const errorMessages = {
     'You are not the owner of social profile',
   ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE:
     'Error in getting accessToken by authorization code',
+  REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST:
+    'There is not any category with name registered-non-profits, probably you forgot to run migrations',
 };
