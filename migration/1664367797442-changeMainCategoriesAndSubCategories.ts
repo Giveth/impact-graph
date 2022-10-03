@@ -216,15 +216,15 @@ export class changeMainCategoriesAndSubCategories1664367797442
         WHERE name='water-and-sanitation'`)
       )[0];
       for (const wastProjectCategory of wasteProjectCategories) {
-        try {
+        const projectCategoryRelationExists =
+          await queryRunner.query(`SELECT * FROM project_categories_category
+          WHERE "categoryId"=${waterAndSanitationCategory.id} AND "projectId"=${wastProjectCategory.projectId}`);
+        if (!projectCategoryRelationExists) {
           await queryRunner.query(`
            UPDATE project_categories_category 
-           SET id=${waterAndSanitationCategory.id}
-           WHERE id=${wasteCategory.id} 
+           SET "categoryId"=${waterAndSanitationCategory.id}
+           WHERE id=${wastProjectCategory.id} 
         `);
-        } catch (e) {
-          // tslint:disable-next-line:no-console
-          console.log('update project_categories_category', e);
         }
       }
 
