@@ -17,6 +17,7 @@ export class CategoryResolver {
   async categories() {
     return Category.createQueryBuilder('category')
       .leftJoinAndSelect('category.mainCategory', 'mainCategory')
+      .where(`"isActive"=true`)
       .orderBy({
         'category.name': 'ASC',
       })

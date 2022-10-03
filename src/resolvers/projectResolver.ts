@@ -850,7 +850,7 @@ export class ProjectResolver {
         name: category,
         isActive: true,
       });
-      if (c === undefined) {
+      if (!c) {
         throw new Error(
           errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
         );
@@ -991,10 +991,9 @@ export class ProjectResolver {
         ? projectInput.categories.map(async category => {
             const [c] = await this.categoryRepository.find({
               name: category,
-              // TODO When frontend got ready we should uncomment isActive filter
-              // isActive: true,
+              isActive: true,
             });
-            if (c === undefined) {
+            if (!c) {
               throw new Error(
                 errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
               );

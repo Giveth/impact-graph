@@ -1465,7 +1465,6 @@ function createProjectTestCases() {
         },
       },
     );
-
     assert.equal(
       result.data.errors[0].message,
       errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
