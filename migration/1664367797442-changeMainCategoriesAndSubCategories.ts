@@ -208,16 +208,32 @@ export class changeMainCategoriesAndSubCategories1664367797442
         await queryRunner.query(`SELECT * FROM category
         WHERE name='waste'`)
       )[0];
+      const wasteProjectCategories =
+        await queryRunner.query(`SELECT * FROM project_categories_category
+          WHERE "categoryId"=${wasteCategory.id} `);
       const waterAndSanitationCategory = (
         await queryRunner.query(`SELECT * FROM category
         WHERE name='water-and-sanitation'`)
       )[0];
-
-      await queryRunner.query(`
+      for (const wastProjectCategory of wasteProjectCategories) {
+        try {
+          await queryRunner.query(`
            UPDATE project_categories_category 
-           SET "categoryId"=${waterAndSanitationCategory.id}
-           WHERE "categoryId"=${wasteCategory.id} 
+           SET id=${waterAndSanitationCategory.id}
+           WHERE id=${wasteCategory.id} 
         `);
+        } catch (e) {
+          // tslint:disable-next-line:no-console
+          console.log('update project_categories_category', e);
+        }
+      }
+
+      await queryRunner.query(
+        `
+                UPDATE category SET "isActive" = false
+                WHERE name NOT IN ('agriculture','air','conservation-and-biodiversity','sustainable-cities-and-communities','ocean','climate-action','water-and-sanitation','housing','employment','refi','food','health-care','tech','grassroots','art','inclusion','registered-non-profits','other','nutrition','climate','education','energy', 'real-estate')
+              `,
+      );
     }
   }
 
