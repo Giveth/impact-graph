@@ -240,6 +240,9 @@ async function seedCategories() {
   }
   const foodMainCategory = await MainCategory.findOne({ title: 'food' });
   const drinkMainCategory = await MainCategory.findOne({ title: 'drink' });
+  const nonProfitMainCategory = await MainCategory.findOne({
+    title: 'nonProfit',
+  });
   for (const category of SEED_DATA.FOOD_SUB_CATEGORIES) {
     await Category.create({
       name: category,
@@ -254,6 +257,15 @@ async function seedCategories() {
       value: category,
       source: 'adhoc',
       mainCategory: drinkMainCategory as MainCategory,
+    }).save();
+  }
+
+  for (const category of SEED_DATA.NON_PROFIT_SUB_CATEGORIES) {
+    await Category.create({
+      name: category,
+      value: category,
+      source: 'adhoc',
+      mainCategory: nonProfitMainCategory as MainCategory,
     }).save();
   }
 }

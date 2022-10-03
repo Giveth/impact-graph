@@ -25,6 +25,7 @@ import {
   ProjectVerificationForm,
 } from '../src/entities/projectVerificationForm';
 import { MainCategory } from '../src/entities/mainCategory';
+import { CATEGORY_NAMES } from '../src/entities/category';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -341,7 +342,8 @@ export const SEED_DATA = {
     id: 3,
     admin: '3',
   },
-  MAIN_CATEGORIES: ['drink', 'food'],
+  MAIN_CATEGORIES: ['drink', 'food', 'nonProfit'],
+  NON_PROFIT_SUB_CATEGORIES: [CATEGORY_NAMES.registeredNonProfits],
   FOOD_SUB_CATEGORIES: [
     'food1',
     'food2',
