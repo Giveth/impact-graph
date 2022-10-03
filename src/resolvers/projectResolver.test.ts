@@ -555,55 +555,55 @@ function projectsTestCases() {
 
   // TODO below test cases doesnt pass but I checked https://github.com/Giveth/giveth-dapps-v2/blob/develop/src/apollo/gql/gqlProjects.ts
   // and it seems the frontend doesnt need addresses in projects() query, so I commented below test case
-  // it('should return projects, filter by accept donation on gnosis, return all addresses', async () => {
-  //   const savedProject = await saveProjectDirectlyToDb({
-  //     ...createProjectData(),
-  //     title: String(new Date().getTime()),
-  //     slug: String(new Date().getTime()),
-  //   });
-  //
-  //   const result = await axios.post(graphqlUrl, {
-  //     query: fetchAllProjectsQuery,
-  //     variables: {
-  //       filterBy: {
-  //         field: 'AcceptFundOnGnosis',
-  //         value: true,
-  //       },
-  //       orderBy: {
-  //         field: 'CreationDate',
-  //         direction: 'DESC',
-  //       },
-  //     },
-  //   });
-  //   result.data.data.projects.projects.forEach(item => {
-  //     assert.isOk(
-  //       item.addresses.find(
-  //         address =>
-  //           address.isRecipient === true &&
-  //           address.networkId === NETWORK_IDS.XDAI,
-  //       ),
-  //     );
-  //   });
-  //   const project = result.data.data.projects.projects.find(
-  //     item => Number(item.id) === Number(savedProject.id),
-  //   );
-  //
-  //   assert.isOk(project);
-  //   assert.isOk(
-  //     project.addresses.find(
-  //       address =>
-  //         address.isRecipient === true &&
-  //         address.networkId === NETWORK_IDS.XDAI,
-  //     ),
-  //   );
-  //   assert.isOk(
-  //     project.addresses.find(
-  //       address =>
-  //         address.isRecipient === true &&
-  //         address.networkId === NETWORK_IDS.MAIN_NET,
-  //     ),
-  //   );
-  // });
+  it('should return projects, filter by accept donation on gnosis, return all addresses', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        filterBy: {
+          field: 'AcceptFundOnGnosis',
+          value: true,
+        },
+        orderBy: {
+          field: 'CreationDate',
+          direction: 'DESC',
+        },
+      },
+    });
+    result.data.data.projects.projects.forEach(item => {
+      assert.isOk(
+        item.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    const project = result.data.data.projects.projects.find(
+      item => Number(item.id) === Number(savedProject.id),
+    );
+
+    assert.isOk(project);
+    assert.isOk(
+      project.addresses.find(
+        address =>
+          address.isRecipient === true &&
+          address.networkId === NETWORK_IDS.XDAI,
+      ),
+    );
+    assert.isOk(
+      project.addresses.find(
+        address =>
+          address.isRecipient === true &&
+          address.networkId === NETWORK_IDS.MAIN_NET,
+      ),
+    );
+  });
 
   it('should return projects, filter by accept donation on gnosis, should not return if it has no address', async () => {
     const savedProject = await saveProjectDirectlyToDb({

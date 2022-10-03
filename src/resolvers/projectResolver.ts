@@ -445,7 +445,15 @@ export class ProjectResolver {
 
     if (filter === 'acceptFundOnGnosis' && filterValue) {
       return query.andWhere(
-        `"isRecipient"=true AND "networkId"=${NETWORK_IDS.XDAI}`,
+        new Brackets(subQuery => {
+          subQuery.where(
+            `EXISTS (
+              SELECT *
+              FROM project_address
+              WHERE "isRecipient" = true AND "networkId" = ${NETWORK_IDS.XDAI} AND "projectId" = project.id
+            )`,
+          );
+        }),
       );
     }
 
