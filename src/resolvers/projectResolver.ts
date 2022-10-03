@@ -661,7 +661,11 @@ export class ProjectResolver {
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
-      .innerJoinAndSelect('project.categories', 'categories')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        `WHERE "isActive"=true`,
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -722,7 +726,11 @@ export class ProjectResolver {
       .orderBy(`project.${field}`, direction)
       .limit(skip)
       .take(take)
-      .innerJoinAndSelect('project.categories', 'categories')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        `WHERE "isActive"=true`,
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
@@ -745,7 +753,11 @@ export class ProjectResolver {
         id,
       })
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        `WHERE "isActive"=true`,
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
@@ -782,7 +794,11 @@ export class ProjectResolver {
         slug,
       })
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        `WHERE "isActive"=true`,
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
@@ -994,6 +1010,7 @@ export class ProjectResolver {
         ? projectInput.categories.map(async category => {
             const [c] = await this.categoryRepository.find({
               name: category,
+              isActive: true,
               // TODO When frontend got ready we should uncomment isActive filter
               // isActive: true,
             });
@@ -1452,7 +1469,11 @@ export class ProjectResolver {
       const viewedProject = await this.projectRepository
         .createQueryBuilder('project')
         .leftJoinAndSelect('project.addresses', 'addresses')
-        .innerJoinAndSelect('project.categories', 'categories')
+        .innerJoinAndSelect(
+          'project.categories',
+          'categories',
+          `WHERE "isActive"=true`,
+        )
         .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
           slug,
         })
