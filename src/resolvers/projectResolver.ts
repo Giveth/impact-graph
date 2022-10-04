@@ -82,6 +82,7 @@ import {
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { NETWORK_IDS } from '../provider';
 
 const analytics = getAnalytics();
 
@@ -118,6 +119,7 @@ class ProjectAndAdmin {
 enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
+  AcceptFundOnGnosis = 'acceptFundOnGnosis',
   Traceable = 'traceCampaignId',
   GivingBlock = 'fromGivingBlock',
 }
@@ -444,6 +446,20 @@ export class ProjectResolver {
     if (filter === 'traceCampaignId') {
       const isRequested = filterValue ? 'IS NOT' : 'IS';
       return query.andWhere(`project.${filter} ${isRequested} NULL`);
+    }
+
+    if (filter === 'acceptFundOnGnosis' && filterValue) {
+      return query.andWhere(
+        new Brackets(subQuery => {
+          subQuery.where(
+            `EXISTS (
+              SELECT *
+              FROM project_address
+              WHERE "isRecipient" = true AND "networkId" = ${NETWORK_IDS.XDAI} AND "projectId" = project.id
+            )`,
+          );
+        }),
+      );
     }
 
     return query.andWhere(`project.${filter} = ${filterValue}`);
