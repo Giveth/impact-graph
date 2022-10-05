@@ -486,6 +486,15 @@ export class ProjectResolver {
           if (filter === FilterField.Traceable) {
             return subQuery.andWhere(`project.${filter} IS NOT NULL`);
           }
+          if (filter === FilterField.AcceptFundOnGnosis && filter) {
+            return subQuery.andWhere(
+              `EXISTS (
+                        SELECT *
+                        FROM project_address
+                        WHERE "isRecipient" = true AND "networkId" = ${NETWORK_IDS.XDAI} AND "projectId" = project.id
+                      )`,
+            );
+          }
 
           return subQuery.andWhere(`project.${filter} = true`);
         });

@@ -552,9 +552,6 @@ function projectsTestCases() {
       ),
     );
   });
-
-  // TODO below test cases doesnt pass but I checked https://github.com/Giveth/giveth-dapps-v2/blob/develop/src/apollo/gql/gqlProjects.ts
-  // and it seems the frontend doesnt need addresses in projects() query, so I commented below test case
   it('should return projects, filter by accept donation on gnosis, return all addresses', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -604,7 +601,6 @@ function projectsTestCases() {
       ),
     );
   });
-
   it('should return projects, filter by accept donation on gnosis, should not return if it has no address', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1361,6 +1357,116 @@ function allProjectsTestCases() {
         project.categories.find(category => category.name === 'drink3'),
       );
     });
+  });
+
+  it('should return projects, filter by accept donation on gnosis, not return when it doesnt have gnosis address', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const gnosisAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.XDAI,
+    })) as ProjectAddress;
+    gnosisAddress.isRecipient = false;
+    await gnosisAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnGnosis'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on gnosis, return all addresses', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnGnosis'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(item => {
+      assert.isOk(
+        item.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    const project = result.data.data.allProjects.projects.find(
+      item => Number(item.id) === Number(savedProject.id),
+    );
+
+    assert.isOk(project);
+    assert.isOk(
+      project.addresses.find(
+        address =>
+          address.isRecipient === true &&
+          address.networkId === NETWORK_IDS.XDAI,
+      ),
+    );
+    assert.isOk(
+      project.addresses.find(
+        address =>
+          address.isRecipient === true &&
+          address.networkId === NETWORK_IDS.MAIN_NET,
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on gnosis, should not return if it has no address', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    await ProjectAddress.query(`
+        DELETE from project_address
+        WHERE "projectId"=${savedProject.id} 
+       `);
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnGnosis'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
   });
 }
 
