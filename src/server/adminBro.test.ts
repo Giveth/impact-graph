@@ -716,7 +716,7 @@ function verifyProjectsTestCases() {
       updatedVerificationForm!.status,
     );
   });
-  it('should not change listed(true) status when verifying project', async () => {
+  it('should not change listed(true) status when verifying project and set verification form as verified', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -724,6 +724,15 @@ function verifyProjectsTestCases() {
       verified: false,
       listed: true,
     });
+
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: Number(project.admin),
+    });
+
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
+    await projectVerificationForm.save();
+
     const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
     await verifyProjects(
       {
@@ -741,9 +750,17 @@ function verifyProjectsTestCases() {
     );
 
     const updatedProject = await Project.findOne({ id: project.id });
+    const updatedVerificationForm = await getVerificationFormByProjectId(
+      project.id,
+    );
+
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.equal(
+      updatedVerificationForm!.status,
+      PROJECT_VERIFICATION_STATUSES.VERIFIED,
+    );
   });
 
   it('should not change listed(false) status when verifying project', async () => {
