@@ -2039,20 +2039,22 @@ export const verifyProjects = async (
           project: projectWithAdmin,
         });
       } else {
-        // any project rejected or revoked will reset form to draft to reapply
-        const verificationForm = await getVerificationFormByProjectId(
-          project.id,
-        );
-        if (verificationForm) {
-          await updateProjectVerificationFormStatusOnly(
-            verificationForm.id,
-            PROJECT_VERIFICATION_STATUSES.DRAFT,
-          );
-        }
-
         await getNotificationAdapter().projectUnVerified({
           project: projectWithAdmin,
         });
+      }
+
+      // any project rejected/revoked/approve will reset form to draft/verified
+      const formStatus = verificationStatus
+        ? PROJECT_VERIFICATION_STATUSES.VERIFIED
+        : PROJECT_VERIFICATION_STATUSES.DRAFT;
+
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (verificationForm) {
+        await updateProjectVerificationFormStatusOnly(
+          verificationForm.id,
+          formStatus,
+        );
       }
     }
   } catch (error) {
