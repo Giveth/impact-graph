@@ -2062,6 +2062,7 @@ export const verifyProjects = async (
         await updateProjectVerificationFormStatusOnly(
           verificationForm.id,
           formStatus,
+          currentAdmin.id,
         );
       }
     }
