@@ -29,21 +29,37 @@ export const createProjectVerificationForm = async (params: {
 export const updateProjectVerificationFormStatusOnly = async (
   projectVerificationFormId: number,
   verificationStatus: PROJECT_VERIFICATION_STATUSES,
+  reviewerId?: number,
 ): Promise<UpdateResult> => {
+  const updateParams = { status: verificationStatus };
+
+  if (reviewerId) {
+    const key = 'reviewerId';
+    updateParams[key] = reviewerId;
+  }
+
   return ProjectVerificationForm.update(
     { id: projectVerificationFormId },
-    { status: verificationStatus },
+    updateParams,
   );
 };
 
 export const verifyMultipleForms = async (params: {
   verificationStatus: PROJECT_VERIFICATION_STATUSES;
   formIds?: number[] | string[];
+  reviewerId?: number;
 }): Promise<UpdateResult> => {
+  const updateParams = {
+    status: params.verificationStatus,
+  };
+
+  if (params.reviewerId) {
+    const key = 'reviewerId';
+    updateParams[key] = params.reviewerId;
+  }
+
   return ProjectVerificationForm.createQueryBuilder()
-    .update<ProjectVerificationForm>(ProjectVerificationForm, {
-      status: params.verificationStatus,
-    })
+    .update<ProjectVerificationForm>(ProjectVerificationForm, updateParams)
     .where('id IN (:...ids)')
     .setParameter('ids', params.formIds)
     .returning('*')
