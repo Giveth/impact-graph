@@ -40,8 +40,9 @@ function projectsWithoutUpdateAfterTimeFrameTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(1001, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment()
-        .subtract(1000, 'days')
+        .subtract(1001, 'days')
         .endOf('day')
         .toDate(),
     });
@@ -51,6 +52,7 @@ function projectsWithoutUpdateAfterTimeFrameTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(900, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment()
         .subtract(900, 'days')
         .endOf('day')
