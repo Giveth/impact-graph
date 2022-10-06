@@ -108,34 +108,34 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   } else if (
     // Projects that already expired verification are given a last chance
     // for this feature
-    project.projectUpdate.createdAt <= maxDaysForSendingUpdateLastWarning &&
+    project.updatedAt <= maxDaysForSendingUpdateLastWarning &&
     project.verificationStatus === null
   ) {
     project.verificationStatus = RevokeSteps.UpForRevoking;
   } else if (
     // Projects that had the last chance and failed to add an update are revoked
-    project.projectUpdate.createdAt <= maxDaysForRevokingBadge &&
+    project.updatedAt <= maxDaysForRevokingBadge &&
     project.verificationStatus === RevokeSteps.LastChance
   ) {
     project.verificationStatus = RevokeSteps.Revoked;
     project.verified = false;
   } else if (
     // projects that were warned are sent a last chance warning
-    project.projectUpdate.createdAt <= maxDaysForSendingUpdateLastWarning &&
-    project.projectUpdate.createdAt > maxDaysForRevokingBadge &&
+    project.updatedAt <= maxDaysForSendingUpdateLastWarning &&
+    project.updatedAt > maxDaysForRevokingBadge &&
     project.verificationStatus === RevokeSteps.Warning
   ) {
     project.verificationStatus = RevokeSteps.LastChance;
   } else if (
     // After reminder at 60/75 days
-    project.projectUpdate.createdAt <= maxDaysForSendingUpdateWarning &&
-    project.projectUpdate.createdAt > maxDaysForSendingUpdateLastWarning
+    project.updatedAt <= maxDaysForSendingUpdateWarning &&
+    project.updatedAt > maxDaysForSendingUpdateLastWarning
   ) {
     project.verificationStatus = RevokeSteps.Warning;
   } else if (
     // First email for reminding to add an update
-    project.projectUpdate.createdAt <= maxDaysForSendingUpdateReminder &&
-    project.projectUpdate.createdAt > maxDaysForSendingUpdateWarning
+    project.updatedAt <= maxDaysForSendingUpdateReminder &&
+    project.updatedAt > maxDaysForSendingUpdateWarning
   ) {
     project.verificationStatus = RevokeSteps.Reminder;
   }

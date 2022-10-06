@@ -284,6 +284,14 @@ class Project extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   totalProjectUpdates: number;
 
+  @Field(type => [ProjectUpdate], { nullable: true })
+  @OneToMany(
+    type => ProjectStatusHistory,
+    projectUpdate => projectUpdate.project,
+    { eager: true },
+  )
+  projectUpdates?: ProjectUpdate[];
+
   @Field(type => Boolean, { nullable: true })
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
