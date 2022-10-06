@@ -1944,6 +1944,7 @@ export const verifyVerificationForms = async (
     const projectsForms = await verifyMultipleForms({
       verificationStatus,
       formIds,
+      reviewerId: currentAdmin.id,
     });
     const projectsIds = projectsForms.raw.map(projectForm => {
       return projectForm.projectId;
@@ -2005,8 +2006,15 @@ export const verifyProjects = async (
   // prioritize revokeBadge
   const verificationStatus = revokeBadge ? false : verified;
   try {
+    const updateParams = { verified: verificationStatus };
+
+    if (verificationStatus) {
+      const key = 'verificationStatus';
+      updateParams[key] = null;
+    }
+
     const projects = await Project.createQueryBuilder('project')
-      .update<Project>(Project, { verified: verificationStatus })
+      .update<Project>(Project, updateParams)
       .where('project.id IN (:...ids)')
       .setParameter('ids', request?.query?.recordIds?.split(','))
       .returning('*')
@@ -2054,6 +2062,7 @@ export const verifyProjects = async (
         await updateProjectVerificationFormStatusOnly(
           verificationForm.id,
           formStatus,
+          currentAdmin.id,
         );
       }
     }
