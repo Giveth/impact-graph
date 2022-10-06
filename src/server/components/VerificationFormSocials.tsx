@@ -9,7 +9,7 @@ const VerificationFormSocials = props => {
     <div>
       <Label>Project Socials</Label>
       <Section>
-        {socials.map(social => {
+        {socials?.map(social => {
           const { link, name, socialNetworkId, isVerified, socialNetwork } =
             social;
           return (

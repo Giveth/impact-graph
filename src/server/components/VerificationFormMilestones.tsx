@@ -39,7 +39,7 @@ const VerificationFormMilestones = props => {
         <Section>
           <Label>Milestones Proofs</Label>
 
-          {proofs.map(proof => {
+          {proofs?.map(proof => {
             return (
               <div key={proof}>
                 {' '}
