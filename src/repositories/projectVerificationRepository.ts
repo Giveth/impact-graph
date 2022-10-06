@@ -30,18 +30,14 @@ export const updateProjectVerificationFormStatusOnly = async (
   projectVerificationFormId: number,
   verificationStatus: PROJECT_VERIFICATION_STATUSES,
   reviewerId?: number,
-): Promise<UpdateResult> => {
-  const updateParams = { status: verificationStatus };
+): Promise<ProjectVerificationForm | void> => {
+  const form = await findProjectVerificationFormById(projectVerificationFormId);
 
-  if (reviewerId) {
-    const key = 'reviewerId';
-    updateParams[key] = reviewerId;
-  }
+  if (!form) return;
 
-  return ProjectVerificationForm.update(
-    { id: projectVerificationFormId },
-    updateParams,
-  );
+  form.status = verificationStatus;
+  if (reviewerId) form.reviewerId = reviewerId;
+  return form.save();
 };
 
 export const verifyMultipleForms = async (params: {
