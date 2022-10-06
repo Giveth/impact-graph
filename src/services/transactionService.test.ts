@@ -296,28 +296,6 @@ function getTransactionDetailTestCases() {
     );
   });
 
-  it('should return error when transaction fails because of low gas on ropsten', async () => {
-    const amount = 0.14;
-    // https://ropsten.etherscan.io/tx/0x66a7902f3dad318e8d075454e26ee829e9832db0b20922cfd9d916fb792ff724
-    const badFunc = async () => {
-      await getTransactionInfoFromNetwork({
-        txHash:
-          '0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49',
-        symbol: 'DAI',
-        networkId: NETWORK_IDS.ROPSTEN,
-        fromAddress: '0x10a84b835c5df26f2a380b3e00bcc84a66cd2d34',
-        toAddress: '0xe3f738ff9fa4e157cab12ee6f1847f680495229a',
-        amount,
-        nonce: 584,
-        timestamp: 1624772582,
-      });
-    };
-    await assertThrowsAsync(
-      badFunc,
-      errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
-    );
-  });
-
   it('should return error when toAddress of transaction is different to donation toAddress for DAI in mainnet', async () => {
     const amount = 1760;
     // https://etherscan.io/tx/0x5b80133493a5be96385f00ce22a69c224e66fa1fc52b3b4c33e9057f5e873f49
@@ -407,23 +385,6 @@ function getTransactionDetailTestCases() {
   //   assert.notEqual(transactionInfo.hash, txHash);
   // });
 
-  it('should return transaction detail for normal transfer on ropsten', async () => {
-    // https://ropsten.etherscan.io/tx/0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7
-    const amount = 0.001;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7',
-      symbol: 'ETH',
-      networkId: NETWORK_IDS.ROPSTEN,
-      fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
-      toAddress: '0x5d28fe1e9f895464aab52287d85ebff32b351674',
-      amount,
-      timestamp: 1621072452,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETH');
-    assert.equal(transactionInfo.amount, amount);
-  });
   it('should return transaction detail for normal transfer on goerli', async () => {
     // https://goerli.etherscan.io/tx/0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1
 
@@ -443,48 +404,6 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
-  it('should return transaction detail for UNI token transfer on ropsten', async () => {
-    // https://ropsten.etherscan.io/tx/0xba3c2627c9d3dd963455648b4f9d7239e8b5c80d0aa85ac354d2b762d99e4441
-    const amount = 0.01;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '0xba3c2627c9d3dd963455648b4f9d7239e8b5c80d0aa85ac354d2b762d99e4441',
-      symbol: 'UNI',
-      networkId: NETWORK_IDS.ROPSTEN,
-      fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
-      toAddress: '0x8f951903c9360345b4e1b536c7f5ae8f88a64e79',
-      amount,
-      timestamp: 1615739937,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'UNI');
-    assert.equal(transactionInfo.amount, amount);
-  });
-
-  it('should return transaction when transactionHash is wrong because of speedup on ropsten', async () => {
-    // https://ropsten.etherscan.io/tx/0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7
-    const amount = 0.001;
-    const txHash =
-      '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e331234';
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash,
-      symbol: 'ETH',
-      networkId: NETWORK_IDS.ROPSTEN,
-      fromAddress: '0xb20a327c9b4da091f454b1ce0e2e4dc5c128b5b4',
-      toAddress: '0x5d28fe1e9f895464aab52287d85ebff32b351674',
-      amount,
-      nonce: 70,
-      timestamp: 1621072452,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETH');
-    assert.equal(transactionInfo.amount, amount);
-    assert.notEqual(transactionInfo.hash, txHash);
-    assert.equal(
-      transactionInfo.hash,
-      '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7',
-    );
-  });
   it('should return transaction detail for normal transfer on xdai', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c734
     const amount = 0.001;
