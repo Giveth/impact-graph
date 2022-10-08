@@ -59,6 +59,7 @@ import {
   findProjectVerificationFormById,
   getVerificationFormByProjectId,
   makeFormDraft,
+  makeFormVerified,
   updateProjectVerificationFormStatusOnly,
   verifyForm,
   verifyMultipleForms,
@@ -2059,11 +2060,17 @@ export const verifyProjects = async (
 
       const verificationForm = await getVerificationFormByProjectId(project.id);
       if (verificationForm) {
-        await updateProjectVerificationFormStatusOnly(
-          verificationForm.id,
-          formStatus,
-          currentAdmin.id,
-        );
+        if (verificationStatus) {
+          await makeFormVerified({
+            formId: verificationForm.id,
+            adminId: currentAdmin.id,
+          });
+        } else {
+          await makeFormDraft({
+            formId: verificationForm.id,
+            adminId: currentAdmin.id,
+          });
+        }
       }
     }
   } catch (error) {

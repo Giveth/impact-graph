@@ -20,7 +20,10 @@ import {
   ProjectVerificationForm,
   PROJECT_VERIFICATION_STATUSES,
 } from '../../entities/projectVerificationForm';
-import { updateProjectVerificationFormStatusOnly } from '../../repositories/projectVerificationRepository';
+import {
+  makeFormDraft,
+  updateProjectVerificationFormStatusOnly,
+} from '../../repositories/projectVerificationRepository';
 
 const analytics = getAnalytics();
 
@@ -147,10 +150,9 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
     project.projectVerificationForm &&
     project.verificationStatus === RevokeSteps.Revoked
   ) {
-    await updateProjectVerificationFormStatusOnly(
-      project.projectVerificationForm.id,
-      PROJECT_VERIFICATION_STATUSES.DRAFT,
-    );
+    await makeFormDraft({
+      formId: project.projectVerificationForm.id,
+    });
   }
 
   // save status changes history
