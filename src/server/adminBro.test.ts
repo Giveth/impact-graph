@@ -19,7 +19,7 @@ import {
   SEED_DATA,
   sleep,
 } from '../../test/testUtils';
-import { Project, ProjStatus } from '../entities/project';
+import { Project, ProjStatus, RevokeSteps } from '../entities/project';
 import { User } from '../entities/user';
 import { assert } from 'chai';
 import { messages } from '../utils/messages';
@@ -722,6 +722,7 @@ function verifyProjectsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: false,
+      verificationStatus: RevokeSteps.Revoked,
       listed: true,
     });
 
@@ -757,6 +758,8 @@ function verifyProjectsTestCases() {
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.isTrue(project!.verificationStatus === RevokeSteps.Revoked);
+    assert.isTrue(updatedProject!.verificationStatus === null);
     assert.equal(
       updatedVerificationForm!.status,
       PROJECT_VERIFICATION_STATUSES.VERIFIED,
@@ -800,7 +803,16 @@ function verifyProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: true,
+      verificationStatus: RevokeSteps.Revoked,
     });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: Number(project.admin),
+    });
+
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
+    await projectVerificationForm.save();
+
     const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
     await verifyProjects(
       {
@@ -818,9 +830,18 @@ function verifyProjectsTestCases() {
     );
 
     const updatedProject = await Project.findOne({ id: project.id });
+    const updatedVerificationForm = await getVerificationFormByProjectId(
+      project.id,
+    );
+
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.isTrue(updatedProject!.verificationStatus === RevokeSteps.Revoked);
+    assert.equal(
+      updatedVerificationForm!.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
   });
 
   it('should not change listed(false) status when unVerifying project', async () => {

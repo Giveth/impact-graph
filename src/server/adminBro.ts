@@ -2010,8 +2010,11 @@ export const verifyProjects = async (
     const updateParams = { verified: verificationStatus };
 
     if (verificationStatus) {
-      const key = 'verificationStatus';
-      updateParams[key] = null;
+      await Project.query(`
+        UPDATE project
+        SET "verificationStatus" = NULL
+        WHERE id IN (${request?.query?.recordIds})
+      `);
     }
 
     const projects = await Project.createQueryBuilder('project')
@@ -2052,11 +2055,6 @@ export const verifyProjects = async (
           project: projectWithAdmin,
         });
       }
-
-      // any project rejected/revoked/approve will reset form to draft/verified
-      const formStatus = verificationStatus
-        ? PROJECT_VERIFICATION_STATUSES.VERIFIED
-        : PROJECT_VERIFICATION_STATUSES.DRAFT;
 
       const verificationForm = await getVerificationFormByProjectId(project.id);
       if (verificationForm) {
