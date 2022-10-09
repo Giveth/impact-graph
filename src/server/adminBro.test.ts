@@ -43,7 +43,10 @@ import {
   createProjectVerificationForm,
   getVerificationFormByProjectId,
 } from '../repositories/projectVerificationRepository';
-import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
+import {
+  PROJECT_VERIFICATION_STATUSES,
+  PROJECT_VERIFICATION_STEPS,
+} from '../entities/projectVerificationForm';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -764,6 +767,11 @@ function verifyProjectsTestCases() {
       updatedVerificationForm!.status,
       PROJECT_VERIFICATION_STATUSES.VERIFIED,
     );
+    assert.equal(updatedVerificationForm!.isTermAndConditionsAccepted, true);
+    assert.equal(
+      updatedVerificationForm!.lastStep,
+      PROJECT_VERIFICATION_STEPS.SUBMIT,
+    );
   });
 
   it('should not change listed(false) status when verifying project', async () => {
@@ -841,6 +849,11 @@ function verifyProjectsTestCases() {
     assert.equal(
       updatedVerificationForm!.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(updatedVerificationForm!.isTermAndConditionsAccepted, false);
+    assert.equal(
+      updatedVerificationForm!.lastStep,
+      PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
     );
   });
 
