@@ -7,6 +7,8 @@ import {
   ManyToMany,
   BaseEntity,
   JoinTable,
+  UpdateDateColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { Project, ProjStatus } from './project';
 import { Donation } from './donation';
@@ -138,6 +140,12 @@ export class User extends BaseEntity {
   @Field(type => [PowerBoosting], { nullable: true })
   @OneToMany(type => PowerBoosting, powerBoosting => powerBoosting.user)
   powerBoostings?: PowerBoosting[];
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @Field(type => Int, { nullable: true })
   async projectsCount() {
