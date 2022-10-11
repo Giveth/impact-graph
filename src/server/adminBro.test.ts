@@ -714,6 +714,11 @@ function verifyProjectsTestCases() {
       updatedVerificationForm!.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
     );
+    assert.equal(
+      updatedVerificationForm!.lastStep,
+      PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
+    );
+    assert.equal(updatedVerificationForm!.isTermAndConditionsAccepted, false);
     assert.notEqual(
       projectVerificationForm.status,
       updatedVerificationForm!.status,
