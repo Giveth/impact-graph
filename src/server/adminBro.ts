@@ -938,32 +938,32 @@ const getAdminBroInstance = async () => {
           properties: {
             id: {
               isVisible: {
-                list: false,
-                filter: false,
+                list: true,
+                filter: true,
                 show: true,
                 edit: false,
               },
             },
             title: {
               isVisible: {
-                list: false,
-                filter: false,
+                list: true,
+                filter: true,
                 show: true,
                 edit: false,
               },
             },
             projectId: {
               isVisible: {
-                list: false,
-                filter: false,
+                list: true,
+                filter: true,
                 show: true,
                 edit: false,
               },
             },
             userId: {
               isVisible: {
-                list: false,
-                filter: false,
+                list: true,
+                filter: true,
                 show: true,
                 edit: false,
               },
@@ -971,26 +971,155 @@ const getAdminBroInstance = async () => {
             content: {
               isVisible: {
                 list: false,
-                filter: false,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            totalReactions: {
+              isVisible: {
+                list: true,
+                filter: true,
                 show: true,
                 edit: false,
               },
             },
             createdAt: {
               isVisible: {
-                list: false,
-                filter: false,
+                list: true,
+                filter: true,
                 show: true,
                 edit: false,
               },
             },
             isMain: {
               isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            isNonProfitOrganization: {
+              isVisible: {
+                list: true,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationCountry: {
+              isVisible: {
                 list: false,
                 filter: false,
                 show: true,
                 edit: false,
               },
+            },
+            organizationWebsite: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationDescription: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            twitter: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            facebook: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            linkedin: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            instagram: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            youtube: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            foundationDate: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            mission: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            achievedMilestones: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            managingFundDescription: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+          },
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+            show: {
+              isVisible: true,
+            },
+            edit: {
+              isVisible: false,
             },
           },
         },

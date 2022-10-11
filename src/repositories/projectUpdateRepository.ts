@@ -5,6 +5,6 @@ export const findProjectUpdatesByProjectId = async (
 ): Promise<ProjectUpdate[] | []> => {
   return ProjectUpdate.createQueryBuilder('projectUpdate')
     .where('projectUpdate.projectId = :projectId', { projectId })
-    .andWhere('projectUpdate.isMain = true')
+    .andWhere('projectUpdate.isMain = false')
     .getMany();
 };
