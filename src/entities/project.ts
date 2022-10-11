@@ -299,6 +299,12 @@ class Project extends BaseEntity {
   @Field(type => ProjectUpdate, { nullable: true })
   projectUpdate?: any;
 
+  @Field(type => [ProjectUpdate], { nullable: true })
+  projectUpdates?: ProjectUpdate[];
+
+  @Field(type => String, { nullable: true })
+  adminBroBaseUrl: string;
+
   // User reaction to the project
   @Field(type => Reaction, { nullable: true })
   reaction?: Reaction;
