@@ -163,10 +163,10 @@ export class DonationResolver {
         .leftJoinAndSelect('project.categories', 'categories');
 
       if (fromDate) {
-        query.andWhere(`"donation.createdAt" >= '${fromDate}'`);
+        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
       }
       if (toDate) {
-        query.andWhere(`"donation.createdAt" <= '${toDate}'`);
+        query.andWhere(`donation."createdAt" <= '${toDate}'`);
       }
       return await query.getMany();
     } catch (e) {
