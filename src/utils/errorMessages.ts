@@ -141,4 +141,6 @@ export const errorMessages = {
   //   'Length of passed projects and percentages should be the same and more than zero',
   ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT:
     'Number of boosted projects exceeds limit',
+  REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST:
+    'There is not any category with name registered-non-profits, probably you forgot to run migrations',
 };

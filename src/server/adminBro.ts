@@ -57,7 +57,10 @@ import {
 } from '../entities/projectVerificationForm';
 import {
   findProjectVerificationFormById,
+  getVerificationFormByProjectId,
   makeFormDraft,
+  makeFormVerified,
+  updateProjectVerificationFormStatusOnly,
   verifyForm,
   verifyMultipleForms,
 } from '../repositories/projectVerificationRepository';
@@ -1942,6 +1945,7 @@ export const verifyVerificationForms = async (
     const projectsForms = await verifyMultipleForms({
       verificationStatus,
       formIds,
+      reviewerId: currentAdmin.id,
     });
     const projectsIds = projectsForms.raw.map(projectForm => {
       return projectForm.projectId;
@@ -2003,8 +2007,18 @@ export const verifyProjects = async (
   // prioritize revokeBadge
   const verificationStatus = revokeBadge ? false : verified;
   try {
+    const updateParams = { verified: verificationStatus };
+
+    if (verificationStatus) {
+      await Project.query(`
+        UPDATE project
+        SET "verificationStatus" = NULL
+        WHERE id IN (${request?.query?.recordIds})
+      `);
+    }
+
     const projects = await Project.createQueryBuilder('project')
-      .update<Project>(Project, { verified: verificationStatus })
+      .update<Project>(Project, updateParams)
       .where('project.id IN (:...ids)')
       .setParameter('ids', request?.query?.recordIds?.split(','))
       .returning('*')
@@ -2032,7 +2046,7 @@ export const verifyProjects = async (
       });
       const projectWithAdmin = (await findProjectById(project.id)) as Project;
 
-      if (verified) {
+      if (verificationStatus) {
         await getNotificationAdapter().projectVerified({
           project: projectWithAdmin,
         });
@@ -2040,6 +2054,21 @@ export const verifyProjects = async (
         await getNotificationAdapter().projectUnVerified({
           project: projectWithAdmin,
         });
+      }
+
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (verificationForm) {
+        if (verificationStatus) {
+          await makeFormVerified({
+            formId: verificationForm.id,
+            adminId: currentAdmin.id,
+          });
+        } else {
+          await makeFormDraft({
+            formId: verificationForm.id,
+            adminId: currentAdmin.id,
+          });
+        }
       }
     }
   } catch (error) {

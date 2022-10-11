@@ -2,7 +2,6 @@ import config from '../config';
 import RateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
-import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
 import { json, Request, response, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
@@ -44,7 +43,6 @@ import {
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
 import { CronJob } from '../entities/CronJob';
-import { getConnection } from 'typeorm';
 import {
   dropDbCronExtension,
   schedulePowerBoostingSnapshot,

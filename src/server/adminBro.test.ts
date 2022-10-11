@@ -19,7 +19,7 @@ import {
   SEED_DATA,
   sleep,
 } from '../../test/testUtils';
-import { Project, ProjStatus } from '../entities/project';
+import { Project, ProjStatus, RevokeSteps } from '../entities/project';
 import { User } from '../entities/user';
 import { assert } from 'chai';
 import { messages } from '../utils/messages';
@@ -39,6 +39,14 @@ import sinon from 'sinon';
 import { errorMessages } from '../utils/errorMessages';
 import { Token } from '../entities/token';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import {
+  createProjectVerificationForm,
+  getVerificationFormByProjectId,
+} from '../repositories/projectVerificationRepository';
+import {
+  PROJECT_VERIFICATION_STATUSES,
+  PROJECT_VERIFICATION_STEPS,
+} from '../entities/projectVerificationForm';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -660,7 +668,7 @@ function updateStatusOfProjectsTestCases() {
 }
 
 function verifyProjectsTestCases() {
-  it('should unverify projects when the badge is revoked', async () => {
+  it('should unverify projects when the badge is revoked and set verification form as draft', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -668,6 +676,15 @@ function verifyProjectsTestCases() {
       verified: true,
       listed: true,
     });
+
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: Number(project.admin),
+    });
+
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
+    await projectVerificationForm.save();
+
     const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
     await verifyProjects(
       {
@@ -686,18 +703,40 @@ function verifyProjectsTestCases() {
     );
 
     const updatedProject = await Project.findOne({ id: project.id });
+    const updatedVerificationForm = await getVerificationFormByProjectId(
+      project.id,
+    );
+
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.equal(
+      updatedVerificationForm!.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.notEqual(
+      projectVerificationForm.status,
+      updatedVerificationForm!.status,
+    );
   });
-  it('should not change listed(true) status when verifying project', async () => {
+  it('should not change listed(true) status when verifying project and set verification form as verified', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: false,
+      verificationStatus: RevokeSteps.Revoked,
       listed: true,
     });
+
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: Number(project.admin),
+    });
+
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
+    await projectVerificationForm.save();
+
     const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
     await verifyProjects(
       {
@@ -715,9 +754,24 @@ function verifyProjectsTestCases() {
     );
 
     const updatedProject = await Project.findOne({ id: project.id });
+    const updatedVerificationForm = await getVerificationFormByProjectId(
+      project.id,
+    );
+
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.isTrue(project!.verificationStatus === RevokeSteps.Revoked);
+    assert.isTrue(updatedProject!.verificationStatus === null);
+    assert.equal(
+      updatedVerificationForm!.status,
+      PROJECT_VERIFICATION_STATUSES.VERIFIED,
+    );
+    assert.equal(updatedVerificationForm!.isTermAndConditionsAccepted, true);
+    assert.equal(
+      updatedVerificationForm!.lastStep,
+      PROJECT_VERIFICATION_STEPS.SUBMIT,
+    );
   });
 
   it('should not change listed(false) status when verifying project', async () => {
@@ -757,7 +811,16 @@ function verifyProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: true,
+      verificationStatus: RevokeSteps.Revoked,
     });
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: project.id,
+      userId: Number(project.admin),
+    });
+
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
+    await projectVerificationForm.save();
+
     const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
     await verifyProjects(
       {
@@ -775,9 +838,23 @@ function verifyProjectsTestCases() {
     );
 
     const updatedProject = await Project.findOne({ id: project.id });
+    const updatedVerificationForm = await getVerificationFormByProjectId(
+      project.id,
+    );
+
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.isTrue(updatedProject!.verificationStatus === RevokeSteps.Revoked);
+    assert.equal(
+      updatedVerificationForm!.status,
+      PROJECT_VERIFICATION_STATUSES.DRAFT,
+    );
+    assert.equal(updatedVerificationForm!.isTermAndConditionsAccepted, false);
+    assert.equal(
+      updatedVerificationForm!.lastStep,
+      PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
+    );
   });
 
   it('should not change listed(false) status when unVerifying project', async () => {

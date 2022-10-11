@@ -81,6 +81,7 @@ import {
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { NETWORK_IDS } from '../provider';
 
 const analytics = getAnalytics();
 
@@ -117,6 +118,7 @@ class ProjectAndAdmin {
 enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
+  AcceptFundOnGnosis = 'acceptFundOnGnosis',
   Traceable = 'traceCampaignId',
   GivingBlock = 'fromGivingBlock',
 }
@@ -325,7 +327,12 @@ export class ProjectResolver {
     const query = Project.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
-      .innerJoinAndSelect('project.categories', 'categories')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
@@ -440,6 +447,20 @@ export class ProjectResolver {
       return query.andWhere(`project.${filter} ${isRequested} NULL`);
     }
 
+    if (filter === 'acceptFundOnGnosis' && filterValue) {
+      return query.andWhere(
+        new Brackets(subQuery => {
+          subQuery.where(
+            `EXISTS (
+              SELECT *
+              FROM project_address
+              WHERE "isRecipient" = true AND "networkId" = ${NETWORK_IDS.XDAI} AND "projectId" = project.id
+            )`,
+          );
+        }),
+      );
+    }
+
     return query.andWhere(`project.${filter} = ${filterValue}`);
   }
 
@@ -463,6 +484,15 @@ export class ProjectResolver {
 
           if (filter === FilterField.Traceable) {
             return subQuery.andWhere(`project.${filter} IS NOT NULL`);
+          }
+          if (filter === FilterField.AcceptFundOnGnosis && filter) {
+            return subQuery.andWhere(
+              `EXISTS (
+                        SELECT *
+                        FROM project_address
+                        WHERE "isRecipient" = true AND "networkId" = ${NETWORK_IDS.XDAI} AND "projectId" = project.id
+                      )`,
+            );
           }
 
           return subQuery.andWhere(`project.${filter} = true`);
@@ -552,7 +582,12 @@ export class ProjectResolver {
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
-      .innerJoinAndSelect('project.categories', 'categories')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -673,7 +708,12 @@ export class ProjectResolver {
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
-      .innerJoinAndSelect('project.categories', 'categories')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -734,7 +774,12 @@ export class ProjectResolver {
       .orderBy(`project.${field}`, direction)
       .limit(skip)
       .take(take)
-      .innerJoinAndSelect('project.categories', 'categories')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
@@ -757,7 +802,12 @@ export class ProjectResolver {
         id,
       })
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
@@ -794,7 +844,12 @@ export class ProjectResolver {
         slug,
       })
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
@@ -861,12 +916,9 @@ export class ProjectResolver {
     const categoriesPromise = newProjectData.categories.map(async category => {
       const [c] = await this.categoryRepository.find({
         name: category,
-
-        // TODO if we check the isActive for categories when updating the project, we would face error when updating givingBlocks and change projects
-        // As those categories are not active , so we assuem frontend takce care of not showing non-active categories in update page
-        // isActive: true,
+        isActive: true,
       });
-      if (c === undefined) {
+      if (!c) {
         throw new Error(
           errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
         );
@@ -1007,10 +1059,9 @@ export class ProjectResolver {
         ? projectInput.categories.map(async category => {
             const [c] = await this.categoryRepository.find({
               name: category,
-              // TODO When frontend got ready we should uncomment isActive filter
-              // isActive: true,
+              isActive: true,
             });
-            if (c === undefined) {
+            if (!c) {
               throw new Error(
                 errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
               );
@@ -1465,7 +1516,12 @@ export class ProjectResolver {
       const viewedProject = await this.projectRepository
         .createQueryBuilder('project')
         .leftJoinAndSelect('project.addresses', 'addresses')
-        .innerJoinAndSelect('project.categories', 'categories')
+        .innerJoinAndSelect(
+          'project.categories',
+          'categories',
+          'categories.isActive = :isActive',
+          { isActive: true },
+        )
         .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
           slug,
         })

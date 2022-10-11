@@ -24,21 +24,13 @@ export const findProjectById = (
 
 export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
   return Project.createQueryBuilder('project')
-    .innerJoinAndMapOne(
-      'project.projectUpdate',
-      ProjectUpdate,
-      'projectUpdate',
-      `project.id = projectUpdate.projectId AND projectUpdate.id = (
-        SELECT project_update.id
-        FROM project_update
-        WHERE project_update."projectId" = project.id
-        ORDER BY project_update.id DESC
-        LIMIT 1
-      )`,
+    .leftJoinAndSelect(
+      'project.projectVerificationForm',
+      'projectVerificationForm',
     )
     .where('project.isImported = false')
     .andWhere('project.verified = true')
-    .andWhere('projectUpdate.createdAt < :badgeRevokingDate', {
+    .andWhere('project.updatedAt < :badgeRevokingDate', {
       badgeRevokingDate: date,
     })
     .getMany();
