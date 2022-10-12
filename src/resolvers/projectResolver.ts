@@ -866,7 +866,7 @@ export class ProjectResolver {
       project?.projectVerificationForm ||
       (await getVerificationFormByProjectId(project?.id as number));
     if (verificationForm) {
-      (project as Project).verificationFormStatus = verificationForm.status;
+      (project as Project).verificationFormStatus = verificationForm?.status;
     }
 
     return project;
