@@ -83,6 +83,7 @@ import {
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { NETWORK_IDS } from '../provider';
+import { getVerificationFormByProjectId } from '../repositories/projectVerificationRepository';
 
 const analytics = getAnalytics();
 
@@ -860,8 +861,13 @@ export class ProjectResolver {
     });
 
     const project = await query.getOne();
-
     canUserVisitProject(project, String(user?.userId));
+    const verificationForm =
+      project?.projectVerificationForm ||
+      (await getVerificationFormByProjectId(project?.id as number));
+    if (verificationForm) {
+      (project as Project).verificationFormStatus = verificationForm.status;
+    }
 
     return project;
   }

@@ -264,6 +264,9 @@ class Project extends BaseEntity {
   )
   projectVerificationForm?: ProjectVerificationForm;
 
+  @Field(type => String, { nullable: true })
+  verificationFormStatus?: string;
+
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
   socialProfiles?: SocialProfile[];

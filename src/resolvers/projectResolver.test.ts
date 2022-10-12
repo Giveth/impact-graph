@@ -4184,6 +4184,36 @@ function projectBySlugTestCases() {
     assert.isNotOk(project.adminUser.email);
     assert.isOk(project.categories[0].mainCategory.title);
   });
+  it('should return verificationFormStatus if its not owner', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const user = await User.findOne({
+      id: Number(project1.admin),
+    });
+
+    const verificationForm = await ProjectVerificationForm.create({
+      project: project1,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+    }).save();
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: project1.slug,
+        connectedWalletUserId: user!.id,
+      },
+    });
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), project1.id);
+    assert.isNotOk(project.projectVerificationForm);
+    assert.equal(project.verificationFormStatus, verificationForm.status);
+  });
 
   it('should return projects with indicated slug', async () => {
     const walletAddress = generateRandomEtheriumAddress();
