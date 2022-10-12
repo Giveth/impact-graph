@@ -104,17 +104,20 @@ jobs:
           privateKey: ${{ secrets.PRODUCTION_PRIVATE_KEY}}
 
   deploy-k8s:
-    name: deploy to cluster
+    if: github.ref == 'refs/heads/main'|| github.ref == 'refs/heads/staging'
     needs: publish
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: deploy to cluster
+    - name: Check out the repo
+      uses: actions/checkout@master
+    - name: Deploy to Staging Cluster
+      if: github.ref == 'refs/heads/staging'
       uses: steebchen/kubectl@v2.0.0
       with: # defaults to latest kubectl binary version
         config: ${{ secrets.KUBE_CONFIG }}
         command: rollout restart deployments/impact-graph -n impact-graph
-    - name: verify deployment
+    - name: Verify Staging Deployment
+      if: github.ref == 'refs/heads/staging'
       uses: steebchen/kubectl@v2.0.0
       with:
         config: ${{ secrets.KUBE_CONFIG }}
