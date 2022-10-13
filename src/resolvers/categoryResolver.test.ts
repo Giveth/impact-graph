@@ -66,6 +66,48 @@ function mainCategoryTestCases() {
     // clean up for subsequent test
     await category1.remove();
     await category2.remove();
+    await mainCategory.remove();
+    await mainCategory2.remove();
+  });
+  it('Should just return subcategories that have isActive:true', async () => {
+    const title = 'aa' + generateRandomString(10); // ensure it's first
+    const mainCategory = await saveMainCategoryDirectlyToDb({
+      banner: '',
+      description: '',
+      slug: generateRandomString(10),
+      title,
+    });
+
+    const name1 = generateRandomString(10); // ensure it's first
+    const name2 = generateRandomString(10); // ensure it's first
+    const category = await saveCategoryDirectlyToDb({
+      name: name1,
+      mainCategory,
+      value: 'Agriculture',
+      isActive: true,
+    });
+    const category2 = await saveCategoryDirectlyToDb({
+      name: name2,
+      mainCategory,
+      value: 'Agriculture',
+      isActive: false,
+    });
+
+    const categoryResponse = await axios.post(graphqlUrl, {
+      query: getMainCategoriesData,
+      variables: {},
+    });
+    const result = categoryResponse.data.data.mainCategories;
+    assert.isNotEmpty(result);
+
+    assert.equal(result[0].title, mainCategory.title);
+    assert.equal(result[0].categories.length, 1);
+
+    assert.equal(result[0].categories[0].name, category.name);
+
+    // clean up for subsequent test
+    await category.remove();
+    await category2.remove();
   });
 }
 
