@@ -173,15 +173,6 @@ export class changeMainCategoriesAndSubCategories1664367797442
       subCategoryArray.map(item => updateSubCategory(queryRunner, item)),
     );
 
-    const educationMainCategory = (
-      await queryRunner.query(`SELECT * FROM main_category
-        WHERE slug='education'`)
-    )[0];
-
-    await queryRunner.query(`INSERT INTO public.category (name, value, source, "isActive", "mainCategoryId") VALUES 
-                    ('schooling','Schooling','adhoc', true, ${educationMainCategory.id} )
-                    ;`);
-
     const projectCategoryRelationTableExists = await queryRunner.hasTable(
       'project_categories_category',
     );
