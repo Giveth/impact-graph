@@ -3,6 +3,7 @@ import {
   Project,
   ProjectUpdate,
   ProjStatus,
+  RevokeSteps,
 } from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -2049,8 +2050,9 @@ export const verifySingleVerificationForm = async (
     });
     const projectId = verificationForm.projectId;
     let project = (await findProjectById(projectId)) as Project;
+    project = await verifyProject({ verified, projectId });
+
     if (verified) {
-      project = await verifyProject({ verified, projectId });
       await updateProjectWithVerificationForm(verificationForm, project);
     }
     Project.notifySegment(project, segmentEvent);
@@ -2268,6 +2270,11 @@ export const verifyProjects = async (
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
       const projectWithAdmin = (await findProjectById(project.id)) as Project;
+
+      if (revokeBadge) {
+        projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
+        await projectWithAdmin.save();
+      }
 
       if (verificationStatus) {
         await getNotificationAdapter().projectVerified({

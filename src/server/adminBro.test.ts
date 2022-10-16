@@ -47,10 +47,15 @@ import {
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
+import { verifyMultipleProjects } from '../repositories/projectRepository';
 
 describe(
   'updateStatusOfProjects() test cases',
   updateStatusOfProjectsTestCases,
+);
+describe(
+  'verifyMultipleProjects() test cases',
+  verifyMultipleProjectsTestCases,
 );
 describe(
   'generateOrganizationListTestCases',
@@ -339,6 +344,81 @@ function importThirdPartyProjectTestCases() {
     });
     assert(createdProject);
     assert.isTrue(createdProject?.title === 'ChangeApiTestProject');
+  });
+}
+
+function verifyMultipleProjectsTestCases() {
+  it('should verify projects and set verificationStatus as null', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      verificationStatus: 'revoked',
+      listed: true,
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      verificationStatus: 'reminder',
+      listed: true,
+    });
+
+    await verifyMultipleProjects({
+      verified: true,
+      projectsIds: [project1.id, project2.id],
+    });
+
+    const project1Updated = await Project.findOne({ id: project1.id });
+    const project2Updated = await Project.findOne({ id: project2.id });
+
+    assert.notEqual(project1Updated?.verificationStatus, 'revoked');
+    assert.equal(project1Updated?.verificationStatus, null);
+    assert.notEqual(project1Updated?.verified, false);
+    assert.equal(project1Updated?.verified, true);
+
+    assert.notEqual(project2Updated?.verificationStatus, 'reminder');
+    assert.equal(project2Updated?.verificationStatus, null);
+    assert.notEqual(project2Updated?.verified, false);
+    assert.equal(project2Updated?.verified, true);
+  });
+  it('should unverify projects and not change the verificationStatus', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      verificationStatus: 'revoked',
+      listed: true,
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      verificationStatus: 'reminder',
+      listed: true,
+    });
+
+    await verifyMultipleProjects({
+      verified: false,
+      projectsIds: [project1.id, project2.id],
+    });
+
+    const project1Updated = await Project.findOne({ id: project1.id });
+    const project2Updated = await Project.findOne({ id: project2.id });
+
+    assert.equal(project1Updated?.verificationStatus, 'revoked');
+    assert.notEqual(project1Updated?.verificationStatus, null);
+    assert.equal(project1Updated?.verified, false);
+    assert.notEqual(project1Updated?.verified, true);
+
+    assert.equal(project2Updated?.verificationStatus, 'reminder');
+    assert.notEqual(project2Updated?.verificationStatus, null);
+    assert.equal(project2Updated?.verified, false);
+    assert.notEqual(project2Updated?.verified, true);
   });
 }
 
@@ -723,6 +803,11 @@ function verifyProjectsTestCases() {
       projectVerificationForm.status,
       updatedVerificationForm!.status,
     );
+    assert.notEqual(
+      updatedProject?.verificationStatus,
+      project.verificationStatus,
+    );
+    assert.equal(updatedProject?.verificationStatus, RevokeSteps.Revoked);
   });
   it('should not change listed(true) status when verifying project and set verification form as verified', async () => {
     const project = await saveProjectDirectlyToDb({
