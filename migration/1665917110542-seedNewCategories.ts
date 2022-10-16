@@ -69,7 +69,7 @@ export class seedNewCategories1665917110542 implements MigrationInterface {
       }),
       addSubCategory(queryRunner, {
         mainCategorySlug: 'education',
-        subCategoryName: 'tech',
+        subCategoryName: 'education-tech',
         subCategoryValue: 'Tech',
       }),
       addSubCategory(queryRunner, {
@@ -100,7 +100,7 @@ export class seedNewCategories1665917110542 implements MigrationInterface {
       addSubCategory(queryRunner, {
         mainCategorySlug: 'health-and-wellness',
         subCategoryName: 'children-health',
-        subCategoryValue: "Children's Health",
+        subCategoryValue: 'Children Health',
       }),
       addSubCategory(queryRunner, {
         mainCategorySlug: 'nature',
@@ -109,18 +109,8 @@ export class seedNewCategories1665917110542 implements MigrationInterface {
       }),
       addSubCategory(queryRunner, {
         mainCategorySlug: 'technology',
-        subCategoryName: 'research',
-        subCategoryValue: 'Research',
-      }),
-      addSubCategory(queryRunner, {
-        mainCategorySlug: 'technology',
         subCategoryName: 'desci',
         subCategoryValue: 'DeSci',
-      }),
-      addSubCategory(queryRunner, {
-        mainCategorySlug: 'other',
-        subCategoryName: 'other',
-        subCategoryValue: 'Other',
       }),
     ]);
   }
@@ -129,7 +119,7 @@ export class seedNewCategories1665917110542 implements MigrationInterface {
     await queryRunner.query(
       `
                 DELETE from category 
-                WHERE name IN ('culture','social-services','family-and-children','partnerships','peace-and-justice', 'public-goods','poverty','ubi','tech','schooling','gender-equality','bipoc-communities','fundraising','mental-health','children-health','animals','desci','other',research)
+                WHERE name IN ('culture','social-services','family-and-children','partnerships','peace-and-justice', 'public-goods','poverty','ubi','education-tech','schooling','gender-equality','bipoc-communities','fundraising','mental-health','children-health','animals','desci','industry-and-innovation')
               `,
     );
   }
