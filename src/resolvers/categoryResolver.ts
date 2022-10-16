@@ -26,7 +26,7 @@ export class CategoryResolver {
   @Query(returns => [MainCategory], { nullable: true })
   async mainCategories() {
     return MainCategory.createQueryBuilder('mainCategory')
-      .leftJoinAndSelect(
+      .innerJoinAndSelect(
         'mainCategory.categories',
         'categories',
         `"isActive"=true`,
