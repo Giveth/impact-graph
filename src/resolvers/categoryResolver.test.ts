@@ -48,6 +48,15 @@ function mainCategoryTestCases() {
       value: 'Agriculture',
       isActive: true,
     });
+    const name3 = 'b' + generateRandomString(10); // ensure it's first
+
+    // If mainCategory doesnt have a sub category we dont return it
+    const category3 = await saveCategoryDirectlyToDb({
+      name: name3,
+      mainCategory: mainCategory2,
+      value: generateRandomString(10),
+      isActive: true,
+    });
 
     const categoryResponse = await axios.post(graphqlUrl, {
       query: getMainCategoriesData,
@@ -66,6 +75,7 @@ function mainCategoryTestCases() {
     // clean up for subsequent test
     await category1.remove();
     await category2.remove();
+    await category3.remove();
     await mainCategory.remove();
     await mainCategory2.remove();
   });
@@ -108,6 +118,29 @@ function mainCategoryTestCases() {
     // clean up for subsequent test
     await category.remove();
     await category2.remove();
+  });
+  it('Should not return mainCategories without sub categories', async () => {
+    const title = 'aa' + generateRandomString(10); // ensure it's first
+    const mainCategory = await saveMainCategoryDirectlyToDb({
+      banner: '',
+      description: '',
+      slug: generateRandomString(10),
+      title,
+    });
+
+    const categoryResponse = await axios.post(graphqlUrl, {
+      query: getMainCategoriesData,
+      variables: {},
+    });
+    const result = categoryResponse.data.data.mainCategories;
+    assert.isNotEmpty(result);
+
+    assert.isNotOk(result.find(mC => mC.slug === mainCategory.slug));
+    result.forEach(item => {
+      assert.isNotEmpty(item.categories);
+    });
+
+    await mainCategory.remove();
   });
 }
 
