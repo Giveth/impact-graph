@@ -5,8 +5,9 @@ export class setUserTotalReceived1644467298829 implements MigrationInterface {
     // To run the update query SUM I should check table existance
     // UPDATE clause doesn't have a IF EXISTS conditional
     const userTableExists = await queryRunner.hasTable('user');
+    const projectTableExists = await queryRunner.hasTable('project');
 
-    if (userTableExists) {
+    if (userTableExists && projectTableExists) {
       await queryRunner.query(
         `ALTER TABLE "user" ADD IF NOT EXISTS "totalReceived" integer DEFAULT 0`,
       );

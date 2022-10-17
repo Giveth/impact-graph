@@ -18,6 +18,13 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { SocialProfile } from './socialProfile';
 import { MainCategory } from './mainCategory';
+import { PowerBoosting } from './powerBoosting';
+import { UserProjectPowerView } from '../views/userProjectPowerView';
+import { PowerRound } from './powerRound';
+import { ProjectPowerView } from '../views/projectPowerView';
+import { PowerSnapshot } from './powerSnapshot';
+import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
 
 export const entities: any = [
   Organization,
@@ -42,4 +49,13 @@ export const entities: any = [
   ProjectAddress,
   SocialProfile,
   MainCategory,
+  PowerBoosting,
+  PowerRound,
+  PowerSnapshot,
+  PowerBalanceSnapshot,
+  PowerBoostingSnapshot,
+
+  // View
+  UserProjectPowerView,
+  ProjectPowerView,
 ];

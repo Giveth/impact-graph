@@ -1,10 +1,13 @@
 export const errorMessages = {
+  SPECIFY_GIV_POWER_ADAPTER: 'Specify givPower adapter',
   CHANGE_API_INVALID_TITLE_OR_EIN:
     'ChangeAPI title or EIN not found or invalid',
   INVALID_SOCIAL_NETWORK: 'Invalid social network',
   IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT:
     'It should have one or two wallet recipient addresses',
   NOT_IMPLEMENTED: 'Not implemented',
+  SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID:
+    'Should send at least on of userId or projectId',
   YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS:
     'You just can verify rejected and submitted forms',
   YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS:
@@ -126,6 +129,18 @@ export const errorMessages = {
     'You are not the owner of social profile',
   ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE:
     'Error in getting accessToken by authorization code',
+  ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT:
+    'First project boosting value must be 100%',
+  ERROR_GIVPOWER_BOOSTING_INVALID_DATA: 'Invalid data',
+  ERROR_GIV_POWER_BOOSTING_SUM_IS_GREATER_THAN_MAXIMUM:
+    'Giv power boosting summation is greater than 100',
+  // ERROR_GIVPOWER_BOOSTING_PERCENTAGE_INVALID_RANGE: 'Invalid percentage value',
+  // ERROR_GIVPOWER_BOOSTING_MULTI_PERCENTAGE_INVALID_SUM:
+  //   'Sum of all boosting percentages must be between 99% to 100%',
+  // ERROR_GIVPOWER_BOOSTING_MULTISET_INVALID_DATA_LENGTH:
+  //   'Length of passed projects and percentages should be the same and more than zero',
+  ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT:
+    'Number of boosted projects exceeds limit',
   REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST:
     'There is not any category with name registered-non-profits, probably you forgot to run migrations',
 };

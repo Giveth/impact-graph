@@ -59,6 +59,22 @@ import {
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
 import { MainCategory } from '../entities/mainCategory';
+import { setPowerRound } from '../repositories/powerRoundRepository';
+import {
+  insertSinglePowerBoosting,
+  takePowerBoostingSnapshot,
+} from '../repositories/powerBoostingRepository';
+import {
+  getProjectPowers,
+  refreshProjectPowerView,
+} from '../repositories/projectPowerViewRepository';
+import {
+  findInCompletePowerSnapShots,
+  insertSinglePowerBalanceSnapshot,
+} from '../repositories/powerSnapshotRepository';
+import { getConnection } from 'typeorm';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
 
 describe('createProject test cases --->', createProjectTestCases);
@@ -463,6 +479,106 @@ function projectsTestCases() {
       projects[0].creationDate < projects[projects.length - 1].creationDate,
     );
   });
+
+  it('should return projects, sort by project power', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
+    const project4 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
+
+    const roundNumber = project3.id * 10;
+
+    await Promise.all(
+      [
+        [user1, project1, 10],
+        [user1, project2, 20],
+        [user1, project3, 30],
+        [user2, project1, 20],
+        [user2, project2, 40],
+        [user2, project3, 60],
+      ].map(item => {
+        const [user, project, percentage] = item as [User, Project, number];
+        return insertSinglePowerBoosting({
+          user,
+          project,
+          percentage,
+        });
+      }),
+    );
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 20000,
+    });
+
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+
+    let result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        take: 4,
+        orderBy: {
+          field: 'GIVPower',
+          direction: 'DESC',
+        },
+      },
+    });
+    let projects = result.data.data.projects.projects;
+    const totalCount = result.data.data.projects.totalCount;
+    assert.equal(projects[0].id, project3.id);
+    assert.equal(projects[1].id, project2.id);
+    assert.equal(projects[2].id, project1.id);
+    assert.equal(projects[3].id, project4.id);
+
+    assert.equal(projects[0].projectPower.powerRank, 1);
+    assert.equal(projects[1].projectPower.powerRank, 2);
+    assert.equal(projects[2].projectPower.powerRank, 3);
+    assert.equal(projects[3].projectPower.powerRank, 4);
+
+    result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        skip: Math.max(0, totalCount - 4),
+        take: 4,
+        orderBy: {
+          field: 'GIVPower',
+          direction: 'ASC',
+        },
+      },
+    });
+    projects = result.data.data.projects.projects;
+    assert.equal(projects[1].id, project1.id);
+    assert.equal(projects[2].id, project2.id);
+    assert.equal(projects[3].id, project3.id);
+
+    assert.equal(projects[0].projectPower.powerRank, 4);
+    assert.equal(projects[1].projectPower.powerRank, 3);
+    assert.equal(projects[2].projectPower.powerRank, 2);
+    assert.equal(projects[3].projectPower.powerRank, 1);
+  });
+
   it('should return projects, filter by verified, true', async () => {
     // There is two verified projects so I just need to create a project with verified: false and listed:true
     await saveProjectDirectlyToDb({
@@ -4239,6 +4355,56 @@ function projectBySlugTestCases() {
     assert.isNotOk(project.adminUser.email);
     assert.isNotEmpty(project.addresses);
     assert.equal(project.addresses[0].address, walletAddress);
+  });
+  it('should return projects including projectPower', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    const walletAddress = generateRandomEtheriumAddress();
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      walletAddress,
+    });
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const roundNumber = project1.id * 10;
+    await insertSinglePowerBoosting({
+      user,
+      project: project1,
+      percentage: 10,
+    });
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+
+    await setPowerRound(roundNumber);
+
+    await refreshProjectPowerView();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: project1.slug,
+      },
+    });
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), project1.id);
+
+    assert.exists(project.projectPower);
+    assert.isTrue(project.projectPower.totalPower > 0);
   });
   it('should not return drafted if not logged in', async () => {
     const draftedProject = await saveProjectDirectlyToDb({

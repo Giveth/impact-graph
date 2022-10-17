@@ -2,7 +2,6 @@ import config from '../config';
 import RateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
-import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
 import { json, Request, response, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
@@ -43,8 +42,14 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
-import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
+import { CronJob } from '../entities/CronJob';
+import {
+  dropDbCronExtension,
+  schedulePowerBoostingSnapshot,
+} from '../repositories/dbCronRepository';
+import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
+import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
+import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -66,22 +71,59 @@ export async function bootstrap() {
     }
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
-    await TypeORM.createConnection({
-      type: 'postgres',
-      database: config.get('TYPEORM_DATABASE_NAME') as string,
-      username: config.get('TYPEORM_DATABASE_USER') as string,
-      password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-      port: config.get('TYPEORM_DATABASE_PORT') as number,
-      host: config.get('TYPEORM_DATABASE_HOST') as string,
-      entities,
-      synchronize: true,
-      logger: 'advanced-console',
-      logging: ['error'],
-      dropSchema,
-      cache: true,
-    });
+    await TypeORM.createConnections([
+      {
+        name: 'default',
+        schema: 'public',
+        type: 'postgres',
+        database: config.get('TYPEORM_DATABASE_NAME') as string,
+        username: config.get('TYPEORM_DATABASE_USER') as string,
+        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+        port: config.get('TYPEORM_DATABASE_PORT') as number,
+        host: config.get('TYPEORM_DATABASE_HOST') as string,
+        entities,
+        synchronize: true,
+        logger: 'advanced-console',
+        logging: ['error'],
+        dropSchema,
+        cache: true,
+      },
+      {
+        name: 'cron',
+        type: 'postgres',
+        database: config.get('TYPEORM_DATABASE_NAME') as string,
+        username: config.get('TYPEORM_DATABASE_USER') as string,
+        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
+        port: config.get('TYPEORM_DATABASE_PORT') as number,
+        host: config.get('TYPEORM_DATABASE_HOST') as string,
+        entities: [CronJob],
+        synchronize: false,
+        dropSchema: false,
+      },
+    ]);
+
+    if (dropSchema) {
+      try {
+        await dropDbCronExtension();
+      } catch (e) {
+        logger.error('drop pg_cron extension error', e);
+      }
+    }
 
     const schema = await createSchema();
+
+    const enableDbCronJob =
+      config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
+    if (enableDbCronJob) {
+      try {
+        const scheduleExpression = config.get(
+          'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
+        ) as string;
+        await schedulePowerBoostingSnapshot(scheduleExpression);
+      } catch (e) {
+        logger.error('Enabling power boosting snapshot ', e);
+      }
+    }
 
     // Create GraphQL server
     const apolloServer = new ApolloServer({
@@ -96,7 +138,6 @@ export async function bootstrap() {
 
           const { headers } = req;
           const authVersion = headers.authversion || '1';
-          logger.info(authVersion);
           if (headers.authorization) {
             token = headers.authorization.split(' ')[1].toString();
             const user = await authorizationHandler(authVersion, token);
@@ -104,7 +145,11 @@ export async function bootstrap() {
           }
         } catch (error) {
           SentryLogger.captureException(`Error: ${error} for token ${token}`);
-          logger.error(`Error: ${error} for token ${token}`);
+          logger.error(
+            `Error: ${error} for token ${token} authVersion ${
+              req?.headers?.authversion || '1'
+            }`,
+          );
           req.auth = {};
           req.auth.token = token;
           req.auth.error = error;
@@ -264,6 +309,22 @@ export async function bootstrap() {
     // }
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
+    }
+    if (
+      (config.get('FILL_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
+    ) {
+      runFillBlockNumbersOfSnapshotsCronjob();
+    }
+    if (
+      (config.get('FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE') as string) ===
+      'true'
+    ) {
+      runFillPowerSnapshotBalanceCronJob();
+    }
+    if (
+      (config.get('UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
+    ) {
+      runUpdatePowerRoundCronJob();
     }
   } catch (err) {
     logger.error(err);
