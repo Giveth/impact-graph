@@ -45,6 +45,7 @@ import {
 } from '../routers/oauth2Callbacks';
 import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -253,6 +254,9 @@ export async function bootstrap() {
     initHandlingTraceCampaignUpdateEvents();
     runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
+
+    // init singleton
+    const analytics = new SegmentAnalyticsSingleton().getInstance();
 
     if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
       runCheckProjectVerificationStatus();
