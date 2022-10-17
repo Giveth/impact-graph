@@ -554,7 +554,9 @@ export const fetchProjectsBySlugQuery = `
          description
        }
       }
+      verificationFormStatus
       projectVerificationForm {
+        status
         id
         isTermAndConditionsAccepted
         emailConfirmationTokenExpiredAt
@@ -595,7 +597,6 @@ export const fetchProjectsBySlugQuery = `
             title
           }
         }
-        status
       }
       status {
         id

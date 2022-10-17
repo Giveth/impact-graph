@@ -1,9 +1,10 @@
 import { assert } from 'chai';
-import { Project, ProjStatus } from './project';
+import { Project, ProjectUpdate, ProjStatus } from './project';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
   SEED_DATA,
+  sleep,
 } from '../../test/testUtils';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatus } from './projectStatus';
@@ -13,6 +14,28 @@ describe(
   'addProjectStatusHistoryRecord() test cases',
   addProjectStatusHistoryRecord,
 );
+
+describe('projectUpdate() test cases', projectUpdateTestCases);
+
+function projectUpdateTestCases() {
+  it('should update project updatedAt when a new update is added', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const update = await ProjectUpdate.create({
+      userId: project.adminUserId,
+      projectId: project.id,
+      content: 'content',
+      title: 'title',
+      createdAt: new Date(),
+      isMain: false,
+    });
+    await update.save();
+    assert.isTrue(true);
+    const projectUpdated = await Project.findOne({ id: project.id });
+
+    assert.isTrue(project.updatedAt < projectUpdated!.updatedAt);
+    assert.notEqual(project.updatedAt, projectUpdated!.updatedAt);
+  });
+}
 
 function addProjectStatusHistoryRecord() {
   it('Should create a history entity without reason', async () => {

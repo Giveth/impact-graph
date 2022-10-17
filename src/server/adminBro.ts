@@ -1,4 +1,10 @@
-import { Category, Project, ProjStatus } from '../entities/project';
+import {
+  Category,
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+  RevokeSteps,
+} from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro, { ActionResponse, After } from 'admin-bro';
@@ -77,6 +83,7 @@ import { updateTotalDonationsOfProject } from '../services/donationService';
 import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -220,7 +227,9 @@ export const setSocialProfiles: After<ActionResponse> = async (
   const projectId = record.params.projectId || record.params.id;
 
   const socials = await findSocialProfilesByProjectId({ projectId });
+  const projectUpdates = await findProjectUpdatesByProjectId(projectId);
   const project = await findProjectById(projectId);
+  const adminBroBaseUrl = process.env.SERVER_URL;
   response.record = {
     ...record,
     params: {
@@ -229,6 +238,8 @@ export const setSocialProfiles: After<ActionResponse> = async (
         project!.slug
       }`,
       socials,
+      projectUpdates,
+      adminBroBaseUrl,
     },
   };
   return response;
@@ -591,7 +602,8 @@ const getAdminBroInstance = async () => {
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin &&
                 (currentAdmin.role === UserRole.ADMIN ||
-                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
+                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER ||
+                  currentAdmin.role === UserRole.OPERATOR),
               isVisible: true,
               after: setCommentEmailAndTimeStamps,
             },
@@ -923,6 +935,198 @@ const getAdminBroInstance = async () => {
         },
       },
       {
+        resource: ProjectUpdate,
+        options: {
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            title: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            projectId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            userId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            content: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            totalReactions: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            createdAt: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            isMain: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            isNonProfitOrganization: {
+              isVisible: {
+                list: true,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationCountry: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationWebsite: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationDescription: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            twitter: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            facebook: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            linkedin: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            instagram: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            youtube: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            foundationDate: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            mission: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            achievedMilestones: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            managingFundDescription: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+          },
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+            show: {
+              isVisible: true,
+            },
+            edit: {
+              isVisible: false,
+            },
+          },
+        },
+      },
+      {
         resource: Project,
         options: {
           properties: {
@@ -1120,6 +1324,27 @@ const getAdminBroInstance = async () => {
               isVisible: true,
               components: {
                 filter: AdminBro.bundle('./components/FilterListedComponent'),
+              },
+            },
+            projectUpdates: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/ProjectUpdates'),
+              },
+            },
+            adminBroBaseUrl: {
+              type: 'string',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: false,
+                edit: false,
               },
             },
           },
@@ -1826,8 +2051,9 @@ export const verifySingleVerificationForm = async (
     });
     const projectId = verificationForm.projectId;
     let project = (await findProjectById(projectId)) as Project;
+    project = await verifyProject({ verified, projectId });
+
     if (verified) {
-      project = await verifyProject({ verified, projectId });
       await updateProjectWithVerificationForm(verificationForm, project);
     }
     Project.notifySegment(project, segmentEvent);
@@ -2045,6 +2271,11 @@ export const verifyProjects = async (
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
       const projectWithAdmin = (await findProjectById(project.id)) as Project;
+
+      if (revokeBadge) {
+        projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
+        await projectWithAdmin.save();
+      }
 
       if (verificationStatus) {
         await getNotificationAdapter().projectVerified({

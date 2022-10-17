@@ -273,6 +273,9 @@ class Project extends BaseEntity {
   )
   projectPower?: ProjectPowerView;
 
+  @Field(type => String, { nullable: true })
+  verificationFormStatus?: string;
+
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
   socialProfiles?: SocialProfile[];
@@ -307,6 +310,12 @@ class Project extends BaseEntity {
   // Virtual attribute for projectUpdate
   @Field(type => ProjectUpdate, { nullable: true })
   projectUpdate?: any;
+
+  @Field(type => [ProjectUpdate], { nullable: true })
+  projectUpdates?: ProjectUpdate[];
+
+  @Field(type => String, { nullable: true })
+  adminBroBaseUrl: string;
 
   // User reaction to the project
   @Field(type => Reaction, { nullable: true })

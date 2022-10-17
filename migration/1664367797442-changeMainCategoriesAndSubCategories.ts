@@ -231,7 +231,7 @@ export class changeMainCategoriesAndSubCategories1664367797442
       await queryRunner.query(
         `
                 UPDATE category SET "isActive" = false
-                WHERE name NOT IN ('agriculture','air','conservation-and-biodiversity','sustainable-cities-and-communities','ocean','climate-action','water-and-sanitation','housing','employment','refi','food','health-care','tech','grassroots','art','inclusion','registered-non-profits','other','nutrition','climate','education','energy', 'real-estate')
+                WHERE name NOT IN ('agriculture','air','conservation-and-biodiversity','sustainable-cities-and-communities','ocean','climate-action','water-and-sanitation','housing','employment','refi','food','health-care','tech','grassroots','art','inclusion','registered-non-profits','other','nutrition','energy', 'real-estate', 'infrastructure','research')
               `,
       );
     }
