@@ -3,28 +3,42 @@ import { User } from '../../entities/user';
 import { redisConfig } from '../../redis';
 
 // tslint:disable-next-line:no-var-requires
-const SegmentAnalyticsNode = require('segment-analytics-node');
 const segmentApiKey = process.env.SEGMENT_API_KEY;
-const redisOptions = {
-  redisConnectionInfo: redisConfig,
-  requestsPerSecond: 10,
+import { SegmentAnalytics } from 'segment-analytics-node';
+import { sleep } from '../../utils/utils';
+
+const options = {
+  redisConnectionInfo: {
+    host: String(redisConfig.host),
+    port: Number(redisConfig.port),
+    password: redisConfig.password ? String(redisConfig.password) : undefined,
+  },
+  requestsPerSecond: 1,
+  sleepMilliSecondBetweenEvents: 50,
 };
 
 // one instance running
 export class SegmentAnalyticsSingleton {
-  private static instance;
+  private static instance: SegmentAnalyticsSingleton;
+  private static segmentAnalyticsInstance: SegmentAnalytics;
 
-  constructor() {
+  static getInstance(): SegmentAnalyticsSingleton {
     if (!SegmentAnalyticsSingleton.instance) {
-      SegmentAnalyticsSingleton.instance = new SegmentAnalyticsNode(
-        segmentApiKey,
-        redisOptions,
-      );
+      return new SegmentAnalyticsSingleton();
     }
+    return SegmentAnalyticsSingleton.instance;
   }
 
-  async identifyUser(user: User) {
-    await SegmentAnalyticsSingleton.instance.postUser({
+  private constructor() {
+    SegmentAnalyticsSingleton.segmentAnalyticsInstance = new SegmentAnalytics(
+      segmentApiKey as string,
+      options,
+    );
+    return this;
+  }
+
+  async identifyUser(user: User): Promise<void> {
+    await SegmentAnalyticsSingleton.segmentAnalyticsInstance.identify({
       userId: user.segmentUserId(),
       traits: {
         firstName: user.firstName,
@@ -39,23 +53,13 @@ export class SegmentAnalyticsSingleton {
     analyticsUserId,
     properties,
     anonymousId,
-  ) {
-    let userId;
-    if (!analyticsUserId) {
-      userId = anonymousId;
-    } else {
-      userId = analyticsUserId;
-    }
-
-    await SegmentAnalyticsSingleton.instance.postData({
+  ): Promise<void> {
+    const userId = analyticsUserId || anonymousId;
+    await SegmentAnalyticsSingleton.segmentAnalyticsInstance.track({
       event: eventName,
-      userId: analyticsUserId,
+      userId,
       properties,
       anonymousId,
     });
-  }
-
-  getInstance() {
-    return SegmentAnalyticsSingleton.instance;
   }
 }

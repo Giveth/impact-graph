@@ -255,9 +255,6 @@ export async function bootstrap() {
     runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
 
-    // init singleton
-    const analytics = new SegmentAnalyticsSingleton().getInstance();
-
     if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
       runCheckProjectVerificationStatus();
     }

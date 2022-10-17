@@ -27,7 +27,7 @@ import {
 import { SegmentAnalyticsSingleton } from '../segment/segmentAnalyticsSingleton';
 import { sleep } from '../../utils/utils';
 
-const analytics = new SegmentAnalyticsSingleton();
+const analytics = SegmentAnalyticsSingleton.getInstance();
 
 // Every 3 months if no project verification was added, the project
 // Verification status will be revoked
