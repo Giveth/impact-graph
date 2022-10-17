@@ -6,7 +6,6 @@ import * as jwt from 'jsonwebtoken';
 import * as TypeORM from 'typeorm';
 import { json, Request, response, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
-import { netlifyDeployed } from '../netlify/deployed';
 import createSchema from './createSchema';
 import { resolvers } from '../resolvers/resolvers';
 import { entities } from '../entities/entities';
@@ -20,6 +19,7 @@ import SentryLogger from '../sentryLogger';
 
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
+import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 import {
@@ -43,10 +43,7 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
-import { TwitterAdapter } from '../adapters/oauth2/twitterAdapter';
-import { generateRandomEtheriumAddress } from '../../test/testUtils';
 import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 
 // tslint:disable:no-var-requires
@@ -234,11 +231,6 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       handleStripeWebhook,
     );
-    app.post(
-      '/netlify-build',
-      bodyParser.raw({ type: 'application/json' }),
-      netlifyDeployed,
-    );
     app.get('/health', (req, res, next) => {
       res.send('Hi every thing seems ok');
     });
@@ -262,6 +254,10 @@ export async function bootstrap() {
     runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();
 
+    if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
+      runCheckProjectVerificationStatus();
+    }
+
     // If we need to deactivate the process use the env var
     // if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
     //   runGivingBlocksProjectSynchronization();
@@ -269,18 +265,6 @@ export async function bootstrap() {
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
     }
-    const authUrl = await getSocialNetworkAdapter(
-      SOCIAL_NETWORKS.TWITTER,
-    ).getAuthUrl({
-      // trackId: generateRandomEtheriumAddress(),
-      trackId: 'STATE',
-    });
-    logger.info('twitter auth url', authUrl);
-    // const accessToken = await twitterAdapter.getUserInfoByOauth2Code({
-    //   oauth2Code:
-    //     'SDg1b1otX3lYaURDZjN3emQtTjVwVUMwMFNmeGFjQ0tLWlBNQnhobEszQ19hOjE2NTcxMTU5MjIzMjg6MTowOmFjOjE',
-    // });
-    // logger.info('twitter accessToken', accessToken);
   } catch (err) {
     logger.error(err);
   }

@@ -102,11 +102,13 @@ export async function getTokenPrice(
     // if (isTestPrice(symbol, baseSymbol))
     //   return getTestPrice(symbol, baseSymbol, chainId)
 
+    // @ts-ignore
     const token = await sdk.getSwapToken(getTokenFromList(symbol, chainId));
 
     if (!token) throw Error(`Symbol ${symbol} not found in our token list`);
 
     const baseToken = await sdk.getSwapToken(
+      // @ts-ignore
       getTokenFromList(baseSymbol, chainId),
     );
 

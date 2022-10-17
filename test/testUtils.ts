@@ -24,6 +24,8 @@ import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
 } from '../src/entities/projectVerificationForm';
+import { MainCategory } from '../src/entities/mainCategory';
+import { CATEGORY_NAMES } from '../src/entities/category';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -127,6 +129,8 @@ export interface CreateProjectData {
   totalProjectUpdates?: number;
   givingBlocksId?: string;
   traceCampaignId?: string;
+  projectUpdateCreationDate?: Date;
+  verificationStatus?: string;
   image?: string;
 }
 
@@ -214,12 +218,14 @@ export const saveProjectDirectlyToDb = async (
   // default projectUpdate for liking projects
   // this was breaking updateAt tests as it was running update hooks sometime in the future.
   // Found no other way to avoid triggering the hooks.
+  const projectUpdateCreatedAt =
+    projectData.projectUpdateCreationDate || new Date();
   await ProjectUpdate.query(`
     INSERT INTO public.project_update (
       "userId","projectId",content,title,"createdAt","isMain"
     ) VALUES (
       ${user.id}, ${project.id}, '', '', '${
-    new Date().toISOString().split('T')[0]
+    projectUpdateCreatedAt.toISOString().split('T')[0]
   }', true
     )`);
   return project;
@@ -246,6 +252,7 @@ export const createProjectData = (): CreateProjectData => {
     totalDonations: 10,
     totalReactions: 0,
     totalProjectUpdates: 1,
+    projectUpdateCreationDate: new Date(),
   };
 };
 export const createDonationData = (params?: {
@@ -335,7 +342,8 @@ export const SEED_DATA = {
     id: 3,
     admin: '3',
   },
-  MAIN_CATEGORIES: ['drink', 'food'],
+  MAIN_CATEGORIES: ['drink', 'food', 'nonProfit'],
+  NON_PROFIT_SUB_CATEGORIES: [CATEGORY_NAMES.registeredNonProfits],
   FOOD_SUB_CATEGORIES: [
     'food1',
     'food2',
@@ -1195,6 +1203,26 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
+    goerli: [
+      {
+        name: 'Ethereum native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+      {
+        address: '0xdc31Ee1784292379Fbb2964b3B9C4124D8F89C60',
+        symbol: 'DAI',
+        name: 'DAI Goerli',
+        decimals: 18,
+      },
+      {
+        address: '0xA2470F25bb8b53Bd3924C7AC0C68d32BF2aBd5be',
+        symbol: 'DRGIV3',
+        name: 'GIV test',
+        decimals: 18,
+      },
+    ],
     xdai: [
       {
         name: 'XDAI native token',
@@ -1456,6 +1484,23 @@ export interface CreateDonationData {
   status?: string;
 }
 
+export interface CategoryData {
+  id?: number;
+  value: string;
+  name: string;
+  isActive: boolean;
+  mainCategory: MainCategory;
+  source?: string;
+}
+
+export interface MainCategoryData {
+  id?: number;
+  banner: string;
+  description: string;
+  slug: string;
+  title: string;
+}
+
 export const saveDonationDirectlyToDb = async (
   donationData: CreateDonationData,
   userId: number,
@@ -1471,6 +1516,18 @@ export const saveDonationDirectlyToDb = async (
     ...donationData,
     user,
     project,
+  }).save();
+};
+
+export const saveCategoryDirectlyToDb = async (categoryData: CategoryData) => {
+  return Category.create(categoryData).save();
+};
+
+export const saveMainCategoryDirectlyToDb = async (
+  mainCategoryData: MainCategoryData,
+) => {
+  return MainCategory.create({
+    ...mainCategoryData,
   }).save();
 };
 

@@ -22,6 +22,20 @@ export const findProjectById = (
     .getOne();
 };
 
+export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
+  return Project.createQueryBuilder('project')
+    .leftJoinAndSelect(
+      'project.projectVerificationForm',
+      'projectVerificationForm',
+    )
+    .where('project.isImported = false')
+    .andWhere('project.verified = true')
+    .andWhere('project.updatedAt < :badgeRevokingDate', {
+      badgeRevokingDate: date,
+    })
+    .getMany();
+};
+
 export const findProjectBySlug = (
   slug: string,
 ): Promise<Project | undefined> => {
@@ -37,8 +51,18 @@ export const verifyMultipleProjects = async (params: {
   verified: boolean;
   projectsIds: string[] | number[];
 }): Promise<UpdateResult> => {
+  if (params.verified) {
+    await Project.query(`
+      UPDATE project
+      SET "verificationStatus" = NULL
+      WHERE id IN (${params.projectsIds?.join(',')})
+    `);
+  }
+
   return Project.createQueryBuilder('project')
-    .update<Project>(Project, { verified: params.verified })
+    .update<Project>(Project, {
+      verified: params.verified,
+    })
     .where('project.id IN (:...ids)')
     .setParameter('ids', params.projectsIds)
     .returning('*')
@@ -76,6 +100,8 @@ export const verifyProject = async (params: {
   if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
 
   project.verified = params.verified;
+  if (params.verified) project.verificationStatus = null; // reset this field
+
   return project.save();
 };
 

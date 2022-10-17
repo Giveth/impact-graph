@@ -24,7 +24,10 @@ import {
 } from '../entities/projectVerificationForm';
 import { updateProjectVerificationFormByUser } from '../services/projectVerificationFormService';
 import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdateInput';
-import { getAnalytics, SegmentEvents } from '../analytics/analytics';
+import {
+  getAnalytics,
+  NOTIFICATIONS_EVENT_NAMES,
+} from '../analytics/analytics';
 import * as jwt from 'jsonwebtoken';
 import config from '../config';
 import { countriesList } from '../utils/utils';
@@ -168,7 +171,7 @@ export class ProjectVerificationFormResolver {
       await sendMailConfirmationEmail(email, project, token);
 
       analytics.track(
-        SegmentEvents.SEND_EMAIL_CONFIRMATION,
+        NOTIFICATIONS_EVENT_NAMES.SEND_EMAIL_CONFIRMATION,
         `givethId-${userId}`,
         emailConfirmationData,
         null,

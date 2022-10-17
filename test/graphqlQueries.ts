@@ -544,7 +544,9 @@ export const fetchProjectsBySlugQuery = `
          description
        }
       }
+      verificationFormStatus
       projectVerificationForm {
+        status
         id
         isTermAndConditionsAccepted
         emailConfirmationTokenExpiredAt
@@ -585,7 +587,6 @@ export const fetchProjectsBySlugQuery = `
             title
           }
         }
-        status
       }
       status {
         id
@@ -730,6 +731,9 @@ export const fetchLikedProjectsQuery = `
           firstName
           walletAddress
         }
+        organization {
+          label
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -781,6 +785,7 @@ export const userByAddress = `
       walletAddress
       url
       location
+      isSignedIn
     }
   }
 `;
@@ -930,13 +935,15 @@ export const projectsByUserIdQuery = `
             id
             projectUpdateId
             userId
-          }    
+          }
           addresses {
             address
             isRecipient
             networkId
           }
-              
+          organization {
+            label
+          }
           adminUser {
             firstName
             email
@@ -1159,15 +1166,6 @@ export const getCurrentProjectVerificationFormQuery = `
             }
         `;
 
-export const getAllowedCountries = `
-    query {
-        getAllowedCountries {
-            name
-            code
-        }
-    }
-        `;
-
 export const projectVerificationConfirmEmail = `
         mutation projectVerificationConfirmEmail($emailConfirmationToken: String!){
           projectVerificationConfirmEmail(emailConfirmationToken: $emailConfirmationToken) {
@@ -1355,3 +1353,37 @@ export const removeSocialProfileMutation = `
            removeSocialProfile(socialProfileId:$socialProfileId)
           } 
         `;
+
+export const getAllowedCountries = `
+    query {
+        getAllowedCountries {
+            name
+            code
+        }
+    }
+        `;
+
+export const getMainCategoriesData = `
+query {
+    mainCategories{
+        title
+        banner
+        slug
+        description
+        categories {
+            name
+            value
+            isActive
+        }
+    }
+}`;
+
+export const getCategoryData = `query {
+    categories{
+        name
+        mainCategory {
+            title
+            banner
+        }
+    }
+}`;

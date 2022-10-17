@@ -1,4 +1,10 @@
-import { Category, Project, ProjStatus } from '../entities/project';
+import {
+  Category,
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+  RevokeSteps,
+} from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro, { ActionResponse, After } from 'admin-bro';
@@ -9,7 +15,7 @@ import { redis } from '../redis';
 import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
 import { SelectQueryBuilder } from 'typeorm';
-import { SegmentEvents } from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { messages } from '../utils/messages';
 import {
@@ -57,7 +63,10 @@ import {
 } from '../entities/projectVerificationForm';
 import {
   findProjectVerificationFormById,
+  getVerificationFormByProjectId,
   makeFormDraft,
+  makeFormVerified,
+  updateProjectVerificationFormStatusOnly,
   verifyForm,
   verifyMultipleForms,
 } from '../repositories/projectVerificationRepository';
@@ -73,6 +82,8 @@ import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepo
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -89,9 +100,9 @@ const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminBroCookie = 'adminbro';
 
 const segmentProjectStatusEvents = {
-  activate: SegmentEvents.PROJECT_ACTIVATED,
-  deactivate: SegmentEvents.PROJECT_DEACTIVATED,
-  cancelled: SegmentEvents.PROJECT_CANCELLED,
+  activate: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
+  deactivate: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
+  cancelled: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
 };
 
 // headers defined by the verification team for exporting
@@ -216,11 +227,19 @@ export const setSocialProfiles: After<ActionResponse> = async (
   const projectId = record.params.projectId || record.params.id;
 
   const socials = await findSocialProfilesByProjectId({ projectId });
+  const projectUpdates = await findProjectUpdatesByProjectId(projectId);
+  const project = await findProjectById(projectId);
+  const adminBroBaseUrl = process.env.SERVER_URL;
   response.record = {
     ...record,
     params: {
       ...record.params,
+      projectUrl: `${process.env.GIVETH_IO_DAPP_BASE_URL}/project/${
+        project!.slug
+      }`,
       socials,
+      projectUpdates,
+      adminBroBaseUrl,
     },
   };
   return response;
@@ -824,6 +843,7 @@ const getAdminBroInstance = async () => {
               availableValues: [
                 { value: NETWORK_IDS.MAIN_NET, label: 'MAINNET' },
                 { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
+                { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
                 { value: NETWORK_IDS.XDAI, label: 'XDAI' },
                 { value: NETWORK_IDS.BSC, label: 'BSC' },
               ],
@@ -915,6 +935,198 @@ const getAdminBroInstance = async () => {
         },
       },
       {
+        resource: ProjectUpdate,
+        options: {
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            title: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            projectId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            userId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            content: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            totalReactions: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            createdAt: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            isMain: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            isNonProfitOrganization: {
+              isVisible: {
+                list: true,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationCountry: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationWebsite: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationDescription: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            twitter: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            facebook: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            linkedin: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            instagram: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            youtube: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            foundationDate: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            mission: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            achievedMilestones: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            managingFundDescription: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+          },
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+            show: {
+              isVisible: true,
+            },
+            edit: {
+              isVisible: false,
+            },
+          },
+        },
+      },
+      {
         resource: Project,
         options: {
           properties: {
@@ -971,6 +1183,31 @@ const getAdminBroInstance = async () => {
             qualityScore: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
+            verified: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: true,
+                new: false,
+              },
+            },
+            verificationStatus: {
+              availableValues: [
+                { value: 'reminder', label: 'Reminder' },
+                { value: 'warning', label: 'Warning' },
+                { value: 'lastChance', label: 'Last Chance' },
+                { value: 'upForRevoking', label: 'Ready for Revoking' },
+                { value: 'revoked', label: 'Revoked' },
+              ],
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: true,
+                new: false,
+              },
+            },
             totalDonations: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -998,6 +1235,18 @@ const getAdminBroInstance = async () => {
             },
             slug: {
               isVisible: { list: true, filter: true, show: true, edit: true },
+            },
+            projectUrl: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/ClickableLink'),
+              },
             },
             organisationId: {
               isVisible: false,
@@ -1075,6 +1324,27 @@ const getAdminBroInstance = async () => {
               isVisible: true,
               components: {
                 filter: AdminBro.bundle('./components/FilterListedComponent'),
+              },
+            },
+            projectUpdates: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/ProjectUpdates'),
+              },
+            },
+            adminBroBaseUrl: {
+              type: 'string',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: false,
+                edit: false,
               },
             },
           },
@@ -1696,11 +1966,13 @@ export const listDelist = async (
 
     Project.sendBulkEventsToSegment(
       projects.raw,
-      list ? SegmentEvents.PROJECT_LISTED : SegmentEvents.PROJECT_UNLISTED,
+      list
+        ? NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED
+        : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
     );
-    projects.raw.forEach(project => {
-      dispatchProjectUpdateEvent(project);
-      Project.addProjectStatusHistoryRecord({
+    for (const project of projects.raw) {
+      await dispatchProjectUpdateEvent(project);
+      await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
         userId: currentAdmin.id,
@@ -1708,7 +1980,17 @@ export const listDelist = async (
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
       });
-    });
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+      if (list) {
+        await getNotificationAdapter().projectListed({
+          project: projectWithAdmin,
+        });
+      } else {
+        await getNotificationAdapter().projectDeListed({
+          project: projectWithAdmin,
+        });
+      }
+    }
   } catch (error) {
     logger.error('listDelist error', error);
     throw error;
@@ -1759,8 +2041,8 @@ export const verifySingleVerificationForm = async (
     }
     // call repositories
     const segmentEvent = verified
-      ? SegmentEvents.PROJECT_VERIFIED
-      : SegmentEvents.PROJECT_REJECTED;
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
+      : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
 
     const verificationForm = await verifyForm({
       verificationStatus,
@@ -1769,11 +2051,21 @@ export const verifySingleVerificationForm = async (
     });
     const projectId = verificationForm.projectId;
     let project = (await findProjectById(projectId)) as Project;
+    project = await verifyProject({ verified, projectId });
+
     if (verified) {
-      project = await verifyProject({ verified, projectId });
       await updateProjectWithVerificationForm(verificationForm, project);
     }
     Project.notifySegment(project, segmentEvent);
+    if (verified) {
+      await getNotificationAdapter().projectVerified({
+        project,
+      });
+    } else {
+      await getNotificationAdapter().projectUnVerified({
+        project,
+      });
+    }
 
     responseMessage = `Project(s) successfully ${
       verified ? 'verified' : 'rejected'
@@ -1825,7 +2117,8 @@ export const makeEditableByUser = async (
       );
     }
 
-    const segmentEvent = SegmentEvents.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
+    const segmentEvent =
+      NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
 
     const verificationForm = await makeFormDraft({
       formId,
@@ -1878,6 +2171,7 @@ export const verifyVerificationForms = async (
     const projectsForms = await verifyMultipleForms({
       verificationStatus,
       formIds,
+      reviewerId: currentAdmin.id,
     });
     const projectsIds = projectsForms.raw.map(projectForm => {
       return projectForm.projectId;
@@ -1885,8 +2179,8 @@ export const verifyVerificationForms = async (
     const projects = await verifyMultipleProjects({ verified, projectsIds });
 
     const segmentEvent = verified
-      ? SegmentEvents.PROJECT_VERIFIED
-      : SegmentEvents.PROJECT_REJECTED;
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
+      : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
     const projectIds = projects.raw.map(project => {
@@ -1939,8 +2233,18 @@ export const verifyProjects = async (
   // prioritize revokeBadge
   const verificationStatus = revokeBadge ? false : verified;
   try {
+    const updateParams = { verified: verificationStatus };
+
+    if (verificationStatus) {
+      await Project.query(`
+        UPDATE project
+        SET "verificationStatus" = NULL
+        WHERE id IN (${request?.query?.recordIds})
+      `);
+    }
+
     const projects = await Project.createQueryBuilder('project')
-      .update<Project>(Project, { verified: verificationStatus })
+      .update<Project>(Project, updateParams)
       .where('project.id IN (:...ids)')
       .setParameter('ids', request?.query?.recordIds?.split(','))
       .returning('*')
@@ -1948,17 +2252,17 @@ export const verifyProjects = async (
       .execute();
 
     let segmentEvent = verified
-      ? SegmentEvents.PROJECT_VERIFIED
-      : SegmentEvents.PROJECT_UNVERIFIED;
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
+      : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED;
 
     segmentEvent = revokeBadge
-      ? SegmentEvents.PROJECT_BADGE_REVOKED
+      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED
       : segmentEvent;
 
     Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
-    projects.raw.forEach((project: Project) => {
-      dispatchProjectUpdateEvent(project);
-      Project.addProjectStatusHistoryRecord({
+    for (const project of projects.raw) {
+      await dispatchProjectUpdateEvent(project);
+      await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
         userId: currentAdmin.id,
@@ -1966,7 +2270,38 @@ export const verifyProjects = async (
           ? HISTORY_DESCRIPTIONS.CHANGED_TO_VERIFIED
           : HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED,
       });
-    });
+      const projectWithAdmin = (await findProjectById(project.id)) as Project;
+
+      if (revokeBadge) {
+        projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
+        await projectWithAdmin.save();
+      }
+
+      if (verificationStatus) {
+        await getNotificationAdapter().projectVerified({
+          project: projectWithAdmin,
+        });
+      } else {
+        await getNotificationAdapter().projectUnVerified({
+          project: projectWithAdmin,
+        });
+      }
+
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (verificationForm) {
+        if (verificationStatus) {
+          await makeFormVerified({
+            formId: verificationForm.id,
+            adminId: currentAdmin.id,
+          });
+        } else {
+          await makeFormDraft({
+            formId: verificationForm.id,
+            adminId: currentAdmin.id,
+          });
+        }
+      }
+    }
   } catch (error) {
     logger.error('verifyProjects() error', error);
     throw error;
@@ -2011,14 +2346,28 @@ export const updateStatusOfProjects = async (
         projects.raw,
         segmentProjectStatusEvents[projectStatus.symbol],
       );
-      projects.raw.forEach(project => {
-        dispatchProjectUpdateEvent(project);
-        Project.addProjectStatusHistoryRecord({
+      for (const project of projects.raw) {
+        await dispatchProjectUpdateEvent(project);
+        await Project.addProjectStatusHistoryRecord({
           project,
           status: projectStatus,
           userId: currentAdmin.id,
         });
-      });
+        const projectWithAdmin = (await findProjectById(project.id)) as Project;
+        if (status === ProjStatus.cancelled) {
+          await getNotificationAdapter().projectCancelled({
+            project: projectWithAdmin,
+          });
+        } else if (status === ProjStatus.active) {
+          await getNotificationAdapter().projectReactivated({
+            project: projectWithAdmin,
+          });
+        } else if (status === ProjStatus.deactive) {
+          await getNotificationAdapter().projectDeactivated({
+            project: projectWithAdmin,
+          });
+        }
+      }
     }
   } catch (error) {
     throw error;

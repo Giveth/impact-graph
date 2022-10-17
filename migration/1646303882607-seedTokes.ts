@@ -11,10 +11,13 @@ export class seedTokes1646303882607 implements MigrationInterface {
 
     await queryRunner.manager.save(
       Token,
-      seedTokens.map(t => {
-        t.address = t.address?.toLowerCase();
-        return t;
-      }),
+      seedTokens
+        // We add goerli tokens in addGoerliTokens migration file
+        .filter(token => token.networkId !== 5)
+        .map(t => {
+          t.address = t.address?.toLowerCase();
+          return t;
+        }),
     );
   }
 

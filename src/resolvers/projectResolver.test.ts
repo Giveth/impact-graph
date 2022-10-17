@@ -52,12 +52,14 @@ import { NETWORK_IDS } from '../provider';
 import {
   addNewProjectAddress,
   findAllRelatedAddressByWalletAddress,
+  findProjectRecipientAddressByNetworkId,
 } from '../repositories/projectAddressRepository';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
 import { MainCategory } from '../entities/mainCategory';
+import { ProjectAddress } from '../entities/projectAddress';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -510,6 +512,133 @@ function projectsTestCases() {
       ].verified,
     );
   });
+  it('should return projects, filter by accept donation on gnosis, not return when it doesnt have gnosis address', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const gnosisAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.XDAI,
+    })) as ProjectAddress;
+    gnosisAddress.isRecipient = false;
+    await gnosisAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        filterBy: {
+          field: 'AcceptFundOnGnosis',
+          value: true,
+        },
+        orderBy: {
+          field: 'CreationDate',
+          direction: 'DESC',
+        },
+      },
+    });
+    result.data.data.projects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.projects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on gnosis, return all addresses', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        filterBy: {
+          field: 'AcceptFundOnGnosis',
+          value: true,
+        },
+        orderBy: {
+          field: 'CreationDate',
+          direction: 'DESC',
+        },
+      },
+    });
+    result.data.data.projects.projects.forEach(item => {
+      assert.isOk(
+        item.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    const project = result.data.data.projects.projects.find(
+      item => Number(item.id) === Number(savedProject.id),
+    );
+
+    assert.isOk(project);
+    assert.isOk(
+      project.addresses.find(
+        address =>
+          address.isRecipient === true &&
+          address.networkId === NETWORK_IDS.XDAI,
+      ),
+    );
+    assert.isOk(
+      project.addresses.find(
+        address =>
+          address.isRecipient === true &&
+          address.networkId === NETWORK_IDS.MAIN_NET,
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on gnosis, should not return if it has no address', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    await ProjectAddress.query(`
+        DELETE from project_address
+        WHERE "projectId"=${savedProject.id} 
+       `);
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        filterBy: {
+          field: 'AcceptFundOnGnosis',
+          value: true,
+        },
+        orderBy: {
+          field: 'CreationDate',
+          direction: 'DESC',
+        },
+      },
+    });
+    result.data.data.projects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.projects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
   it('should return projects, sort by traceable, DESC', async () => {
     await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -528,6 +657,26 @@ function projectsTestCases() {
     });
     assert.isFalse(
       result.data.data.projects.projects.some(p => !p.traceCampaignId),
+    );
+  });
+  it('should return projects, sort by traceable, ASC', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchAllProjectsQuery,
+      variables: {
+        orderBy: {
+          field: 'Traceable',
+          direction: 'ASC',
+        },
+      },
+    });
+    assert.isFalse(
+      result.data.data.projects.projects.some(p => !!p.traceCampaignId),
     );
   });
   it('should return projects, sort by traceable, ASC', async () => {
@@ -1209,6 +1358,116 @@ function allProjectsTestCases() {
       );
     });
   });
+
+  it('should return projects, filter by accept donation on gnosis, not return when it doesnt have gnosis address', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const gnosisAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.XDAI,
+    })) as ProjectAddress;
+    gnosisAddress.isRecipient = false;
+    await gnosisAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnGnosis'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on gnosis, return all addresses', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnGnosis'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(item => {
+      assert.isOk(
+        item.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    const project = result.data.data.allProjects.projects.find(
+      item => Number(item.id) === Number(savedProject.id),
+    );
+
+    assert.isOk(project);
+    assert.isOk(
+      project.addresses.find(
+        address =>
+          address.isRecipient === true &&
+          address.networkId === NETWORK_IDS.XDAI,
+      ),
+    );
+    assert.isOk(
+      project.addresses.find(
+        address =>
+          address.isRecipient === true &&
+          address.networkId === NETWORK_IDS.MAIN_NET,
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on gnosis, should not return if it has no address', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    await ProjectAddress.query(`
+        DELETE from project_address
+        WHERE "projectId"=${savedProject.id} 
+       `);
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnGnosis'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.XDAI,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
 }
 
 function projectsByUserIdTestCases() {
@@ -1255,6 +1514,7 @@ function projectsByUserIdTestCases() {
       assert.isOk(project.projectVerificationForm);
       assert.equal(project.projectVerificationForm.id, verificationForm.id);
       assert.isNotOk(project.adminUser.email);
+      assert.equal(project.organization.label, ORGANIZATION_LABELS.GIVETH);
     });
   });
 
@@ -1464,13 +1724,10 @@ function createProjectTestCases() {
         },
       },
     );
-
-    // assert.equal(
-    //   result.data.errors[0].message,
-    //   errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-    // );
-    // TODO after frontend implementing main categories we should change backend and uncommet above assersion and remove below one
-    assert.isOk(result.data.data.createProject);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+    );
   });
   it('Should get error, when more than 5 categories sent', async () => {
     const sampleProject: CreateProjectInput = {
@@ -3341,6 +3598,7 @@ function likedProjectsByUserIdTestCases() {
       assert.isOk(project.adminUser.walletAddress);
       assert.isOk(project.adminUser.firstName);
       assert.isNotOk(project.adminUser.email);
+      assert.equal(project.organization.label, ORGANIZATION_LABELS.GIVETH);
     });
     const reaction = await Reaction.findOne({
       userId: SEED_DATA.FIRST_USER.id,
@@ -3925,6 +4183,36 @@ function projectBySlugTestCases() {
     assert.isOk(project.adminUser.firstName);
     assert.isNotOk(project.adminUser.email);
     assert.isOk(project.categories[0].mainCategory.title);
+  });
+  it('should return verificationFormStatus if its not owner', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const user = await User.findOne({
+      id: Number(project1.admin),
+    });
+
+    const verificationForm = await ProjectVerificationForm.create({
+      project: project1,
+      user,
+      status: PROJECT_VERIFICATION_STATUSES.DRAFT,
+    }).save();
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: project1.slug,
+        connectedWalletUserId: user!.id,
+      },
+    });
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), project1.id);
+    assert.isNotOk(project.projectVerificationForm);
+    assert.equal(project.verificationFormStatus, verificationForm.status);
   });
 
   it('should return projects with indicated slug', async () => {

@@ -4,7 +4,7 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { TransakOrder } from './transak/order';
 import { User } from '../entities/user';
 import DonationTracker from './segment/DonationTracker';
-import { SegmentEvents } from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { Organization } from '../entities/organization';
 import { findUserById } from '../repositories/userRepository';
@@ -14,6 +14,7 @@ import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice } from './givPriceService';
 import { findDonationById } from '../repositories/donationRepository';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -263,14 +264,18 @@ export const sendSegmentEventForDonation = async (params: {
     return;
   }
   const donorUser = await findUserById(donation.userId);
-  const projectOwner = await findUserById(Number(project.admin));
+  const projectOwner = project.adminUser;
   if (projectOwner) {
     new DonationTracker(
       donation,
       project,
       projectOwner,
-      SegmentEvents.DONATION_RECEIVED,
+      NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
     ).track();
+    await getNotificationAdapter().donationReceived({
+      donation,
+      project,
+    });
   }
 
   if (donorUser) {
@@ -278,7 +283,12 @@ export const sendSegmentEventForDonation = async (params: {
       donation,
       project,
       donorUser,
-      SegmentEvents.MADE_DONATION,
+      NOTIFICATIONS_EVENT_NAMES.MADE_DONATION,
     ).track();
+    await getNotificationAdapter().donationSent({
+      donation,
+      project,
+      donor: donorUser,
+    });
   }
 };

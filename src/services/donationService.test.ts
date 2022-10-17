@@ -60,18 +60,18 @@ function sendSegmentEventForDonationTestCases() {
 }
 
 function syncDonationStatusWithBlockchainNetworkTestCases() {
-  it('should verify a ropsten donation', async () => {
-    // https://ropsten.etherscan.io/tx/0xba3c2627c9d3dd963455648b4f9d7239e8b5c80d0aa85ac354d2b762d99e4441
+  it('should verify a goerli donation', async () => {
+    // https://goerli.etherscan.io/tx/0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1
 
     const transactionInfo = {
       txHash:
-        '0xba3c2627c9d3dd963455648b4f9d7239e8b5c80d0aa85ac354d2b762d99e4441',
-      networkId: NETWORK_IDS.ROPSTEN,
-      amount: 0.01,
-      fromAddress: '0x826976d7c600d45fb8287ca1d7c76fc8eb732030',
-      toAddress: '0x8f951903c9360345b4e1b536c7f5ae8f88a64e79',
-      currency: 'UNI',
-      timestamp: 1615739937,
+        '0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1',
+      networkId: NETWORK_IDS.GOERLI,
+      amount: 0.117,
+      fromAddress: '0xc18c3cc1cf44e72dedfcbae981ef1ab32256ee60',
+      toAddress: '0x2d2b642c7407ebce201ed80711124fffd1777331',
+      currency: 'ETH',
+      timestamp: 1661114988,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({

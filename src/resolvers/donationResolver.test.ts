@@ -615,6 +615,34 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
   });
+  it('should create ETH donation for CHANGE project on goerli successfully', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.CHANGE,
+    });
+    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const accessToken = await generateTestAccessToken(user!.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.GOERLI,
+          transactionId: generateRandomTxHash(),
+          amount: 10,
+          nonce: 11,
+          token: 'ETH',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+  });
   // for production they only accept ETH on mainnet
   it('should create ETH donation for CHANGE project on Mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb({
@@ -1238,7 +1266,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 100, 56]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 56]',
     );
   });
   it('should throw exception when currency is not valid when currency contain characters', async () => {
@@ -2671,65 +2699,67 @@ function updateDonationStatusTestCases() {
       errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
     );
   });
-  it('should update donation status to failed when tx is failed on network ', async () => {
-    // https://ropsten.etherscan.io/tx/0x66a7902f3dad318e8d075454e26ee829e9832db0b20922cfd9d916fb792ff724
-    const transactionInfo = {
-      txHash:
-        '0x66a7902f3dad318e8d075454e26ee829e9832db0b20922cfd9d916fb792ff724',
-      currency: 'DAI',
-      networkId: NETWORK_IDS.ROPSTEN,
-      fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
-      toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
-      amount: 0.04,
-      timestamp: 1607360947,
-    };
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      walletAddress: transactionInfo.toAddress,
-    });
-    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
-    const donation = await saveDonationDirectlyToDb(
-      {
-        amount: transactionInfo.amount,
-        transactionNetworkId: transactionInfo.networkId,
-        transactionId: transactionInfo.txHash,
-        currency: transactionInfo.currency,
-        fromWalletAddress: transactionInfo.fromAddress,
-        toWalletAddress: transactionInfo.toAddress,
-        valueUsd: 1,
-        anonymous: false,
-        createdAt: new Date(transactionInfo.timestamp),
-        status: DONATION_STATUS.PENDING,
-      },
-      user.id,
-      project.id,
-    );
-    assert.equal(donation.status, DONATION_STATUS.PENDING);
-    const accessToken = await generateTestAccessToken(user.id);
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: updateDonationStatusMutation,
-        variables: {
-          donationId: donation.id,
-          status: DONATION_STATUS.FAILED,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      result.data.data.updateDonationStatus.status,
-      DONATION_STATUS.FAILED,
-    );
-    assert.equal(
-      result.data.data.updateDonationStatus.verifyErrorMessage,
-      errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
-    );
-  });
+  // ROPSTEN CHAIN DECOMMISSIONED use goerli
+  // TODO: Rewrite this test with goerli.
+  // it('should update donation status to failed when tx is failed on network ', async () => {
+  //   // https://ropsten.etherscan.io/tx/0x66a7902f3dad318e8d075454e26ee829e9832db0b20922cfd9d916fb792ff724
+  //   const transactionInfo = {
+  //     txHash:
+  //       '0x66a7902f3dad318e8d075454e26ee829e9832db0b20922cfd9d916fb792ff724',
+  //     currency: 'DAI',
+  //     networkId: NETWORK_IDS.ROPSTEN,
+  //     fromAddress: '0x839395e20bbB182fa440d08F850E6c7A8f6F0780',
+  //     toAddress: '0x5ac583feb2b1f288c0a51d6cdca2e8c814bfe93b',
+  //     amount: 0.04,
+  //     timestamp: 1607360947,
+  //   };
+  //   const project = await saveProjectDirectlyToDb({
+  //     ...createProjectData(),
+  //     walletAddress: transactionInfo.toAddress,
+  //   });
+  //   const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+  //   const donation = await saveDonationDirectlyToDb(
+  //     {
+  //       amount: transactionInfo.amount,
+  //       transactionNetworkId: transactionInfo.networkId,
+  //       transactionId: transactionInfo.txHash,
+  //       currency: transactionInfo.currency,
+  //       fromWalletAddress: transactionInfo.fromAddress,
+  //       toWalletAddress: transactionInfo.toAddress,
+  //       valueUsd: 1,
+  //       anonymous: false,
+  //       createdAt: new Date(transactionInfo.timestamp),
+  //       status: DONATION_STATUS.PENDING,
+  //     },
+  //     user.id,
+  //     project.id,
+  //   );
+  //   assert.equal(donation.status, DONATION_STATUS.PENDING);
+  //   const accessToken = await generateTestAccessToken(user.id);
+  //   const result = await axios.post(
+  //     graphqlUrl,
+  //     {
+  //       query: updateDonationStatusMutation,
+  //       variables: {
+  //         donationId: donation.id,
+  //         status: DONATION_STATUS.FAILED,
+  //       },
+  //     },
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${accessToken}`,
+  //       },
+  //     },
+  //   );
+  //   assert.equal(
+  //     result.data.data.updateDonationStatus.status,
+  //     DONATION_STATUS.FAILED,
+  //   );
+  //   assert.equal(
+  //     result.data.data.updateDonationStatus.verifyErrorMessage,
+  //     errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+  //   );
+  // });
   it('should donation status remain pending after calling without sending status (we assume its not mined so far)', async () => {
     const transactionInfo = {
       txHash: generateRandomTxHash(),

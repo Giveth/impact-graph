@@ -65,6 +65,7 @@ export const errorMessages = {
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'You dont have access to deactivate this project',
   PROJECT_NOT_FOUND: 'Project not found.',
+  PROJECT_IS_NOT_ACTIVE: 'Project is not active.',
   INVALID_FUNCTION: 'Invalid function name of transaction',
   PROJECT_UPDATE_NOT_FOUND: 'Project update not found.',
   DONATION_NOT_FOUND: 'donation not found',
@@ -77,6 +78,7 @@ export const errorMessages = {
     'FromAddress of Transaction is different from sent fromAddress',
   TRANSACTION_STATUS_IS_FAILED_IN_NETWORK:
     'Transaction status is failed in network',
+  INVALID_VERIFICATION_REVOKE_STATUS: 'Invalid revoke status updated',
   TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED:
     'Transaction not found and nonce is used',
   TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT:
@@ -124,4 +126,6 @@ export const errorMessages = {
     'You are not the owner of social profile',
   ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE:
     'Error in getting accessToken by authorization code',
+  REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST:
+    'There is not any category with name registered-non-profits, probably you forgot to run migrations',
 };

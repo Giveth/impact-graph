@@ -25,7 +25,7 @@ import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
 import ProjectTracker from '../services/segment/projectTracker';
-import { SegmentEvents } from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
@@ -75,6 +75,14 @@ export enum OrderField {
   Donations = 'totalDonations',
   TraceDonations = 'totalTraceDonations',
   AcceptGiv = 'givingBlocksId',
+}
+
+export enum RevokeSteps {
+  Reminder = 'reminder',
+  Warning = 'warning',
+  LastChance = 'lastChance',
+  UpForRevoking = 'upForRevoking', // exceeded last chance and revoked dates case
+  Revoked = 'revoked',
 }
 
 @Entity()
@@ -187,6 +195,10 @@ class Project extends BaseEntity {
   @Column()
   verified: boolean;
 
+  @Field(type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  verificationStatus?: string | null;
+
   @Field(type => Boolean, { nullable: true })
   @Column({ default: false })
   isImported: boolean;
@@ -252,6 +264,9 @@ class Project extends BaseEntity {
   )
   projectVerificationForm?: ProjectVerificationForm;
 
+  @Field(type => String, { nullable: true })
+  verificationFormStatus?: string;
+
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
   socialProfiles?: SocialProfile[];
@@ -276,9 +291,22 @@ class Project extends BaseEntity {
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
 
+  @Field(type => String, { nullable: true })
+  projectUrl?: string;
+
   // Virtual attribute to subquery result into
   @Field(type => Int, { nullable: true })
   prevStatusId?: number;
+
+  // Virtual attribute for projectUpdate
+  @Field(type => ProjectUpdate, { nullable: true })
+  projectUpdate?: any;
+
+  @Field(type => [ProjectUpdate], { nullable: true })
+  projectUpdates?: ProjectUpdate[];
+
+  @Field(type => String, { nullable: true })
+  adminBroBaseUrl: string;
 
   // User reaction to the project
   @Field(type => Reaction, { nullable: true })
@@ -287,13 +315,13 @@ class Project extends BaseEntity {
    * Custom Query Builders to chain together
    */
 
-  static notifySegment(project: Project, eventName: SegmentEvents) {
+  static notifySegment(project: Project, eventName: NOTIFICATIONS_EVENT_NAMES) {
     new ProjectTracker(project, eventName).track();
   }
 
   static sendBulkEventsToSegment(
     projects: [Project],
-    eventName: SegmentEvents,
+    eventName: NOTIFICATIONS_EVENT_NAMES,
   ) {
     for (const project of projects) {
       this.notifySegment(project, eventName);
@@ -319,12 +347,16 @@ class Project extends BaseEntity {
     project: Project;
     reasonId?: number;
     description?: string;
-    userId: number;
+    userId?: number;
   }) {
     const { project, status, prevStatus, description, reasonId, userId } =
       inputData;
     let reason;
-    const user = await findUserById(userId);
+    let user;
+
+    if (userId) {
+      user = await findUserById(userId);
+    }
 
     if (reasonId) {
       reason = await ProjectStatusReason.findOne({ id: reasonId, status });
@@ -352,10 +384,7 @@ class Project extends BaseEntity {
       );
     }
 
-    if (
-      this.users.filter(o => o.id === user.id).length > 0 ||
-      user.id === Number(this.admin)
-    ) {
+    if (user.id === this.adminUser?.id) {
       return true;
     } else {
       throw new Error(
@@ -472,6 +501,11 @@ class ProjectUpdate extends BaseEntity {
   // does not call with createQueryBuilder
   @AfterInsert()
   async updateProjectStampOnCreation() {
+    await Project.update({ id: this.projectId }, { updatedAt: moment() });
+  }
+
+  @AfterUpdate()
+  async updateProjectStampOnUpdate() {
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 

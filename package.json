@@ -52,18 +52,19 @@
     "graphql": "^15.5.0",
     "graphql-tag": "^2.11.0",
     "graphql-upload": "^12.0.0",
-    "handlebars": "^4.7.7",
-    "honeyswap-sdk": "^1.0.0",
-    "html-pdf-node": "^1.0.7",
+    "handlebars": "4.7.7",
+    "honeyswap-sdk": "1.0.0",
+    "html-pdf-node": "1.0.8",
+    "husky": "4.3.8",
     "i": "^0.3.6",
     "ioredis": "^4.23.0",
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
-    "moment": "^2.29.1",
+    "moment": "^2.29.4",
     "monoswap": "0.3.14",
-    "node-cron": "^3.0.0",
+    "node-cron": "^3.0.2",
     "nodemailer": "^6.5.0",
-    "npm": "^7.6.1",
+    "npm": "8.11.0",
     "pg": "^8.5.1",
     "pgtools": "^0.3.2",
     "querystring": "^0.2.1",
@@ -80,7 +81,7 @@
     "typeorm": "0.2.38",
     "typeorm-typedi-extensions": "0.2.3",
     "typescript": "^3.9.9",
-    "web3": "^1.6.0",
+    "web3": "1.7.5",
     "wkhtmltopdf": "^0.3.4"
   },
   "lint-staged": {
@@ -97,14 +98,14 @@
     "@types/express-promise-router": "^3.0.0",
     "@types/mocha": "^8.2.1",
     "@types/node-cron": "^3.0.0",
-    "apollo": "^2.32.5",
-    "apollo-server-testing": "^2.21.0",
+    "apollo": "2.34.0",
+    "apollo-server-testing": "2.25.0",
     "chai": "^4.3.0",
-    "husky": "^4.3.8",
     "lint-staged": "^10.5.4",
     "mocha": "^8.3.0",
-    "node-fetch": ">=2.6.1",
+    "node-fetch": ">=3.2.10",
     "object-path": ">=0.11.5",
+    "patch-package": "^6.4.7",
     "prettier": "^2.4.1",
     "sinon": "^13.0.1",
     "ts-node": "^8.10.2",
@@ -118,11 +119,14 @@
     "tslint": "tslint -c tslint.json '{src,test}/**/*.ts'",
     "tslint:fix": "tslint -c tslint.json --fix '{src,test}/**/*.ts'",
     "test": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
+    "test:projectEntity": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/entities/project.test.ts",
     "test:userRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userRepository.test.ts",
     "test:statusReasonRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/statusReasonRepository.test.ts",
     "test:donationRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/donationRepository.test.ts",
     "test:socialProfileRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/socialProfileRepository.test.ts",
     "test:projectVerificationRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectVerificationRepository.test.ts",
+    "test:notifyDonationsWithSegment": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/cronJobs/notifyDonationsWithSegment.test.ts",
+    "test:checkProjectVerificationStatus": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/cronJobs/checkProjectVerificationStatus.test.ts",
     "test:statusReasonResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/statusReasonResolver.test.ts",
     "test:uploadResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/uploadResolver.test.ts",
     "test:traceImageUpload": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/traceImageUpload.test.ts",
@@ -139,6 +143,7 @@
     "test:reactionsService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/reactionsService.test.ts",
     "test:transactionsService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/transactionService.test.ts",
     "test:projectUpdatesService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/projectUpdatesService.test.ts",
+    "test:categoryResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/categoryResolver.test.ts",
     "test:apiGive": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/routers/apiGivRoutes.test.ts",
     "test:adminBro": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/server/adminBro.test.ts",
     "test:poignArt": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/poignArt/api.test.ts",
@@ -152,7 +157,13 @@
     "db:migrate:revert": "NODE_ENV=development npm run typeorm:cli -- migration:revert",
     "prettify": "prettier --write '**/*.ts*'",
     "db:migrate:seedToken:run": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:run",
-    "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert"
+    "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert",
+    "postinstall": "patch-package",
+    "build": "rm -rf ./build && tsc && mkdir ./build/config && mkdir ./build/src/server/components && cp -r ./src/server/components/* ./build/src/server/components/",
+    "dev": "NODE_ENV=development node ./build/src/index.js",
+    "production": "NODE_ENV=production node ./build/src/index.js",
+    "start:docker:server": "npm run typeorm:cli:live -- migration:run && npm run production",
+    "start:docker:locally": "npm run typeorm:cli -- migration:run && npm run dev"
   },
   "husky": {
     "hooks": {
@@ -166,6 +177,19 @@
   },
   "engines": {
     "node": ">=16.14.2"
+  },
+  "overrides": {
+    "admin-bro": {
+      "rollup-plugin-terser": "7.0.2"
+    },
+    "bull": {
+      "cron-parser": {
+        "moment-timezone": "0.5.37"
+      }
+    },
+    "find-versions": {
+      "semver-regex": "3.1.4"
+    }
   },
   "author": "James Farrell",
   "license": "ISC"
