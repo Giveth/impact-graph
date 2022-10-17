@@ -25,6 +25,7 @@ import {
   updateProjectVerificationFormStatusOnly,
 } from '../../repositories/projectVerificationRepository';
 import { SegmentAnalyticsSingleton } from '../segment/segmentAnalyticsSingleton';
+import { sleep } from '../../utils/utils';
 
 const analytics = new SegmentAnalyticsSingleton();
 
@@ -185,6 +186,8 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
     segmentProject,
     null,
   );
+
+  await sleep(1000);
 };
 
 const selectSegmentEvent = projectVerificationStatus => {
