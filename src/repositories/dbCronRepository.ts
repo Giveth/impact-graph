@@ -19,7 +19,7 @@ export const setupPgCronExtension = async () => {
 export const schedulePowerBoostingSnapshot = async (
   cronJobExpression: string,
 ) => {
-  const connection = getConnection();
+  const connection = getConnection('cron');
   await connection.query(`
       CREATE EXTENSION IF NOT EXISTS PG_CRON;
 
