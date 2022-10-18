@@ -132,13 +132,15 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   } else if (
     // After reminder at 60/75 days
     project.updatedAt <= maxDaysForSendingUpdateWarning &&
-    project.updatedAt > maxDaysForSendingUpdateLastWarning
+    project.updatedAt > maxDaysForSendingUpdateLastWarning &&
+    project.verificationStatus !== RevokeSteps.Warning
   ) {
     project.verificationStatus = RevokeSteps.Warning;
   } else if (
     // First email for reminding to add an update
     project.updatedAt <= maxDaysForSendingUpdateReminder &&
-    project.updatedAt > maxDaysForSendingUpdateWarning
+    project.updatedAt > maxDaysForSendingUpdateWarning &&
+    project.verificationStatus !== RevokeSteps.Reminder
   ) {
     project.verificationStatus = RevokeSteps.Reminder;
   }
