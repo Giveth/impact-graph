@@ -61,19 +61,18 @@ import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { getLoggedInUser } from '../services/authorizationServices';
 import {
-  getQualityScore,
   getAppropriateSlug,
+  getQualityScore,
 } from '../services/projectService';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
 import { findUserById } from '../repositories/userRepository';
 import {
-  getPurpleListAddresses,
-  removeRecipientAddressOfProject,
-  isWalletAddressInPurpleList,
-  findProjectRecipientAddressByProjectId,
   addBulkNewProjectAddress,
-  findAllRelatedAddressByWalletAddress,
+  findProjectRecipientAddressByProjectId,
+  getPurpleListAddresses,
+  isWalletAddressInPurpleList,
+  removeRecipientAddressOfProject,
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
@@ -580,7 +579,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.users', 'users')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
-      // you can alias it as user but it still is mapped as adminUser
+      // you can alias it as user, but it still is mapped as adminUser
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
@@ -593,8 +592,13 @@ export class ProjectResolver {
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      );
-
+      )
+      .leftJoin('project.projectPower', 'projectPower')
+      .addSelect([
+        'projectPower.totalPower',
+        'projectPower.powerRank',
+        'projectPower.round',
+      ]);
     // Filters
     query = ProjectResolver.addCategoryQuery(query, category);
     query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
@@ -658,6 +662,14 @@ export class ProjectResolver {
         query.andWhere(`project.${orderBy.field} = true`);
         query.orderBy(`project.${OrderField.CreationDate}`, orderBy.direction);
         break;
+      case OrderField.GIVPower:
+        query
+          .orderBy('projectPower.totalPower', orderBy.direction, 'NULLS LAST')
+          .addOrderBy(
+            `project.${OrderField.CreationDate}`,
+            OrderDirection.DESC,
+          );
+        break;
       default:
         query.orderBy(`project.${orderBy.field}`, orderBy.direction);
         break;
@@ -704,6 +716,12 @@ export class ProjectResolver {
         { isActive: true },
       )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoin('project.projectPower', 'projectPower')
+      .addSelect([
+        'projectPower.totalPower',
+        'projectPower.powerRank',
+        'projectPower.round',
+      ])
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
@@ -717,22 +735,30 @@ export class ProjectResolver {
 
     switch (sortingBy) {
       case SortingField.MostFunded:
-        query.orderBy('project.totalDonations', 'DESC');
+        query.orderBy('project.totalDonations', OrderDirection.DESC);
         break;
       case SortingField.MostLiked:
-        query.orderBy('project.totalReactions', 'DESC');
+        query.orderBy('project.totalReactions', OrderDirection.DESC);
         break;
       case SortingField.Newest:
-        query.orderBy('project.creationDate', 'DESC');
+        query.orderBy('project.creationDate', OrderDirection.DESC);
         break;
       case SortingField.Oldest:
-        query.orderBy('project.creationDate', 'ASC');
+        query.orderBy('project.creationDate', OrderDirection.ASC);
         break;
       case SortingField.QualityScore:
-        query.orderBy('project.qualityScore', 'DESC');
+        query.orderBy('project.qualityScore', OrderDirection.DESC);
+        break;
+      case SortingField.GIVPower:
+        query
+          .orderBy('projectPower.totalPower', OrderDirection.DESC, 'NULLS LAST')
+          .addOrderBy(
+            `project.${OrderField.CreationDate}`,
+            OrderDirection.DESC,
+          );
         break;
       default:
-        query.orderBy('project.qualityScore', 'DESC');
+        query.orderBy('project.qualityScore', OrderDirection.DESC);
         break;
     }
 
@@ -842,6 +868,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 

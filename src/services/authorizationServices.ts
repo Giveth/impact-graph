@@ -1,4 +1,3 @@
-import { User } from '../entities/user';
 import Axios from 'axios';
 import * as jwt from 'jsonwebtoken';
 import { errorMessages } from '../utils/errorMessages';

@@ -7,6 +7,8 @@ import {
   ManyToMany,
   BaseEntity,
   JoinTable,
+  UpdateDateColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { Project, ProjStatus } from './project';
 import { Donation } from './donation';
@@ -14,6 +16,8 @@ import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
+import { PowerBoosting } from './powerBoosting';
+import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
 
 export const publicSelectionFields = [
   'user.id',
@@ -133,6 +137,16 @@ export class User extends BaseEntity {
   )
   projectStatusHistories?: ProjectStatusHistory[];
 
+  @Field(type => [PowerBoosting], { nullable: true })
+  @OneToMany(type => PowerBoosting, powerBoosting => powerBoosting.user)
+  powerBoostings?: PowerBoosting[];
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
   @Field(type => Int, { nullable: true })
   async projectsCount() {
     const projectsCount = await Project.createQueryBuilder('project')
@@ -162,6 +176,10 @@ export class User extends BaseEntity {
       .getCount();
 
     return likedProjectsCount;
+  }
+  @Field(type => Int, { nullable: true })
+  async boostedProjectsCount() {
+    return findPowerBoostingsCountByUserId(this.id);
   }
 
   segmentUserId() {

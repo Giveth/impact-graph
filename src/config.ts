@@ -39,6 +39,9 @@ const envVars = [
   // 'XDAI_NODE_HTTP_URL',
   'SEGMENT_API_KEY',
   'TRACE_FILE_UPLOADER_PASSWORD',
+  'GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT',
+  'GIVPOWER_BOOSTING_PERCENTAGE_PRECISION',
+  'GIVPOWER_ROUND_DURATION',
 ];
 // tslint:disable-next-line:class-name
 interface requiredEnv {
@@ -76,6 +79,9 @@ interface requiredEnv {
   XDAI_NODE_HTTP_URL: string;
   SEGMENT_API_KEY: string;
   TRACE_FILE_UPLOADER_PASSWORD: string;
+  GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT: string;
+  GIVPOWER_BOOSTING_PERCENTAGE_PRECISION: string;
+  GIVPOWER_ROUND_DURATION: string;
 }
 
 class Config {

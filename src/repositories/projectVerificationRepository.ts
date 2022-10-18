@@ -10,7 +10,7 @@ import {
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
-import { Brackets, UpdateResult } from 'typeorm';
+import { UpdateResult } from 'typeorm';
 import { errorMessages } from '../utils/errorMessages';
 
 export const createProjectVerificationForm = async (params: {
