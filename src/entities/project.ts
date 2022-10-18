@@ -59,6 +59,7 @@ export enum SortingField {
   Newest = 'Newest',
   Oldest = 'Oldest',
   QualityScore = 'QualityScore',
+  GIVPower = 'GIVPower',
 }
 
 export enum OrderField {

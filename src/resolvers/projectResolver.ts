@@ -716,6 +716,12 @@ export class ProjectResolver {
         { isActive: true },
       )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoin('project.projectPower', 'projectPower')
+      .addSelect([
+        'projectPower.totalPower',
+        'projectPower.powerRank',
+        'projectPower.round',
+      ])
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
@@ -729,22 +735,30 @@ export class ProjectResolver {
 
     switch (sortingBy) {
       case SortingField.MostFunded:
-        query.orderBy('project.totalDonations', 'DESC');
+        query.orderBy('project.totalDonations', OrderDirection.DESC);
         break;
       case SortingField.MostLiked:
-        query.orderBy('project.totalReactions', 'DESC');
+        query.orderBy('project.totalReactions', OrderDirection.DESC);
         break;
       case SortingField.Newest:
-        query.orderBy('project.creationDate', 'DESC');
+        query.orderBy('project.creationDate', OrderDirection.DESC);
         break;
       case SortingField.Oldest:
-        query.orderBy('project.creationDate', 'ASC');
+        query.orderBy('project.creationDate', OrderDirection.ASC);
         break;
       case SortingField.QualityScore:
-        query.orderBy('project.qualityScore', 'DESC');
+        query.orderBy('project.qualityScore', OrderDirection.DESC);
+        break;
+      case SortingField.GIVPower:
+        query
+          .orderBy('projectPower.totalPower', OrderDirection.DESC, 'NULLS LAST')
+          .addOrderBy(
+            `project.${OrderField.CreationDate}`,
+            OrderDirection.DESC,
+          );
         break;
       default:
-        query.orderBy('project.qualityScore', 'DESC');
+        query.orderBy('project.qualityScore', OrderDirection.DESC);
         break;
     }
 

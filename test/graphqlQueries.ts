@@ -416,6 +416,11 @@ export const fetchMultiFilterAllProjectsQuery = `
           isRecipient
           networkId
         }
+        projectPower {
+          totalPower
+          powerRank
+          round
+        }
         totalReactions
         totalDonations
         totalTraceDonations

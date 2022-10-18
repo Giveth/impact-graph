@@ -1406,6 +1406,100 @@ function allProjectsTestCases() {
       Number(result2.data.data.allProjects.projects[0].id) === project.id,
     );
   });
+
+  it('should return projects, sort by project power DESC', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
+    const project4 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
+
+    const roundNumber = project3.id * 10;
+
+    await Promise.all(
+      [
+        [user1, project1, 10],
+        [user1, project2, 20],
+        [user1, project3, 30],
+        [user2, project1, 20],
+        [user2, project2, 40],
+        [user2, project3, 60],
+      ].map(item => {
+        const [user, project, percentage] = item as [User, Project, number];
+        return insertSinglePowerBoosting({
+          user,
+          project,
+          percentage,
+        });
+      }),
+    );
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 20000,
+    });
+
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+
+    let result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.GIVPower,
+      },
+    });
+
+    let projects = result.data.data.allProjects.projects;
+    assert.equal(projects[0].id, project3.id);
+    assert.equal(projects[1].id, project2.id);
+    assert.equal(projects[2].id, project1.id);
+    assert.equal(projects[3].id, project4.id);
+
+    assert.equal(projects[0].projectPower.powerRank, 1);
+    assert.equal(projects[1].projectPower.powerRank, 2);
+    assert.equal(projects[2].projectPower.powerRank, 3);
+    assert.equal(projects[3].projectPower.powerRank, 4);
+
+    result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.GIVPower,
+      },
+    });
+
+    projects = result.data.data.allProjects.projects;
+    const totalCount = projects.length;
+    for (let i = 1; i < totalCount - 1; i++) {
+      assert.isTrue(
+        projects[i].projectPower.totalPower <=
+          projects[i - 1].projectPower.totalPower,
+      );
+      assert.isTrue(
+        projects[i].projectPower.powerRank >=
+          projects[i - 1].projectPower.powerRank,
+      );
+    }
+  });
   it('should return projects, filtered by sub category', async () => {
     await saveProjectDirectlyToDb({
       ...createProjectData(),
