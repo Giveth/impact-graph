@@ -83,6 +83,10 @@ import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { NETWORK_IDS } from '../provider';
 import { getVerificationFormByProjectId } from '../repositories/projectVerificationRepository';
+import {
+  getDonationsQueryValidator,
+  validateWithJoiSchema,
+} from '../utils/validators/graphqlQueryValidators';
 
 const analytics = getAnalytics();
 
@@ -1061,7 +1065,7 @@ export class ProjectResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-  ) {
+  ): Promise<Number> {
     try {
       const query = this.projectRepository.createQueryBuilder('project');
 

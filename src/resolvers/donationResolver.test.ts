@@ -25,6 +25,7 @@ import {
   donationsFromWallets,
   createDonationMutation,
   updateDonationStatusMutation,
+  fetchTotalDonationsUsdAmount,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -44,11 +45,24 @@ describe('createDonation() test cases', createDonationTestCases);
 describe('updateDonationStatus() test cases', updateDonationStatusTestCases);
 describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
+// describe('donationsUsdAmount() test cases', donationsUsdAmountTestCases);
 
 // describe('tokens() test cases', tokensTestCases);
 
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
+
+// function donationsUsdAmountTestCases() {
+//   it('should return total usd amount for donations made in a time range', async () => {
+//     const donationsResponse = await axios.post(graphqlUrl, {
+//       query: fetchTotalDonationsUsdAmount,
+//       variables: {
+//         fromDate: '20221203',
+//         toDate: '20220215',
+//       },
+//     });
+//   });
+// }
 
 function donationsTestCases() {
   it('should throw error if send invalid fromDate format', async () => {
