@@ -261,6 +261,42 @@ export const donationsToWallets = `
   }
 `;
 
+export const fetchNewProjectsPerDate = `
+  query (
+    $fromDate: String
+    $toDate: String
+  ) {
+    projectsPerDate(
+      fromDate: $fromDate
+      toDate: $toDate
+    )
+  }
+`;
+
+export const fetchTotalDonationsUsdAmount = `
+  query (
+    $fromDate: String
+    $toDate: String
+  ) {
+    donorsCount(
+      fromDate: $fromDate
+      toDate: $toDate
+    )
+  }
+`;
+
+export const fetchTotalDonors = `
+  query (
+    $fromDate: String
+    $toDate: String
+  ) {
+    donationsUsdAmount(
+      fromDate: $fromDate
+      toDate: $toDate
+    )
+  }
+`;
+
 export const fetchAllDonationsQuery = `
   query (
     $fromDate: String

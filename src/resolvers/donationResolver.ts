@@ -58,6 +58,7 @@ import {
 import { findDonationById } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
+import { MainCategory } from '../entities/mainCategory';
 
 const analytics = getAnalytics();
 
@@ -175,12 +176,43 @@ export class DonationResolver {
     }
   }
 
-  @Query(returns => [Donation], { nullable: true })
-  async donationsAmount(
+  @Query(returns => Number, { nullable: true })
+  async donationsPerCategoryPerDate(
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ): Promise<any> {
+    try {
+      validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
+      const query = MainCategory.createQueryBuilder('mainCategory')
+        .select(
+          'mainCategory.id, mainCategory.title, mainCategory.slug, sum(d.valueUsd) as totalUsd',
+        )
+        .innerJoin('mainCategory.categories', 'categories')
+        .innerJoin('categories.projects', 'projects')
+        .innerJoin('projects.donations', 'donations')
+        .orderBy('mainCategory.id, mainCategory.title, totalUsd');
+
+      if (fromDate) {
+        query.andWhere(`donations."createdAt" >= '${fromDate}'`);
+      }
+      if (toDate) {
+        query.andWhere(`donations."createdAt" <= '${toDate}'`);
+      }
+
+      const result = await query.getRawMany();
+      return result;
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
+  @Query(returns => Number, { nullable: true })
+  async donationsUsdAmount(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-  ) {
+  ): Promise<Number> {
     try {
       validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
       const query = this.donationRepository
@@ -193,21 +225,21 @@ export class DonationResolver {
       if (toDate) {
         query.andWhere(`donation."createdAt" <= '${toDate}'`);
       }
-      const [sum] = await query.getRawOne();
+      const donationsUsdAmount = (await query.getRawOne())[0];
 
-      return sum;
+      return donationsUsdAmount;
     } catch (e) {
       logger.error('donations query error', e);
       throw e;
     }
   }
 
-  @Query(returns => [Donation], { nullable: true })
+  @Query(returns => Number, { nullable: true })
   async donorsCount(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-  ) {
+  ): Promise<Number> {
     try {
       validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
       const query = this.donationRepository
@@ -223,7 +255,8 @@ export class DonationResolver {
       if (toDate) {
         query.andWhere(`donation."createdAt" <= '${toDate}'`);
       }
-      const [donors] = await query.getRawOne();
+      const donors = (await query.getRawOne())[0];
+      return donors;
     } catch (e) {
       logger.error('donations query error', e);
       throw e;
