@@ -175,6 +175,87 @@ export class DonationResolver {
     }
   }
 
+  @Query(returns => [Donation], { nullable: true })
+  async donationsAmount(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ) {
+    try {
+      validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
+      const query = this.donationRepository
+        .createQueryBuilder('donation')
+        .select(`SUM(donation."valueUsd")`, 'sum');
+
+      if (fromDate) {
+        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+      }
+      if (toDate) {
+        query.andWhere(`donation."createdAt" <= '${toDate}'`);
+      }
+      const [sum] = await query.getRawOne();
+
+      return sum;
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
+  @Query(returns => [Donation], { nullable: true })
+  async donorsCount(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ) {
+    try {
+      validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
+      const query = this.donationRepository
+        .createQueryBuilder('donation')
+        .select(
+          `COUNT(DISTINCT(donation."userId")) + SUM(CASE WHEN donation."userId" IS NULL THEN 1 ELSE 0 END)`,
+          'count',
+        );
+
+      if (fromDate) {
+        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+      }
+      if (toDate) {
+        query.andWhere(`donation."createdAt" <= '${toDate}'`);
+      }
+      const [donors] = await query.getRawOne();
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
+  @Query(returns => [Donation], { nullable: true })
+  async donationsPerCategory(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ) {
+    try {
+      validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
+      const query = this.donationRepository
+        .createQueryBuilder('donation')
+        .leftJoinAndSelect('donation.project', 'project')
+        .leftJoinAndSelect('project.categories', 'categories');
+
+      if (fromDate) {
+        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+      }
+      if (toDate) {
+        query.andWhere(`donation."createdAt" <= '${toDate}'`);
+      }
+      return await query.getMany();
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
   // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
   async donationsFromWallets(
