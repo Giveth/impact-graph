@@ -14,7 +14,6 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_BADGE_UP_FOR_REVOKING = 'Project badge up for revoking',
   PROJECT_VERIFIED = 'Project verified',
 
-  // We dont have journey for "Project rejected" in autopilot so temporarily we send "Project unverified" event
   // https://github.com/Giveth/impact-graph/issues/624#issuecomment-1240364389
   PROJECT_REJECTED = 'Project unverified',
 
@@ -25,7 +24,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   SEND_EMAIL_CONFIRMATION = 'Send email confirmation',
   MADE_DONATION = 'Made donation',
   DONATION_RECEIVED = 'Donation received',
-  PROJECT_RECEIVED_HEART = 'Project received heart',
+  PROJECT_RECEIVED_HEART = 'project liked',
   PROJECT_UPDATED_DONOR = 'Project updated - donor',
   PROJECT_UPDATED_OWNER = 'Project updated - owner',
   PROJECT_CREATED = 'Project created',

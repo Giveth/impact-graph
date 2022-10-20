@@ -15,7 +15,7 @@ interface SendNotificationBody {
   sendEmail?: boolean;
   eventName: string;
   email?: string;
-  metadata: any;
+  metadata?: any;
   projectId: string;
   userWalletAddress: string;
 }
@@ -33,15 +33,10 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     donation: Donation;
     project: Project;
   }): Promise<void> {
-    const { project, donation } = params;
+    const { project } = params;
     return this.sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
-      metadata: {
-        amount: donation.amount,
-        currency: donation.currency,
-        valueUsd: donation.valueUsd,
-      },
     });
   }
 
@@ -50,22 +45,10 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
     donor: User;
   }): Promise<void> {
-    const { project, donation, donor } = params;
-
-    return this.callSendNotification({
+    const { project } = params;
+    return this.sendProjectRelatedNotification({
+      project,
       eventName: NOTIFICATIONS_EVENT_NAMES.MADE_DONATION,
-      email: donor?.email,
-
-      // currently Segment handle sending emails, so notification-center doesnt need to send that
-      sendEmail: false,
-      userWalletAddress: donor.walletAddress as string,
-      projectId: String(project.id),
-      metadata: {
-        amount: donation.amount,
-        currency: donation.currency,
-        valueUsd: donation.valueUsd,
-        projectSlug: project.slug,
-      },
     });
   }
 
@@ -81,13 +64,10 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
     user: User;
   }): Promise<void> {
-    const { project, user } = params;
+    const { project } = params;
     return this.sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_RECEIVED_HEART,
-      metadata: {
-        userName: user.name || 'Someone',
-      },
     });
   }
 
@@ -177,7 +157,8 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       userWalletAddress: String(project.adminUser?.walletAddress),
       projectId: String(project.id),
       metadata: {
-        projectSlug: project.slug,
+        projectTitle: project.title,
+        projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
         ...metadata,
       },
     });
