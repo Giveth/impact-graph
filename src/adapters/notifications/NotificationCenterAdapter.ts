@@ -62,7 +62,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async projectReceivedHeartReaction(params: {
     project: Project;
-    user: User;
   }): Promise<void> {
     const { project } = params;
     return this.sendProjectRelatedNotification({

@@ -209,7 +209,6 @@ export class ReactionResolver {
       const userWhoLiked = (await findUserById(user.userId)) as User;
       await getNotificationAdapter().projectReceivedHeartReaction({
         project,
-        user: userWhoLiked,
       });
       return reaction;
     } catch (e) {
