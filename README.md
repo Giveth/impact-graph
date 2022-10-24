@@ -226,11 +226,14 @@ Creating snapshot cronjob on digital ocean postgres database step:
 ```sql
 CREATE EXTENSION IF NOT EXISTS PG_CRON;
 SELECT CRON.schedule(
-    'take givpower boosting snapshot',
+    'take givpower boosting snapshot - develop',
     '*/5 * * * *',
     $$CALL public."TAKE_POWER_BOOSTING_SNAPSHOT"()$$);
 ```
+The first parameter is the job name which must be **unique per environment**. Otherwise, it will override another existing job with the same name.
+
 The cronjob expression above `*/5 * * * *` is for getting snapshot every 5 minutes in the test env. It can be a different schedule based on requirements.
+
 3. Find created job id by running
 ```sql
 SELECT * FROM cron.job
