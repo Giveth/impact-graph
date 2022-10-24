@@ -273,15 +273,14 @@ export const fetchNewProjectsPerDate = `
   }
 `;
 
-export const fetchTotalDonationsUsdAmount = `
-  query (
-    $fromDate: String
-    $toDate: String
-  ) {
-    donorsCount(
-      fromDate: $fromDate
-      toDate: $toDate
-    )
+export const fetchTotalDonationsPerCategoryPerDate = `
+  query {
+    totalDonationsPerCategory {
+      id
+      title
+      slug
+      totalUsd
+    }
   }
 `;
 
@@ -290,7 +289,19 @@ export const fetchTotalDonors = `
     $fromDate: String
     $toDate: String
   ) {
-    donationsUsdAmount(
+    totalDonorsCountPerDate(
+      fromDate: $fromDate
+      toDate: $toDate
+    )
+  }
+`;
+
+export const fetchTotalDonationsUsdAmount = `
+  query (
+    $fromDate: String
+    $toDate: String
+  ) {
+    donationsTotalUsdPerDate(
       fromDate: $fromDate
       toDate: $toDate
     )

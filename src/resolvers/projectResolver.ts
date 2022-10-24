@@ -1060,7 +1060,7 @@ export class ProjectResolver {
     throw Error('Upload file failed');
   }
 
-  @Query(returns => [Donation], { nullable: true })
+  @Query(returns => Number, { nullable: true })
   async projectsPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
@@ -1070,10 +1070,10 @@ export class ProjectResolver {
       const query = this.projectRepository.createQueryBuilder('project');
 
       if (fromDate) {
-        query.andWhere(`project."createdAt" >= '${fromDate}'`);
+        query.andWhere(`project."creationDate" >= '${fromDate}'`);
       }
       if (toDate) {
-        query.andWhere(`project."createdAt" <= '${toDate}'`);
+        query.andWhere(`project."creationDate" <= '${toDate}'`);
       }
       const projectCount = await query.getCount();
 
