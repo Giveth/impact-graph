@@ -257,6 +257,9 @@ export const createProjectData = (): CreateProjectData => {
 };
 export const createDonationData = (params?: {
   status?: string;
+  createdAt?: Date;
+  valueUsd?: number;
+  anonymous?: boolean;
 }): CreateDonationData => {
   return {
     transactionId: generateRandomTxHash(),
@@ -265,10 +268,10 @@ export const createDonationData = (params?: {
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
     currency: 'ETH',
     status: params?.status || DONATION_STATUS.PENDING,
-    anonymous: false,
+    anonymous: params?.anonymous || false,
     amount: 15,
-    valueUsd: 15,
-    createdAt: moment(),
+    valueUsd: params?.valueUsd || 15,
+    createdAt: params?.createdAt || moment().toDate(),
     segmentNotified: true,
   };
 };
@@ -1503,8 +1506,8 @@ export interface MainCategoryData {
 
 export const saveDonationDirectlyToDb = async (
   donationData: CreateDonationData,
-  userId: number,
-  projectId: number,
+  userId?: number,
+  projectId?: number,
 ) => {
   const user = (await User.findOne({
     id: userId,
