@@ -24,8 +24,10 @@ import {
   makeFormDraft,
   updateProjectVerificationFormStatusOnly,
 } from '../../repositories/projectVerificationRepository';
+import { SegmentAnalyticsSingleton } from '../segment/segmentAnalyticsSingleton';
+import { sleep } from '../../utils/utils';
 
-const analytics = getAnalytics();
+const analytics = SegmentAnalyticsSingleton.getInstance();
 
 // Every 3 months if no project verification was added, the project
 // Verification status will be revoked
@@ -180,12 +182,14 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
     description: project.description,
   };
 
-  analytics.track(
+  await analytics.track(
     selectSegmentEvent(project.verificationStatus),
     `givethId-${user?.id}`,
     segmentProject,
     null,
   );
+
+  await sleep(1000);
 };
 
 const selectSegmentEvent = projectVerificationStatus => {

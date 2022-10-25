@@ -42,6 +42,9 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
+import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
+import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 import { CronJob } from '../entities/CronJob';
 import {
   dropDbCronExtension,
