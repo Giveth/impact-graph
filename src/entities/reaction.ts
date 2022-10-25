@@ -10,6 +10,7 @@ import {
   Index,
 } from 'typeorm';
 import { Project, ProjectUpdate } from './project';
+import { User } from './user';
 
 @Entity()
 @ObjectType()
@@ -29,8 +30,12 @@ export class Reaction extends BaseEntity {
   @Column({ nullable: true })
   projectUpdateId: number;
 
+  @Field(type => User, { nullable: true })
+  @ManyToOne(type => User, { nullable: true })
+  user: User;
   @Field(type => ID)
   @Column()
+  @RelationId((reaction: Reaction) => reaction.user)
   userId: number;
 
   @Field(type => String)
