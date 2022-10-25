@@ -14,10 +14,7 @@ export interface NotificationAdapterInterface {
     donor: User;
   }): Promise<void>;
 
-  projectReceivedHeartReaction(params: {
-    project: Project;
-    user: User;
-  }): Promise<void>;
+  projectReceivedHeartReaction(params: { project: Project }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;
   projectUnVerified(params: { project: Project }): Promise<void>;
