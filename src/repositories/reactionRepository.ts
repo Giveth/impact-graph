@@ -1,20 +1,14 @@
 import { Reaction } from '../entities/reaction';
+import { User } from '../entities/user';
 
 export const findUsersWhoLikedProject = async (
   projectId: number,
 ): Promise<{ walletAddress: string; email?: string }[]> => {
-  const reactions = await Reaction.createQueryBuilder('reaction')
-    .leftJoin('reaction.user', 'user')
-    .addSelect(['user.walletAddress'])
+  return Reaction.createQueryBuilder('reaction')
+    .leftJoin(User, 'user', 'reaction.userId = user.id')
+    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
     .where(`"projectId"=:projectId`, {
       projectId,
     })
-    .getMany();
-
-  return reactions.map(reaction => {
-    return {
-      walletAddress: reaction.user.walletAddress?.toLowerCase() as string,
-      email: reaction.user.email,
-    };
-  });
+    .getRawMany();
 };

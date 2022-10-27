@@ -30,12 +30,11 @@ export class Reaction extends BaseEntity {
   @Column({ nullable: true })
   projectUpdateId: number;
 
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { nullable: true })
+  // We just fill it with join when making query so dont need to Add @Column or @ManyToOne
   user: User;
+
   @Field(type => ID)
   @Column()
-  @RelationId((reaction: Reaction) => reaction.user)
   userId: number;
 
   @Field(type => String)

@@ -76,19 +76,12 @@ export const findDonationById = async (
 export const findUsersWhoDonatedToProject = async (
   projectId: number,
 ): Promise<{ walletAddress: string; email?: string }[]> => {
-  const donations = await Donation.createQueryBuilder('donation')
+  return Donation.createQueryBuilder('donation')
     .leftJoin('donation.user', 'user')
-    .addSelect(['user.walletAddress', 'user.email'])
     .distinctOn(['user.walletAddress'])
+    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
     .where(`"projectId"=:projectId`, {
       projectId,
     })
-    .getMany();
-
-  return donations.map(donation => {
-    return {
-      walletAddress: donation.user.walletAddress?.toLowerCase() as string,
-      email: donation.user.email,
-    };
-  });
+    .getRawMany();
 };

@@ -27,17 +27,17 @@ function findUsersWhoLikedProjectTestCases() {
     );
     await Reaction.create({
       project,
-      user: firstUser1,
+      userId: firstUser1.id,
       reaction: 'heart',
     }).save();
     await Reaction.create({
       project,
-      user: firstUser2,
+      userId: firstUser2.id,
       reaction: 'heart',
     }).save();
     await Reaction.create({
       project,
-      user: firstUser3,
+      userId: firstUser3.id,
       reaction: 'heart',
     }).save();
 
