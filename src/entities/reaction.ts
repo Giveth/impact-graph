@@ -10,6 +10,7 @@ import {
   Index,
 } from 'typeorm';
 import { Project, ProjectUpdate } from './project';
+import { User } from './user';
 
 @Entity()
 @ObjectType()
@@ -28,6 +29,9 @@ export class Reaction extends BaseEntity {
   @Field(type => ID, { nullable: true })
   @Column({ nullable: true })
   projectUpdateId: number;
+
+  // We just fill it with join when making query so dont need to Add @Column or @ManyToOne
+  user: User;
 
   @Field(type => ID)
   @Column()

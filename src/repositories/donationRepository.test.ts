@@ -5,6 +5,7 @@ import {
   generateRandomTxHash,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
+  saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
 import { User, UserRole } from '../entities/user';
@@ -13,6 +14,7 @@ import {
   createDonation,
   findDonationById,
   findDonationsByTransactionId,
+  findUsersWhoDonatedToProject,
 } from './donationRepository';
 
 describe('createDonation test cases', () => {
@@ -55,6 +57,10 @@ describe(
   findDonationsByTransactionIdTestCases,
 );
 describe('findDonationById() test cases', findDonationByIdTestCases);
+describe(
+  'findUsersWhoDonatedToProject() test cases',
+  findUsersWhoDonatedToProjectTestCases,
+);
 
 function findDonationsByTransactionIdTestCases() {
   it('should return donation with txHash ', async () => {
@@ -117,5 +123,52 @@ function findDonationByIdTestCases() {
   it('should not return donation with invalid id ', async () => {
     const fetchedDonation = await findDonationById(10000000);
     assert.isNotOk(fetchedDonation);
+  });
+}
+
+function findUsersWhoDonatedToProjectTestCases() {
+  it('should find wallet addresses of who donated to a project', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor2.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor3.id, project.id);
+    const users = await findUsersWhoDonatedToProject(project.id);
+    assert.equal(users.length, 3);
+    assert.isOk(
+      users.find(user => user.walletAddress === donor1.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === donor2.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === donor3.walletAddress),
+    );
+  });
+  it('should find wallet addresses of who donated to a project, not include repetitive items', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor2.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor2.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor3.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor3.id, project.id);
+    const users = await findUsersWhoDonatedToProject(project.id);
+    assert.equal(users.length, 3);
+    assert.isOk(
+      users.find(user => user.walletAddress === donor1.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === donor2.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === donor3.walletAddress),
+    );
   });
 }

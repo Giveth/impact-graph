@@ -126,6 +126,7 @@
     "test:userRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userRepository.test.ts",
     "test:statusReasonRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/statusReasonRepository.test.ts",
     "test:donationRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/donationRepository.test.ts",
+    "test:reactionRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/reactionRepository.test.ts",
     "test:socialProfileRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/socialProfileRepository.test.ts",
     "test:powerBalanceSnapshotRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerBalanceSnapshotRepository.test.ts",
     "test:projectVerificationRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectVerificationRepository.test.ts",
