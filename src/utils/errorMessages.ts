@@ -1,7 +1,9 @@
+// tslint:disable:no-var-requires
+const i18n = require('i18n');
+
 export const errorMessages = {
-  SPECIFY_GIV_POWER_ADAPTER: 'Specify givPower adapter',
-  CHANGE_API_INVALID_TITLE_OR_EIN:
-    'ChangeAPI title or EIN not found or invalid',
+  SPECIFY_GIV_POWER_ADAPTER: i18n.__('SPECIFY_GIV_POWER_ADAPTER'),
+  CHANGE_API_INVALID_TITLE_OR_EIN: i18n.__('SPECIFY_GIV_POWER_ADAPTER'),
   INVALID_SOCIAL_NETWORK: 'Invalid social network',
   IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT:
     'It should have one or two wallet recipient addresses',

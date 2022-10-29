@@ -53,17 +53,24 @@ import {
 import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
+import path from 'path';
 
 // tslint:disable:no-var-requires
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const i18n = require('i18n'); // init singleton
 
 // register 3rd party IOC container
 
 Resource.validate = validate;
 
-// AdminBro.registerAdapter({ Database, Resource });
+i18n.configure({
+  locales: ['en', 'es'],
+  directory: path.join(__dirname, '/locales'),
+  defaultLocale: 'en',
+  header: 'accept-language',
+});
 
 export async function bootstrap() {
   try {
@@ -257,6 +264,7 @@ export async function bootstrap() {
         return false;
       },
     });
+    app.use(i18n.init);
     app.use(limiter);
     app.use(
       '/graphql',
