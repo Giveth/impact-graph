@@ -72,6 +72,11 @@ i18n.configure({
   header: 'accept-language',
 });
 
+// const i18nHelper = (req, res, next) => {
+//   res.locals.__ = i18n.__;
+//   return next();
+// };
+
 export async function bootstrap() {
   try {
     TypeORM.useContainer(Container);
@@ -264,7 +269,6 @@ export async function bootstrap() {
         return false;
       },
     });
-    app.use(i18n.init);
     app.use(limiter);
     app.use(
       '/graphql',
