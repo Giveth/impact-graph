@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectPowerView1662915983382 implements MigrationInterface {
+export class ProjectPowerView1662915983383 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
