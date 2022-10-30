@@ -86,6 +86,7 @@ import { NETWORK_IDS } from '../provider';
 import { getVerificationFormByProjectId } from '../repositories/projectVerificationRepository';
 import {
   getDonationsQueryValidator,
+  resourcePerDateReportValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 
@@ -1040,6 +1041,10 @@ export class ProjectResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
   ): Promise<Number> {
     try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
       const query = this.projectRepository.createQueryBuilder('project');
 
       if (fromDate) {
