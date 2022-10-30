@@ -23,7 +23,7 @@ import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
 import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
-import { ProjectPowerView1662915983382 } from '../migration/1662915983382-ProjectPowerView';
+import { ProjectPowerView1662915983383 } from '../migration/1662915983383-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895750 } from '../migration/1663594895750-takePowerSnapshotProcedure';
 
 // This can also be a connection string
@@ -296,7 +296,7 @@ async function runMigrations() {
 
   try {
     const userProjectPowerView = new UserProjectPowerView1662877385339();
-    const projectPowerView = new ProjectPowerView1662915983382();
+    const projectPowerView = new ProjectPowerView1662915983383();
     const takeSnapshotProcedure =
       new TakePowerBoostingSnapshotProcedure1663594895750();
 
