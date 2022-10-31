@@ -46,6 +46,7 @@ import { from } from 'form-data';
 import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
+  resourcePerDateReportValidator,
   updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
@@ -228,7 +229,10 @@ export class DonationResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
   ): Promise<Number> {
     try {
-      // validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
       const query = this.donationRepository
         .createQueryBuilder('donation')
         .select(`COALESCE(SUM(donation."valueUsd"), 0)`, 'sum')
@@ -256,7 +260,10 @@ export class DonationResolver {
     @Arg('toDate', { nullable: true }) toDate?: string,
   ): Promise<Number> {
     try {
-      // validateWithJoiSchema({ fromDate, toDate }, getDonationsQueryValidator);
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
       const query = this.donationRepository
         .createQueryBuilder('donation')
         .select(

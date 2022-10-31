@@ -133,7 +133,7 @@ export async function bootstrap() {
       uploads: false,
       schema,
       context: async ({ req, res }: any) => {
-        let token;
+        let token: string = '';
         try {
           if (!req) {
             return null;

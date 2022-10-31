@@ -83,6 +83,24 @@ function totalDonationsPerCategoryPerDateTestCases() {
 }
 
 function donorsCountPerDateTestCases() {
+  it('should return not return data if the date is not yyyy-mm-dd', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await saveUserDirectlyToDb(walletAddress);
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonors,
+      variables: {
+        fromDate: '2012-30-32',
+        toDate: '2012:30:32',
+      },
+    });
+    assert.isOk(donationsResponse);
+    assert.isNotEmpty(donationsResponse.data.errors[0]);
+    assert.equal(
+      donationsResponse.data.errors[0].message,
+      errorMessages.INVALID_DATE_FORMAT,
+    );
+  });
   it('should return donors unique total count in a time range', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
