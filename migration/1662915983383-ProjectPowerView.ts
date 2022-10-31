@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectPowerView1662915983382 implements MigrationInterface {
+export class ProjectPowerView1662915983383 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
@@ -19,35 +19,36 @@ export class ProjectPowerView1662915983382 implements MigrationInterface {
                 (
                   SELECT 
                     project.id AS "projectId", 
-                    COALESCE(
+                    CASE project.verified WHEN false THEN 0 :: double precision ELSE COALESCE(
                       sum(pp."boostedPower"), 
                       0 :: double precision
-                    ) AS "totalPower"
+                    ) END AS "totalPower"
                   FROM 
                     project project 
                     LEFT JOIN (
                       SELECT 
-                        "powerRound".ROUND, 
-                        "powerBoostingSnapshot"."projectId" as "projectId", 
-                        "powerBoostingSnapshot"."userId" as "userId", 
+                        "powerRound".round, 
+                        "powerBoostingSnapshot"."projectId", 
+                        "powerBoostingSnapshot"."userId", 
                         avg(
-                          "powerBalanceSnapshot".balance * "powerBoostingSnapshot".PERCENTAGE :: double precision / 100 :: double precision
+                          "powerBalanceSnapshot".balance * "powerBoostingSnapshot".percentage :: double precision / 100 :: double precision
                         ) AS "boostedPower", 
-                        NOW() AS "updateTime" 
+                        now() AS "updateTime" 
                       FROM 
-                        POWER_ROUND "powerRound" 
-                        JOIN POWER_SNAPSHOT "powerSnapshot" ON "powerSnapshot"."roundNumber" = "powerRound".ROUND 
-                        JOIN POWER_BALANCE_SNAPSHOT "powerBalanceSnapshot" ON "powerBalanceSnapshot"."powerSnapshotId" = "powerSnapshot".id 
-                        JOIN POWER_BOOSTING_SNAPSHOT "powerBoostingSnapshot" ON "powerBoostingSnapshot"."powerSnapshotId" = "powerSnapshot".id 
-                        and "powerBoostingSnapshot"."userId" = "powerBalanceSnapshot"."userId" 
-                      group by 
-                        round, 
+                        power_round "powerRound" 
+                        JOIN power_snapshot "powerSnapshot" ON "powerSnapshot"."roundNumber" = "powerRound".round 
+                        JOIN power_balance_snapshot "powerBalanceSnapshot" ON "powerBalanceSnapshot"."powerSnapshotId" = "powerSnapshot".id 
+                        JOIN power_boosting_snapshot "powerBoostingSnapshot" ON "powerBoostingSnapshot"."powerSnapshotId" = "powerSnapshot".id 
+                        AND "powerBoostingSnapshot"."userId" = "powerBalanceSnapshot"."userId" 
+                      GROUP BY 
+                        "powerRound".round, 
                         "powerBoostingSnapshot"."projectId", 
                         "powerBoostingSnapshot"."userId"
                     ) pp ON pp."projectId" = project.id 
                   GROUP BY 
                     project.id
-                ) innerview, power_round as "powerRound"
+                ) innerview, 
+                power_round "powerRound" 
               ORDER BY 
                 innerview."totalPower" DESC WITH DATA;
               CREATE INDEX project_power_view_project_id ON public.project_power_view USING hash ("projectId") TABLESPACE pg_default;
