@@ -176,7 +176,13 @@ export class DonationResolver {
         .leftJoin('donation.user', 'user')
         .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project')
-        .leftJoinAndSelect('project.categories', 'categories');
+        .leftJoinAndSelect('project.categories', 'categories')
+        .leftJoin('project.projectPower', 'projectPower')
+        .addSelect([
+          'projectPower.totalPower',
+          'projectPower.powerRank',
+          'projectPower.round',
+        ]);
 
       if (fromDate) {
         query.andWhere(`donation."createdAt" >= '${fromDate}'`);

@@ -106,10 +106,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
     donor: User;
   }): Promise<void> {
-    const { project } = params;
+    const { project, donor } = params;
     return this.sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.MADE_DONATION,
+      user: {
+        email: donor.email,
+        walletAddress: donor.walletAddress as string,
+      },
     });
   }
 
