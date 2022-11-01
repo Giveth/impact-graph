@@ -33,7 +33,7 @@ import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
-import { errorMessages } from '../utils/errorMessages';
+import { errorMessages, i18n } from '../utils/errorMessages';
 import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 import { apiGivRouter } from '../routers/apiGivRoutes';
 import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
@@ -59,23 +59,10 @@ import path from 'path';
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const i18n = require('i18n'); // init singleton
 
 // register 3rd party IOC container
 
 Resource.validate = validate;
-
-i18n.configure({
-  locales: ['en', 'es'],
-  directory: path.join(__dirname, '/locales'),
-  defaultLocale: 'en',
-  header: 'accept-language',
-});
-
-// const i18nHelper = (req, res, next) => {
-//   res.locals.__ = i18n.__;
-//   return next();
-// };
 
 export async function bootstrap() {
   try {
@@ -242,6 +229,7 @@ export async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       },
     };
+    app.use(i18n.init); // accept-language header
     app.use(cors(corsOptions));
     app.use(
       bodyParser.json({

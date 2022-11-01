@@ -35,7 +35,7 @@ import {
   walletAddressIsValid,
 } from '../../test/graphqlQueries';
 import { CreateProjectInput, UpdateProjectInput } from './types/project-input';
-import { errorMessages } from '../utils/errorMessages';
+import { errorMessages, i18n } from '../utils/errorMessages';
 import {
   Project,
   ProjectUpdate,
@@ -1874,12 +1874,26 @@ function createProjectTestCases() {
         },
       ],
     };
-    const result = await axios.post(graphqlUrl, {
-      query: createProjectQuery,
-      variables: {
-        project: sampleProject,
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
       },
-    });
+      {
+        headers: {
+          'accept-language': 'es',
+        },
+      },
+    );
+
+    // testing purposes
+    i18n.setLocale('es');
+    const r = i18n.__('SPECIFY_GIV_POWER_ADAPTER');
+
+    const x = errorMessages.AUTHENTICATION_REQUIRED;
 
     assert.equal(result.status, 200);
     assert.equal(

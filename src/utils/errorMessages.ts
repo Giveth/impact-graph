@@ -1,5 +1,14 @@
+import path from 'path';
+
 // tslint:disable:no-var-requires
-const i18n = require('i18n');
+export const i18n = require('i18n');
+
+i18n.configure({
+  locales: ['en', 'es'],
+  directory: path.join('./', 'locales'),
+  defaultLocale: 'en',
+  header: 'accept-language',
+});
 
 export const errorMessages = {
   SPECIFY_GIV_POWER_ADAPTER: i18n.__('SPECIFY_GIV_POWER_ADAPTER'),
