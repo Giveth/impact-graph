@@ -9,7 +9,11 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
@@ -97,7 +101,9 @@ export class UserProjectPowerResolver {
   ): Promise<UserProjectPowers> {
     if (!projectId && !userId) {
       throw new Error(
-        errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
+        i18n.__(
+          translationErrorMessagesKeys.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
+        ),
       );
     }
     const [userProjectPowers, totalCount] = await getUserProjectPowers({

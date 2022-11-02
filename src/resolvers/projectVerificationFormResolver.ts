@@ -1,6 +1,10 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import { MyContext } from '../types/MyContext';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   createProjectVerificationRequestValidator,
   getCurrentProjectVerificationRequestValidator,
@@ -55,7 +59,11 @@ export class ProjectVerificationFormResolver {
         );
 
       if (!isValidToken) {
-        throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND,
+          ),
+        );
       }
 
       const decodedJwt: any = jwt.verify(emailConfirmationToken, secret);
@@ -65,7 +73,11 @@ export class ProjectVerificationFormResolver {
       );
 
       if (!projectVerificationForm) {
-        throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND,
+          ),
+        );
       }
 
       projectVerificationForm.emailConfirmationTokenExpiredAt = null;
@@ -88,7 +100,11 @@ export class ProjectVerificationFormResolver {
         );
 
       if (!projectVerificationForm) {
-        throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND,
+          ),
+        );
       }
 
       projectVerificationForm.emailConfirmed = false;
@@ -112,7 +128,7 @@ export class ProjectVerificationFormResolver {
     try {
       const userId = user?.userId;
       if (!userId) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
 
       const projectVerificationForm = await findProjectVerificationFormById(
@@ -120,28 +136,40 @@ export class ProjectVerificationFormResolver {
       );
 
       if (!projectVerificationForm) {
-        throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND,
+          ),
+        );
       }
       if (projectVerificationForm.userId !== userId) {
         throw new Error(
-          errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
+          i18n.__(
+            translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
+          ),
         );
       }
       const email = projectVerificationForm.personalInfo.email;
       const project = await findProjectById(projectVerificationForm.projectId);
       if (!project) {
-        throw new Error(errorMessages.PROJECT_NOT_FOUND);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+        );
       }
       if (!email) {
         throw new Error(
-          errorMessages.YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL,
+          i18n.__(
+            translationErrorMessagesKeys.YOU_SHOULD_FILL_EMAIL_PERSONAL_INFO_BEFORE_CONFIRMING_EMAIL,
+          ),
         );
       }
       if (
         email === projectVerificationForm.email &&
         projectVerificationForm.emailConfirmed
       ) {
-        throw new Error(errorMessages.YOU_ALREADY_VERIFIED_THIS_EMAIL);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.YOU_ALREADY_VERIFIED_THIS_EMAIL),
+        );
       }
 
       const token = jwt.sign(
@@ -192,7 +220,7 @@ export class ProjectVerificationFormResolver {
     try {
       const userId = user?.userId;
       if (!userId) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       validateWithJoiSchema(
         {
@@ -202,19 +230,29 @@ export class ProjectVerificationFormResolver {
       );
       const project = await findProjectBySlug(slug);
       if (!project) {
-        throw new Error(errorMessages.PROJECT_NOT_FOUND);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+        );
       }
       if (Number(project.admin) !== userId) {
-        throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
+          ),
+        );
       }
       if (project.verified) {
-        throw new Error(errorMessages.PROJECT_IS_ALREADY_VERIFIED);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_IS_ALREADY_VERIFIED),
+        );
       }
 
       const verificationForm = await getVerificationFormByProjectId(project.id);
       if (verificationForm) {
         throw new Error(
-          errorMessages.THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT,
+          i18n.__(
+            translationErrorMessagesKeys.THERE_IS_AN_ONGOING_VERIFICATION_REQUEST_FOR_THIS_PROJECT,
+          ),
         );
       }
       return createProjectVerificationForm({
@@ -237,24 +275,32 @@ export class ProjectVerificationFormResolver {
       const userId = user?.userId;
       const { projectVerificationId } = projectVerificationUpdateInput;
       if (!userId) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
 
       const projectVerificationForm = await findProjectVerificationFormById(
         projectVerificationId,
       );
       if (!projectVerificationForm) {
-        throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND,
+          ),
+        );
       }
       if (projectVerificationForm.userId !== userId) {
         throw new Error(
-          errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
+          i18n.__(
+            translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
+          ),
         );
       }
       if (
         projectVerificationForm.status !== PROJECT_VERIFICATION_STATUSES.DRAFT
       ) {
-        throw new Error(errorMessages.PROJECT_IS_ALREADY_VERIFIED);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_IS_ALREADY_VERIFIED),
+        );
       }
       const verificationForm = await updateProjectVerificationFormByUser({
         projectVerificationForm,
@@ -276,7 +322,7 @@ export class ProjectVerificationFormResolver {
     try {
       const userId = user?.userId;
       if (!userId) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       validateWithJoiSchema(
         {
@@ -286,16 +332,24 @@ export class ProjectVerificationFormResolver {
       );
       const project = await findProjectBySlug(slug);
       if (!project) {
-        throw new Error(errorMessages.PROJECT_NOT_FOUND);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+        );
       }
       if (Number(project.admin) !== userId) {
-        throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
+          ),
+        );
       }
 
       const verificationForm = await getVerificationFormByProjectId(project.id);
       if (!verificationForm) {
         throw new Error(
-          errorMessages.THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT,
+          i18n.__(
+            translationErrorMessagesKeys.THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT,
+          ),
         );
       }
       return verificationForm;

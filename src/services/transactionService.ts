@@ -3,7 +3,11 @@ import {
   findTokenByNetworkAndAddress,
   findTokenByNetworkAndSymbol,
 } from '../utils/tokenUtils';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
@@ -40,7 +44,9 @@ export async function getTransactionInfoFromNetwork(
       userTransactionsCount,
     });
     throw new Error(
-      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
+      ),
     );
   }
   let transaction: NetworkTransactionInfo | null = await findTransactionByHash(
@@ -59,13 +65,21 @@ export async function getTransactionInfoFromNetwork(
     // so this is not speedup for sure
     const timeNow = new Date().getTime() / 1000; // in seconds
     if (input.timestamp - timeNow < ONE_HOUR) {
-      throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
+      );
     }
 
-    throw new Error(errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
+      ),
+    );
   }
   if (!transaction) {
-    throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
+    );
   }
   validateTransactionWithInputData(transaction, input);
   return transaction;
@@ -102,7 +116,9 @@ async function findTransactionByNonce(data: {
         address: input.fromAddress,
       },
     );
-    throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
+    );
   }
   const foundTransaction = userRecentTransactions.find(
     tx => tx.nonce === input.nonce,
@@ -127,7 +143,11 @@ async function findTransactionByNonce(data: {
     });
     // because the list is descending if the nonce is greater than our desired nonce,
     // the other transactions nonce will not match out transaction so we throw exception
-    throw new Error(errorMessages.TRANSACTION_NOT_FOUNT_IN_USER_HISTORY);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_NOT_FOUNT_IN_USER_HISTORY,
+      ),
+    );
   }
 
   return findTransactionByNonce({
@@ -201,7 +221,11 @@ async function getTransactionDetailForNormalTransfer(
     return null;
   }
   if (!receipt.status) {
-    throw new Error(errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+      ),
+    );
   }
   const block = await getNetworkWeb3(networkId).eth.getBlock(
     transaction.blockNumber as number,
@@ -239,7 +263,9 @@ async function getTransactionDetailForTokenTransfer(
     transaction.to?.toLowerCase() !== token.address.toLowerCase()
   ) {
     throw new Error(
-      errorMessages.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
+      ),
     );
   }
 
@@ -249,7 +275,11 @@ async function getTransactionDetailForTokenTransfer(
     return null;
   }
   if (!receipt.status) {
-    throw new Error(errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+      ),
+    );
   }
 
   const transactionData = abiDecoder.decodeMethod(transaction.input);
@@ -278,30 +308,43 @@ function validateTransactionWithInputData(
 ): never | void {
   if (transaction.to.toLowerCase() !== input.toAddress.toLowerCase()) {
     throw new Error(
-      errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
+      ),
     );
   }
 
   if (transaction.from.toLowerCase() !== input.fromAddress.toLowerCase()) {
     throw new Error(
-      errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
+      ),
     );
   }
   if (Math.abs(transaction.amount - input.amount) > 0.001) {
     // We ignore small conflicts but for bigger amount we throw exception https://github.com/Giveth/impact-graph/issues/289
     throw new Error(
-      errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
+      ),
     );
   }
 
   if (input.timestamp - transaction.timestamp > ONE_HOUR) {
     // because we first create donation, then transaction will be mined, the transaction always should be greater than
     // donation created time, but we set one hour because maybe our server time is different with blockchain time server
-    logger.debug('errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION', {
-      transaction,
-      input,
-    });
-    throw new Error(errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION);
+    logger.debug(
+      'i18n.__(translationErrorMessagesKeys.TRANSACTION_CANT_BE_OLDER_THAN_DONATION)',
+      {
+        transaction,
+        input,
+      },
+    );
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
+      ),
+    );
   }
 }
 
@@ -340,7 +383,7 @@ export const getDisperseTransactions = async (
     recipients = transactionData.params[1].value;
     amounts = transactionData.params[2].value;
   } else {
-    throw new Error(errorMessages.INVALID_FUNCTION);
+    throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_FUNCTION));
   }
   for (let i = 0; i < recipients.length; i++) {
     transactions.push({

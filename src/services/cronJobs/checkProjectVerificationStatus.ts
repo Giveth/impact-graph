@@ -15,7 +15,11 @@ import config from '../../config';
 import { logger } from '../../utils/logger';
 import moment = require('moment');
 import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository';
-import { errorMessages } from '../../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages';
 import {
   ProjectVerificationForm,
   PROJECT_VERIFICATION_STATUSES,
@@ -205,6 +209,10 @@ const selectSegmentEvent = projectVerificationStatus => {
     case RevokeSteps.UpForRevoking:
       return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_UP_FOR_REVOKING;
     default:
-      throw new Error(errorMessages.INVALID_VERIFICATION_REVOKE_STATUS);
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.INVALID_VERIFICATION_REVOKE_STATUS,
+        ),
+      );
   }
 };

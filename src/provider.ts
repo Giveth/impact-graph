@@ -1,7 +1,11 @@
 import config from './config';
 import { ethers } from 'ethers';
 import Web3 from 'web3';
-import { errorMessages } from './utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from './utils/errorMessages';
 
 const INFURA_API_KEY = config.get('INFURA_API_KEY');
 
@@ -77,7 +81,7 @@ export function getNetworkNativeToken(networkId: number): string {
     return item.networkId === networkId;
   });
   if (!networkInfo) {
-    throw new Error(errorMessages.INVALID_NETWORK_ID);
+    throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
   return networkInfo.nativeToken;
 }
@@ -103,7 +107,7 @@ export const getNetworkWeb3 = (networkId: number): Web3 => {
     case NETWORK_IDS.XDAI:
       return xdaiWeb3;
     default:
-      throw new Error(errorMessages.INVALID_NETWORK_ID);
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
 };
 
@@ -141,6 +145,6 @@ export function getEtherscanOrBlockScoutUrl(networkId: number): string {
         'ETHERSCAN_API_KEY',
       )}`;
     default:
-      throw new Error(errorMessages.INVALID_NETWORK_ID);
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
 }

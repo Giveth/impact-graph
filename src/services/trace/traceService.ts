@@ -1,5 +1,9 @@
 import { Project, ProjStatus } from '../../entities/project';
-import { errorMessages } from '../../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages';
 import { ProjectStatus } from '../../entities/projectStatus';
 import { RedisOptions } from 'ioredis';
 import { logger } from '../../utils/logger';
@@ -94,7 +98,9 @@ export const initHandlingTraceCampaignUpdateEvents = () => {
       logger.debug('updateGivethIoProjectQueue(), job.data', job.data);
       const project = await Project.findOne(givethIoProjectId);
       if (!project) {
-        throw new Error(errorMessages.PROJECT_NOT_FOUND);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+        );
       }
       project.traceCampaignId = campaignId;
       project.isImported = true;

@@ -2,7 +2,11 @@ import { UpdateResult } from 'typeorm';
 import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { ProjectAddress } from '../entities/projectAddress';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { Reaction } from '../entities/reaction';
 import { publicSelectionFields } from '../entities/user';
 
@@ -97,7 +101,8 @@ export const verifyProject = async (params: {
 }): Promise<Project> => {
   const project = await Project.findOne({ id: params.projectId });
 
-  if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+  if (!project)
+    throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
 
   project.verified = params.verified;
   if (params.verified) project.verificationStatus = null; // reset this field

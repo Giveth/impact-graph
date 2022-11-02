@@ -20,7 +20,11 @@ import {
   getAnalytics,
   NOTIFICATIONS_EVENT_NAMES,
 } from '../analytics/analytics';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { Project } from '../entities/project';
 import { validateEmail } from '../utils/validators/commonValidators';
 import {
@@ -72,21 +76,30 @@ export class UserResolver {
     @Arg('avatar', { nullable: true }) avatar: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
     const dbUser = await findUserById(user.userId);
     if (!dbUser) {
       return false;
     }
     if (!dbUser.name && !firstName && !lastName) {
       throw new Error(
-        errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
+        i18n.__(
+          translationErrorMessagesKeys.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
+        ),
       );
     }
     if (firstName === '') {
-      throw new Error(errorMessages.FIRSTNAME_CANT_BE_EMPTY_STRING);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.FIRSTNAME_CANT_BE_EMPTY_STRING),
+      );
     }
     if (lastName === '') {
-      throw new Error(errorMessages.LASTNAME_CANT_BE_EMPTY_STRING);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.LASTNAME_CANT_BE_EMPTY_STRING),
+      );
     }
     if (firstName) {
       dbUser.firstName = firstName;
@@ -100,7 +113,7 @@ export class UserResolver {
     if (email !== undefined) {
       // User can unset his email by putting empty string
       if (!validateEmail(email)) {
-        throw new Error(errorMessages.INVALID_EMAIL);
+        throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_EMAIL));
       }
       dbUser.email = email;
     }
@@ -141,10 +154,14 @@ export class UserResolver {
     verificationsInput: AccountVerificationInput[],
     @Ctx() { req: { user } }: MyContext,
   ): Promise<boolean> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
     const currentUser = await findUserById(user.userId);
-    if (!currentUser) throw new Error(errorMessages.USER_NOT_FOUND);
+    if (!currentUser)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
 
     currentUser.dId = dId;
     await currentUser.save();

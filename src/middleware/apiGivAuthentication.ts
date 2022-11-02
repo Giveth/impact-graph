@@ -1,5 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   createBasicAuthentication,
   decodeBasicAuthentication,
@@ -21,7 +25,7 @@ export const apiGivAuthentication = (
     const basicAuthenticationData =
       decodeBasicAuthentication(basicAuthentication);
     if (!basicAuthenticationData) {
-      throw new Error(errorMessages.UN_AUTHORIZED);
+      throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
     }
     const username = basicAuthenticationData?.split(':')[0];
     const password = basicAuthenticationData?.split(':')[1];
@@ -32,7 +36,7 @@ export const apiGivAuthentication = (
       username !== process.env.API_GIV_USERNAME ||
       password !== process.env.API_GIV_PASSWORD
     ) {
-      throw new Error(errorMessages.UN_AUTHORIZED);
+      throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
     }
 
     next();
@@ -40,7 +44,10 @@ export const apiGivAuthentication = (
     logger.error('apiGivAuthentication error', e);
     handleExpressError(
       res,
-      new ApiGivStandardError(errorMessages.UN_AUTHORIZED, 401),
+      new ApiGivStandardError(
+        i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED),
+        401,
+      ),
     );
   }
 };

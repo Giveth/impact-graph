@@ -29,7 +29,11 @@ import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
 import { SocialProfile } from './socialProfile';
@@ -390,7 +394,9 @@ class Project extends BaseEntity {
   mayUpdateStatus(user: User) {
     if (this.statusId === ProjStatus.cancelled) {
       throw new Error(
-        errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+        i18n.__(
+          translationErrorMessagesKeys.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+        ),
       );
     }
 
@@ -398,7 +404,9 @@ class Project extends BaseEntity {
       return true;
     } else {
       throw new Error(
-        errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+        i18n.__(
+          translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+        ),
       );
     }
   }
