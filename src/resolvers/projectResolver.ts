@@ -191,7 +191,7 @@ class GetProjectsArgs {
 
   @Field(type => OrderBy, {
     defaultValue: {
-      field: OrderField.QualityScore,
+      field: OrderField.GIVPower,
       direction: OrderDirection.DESC,
     },
   })
