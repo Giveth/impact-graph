@@ -9,14 +9,14 @@ export const getProjectPowers = async (
   return ProjectPowerView.find({ take, skip });
 };
 
-export const getLastPowerRank = async (): Promise<number> => {
+export const getTopPowerRank = async (): Promise<number> => {
   try {
     const powerRank = await getConnection().manager.query(`
         SELECT MAX("powerRank") FROM project_power_view
     `);
     return Number(powerRank[0].max);
   } catch (e) {
-    logger.error('getLastPowerRank error', e);
+    logger.error('getTopPowerRank error', e);
     throw new Error('Error in getting last power rank');
   }
 };

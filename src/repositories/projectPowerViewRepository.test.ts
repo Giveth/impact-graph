@@ -12,7 +12,7 @@ import {
 } from './powerBoostingRepository';
 import { setPowerRound } from './powerRoundRepository';
 import {
-  getLastPowerRank,
+  getTopPowerRank,
   getProjectPowers,
   refreshProjectPowerView,
 } from './projectPowerViewRepository';
@@ -30,7 +30,7 @@ describe(
   projectPowerViewRepositoryTestCases,
 );
 
-describe('getLastPowerRank test cases', getLastPowerRankTestCases);
+describe('getTopPowerRank test cases', getTopPowerRankTestCases);
 
 function projectPowerViewRepositoryTestCases() {
   beforeEach(async () => {
@@ -170,14 +170,14 @@ function projectPowerViewRepositoryTestCases() {
   });
 }
 
-function getLastPowerRankTestCases() {
+function getTopPowerRankTestCases() {
   beforeEach(async () => {
     await getConnection().query('truncate power_snapshot cascade');
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
   });
 
-  it('Should return lastPowerRank correctly', async () => {
+  it('Should return topPowerRank correctly', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
@@ -214,7 +214,7 @@ function getLastPowerRankTestCases() {
     await setPowerRound(roundNumber);
     await refreshProjectPowerView();
 
-    const lastPowerRank = await getLastPowerRank();
-    assert.equal(lastPowerRank, 3);
+    const topPowerRank = await getTopPowerRank();
+    assert.equal(topPowerRank, 3);
   });
 }

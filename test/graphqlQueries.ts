@@ -1551,8 +1551,8 @@ export const getUserProjectPowerQuery = `
   }
 `;
 
-export const getLastPowerRankQuery = `
+export const getTopPowerRankQuery = `
     query {
-        getLastPowerRank
+        getTopPowerRank
     }
         `;
