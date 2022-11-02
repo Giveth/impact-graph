@@ -1,7 +1,11 @@
 import { getProvider, NETWORK_IDS } from '../../provider';
 import { Project, ProjStatus } from '../../entities/project';
 import Web3 from 'web3';
-import { errorMessages } from '../errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../errorMessages';
 import { logger } from '../logger';
 import { findRelatedAddressByWalletAddress } from '../../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
@@ -17,7 +21,9 @@ export const validateProjectWalletAddress = async (
   projectId?: number,
 ): Promise<boolean> => {
   if (!isWalletAddressValid(walletAddress)) {
-    throw new Error(errorMessages.INVALID_WALLET_ADDRESS);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.INVALID_WALLET_ADDRESS),
+    );
   }
   const isSmartContractWallet = await isWalletAddressSmartContract(
     walletAddress,
@@ -41,7 +47,9 @@ export const validateProjectRelatedAddresses = async (
 ): Promise<void> => {
   if (relatedAddresses.length !== 1 && relatedAddresses.length !== 2) {
     throw new Error(
-      errorMessages.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
+      i18n.__(
+        translationErrorMessagesKeys.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
+      ),
     );
   }
   for (const relateAddress of relatedAddresses) {
@@ -74,7 +82,9 @@ export const getSimilarTitleInProjectsRegex = (title: string): RegExp => {
 export const validateProjectTitle = async (title: string): Promise<boolean> => {
   const isTitleValid = /^\w+$/.test(title.replace(/\s/g, ''));
   if (!isTitleValid) {
-    throw new Error(errorMessages.INVALID_PROJECT_TITLE);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
+    );
   }
   const regex = getSimilarTitleInProjectsRegex(title);
   logger.debug('regexSource', {
@@ -95,7 +105,9 @@ export const validateProjectTitle = async (title: string): Promise<boolean> => {
       'validateProjectTitle projectWithThisTitle',
       projectWithThisTitle,
     );
-    throw new Error(errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_WITH_THIS_TITLE_EXISTS),
+    );
   }
   return true;
 };
@@ -126,7 +138,7 @@ function isSmartContract(provider) {
 
 export const canUserVisitProject = (project?: Project, userId?: string) => {
   if (!project) {
-    throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
   }
   if (
     (project.status.id === ProjStatus.drafted ||
@@ -134,6 +146,10 @@ export const canUserVisitProject = (project?: Project, userId?: string) => {
     // If project is draft or cancelled, just owner can view it
     project.admin !== userId
   ) {
-    throw new Error(errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
+      ),
+    );
   }
 };

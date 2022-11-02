@@ -28,7 +28,11 @@ import { Token } from '../entities/token';
 import { Repository, In, Brackets } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
   isTokenAcceptableForProject,
@@ -346,7 +350,7 @@ export class DonationResolver {
       id: projectId,
     });
     if (!project) {
-      throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
 
     if (traceable) {
@@ -441,7 +445,9 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
-      throw new Error(errorMessages.DONATION_VIEWING_LOGIN_REQUIRED);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.DONATION_VIEWING_LOGIN_REQUIRED),
+      );
     return this.donationRepository
       .createQueryBuilder('donation')
       .where({ user: ctx.req.user.userId })
@@ -504,7 +510,7 @@ export class DonationResolver {
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
       if (!donorUser) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       validateWithJoiSchema(
         {
@@ -535,9 +541,16 @@ export class DonationResolver {
         })
         .getOne();
 
-      if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      if (!project)
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+        );
       if (project.status.id !== ProjStatus.active) {
-        throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
+          ),
+        );
       }
       const tokenInDb = await Token.findOne({
         networkId: transactionNetworkId,
@@ -546,14 +559,18 @@ export class DonationResolver {
       const isCustomToken = !Boolean(tokenInDb);
       let isTokenEligibleForGivback = false;
       if (isCustomToken && !project.organization.supportCustomTokens) {
-        throw new Error(errorMessages.TOKEN_NOT_FOUND);
+        throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
       } else if (tokenInDb) {
         const acceptsToken = await isTokenAcceptableForProject({
           projectId,
           tokenId: tokenInDb.id,
         });
         if (!acceptsToken && !project.organization.supportCustomTokens) {
-          throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+          throw new Error(
+            i18n.__(
+              translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+            ),
+          );
         }
         isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
       }
@@ -564,7 +581,9 @@ export class DonationResolver {
         });
       if (!projectRelatedAddress) {
         throw new Error(
-          errorMessages.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+          i18n.__(
+            translationErrorMessagesKeys.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+          ),
         );
       }
       const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
@@ -658,11 +677,13 @@ export class DonationResolver {
     try {
       const userId = ctx?.req?.user?.userId;
       if (!userId) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       const donation = await findDonationById(donationId);
       if (!donation) {
-        throw new Error(errorMessages.DONATION_NOT_FOUND);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND),
+        );
       }
       if (donation.userId !== userId) {
         logger.error(
@@ -677,7 +698,11 @@ export class DonationResolver {
             },
           },
         );
-        throw new Error(errorMessages.YOU_ARE_NOT_OWNER_OF_THIS_DONATION);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.YOU_ARE_NOT_OWNER_OF_THIS_DONATION,
+          ),
+        );
       }
       validateWithJoiSchema(
         {
@@ -702,8 +727,9 @@ export class DonationResolver {
         status === DONATION_STATUS.FAILED
       ) {
         updatedDonation.status = DONATION_STATUS.FAILED;
-        updatedDonation.verifyErrorMessage =
-          errorMessages.DONOR_REPORTED_IT_AS_FAILED;
+        updatedDonation.verifyErrorMessage = i18n.__(
+          translationErrorMessagesKeys.DONOR_REPORTED_IT_AS_FAILED,
+        );
         await updatedDonation.save();
       }
       return updatedDonation;

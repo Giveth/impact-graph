@@ -40,7 +40,11 @@ import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../types/TransactionInquiry';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
 import { IncomingMessage } from 'connect';
 import {
@@ -2030,14 +2034,20 @@ export const verifySingleVerificationForm = async (
       ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
     ) {
       throw new Error(
-        errorMessages.YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS,
+        i18n.__(
+          translationErrorMessagesKeys.YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS,
+        ),
       );
     }
     if (
       !verified &&
       PROJECT_VERIFICATION_STATUSES.SUBMITTED !== verificationFormInDb?.status
     ) {
-      throw new Error(errorMessages.YOU_JUST_CAN_REJECT_SUBMITTED_FORMS);
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.YOU_JUST_CAN_REJECT_SUBMITTED_FORMS,
+        ),
+      );
     }
     // call repositories
     const segmentEvent = verified
@@ -2113,7 +2123,9 @@ export const makeEditableByUser = async (
       ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
     ) {
       throw new Error(
-        errorMessages.YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS,
+        i18n.__(
+          translationErrorMessagesKeys.YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS,
+        ),
       );
     }
 
@@ -2502,7 +2514,9 @@ export const importThirdPartyProject = async (
         break;
       }
       default: {
-        throw errorMessages.NOT_SUPPORTED_THIRD_PARTY_API;
+        throw i18n.__(
+          translationErrorMessagesKeys.NOT_SUPPORTED_THIRD_PARTY_API,
+        );
       }
     }
     // keep record of all created projects and who did from which api
@@ -2565,7 +2579,9 @@ export const createDonation = async (
       donationType = DONATION_TYPES.GNOSIS_SAFE;
     } else {
       if (!currency) {
-        throw new Error(errorMessages.INVALID_TOKEN_SYMBOL);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.INVALID_TOKEN_SYMBOL),
+        );
       }
       const txInfo = await findTransactionByHash({
         networkId,
@@ -2573,7 +2589,7 @@ export const createDonation = async (
         symbol: currency,
       } as TransactionDetailInput);
       if (!txInfo) {
-        throw new Error(errorMessages.INVALID_TX_HASH);
+        throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
       }
       transactions.push(txInfo);
     }
@@ -2591,7 +2607,9 @@ export const createDonation = async (
       if (!project) {
         logger.error(
           'Creating donation by admin bro, csv airdrop error ' +
-            errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
+            i18n.__(
+              translationErrorMessagesKeys.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
+            ),
           {
             hash: txHash,
             toAddress: transactionInfo?.to,

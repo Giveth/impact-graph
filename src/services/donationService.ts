@@ -8,7 +8,11 @@ import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
 import { Organization } from '../entities/organization';
 import { findUserById } from '../repositories/userRepository';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { getTransactionInfoFromNetwork } from './transactionService';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
@@ -195,7 +199,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
   const { donationId } = params;
   const donation = await findDonationById(donationId);
   if (!donation) {
-    throw new Error(errorMessages.DONATION_NOT_FOUND);
+    throw new Error(i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND));
   }
   logger.debug('syncDonationStatusWithBlockchainNetwork() has been called', {
     donationId,
@@ -235,7 +239,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     });
 
     if (failedVerifiedDonationErrorMessages.includes(e.message)) {
-      // if error message is in failedVerifiedDonationErrorMessages then we know we should change the status to failed
+      // if error message is in failedVerifiedDonationi18n.__(translationErrorMessagesKeys.then) we know we should change the status to failed
       // otherwise we leave it to be checked in next cycle
       donation.verifyErrorMessage = e.message;
       donation.status = DONATION_STATUS.FAILED;

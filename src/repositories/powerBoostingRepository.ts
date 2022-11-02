@@ -3,9 +3,14 @@ import { Project } from '../entities/project';
 import { publicSelectionFields, User } from '../entities/user';
 import { Brackets, getConnection } from 'typeorm';
 import { logger } from '../utils/logger';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
+import { getKeyByValue } from '../utils/utils';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
@@ -107,7 +112,11 @@ export const setSingleBoosting = async (params: {
   const { userId, projectId, percentage } = params;
 
   if (percentage < 0 || percentage > 100) {
-    throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
+      ),
+    );
   }
 
   const queryRunner = getConnection().createQueryRunner();
@@ -133,7 +142,9 @@ export const setSingleBoosting = async (params: {
     if (otherProjectsPowerBoostings.length === 0) {
       if (percentage !== 100)
         throw new Error(
-          errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
+          i18n.__(
+            translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
+          ),
         );
     } else {
       if (
@@ -141,7 +152,9 @@ export const setSingleBoosting = async (params: {
         percentage !== 100
       ) {
         throw new Error(
-          errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
+          i18n.__(
+            translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
+          ),
         );
       }
 
@@ -183,8 +196,11 @@ export const setSingleBoosting = async (params: {
 
     // since we have errors let's rollback changes we made
     await queryRunner.rollbackTransaction();
-    if (Object.values(errorMessages).includes(e.message)) throw e;
-    else throw Error(errorMessages.SOMETHING_WENT_WRONG);
+    const errorKey = getKeyByValue(errorMessages, e.message);
+    if (errorKey)
+      throw new Error(i18n.__(translationErrorMessagesKeys[errorKey]));
+    else
+      throw Error(i18n.__(translationErrorMessagesKeys.SOMETHING_WENT_WRONG));
   } finally {
     await queryRunner.release();
   }
@@ -199,7 +215,11 @@ export const setMultipleBoosting = async (params: {
   const { userId, projectIds, percentages } = params;
 
   if (percentages.length > MAX_PROJECT_BOOST_LIMIT) {
-    throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
+      ),
+    );
   }
 
   if (
@@ -208,7 +228,11 @@ export const setMultipleBoosting = async (params: {
     new Set(projectIds).size !== projectIds.length ||
     percentages.some(percentage => percentage < 0 || percentage > 100)
   ) {
-    throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
+      ),
+    );
   }
 
   const total: number = percentages.reduce(
@@ -224,7 +248,11 @@ export const setMultipleBoosting = async (params: {
     total < 100 - 0.01 * percentages.length ||
     total > MAX_TOTAL_PERCENTAGES
   ) {
-    throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
+      ),
+    );
   }
 
   const map = new Map<number, number>(
@@ -263,8 +291,11 @@ export const setMultipleBoosting = async (params: {
 
     // since we have errors let's rollback changes we made
     await queryRunner.rollbackTransaction();
-    if (Object.values(errorMessages).includes(e.message)) throw e;
-    else throw Error(errorMessages.SOMETHING_WENT_WRONG);
+    const errorKey = getKeyByValue(errorMessages, e.message);
+    if (errorKey)
+      throw new Error(i18n.__(translationErrorMessagesKeys[errorKey]));
+    else
+      throw Error(i18n.__(translationErrorMessagesKeys.SOMETHING_WENT_WRONG));
   } finally {
     await queryRunner.release();
   }

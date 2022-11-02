@@ -35,7 +35,11 @@ import {
   walletAddressIsValid,
 } from '../../test/graphqlQueries';
 import { CreateProjectInput, UpdateProjectInput } from './types/project-input';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   Project,
   ProjectUpdate,
@@ -1863,6 +1867,71 @@ function projectsByUserIdTestCases() {
 }
 
 function createProjectTestCases() {
+  it('Create Project should return <<Access denied>>, calling without token IN ENGLISH when non supported language is sent', async () => {
+    const sampleProject = {
+      title: 'title1',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          'accept-language': 'br',
+        },
+      },
+    );
+
+    assert.equal(result.status, 200);
+    // default is english so it will match
+    assert.equal(
+      result.data.errors[0].message,
+      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+    );
+  });
+  it('Create Project should return <<Access denied>>, calling without token IN SPANISH', async () => {
+    const sampleProject = {
+      title: 'title1',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          'accept-language': 'es',
+        },
+      },
+    );
+    i18n.setLocale('es'); // for the test translation scope
+    assert.equal(result.status, 200);
+    assert.equal(
+      result.data.errors[0].message,
+      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+    );
+  });
   it('Create Project should return <<Access denied>>, calling without token', async () => {
     const sampleProject = {
       title: 'title1',
@@ -1874,12 +1943,20 @@ function createProjectTestCases() {
         },
       ],
     };
-    const result = await axios.post(graphqlUrl, {
-      query: createProjectQuery,
-      variables: {
-        project: sampleProject,
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
       },
-    });
+      {
+        headers: {
+          'accept-language': 'en',
+        },
+      },
+    );
 
     assert.equal(result.status, 200);
     assert.equal(
@@ -2431,6 +2508,7 @@ function updateProjectTestCases() {
     );
     assert.equal(
       editProjectResult.data.errors[0].message,
+
       errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
     );
   });
@@ -5062,7 +5140,7 @@ function editProjectUpdateTestCases() {
         },
       },
     );
-    assert.equal(result.data.errors[0].message, 'Project Update not found.');
+    assert.equal(result.data.errors[0].message, 'Project update not found.');
   });
   it('should can not edit project update because of lack of authentication ', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -5175,7 +5253,7 @@ function deleteProjectUpdateTestCases() {
         },
       },
     );
-    assert.equal(result.data.errors[0].message, 'Project Update not found.');
+    assert.equal(result.data.errors[0].message, 'Project update not found.');
   });
   it('should can not delete project update because of lack of authentication ', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());

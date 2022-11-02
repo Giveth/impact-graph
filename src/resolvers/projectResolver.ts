@@ -47,7 +47,11 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   canUserVisitProject,
   validateProjectRelatedAddresses,
@@ -910,19 +914,25 @@ export class ProjectResolver {
     @Arg('newProjectData') newProjectData: UpdateProjectInput,
     @Ctx() { req: { user } }: MyContext,
   ) {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
     const { image } = newProjectData;
 
     // const project = await Project.findOne({ id: projectId });
     const project = await findProjectById(projectId);
 
-    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
 
     logger.debug(`project.admin ---> : ${project.admin}`);
     logger.debug(`user.userId ---> : ${user.userId}`);
     logger.debug(`updateProject, inputData :`, newProjectData);
     if (project.admin !== String(user.userId))
-      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
 
     for (const field in newProjectData) {
       if (field === 'addresses') {
@@ -934,7 +944,9 @@ export class ProjectResolver {
 
     if (!newProjectData.categories) {
       throw new Error(
-        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        ),
       );
     }
 
@@ -945,7 +957,9 @@ export class ProjectResolver {
       });
       if (!c) {
         throw new Error(
-          errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+          i18n.__(
+            translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+          ),
         );
       }
       return c;
@@ -954,7 +968,9 @@ export class ProjectResolver {
     const categories = await Promise.all(categoriesPromise);
     if (categories.length > 5) {
       throw new Error(
-        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+        ),
       );
     }
     project.categories = categories;
@@ -1055,10 +1071,10 @@ export class ProjectResolver {
 
         return response;
       } catch (e) {
-        throw Error('Upload file failed');
+        throw Error(i18n.__(translationErrorMessagesKeys.UPLOAD_FAILED));
       }
     }
-    throw Error('Upload file failed');
+    throw Error(i18n.__(translationErrorMessagesKeys.UPLOAD_FAILED));
   }
 
   @Query(returns => Number, { nullable: true })
@@ -1102,7 +1118,9 @@ export class ProjectResolver {
 
     if (!projectInput.categories) {
       throw new Error(
-        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        ),
       );
     }
 
@@ -1116,7 +1134,9 @@ export class ProjectResolver {
             });
             if (!c) {
               throw new Error(
-                errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+                i18n.__(
+                  translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+                ),
               );
             }
             return c;
@@ -1126,7 +1146,9 @@ export class ProjectResolver {
 
     if (categories.length > 5) {
       throw new Error(
-        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+        ),
       );
     }
 
@@ -1238,17 +1260,24 @@ export class ProjectResolver {
     @Arg('content') content: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdate> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
     const owner = await findUserById(user.userId);
 
-    if (!owner) throw new Error(errorMessages.USER_NOT_FOUND);
+    if (!owner)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
 
     const project = await Project.findOne({ id: projectId });
 
-    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
-      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
 
     const update = await ProjectUpdate.create({
       userId: user.userId,
@@ -1322,15 +1351,24 @@ export class ProjectResolver {
     @Arg('content') content: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdate> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
     const update = await ProjectUpdate.findOne({ id: updateId });
-    if (!update) throw new Error('Project Update not found.');
+    if (!update)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.PROJECT_UPDATE_NOT_FOUND),
+      );
 
     const project = await Project.findOne({ id: update.projectId });
-    if (!project) throw new Error('Project not found');
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
-      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
 
     update.title = title;
     update.content = content;
@@ -1343,15 +1381,24 @@ export class ProjectResolver {
     @Arg('updateId') updateId: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<Boolean> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
     const update = await ProjectUpdate.findOne({ id: updateId });
-    if (!update) throw new Error('Project Update not found.');
+    if (!update)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.PROJECT_UPDATE_NOT_FOUND),
+      );
 
     const project = await Project.findOne({ id: update.projectId });
-    if (!project) throw new Error('Project not found');
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
-      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
 
     const [reactions, reactionsCount] = await Reaction.findAndCount({
       where: { projectUpdateId: update.id },
@@ -1691,13 +1738,15 @@ export class ProjectResolver {
     const { projectId, statusId, user, reasonId } = inputData;
     const project = await findProjectById(projectId);
     if (!project) {
-      throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
 
     project.mayUpdateStatus(user);
     const status = await ProjectStatus.findOne({ id: statusId });
     if (!status) {
-      throw new Error(errorMessages.PROJECT_STATUS_NOT_FOUND);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.PROJECT_STATUS_NOT_FOUND),
+      );
     }
     const prevStatus = project.status;
     project.status = status;

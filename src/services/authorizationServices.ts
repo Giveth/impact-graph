@@ -1,6 +1,10 @@
 import Axios from 'axios';
 import * as jwt from 'jsonwebtoken';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { MyContext } from '../types/MyContext';
 import SentryLogger from '../sentryLogger';
 import { logger } from '../utils/logger';
@@ -14,7 +18,9 @@ import config from '../config';
 // Add any other service that checks auth on a query or mutation
 export const checkIfUserInRequest = (ctx: MyContext) => {
   if (!ctx.req.user) {
-    throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+    );
   }
 };
 
@@ -59,7 +65,9 @@ export const authorizationHandler = async (
       user = await validateAuthMicroserviceJwt(token);
       break;
     default:
-      throw new Error(errorMessages.INVALID_AUTHORIZATION_VERSION);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.INVALID_AUTHORIZATION_VERSION),
+      );
   }
   return user;
 };

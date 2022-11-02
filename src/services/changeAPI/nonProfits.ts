@@ -9,7 +9,11 @@ import {
   ProjStatus,
 } from '../../entities/project';
 import { ProjectStatus } from '../../entities/projectStatus';
-import { errorMessages } from '../../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { findUserById } from '../../repositories/userRepository';
@@ -65,10 +69,14 @@ export const getChangeNonProfitByNameOrIEN = async (
 
     const nonProfits = result.data.nonprofits;
     if (nonProfits.length > 1)
-      throw errorMessages.CHANGE_API_TITLE_OR_EIN_NOT_PRECISE;
+      throw i18n.__(
+        translationErrorMessagesKeys.CHANGE_API_TITLE_OR_EIN_NOT_PRECISE,
+      );
 
     if (nonProfits.length === 0)
-      throw errorMessages.CHANGE_API_INVALID_TITLE_OR_EIN;
+      throw i18n.__(
+        translationErrorMessagesKeys.CHANGE_API_INVALID_TITLE_OR_EIN,
+      );
 
     return nonProfits[0];
   } catch (e) {
@@ -153,8 +161,16 @@ const findOrCreateChangeAPICategory = async (): Promise<Category> => {
   });
 
   if (!category) {
-    logger.error(errorMessages.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST);
-    throw new Error(errorMessages.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST);
+    logger.error(
+      i18n.__(
+        translationErrorMessagesKeys.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST,
+      ),
+    );
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST,
+      ),
+    );
   }
 
   return category;
