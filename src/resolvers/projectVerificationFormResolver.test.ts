@@ -33,11 +33,7 @@ import {
   createProjectVerificationForm,
   findProjectVerificationFormById,
 } from '../repositories/projectVerificationRepository';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { errorMessages, i18n } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import { countriesList, generateRandomString } from '../utils/utils';
 import { createSocialProfile } from '../repositories/socialProfileRepository';
@@ -1221,10 +1217,7 @@ function getCurrentProjectVerificationFormTestCases() {
         slug: project.slug,
       },
     });
-    assert.equal(
-      result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED),
-    );
+    assert.equal(result.data.errors[0].message, errorMessages.UN_AUTHORIZED);
   });
   it('should get current project verification because user not found', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -1259,7 +1252,7 @@ function getCurrentProjectVerificationFormTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
     );
   });
   it('should get current project verification because project doesnt have project verification form', async () => {
@@ -1288,9 +1281,7 @@ function getCurrentProjectVerificationFormTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT,
-      ),
+      errorMessages.THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT,
     );
   });
   it('should get current project verification because project not found', async () => {
@@ -1312,7 +1303,7 @@ function getCurrentProjectVerificationFormTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+      errorMessages.PROJECT_NOT_FOUND,
     );
   });
 }
@@ -1427,7 +1418,7 @@ function projectVerificationSendEmailConfirmationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.YOU_ALREADY_VERIFIED_THIS_EMAIL),
+      errorMessages.YOU_ALREADY_VERIFIED_THIS_EMAIL,
     );
   });
 }

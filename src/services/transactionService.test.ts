@@ -5,11 +5,7 @@ import {
   getTransactionInfoFromNetwork,
 } from './transactionService';
 import { assertThrowsAsync } from '../../test/testUtils';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { errorMessages, i18n } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import moment from 'moment';
 const ONE_DAY = 60 * 60 * 24;
@@ -154,9 +150,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
-      ),
+      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
     );
   });
 
@@ -177,9 +171,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
-      ),
+      errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
     );
   });
 
@@ -200,9 +192,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
-      ),
+      errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
     );
   });
 
@@ -223,9 +213,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
-      ),
+      errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
   });
 
@@ -304,9 +292,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
-      ),
+      errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
     );
   });
 
@@ -328,9 +314,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
-      ),
+      errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
     );
   });
 
@@ -351,9 +335,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
-      ),
+      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
     );
   });
 
@@ -375,9 +357,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
-      ),
+      errorMessages.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
     );
   });
 
@@ -521,9 +501,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
-      ),
+      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
     );
   });
 
@@ -615,9 +593,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
-      ),
+      errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
     );
   });
   it('should return transaction_not_found when it has not being mined before an hour', async () => {
@@ -635,10 +611,7 @@ function getTransactionDetailTestCases() {
         timestamp: new Date().getTime() / 1000,
       });
     };
-    await assertThrowsAsync(
-      badFunc,
-      i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
-    );
+    await assertThrowsAsync(badFunc, errorMessages.TRANSACTION_NOT_FOUND);
   });
   it('should return transaction_not_found_and_nonce_is_used when it has not been mined after an hour', async () => {
     const amount = 0.001;
@@ -657,9 +630,7 @@ function getTransactionDetailTestCases() {
     };
     await assertThrowsAsync(
       badFunc,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
-      ),
+      errorMessages.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
     );
   });
 

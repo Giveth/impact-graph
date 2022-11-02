@@ -8,11 +8,7 @@ import {
 import axios from 'axios';
 import { getUserProjectPowerQuery } from '../../test/graphqlQueries';
 import { assert } from 'chai';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { errorMessages, i18n } from '../utils/errorMessages';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
 import {
@@ -45,9 +41,7 @@ function userProjectPowersTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
-      ),
+      errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
     );
   });
   it('should get list of userProjectPowers filter by userId', async () => {

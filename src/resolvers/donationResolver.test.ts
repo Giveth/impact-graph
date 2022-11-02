@@ -14,11 +14,7 @@ import {
   generateUserIdLessAccessToken,
 } from '../../test/testUtils';
 import axios from 'axios';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { errorMessages, i18n } from '../utils/errorMessages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
   fetchDonationsByUserIdQuery,
@@ -206,7 +202,7 @@ function donationsTestCases() {
 
     assert.equal(
       donationsResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.INVALID_DATE_FORMAT),
+      errorMessages.INVALID_DATE_FORMAT,
     );
   });
   it('should throw error if send invalid toDate format', async () => {
@@ -219,7 +215,7 @@ function donationsTestCases() {
 
     assert.equal(
       donationsResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.INVALID_DATE_FORMAT),
+      errorMessages.INVALID_DATE_FORMAT,
     );
   });
   it('should get result without sending time filters', async () => {
@@ -693,7 +689,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN),
+      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
     );
   });
   it('should throw error when create GIV donation for givingBlock project on mainnet', async () => {
@@ -728,7 +724,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN),
+      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
     );
   });
   // simulates staging env they only accept ETH
@@ -846,7 +842,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN),
+      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
     );
   });
   // they do not accept DAI (same would apply for any other random token)
@@ -878,7 +874,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN),
+      errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
     );
   });
   it('should create ETH donation for givingBlock project on mainnet successfully', async () => {
@@ -932,7 +928,7 @@ function createDonationTestCases() {
     });
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED),
+      errorMessages.UN_AUTHORIZED,
     );
   });
   it('should throw error when access token has no userId', async () => {
@@ -964,7 +960,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED),
+      errorMessages.UN_AUTHORIZED,
     );
   });
   it('should create donation anonymously successfully', async () => {
@@ -1104,7 +1100,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+      errorMessages.PROJECT_NOT_FOUND,
     );
   });
   it('should isProjectVerified be true after create donation for verified projects', async () => {
@@ -1213,9 +1209,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
-      ),
+      errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
     );
   });
   it('should throw exception when donating to cancelled projects', async () => {
@@ -1250,9 +1244,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
-      ),
+      errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
     );
   });
   it('should throw exception when donating to deactivated projects', async () => {
@@ -1287,9 +1279,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
-      ),
+      errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
     );
   });
   it('should throw exception when amount is zero', async () => {
@@ -1385,7 +1375,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.INVALID_TRANSACTION_ID),
+      errorMessages.INVALID_TRANSACTION_ID,
     );
   });
   it('should throw exception when transactionNetworkId is invalid', async () => {
@@ -1449,7 +1439,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID),
+      errorMessages.CURRENCY_IS_INVALID,
     );
   });
   it('should throw exception when currency is not valid when currency length more than 10', async () => {
@@ -1481,7 +1471,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID),
+      errorMessages.CURRENCY_IS_INVALID,
     );
   });
 }
@@ -2619,7 +2609,7 @@ function donationsByDonorTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.DONATION_VIEWING_LOGIN_REQUIRED),
+      errorMessages.DONATION_VIEWING_LOGIN_REQUIRED,
     );
   });
 }
@@ -2847,9 +2837,7 @@ function updateDonationStatusTestCases() {
     );
     assert.equal(
       result.data.data.updateDonationStatus.verifyErrorMessage,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
-      ),
+      errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
     );
   });
   // ROPSTEN CHAIN DECOMMISSIONED use goerli
@@ -2910,7 +2898,7 @@ function updateDonationStatusTestCases() {
   //   );
   //   assert.equal(
   //     result.data.data.updateDonationStatus.verifyErrorMessage,
-  //     i18n.__(translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK),
+  //     errorMessages.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
   //   );
   // });
   it('should donation status remain pending after calling without sending status (we assume its not mined so far)', async () => {
@@ -3080,9 +3068,7 @@ function updateDonationStatusTestCases() {
     );
     assert.equal(
       result.data.data.updateDonationStatus.verifyErrorMessage,
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
-      ),
+      errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
     );
   });
   it('should update donation status to failed, tx is not mined and donor says it failed', async () => {
@@ -3140,7 +3126,7 @@ function updateDonationStatusTestCases() {
     );
     assert.equal(
       result.data.data.updateDonationStatus.verifyErrorMessage,
-      i18n.__(translationErrorMessagesKeys.DONOR_REPORTED_IT_AS_FAILED),
+      errorMessages.DONOR_REPORTED_IT_AS_FAILED,
     );
   });
 }

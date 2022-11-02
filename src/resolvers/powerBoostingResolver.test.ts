@@ -14,11 +14,7 @@ import {
   setSinglePowerBoostingMutation,
 } from '../../test/graphqlQueries';
 import { assert } from 'chai';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { errorMessages, i18n } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 
@@ -97,7 +93,7 @@ function setSinglePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
 
@@ -111,9 +107,8 @@ function setSinglePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
 
     result = await sendSingleBoostQuery(
@@ -125,9 +120,7 @@ function setSinglePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
   });
 
@@ -141,9 +134,7 @@ function setSinglePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
     );
   });
 
@@ -167,9 +158,7 @@ function setSinglePowerBoostingTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
     );
 
     // clean
@@ -379,9 +368,7 @@ function setSinglePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
     );
 
     /// Zero one of previous boostings
@@ -432,7 +419,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
 
@@ -446,9 +433,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
 
     result = await sendMultipleBoostQuery(
@@ -460,9 +445,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
   });
 
@@ -473,9 +456,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
 
     // Longer projectIds array
@@ -488,9 +469,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
 
     // Longer percentages array
@@ -503,9 +482,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
 
     // Repeat a project
@@ -522,9 +499,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
 
     // Invalid sum #1
@@ -541,9 +516,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
     // Invalid sum #2
     result = await sendMultipleBoostQuery(
@@ -559,9 +532,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
 
     // Invalid #3 - set less than 100 - (0.01 * number of projects)
@@ -578,9 +549,7 @@ function setMultiplePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
-      ),
+      errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
   });
 
@@ -707,9 +676,7 @@ function getPowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
-      ),
+      errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
     );
   });
   it('should get list of power boostings filter by userId', async () => {

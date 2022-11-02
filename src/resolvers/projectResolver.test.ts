@@ -1961,7 +1961,7 @@ function createProjectTestCases() {
     assert.equal(result.status, 200);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
   it('Should get error, invalid category', async () => {
@@ -1995,9 +1995,7 @@ function createProjectTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-      ),
+      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
     );
   });
   it('Should get error, when selected category is not active', async () => {
@@ -2038,9 +2036,7 @@ function createProjectTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
-      ),
+      errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
     );
   });
   it('Should get error, when more than 5 categories sent', async () => {
@@ -2078,9 +2074,7 @@ function createProjectTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
-      ),
+      errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
     );
   });
   it('Should not get error, when sending one recipient address', async () => {
@@ -2159,9 +2153,7 @@ function createProjectTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
-      ),
+      errorMessages.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
     );
   });
   it('Should get error, when walletAddress of project is repetitive', async () => {
@@ -2284,7 +2276,7 @@ function createProjectTestCases() {
     );
     assert.equal(
       addProjectResponse.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_WITH_THIS_TITLE_EXISTS),
+      errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS,
     );
   });
   it('Should create successfully', async () => {
@@ -2439,7 +2431,7 @@ function updateProjectTestCases() {
     assert.equal(result.status, 200);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
   it('Should get error when updating someone else project', async () => {
@@ -2465,7 +2457,7 @@ function updateProjectTestCases() {
     );
     assert.equal(
       editProjectResult.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
     );
   });
   it('Should get error when project not found', async () => {
@@ -2491,7 +2483,7 @@ function updateProjectTestCases() {
 
     assert.equal(
       editProjectResult.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+      errorMessages.PROJECT_NOT_FOUND,
     );
   });
   it('Should get error when sending more than 5 categories', async () => {
@@ -2516,9 +2508,8 @@ function updateProjectTestCases() {
     );
     assert.equal(
       editProjectResult.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
-      ),
+
+      errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
     );
   });
   it('Should get error when sent walletAddress is repetitive', async () => {
@@ -2830,9 +2821,7 @@ function updateProjectTestCases() {
     );
     assert.equal(
       editProjectResult.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
-      ),
+      errorMessages.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
     );
   });
   it('Should get error when sent title is repetitive', async () => {
@@ -2856,7 +2845,7 @@ function updateProjectTestCases() {
     );
     assert.equal(
       editProjectResult.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_WITH_THIS_TITLE_EXISTS),
+      errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS,
     );
   });
   it('Should update successfully when updating with old title', async () => {
@@ -3308,7 +3297,7 @@ function deactivateProjectTestCases() {
     assert.equal(result.status, 200);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
   it('Should get error when deactivating someone else project', async () => {
@@ -3331,9 +3320,7 @@ function deactivateProjectTestCases() {
     );
     assert.equal(
       deactivateProjectResult.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
     );
   });
   it('Should get error when project not found', async () => {
@@ -3355,7 +3342,7 @@ function deactivateProjectTestCases() {
 
     assert.equal(
       deactivateProjectResult.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+      errorMessages.PROJECT_NOT_FOUND,
     );
   });
 
@@ -3385,9 +3372,7 @@ function deactivateProjectTestCases() {
     );
     assert.equal(
       deactivateProjectResult.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
-      ),
+      errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
     );
   });
 
@@ -3612,7 +3597,7 @@ function activateProjectTestCases() {
     assert.equal(result.status, 200);
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
   it('Should get error when activating someone else project', async () => {
@@ -3635,9 +3620,7 @@ function activateProjectTestCases() {
     );
     assert.equal(
       deactivateProjectResult.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
     );
   });
   it('Should get error when project not found', async () => {
@@ -3659,7 +3642,7 @@ function activateProjectTestCases() {
 
     assert.equal(
       deactivateProjectResult.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+      errorMessages.PROJECT_NOT_FOUND,
     );
   });
 
@@ -3689,9 +3672,7 @@ function activateProjectTestCases() {
     );
     assert.equal(
       deactivateProjectResult.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
-      ),
+      errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
     );
   });
 
@@ -3974,7 +3955,7 @@ function walletAddressIsValidTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.INVALID_WALLET_ADDRESS),
+      errorMessages.INVALID_WALLET_ADDRESS,
     );
   });
 
@@ -4079,7 +4060,7 @@ function projectByIdTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+      errorMessages.PROJECT_NOT_FOUND,
     );
   });
   it('should return reaction when user liked the project', async () => {
@@ -4154,9 +4135,7 @@ function projectByIdTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
   it('should return drafted projects of logged in user', async () => {
@@ -4219,9 +4198,7 @@ function projectByIdTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
 
@@ -4242,9 +4219,7 @@ function projectByIdTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
   it('should return cancelled projects of logged in user', async () => {
@@ -4307,9 +4282,7 @@ function projectByIdTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
 }
@@ -4645,9 +4618,7 @@ function projectBySlugTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
   it('should not return drafted project is user is logged in but is not owner of project', async () => {
@@ -4678,9 +4649,7 @@ function projectBySlugTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
   it('should return drafted if logged in', async () => {
@@ -4732,9 +4701,7 @@ function projectBySlugTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
   it('should not return cancelled project is user is logged in but is not owner of project', async () => {
@@ -4765,9 +4732,7 @@ function projectBySlugTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(
-        translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
-      ),
+      errorMessages.YOU_DONT_HAVE_ACCESS_TO_VIEW_THIS_PROJECT,
     );
   });
   it('should return cancelled if logged in', async () => {
@@ -5006,7 +4971,7 @@ function addProjectUpdateTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
     );
   });
   it('should can not add project update because of not found project ', async () => {
@@ -5032,7 +4997,7 @@ function addProjectUpdateTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+      errorMessages.PROJECT_NOT_FOUND,
     );
   });
   it('should can not add project update because of lack of authentication ', async () => {
@@ -5048,7 +5013,7 @@ function addProjectUpdateTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
   it('should can not add project update because user not found ', async () => {
@@ -5072,10 +5037,7 @@ function addProjectUpdateTestCases() {
         },
       },
     );
-    assert.equal(
-      result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND),
-    );
+    assert.equal(result.data.errors[0].message, errorMessages.USER_NOT_FOUND);
   });
 }
 
@@ -5151,7 +5113,7 @@ function editProjectUpdateTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
     );
   });
   it('should can not edit project update because of not found project ', async () => {
@@ -5193,7 +5155,7 @@ function editProjectUpdateTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
 }
@@ -5266,7 +5228,7 @@ function deleteProjectUpdateTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
     );
   });
   it('should can not delete project update because of not found project ', async () => {
@@ -5306,7 +5268,7 @@ function deleteProjectUpdateTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      errorMessages.AUTHENTICATION_REQUIRED,
     );
   });
 }
