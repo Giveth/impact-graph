@@ -25,6 +25,7 @@ import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
 import { OrderField, SortingField } from '../entities/project';
 import { logger } from '../utils/logger';
+import { getLastPowerRank } from '../repositories/projectPowerViewRepository';
 
 enum PowerBoostingOrderDirection {
   ASC = 'ASC',
@@ -153,5 +154,10 @@ export class PowerBoostingResolver {
       powerBoostings,
       totalCount,
     };
+  }
+
+  @Query(returns => Number)
+  async getLastPowerRank(): Promise<Number> {
+    return getLastPowerRank();
   }
 }

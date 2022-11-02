@@ -1550,3 +1550,9 @@ export const getUserProjectPowerQuery = `
     }
   }
 `;
+
+export const getLastPowerRankQuery = `
+    query {
+        getLastPowerRank
+    }
+        `;

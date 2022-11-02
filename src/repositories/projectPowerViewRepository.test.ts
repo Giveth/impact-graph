@@ -12,6 +12,7 @@ import {
 } from './powerBoostingRepository';
 import { setPowerRound } from './powerRoundRepository';
 import {
+  getLastPowerRank,
   getProjectPowers,
   refreshProjectPowerView,
 } from './projectPowerViewRepository';
@@ -24,7 +25,14 @@ import {
   insertSinglePowerBalanceSnapshot,
 } from './powerSnapshotRepository';
 
-describe('projectPowerViewRepository test', () => {
+describe(
+  'projectPowerViewRepository test',
+  projectPowerViewRepositoryTestCases,
+);
+
+describe('getLastPowerRank test cases', getLastPowerRankTestCases);
+
+function projectPowerViewRepositoryTestCases() {
   beforeEach(async () => {
     await getConnection().query('truncate power_snapshot cascade');
     await PowerBalanceSnapshot.clear();
@@ -160,4 +168,53 @@ describe('projectPowerViewRepository test', () => {
     // User2 power boosting = (20000 * 0.20 + 40000 * 0.40) / 2 = 10000
     expect(project1power?.totalPower).to.be.closeTo(10000 + 2500, 0.00001);
   });
-});
+}
+
+function getLastPowerRankTestCases() {
+  beforeEach(async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+  });
+
+  it('Should return lastPowerRank correctly', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = project1.id * 10;
+
+    await insertSinglePowerBoosting({
+      user,
+      project: project1,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user,
+      project: project2,
+      percentage: 20,
+    });
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
+    });
+
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+
+    const lastPowerRank = await getLastPowerRank();
+    assert.equal(lastPowerRank, 3);
+  });
+}
