@@ -292,6 +292,10 @@ export const countriesList: Country[] = [
   { name: 'Zimbabwe', code: 'ZW' },
 ];
 
+export const getKeyByValue = (object, value) => {
+  return Object.keys(object).find(key => object[key] === value);
+};
+
 export const generateRandomString = (len = 20): string => {
   const charSet =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

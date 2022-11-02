@@ -20,7 +20,11 @@ import { Token } from '../entities/token';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -233,7 +237,9 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.equal(updateDonation.status, DONATION_STATUS.FAILED);
     assert.equal(
       updateDonation?.verifyErrorMessage,
-      errorMessages.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
+      ),
     );
   });
 
@@ -279,7 +285,9 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.equal(updateDonation.status, DONATION_STATUS.FAILED);
     assert.equal(
       updateDonation?.verifyErrorMessage,
-      errorMessages.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
+      ),
     );
   });
 
@@ -323,7 +331,9 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.equal(updateDonation.status, DONATION_STATUS.FAILED);
     assert.equal(
       updateDonation?.verifyErrorMessage,
-      errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
+      i18n.__(
+        translationErrorMessagesKeys.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
+      ),
     );
   });
 }

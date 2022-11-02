@@ -13,7 +13,11 @@ import {
 import axios from 'axios';
 import { updateUser, userByAddress } from '../../test/graphqlQueries';
 import { assert } from 'chai';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import { create } from 'domain';
 
@@ -303,7 +307,9 @@ function updateUserTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
+      i18n.__(
+        translationErrorMessagesKeys.BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY,
+      ),
     );
   });
   it('should fail when email is invalid', async () => {
@@ -328,7 +334,10 @@ function updateUserTestCases() {
       },
     );
 
-    assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
+    assert.equal(
+      result.data.errors[0].message,
+      i18n.__(translationErrorMessagesKeys.INVALID_EMAIL),
+    );
   });
   it('should fail when email is invalid', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -352,7 +361,10 @@ function updateUserTestCases() {
       },
     );
 
-    assert.equal(result.data.errors[0].message, errorMessages.INVALID_EMAIL);
+    assert.equal(
+      result.data.errors[0].message,
+      i18n.__(translationErrorMessagesKeys.INVALID_EMAIL),
+    );
   });
   it('should fail when sending empty string for firstName', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -379,7 +391,7 @@ function updateUserTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.FIRSTNAME_CANT_BE_EMPTY_STRING,
+      i18n.__(translationErrorMessagesKeys.FIRSTNAME_CANT_BE_EMPTY_STRING),
     );
   });
   it('should fail when sending empty string for lastName', async () => {
@@ -407,7 +419,7 @@ function updateUserTestCases() {
 
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.LASTNAME_CANT_BE_EMPTY_STRING,
+      i18n.__(translationErrorMessagesKeys.LASTNAME_CANT_BE_EMPTY_STRING),
     );
   });
 

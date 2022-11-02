@@ -14,7 +14,11 @@ import {
   Resolver,
 } from 'type-graphql';
 import { MyContext } from '../types/MyContext';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 import {
   setMultipleBoosting,
@@ -108,7 +112,9 @@ export class PowerBoostingResolver {
     @Ctx() { req: { user } }: MyContext,
   ): Promise<PowerBoosting[]> {
     if (!user || !user?.userId) {
-      throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
     }
 
     // validator: sum of percentages should not be more than 100, all projects should active, ...
@@ -126,7 +132,9 @@ export class PowerBoostingResolver {
     @Ctx() { req: { user } }: MyContext,
   ): Promise<PowerBoosting[]> {
     if (!user || !user?.userId) {
-      throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
     }
 
     return setSingleBoosting({ userId: user.userId, projectId, percentage });
@@ -139,7 +147,9 @@ export class PowerBoostingResolver {
   ): Promise<GivPowers> {
     if (!projectId && !userId) {
       throw new Error(
-        errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
+        i18n.__(
+          translationErrorMessagesKeys.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
+        ),
       );
     }
     const [powerBoostings, totalCount] = await findPowerBoostings({

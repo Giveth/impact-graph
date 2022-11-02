@@ -36,7 +36,11 @@ import {
 } from '../entities/donation';
 import * as ChangeAPI from '../services/changeAPI/nonProfits';
 import sinon from 'sinon';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { Token } from '../entities/token';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import {
@@ -262,7 +266,9 @@ function importThirdPartyProjectTestCases() {
     const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
     const stub = sinon
       .stub(ChangeAPI, 'getChangeNonProfitByNameOrIEN')
-      .rejects(errorMessages.CHANGE_API_INVALID_TITLE_OR_EIN);
+      .rejects(
+        i18n.__(translationErrorMessagesKeys.CHANGE_API_INVALID_TITLE_OR_EIN),
+      );
 
     await importThirdPartyProject(
       {

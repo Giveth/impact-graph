@@ -15,7 +15,11 @@ import {
 } from '../../test/graphqlQueries';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
 import { assert } from 'chai';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { createSocialProfile } from '../repositories/socialProfileRepository';
 
@@ -116,7 +120,7 @@ function addNewSocialProfileFormMutationTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.AUTHENTICATION_REQUIRED,
+      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
     );
   });
   it('should get error when project verification form not found', async () => {
@@ -140,7 +144,7 @@ function addNewSocialProfileFormMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND,
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
     );
   });
   it('should get error when user is not owner  project verification form', async () => {
@@ -174,7 +178,9 @@ function addNewSocialProfileFormMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
+      i18n.__(
+        translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,
+      ),
     );
   });
   it('should get error when project verification form is verified', async () => {
@@ -209,7 +215,9 @@ function addNewSocialProfileFormMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
+      i18n.__(
+        translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
+      ),
     );
   });
   it('should get error when project verification form is rejected', async () => {
@@ -244,7 +252,9 @@ function addNewSocialProfileFormMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
+      i18n.__(
+        translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
+      ),
     );
   });
   it('should get error when project verification form is submitted', async () => {
@@ -279,7 +289,9 @@ function addNewSocialProfileFormMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
+      i18n.__(
+        translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_IS_NOT_DRAFT_SO_YOU_CANT_MODIFY_SOCIAL_PROFILES,
+      ),
     );
   });
   // it('should get error when social profile is already added for this form', async () => {
@@ -321,7 +333,7 @@ function addNewSocialProfileFormMutationTestCases() {
   //   );
   //   assert.equal(
   //     result.data.errors[0].message,
-  //     errorMessages.YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM,
+  //     i18n.__(translationErrorMessagesKeys.YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM),
   //   );
   // });
   // it('should get error when social profile is already added for this form', async () => {
@@ -361,7 +373,7 @@ function addNewSocialProfileFormMutationTestCases() {
   //   );
   //   assert.equal(
   //     result.data.errors[0].message,
-  //     errorMessages.YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM,
+  //     i18n.__(translationErrorMessagesKeys.YOU_ALREADY_ADDDED_THIS_SOCIAL_PROFILE_FOR_THIS_VERIFICATION_FORM),
   //   );
   // });
 }
@@ -428,7 +440,7 @@ function removeSocialProfileMutationTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.AUTHENTICATION_REQUIRED,
+      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
     );
   });
   it('should get error when social profile form not found', async () => {
@@ -451,7 +463,7 @@ function removeSocialProfileMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.SOCIAL_PROFILE_NOT_FOUND,
+      i18n.__(translationErrorMessagesKeys.SOCIAL_PROFILE_NOT_FOUND),
     );
   });
   it('should get error when user is not owner  social profile', async () => {
@@ -490,7 +502,9 @@ function removeSocialProfileMutationTestCases() {
     );
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_SOCIAL_PROFILE,
+      i18n.__(
+        translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_SOCIAL_PROFILE,
+      ),
     );
   });
 }

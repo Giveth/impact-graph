@@ -12,7 +12,11 @@ import {
 } from '../../test/testUtils';
 import * as pinataUtils from '../middleware/pinataUtils';
 import { createReadStream, readFileSync } from 'fs';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { TraceImageOwnerType } from './uploadResolver';
 // tslint:disable-next-line:no-var-requires
 const path = require('path');
@@ -35,7 +39,7 @@ function uploadTestCases() {
       });
       assert.equal(
         result.data.errors[0].message,
-        errorMessages.AUTHENTICATION_REQUIRED,
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
     } catch (e) {
       // tslint:disable-next-line:no-console

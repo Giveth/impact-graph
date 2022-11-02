@@ -33,7 +33,12 @@ import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  setI18nLocaleForRequest,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 import { apiGivRouter } from '../routers/apiGivRoutes';
 import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
@@ -53,7 +58,6 @@ import {
 import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
-import path from 'path';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -173,12 +177,16 @@ export async function bootstrap() {
         ) {
           logger.error('DB connection error', err);
           SentryLogger.captureException(err);
-          return new Error(errorMessages.INTERNAL_SERVER_ERROR);
+          return new Error(
+            i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
+          );
         } else if (err?.message?.startsWith('connect ECONNREFUSED')) {
           // It could be error connecting DB, Redis, ...
           logger.error('Apollo server client error', err);
           SentryLogger.captureException(err);
-          return new Error(errorMessages.INTERNAL_SERVER_ERROR);
+          return new Error(
+            i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
+          );
         }
 
         // Otherwise return the original error. The error can also
@@ -229,7 +237,7 @@ export async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       },
     };
-    app.use(i18n.init); // accept-language header
+    app.use(setI18nLocaleForRequest); // accept-language header
     app.use(cors(corsOptions));
     app.use(
       bodyParser.json({

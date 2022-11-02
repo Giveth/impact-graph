@@ -1,5 +1,9 @@
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { SocialProfile } from '../entities/socialProfile';
 import { findProjectVerificationFormById } from './projectVerificationRepository';
 // TODO should write test cases for all of these functions
@@ -113,7 +117,9 @@ export const verifySocialProfileById = async (params: {
   const { socialProfileId } = params;
   const socialProfile = await findSocialProfileById(socialProfileId);
   if (!socialProfile) {
-    throw new Error(errorMessages.SOCIAL_PROFILE_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.SOCIAL_PROFILE_NOT_FOUND),
+    );
   }
 
   socialProfile.isVerified = true;
