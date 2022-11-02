@@ -107,7 +107,6 @@ function setSinglePowerBoostingTestCases() {
     assert.isOk(result);
     assert.equal(
       result.data.errors[0].message,
-
       errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
     );
 
