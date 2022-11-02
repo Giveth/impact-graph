@@ -8,7 +8,7 @@ import {
 import axios from 'axios';
 import { getUserProjectPowerQuery } from '../../test/graphqlQueries';
 import { assert } from 'chai';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
 import {

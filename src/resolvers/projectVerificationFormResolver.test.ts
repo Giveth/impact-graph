@@ -33,7 +33,7 @@ import {
   createProjectVerificationForm,
   findProjectVerificationFormById,
 } from '../repositories/projectVerificationRepository';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import { countriesList, generateRandomString } from '../utils/utils';
 import { createSocialProfile } from '../repositories/socialProfileRepository';

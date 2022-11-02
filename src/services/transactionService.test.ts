@@ -5,7 +5,7 @@ import {
   getTransactionInfoFromNetwork,
 } from './transactionService';
 import { assertThrowsAsync } from '../../test/testUtils';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import moment from 'moment';
 const ONE_DAY = 60 * 60 * 24;

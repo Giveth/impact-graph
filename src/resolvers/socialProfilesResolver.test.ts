@@ -15,7 +15,7 @@ import {
 } from '../../test/graphqlQueries';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
 import { assert } from 'chai';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { createSocialProfile } from '../repositories/socialProfileRepository';
 

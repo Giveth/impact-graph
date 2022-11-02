@@ -14,7 +14,7 @@ import {
   setSinglePowerBoostingMutation,
 } from '../../test/graphqlQueries';
 import { assert } from 'chai';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 

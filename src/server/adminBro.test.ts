@@ -36,7 +36,7 @@ import {
 } from '../entities/donation';
 import * as ChangeAPI from '../services/changeAPI/nonProfits';
 import sinon from 'sinon';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { Token } from '../entities/token';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import {

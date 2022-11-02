@@ -14,7 +14,7 @@ import {
   generateUserIdLessAccessToken,
 } from '../../test/testUtils';
 import axios from 'axios';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
   fetchDonationsByUserIdQuery,

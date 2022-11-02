@@ -12,7 +12,7 @@ import {
 } from '../../test/testUtils';
 import * as pinataUtils from '../middleware/pinataUtils';
 import { createReadStream, readFileSync } from 'fs';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { TraceImageOwnerType } from './uploadResolver';
 // tslint:disable-next-line:no-var-requires
 const path = require('path');

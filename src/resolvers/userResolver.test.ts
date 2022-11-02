@@ -13,7 +13,7 @@ import {
 import axios from 'axios';
 import { updateUser, userByAddress } from '../../test/graphqlQueries';
 import { assert } from 'chai';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import { create } from 'domain';
 

@@ -20,7 +20,7 @@ import { Token } from '../entities/token';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
-import { errorMessages, i18n } from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
