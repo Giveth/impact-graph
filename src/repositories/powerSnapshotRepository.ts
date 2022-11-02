@@ -1,6 +1,7 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { logger } from '../utils/logger';
 
 export const findInCompletePowerSnapShots = async (): Promise<
   PowerSnapshot[]
@@ -48,6 +49,7 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
     walletAddress: string;
   }[]
 > => {
+  logger.info('getPowerBoostingSnapshotWithoutBalance()', { limit, offset });
   return await getConnection().query(
     `
         select "userId", "powerSnapshotId", "blockNumber","walletAddress" 
