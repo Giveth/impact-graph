@@ -131,6 +131,7 @@ enum FilterField {
   AcceptFundOnGnosis = 'acceptFundOnGnosis',
   Traceable = 'traceCampaignId',
   GivingBlock = 'fromGivingBlock',
+  BoostedWithGivPower = 'boostedWithGivPower',
 }
 
 enum OrderDirection {
@@ -495,6 +496,9 @@ export class ProjectResolver {
           if (filter === FilterField.Traceable) {
             return subQuery.andWhere(`project.${filter} IS NOT NULL`);
           }
+          if (filter === FilterField.BoostedWithGivPower) {
+            return subQuery.andWhere(`projectPower.totalPower > 0`);
+          }
           if (filter === FilterField.AcceptFundOnGnosis && filter) {
             return subQuery.andWhere(
               `EXISTS (
@@ -761,13 +765,12 @@ export class ProjectResolver {
       case SortingField.GIVPower:
         query
           .orderBy('projectPower.totalPower', OrderDirection.DESC, 'NULLS LAST')
-          .addOrderBy(
-            `project.${OrderField.CreationDate}`,
-            OrderDirection.DESC,
-          );
+          .addOrderBy(`project.verified`, OrderDirection.DESC);
         break;
       default:
-        query.orderBy('projectPower.totalPower', OrderDirection.DESC);
+        query
+          .orderBy('projectPower.totalPower', OrderDirection.DESC)
+          .addOrderBy(`project.verified`, OrderDirection.DESC);
         break;
     }
 

@@ -1356,6 +1356,24 @@ function allProjectsTestCases() {
       assert.notExists(project.givingBlocksId),
     );
   });
+  it('should return projects, filter by boosted by givPower, true', async () => {
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      qualityScore: 0,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['BoostedWithGivPower'],
+        limit: 50,
+      },
+    });
+    assert.isNotEmpty(result.data.data.allProjects.projects);
+    result.data.data.allProjects.projects.forEach(project =>
+      assert.isOk(project?.projectPower?.totalPower > 0),
+    );
+  });
   it('should return projects, filter from the givingblocks', async () => {
     await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1445,7 +1463,11 @@ function allProjectsTestCases() {
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const project3 = await saveProjectDirectlyToDb(createProjectData());
-    const project4 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
+    const project4 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: false,
+    }); // Not boosted -Not verified project
+    const project5 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
 
     const roundNumber = project3.id * 10;
 
@@ -1493,14 +1515,15 @@ function allProjectsTestCases() {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
         sortingBy: SortingField.GIVPower,
+        limit: 50,
       },
     });
 
     let projects = result.data.data.allProjects.projects;
+
     assert.equal(projects[0].id, project3.id);
     assert.equal(projects[1].id, project2.id);
     assert.equal(projects[2].id, project1.id);
-    assert.equal(projects[3].id, project4.id);
 
     assert.equal(projects[0].projectPower.powerRank, 1);
     assert.equal(projects[1].projectPower.powerRank, 2);
@@ -1525,8 +1548,14 @@ function allProjectsTestCases() {
         projects[i].projectPower.powerRank >=
           projects[i - 1].projectPower.powerRank,
       );
+
+      if (projects[i].verified === true) {
+        // verified project come first
+        assert.isTrue(projects[i - 1].verified);
+      }
     }
   });
+
   it('should return projects, filtered by sub category', async () => {
     await saveProjectDirectlyToDb({
       ...createProjectData(),
