@@ -767,7 +767,7 @@ export class ProjectResolver {
           );
         break;
       default:
-        query.orderBy('project.qualityScore', OrderDirection.DESC);
+        query.orderBy('projectPower.totalPower', OrderDirection.DESC);
         break;
     }
 
