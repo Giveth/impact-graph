@@ -1,9 +1,6 @@
 // tslint:disable-next-line:no-var-requires
 import { logger } from '../utils/logger';
 
-// tslint:disable-next-line:no-var-requires
-require('dotenv').config();
-
 import * as bcrypt from 'bcryptjs';
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { keccak256 } from 'ethers/lib/utils';
@@ -15,7 +12,6 @@ import config from '../config';
 import SentryLogger from '../sentryLogger';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
-
 // tslint:disable-next-line:no-var-requires
 const sigUtil = require('eth-sig-util');
 
