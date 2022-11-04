@@ -16,10 +16,7 @@ import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerification } from '../entities/accountVerification';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { MyContext } from '../types/MyContext';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import {
   errorMessages,
   i18n,
@@ -33,8 +30,7 @@ import {
 } from '../repositories/userRepository';
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 import { UserByAddressResponse } from './types/userResolver';
-
-const analytics = getAnalytics();
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 
 @Resolver(of => User)
 export class UserResolver {
@@ -135,8 +131,8 @@ export class UserResolver {
       url: dbUser.url,
     };
 
-    analytics.identifyUser(dbUser);
-    analytics.track(
+    SegmentAnalyticsSingleton.getInstance().identifyUser(dbUser);
+    SegmentAnalyticsSingleton.getInstance().track(
       NOTIFICATIONS_EVENT_NAMES.UPDATED_PROFILE,
       dbUser.segmentUserId(),
       segmentUpdateProfile,

@@ -15,24 +15,16 @@ import {
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
 import { InjectRepository } from 'typeorm-typedi-extensions';
-// import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In, Brackets } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
   isTokenAcceptableForProject,
@@ -43,10 +35,7 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../services/userService';
-import { addSegmentEventToQueue } from '../analytics/segmentQueue';
-import { bold } from 'chalk';
 import { getCampaignDonations } from '../services/trace/traceService';
-import { from } from 'form-data';
 import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
@@ -64,8 +53,7 @@ import { findDonationById } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { MainCategory } from '../entities/mainCategory';
-
-const analytics = getAnalytics();
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 
 @ObjectType()
 class PaginateDonations {
@@ -631,12 +619,12 @@ export class DonationResolver {
           error: e,
           donation,
         });
-        addSegmentEventToQueue({
-          event: NOTIFICATIONS_EVENT_NAMES.GET_DONATION_PRICE_FAILED,
-          analyticsUserId: userId,
-          properties: donation,
-          anonymousId: null,
-        });
+        SegmentAnalyticsSingleton.getInstance().track(
+          NOTIFICATIONS_EVENT_NAMES.GET_DONATION_PRICE_FAILED,
+          userId,
+          donation,
+          null,
+        );
         SentryLogger.captureException(
           new Error('Error in getting price from monoswap'),
           {

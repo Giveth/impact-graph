@@ -20,10 +20,7 @@ import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { MyContext } from '../types/MyContext';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
@@ -88,12 +85,10 @@ import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { NETWORK_IDS } from '../provider';
 import { getVerificationFormByProjectId } from '../repositories/projectVerificationRepository';
 import {
-  getDonationsQueryValidator,
   resourcePerDateReportValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
-
-const analytics = getAnalytics();
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 
 @ObjectType()
 class AllProjects {
@@ -1233,7 +1228,7 @@ export class ProjectResolver {
       walletAddress: project.walletAddress,
     };
     if (status?.id === ProjStatus.active) {
-      analytics.track(
+      SegmentAnalyticsSingleton.getInstance().track(
         NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
@@ -1303,7 +1298,7 @@ export class ProjectResolver {
 
     await updateTotalProjectUpdatesOfAProject(update.projectId);
 
-    analytics.track(
+    SegmentAnalyticsSingleton.getInstance().track(
       NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_OWNER,
       `givethId-${user.userId}`,
       projectUpdateInfo,
@@ -1337,7 +1332,7 @@ export class ProjectResolver {
         email: donor.email,
         firstName: donor.firstName,
       };
-      analytics.track(
+      SegmentAnalyticsSingleton.getInstance().track(
         NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_DONOR,
         `givethId-${donor.id}`,
         donorUpdateInfo,
@@ -1790,7 +1785,7 @@ export class ProjectResolver {
         slug: project.slug,
       };
 
-      analytics.track(
+      SegmentAnalyticsSingleton.getInstance().track(
         NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
@@ -1834,7 +1829,7 @@ export class ProjectResolver {
         OwnerId: project.admin,
         slug: project.slug,
       };
-      analytics.track(
+      SegmentAnalyticsSingleton.getInstance().track(
         segmentEventToDispatch,
         `givethId-${ctx.req.user.userId}`,
         segmentProject,
