@@ -311,7 +311,7 @@ export async function bootstrap() {
       runCheckProjectVerificationStatus();
     }
 
-    // If we need to deactivate the process use the env var
+    // If we need to deactivate the process use the env var NO MORE
     // if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
     //   runGivingBlocksProjectSynchronization();
     // }
