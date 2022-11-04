@@ -1,10 +1,25 @@
+import path from 'path';
 import * as dotenv from 'dotenv';
-import * as path from 'path';
-import { logger } from './utils/logger';
 
-dotenv.config({
-  path: path.resolve(__dirname, `../config/${process.env.NODE_ENV || ''}.env`),
-});
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+  const configPath = path.resolve(
+    __dirname,
+    `../config/${process.env.NODE_ENV || ''}.env`,
+  );
+  const loadConfigResult = dotenv.config({
+    path: configPath,
+  });
+
+  if (loadConfigResult.error) {
+    // tslint:disable-next-line:no-console
+    console.log('Load process.env error', {
+      path: configPath,
+      error: loadConfigResult.error,
+    });
+    throw loadConfigResult.error;
+  }
+}
+
 const envVars = [
   'JWT_SECRET',
   'JWT_MAX_AGE',

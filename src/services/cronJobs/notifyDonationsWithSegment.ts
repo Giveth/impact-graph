@@ -1,9 +1,5 @@
 import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { logger } from '../../utils/logger';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../../analytics/analytics';
 import { schedule } from 'node-cron';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';

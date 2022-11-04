@@ -5,10 +5,7 @@ import {
   ProjectUpdate,
   RevokeSteps,
 } from '../../entities/project';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
 import { User } from '../../entities/user';
 import config from '../../config';

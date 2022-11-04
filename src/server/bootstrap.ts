@@ -26,9 +26,7 @@ import {
   getAdminBroRouter,
   adminBroQueryCache,
 } from './adminBro';
-import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
 import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
-import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
@@ -305,7 +303,6 @@ export async function bootstrap() {
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-    processSendSegmentEventsJobs();
     initHandlingTraceCampaignUpdateEvents();
     runUpdateDonationsWithoutValueUsdPrices();
     runUpdateTraceableProjectsTotalDonations();

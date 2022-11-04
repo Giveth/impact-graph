@@ -1,13 +1,8 @@
 import { User } from '../../entities/user';
 import { Project } from '../../entities/project';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../../analytics/analytics';
-import { addSegmentEventToQueue } from '../../analytics/segmentQueue';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import { findUserById } from '../../repositories/userRepository';
-
-const analytics = getAnalytics();
+import { SegmentAnalyticsSingleton } from './segmentAnalyticsSingleton';
 
 /**
  * Notifies Segment any event concerning the project
@@ -25,12 +20,12 @@ class ProjectTracker {
   async track() {
     this.projectOwner = await findUserById(Number(this.project.admin));
     if (this.projectOwner) {
-      addSegmentEventToQueue({
-        event: this.eventName,
-        analyticsUserId: this.projectOwner.segmentUserId(),
-        properties: this.segmentProjectAttributes(),
-        anonymousId: null,
-      });
+      SegmentAnalyticsSingleton.getInstance().track(
+        this.eventName,
+        this.projectOwner.segmentUserId(),
+        this.segmentProjectAttributes(),
+        null,
+      );
     }
   }
 

@@ -1,10 +1,6 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import { MyContext } from '../types/MyContext';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import {
   createProjectVerificationRequestValidator,
   getCurrentProjectVerificationRequestValidator,
@@ -28,18 +24,14 @@ import {
 } from '../entities/projectVerificationForm';
 import { updateProjectVerificationFormByUser } from '../services/projectVerificationFormService';
 import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdateInput';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import * as jwt from 'jsonwebtoken';
 import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
 import { sendMailConfirmationEmail } from '../services/mailerService';
 import moment from 'moment';
-
-const analytics = getAnalytics();
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 
 const dappUrl = process.env.FRONTEND_URL as string;
 
@@ -198,7 +190,7 @@ export class ProjectVerificationFormResolver {
 
       await sendMailConfirmationEmail(email, project, token);
 
-      analytics.track(
+      SegmentAnalyticsSingleton.getInstance().track(
         NOTIFICATIONS_EVENT_NAMES.SEND_EMAIL_CONFIRMATION,
         `givethId-${userId}`,
         emailConfirmationData,

@@ -1,7 +1,3 @@
-import Analytics from 'analytics-node';
-import config from '../config';
-import { User } from '../entities/user';
-
 export enum NOTIFICATIONS_EVENT_NAMES {
   DRAFTED_PROJECT_ACTIVATED = 'Draft published',
   PROJECT_LISTED = 'Project listed',
@@ -38,55 +34,4 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   UPDATED_PROFILE = 'Updated profile',
   GET_DONATION_PRICE_FAILED = 'Get Donation Price Failed',
   VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN = 'Verification form got draft by admin',
-}
-
-const environment = config.get('ENVIRONMENT') as string;
-
-class GraphAnalytics {
-  analytics: Analytics;
-  constructor(analytics: Analytics) {
-    this.analytics = analytics;
-  }
-
-  identifyUser(user: User) {
-    this.analytics.identify({
-      userId: user.segmentUserId(),
-      traits: {
-        firstName: user.firstName,
-        email: user.email,
-        registeredAt: new Date(),
-      },
-    });
-  }
-
-  track(
-    eventName: NOTIFICATIONS_EVENT_NAMES,
-    analyticsUserId,
-    properties,
-    anonymousId,
-  ) {
-    let userId;
-    if (!analyticsUserId) {
-      userId = anonymousId;
-    } else {
-      userId = analyticsUserId;
-    }
-
-    this.analytics.track({
-      event: eventName,
-      userId: analyticsUserId,
-      properties,
-      anonymousId,
-    });
-  }
-}
-
-// Enable property defines if it calls segment api or not
-// Disabled on tests for time optimization
-export function getAnalytics() {
-  const segmentAnalytics = new Analytics(config.get('SEGMENT_API_KEY'), {
-    flushAt: 1,
-    enable: environment !== 'test',
-  });
-  return new GraphAnalytics(segmentAnalytics);
 }

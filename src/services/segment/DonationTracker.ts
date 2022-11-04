@@ -1,12 +1,8 @@
 import { User } from '../../entities/user';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../../analytics/analytics';
-
-const analytics = getAnalytics();
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
+import { SegmentAnalyticsSingleton } from './segmentAnalyticsSingleton';
 
 /**
  * Notifies Segment any event concerning the donation
@@ -30,7 +26,7 @@ class DonationTracker {
   }
 
   track() {
-    analytics.track(
+    SegmentAnalyticsSingleton.getInstance().track(
       this.eventName,
       this.user.segmentUserId(),
       this.segmentDonationAttributes(),
