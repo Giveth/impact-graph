@@ -1,5 +1,6 @@
 import { getConnection } from 'typeorm';
 import { ProjectPowerView } from '../views/projectPowerView';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { logger } from '../utils/logger';
 
 export const getProjectPowers = async (
@@ -7,6 +8,12 @@ export const getProjectPowers = async (
   skip: number = 0,
 ): Promise<ProjectPowerView[]> => {
   return ProjectPowerView.find({ take, skip });
+};
+export const getProjectFuturePowers = async (
+  take: number = 50,
+  skip: number = 0,
+): Promise<ProjectPowerView[]> => {
+  return ProjectFuturePowerView.find({ take, skip });
 };
 
 export const getTopPowerRank = async (): Promise<number> => {
@@ -25,6 +32,14 @@ export const refreshProjectPowerView = async (): Promise<void> => {
   return getConnection().manager.query(
     `
       REFRESH MATERIALIZED VIEW project_power_view
+    `,
+  );
+};
+
+export const refreshProjectFuturePowerView = async (): Promise<void> => {
+  return getConnection().manager.query(
+    `
+      REFRESH MATERIALIZED VIEW project_future_power_view
     `,
   );
 };

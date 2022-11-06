@@ -41,6 +41,7 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -277,6 +278,13 @@ class Project extends BaseEntity {
     projectPowerView => projectPowerView.project,
   )
   projectPower?: ProjectPowerView;
+
+  @Field(type => ProjectFuturePowerView, { nullable: true })
+  @OneToOne(
+    type => ProjectFuturePowerView,
+    projectFuturePowerView => projectFuturePowerView.project,
+  )
+  projectFuturePower?: ProjectFuturePowerView;
 
   @Field(type => String, { nullable: true })
   verificationFormStatus?: string;
