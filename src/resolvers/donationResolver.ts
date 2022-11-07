@@ -193,8 +193,15 @@ export class DonationResolver {
   }
 
   @Query(returns => [MainCategoryDonations], { nullable: true })
-  async totalDonationsPerCategory(): Promise<MainCategoryDonations[] | []> {
+  async totalDonationsPerCategory(
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ): Promise<MainCategoryDonations[] | []> {
     try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
       const query = MainCategory.createQueryBuilder('mainCategory')
         .select(
           'mainCategory.id, mainCategory.title, mainCategory.slug, COALESCE(sum(donations.valueUsd), 0) as "totalUsd"',
@@ -207,6 +214,15 @@ export class DonationResolver {
           `donations.status = 'verified'`,
         )
         .groupBy('mainCategory.id, mainCategory.title');
+
+      if (fromDate && toDate) {
+        query.where(`donations."createdAt" >= '${fromDate}'`);
+        query.andWhere(`donations."createdAt" <= '${toDate}'`);
+      } else if (fromDate && !toDate) {
+        query.where(`donations."createdAt" >= '${fromDate}'`);
+      } else if (!fromDate && toDate) {
+        query.where(`donations."createdAt" <= '${toDate}'`);
+      }
 
       const result = await query.getRawMany();
       return result;
