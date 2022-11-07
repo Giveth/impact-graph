@@ -2,11 +2,7 @@ import { Project } from '../entities/project';
 import { Token } from '../entities/token';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { TransakOrder } from './transak/order';
-import { User } from '../entities/user';
-import DonationTracker from './segment/DonationTracker';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
-import { Organization } from '../entities/organization';
 import { findUserById } from '../repositories/userRepository';
 import {
   errorMessages,
@@ -270,12 +266,6 @@ export const sendSegmentEventForDonation = async (params: {
   const donorUser = await findUserById(donation.userId);
   const projectOwner = project.adminUser;
   if (projectOwner) {
-    new DonationTracker(
-      donation,
-      project,
-      projectOwner,
-      NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
-    ).track();
     await getNotificationAdapter().donationReceived({
       donation,
       project,
@@ -283,12 +273,6 @@ export const sendSegmentEventForDonation = async (params: {
   }
 
   if (donorUser) {
-    new DonationTracker(
-      donation,
-      project,
-      donorUser,
-      NOTIFICATIONS_EVENT_NAMES.MADE_DONATION,
-    ).track();
     await getNotificationAdapter().donationSent({
       donation,
       project,

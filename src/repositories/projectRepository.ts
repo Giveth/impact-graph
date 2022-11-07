@@ -17,6 +17,7 @@ export const findProjectById = (
 
   return Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect('project.organization', 'organization')
     .leftJoinAndSelect('project.addresses', 'addresses')
     .leftJoin('project.adminUser', 'user')
     .addSelect(publicSelectionFields)
@@ -32,6 +33,7 @@ export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
       'project.projectVerificationForm',
       'projectVerificationForm',
     )
+    .leftJoin('project.adminUser', 'user')
     .where('project.isImported = false')
     .andWhere('project.verified = true')
     .andWhere('project.updatedAt < :badgeRevokingDate', {

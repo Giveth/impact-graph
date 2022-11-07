@@ -12,7 +12,6 @@ import { User, UserRole } from '../entities/user';
 import AdminBroExpress from '@admin-bro/express';
 import config from '../config';
 import { redis } from '../redis';
-import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@admin-bro/typeorm';
 import { SelectQueryBuilder } from 'typeorm';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
@@ -80,7 +79,6 @@ import {
   verifyMultipleProjects,
   verifyProject,
 } from '../repositories/projectRepository';
-import { SocialProfile } from '../entities/socialProfile';
 import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
 import { updateTotalDonationsOfProject } from '../services/donationService';
@@ -1379,7 +1377,6 @@ const getAdminBroInstance = async () => {
                 if (project) {
                   // Not required for now
                   // Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
-                  await dispatchProjectUpdateEvent(project);
 
                   // As we dont what fields has changed (listed, verified, ..), I just added new status and a description that project has been edited
                   await Project.addProjectStatusHistoryRecord({
@@ -1967,15 +1964,7 @@ export const listDelist = async (
       .returning('*')
       .updateEntity(true)
       .execute();
-
-    Project.sendBulkEventsToSegment(
-      projects.raw,
-      list
-        ? NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED
-        : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
-    );
     for (const project of projects.raw) {
-      await dispatchProjectUpdateEvent(project);
       await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
@@ -2263,17 +2252,7 @@ export const verifyProjects = async (
       .updateEntity(true)
       .execute();
 
-    let segmentEvent = verified
-      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
-      : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED;
-
-    segmentEvent = revokeBadge
-      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED
-      : segmentEvent;
-
-    Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
     for (const project of projects.raw) {
-      await dispatchProjectUpdateEvent(project);
       await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
@@ -2287,9 +2266,10 @@ export const verifyProjects = async (
       if (revokeBadge) {
         projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
         await projectWithAdmin.save();
-      }
-
-      if (verificationStatus) {
+        await getNotificationAdapter().projectBadgeRevoked({
+          project: projectWithAdmin,
+        });
+      } else if (verificationStatus) {
         await getNotificationAdapter().projectVerified({
           project: projectWithAdmin,
         });
@@ -2337,7 +2317,7 @@ export const updateStatusOfProjects = async (
   request: AdminBroRequestInterface,
   status,
 ) => {
-  const { h, resource, records, currentAdmin } = context;
+  const { records, currentAdmin } = context;
   try {
     const projectStatus = await ProjectStatus.findOne({ id: status });
     if (projectStatus) {
@@ -2354,12 +2334,7 @@ export const updateStatusOfProjects = async (
         .updateEntity(true)
         .execute();
 
-      Project.sendBulkEventsToSegment(
-        projects.raw,
-        segmentProjectStatusEvents[projectStatus.symbol],
-      );
       for (const project of projects.raw) {
-        await dispatchProjectUpdateEvent(project);
         await Project.addProjectStatusHistoryRecord({
           project,
           status: projectStatus,

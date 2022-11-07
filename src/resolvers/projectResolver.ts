@@ -1,4 +1,3 @@
-import NotificationPayload from '../entities/notificationPayload';
 import { Reaction } from '../entities/reaction';
 import {
   OrderField,
@@ -57,7 +56,6 @@ import {
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
 import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
-import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { getLoggedInUser } from '../services/authorizationServices';
@@ -1030,8 +1028,6 @@ export class ProjectResolver {
     // Edit emails
     Project.notifySegment(project, NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED);
 
-    // We dont wait for trace reponse, because it may increase our response time
-    dispatchProjectUpdateEvent(project);
     return project;
   }
 
@@ -1214,30 +1210,6 @@ export class ProjectResolver {
     });
     await ProjectUpdate.save(update);
 
-    const payload: NotificationPayload = {
-      id: 1,
-      message: 'A new project was created',
-    };
-    const segmentProject = {
-      email: user.email,
-      title: project.title,
-      lastName: user.lastName,
-      firstName: user.firstName,
-      OwnerId: user.id,
-      slug: project.slug,
-      walletAddress: project.walletAddress,
-    };
-    if (status?.id === ProjStatus.active) {
-      SegmentAnalyticsSingleton.getInstance().track(
-        NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
-        `givethId-${ctx.req.user.userId}`,
-        segmentProject,
-        null,
-      );
-    }
-
-    await pubSub.publish('NOTIFICATIONS', payload);
-
     if (projectInput.isDraft) {
       await getNotificationAdapter().projectSavedAsDraft({
         project: newProject,
@@ -1268,7 +1240,7 @@ export class ProjectResolver {
     if (!owner)
       throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
 
-    const project = await Project.findOne({ id: projectId });
+    const project = await findProjectById(projectId);
 
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
@@ -1298,46 +1270,9 @@ export class ProjectResolver {
 
     await updateTotalProjectUpdatesOfAProject(update.projectId);
 
-    SegmentAnalyticsSingleton.getInstance().track(
-      NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_OWNER,
-      `givethId-${user.userId}`,
-      projectUpdateInfo,
-      null,
-    );
-
-    const donations = await this.donationRepository.find({
-      where: { project: { id: project?.id } },
-      relations: ['user'],
-    });
-
-    const projectDonors = donations?.map(donation => {
-      return donation.user;
-    });
-    const uniqueDonors = projectDonors?.filter((currentDonor, index) => {
-      return (
-        currentDonor != null &&
-        projectDonors.findIndex(
-          duplicateDonor => duplicateDonor.id === currentDonor.id,
-        ) === index
-      );
-    });
-
-    uniqueDonors?.forEach(donor => {
-      const donorUpdateInfo = {
-        title: project.title,
-        projectId: project.id,
-        projectOwnerId: project.admin,
-        slug: project.slug,
-        update: title,
-        email: donor.email,
-        firstName: donor.firstName,
-      };
-      SegmentAnalyticsSingleton.getInstance().track(
-        NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_DONOR,
-        `givethId-${donor.id}`,
-        donorUpdateInfo,
-        null,
-      );
+    await getNotificationAdapter().projectUpdateAdded({
+      project,
+      update: title,
     });
     return save;
   }
@@ -1776,21 +1711,6 @@ export class ProjectResolver {
         reasonId,
       });
 
-      const segmentProject = {
-        email: user.email,
-        title: project.title,
-        LastName: user.lastName,
-        FirstName: user.firstName,
-        OwnerId: project.admin,
-        slug: project.slug,
-      };
-
-      SegmentAnalyticsSingleton.getInstance().track(
-        NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
-        `givethId-${ctx.req.user.userId}`,
-        segmentProject,
-        null,
-      );
       await getNotificationAdapter().projectDeactivated({
         project,
       });
@@ -1799,7 +1719,6 @@ export class ProjectResolver {
       logger.error('projectResolver.deactivateProject() error', error);
       SentryLogger.captureException(error);
       throw error;
-      return false;
     }
   }
   @Mutation(returns => Boolean)
@@ -1814,27 +1733,9 @@ export class ProjectResolver {
         statusId: ProjStatus.active,
         user,
       });
-      const segmentEventToDispatch =
-        project.prevStatusId === ProjStatus.drafted
-          ? NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED
-          : NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED;
 
       project.listed = null;
       await project.save();
-      const segmentProject = {
-        email: user.email,
-        title: project.title,
-        LastName: user.lastName,
-        FirstName: user.firstName,
-        OwnerId: project.admin,
-        slug: project.slug,
-      };
-      SegmentAnalyticsSingleton.getInstance().track(
-        segmentEventToDispatch,
-        `givethId-${ctx.req.user.userId}`,
-        segmentProject,
-        null,
-      );
 
       if (project.prevStatusId === ProjStatus.drafted) {
         await getNotificationAdapter().projectPublished({
