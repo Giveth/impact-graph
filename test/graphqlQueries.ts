@@ -603,6 +603,11 @@ export const fetchProjectsBySlugQuery = `
         powerRank
         round
       }
+      projectFuturePower {
+        totalPower
+        powerRank
+        round
+      }
       categories {
        name
        mainCategory {

@@ -876,6 +876,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
