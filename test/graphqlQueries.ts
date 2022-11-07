@@ -274,8 +274,14 @@ export const fetchNewProjectsPerDate = `
 `;
 
 export const fetchTotalDonationsPerCategoryPerDate = `
-  query {
-    totalDonationsPerCategory {
+  query (
+    $fromDate: String
+    $toDate: String
+  ) {
+    totalDonationsPerCategory(
+      fromDate: $fromDate
+      toDate: $toDate
+    ) {
       id
       title
       slug
