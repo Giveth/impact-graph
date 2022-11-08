@@ -1026,7 +1026,7 @@ export class ProjectResolver {
     });
 
     // Edit emails
-    Project.notifySegment(project, NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED);
+    await getNotificationAdapter().projectEdited({ project });
 
     return project;
   }

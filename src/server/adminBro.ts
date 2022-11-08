@@ -2049,13 +2049,11 @@ export const verifySingleVerificationForm = async (
       adminId: currentAdmin.id,
     });
     const projectId = verificationForm.projectId;
-    let project = (await findProjectById(projectId)) as Project;
-    project = await verifyProject({ verified, projectId });
+    const project = await verifyProject({ verified, projectId });
 
     if (verified) {
       await updateProjectWithVerificationForm(verificationForm, project);
     }
-    Project.notifySegment(project, segmentEvent);
     if (verified) {
       await getNotificationAdapter().projectVerified({
         project,
@@ -2117,17 +2115,13 @@ export const makeEditableByUser = async (
         ),
       );
     }
-
-    const segmentEvent =
-      NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
-
     const verificationForm = await makeFormDraft({
       formId,
       adminId: currentAdmin.id,
     });
     const projectId = verificationForm.projectId;
     const project = (await findProjectById(projectId)) as Project;
-    Project.notifySegment(project, segmentEvent);
+    await getNotificationAdapter().projectGotDraftByAdmin({ project });
 
     responseMessage = `Project(s) successfully got draft`;
   } catch (error) {
@@ -2182,8 +2176,7 @@ export const verifyVerificationForms = async (
     const segmentEvent = verified
       ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
       : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
-
-    Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
+    // TODO send appropriate notification
     const projectIds = projects.raw.map(project => {
       return project.id;
     });

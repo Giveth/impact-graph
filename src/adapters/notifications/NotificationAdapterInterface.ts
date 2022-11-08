@@ -30,6 +30,8 @@ export interface NotificationAdapterInterface {
 
   projectSavedAsDraft(params: { project: Project }): Promise<void>;
   projectPublished(params: { project: Project }): Promise<void>;
+  projectEdited(params: { project: Project }): Promise<void>;
+  projectGotDraftByAdmin(params: { project: Project }): Promise<void>;
   projectCancelled(params: { project: Project }): Promise<void>;
   projectUpdateAdded(params: {
     project: Project;

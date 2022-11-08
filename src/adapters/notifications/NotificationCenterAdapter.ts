@@ -507,6 +507,42 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
+  async projectEdited(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    const projectOwner = project?.adminUser as User;
+
+    await this.sendProjectRelatedNotification({
+      project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED,
+
+      sendEmail: true,
+      segment: {
+        analyticsUserId: projectOwner.segmentUserId(),
+        anonymousId: projectOwner.segmentUserId(),
+        payload: this.getSegmentProjectAttributes({
+          project,
+        }),
+      },
+    });
+  }
+  async projectGotDraftByAdmin(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    const projectOwner = project?.adminUser as User;
+
+    await this.sendProjectRelatedNotification({
+      project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN,
+      sendEmail: true,
+      segment: {
+        analyticsUserId: projectOwner.segmentUserId(),
+        anonymousId: projectOwner.segmentUserId(),
+        payload: this.getSegmentProjectAttributes({
+          project,
+        }),
+      },
+    });
+  }
+
   projectPublished(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;

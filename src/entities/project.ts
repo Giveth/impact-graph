@@ -24,7 +24,6 @@ import { Reaction } from './reaction';
 import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
-import ProjectTracker from '../services/segment/projectTracker';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
@@ -328,19 +327,6 @@ class Project extends BaseEntity {
   /**
    * Custom Query Builders to chain together
    */
-
-  static notifySegment(project: Project, eventName: NOTIFICATIONS_EVENT_NAMES) {
-    new ProjectTracker(project, eventName).track();
-  }
-
-  static sendBulkEventsToSegment(
-    projects: [Project],
-    eventName: NOTIFICATIONS_EVENT_NAMES,
-  ) {
-    for (const project of projects) {
-      this.notifySegment(project, eventName);
-    }
-  }
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: Number) {

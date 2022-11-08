@@ -101,7 +101,7 @@ export const verifyProject = async (params: {
   verified: boolean;
   projectId: number;
 }): Promise<Project> => {
-  const project = await Project.findOne({ id: params.projectId });
+  const project = await findProjectById(params.projectId);
 
   if (!project)
     throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
