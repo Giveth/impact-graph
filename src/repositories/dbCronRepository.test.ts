@@ -71,7 +71,7 @@ describe('db cron job test', () => {
   // });
 
   // This test takes one minutes to become complete, just will run it in special cases manually
-  it('should fill givpower boosting snapshot', async () => {
+  it.skip('should fill givpower boosting snapshot', async () => {
     await PowerBoosting.clear();
 
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -137,7 +137,7 @@ describe('db cron job test', () => {
   });
 
   // This test takes one minutes to become complete, just will run it in special cases manually
-  it('should fill givpower boosting snapshot, not include non-verified project power boostings', async () => {
+  it.skip('should fill givpower boosting snapshot, not include non-verified project power boostings', async () => {
     await PowerBoosting.clear();
 
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
