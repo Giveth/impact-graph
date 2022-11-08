@@ -636,11 +636,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       segment: {
         analyticsUserId: projectOwner.segmentUserId(),
         anonymousId: projectOwner.segmentUserId(),
-        payload: {
-          ...this.getSegmentProjectAttributes({
-            project,
-          }),
-        },
+        payload: this.getSegmentProjectAttributes({
+          project,
+        }),
       },
     });
   }
