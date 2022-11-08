@@ -24,7 +24,7 @@ import { MainCategory } from '../src/entities/mainCategory';
 import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
 import { ProjectPowerView1662915983383 } from '../migration/1662915983383-ProjectPowerView';
-import { TakePowerBoostingSnapshotProcedure1663594895750 } from '../migration/1663594895750-takePowerSnapshotProcedure';
+import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
 import { ProjectFuturePowerView1667732038996 } from '../migration/1667732038996-ProjectFuturePowerView';
 
 // This can also be a connection string
@@ -300,7 +300,7 @@ async function runMigrations() {
     const projectPowerView = new ProjectPowerView1662915983383();
     const projectFuturePowerView = new ProjectFuturePowerView1667732038996();
     const takeSnapshotProcedure =
-      new TakePowerBoostingSnapshotProcedure1663594895750();
+      new TakePowerBoostingSnapshotProcedure1663594895751();
 
     await userProjectPowerView.up(queryRunner);
     await projectPowerView.up(queryRunner);
