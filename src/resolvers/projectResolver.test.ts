@@ -22,6 +22,7 @@ import {
   fetchAllProjectsQuery,
   fetchLikedProjectsQuery,
   fetchMultiFilterAllProjectsQuery,
+  fetchNewProjectsPerDate,
   fetchProjectsBySlugQuery,
   fetchProjectUpdatesQuery,
   fetchSimilarProjectsBySlugQuery,
@@ -60,6 +61,7 @@ import {
 } from '../entities/projectVerificationForm';
 import { MainCategory } from '../entities/mainCategory';
 import { ProjectAddress } from '../entities/projectAddress';
+import moment from 'moment';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -115,6 +117,27 @@ describe(
 // describe('updateProjectStatus test cases --->', updateProjectStatusTestCases);
 
 // describe('activateProject test cases --->', activateProjectTestCases);
+
+describe('projectsPerDate() test cases --->', projectsPerDateTestCases);
+
+function projectsPerDateTestCases() {
+  it('should projects created in a time range', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      creationDate: moment().add(10, 'days').toDate(),
+    });
+    const projectsResponse = await axios.post(graphqlUrl, {
+      query: fetchNewProjectsPerDate,
+      variables: {
+        fromDate: moment().add(9, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(11, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+
+    assert.isOk(projectsResponse);
+    assert.equal(projectsResponse.data.data.projectsPerDate, 1);
+  });
+}
 
 function getProjectsAcceptTokensTestCases() {
   it('should return all tokens for giveth projects', async () => {

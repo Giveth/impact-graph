@@ -25,6 +25,9 @@ import {
   donationsFromWallets,
   createDonationMutation,
   updateDonationStatusMutation,
+  fetchTotalDonationsUsdAmount,
+  fetchTotalDonors,
+  fetchTotalDonationsPerCategoryPerDate,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -41,14 +44,152 @@ describe('donationsByProjectId() test cases', donationsByProjectIdTestCases);
 describe('donationByUserId() test cases', donationsByUserIdTestCases);
 describe('donationsByDonor() test cases', donationsByDonorTestCases);
 describe('createDonation() test cases', createDonationTestCases);
-describe('updateDonationStatus() test cases', updateDonationStatusTestCases);
+// describe('updateDonationStatus() test cases', updateDonationStatusTestCases);
 describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
+describe('totalDonationsUsdAmount() test cases', donationsUsdAmountTestCases);
+describe('totalDonorsCountPerDate() test cases', donorsCountPerDateTestCases);
+describe(
+  'totalDonationsPerCategoryPerDate() test cases',
+  totalDonationsPerCategoryPerDateTestCases,
+);
 
-// describe('tokens() test cases', tokensTestCases);
+// // describe('tokens() test cases', tokensTestCases);
 
-// TODO I think we can delete  addUserVerification query
-// describe('addUserVerification() test cases', addUserVerificationTestCases);
+// // TODO I think we can delete  addUserVerification query
+// // describe('addUserVerification() test cases', addUserVerificationTestCases);
+
+function totalDonationsPerCategoryPerDateTestCases() {
+  it('should return donations count per category per time range', async () => {
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsPerCategoryPerDate,
+    });
+    const foodDonationsTotalUsd = await Donation.createQueryBuilder('donation')
+      .select('COALESCE(SUM(donation."valueUsd")) AS sum')
+      .where(`donation.status = 'verified'`)
+      .getRawMany();
+
+    assert.isOk(donationsResponse);
+
+    const foodDonationsResponseTotal =
+      donationsResponse.data.data.totalDonationsPerCategory.find(
+        d => d.title === 'food',
+      );
+    assert.equal(
+      foodDonationsResponseTotal.totalUsd,
+      foodDonationsTotalUsd[0].sum,
+    );
+  });
+}
+
+function donorsCountPerDateTestCases() {
+  it('should return not return data if the date is not yyyy-mm-dd', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await saveUserDirectlyToDb(walletAddress);
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonors,
+      variables: {
+        fromDate: '2012-30-32',
+        toDate: '2012:30:32',
+      },
+    });
+    assert.isOk(donationsResponse);
+    assert.isNotEmpty(donationsResponse.data.errors[0]);
+    assert.equal(
+      donationsResponse.data.errors[0].message,
+      errorMessages.INVALID_DATE_FORMAT,
+    );
+  });
+  it('should return donors unique total count in a time range', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await saveUserDirectlyToDb(walletAddress);
+    // should count as 1 as its the same user
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(50, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      user.id,
+      project.id,
+    );
+    const donation2 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(50, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      user.id,
+      project.id,
+    );
+
+    // anonymous donations count as separate
+    const anonymousDonation1 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(50, 'days').toDate(),
+        valueUsd: 20,
+        anonymous: true,
+      }),
+      undefined,
+      project.id,
+    );
+    const anonymousDonation2 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(50, 'days').toDate(),
+        valueUsd: 20,
+        anonymous: true,
+      }),
+      undefined,
+      project.id,
+    );
+
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonors,
+      variables: {
+        fromDate: moment().add(49, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(51, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+    assert.isOk(donationsResponse);
+    // 1 unique donor and 2 anonymous
+    assert.equal(donationsResponse.data.data.totalDonorsCountPerDate, 3);
+  });
+}
+
+function donationsUsdAmountTestCases() {
+  it('should return total usd amount for donations made in a time range', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await saveUserDirectlyToDb(walletAddress);
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(100, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      user.id,
+      project.id,
+    );
+
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsUsdAmount,
+      variables: {
+        fromDate: moment().add(99, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(101, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+
+    assert.isOk(donationsResponse);
+    assert.equal(
+      donationsResponse.data.data.donationsTotalUsdPerDate,
+      donation.valueUsd,
+    );
+  });
+}
 
 function donationsTestCases() {
   it('should throw error if send invalid fromDate format', async () => {

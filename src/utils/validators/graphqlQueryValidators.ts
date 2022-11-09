@@ -8,6 +8,9 @@ import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificatio
 import { countriesList } from '../utils';
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
+const resourcePerDateRegex = new RegExp(
+  '((?:19|20)\\d\\d)-(0?[1-9]|1[012])-([12][0-9]|3[01]|0?[1-9])',
+);
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
@@ -35,6 +38,21 @@ export const getDonationsQueryValidator = Joi.object({
   }),
 
   toDate: Joi.string().pattern(filterDateRegex).messages({
+    'string.base': errorMessages.INVALID_TO_DATE,
+    'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
+  }),
+});
+
+export const resourcePerDateReportValidator = Joi.object({
+  fromDate: Joi.string()
+    .allow(null, '')
+    .pattern(resourcePerDateRegex)
+    .messages({
+      'string.base': errorMessages.INVALID_FROM_DATE,
+      'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
+    }),
+
+  toDate: Joi.string().allow(null, '').pattern(resourcePerDateRegex).messages({
     'string.base': errorMessages.INVALID_TO_DATE,
     'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
   }),
