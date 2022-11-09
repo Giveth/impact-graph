@@ -85,6 +85,7 @@ import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { NETWORK_IDS } from '../provider';
 import { getVerificationFormByProjectId } from '../repositories/projectVerificationRepository';
 import {
+  getDonationsQueryValidator,
   resourcePerDateReportValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
