@@ -225,6 +225,8 @@ function updateMilestonesOfProjectVerificationTestCases() {
       achievedMilestonesProofs: ['ipfsHash'],
       foundationDate: new Date().toString(),
       mission: 'Make world a better place',
+      problem: 'Also Make the world a better place',
+      plans: 'Planning to make the world a better place',
     };
     const updatedProjectVerification =
       await updateMilestonesOfProjectVerification({
