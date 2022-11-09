@@ -8,6 +8,25 @@ import {
 
 const analytics = getAnalytics();
 
+interface DonationAttributes {
+  email?: String;
+  title?: String;
+  firstName?: String;
+  projectOwnerId?: String;
+  slug?: String;
+  amount?: Number;
+  transactionId?: String;
+  transactionNetworkId?: Number;
+  currency?: String;
+  createdAt?: Date;
+  toWalletAddress?: String;
+  fromWalletAddress?: String;
+  donationValueUsd?: Number;
+  donationValueEth?: Number;
+  verified?: Boolean;
+  transakStatus?: String;
+}
+
 /**
  * Notifies Segment any event concerning the donation
  */
@@ -38,8 +57,9 @@ class DonationTracker {
     );
   }
 
-  private segmentDonationAttributes() {
-    return {
+  // it's partial because anonymous has less values
+  segmentDonationAttributes(): Partial<DonationAttributes> {
+    const donationAttributes = {
       email: this.user.email,
       title: this.project.title,
       firstName: this.user.firstName,
@@ -56,7 +76,13 @@ class DonationTracker {
       donationValueEth: this.donation.valueEth,
       verified: Boolean(this.project.verified),
       transakStatus: this.donation.transakStatus,
-    };
+    } as Partial<DonationAttributes>;
+
+    if (this.eventName === NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED) {
+      delete donationAttributes.fromWalletAddress;
+    }
+
+    return donationAttributes;
   }
 }
 
