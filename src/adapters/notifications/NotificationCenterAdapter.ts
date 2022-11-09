@@ -127,7 +127,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       currency: donation.currency,
       createdAt: new Date(),
       toWalletAddress: donation.toWalletAddress.toLowerCase(),
-      fromWalletAddress: donation.fromWalletAddress.toLowerCase(),
       donationValueUsd: donation.valueUsd,
       donationValueEth: donation.valueEth,
       verified: Boolean(project.verified),
@@ -186,11 +185,17 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       segment: {
         analyticsUserId: donor.segmentUserId(),
         anonymousId: donor.segmentUserId(),
-        payload: this.getSegmentDonationAttributes({
-          donation,
-          project,
-          user: donor,
-        }),
+        payload: {
+          ...this.getSegmentDonationAttributes({
+            donation,
+            project,
+            user: donor,
+          }),
+
+          // We just want this to be donation sent event not made donation, so don put it in getSegmentDonationAttributes()
+          // see https://github.com/Giveth/impact-graph/pull/716
+          fromWalletAddress: donation.fromWalletAddress.toLowerCase(),
+        },
       },
     });
   }
