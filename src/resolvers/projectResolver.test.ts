@@ -2139,7 +2139,6 @@ function createProjectTestCases() {
         },
       },
     );
-
     assert.isOk(result.data.data.createProject);
   });
   it('Should get error, when sending more thant two recipient address', async () => {
