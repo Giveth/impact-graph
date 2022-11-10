@@ -39,7 +39,6 @@ export interface NotificationAdapterInterface {
   }): Promise<void>;
   projectDeactivated(params: { project: Project }): Promise<void>;
   projectReactivated(params: { project: Project }): Promise<void>;
-  projectSendEmailConfirmation(params: { project: Project }): Promise<void>;
   ProfileIsCompleted(params: { user: User }): Promise<void>;
   ProfileNeedToBeCompleted(params: { user: User }): Promise<void>;
   donationGetPriceFailed(params: {

@@ -31,8 +31,6 @@ import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
 import { sendMailConfirmationEmail } from '../services/mailerService';
 import moment from 'moment';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 const dappUrl = process.env.FRONTEND_URL as string;
 
@@ -183,11 +181,7 @@ export class ProjectVerificationFormResolver {
       projectVerificationForm.emailConfirmationSentAt = new Date();
       await projectVerificationForm.save();
 
-      const callbackUrl = `https://${dappUrl}/verification/${project.slug}/${token}`;
       await sendMailConfirmationEmail(email, project, token);
-      await getNotificationAdapter().projectSendEmailConfirmation({
-        project,
-      });
 
       return projectVerificationForm;
     } catch (e) {

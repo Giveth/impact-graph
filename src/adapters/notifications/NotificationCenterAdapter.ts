@@ -603,25 +603,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  projectSendEmailConfirmation(params: { project: Project }): Promise<void> {
-    const { project } = params;
-    const projectOwner = project?.adminUser as User;
-
-    return this.sendProjectRelatedNotification({
-      project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.SEND_EMAIL_CONFIRMATION,
-
-      sendEmail: false,
-      segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: this.getSegmentProjectAttributes({
-          project,
-        }),
-      },
-    });
-  }
-
   donationGetPriceFailed(params: {
     project: Project;
     donationInfo: { txLink: string; reason: string };

@@ -169,12 +169,6 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     });
     return Promise.resolve(undefined);
   }
-  projectSendEmailConfirmation(params: { project: Project }): Promise<void> {
-    logger.info('MockNotificationAdapter projectSendEmailConfirmation', {
-      projectSlug: params.project.slug,
-    });
-    return Promise.resolve(undefined);
-  }
 
   donationGetPriceFailed(params: {
     project: Project;

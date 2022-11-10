@@ -24,7 +24,6 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_CANCELLED = 'Project cancelled',
   PROJECT_CANCELLED_DONORS = 'Project cancelled - Donors',
   PROJECT_CANCELLED_USERS_WHO_LIKED = 'Project cancelled - Users Who Liked',
-  SEND_EMAIL_CONFIRMATION = 'Send email confirmation',
   MADE_DONATION = 'Made donation',
   DONATION_RECEIVED = 'Donation received',
   DONATION_GET_PRICE_FAILED = 'Donation get price failed',
