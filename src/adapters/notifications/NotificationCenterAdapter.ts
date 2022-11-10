@@ -646,6 +646,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName,
       email: receivedUser.email,
       sendEmail: sendEmail || false,
+      sendSegment: Boolean(segment),
       userWalletAddress: receivedUser.walletAddress as string,
       projectId: String(project.id),
       metadata: {
