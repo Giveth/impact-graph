@@ -35,7 +35,6 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../services/userService';
-import { getCampaignDonations } from '../services/trace/traceService';
 import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
@@ -54,6 +53,8 @@ import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { MainCategory } from '../entities/mainCategory';
 import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { findProjectById } from '../repositories/projectRepository';
 
 @ObjectType()
 class PaginateDonations {
@@ -357,74 +358,61 @@ export class DonationResolver {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
 
-    if (traceable) {
-      const { total, donations } = await getCampaignDonations({
-        campaignId: project.traceCampaignId as string,
-        take,
-        skip,
+    const query = this.donationRepository
+      .createQueryBuilder('donation')
+      .leftJoin('donation.user', 'user')
+      .addSelect(publicSelectionFields)
+      .where(`donation.projectId = ${projectId}`)
+      .orderBy(
+        `donation.${orderBy.field}`,
+        orderBy.direction,
+        nullDirection[orderBy.direction as string],
+      );
+
+    if (status) {
+      query.andWhere(`donation.status = :status`, {
+        status,
       });
-      return {
-        donations,
-        totalCount: total,
-        totalUsdBalance: project.totalTraceDonations,
-      };
-    } else {
-      const query = this.donationRepository
-        .createQueryBuilder('donation')
-        .leftJoin('donation.user', 'user')
-        .addSelect(publicSelectionFields)
-        .where(`donation.projectId = ${projectId}`)
-        .orderBy(
-          `donation.${orderBy.field}`,
-          orderBy.direction,
-          nullDirection[orderBy.direction as string],
-        );
-
-      if (status) {
-        query.andWhere(`donation.status = :status`, {
-          status,
-        });
-      }
-
-      if (searchTerm) {
-        query.andWhere(
-          new Brackets(qb => {
-            qb.where(
-              '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
-              {
-                searchTerm: `%${searchTerm}%`,
-              },
-            )
-              .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
-                searchTerm: `%${searchTerm}%`,
-              })
-              .orWhere('donation.currency ILIKE :searchTerm', {
-                searchTerm: `%${searchTerm}%`,
-              });
-
-            // WalletAddresses are translanted to huge integers
-            // this breaks postgresql query integer limit
-            if (!Web3.utils.isAddress(searchTerm)) {
-              const amount = Number(searchTerm);
-
-              qb.orWhere('donation.amount = :number', {
-                number: amount,
-              });
-            }
-          }),
-        );
-      }
-
-      const [donations, donationsCount] = await query
-        .take(take)
-        .skip(skip)
-        .getManyAndCount();
-      return {
-        donations,
-        totalCount: donationsCount,
-        totalUsdBalance: project.totalDonations,
-      };
     }
+
+    if (searchTerm) {
+      query.andWhere(
+        new Brackets(qb => {
+          qb.where(
+            '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
+            {
+              searchTerm: `%${searchTerm}%`,
+            },
+          )
+            .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            })
+            .orWhere('donation.currency ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            });
+
+          // WalletAddresses are translanted to huge integers
+          // this breaks postgresql query integer limit
+          if (!Web3.utils.isAddress(searchTerm)) {
+            const amount = Number(searchTerm);
+
+            qb.orWhere('donation.amount = :number', {
+              number: amount,
+            });
+          }
+        }),
+      );
+    }
+
+    const [donations, donationsCount] = await query
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+    return {
+      donations,
+      totalCount: donationsCount,
+      totalUsdBalance: project.totalDonations,
+    };
   }
 
   @Query(returns => [Token], { nullable: true })
@@ -537,13 +525,7 @@ export class DonationResolver {
           ? NETWORK_IDS.MAIN_NET
           : transactionNetworkId;
 
-      const project = await Project.createQueryBuilder('project')
-        .leftJoinAndSelect('project.organization', 'organization')
-        .leftJoinAndSelect('project.status', 'status')
-        .where(`project.id = :projectId`, {
-          projectId,
-        })
-        .getOne();
+      const project = await findProjectById(projectId);
 
       if (!project)
         throw new Error(
@@ -635,12 +617,16 @@ export class DonationResolver {
           error: e,
           donation,
         });
-        SegmentAnalyticsSingleton.getInstance().track(
-          NOTIFICATIONS_EVENT_NAMES.GET_DONATION_PRICE_FAILED,
-          userId,
-          donation,
-          null,
-        );
+
+        await getNotificationAdapter().donationGetPriceFailed({
+          project,
+          donationInfo: {
+            reason: 'Getting price failed',
+
+            // TODO Add txLink
+            txLink: donation.transactionId,
+          },
+        });
         SentryLogger.captureException(
           new Error('Error in getting price from monoswap'),
           {

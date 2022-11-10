@@ -26,10 +26,8 @@ import {
   getAdminBroRouter,
   adminBroQueryCache,
 } from './adminBro';
-import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
-import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import {
   errorMessages,
@@ -303,9 +301,7 @@ export async function bootstrap() {
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-    initHandlingTraceCampaignUpdateEvents();
     runUpdateDonationsWithoutValueUsdPrices();
-    runUpdateTraceableProjectsTotalDonations();
 
     if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
       runCheckProjectVerificationStatus();

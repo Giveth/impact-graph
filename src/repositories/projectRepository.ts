@@ -17,6 +17,7 @@ export const findProjectById = (
 
   return Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect('project.organization', 'organization')
     .leftJoinAndSelect('project.addresses', 'addresses')
     .leftJoin('project.adminUser', 'user')
     .addSelect(publicSelectionFields)
@@ -32,6 +33,7 @@ export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
       'project.projectVerificationForm',
       'projectVerificationForm',
     )
+    .leftJoin('project.adminUser', 'user')
     .where('project.isImported = false')
     .andWhere('project.verified = true')
     .andWhere('project.updatedAt < :badgeRevokingDate', {
@@ -99,7 +101,7 @@ export const verifyProject = async (params: {
   verified: boolean;
   projectId: number;
 }): Promise<Project> => {
-  const project = await Project.findOne({ id: params.projectId });
+  const project = await findProjectById(params.projectId);
 
   if (!project)
     throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));

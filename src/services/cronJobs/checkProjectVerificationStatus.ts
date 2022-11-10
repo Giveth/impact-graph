@@ -27,6 +27,7 @@ import {
 } from '../../repositories/projectVerificationRepository';
 import { SegmentAnalyticsSingleton } from '../segment/segmentAnalyticsSingleton';
 import { sleep } from '../../utils/utils';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 
 const analytics = SegmentAnalyticsSingleton.getInstance();
 
@@ -171,40 +172,29 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
 
   const user = await User.findOne({ id: Number(project.admin) });
 
-  // segment notifications
-  const segmentProject = {
-    email: user?.email,
-    title: project.title,
-    lastName: user?.lastName,
-    firstName: user?.firstName,
-    OwnerId: user?.id,
-    slug: project.slug,
-    walletAddress: project.walletAddress,
-    description: project.description,
-  };
-
-  await analytics.track(
-    selectSegmentEvent(project.verificationStatus),
-    `givethId-${user?.id}`,
-    segmentProject,
-    null,
-  );
+  await sendProperNotification(project, project.verificationStatus as string);
 
   await sleep(1000);
 };
 
-const selectSegmentEvent = projectVerificationStatus => {
+const sendProperNotification = (
+  project: Project,
+  projectVerificationStatus: string,
+) => {
   switch (projectVerificationStatus) {
     case RevokeSteps.Reminder:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_REMINDER;
+      return getNotificationAdapter().projectBadgeRevokeReminder({ project });
     case RevokeSteps.Warning:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_WARNING;
+      return getNotificationAdapter().projectBadgeRevokeWarning({ project });
     case RevokeSteps.LastChance:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_LAST_WARNING;
+      return getNotificationAdapter().projectBadgeRevokeLastWarning({
+        project,
+      });
     case RevokeSteps.Revoked:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED;
+      return getNotificationAdapter().projectBadgeRevoked({ project });
     case RevokeSteps.UpForRevoking:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_UP_FOR_REVOKING;
+      return getNotificationAdapter().projectBadgeUpForRevoking({ project });
+
     default:
       throw new Error(
         i18n.__(

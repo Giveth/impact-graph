@@ -5,6 +5,7 @@ import { getRepository } from 'typeorm';
 import config from '../../config';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import { logger } from '../../utils/logger';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 
 const cronJobTime =
   (config.get('MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB_EXPRESSION') as string) ||
@@ -35,6 +36,6 @@ export const updateProjectListing = async () => {
       id: project.id,
       listed: true,
     });
-    Project.notifySegment(project, NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED);
+    await getNotificationAdapter().projectListed({ project });
   }
 };
