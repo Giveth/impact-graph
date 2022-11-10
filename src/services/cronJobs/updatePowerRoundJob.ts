@@ -3,7 +3,10 @@ import { logger } from '../../utils/logger';
 import { schedule } from 'node-cron';
 import { setPowerRound } from '../../repositories/powerRoundRepository';
 import { getRoundNumberByDate } from '../../utils/powerBoostingUtils';
-import { refreshProjectPowerView } from '../../repositories/projectPowerViewRepository';
+import {
+  refreshProjectPowerView,
+  refreshProjectFuturePowerView,
+} from '../../repositories/projectPowerViewRepository';
 import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
 
 const cronJobTime =
@@ -19,7 +22,10 @@ export const runUpdatePowerRoundCronJob = () => {
     const powerRound = getRoundNumberByDate(new Date()).round - 1;
     logger.debug('runUpdatePowerRoundCronJob powerRound', powerRound);
     await setPowerRound(powerRound);
-    await refreshProjectPowerView();
-    await refreshUserProjectPowerView();
+    await Promise.all([
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+      refreshUserProjectPowerView(),
+    ]);
   });
 };

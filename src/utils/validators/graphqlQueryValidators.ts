@@ -56,12 +56,15 @@ export const getDonationsQueryValidator = Joi.object({
 });
 
 export const resourcePerDateReportValidator = Joi.object({
-  fromDate: Joi.string().pattern(resourcePerDateRegex).messages({
-    'string.base': errorMessages.INVALID_FROM_DATE,
-    'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
-  }),
+  fromDate: Joi.string()
+    .allow(null, '')
+    .pattern(resourcePerDateRegex)
+    .messages({
+      'string.base': errorMessages.INVALID_FROM_DATE,
+      'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
+    }),
 
-  toDate: Joi.string().pattern(resourcePerDateRegex).messages({
+  toDate: Joi.string().allow(null, '').pattern(resourcePerDateRegex).messages({
     'string.base': errorMessages.INVALID_TO_DATE,
     'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
   }),
@@ -140,6 +143,8 @@ const milestonesValidator = Joi.object({
   mission: Joi.string().allow(''),
   achievedMilestones: Joi.string().allow(''),
   achievedMilestonesProofs: Joi.array()?.items(Joi.string()).max(5),
+  problem: Joi.string().allow(''),
+  plans: Joi.string().allow(''),
 });
 
 const managingFundsValidator = Joi.object({
