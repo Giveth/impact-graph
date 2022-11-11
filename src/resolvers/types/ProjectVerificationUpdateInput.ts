@@ -22,6 +22,12 @@ class MilestonesInputType {
   achievedMilestones?: string;
   @Field(type => [String], { nullable: true })
   achievedMilestonesProofs?: string[];
+  @Field(type => String, { nullable: true })
+  problem?: string;
+  @Field(type => String, { nullable: true })
+  plans?: string;
+  @Field(type => String, { nullable: true })
+  impact?: string;
 }
 
 @InputType()

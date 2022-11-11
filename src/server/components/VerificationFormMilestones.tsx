@@ -15,6 +15,7 @@ const VerificationFormMilestones = props => {
   });
   const problem = props?.record?.params?.['milestones.problem'] || '';
   const plans = props?.record?.params?.['milestones.plans'] || '';
+  const impact = props?.record?.params?.['milestones.impact'] || '';
   const foundationDate =
     props?.record?.params?.['milestones.foundationDate'] || '';
   const achievedMilestones =
@@ -44,6 +45,10 @@ const VerificationFormMilestones = props => {
         <Section>
           <Label>Plans</Label>
           {plans}
+        </Section>
+        <Section>
+          <Label>Impact</Label>
+          {impact}
         </Section>
 
         <Section>

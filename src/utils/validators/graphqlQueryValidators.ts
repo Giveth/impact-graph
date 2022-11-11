@@ -145,6 +145,7 @@ const milestonesValidator = Joi.object({
   achievedMilestonesProofs: Joi.array()?.items(Joi.string()).max(5),
   problem: Joi.string().allow(''),
   plans: Joi.string().allow(''),
+  impact: Joi.string().allow(''),
 });
 
 const managingFundsValidator = Joi.object({
