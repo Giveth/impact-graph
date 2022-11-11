@@ -1,4 +1,9 @@
 # Power Boosting Flow
+[DB Tables](#tables)
+
+[DB Views](#materialized-views)
+
+[FAQ](#FAQ)
 
 ## tables
 
@@ -67,7 +72,7 @@ limit 8
 |7048|24935611   |1777       |
 
 ### power_boosting_snapshot
-We have a job in postgres DB (pg_cron) that take snapshot, it means checks what users with balance(?) more than
+We have a job in postgres DB (pg_cron) that take snapshot, it means checks what users with balance more than
 zero boosted some percentages (more than zero) to verified projects, it inserts one record per each boosting
 and relates that to #power_snapshot
 

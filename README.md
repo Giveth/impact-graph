@@ -3,9 +3,13 @@
 ImpactQL is a GraphQL server, that enables rapid development of serverless impact project applications. It does this by taking care of the persistance of impact project data.
 
 [Installation](#installation)
+
 [Features](#features)
+
 [Architecture](#architecture)
+
 [Vision](#place-2)
+
 [here](#place-2)
 
 ## Installation
