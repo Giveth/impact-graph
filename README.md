@@ -57,6 +57,7 @@ You can see logs beautifully with this command
 
 
 ## Features
+* [Power Boosting Specs](./docs/powerBoosting.md)
 
 ### Authentication
 
