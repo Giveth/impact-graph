@@ -3,7 +3,7 @@
 
 [DB Views](#materialized-views)
 
-[FAQ](#FAQ)
+[FAQ](#faq)
 
 ## tables
 
