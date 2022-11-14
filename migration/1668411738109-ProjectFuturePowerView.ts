@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectFuturePowerView1667732038996 implements MigrationInterface {
+export class ProjectFuturePowerView1668411738109 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
@@ -25,7 +25,7 @@ export class ProjectFuturePowerView1667732038996 implements MigrationInterface {
                     ) END AS "totalPower"
                   FROM 
                     project project 
-                    LEFT JOIN (
+                    JOIN (
                       SELECT 
                         "powerRound".round, 
                         "powerBoostingSnapshot"."projectId", 
@@ -45,6 +45,7 @@ export class ProjectFuturePowerView1667732038996 implements MigrationInterface {
                         "powerBoostingSnapshot"."projectId", 
                         "powerBoostingSnapshot"."userId"
                     ) pp ON pp."projectId" = project.id 
+                  WHERE pp."boostedPower" > 0::double precision
                   GROUP BY 
                     project.id
                 ) innerview, 

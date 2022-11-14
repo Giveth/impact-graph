@@ -25,7 +25,7 @@ import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
 import { ProjectPowerView1662915983383 } from '../migration/1662915983383-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
-import { ProjectFuturePowerView1667732038996 } from '../migration/1667732038996-ProjectFuturePowerView';
+import { ProjectFuturePowerView1668411738109 } from '../migration/1668411738109-ProjectFuturePowerView';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -298,7 +298,7 @@ async function runMigrations() {
   try {
     const userProjectPowerView = new UserProjectPowerView1662877385339();
     const projectPowerView = new ProjectPowerView1662915983383();
-    const projectFuturePowerView = new ProjectFuturePowerView1667732038996();
+    const projectFuturePowerView = new ProjectFuturePowerView1668411738109();
     const takeSnapshotProcedure =
       new TakePowerBoostingSnapshotProcedure1663594895751();
 
