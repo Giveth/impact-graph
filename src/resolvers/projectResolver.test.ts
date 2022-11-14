@@ -84,6 +84,7 @@ import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
 import moment from 'moment';
 import { PowerBoosting } from '../entities/powerBoosting';
+import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -4671,7 +4672,6 @@ function projectBySlugTestCases() {
       project: project4,
       percentage: 40,
     });
-
     await takePowerBoostingSnapshot();
     let incompleteSnapshots = await findInCompletePowerSnapShots();
     let snapshot = incompleteSnapshots[0];
@@ -4698,11 +4698,18 @@ function projectBySlugTestCases() {
     snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 2;
+    // Set next round for filling future power rank
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
 
     await setPowerRound(roundNumber);
 
+    await refreshUserProjectPowerView();
     await refreshProjectPowerView();
     await refreshProjectFuturePowerView();
 
@@ -4715,7 +4722,6 @@ function projectBySlugTestCases() {
 
     const project = result.data.data.projectBySlug;
     assert.equal(Number(project.id), project1.id);
-
     assert.exists(project.projectPower);
     assert.isTrue(project.projectPower.totalPower > 0);
 
