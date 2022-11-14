@@ -4698,7 +4698,7 @@ function projectBySlugTestCases() {
     snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 2;
-    snapshot.roundNumber = roundNumber + 2;
+    snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
 
     await setPowerRound(roundNumber);
