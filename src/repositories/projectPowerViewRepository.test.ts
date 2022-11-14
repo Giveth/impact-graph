@@ -274,8 +274,6 @@ function projectFuturePowerViewRepositoryTestCases() {
     assert.equal(projectFuturePowers[0].projectId, project1.id);
     assert.equal(projectFuturePowers[1].powerRank, 2);
     assert.equal(projectFuturePowers[1].projectId, project2.id);
-    assert.equal(projectFuturePowers[2].powerRank, 3);
-    assert.equal(projectFuturePowers[3].powerRank, 3);
   });
 }
 
