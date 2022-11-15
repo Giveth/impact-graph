@@ -32,7 +32,6 @@ import { createNewAccountVerification } from '../repositories/accountVerificatio
 import { UserByAddressResponse } from './types/userResolver';
 import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 import { findPowerBalanceByUserId } from '../repositories/powerBalanceSnapshotRepository';
-import { findUserPowerBoostingCount } from '../repositories/powerBoostingRepository';
 
 @Resolver(of => User)
 export class UserResolver {
@@ -52,8 +51,6 @@ export class UserResolver {
     @Arg('address', type => String) address: string,
     @Ctx() { req: { user } }: MyContext,
   ) {
-    let givPower = 0;
-    let boostedProjectsCount = 0;
     const includeSensitiveFields =
       user?.walletAddress?.toLowerCase() === address.toLowerCase();
     const foundUser = await findUserByWalletAddress(
@@ -61,16 +58,9 @@ export class UserResolver {
       includeSensitiveFields,
     );
 
-    if (user && foundUser) {
-      givPower = await findPowerBalanceByUserId(foundUser.id);
-      boostedProjectsCount = await findUserPowerBoostingCount(foundUser.id);
-    }
-
     return {
       isSignedIn: Boolean(user),
-      boostedProjectsCount,
       ...foundUser,
-      givPower,
     };
   }
 

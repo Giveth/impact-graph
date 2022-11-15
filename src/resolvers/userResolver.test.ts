@@ -15,7 +15,10 @@ import { updateUser, userByAddress } from '../../test/graphqlQueries';
 import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
-import { create } from 'domain';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { getConnection } from 'typeorm';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { PowerSnapshot } from '../entities/powerSnapshot';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -23,7 +26,7 @@ describe('userByAddress() test cases', userByAddressTestCases);
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
 
 function userByAddressTestCases() {
-  it('Get non-sensitive fields of a user', async () => {
+  it('Get non-sensitive fields of a user including givPower and boostedProjects', async () => {
     const userData = {
       firstName: 'firstName',
       lastName: 'lastName',
@@ -33,7 +36,44 @@ function userByAddressTestCases() {
       loginType: 'wallet',
       walletAddress: generateRandomEtheriumAddress(),
     };
-    await User.create(userData).save();
+    const user = await User.create(userData).save();
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user,
+      project: firstProject,
+      percentage: 10,
+    });
+
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    let powerSnapshotTime = user.id * 1000;
+
+    const powerSnapshots = PowerSnapshot.create([
+      {
+        time: new Date(powerSnapshotTime++),
+        blockNumber: 100,
+      },
+      {
+        time: new Date(powerSnapshotTime++),
+      },
+    ]);
+    await PowerSnapshot.save(powerSnapshots);
+
+    const powerBalance = await PowerBalanceSnapshot.create({
+      userId: user.id,
+      powerSnapshot: powerSnapshots[0],
+      balance: 10,
+    }).save();
+
+    // most recent snapshot will be retrieve
+    const powerBalance2 = await PowerBalanceSnapshot.create({
+      userId: user.id,
+      powerSnapshot: powerSnapshots[1],
+      balance: 100,
+    }).save();
+
     const result = await axios.post(graphqlUrl, {
       query: userByAddress,
       variables: {
@@ -50,6 +90,13 @@ function userByAddressTestCases() {
     assert.isNotOk(result.data.data.userByAddress.role);
     assert.isNotOk(result.data.data.userByAddress.email);
     assert.equal(result.data.data.userByAddress.url, userData.url);
+
+    // power boosting
+    assert.equal(
+      result.data.data.userByAddress.givPower,
+      powerBalance2.balance,
+    );
+    assert.equal(result.data.data.userByAddress.boostedProjectsCount, 1);
   });
   it('Get all fields of a user', async () => {
     const userData = {

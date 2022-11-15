@@ -860,6 +860,7 @@ export const userByAddress = `
       location
       isSignedIn
       boostedProjectsCount
+      givPower
       likedProjectsCount
       donationsCount
       projectsCount

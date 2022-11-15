@@ -15,7 +15,7 @@ export const findPowerBalanceByUserId = async (
   userId: number,
 ): Promise<number> => {
   const balance = await PowerBalanceSnapshot.createQueryBuilder('powerBalance')
-    .select('powerBalance.balance AS givpower')
+    .select('powerBalance.balance AS "givPower"')
     .where('powerBalance.userId = :userId', { userId })
     .orderBy('powerBalance.id', 'DESC')
     .limit(1)

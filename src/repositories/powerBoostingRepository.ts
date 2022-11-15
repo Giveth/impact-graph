@@ -23,20 +23,6 @@ const formatPercentage = (p: number): number => {
   return +p.toFixed(PERCENTAGE_PRECISION);
 };
 
-export const findUserPowerBoostingCount = async (
-  userId: number,
-): Promise<number> => {
-  const totalBoostedProjects = await PowerBoosting.createQueryBuilder(
-    'powerBoosting',
-  )
-    .select('COUNT(*) as total')
-    .where('powerBoosting.userId = :userId', { userId })
-    .andWhere(`percentage > 0`)
-    .getRawMany();
-
-  return totalBoostedProjects[0]?.total || 0;
-};
-
 export const findUserPowerBoosting = async (
   userId: number,
   forceProjectIds?: number[],

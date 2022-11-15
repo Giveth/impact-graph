@@ -18,6 +18,7 @@ import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { PowerBoosting } from './powerBoosting';
 import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
+import { findPowerBalanceByUserId } from '../repositories/powerBalanceSnapshotRepository';
 
 export const publicSelectionFields = [
   'user.id',
@@ -180,6 +181,11 @@ export class User extends BaseEntity {
   @Field(type => Int, { nullable: true })
   async boostedProjectsCount() {
     return findPowerBoostingsCountByUserId(this.id);
+  }
+
+  @Field(type => Int, { nullable: true })
+  async givPower() {
+    return findPowerBalanceByUserId(this.id);
   }
 
   segmentUserId() {
