@@ -758,8 +758,13 @@ export class ProjectResolver {
         break;
       case SortingField.GIVPower:
         query
-          .orderBy('projectPower.totalPower', OrderDirection.DESC, 'NULLS LAST')
-          .addOrderBy(`project.verified`, OrderDirection.DESC);
+          .orderBy(`project.verified`, OrderDirection.DESC)
+          .addOrderBy(
+            'projectPower.totalPower',
+            OrderDirection.DESC,
+            'NULLS LAST',
+          );
+
         break;
       default:
         query
