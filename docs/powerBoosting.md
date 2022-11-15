@@ -8,7 +8,7 @@
 ## tables
 
 ### power_boosting 
-When a user boost a project we create a record on this table, this is some example data for that
+When a user boosts a project we create a record in this table, this is some example data for that
 #### query
 ```
 select id, "projectId","userId", "percentage" from power_boosting
@@ -42,13 +42,13 @@ select * from power_round
 |true |	1777|
 
 ### power_snapshot
-In each round we would create some snapshots, for instance in staging each round is **20 min** and we get snapshot every **5 min**
-so in each round we would have 4 snapshot 
+In each round, we create some snapshots. For instance, in staging (GIVeconomy deployment) each round lasts **20 min** and we take a snapshot every **5 min**, 
+so each round consists of 4 snapshots. 
 
 We fill blockNumber of powerSnapshots that doesnt have it periodically with this cronjob expression
 `FILL_BLOCK_NUMBERS_OF_SNAPSHOTS_CRONJOB_EXPRESSION` that in Staging ENV is `3 * * * * *`  it means every minutes we check it
 
-When we insert record in this table?( I couldn't understand @aminlatifi can fill this part)
+When do we insert a record in this table? (I couldn't understand, @aminlatifi can fill this part)
 
 #### query
 
@@ -72,8 +72,8 @@ limit 8
 |7048|24935611   |1777       |
 
 ### power_boosting_snapshot
-We have a job in postgres DB (pg_cron) that take snapshot, it means checks what users with balance more than
-zero boosted some percentages (more than zero) to verified projects, it inserts one record per each boosting
+We have a job in postgres DB (pg_cron) that takes snapshots. It checks what users (with GIVpower balance more than
+zero) boosted verified projects with some percentages (more than zero) of their GIVpower, and inserts one record per each boosting
 and relates that to #power_snapshot
 
 #### pg_cron job
@@ -111,8 +111,8 @@ limit 5
 |602142|67      |223521   |7057           |2.69      |
 
 ### power_balance_snapshot
-With the above data we know in each snapshot what user boosted what percentage to what project, but we need to know what 
-is the givPower balance of user in each snapshot to can **projectRank** the project and calculate the **totalPower**
+With the above data we know in each snapshot which user boosted what percentage to a project, but we need to know what 
+the givPower balance of user is in each snapshot in order to determine **projectRank** for the project and calculate the **totalPower**
 
 
 We check with this cronjob expression `FILL_POWER_SNAPSHOT_BALANCE_CRONJOB_EXPRESSION` that in Staging ENV is `20 */5 * * * *`
@@ -148,9 +148,9 @@ for each web service, so have defined some materialized views and use them for t
 ### user_project_power_view
 We have created that with this [migration](https://github.com/Giveth/impact-graph/blob/staging/migration/1662877385339-UserProjectPowerView.ts)
 
-This view have all calculation of **power_round**, **power_balance_snapshot**, **power_boosting_snapshot**
+This view has all calculations of **power_round**, **power_balance_snapshot**, **power_boosting_snapshot**
 So with this view you would know each person how much givPower boosted to a project, we should this data
-to show it in the GivPower tab in single project view or in m
+to show it in the GIVpower tab in single project view or in m
 
 We refresh this view with `UPDATE_POWER_ROUND_CRONJOB_EXPRESSION` cron job expression that is `0 */2 * * * *`
 means every **2 min**
