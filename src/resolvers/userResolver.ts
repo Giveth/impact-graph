@@ -31,7 +31,6 @@ import {
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 import { UserByAddressResponse } from './types/userResolver';
 import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
-import { findPowerBalanceByUserId } from '../repositories/powerBalanceSnapshotRepository';
 
 @Resolver(of => User)
 export class UserResolver {
@@ -57,7 +56,6 @@ export class UserResolver {
       address,
       includeSensitiveFields,
     );
-
     return {
       isSignedIn: Boolean(user),
       ...foundUser,
