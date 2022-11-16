@@ -1755,6 +1755,7 @@ interface AdminBroProjectsQuery {
   slug?: string;
   verified?: string;
   listed?: string;
+  isImported?: string;
 }
 
 // add queries depending on which filters were selected
@@ -1778,6 +1779,11 @@ export const buildProjectsQuery = (
   if (queryStrings.verified)
     query.andWhere('project.verified = :verified', {
       verified: queryStrings.verified === 'true',
+    });
+
+  if (queryStrings.isImported)
+    query.andWhere('project.isImported = :isImported', {
+      isImported: queryStrings.isImported === 'true',
     });
 
   if (queryStrings.listed)
