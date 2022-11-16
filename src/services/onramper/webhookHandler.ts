@@ -5,6 +5,11 @@ import { logger } from '../../utils/logger';
  */
 export async function onramperWebhookHandler(request, response) {
   try {
+    // just log to test stuff
+    // tslint:disable-next-line:no-console
+    console.log(request.headers['X-Onramper-Webhook-Signature']);
+    // tslint:disable-next-line:no-console
+    console.log(JSON.stringify(request.body));
     // logic is on another branch this is temporary
     response.status(200).send();
   } catch (error) {
