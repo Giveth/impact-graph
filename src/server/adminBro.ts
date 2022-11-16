@@ -1293,7 +1293,7 @@ const getAdminBroInstance = async () => {
             isImported: {
               isVisible: {
                 list: false,
-                filter: false,
+                filter: true,
                 show: true,
                 edit: false,
               },
