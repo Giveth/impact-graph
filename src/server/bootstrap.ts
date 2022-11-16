@@ -54,6 +54,7 @@ import {
 import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
+import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -286,6 +287,7 @@ export async function bootstrap() {
     app.get('/health', (req, res, next) => {
       res.send('Hi every thing seems ok');
     });
+    app.post('/fiat_webhook', onramperWebhookHandler);
     app.post('/transak_webhook', webhookHandler);
 
     // Start the server
