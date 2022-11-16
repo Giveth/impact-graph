@@ -86,6 +86,11 @@ import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
+import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
+import {
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../repositories/projectPowerViewRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -2287,6 +2292,12 @@ export const verifyProjects = async (
         }
       }
     }
+
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
   } catch (error) {
     logger.error('verifyProjects() error', error);
     throw error;
