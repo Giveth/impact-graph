@@ -43,8 +43,7 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
-import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
+import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -234,6 +233,7 @@ export async function bootstrap() {
     app.get('/health', (req, res, next) => {
       res.send('Hi every thing seems ok');
     });
+    app.post('/fiat_webhook', onramperWebhookHandler);
     app.post('/transak_webhook', webhookHandler);
 
     // Start the server
