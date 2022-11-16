@@ -12,15 +12,8 @@ import config from '../../config';
 import { logger } from '../../utils/logger';
 import moment = require('moment');
 import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../../utils/errorMessages';
-import {
-  ProjectVerificationForm,
-  PROJECT_VERIFICATION_STATUSES,
-} from '../../entities/projectVerificationForm';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+
 import {
   makeFormDraft,
   updateProjectVerificationFormStatusOnly,
@@ -28,8 +21,11 @@ import {
 import { SegmentAnalyticsSingleton } from '../segment/segmentAnalyticsSingleton';
 import { sleep } from '../../utils/utils';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
-
-const analytics = SegmentAnalyticsSingleton.getInstance();
+import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
+import {
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../../repositories/projectPowerViewRepository';
 
 // Every 3 months if no project verification was added, the project
 // Verification status will be revoked
@@ -173,6 +169,11 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   const user = await User.findOne({ id: Number(project.admin) });
 
   await sendProperNotification(project, project.verificationStatus as string);
+  await Promise.all([
+    refreshUserProjectPowerView(),
+    refreshProjectPowerView(),
+    refreshProjectFuturePowerView(),
+  ]);
 
   await sleep(1000);
 };
