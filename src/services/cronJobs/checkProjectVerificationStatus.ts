@@ -93,11 +93,8 @@ export const checkProjectVerificationStatus = async () => {
   );
 
   // Run all iterations async, resulting in array of promises
-  await Promise.all(
-    projects.map(async project => {
-      return remindUpdatesOrRevokeVerification(project);
-    }),
-  );
+  await Promise.all(projects.map(remindUpdatesOrRevokeVerification));
+
   if (projects.length > 0) {
     await Promise.all([
       refreshUserProjectPowerView(),
