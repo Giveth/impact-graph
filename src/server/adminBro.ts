@@ -1777,7 +1777,7 @@ export const buildProjectsQuery = (
 
   if (queryStrings.isImported)
     query.andWhere('project.isImported = :isImported', {
-      verified: queryStrings.verified === 'true',
+      isImported: queryStrings.verified === 'true',
     });
 
   if (queryStrings.listed)
