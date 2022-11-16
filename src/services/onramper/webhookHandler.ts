@@ -8,7 +8,8 @@ export async function onramperWebhookHandler(request, response) {
     // just log to test stuff
     logger.info(
       'onramperWebhookHandler header',
-      request.headers['X-Onramper-Webhook-Signature'],
+      request.headers['X-Onramper-Webhook-Signature'] ||
+        request.headers['x-onramper-webhook-signature'],
     );
     logger.info('onramperWebhookHandler body', JSON.stringify(request.body));
     // logic is on another branch this is temporary
