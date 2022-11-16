@@ -20,6 +20,7 @@ import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonati
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
 import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { webhookHandler } from '../services/transak/webhookHandler';
+import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 
 import {
   adminBroRootPath,
@@ -286,6 +287,7 @@ export async function bootstrap() {
     app.get('/health', (req, res, next) => {
       res.send('Hi every thing seems ok');
     });
+    app.post('/fiat_webhook', onramperWebhookHandler);
     app.post('/transak_webhook', webhookHandler);
 
     // Start the server
