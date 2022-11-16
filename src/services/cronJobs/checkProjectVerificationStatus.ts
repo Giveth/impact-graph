@@ -95,9 +95,16 @@ export const checkProjectVerificationStatus = async () => {
   // Run all iterations async, resulting in array of promises
   await Promise.all(
     projects.map(async project => {
-      await remindUpdatesOrRevokeVerification(project);
+      return remindUpdatesOrRevokeVerification(project);
     }),
   );
+  if (projects.length > 0) {
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
+  }
 };
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
@@ -169,12 +176,6 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   const user = await User.findOne({ id: Number(project.admin) });
 
   await sendProperNotification(project, project.verificationStatus as string);
-  await Promise.all([
-    refreshUserProjectPowerView(),
-    refreshProjectPowerView(),
-    refreshProjectFuturePowerView(),
-  ]);
-
   await sleep(1000);
 };
 
