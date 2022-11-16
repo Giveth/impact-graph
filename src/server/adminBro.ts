@@ -2293,9 +2293,11 @@ export const verifyProjects = async (
       }
     }
 
-    await refreshUserProjectPowerView();
-    await refreshProjectPowerView();
-    await refreshProjectFuturePowerView();
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
   } catch (error) {
     logger.error('verifyProjects() error', error);
     throw error;
