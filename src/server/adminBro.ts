@@ -1367,6 +1367,14 @@ const getAdminBroInstance = async () => {
             edit: {
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              before: async (
+                request: AdminBroRequestInterface,
+                response,
+                context: AdminBroContextInterface,
+              ) => {
+                const { currentAdmin } = context;
+                logger.info('Edit project ', request.payload);
+              },
               after: async (
                 request: AdminBroRequestInterface,
                 response,
