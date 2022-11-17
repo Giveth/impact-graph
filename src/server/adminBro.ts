@@ -86,6 +86,7 @@ import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
+import { STATUS_CODES } from 'http';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -1372,8 +1373,58 @@ const getAdminBroInstance = async () => {
                 response,
                 context: AdminBroContextInterface,
               ) => {
-                const { currentAdmin } = context;
-                logger.info('Edit project ', request.payload);
+                const { verified, listed } = request.payload;
+                const statusChanges: string[] = [];
+                if (request?.payload?.id) {
+                  const project = await findProjectById(
+                    Number(request.payload.id),
+                  );
+                  if (
+                    Number(request?.payload?.statusId) !== project?.status?.id
+                  ) {
+                    switch (Number(request?.payload?.statusId)) {
+                      case ProjStatus.active:
+                        statusChanges.push(
+                          NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
+                        );
+                        break;
+                      case ProjStatus.deactive:
+                        statusChanges.push(
+                          NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
+                        );
+                        break;
+                      case ProjStatus.cancelled:
+                        statusChanges.push(
+                          NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                        );
+                        break;
+                    }
+                  }
+                  if (project?.verified && !verified) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
+                    );
+                  }
+                  if (!project?.verified && verified) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
+                    );
+                  }
+                  if (project?.listed && !listed) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
+                    );
+                  }
+                  if (!project?.listed && listed) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                    );
+                  }
+
+                  // We put these status changes in payload, so in after hook we would know to send notification for users
+                  request.payload.statusChanges = statusChanges.join(',');
+                }
+                return request;
               },
               after: async (
                 request: AdminBroRequestInterface,
@@ -1392,6 +1443,46 @@ const getAdminBroInstance = async () => {
                     status: project.status,
                     userId: currentAdmin.id,
                     description: HISTORY_DESCRIPTIONS.HAS_BEEN_EDITED,
+                  });
+                  const statusChanges =
+                    request?.record?.params?.statusChanges?.split(',') || [];
+
+                  const eventAndHandlers = [
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
+                      handler: getNotificationAdapter().projectVerified,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
+                      handler: getNotificationAdapter().projectUnVerified,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                      handler: getNotificationAdapter().projectListed,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
+                      handler: getNotificationAdapter().projectDeListed,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
+                      handler: getNotificationAdapter().projectReactivated,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
+                      handler: getNotificationAdapter().projectDeactivated,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                      handler: getNotificationAdapter().projectCancelled,
+                    },
+                  ];
+
+                  eventAndHandlers.forEach(eventHandler => {
+                    if (statusChanges?.includes(eventHandler.event)) {
+                      // Dont put await before that intentionally to not block admin panel response with that
+                      eventHandler.handler({ project });
+                    }
                   });
                 }
 
