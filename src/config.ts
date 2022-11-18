@@ -1,23 +1,21 @@
 import path from 'path';
 import * as dotenv from 'dotenv';
 
-if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
-  const configPath = path.resolve(
-    __dirname,
-    `../config/${process.env.NODE_ENV || ''}.env`,
-  );
-  const loadConfigResult = dotenv.config({
-    path: configPath,
-  });
+const configPath = path.resolve(
+  __dirname,
+  `../config/${process.env.NODE_ENV || ''}.env`,
+);
+const loadConfigResult = dotenv.config({
+  path: configPath,
+});
 
-  if (loadConfigResult.error) {
-    // tslint:disable-next-line:no-console
-    console.log('Load process.env error', {
-      path: configPath,
-      error: loadConfigResult.error,
-    });
-    throw loadConfigResult.error;
-  }
+if (loadConfigResult.error) {
+  // tslint:disable-next-line:no-console
+  console.log('Load process.env error', {
+    path: configPath,
+    error: loadConfigResult.error,
+  });
+  throw loadConfigResult.error;
 }
 
 const envVars = [
@@ -58,6 +56,7 @@ const envVars = [
   'GIVPOWER_BOOSTING_PERCENTAGE_PRECISION',
   'GIVPOWER_ROUND_DURATION',
 ];
+
 // tslint:disable-next-line:class-name
 interface requiredEnv {
   JWT_SECRET: string;
