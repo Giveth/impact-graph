@@ -86,6 +86,11 @@ import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
+import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
+import {
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../repositories/projectPowerViewRepository';
 import { STATUS_CODES } from 'http';
 
 // use redis for session data instead of in-memory storage
@@ -1849,6 +1854,7 @@ interface AdminBroProjectsQuery {
   slug?: string;
   verified?: string;
   listed?: string;
+  isImported?: string;
 }
 
 // add queries depending on which filters were selected
@@ -1872,6 +1878,11 @@ export const buildProjectsQuery = (
   if (queryStrings.verified)
     query.andWhere('project.verified = :verified', {
       verified: queryStrings.verified === 'true',
+    });
+
+  if (queryStrings.isImported)
+    query.andWhere('project.isImported = :isImported', {
+      isImported: queryStrings.isImported === 'true',
     });
 
   if (queryStrings.listed)
@@ -2386,6 +2397,12 @@ export const verifyProjects = async (
         }
       }
     }
+
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
   } catch (error) {
     logger.error('verifyProjects() error', error);
     throw error;
