@@ -11,6 +11,7 @@ import {
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 import { getKeyByValue } from '../utils/utils';
+import { Reaction } from '../entities/reaction';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
@@ -47,6 +48,19 @@ export const findUserPowerBoosting = async (
       )
       .getMany();
   }
+};
+
+export const findUsersWhoBoostedProject = async (
+  projectId: number,
+): Promise<{ walletAddress: string; email?: string }[]> => {
+  return PowerBoosting.createQueryBuilder('powerBoosting')
+    .leftJoin('powerBoosting.user', 'user')
+    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
+    .where(`"projectId"=:projectId`, {
+      projectId,
+    })
+    .andWhere(`percentage > 0`)
+    .getRawMany();
 };
 
 export const findPowerBoostings = async (params: {

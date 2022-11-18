@@ -12,6 +12,7 @@ import { redisConfig } from '../../redis';
 import config from '../../config';
 import { findUsersWhoDonatedToProject } from '../../repositories/donationRepository';
 import { findUsersWhoLikedProject } from '../../repositories/reactionRepository';
+import { findUsersWhoBoostedProject } from '../../repositories/powerBoostingRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -309,6 +310,16 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async projectUnVerified(params: { project: Project }): Promise<void> {
     const { project } = params;
     const user = project.adminUser as User;
+
+    const usersWhoBoosted = await findUsersWhoBoostedProject(project.id);
+    usersWhoBoosted.map(u =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName:
+          NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_BOOSTED,
+        user: u,
+      }),
+    );
     return this.sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
