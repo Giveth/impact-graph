@@ -7,6 +7,7 @@ import {
 import {
   findPowerBoostings,
   findUserPowerBoosting,
+  findUsersWhoBoostedProject,
   getPowerBoostingSnapshotRound,
   insertSinglePowerBoosting,
   setMultipleBoosting,
@@ -17,11 +18,70 @@ import { PowerBoosting } from '../entities/powerBoosting';
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { getConnection } from 'typeorm';
+import { Reaction } from '../entities/reaction';
+import { findUsersWhoLikedProject } from './reactionRepository';
 
 describe('findUserPowerBoosting() testCases', findUserPowerBoostingTestCases);
 describe('findPowerBoostings() testCases', findPowerBoostingsTestCases);
 describe('setMultipleBoosting() testCases', setMultipleBoostingTestCases);
 describe('power boosting snapshot testCases', powerBoostingSnapshotTests);
+describe(
+  'findUsersWhoBoostedProject() testCases',
+  findUsersWhoBoostedProjectTests,
+);
+
+function findUsersWhoBoostedProjectTests() {
+  it('should find wallet addresses of who boosted a project', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const thirdUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const fourthUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project,
+      percentage: 1,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: thirdUser,
+      project,
+      percentage: 3,
+    });
+    await insertSinglePowerBoosting({
+      user: fourthUser,
+      project,
+      percentage: 0,
+    });
+
+    const users = await findUsersWhoBoostedProject(project.id);
+    assert.equal(users.length, 3);
+    assert.isOk(
+      users.find(user => user.walletAddress === firstUser.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === secondUser.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === thirdUser.walletAddress),
+    );
+    assert.isNotOk(
+      users.find(user => user.walletAddress === fourthUser.walletAddress),
+    );
+  });
+}
 
 function findUserPowerBoostingTestCases() {
   it('should return all non-zero power boostings', async () => {
