@@ -91,7 +91,6 @@ import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
-import { STATUS_CODES } from 'http';
 import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
 
 // use redis for session data instead of in-memory storage
@@ -1490,6 +1489,16 @@ const getAdminBroInstance = async () => {
                       eventHandler.handler({ project });
                     }
                   });
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                    )
+                  ) {
+                    await changeUserBoostingsAfterProjectCancelled({
+                      projectId: project.id,
+                    });
+                  }
                 }
 
                 return request;
