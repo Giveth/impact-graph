@@ -210,7 +210,7 @@ We refresh this view with `UPDATE_POWER_ROUND_CRONJOB_EXPRESSION` cron job expre
 means every **2 min**
 
 In this view despite **project_power_view**, we use next round value to join with snapshots.
-Therefore, users would know what will the rank of the project in the next round.
+Therefore, users would know what will be the rank of the project in the next round.
 
 #### query
 
