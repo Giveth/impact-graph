@@ -42,7 +42,7 @@ select * from power_round
 |true |	1777|
 
 ### pg_cron job
-`pg_cron` extensions help reliably and precicely taking snapshots by calling `TAKE_POWER_BOOSTING_SNAPSHOT` procedure on time.
+`pg_cron` extensions help reliably and precisely taking snapshots by calling `TAKE_POWER_BOOSTING_SNAPSHOT` procedure on time.
 ```
       CREATE EXTENSION IF NOT EXISTS PG_CRON;
 
@@ -56,18 +56,18 @@ select * from power_round
 ```
 
 Snapshots are taken by calling "TAKE_POWER_BOOSTING_SNAPSHOT" procedure by postgres cron job by the help of pg_cron extension.
-The procedure saves a new record of `power_snapshot` having with having snapshot time in the its time field.
-The procedures also copies `power_boosting` table values corresponding to verifies projects in `power_boosting_snapshot` table.
+The procedure saves a new record of `power_snapshot` with a snapshot time in the its time field.
+The procedures also copies `power_boosting` table values corresponding to verified projects in `power_boosting_snapshot` table.
 
-And cronjob calls this [procedure](https://github.com/Giveth/impact-graph/blob/staging/migration/1663594895751-takePowerSnapshotProcedure.ts)
+And cronjob calls this: [procedure](https://github.com/Giveth/impact-graph/blob/staging/migration/1663594895751-takePowerSnapshotProcedure.ts)
 
 ### power_snapshot
-In each round, we create some snapshots. For instance, in staging (GIVeconomy deployment) each round lasts **20 min** and we take a snapshot every **5 min**, 
-so each round consists of 4 snapshots. In production that would be one snapshot in every 4 hours, and round duration 14 days.
+In each round, we create some snapshots. For instance, in staging (GIVeconomy deployment) each round lasts **20 min** and we take a snapshot every **5 min**,
+so each round consists of 4 snapshots. In production that would be one snapshot every 4 hours, and a round duration of 14 days.
 
 
-Each new `power_snapshot` record has empty blockNumber and roundNumber values. impact-graph fills those fields by running a cron job with expression
-`FILL_BLOCK_NUMBERS_OF_SNAPSHOTS_CRONJOB_EXPRESSION` that in Staging ENV is `3 * * * * *`  it means every minutes (at second 3rd) impact-graph searches for
+Each new `power_snapshot` record has empty blockNumber and roundNumber values. The impact-graph backend fills those fields by running a cron job with the expression
+`FILL_BLOCK_NUMBERS_OF_SNAPSHOTS_CRONJOB_EXPRESSION` that in Staging ENV is set to `3 * * * * *` it means every minute (at the 3rd second) impact-graph searches for
 incomplete `power_snapshot` records and make them complete by blockNumber and roundNumber values corresponding to its time field.
 
 #### query
@@ -119,9 +119,9 @@ the givPower balance of users in each snapshot in order to determine **totalPowe
 
 
 We check with this cronjob expression `FILL_POWER_SNAPSHOT_BALANCE_CRONJOB_EXPRESSION` that in Staging ENV is `20 */5 * * * *`
-means every **5 min** to fill power balance , for users that they boosted a project in a snapshot but their corresponding balance at the time os snapshot is not filled.
+means every **5 min** to fill power balance , for users that boosted a project in a snapshot but their corresponding balance at the time of the snapshot is not filled.
 
-How we fill the balance? We already have filled the **blockNumber** in powerSnapshot so we 
+How we fill the balance? We already have filled the **blockNumber** in powerSnapshot so we
 call the subgraph and ask user's balance in that specific block
 
 #### query
@@ -143,8 +143,8 @@ limit 5
 |86108|168     |7059           |80313.22|
 
 ## Materialized views
-To calculate the project boost value, per user and project total, it's not optimized to run the query on each
-request. therefore, we have defined two materialized views to avoid data redundancy and utilize indexing features.
+To calculate the project boost value, per user and project total, it's not optimal to run the query on each
+request. Therefore, we have defined two materialized views to avoid data redundancy and utilize indexing features.
 
 
 ### user_project_power_view
@@ -180,7 +180,7 @@ limit 5
 ### project_power_view
 We have created that with this [migration](https://github.com/Giveth/impact-graph/blob/staging/migration/1662915983383-ProjectPowerView.ts)
 
-This view is like the above one, but calculates projects total power and rank them based on this value. We use it to join project query with to add this data and sort the result.
+This view is like the above one, but calculates projects total power and rank them based on this value. We use it to join project query with this data and sort the result.
 
 We refresh this view with `UPDATE_POWER_ROUND_CRONJOB_EXPRESSION` cron job expression that is `0 */2 * * * *` 
 means every **2 min**
@@ -235,9 +235,9 @@ limit 5
 ### What we do if a project that has some boosting got unverified?
 When we want to create record for **power_boosting_snapshot** we dont save boostings on unverified projects, so when we
 verify the project again from next snapshot we start to count them , so in the period that project was unverified
-we haven't saved any power_boosting_snapshot for that project but immediately after it gets verified we start to save 
+we haven't saved any power_boosting_snapshot for that project but immediately after it gets verified we start to save
 power_boosting_snapshot for next round
 
 ### What if givPower balance of a user who already boosted some project changes during round?
 As we get some snapshot during each round, we calculate of user's balance in each snapshot and boosted values correspondingly.
-so it doesn't matter because we have balance history for that purpose and the average of values of each round will be the final value.
+So it doesn't matter, because we have the balance history for that purpose and the average of values of each round will be the final value.
