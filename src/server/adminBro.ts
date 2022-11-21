@@ -91,6 +91,7 @@ import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
+import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -2354,6 +2355,9 @@ export const updateStatusOfProjects = async (
         if (status === ProjStatus.cancelled) {
           await getNotificationAdapter().projectCancelled({
             project: projectWithAdmin,
+          });
+          await changeUserBoostingsAfterProjectCancelled({
+            projectId: project.id,
           });
         } else if (status === ProjStatus.active) {
           await getNotificationAdapter().projectReactivated({
