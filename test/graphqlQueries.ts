@@ -631,6 +631,9 @@ export const fetchProjectsBySlugQuery = `
           foundationDate
           achievedMilestones
           achievedMilestonesProofs
+          problem
+          pans
+          impact
         }
         managingFunds {
           description
