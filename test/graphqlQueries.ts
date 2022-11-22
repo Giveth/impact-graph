@@ -632,7 +632,7 @@ export const fetchProjectsBySlugQuery = `
           achievedMilestones
           achievedMilestonesProofs
           problem
-          pans
+          plans
           impact
         }
         managingFunds {
@@ -972,6 +972,9 @@ export const projectsByUserIdQuery = `
               foundationDate
               achievedMilestones
               achievedMilestonesProofs
+              problem
+              plans
+              impact
             }
             managingFunds {
               description
