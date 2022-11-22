@@ -91,7 +91,7 @@ import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
-import { STATUS_CODES } from 'http';
+import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -1489,6 +1489,16 @@ const getAdminBroInstance = async () => {
                       eventHandler.handler({ project });
                     }
                   });
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                    )
+                  ) {
+                    await changeUserBoostingsAfterProjectCancelled({
+                      projectId: project.id,
+                    });
+                  }
                 }
 
                 return request;
@@ -2453,6 +2463,9 @@ export const updateStatusOfProjects = async (
         if (status === ProjStatus.cancelled) {
           await getNotificationAdapter().projectCancelled({
             project: projectWithAdmin,
+          });
+          await changeUserBoostingsAfterProjectCancelled({
+            projectId: project.id,
           });
         } else if (status === ProjStatus.active) {
           await getNotificationAdapter().projectReactivated({

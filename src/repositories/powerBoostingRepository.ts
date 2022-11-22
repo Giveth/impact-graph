@@ -64,8 +64,8 @@ export const findUsersWhoBoostedProject = async (
 };
 
 export const findPowerBoostings = async (params: {
-  take: number;
-  skip: number;
+  take?: number;
+  skip?: number;
   orderBy: {
     field: 'createdAt' | 'updatedAt' | 'percentage';
     direction: 'ASC' | 'DESC';
@@ -86,11 +86,18 @@ export const findPowerBoostings = async (params: {
   if (params.projectId) {
     query.andWhere(`"projectId" =${params.projectId}`);
   }
-  return query
-    .orderBy(`powerBoosting.${params.orderBy.field}`, params.orderBy.direction)
-    .take(params.take)
-    .skip(params.skip)
-    .getManyAndCount();
+  query.orderBy(
+    `powerBoosting.${params.orderBy.field}`,
+    params.orderBy.direction,
+  );
+
+  if (params.take) {
+    query.take(params.take);
+  }
+  if (params.skip) {
+    query.skip(params.skip);
+  }
+  return query.getManyAndCount();
 };
 
 export const findPowerBoostingsCountByUserId = async (
