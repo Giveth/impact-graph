@@ -18,7 +18,7 @@ import {
   refreshProjectFuturePowerView,
   getProjectFuturePowers,
 } from './projectPowerViewRepository';
-import { Project } from '../entities/project';
+import { Project, ProjStatus } from '../entities/project';
 import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
@@ -27,6 +27,7 @@ import {
   insertSinglePowerBalanceSnapshot,
 } from './powerSnapshotRepository';
 import { PowerBoosting } from '../entities/powerBoosting';
+import { ProjectStatus } from '../entities/projectStatus';
 
 describe(
   'projectPowerViewRepository test',
@@ -93,6 +94,70 @@ function projectPowerViewRepositoryTestCases() {
     assert.equal(projectPowers[1].projectId, project1.id);
     assert.equal(projectPowers[2].powerRank, 3);
     assert.equal(projectPowers[3].powerRank, 3);
+  });
+  it('should rank correctly, exclude non-active projects', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
+    const nonActiveProject = await saveProjectDirectlyToDb(createProjectData());
+    const status = await ProjectStatus.findOne({
+      id: ProjStatus.deactive,
+    });
+    nonActiveProject.status = status as ProjectStatus;
+    await nonActiveProject.save();
+
+    const roundNumber = project1.id * 10;
+
+    await insertSinglePowerBoosting({
+      user,
+      project: project1,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user,
+      project: project2,
+      percentage: 20,
+    });
+    await insertSinglePowerBoosting({
+      user,
+      project: nonActiveProject,
+      percentage: 20,
+    });
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
+    });
+
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+    const projectPowers = await getProjectPowers(nonActiveProject.id);
+    const projectCount = await Project.count();
+    assert.isArray(projectPowers);
+    assert.lengthOf(projectPowers, projectCount);
+    assert.notEqual(
+      projectPowers.find(pb => pb.projectId === project1.id)?.totalPower,
+      0,
+    );
+    assert.notEqual(
+      projectPowers.find(pb => pb.projectId === project2.id)?.totalPower,
+      0,
+    );
+    assert.equal(
+      projectPowers.find(pb => pb.projectId === nonActiveProject.id)
+        ?.totalPower,
+      0,
+    );
   });
 
   it('should set correct power amount', async () => {
@@ -274,6 +339,90 @@ function projectFuturePowerViewRepositoryTestCases() {
     assert.equal(projectFuturePowers[0].projectId, project1.id);
     assert.equal(projectFuturePowers[1].powerRank, 2);
     assert.equal(projectFuturePowers[1].projectId, project2.id);
+  });
+  it('should calculate future power rank correctly, exclude nonActive projects', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const nonActiveProject = await saveProjectDirectlyToDb(createProjectData());
+    const status = await ProjectStatus.findOne({
+      id: ProjStatus.deactive,
+    });
+    nonActiveProject.status = status as ProjectStatus;
+    await nonActiveProject.save();
+
+    const roundNumber = project1.id * 10;
+
+    const boosting1 = await insertSinglePowerBoosting({
+      user,
+      project: project1,
+      percentage: 10,
+    });
+    const boosting2 = await insertSinglePowerBoosting({
+      user,
+      project: project2,
+      percentage: 20,
+    });
+    const boosting3 = await insertSinglePowerBoosting({
+      user,
+      project: nonActiveProject,
+      percentage: 30,
+    });
+
+    await takePowerBoostingSnapshot();
+    let incompleteSnapshots = await findInCompletePowerSnapShots();
+    let snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
+    });
+
+    await setPowerRound(roundNumber);
+
+    boosting1.percentage = 60;
+    boosting2.percentage = 30;
+    boosting3.percentage = 10;
+
+    await PowerBoosting.save([boosting1, boosting2, boosting3]);
+
+    await takePowerBoostingSnapshot();
+    incompleteSnapshots = await findInCompletePowerSnapShots();
+    snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 2;
+    snapshot.roundNumber = roundNumber + 1;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
+    });
+
+    await refreshProjectPowerView();
+    await refreshProjectFuturePowerView();
+
+    const projectFuturePowers = await getProjectFuturePowers();
+    assert.isArray(projectFuturePowers);
+    assert.notEqual(
+      projectFuturePowers.find(pb => pb.projectId === project1.id)?.totalPower,
+      0,
+    );
+    assert.notEqual(
+      projectFuturePowers.find(pb => pb.projectId === project2.id)?.totalPower,
+      0,
+    );
+    assert.equal(
+      projectFuturePowers.find(pb => pb.projectId === nonActiveProject.id)
+        ?.totalPower,
+      0,
+    );
   });
 }
 
