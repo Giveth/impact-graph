@@ -23,9 +23,9 @@ import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
 import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
-import { ProjectPowerView1662915983383 } from '../migration/1662915983383-ProjectPowerView';
+import { ProjectPowerView1662915983384 } from '../migration/1662915983383-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
-import { ProjectFuturePowerView1668411738109 } from '../migration/1668411738109-ProjectFuturePowerView';
+import { ProjectFuturePowerView1668411738119 } from '../migration/1668411738109-ProjectFuturePowerView';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -297,8 +297,8 @@ async function runMigrations() {
 
   try {
     const userProjectPowerView = new UserProjectPowerView1662877385339();
-    const projectPowerView = new ProjectPowerView1662915983383();
-    const projectFuturePowerView = new ProjectFuturePowerView1668411738109();
+    const projectPowerView = new ProjectPowerView1662915983384();
+    const projectFuturePowerView = new ProjectFuturePowerView1668411738119();
     const takeSnapshotProcedure =
       new TakePowerBoostingSnapshotProcedure1663594895751();
 
