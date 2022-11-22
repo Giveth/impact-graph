@@ -84,6 +84,8 @@ export class Milestones {
   problem?: string;
   @Field(type => String, { nullable: true })
   plans?: string;
+  @Field(type => String, { nullable: true })
+  impact?: string;
 }
 
 @ObjectType()
