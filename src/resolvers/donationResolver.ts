@@ -48,7 +48,13 @@ import {
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
-import { findDonationById } from '../repositories/donationRepository';
+import {
+  donationsTotalAmountPerDateRange,
+  donationsTotalAmountPerDateRangeByMonth,
+  donorsCountPerDate,
+  donorsCountPerDateByMonthAndYear,
+  findDonationById,
+} from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { MainCategory } from '../entities/mainCategory';
@@ -69,6 +75,25 @@ class PaginateDonations {
 
   @Field(type => Number, { nullable: true })
   totalEthBalance: number;
+}
+
+// As general as posible types to reuse it
+@ObjectType()
+export class ResourcesTotalPerMonthAndYear {
+  @Field(type => Number, { nullable: true })
+  total?: Number;
+
+  @Field(type => String, { nullable: true })
+  date?: String;
+}
+
+@ObjectType()
+export class ResourcePerDateRange {
+  @Field(type => Number, { nullable: true })
+  total?: Number;
+
+  @Field(type => [ResourcesTotalPerMonthAndYear], { nullable: true })
+  totalPerMonthAndYear?: ResourcesTotalPerMonthAndYear[];
 }
 
 enum SortDirection {
@@ -231,64 +256,51 @@ export class DonationResolver {
     }
   }
 
-  @Query(returns => Number, { nullable: true })
+  @Query(returns => ResourcePerDateRange, { nullable: true })
   async donationsTotalUsdPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-  ): Promise<Number> {
+  ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const query = this.donationRepository
-        .createQueryBuilder('donation')
-        .select(`COALESCE(SUM(donation."valueUsd"), 0)`, 'sum')
-        .where(`donation.status = 'verified'`);
+      const total = await donationsTotalAmountPerDateRange(fromDate, toDate);
+      const totalPerMonthAndYear =
+        await donationsTotalAmountPerDateRangeByMonth(fromDate, toDate);
 
-      if (fromDate) {
-        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
-      }
-      if (toDate) {
-        query.andWhere(`donation."createdAt" <= '${toDate}'`);
-      }
-      const donationsUsdAmount = await query.getRawOne();
-
-      return donationsUsdAmount.sum;
+      return {
+        total,
+        totalPerMonthAndYear,
+      };
     } catch (e) {
       logger.error('donations query error', e);
       throw e;
     }
   }
 
-  @Query(returns => Number, { nullable: true })
+  @Query(returns => ResourcePerDateRange, { nullable: true })
   async totalDonorsCountPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-  ): Promise<Number> {
+  ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const query = this.donationRepository
-        .createQueryBuilder('donation')
-        .select(
-          `CAST((COUNT(DISTINCT(donation."userId")) + SUM(CASE WHEN donation."userId" IS NULL THEN 1 ELSE 0 END)) AS int)`,
-          'count',
-        )
-        .where(`donation.status = 'verified'`);
-
-      if (fromDate) {
-        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
-      }
-      if (toDate) {
-        query.andWhere(`donation."createdAt" <= '${toDate}'`);
-      }
-      const donors = await query.getRawOne();
-      return donors.count;
+      const total = await donorsCountPerDate(fromDate, toDate);
+      const totalPerMonthAndYear = await donorsCountPerDateByMonthAndYear(
+        fromDate,
+        toDate,
+      );
+      return {
+        total,
+        totalPerMonthAndYear,
+      };
     } catch (e) {
       logger.error('donations query error', e);
       throw e;

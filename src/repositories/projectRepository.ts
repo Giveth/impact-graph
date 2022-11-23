@@ -9,6 +9,7 @@ import {
 } from '../utils/errorMessages';
 import { Reaction } from '../entities/reaction';
 import { publicSelectionFields } from '../entities/user';
+import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 
 export const findProjectById = (
   projectId: number,
@@ -133,4 +134,44 @@ export const userIsOwnerOfProject = async (
       [viewerUserId, slug],
     )
   )[0].exists;
+};
+
+export const totalProjectsPerDate = async (
+  fromDate?: string,
+  toDate?: string,
+): Promise<number> => {
+  const query = Project.createQueryBuilder('project');
+
+  if (fromDate) {
+    query.andWhere(`project."creationDate" >= '${fromDate}'`);
+  }
+
+  if (toDate) {
+    query.andWhere(`project."creationDate" <= '${toDate}'`);
+  }
+
+  return await query.getCount();
+};
+
+export const totalProjectsPerDateByMonthAndYear = async (
+  fromDate?: string,
+  toDate?: string,
+): Promise<ResourcesTotalPerMonthAndYear[]> => {
+  const query = Project.createQueryBuilder('project').select(
+    `COUNT(project.id) as total, EXTRACT(YEAR from project."creationDate") as year, EXTRACT(MONTH from project."creationDate") as month, CONCAT(CAST(EXTRACT(YEAR from project."creationDate") as VARCHAR), '/', CAST(EXTRACT(MONTH from project."creationDate") as VARCHAR)) as date`,
+  );
+
+  if (fromDate) {
+    query.andWhere(`project."creationDate" >= '${fromDate}'`);
+  }
+
+  if (toDate) {
+    query.andWhere(`project."creationDate" <= '${toDate}'`);
+  }
+
+  query.groupBy('year, month');
+  query.orderBy('year', 'ASC');
+  query.addOrderBy('month', 'ASC');
+
+  return query.getRawMany();
 };

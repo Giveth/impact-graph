@@ -1,5 +1,6 @@
 import { Project } from '../entities/project';
 import { Donation } from '../entities/donation';
+import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 
 export const createDonation = async (data: {
   amount: number;
@@ -84,4 +85,98 @@ export const findUsersWhoDonatedToProject = async (
       projectId,
     })
     .getRawMany();
+};
+
+export const donationsTotalAmountPerDateRange = async (
+  fromDate?: string,
+  toDate?: string,
+): Promise<number> => {
+  const query = Donation.createQueryBuilder('donation')
+    .select(`COALESCE(SUM(donation."valueUsd"), 0)`, 'sum')
+    .where(`donation.status = 'verified'`);
+
+  if (fromDate) {
+    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+  }
+
+  if (toDate) {
+    query.andWhere(`donation."createdAt" <= '${toDate}'`);
+  }
+  const donationsUsdAmount = await query.getRawOne();
+
+  return donationsUsdAmount.sum;
+};
+
+export const donationsTotalAmountPerDateRangeByMonth = async (
+  fromDate?: string,
+  toDate?: string,
+): Promise<ResourcesTotalPerMonthAndYear[]> => {
+  const query = Donation.createQueryBuilder('donation')
+    .select(
+      `COALESCE(SUM(donation."valueUsd"), 0) AS total, EXTRACT(YEAR from donation."createdAt") as year, EXTRACT(MONTH from donation."createdAt") as month, CONCAT(CAST(EXTRACT(YEAR from donation."createdAt") as VARCHAR), '/', CAST(EXTRACT(MONTH from donation."createdAt") as VARCHAR)) as date`,
+    )
+    .where(`donation.status = 'verified'`)
+    .andWhere('donation."valueUsd" IS NOT NULL');
+
+  if (fromDate) {
+    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+  }
+
+  if (toDate) {
+    query.andWhere(`donation."createdAt" <= '${toDate}'`);
+  }
+
+  query.groupBy('year, month');
+  query.orderBy('year', 'ASC');
+  query.addOrderBy('month', 'ASC');
+
+  return await query.getRawMany();
+};
+
+export const donorsCountPerDate = async (
+  fromDate?: string,
+  toDate?: string,
+): Promise<number> => {
+  const query = Donation.createQueryBuilder('donation')
+    .select(
+      `CAST((COUNT(DISTINCT(donation."userId")) + SUM(CASE WHEN donation."userId" IS NULL THEN 1 ELSE 0 END)) AS int)`,
+      'count',
+    )
+    .where(`donation.status = 'verified'`);
+
+  if (fromDate) {
+    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+  }
+
+  if (toDate) {
+    query.andWhere(`donation."createdAt" <= '${toDate}'`);
+  }
+
+  const queryResult = await query.getRawOne();
+  return queryResult.count;
+};
+
+export const donorsCountPerDateByMonthAndYear = async (
+  fromDate?: string,
+  toDate?: string,
+): Promise<ResourcesTotalPerMonthAndYear[]> => {
+  const query = Donation.createQueryBuilder('donation')
+    .select(
+      `CAST((COUNT(DISTINCT(donation."userId")) + SUM(CASE WHEN donation."userId" IS NULL THEN 1 ELSE 0 END)) AS int) AS total, EXTRACT(YEAR from donation."createdAt") as year, EXTRACT(MONTH from donation."createdAt") as month, CONCAT(CAST(EXTRACT(YEAR from donation."createdAt") as VARCHAR), '/', CAST(EXTRACT(MONTH from donation."createdAt") as VARCHAR)) as date`,
+    )
+    .where(`donation.status = 'verified'`);
+
+  if (fromDate) {
+    query.andWhere(`donation."createdAt" >= '${fromDate}'`);
+  }
+
+  if (toDate) {
+    query.andWhere(`donation."createdAt" <= '${toDate}'`);
+  }
+
+  query.groupBy('year, month');
+  query.orderBy('year', 'ASC');
+  query.addOrderBy('month', 'ASC');
+
+  return await query.getRawMany();
 };
