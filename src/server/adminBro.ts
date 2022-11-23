@@ -1500,7 +1500,11 @@ const getAdminBroInstance = async () => {
                     });
                   }
                 }
-
+                await Promise.all([
+                  refreshUserProjectPowerView(),
+                  refreshProjectFuturePowerView(),
+                  refreshProjectPowerView(),
+                ]);
                 return request;
               },
             },
@@ -2477,6 +2481,11 @@ export const updateStatusOfProjects = async (
           });
         }
       }
+      await Promise.all([
+        refreshUserProjectPowerView(),
+        refreshProjectFuturePowerView(),
+        refreshProjectPowerView(),
+      ]);
     }
   } catch (error) {
     throw error;
