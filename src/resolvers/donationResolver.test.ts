@@ -156,7 +156,16 @@ function donorsCountPerDateTestCases() {
     });
     assert.isOk(donationsResponse);
     // 1 unique donor and 2 anonymous
-    assert.equal(donationsResponse.data.data.totalDonorsCountPerDate, 3);
+    assert.equal(donationsResponse.data.data.totalDonorsCountPerDate.total, 3);
+    const total =
+      donationsResponse.data.data.totalDonorsCountPerDate.totalPerMonthAndYear.reduce(
+        (sum, value) => sum + value.total,
+        0,
+      );
+    assert.equal(
+      donationsResponse.data.data.totalDonorsCountPerDate.total,
+      total,
+    );
   });
 }
 
@@ -185,8 +194,17 @@ function donationsUsdAmountTestCases() {
 
     assert.isOk(donationsResponse);
     assert.equal(
-      donationsResponse.data.data.donationsTotalUsdPerDate,
+      donationsResponse.data.data.donationsTotalUsdPerDate.total,
       donation.valueUsd,
+    );
+    const total =
+      donationsResponse.data.data.donationsTotalUsdPerDate.totalPerMonthAndYear.reduce(
+        (sum, value) => sum + value.total,
+        0,
+      );
+    assert.equal(
+      donationsResponse.data.data.donationsTotalUsdPerDate.total,
+      total,
     );
   });
 }
