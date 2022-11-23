@@ -83,11 +83,13 @@ import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { NETWORK_IDS } from '../provider';
 import { getVerificationFormByProjectId } from '../repositories/projectVerificationRepository';
 import {
-  getDonationsQueryValidator,
   resourcePerDateReportValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
+import {
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../repositories/projectPowerViewRepository';
 
 @ObjectType()
 class AllProjects {
@@ -1721,6 +1723,10 @@ export class ProjectResolver {
       await getNotificationAdapter().projectDeactivated({
         project,
       });
+      await Promise.all([
+        refreshProjectPowerView(),
+        refreshProjectFuturePowerView(),
+      ]);
       return true;
     } catch (error) {
       logger.error('projectResolver.deactivateProject() error', error);
@@ -1753,6 +1759,10 @@ export class ProjectResolver {
           project,
         });
       }
+      await Promise.all([
+        refreshProjectPowerView(),
+        refreshProjectFuturePowerView(),
+      ]);
       return true;
     } catch (error) {
       logger.error('projectResolver.activateProject() error', error);
