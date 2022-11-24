@@ -126,16 +126,26 @@ function projectsPerDateTestCases() {
       ...createProjectData(),
       creationDate: moment().add(10, 'days').toDate(),
     });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      creationDate: moment().add(44, 'days').toDate(),
+    });
     const projectsResponse = await axios.post(graphqlUrl, {
       query: fetchNewProjectsPerDate,
       variables: {
         fromDate: moment().add(9, 'days').toDate().toISOString().split('T')[0],
-        toDate: moment().add(11, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(45, 'days').toDate().toISOString().split('T')[0],
       },
     });
 
     assert.isOk(projectsResponse);
-    assert.equal(projectsResponse.data.data.projectsPerDate, 1);
+    assert.equal(projectsResponse.data.data.projectsPerDate.total, 2);
+    const total =
+      projectsResponse.data.data.projectsPerDate.totalPerMonthAndYear.reduce(
+        (sum, value) => sum + value.total,
+        0,
+      );
+    assert.equal(projectsResponse.data.data.projectsPerDate.total, total);
   });
 }
 

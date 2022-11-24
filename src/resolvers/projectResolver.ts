@@ -78,6 +78,8 @@ import {
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
   findProjectById,
+  totalProjectsPerDate,
+  totalProjectsPerDateByMonthAndYear,
   userIsOwnerOfProject,
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
@@ -89,8 +91,8 @@ import {
   resourcePerDateReportValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
-
 const analytics = getAnalytics();
+import { ResourcePerDateRange } from './donationResolver';
 
 @ObjectType()
 class AllProjects {
@@ -1034,28 +1036,27 @@ export class ProjectResolver {
     throw Error('Upload file failed');
   }
 
-  @Query(returns => Number, { nullable: true })
+  @Query(returns => ResourcePerDateRange, { nullable: true })
   async projectsPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-  ): Promise<Number> {
+  ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const query = this.projectRepository.createQueryBuilder('project');
+      const total = await totalProjectsPerDate(fromDate, toDate);
+      const totalPerMonthAndYear = await totalProjectsPerDateByMonthAndYear(
+        fromDate,
+        toDate,
+      );
 
-      if (fromDate) {
-        query.andWhere(`project."creationDate" >= '${fromDate}'`);
-      }
-      if (toDate) {
-        query.andWhere(`project."creationDate" <= '${toDate}'`);
-      }
-      const projectCount = await query.getCount();
-
-      return projectCount;
+      return {
+        total,
+        totalPerMonthAndYear,
+      };
     } catch (e) {
       logger.error('donations query error', e);
       throw e;
