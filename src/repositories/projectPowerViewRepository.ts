@@ -9,6 +9,13 @@ export const getProjectPowers = async (
 ): Promise<ProjectPowerView[]> => {
   return ProjectPowerView.find({ take, skip });
 };
+
+export const findProjectPowerViewByProjectId = async (
+  projectId: number,
+): Promise<ProjectPowerView | undefined> => {
+  return ProjectPowerView.findOne(projectId);
+};
+
 export const getProjectFuturePowers = async (
   take: number = 50,
   skip: number = 0,

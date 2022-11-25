@@ -17,6 +17,7 @@ import {
   refreshProjectPowerView,
   refreshProjectFuturePowerView,
   getProjectFuturePowers,
+  findProjectPowerViewByProjectId,
 } from './projectPowerViewRepository';
 import { Project, ProjStatus } from '../entities/project';
 import { getConnection } from 'typeorm';
@@ -32,6 +33,11 @@ import { ProjectStatus } from '../entities/projectStatus';
 describe(
   'projectPowerViewRepository test',
   projectPowerViewRepositoryTestCases,
+);
+
+describe(
+  'findProjectPowerViewByProjectId test',
+  findProjectPowerViewByProjectIdTestCases,
 );
 
 describe(
@@ -240,6 +246,48 @@ function projectPowerViewRepositoryTestCases() {
     // User1 power boosting = (10000 * 0.10 + 20000 * 0.20) / 2 = 2500
     // User2 power boosting = (20000 * 0.20 + 40000 * 0.40) / 2 = 10000
     expect(project1power?.totalPower).to.be.closeTo(10000 + 2500, 0.00001);
+  });
+}
+
+function findProjectPowerViewByProjectIdTestCases() {
+  beforeEach(async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+  });
+
+  it('Return project rank correctly', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = project1.id * 10;
+
+    await insertSinglePowerBoosting({
+      user,
+      project: project1,
+      percentage: 10,
+    });
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
+    });
+
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+    const projectPower = await findProjectPowerViewByProjectId(project1.id);
+    assert.isOk(projectPower);
+    assert.equal(projectPower?.powerRank, 1);
+    assert.equal(projectPower?.totalPower, 10);
   });
 }
 
