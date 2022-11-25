@@ -10,3 +10,16 @@ export const createPowerSnapshotBalances = async (
   const powerBalanceSnapshots = PowerBalanceSnapshot.create(params);
   await PowerBalanceSnapshot.save(powerBalanceSnapshots);
 };
+
+export const findCurrentPowerBalanceByUserId = async (
+  userId: number,
+): Promise<number> => {
+  const balance = await PowerBalanceSnapshot.createQueryBuilder('powerBalance')
+    .select('powerBalance.balance AS "givPower"')
+    .where('powerBalance.userId = :userId', { userId })
+    .orderBy('powerBalance.id', 'DESC')
+    .limit(1)
+    .getRawOne();
+
+  return balance?.givPower || 0;
+};
