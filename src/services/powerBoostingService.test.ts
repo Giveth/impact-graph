@@ -51,4 +51,25 @@ function changeUserBoostingsAfterProjectCancelledTestCases() {
     assert.equal(secondUserBoostings[0].percentage, 100);
     assert.equal(secondUserBoostings[0].projectId, firstProject.id);
   });
+  it('should change user percentage to zero when project cancelled, even when just has 1 boositng', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const projectThatWouldGetCancelled = await saveProjectDirectlyToDb(
+      createProjectData(),
+    );
+    await setMultipleBoosting({
+      userId: user1.id,
+      projectIds: [projectThatWouldGetCancelled.id],
+      percentages: [100],
+    });
+
+    await changeUserBoostingsAfterProjectCancelled({
+      projectId: projectThatWouldGetCancelled.id,
+    });
+
+    // Changing percentages is async we sleep some milli seconds to make sure all updates has been done
+    await sleep(100);
+    const firstUserBoostings = await findUserPowerBoosting(user1.id);
+
+    assert.equal(firstUserBoostings.length, 0);
+  });
 }
