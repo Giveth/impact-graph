@@ -23,7 +23,7 @@ export const getProjectFuturePowers = async (
   return ProjectFuturePowerView.find({ take, skip });
 };
 
-export const getTopPowerRank = async (): Promise<number> => {
+export const getBottomRank = async (): Promise<number> => {
   try {
     const powerRank = await getConnection().manager.query(`
         SELECT MAX("powerRank") FROM project_power_view

@@ -12,7 +12,7 @@ import {
 } from './powerBoostingRepository';
 import { setPowerRound } from './powerRoundRepository';
 import {
-  getTopPowerRank,
+  getBottomRank,
   getProjectPowers,
   refreshProjectPowerView,
   refreshProjectFuturePowerView,
@@ -45,7 +45,7 @@ describe(
   projectFuturePowerViewRepositoryTestCases,
 );
 
-describe('getTopPowerRank test cases', getTopPowerRankTestCases);
+describe('getBottomPowerRank test cases', getBottomPowerRankTestCases);
 
 function projectPowerViewRepositoryTestCases() {
   beforeEach(async () => {
@@ -474,7 +474,7 @@ function projectFuturePowerViewRepositoryTestCases() {
   });
 }
 
-function getTopPowerRankTestCases() {
+function getBottomPowerRankTestCases() {
   beforeEach(async () => {
     await getConnection().query('truncate power_snapshot cascade');
     await PowerBalanceSnapshot.clear();
@@ -518,7 +518,7 @@ function getTopPowerRankTestCases() {
     await setPowerRound(roundNumber);
     await refreshProjectPowerView();
 
-    const topPowerRank = await getTopPowerRank();
+    const topPowerRank = await getBottomRank();
     assert.equal(topPowerRank, 3);
   });
 }

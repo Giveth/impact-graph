@@ -61,6 +61,7 @@ import { MainCategory } from '../entities/mainCategory';
 import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
+import { calculateGivbackFactor } from '../services/givbackService';
 
 @ObjectType()
 class PaginateDonations {
@@ -651,7 +652,7 @@ export class DonationResolver {
           },
         );
       }
-
+      donation.givbackFactor = await calculateGivbackFactor(projectId);
       await donation.save();
 
       // After updating, recalculate user total donated and owner total received
