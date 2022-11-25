@@ -124,12 +124,30 @@ export const insertSinglePowerBoosting = async (params: {
   }).save();
 };
 
+export const cancelProjectBoosting = async (params: {
+  userId: number;
+  projectId: number;
+}): Promise<PowerBoosting[]> =>
+  _setSingleBoosting({
+    ...params,
+    percentage: 0,
+    projectIsCanceled: true,
+  });
+
 export const setSingleBoosting = async (params: {
   userId: number;
   projectId: number;
   percentage: number;
+}): Promise<PowerBoosting[]> =>
+  _setSingleBoosting({ ...params, projectIsCanceled: false });
+
+export const _setSingleBoosting = async (params: {
+  userId: number;
+  projectId: number;
+  percentage: number;
+  projectIsCanceled: boolean;
 }): Promise<PowerBoosting[]> => {
-  const { userId, projectId, percentage } = params;
+  const { userId, projectId, percentage, projectIsCanceled } = params;
 
   if (percentage < 0 || percentage > 100) {
     throw new Error(
@@ -160,7 +178,7 @@ export const setSingleBoosting = async (params: {
     const commitData: PowerBoosting[] = [];
 
     if (otherProjectsPowerBoostings.length === 0) {
-      if (percentage !== 100 && percentage !== 0)
+      if (percentage !== 100 && !projectIsCanceled)
         throw new Error(
           i18n.__(
             translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,

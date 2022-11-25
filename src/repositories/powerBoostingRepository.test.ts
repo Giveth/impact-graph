@@ -6,6 +6,7 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import {
+  cancelProjectBoosting,
   findPowerBoostings,
   findUserPowerBoosting,
   findUsersWhoBoostedProject,
@@ -831,10 +832,9 @@ function setSingleBoostingTestCases() {
       percentage: 100,
     });
 
-    await setSingleBoosting({
+    await cancelProjectBoosting({
       userId: user.id,
       projectId: firstProject.id,
-      percentage: 0,
     });
     const [userPowerBoostings] = await findPowerBoostings({
       userId: user.id,
