@@ -5,7 +5,11 @@ import {
 
 export const calculateGivbackFactor = async (
   projectId: number,
-): Promise<number> => {
+): Promise<{
+  givbackFactor: number;
+  bottomRankInRound: number;
+  projectRank?: number;
+}> => {
   const minGivFactor = Number(process.env.GIVBACK_MIN_FACTOR);
   const maxGivFactor = Number(process.env.GIVBACK_MAX_FACTOR);
   const [projectPowerView, bottomRank] = await Promise.all([
@@ -14,8 +18,13 @@ export const calculateGivbackFactor = async (
   ]);
 
   const eachRoundImpact = (maxGivFactor - minGivFactor) / (bottomRank - 1);
-  return projectPowerView?.powerRank
+  const givbackFactor = projectPowerView?.powerRank
     ? minGivFactor +
-        eachRoundImpact * (bottomRank - projectPowerView?.powerRank)
+      eachRoundImpact * (bottomRank - projectPowerView?.powerRank)
     : minGivFactor;
+  return {
+    givbackFactor,
+    projectRank: projectPowerView?.powerRank,
+    bottomRankInRound: bottomRank,
+  };
 };

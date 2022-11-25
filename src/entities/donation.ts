@@ -126,6 +126,14 @@ export class Donation extends BaseEntity {
   @Column({ type: 'real', nullable: true })
   givbackFactor: number;
 
+  @Field({ nullable: true })
+  @Column({ type: 'real', nullable: true })
+  projectRank?: number;
+
+  @Field({ nullable: true })
+  @Column({ type: 'real', nullable: true })
+  bottomRankInRound?: number;
+
   @Index()
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
