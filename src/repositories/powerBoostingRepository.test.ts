@@ -1,4 +1,5 @@
 import {
+  assertThrowsAsync,
   createProjectData,
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
@@ -11,6 +12,7 @@ import {
   getPowerBoostingSnapshotRound,
   insertSinglePowerBoosting,
   setMultipleBoosting,
+  setSingleBoosting,
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
 import { assert, use } from 'chai';
@@ -20,10 +22,12 @@ import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { getConnection } from 'typeorm';
 import { Reaction } from '../entities/reaction';
 import { findUsersWhoLikedProject } from './reactionRepository';
+import { errorMessages } from '../utils/errorMessages';
 
 describe('findUserPowerBoosting() testCases', findUserPowerBoostingTestCases);
 describe('findPowerBoostings() testCases', findPowerBoostingsTestCases);
 describe('setMultipleBoosting() testCases', setMultipleBoostingTestCases);
+describe('setSingleBoosting() testCases', setSingleBoostingTestCases);
 describe('power boosting snapshot testCases', powerBoostingSnapshotTests);
 describe(
   'findUsersWhoBoostedProject() testCases',
@@ -723,6 +727,135 @@ function setMultipleBoostingTestCases() {
           powerBoosting.percentage === 80,
       ),
     );
+  });
+}
+
+function setSingleBoostingTestCases() {
+  it('should set single boosting with 100%, when boosted multi project', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    await setMultipleBoosting({
+      userId: user.id,
+      projectIds: [firstProject.id, secondProject.id, thirdProject.id],
+      percentages: [40, 20, 40],
+    });
+    await setSingleBoosting({
+      userId: user.id,
+      projectId: firstProject.id,
+      percentage: 100,
+    });
+    const [userPowerBoostings] = await findPowerBoostings({
+      userId: user.id,
+      orderBy: {
+        field: 'updatedAt',
+        direction: 'ASC',
+      },
+    });
+    assert.equal(userPowerBoostings.length, 1);
+    assert.equal(userPowerBoostings[0].percentage, 100);
+    assert.equal(userPowerBoostings[0].projectId, firstProject.id);
+  });
+  it('should set single boosting with 100%', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+
+    await setSingleBoosting({
+      userId: user.id,
+      projectId: firstProject.id,
+      percentage: 100,
+    });
+
+    const [userPowerBoostings] = await findPowerBoostings({
+      userId: user.id,
+      orderBy: {
+        field: 'updatedAt',
+        direction: 'ASC',
+      },
+    });
+
+    assert.equal(userPowerBoostings.length, 1);
+    assert.equal(userPowerBoostings[0].percentage, 100);
+    assert.equal(userPowerBoostings[0].projectId, firstProject.id);
+  });
+
+  it('should set single boosting with 0%, when boosted multi project', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    await setMultipleBoosting({
+      userId: user.id,
+      projectIds: [firstProject.id, secondProject.id, thirdProject.id],
+      percentages: [20, 40, 40],
+    });
+
+    await setSingleBoosting({
+      userId: user.id,
+      projectId: firstProject.id,
+      percentage: 0,
+    });
+    const [userPowerBoostings] = await findPowerBoostings({
+      userId: user.id,
+      orderBy: {
+        field: 'updatedAt',
+        direction: 'ASC',
+      },
+    });
+
+    assert.equal(userPowerBoostings.length, 2);
+
+    assert.isOk(
+      userPowerBoostings.find(
+        powerBoosting =>
+          powerBoosting.project.id === secondProject.id &&
+          powerBoosting.percentage === 50,
+      ),
+    );
+    assert.isOk(
+      userPowerBoostings.find(
+        powerBoosting =>
+          powerBoosting.project.id === thirdProject.id &&
+          powerBoosting.percentage === 50,
+      ),
+    );
+  });
+  it('should set single boosting with 0%', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+
+    await setSingleBoosting({
+      userId: user.id,
+      projectId: firstProject.id,
+      percentage: 100,
+    });
+
+    await setSingleBoosting({
+      userId: user.id,
+      projectId: firstProject.id,
+      percentage: 0,
+    });
+    const [userPowerBoostings] = await findPowerBoostings({
+      userId: user.id,
+      orderBy: {
+        field: 'updatedAt',
+        direction: 'ASC',
+      },
+    });
+
+    assert.equal(userPowerBoostings.length, 0);
+  });
+  it('should get error when set single boosting with something between 0-100', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    await assertThrowsAsync(async () => {
+      await setSingleBoosting({
+        userId: user.id,
+        projectId: firstProject.id,
+        percentage: 70,
+      });
+    }, errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT);
   });
 }
 

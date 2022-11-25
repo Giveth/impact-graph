@@ -11,7 +11,6 @@ import {
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 import { getKeyByValue } from '../utils/utils';
-import { Reaction } from '../entities/reaction';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
@@ -161,7 +160,7 @@ export const setSingleBoosting = async (params: {
     const commitData: PowerBoosting[] = [];
 
     if (otherProjectsPowerBoostings.length === 0) {
-      if (percentage !== 100)
+      if (percentage !== 100 && percentage !== 0)
         throw new Error(
           i18n.__(
             translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
