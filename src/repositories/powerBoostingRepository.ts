@@ -141,7 +141,7 @@ export const setSingleBoosting = async (params: {
 }): Promise<PowerBoosting[]> =>
   _setSingleBoosting({ ...params, projectIsCanceled: false });
 
-export const _setSingleBoosting = async (params: {
+const _setSingleBoosting = async (params: {
   userId: number;
   projectId: number;
   percentage: number;
