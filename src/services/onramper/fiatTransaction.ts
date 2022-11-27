@@ -31,9 +31,10 @@ export interface OnRamperFiatTransaction {
     outAmount: string;
     purchaseAmount: string;
     partnerContext: {
-      myTxId: string;
-      myUserId: number;
-      lastTab: string;
+      userId: number;
+      userWallet: string;
+      projectId: number;
+      projectWallet: string;
     };
   };
 }
