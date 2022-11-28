@@ -34,6 +34,19 @@ import { User } from '../entities/user';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { ProjStatus } from '../entities/project';
 import { Token } from '../entities/token';
+import {
+  insertSinglePowerBoosting,
+  takePowerBoostingSnapshot,
+} from '../repositories/powerBoostingRepository';
+import {
+  findInCompletePowerSnapShots,
+  insertSinglePowerBalanceSnapshot,
+} from '../repositories/powerSnapshotRepository';
+import { setPowerRound } from '../repositories/powerRoundRepository';
+import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
+import { getConnection } from 'typeorm';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -443,6 +456,80 @@ function createDonationTestCases() {
       saveDonationResponse.data.data.createDonation,
     );
     assert.isTrue(donation?.isTokenEligibleForGivback);
+  });
+  it('should create GIV donation and fill averageGivbackFactor', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    // Clear previous snapshots
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    // Fill ranking and power snapshot
+    const roundNumber = project.id * 10;
+    await insertSinglePowerBoosting({
+      user,
+      project,
+      percentage: 80,
+    });
+    await insertSinglePowerBoosting({
+      user,
+      project: project2,
+      percentage: 20,
+    });
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
+    });
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne(
+      saveDonationResponse.data.data.createDonation,
+    );
+
+    // because this project is rank1
+    assert.equal(
+      donation?.givbackFactor,
+      Number(process.env.GIVBACK_MAX_FACTOR),
+    );
+    assert.equal(donation?.projectRank, 1);
   });
   it('should create GIV donation for giveth project on mainnet successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
