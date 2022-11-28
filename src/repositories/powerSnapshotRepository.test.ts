@@ -1,8 +1,8 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import {
   findInCompletePowerSnapShots,
-  findPowerSnapshotById,
   getPowerBoostingSnapshotWithoutBalance,
+  updatePowerSnapshotSyncedFlag,
 } from './powerSnapshotRepository';
 import { assert } from 'chai';
 import moment from 'moment';
@@ -20,7 +20,10 @@ describe(
   'findInCompletePowerSnapShots() test cases',
   findInCompletePowerSnapShotsTestCases,
 );
-describe('findPowerSnapshotById() test cases', findPowerSnapshotByIdTestCases);
+describe.only(
+  'findPowerSnapshotById() test cases',
+  findPowerSnapshotByIdTestCases,
+);
 describe('test balance snapshot functions', balanceSnapshotTestCases);
 
 function balanceSnapshotTestCases() {
@@ -283,21 +286,127 @@ function findInCompletePowerSnapShotsTestCases() {
 }
 
 function findPowerSnapshotByIdTestCases() {
-  it('should find powerSnapshot by id', async () => {
-    const snapShot = await PowerSnapshot.create({
-      time: new Date(),
-      blockNumber: 13,
-      roundNumber: 13,
+  it('should set synced snapshots flag', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+
+    let powerSnapshotTime = user1.id * 1000;
+
+    const powerSnapshots = PowerSnapshot.create([
+      {
+        time: new Date(powerSnapshotTime++),
+      },
+      {
+        time: new Date(powerSnapshotTime++),
+      },
+      {
+        time: new Date(powerSnapshotTime++),
+      },
+      {
+        time: new Date(powerSnapshotTime++),
+      },
+    ]);
+
+    await PowerSnapshot.save(powerSnapshots);
+
+    const [firstSnapshot, secondSnapshot, thirdSnapshot, forthSnapshot] =
+      powerSnapshots;
+
+    const powerBoostingSnapshots = PowerBoostingSnapshot.create([
+      {
+        userId: user1.id,
+        projectId: project1.id,
+        percentage: 10,
+        powerSnapshot: powerSnapshots[0],
+      },
+      {
+        userId: user1.id,
+        projectId: project1.id,
+        percentage: 20,
+        powerSnapshot: powerSnapshots[1],
+      },
+      {
+        userId: user1.id,
+        projectId: project1.id,
+        percentage: 30,
+        powerSnapshot: powerSnapshots[2],
+      },
+      {
+        userId: user1.id,
+        projectId: project1.id,
+        percentage: 40,
+        powerSnapshot: powerSnapshots[3],
+      },
+    ]);
+
+    await PowerBoostingSnapshot.save(powerBoostingSnapshots);
+
+    // No snapshot has blockNumber
+    let updateFlatResponse = await updatePowerSnapshotSyncedFlag();
+
+    assert.equal(updateFlatResponse, 0);
+
+    // firstSnapshot with blockNumber without balance saved.
+
+    firstSnapshot.blockNumber = 1000;
+    await firstSnapshot.save();
+    updateFlatResponse = await updatePowerSnapshotSyncedFlag();
+
+    assert.equal(updateFlatResponse, 0);
+
+    // Filled the balance for the first snapshot
+    await PowerBalanceSnapshot.create({
+      userId: user1.id,
+      balance: 1,
+      powerSnapshot: firstSnapshot,
     }).save();
 
-    const result = await findPowerSnapshotById(snapShot.id);
-    assert.isOk(result);
-    assert.equal(result?.id, snapShot.id);
-    assert.equal(result?.blockNumber, snapShot.blockNumber);
-  });
+    updateFlatResponse = await updatePowerSnapshotSyncedFlag();
+    assert.equal(updateFlatResponse, 1);
+    await firstSnapshot.reload();
+    assert.isTrue(firstSnapshot.synced);
 
-  it('should not find powerSnapshot by invalid id', async () => {
-    const result = await findPowerSnapshotById(100000000);
-    assert.isNotOk(result);
+    // Fill only the third snapshot info
+
+    thirdSnapshot.blockNumber = 3000;
+    await thirdSnapshot.save();
+    await PowerBalanceSnapshot.create({
+      userId: user1.id,
+      balance: 1,
+      powerSnapshot: thirdSnapshot,
+    }).save();
+    updateFlatResponse = await updatePowerSnapshotSyncedFlag();
+    assert.equal(updateFlatResponse, 1);
+    await thirdSnapshot.reload();
+    assert.isTrue(thirdSnapshot.synced);
+
+    // Fill second and forth snapshots info
+    secondSnapshot.blockNumber = 2000;
+    forthSnapshot.blockNumber = 4000;
+    await PowerSnapshot.save([secondSnapshot, forthSnapshot]);
+    await PowerBalanceSnapshot.save(
+      PowerBalanceSnapshot.create([
+        {
+          userId: user1.id,
+          balance: 1,
+          powerSnapshot: secondSnapshot,
+        },
+        {
+          userId: user1.id,
+          balance: 1,
+          powerSnapshot: forthSnapshot,
+        },
+      ]),
+    );
+    updateFlatResponse = await updatePowerSnapshotSyncedFlag();
+    assert.equal(updateFlatResponse, 2);
+    await secondSnapshot.reload();
+    await forthSnapshot.reload();
+    assert.isTrue(secondSnapshot.synced);
+    assert.isTrue(forthSnapshot.synced);
   });
 }

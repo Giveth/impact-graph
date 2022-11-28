@@ -4,7 +4,10 @@ import { logger } from '../../utils/logger';
 import config from '../../config';
 import { schedule } from 'node-cron';
 import { getGivPowerSubgraphAdapter } from '../../adapters/adaptersFactory';
-import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository';
+import {
+  getPowerBoostingSnapshotWithoutBalance,
+  updatePowerSnapshotSyncedFlag,
+} from '../../repositories/powerSnapshotRepository';
 import { createPowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
 
 const fillSnapshotBalanceQueue = new Bull<FillSnapShotBalanceData>(
@@ -115,6 +118,7 @@ export function processFillPowerSnapshotJobs() {
             };
           }),
         );
+        await updatePowerSnapshotSyncedFlag();
       } catch (e) {
         logger.error('processFillPowerSnapshotJobs >> error', e);
       } finally {
