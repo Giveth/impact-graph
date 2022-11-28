@@ -81,6 +81,9 @@ export class UserProjectPowerArgs {
 
   @Field(type => Int, { nullable: true })
   userId?: number;
+
+  @Field(type => Int, { nullable: true })
+  round?: number;
 }
 
 @ObjectType()

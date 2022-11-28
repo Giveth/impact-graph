@@ -38,6 +38,20 @@ export const insertSinglePowerBalanceSnapshot = async (
   return PowerBalanceSnapshot.create(param).save();
 };
 
+export const findPowerSnapshots = async (
+  round?: number,
+  take: number = 100,
+  skip: number = 0,
+) => {
+  const query = PowerSnapshot.createQueryBuilder('powerSnapshot');
+
+  if (round) {
+    query.where('powerSnapshot.roundNumber = :round', { round });
+  }
+
+  return query.take(take).skip(skip).getManyAndCount();
+};
+
 export const getPowerBoostingSnapshotWithoutBalance = async (
   limit = 50,
   offset = 0,

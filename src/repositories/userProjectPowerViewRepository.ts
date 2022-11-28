@@ -17,6 +17,7 @@ export const getUserProjectPowers = async (params: {
   };
   userId?: number;
   projectId?: number;
+  round?: number;
 }): Promise<[UserProjectPowerView[], number]> => {
   try {
     const query = UserProjectPowerView.createQueryBuilder('userProjectPower')
@@ -36,6 +37,11 @@ export const getUserProjectPowers = async (params: {
     if (params.projectId) {
       query.andWhere(`"projectId" =:projectId`, {
         projectId: params.projectId,
+      });
+    }
+    if (params.round) {
+      query.andWhere(`"round" = :round`, {
+        round: params.round,
       });
     }
     return await query
