@@ -90,6 +90,7 @@ export const createFiatDonationFromOnramper = async (
     }
 
     const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
+    const ethMainnetAddress = '0x0000000000000000000000000000000000000000';
 
     // FromWalletAddress is not the donor wallet, but the Onramper Address
     donation = await Donation.create({
@@ -99,7 +100,7 @@ export const createFiatDonationFromOnramper = async (
       transactionNetworkId: Number(priceChainId),
       currency: fiatTransaction.payload.outCurrency,
       user: donorUser,
-      tokenAddress: '',
+      tokenAddress: ethMainnetAddress,
       project,
       isTokenEligibleForGivback,
       isCustomToken,
