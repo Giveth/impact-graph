@@ -1,4 +1,3 @@
-import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { ProjStatus } from '../../entities/project';
 import { Token } from '../../entities/token';
@@ -9,7 +8,6 @@ import { findUserById } from '../../repositories/userRepository';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import {
-  getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
   updateTotalDonationsOfProject,
@@ -25,6 +23,7 @@ export const createFiatDonationFromOnramper = async (
   fiatTransaction: OnRamperFiatTransaction,
 ): Promise<void> => {
   try {
+    // TODO add givbackFactor, powerRound, ... later
     let donation = await Donation.findOne({
       transactionId: fiatTransaction.payload.txId,
     });

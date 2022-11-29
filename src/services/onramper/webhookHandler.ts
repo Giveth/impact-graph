@@ -9,9 +9,7 @@ const sha256 = require('js-sha256');
 const onramperSecret = process.env.ONRAMPER_SECRET as string;
 
 /**
- * Returns status 200 always, most providers require this or they will keep sending requests indefinitely
- * Logs the Error if there is any
- * @see { https://transak.stoplight.io/docs/transak-docs/ZG9jOjExNDgyMzI-webhooks}
+ * @see { https://docs.onramper.com/API-Reference/#webhooks}
  */
 export async function onramperWebhookHandler(request, response) {
   try {

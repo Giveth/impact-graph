@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { assert } from 'chai';
+import { serverBaseAddress } from '../../../test/testUtils';
 import { Donation } from '../../entities/donation';
 
 describe('onramperWebhookHandlerTestCases', onramperWebhookHandlerTestCases);
@@ -32,7 +33,7 @@ function onramperWebhookHandlerTestCases() {
   it('should return error 403 if the hmac-sha256 signature is invalid', async () => {
     try {
       const result = await axios.post(
-        'http://localhost:4000/fiat_webhook',
+        `${serverBaseAddress}/fiat_webhook`,
         payload,
         {
           headers: {
@@ -48,7 +49,7 @@ function onramperWebhookHandlerTestCases() {
   it('should return error if the hmac-sha256 signature header is missing', async () => {
     try {
       const result = await axios.post(
-        'http://localhost:4000/fiat_webhook',
+        `${serverBaseAddress}/fiat_webhook`,
         payload,
       );
     } catch (e) {
@@ -58,7 +59,7 @@ function onramperWebhookHandlerTestCases() {
   });
   it('should create donation succesfully with onramper data with valid hmac', async () => {
     const result = await axios.post(
-      'http://localhost:4000/fiat_webhook',
+      `${serverBaseAddress}/fiat_webhook`,
       payload,
       {
         headers: {
