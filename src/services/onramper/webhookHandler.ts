@@ -3,7 +3,7 @@ import { createFiatDonationFromOnramper } from './donationService';
 import { OnRamperFiatTransaction } from './fiatTransaction';
 
 // tslint:disable:no-var-requires
-const verifyHmac256 = require('verify-hmac-sha');
+const sha256 = require('js-sha256');
 const onramperSecret = process.env.ONRAMPER_SECRET as string;
 
 /**
@@ -19,13 +19,13 @@ export async function onramperWebhookHandler(request, response) {
 
     const fiatTransaction = request.body as OnRamperFiatTransaction;
     const fiatTransactionStringified = JSON.stringify(fiatTransaction);
-    const valid = verifyHmac256.encodeInHex.verify({
-      payloadSignature,
+
+    const digestedHmac = sha256.hmac(
       onramperSecret,
       fiatTransactionStringified,
-    });
-
-    if (!valid) throw i18n.__('ONRAMPER_SIGNATURE_INVALID');
+    );
+    if (digestedHmac !== payloadSignature)
+      throw i18n.__('ONRAMPER_SIGNATURE_INVALID');
 
     // No point saving pending or failed transactions without txHash
     if (fiatTransaction.type === 'transaction_completed') {
