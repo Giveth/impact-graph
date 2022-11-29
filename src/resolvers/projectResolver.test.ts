@@ -70,7 +70,6 @@ import {
   takePowerBoostingSnapshot,
 } from '../repositories/powerBoostingRepository';
 import {
-  getProjectPowers,
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
@@ -522,6 +521,7 @@ function projectsTestCases() {
 
   it('should return projects, sort by project power', async () => {
     await getConnection().query('truncate power_snapshot cascade');
+    await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
@@ -1467,6 +1467,7 @@ function allProjectsTestCases() {
 
   it('should return projects, sort by project power DESC', async () => {
     await getConnection().query('truncate power_snapshot cascade');
+    await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
@@ -4595,6 +4596,7 @@ function projectBySlugTestCases() {
 
   it('should return projects including projectPower', async () => {
     await getConnection().query('truncate power_snapshot cascade');
+    await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
@@ -4646,6 +4648,7 @@ function projectBySlugTestCases() {
 
   it('should return projects including project future power rank', async () => {
     await getConnection().query('truncate power_snapshot cascade');
+    await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
@@ -4738,6 +4741,113 @@ function projectBySlugTestCases() {
     assert.equal(project.projectPower.powerRank, 4);
     assert.equal(project.projectFuturePower.powerRank, 1);
   });
+
+  it('should return projects with null project future power rank when no snapshot is synced', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBoosting.clear();
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    const walletAddress = generateRandomEtheriumAddress();
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      walletAddress,
+    });
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
+    const project4 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const roundNumber = project1.id * 10;
+
+    const boosting1 = await insertSinglePowerBoosting({
+      user: user1,
+      project: project1,
+      percentage: 10,
+    });
+    const boosting2 = await insertSinglePowerBoosting({
+      user: user1,
+      project: project2,
+      percentage: 20,
+    });
+    const boosting3 = await insertSinglePowerBoosting({
+      user: user1,
+      project: project3,
+      percentage: 30,
+    });
+    const boosting4 = await insertSinglePowerBoosting({
+      user: user1,
+      project: project4,
+      percentage: 40,
+    });
+    await takePowerBoostingSnapshot();
+    let incompleteSnapshots = await findInCompletePowerSnapShots();
+    let snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+
+    boosting1.percentage = 100;
+    boosting2.percentage = 0;
+    boosting3.percentage = 0;
+    boosting4.percentage = 0;
+
+    await PowerBoosting.save([boosting1, boosting2, boosting3, boosting4]);
+
+    await takePowerBoostingSnapshot();
+    incompleteSnapshots = await findInCompletePowerSnapShots();
+    snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 2;
+    // Set next round for filling future power rank
+    snapshot.roundNumber = roundNumber + 1;
+    await snapshot.save();
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 0,
+    });
+
+    await setPowerRound(roundNumber);
+
+    await refreshUserProjectPowerView();
+    await refreshProjectPowerView();
+    await refreshProjectFuturePowerView(false);
+
+    let result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: project1.slug,
+      },
+    });
+
+    let project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), project1.id);
+    assert.exists(project.projectPower);
+    assert.equal(project.projectPower.totalPower, 20);
+    assert.isNull(project.projectFuturePower);
+    // Add sync flag
+    await refreshProjectFuturePowerView(true);
+
+    result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: project1.slug,
+      },
+    });
+    project = result.data.data.projectBySlug;
+    assert.isNotNull(project.projectFuturePower);
+    assert.equal(project.projectFuturePower.totalPower, 0);
+  });
+
   it('should not return drafted if not logged in', async () => {
     const draftedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
