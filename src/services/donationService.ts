@@ -15,8 +15,77 @@ import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice } from './givPriceService';
 import { findDonationById } from '../repositories/donationRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { getTokenPrices } from 'monoswap';
+import SentryLogger from '../sentryLogger';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
+
+export const updateDonationPricesAndValues = async (
+  donation: Donation,
+  project: Project,
+  currency: string,
+  baseTokens: string[],
+  priceChainId: string | number,
+  amount: string | number,
+) => {
+  try {
+    const tokenPrices = await getMonoSwapTokenPrices(
+      currency,
+      baseTokens,
+      Number(priceChainId),
+    );
+
+    if (tokenPrices.length !== 0) {
+      donation.priceUsd = Number(tokenPrices[0]);
+      donation.priceEth = Number(tokenPrices[1]);
+
+      donation.valueUsd = Number(amount) * donation.priceUsd;
+      donation.valueEth = Number(amount) * donation.priceEth;
+    }
+  } catch (e) {
+    logger.error('Error in getting price from monoswap', {
+      error: e,
+      donation,
+    });
+
+    // await getNotificationAdapter().donationGetPriceFailed({
+    //   project,
+    //   donationInfo: {
+    //     reason: 'Getting price failed',
+
+    //     // TODO Add txLink
+    //     txLink: donation.transactionId,
+    //   },
+    // });
+    SentryLogger.captureException(
+      new Error('Error in getting price from monoswap'),
+      {
+        extra: {
+          donationId: donation.id,
+          txHash: donation.transactionId,
+          currency: donation.currency,
+          network: donation.transactionNetworkId,
+        },
+      },
+    );
+  }
+  return await donation.save();
+};
+
+export const getMonoSwapTokenPrices = async (
+  token: string,
+  baseTokens: string[],
+  chainId: number,
+): Promise<number[]> => {
+  try {
+    const tokenPrices = await getTokenPrices(token, baseTokens, chainId);
+
+    return tokenPrices;
+  } catch (e) {
+    logger.debug('Unable to fetch monoswap prices: ', e);
+    return [];
+  }
+};
 
 export const updateDonationByTransakData = async (
   transakData: TransakOrder,

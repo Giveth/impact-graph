@@ -86,8 +86,8 @@ export class Donation extends BaseEntity {
   @Column()
   toWalletAddress: string;
 
-  @Field()
-  @Column()
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   fromWalletAddress: string;
 
   @Field({ nullable: true })
@@ -144,6 +144,14 @@ export class Donation extends BaseEntity {
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   donationType?: string;
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  onramperTransactionStatus?: string;
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  onramperId?: string;
 
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })

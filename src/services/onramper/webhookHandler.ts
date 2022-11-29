@@ -1,19 +1,45 @@
 import { logger } from '../../utils/logger';
+import { createFiatDonationFromOnramper } from './donationService';
+import { OnRamperFiatTransaction } from './fiatTransaction';
+
+// tslint:disable:no-var-requires
+const verifyHmac256 = require('verify-hmac-sha');
+const onramperSecret = process.env.ONRAMPER_SECRET as string;
 
 /**
  * Returns status 200 always, most providers require this or they will keep sending requests indefinitely
  */
 export async function onramperWebhookHandler(request, response) {
   try {
-    // just log to test stuff
+    const payloadSignature = request.headers['X-Onramper-Webhook-Signature'];
+    if (!onramperSecret || !payloadSignature)
+      throw new Error(i18n.__('ONRAMPER_SIGNATURE_MISSING'));
+
+    const fiatTransaction = request.body as OnRamperFiatTransaction;
+    const fiatTransactionStringified = JSON.stringify(fiatTransaction);
+    const valid = verifyHmac256.encodeInHex.verify({
+      payloadSignature,
+      onramperSecret,
+      fiatTransactionStringified,
+    });
+
+    if (!valid) throw i18n.__('ONRAMPER_SIGNATURE_INVALID');
+
+    // No point saving pending or failed transactions without txHash
+    if (fiatTransaction.type === 'transaction_completed') {
+      await createFiatDonationFromOnramper(fiatTransaction);
+    }
+
     logger.info(
-      'onramperWebhookHandler header',
-      request.headers['X-Onramper-Webhook-Signature'] ||
-        request.headers['x-onramper-webhook-signature'],
+      'User Onramper Transaction Arrived',
+      JSON.stringify({
+        type: fiatTransaction.type,
+        partnerContext: fiatTransaction.payload.partnerContext,
+        txId: fiatTransaction.payload.txId,
+      }),
     );
-    logger.info('onramperWebhookHandler body', JSON.stringify(request.body));
-    // logic is on another branch this is temporary
-    response.status(200).send('Not implemented');
+
+    response.status(200).send();
   } catch (error) {
     logger.error('onramperWebhookHandler() error ', error);
     response.status(403).send();
