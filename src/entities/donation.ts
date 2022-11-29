@@ -86,8 +86,8 @@ export class Donation extends BaseEntity {
   @Column()
   toWalletAddress: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Field()
+  @Column()
   fromWalletAddress: string;
 
   @Field({ nullable: true })
