@@ -269,7 +269,13 @@ export const fetchNewProjectsPerDate = `
     projectsPerDate(
       fromDate: $fromDate
       toDate: $toDate
-    )
+    ) {
+      total
+      totalPerMonthAndYear {
+        total
+        date
+      }
+    }
   }
 `;
 
@@ -298,7 +304,13 @@ export const fetchTotalDonors = `
     totalDonorsCountPerDate(
       fromDate: $fromDate
       toDate: $toDate
-    )
+    ) {
+      total
+      totalPerMonthAndYear {
+        total
+        date
+      }
+    }
   }
 `;
 
@@ -307,10 +319,16 @@ export const fetchTotalDonationsUsdAmount = `
     $fromDate: String
     $toDate: String
   ) {
-    donationsTotalUsdPerDate(
+    donationsTotalUsdPerDate (
       fromDate: $fromDate
       toDate: $toDate
-    )
+    ) {
+      total
+      totalPerMonthAndYear {
+        total
+        date
+      }
+    }
   }
 `;
 
@@ -651,6 +669,9 @@ export const fetchProjectsBySlugQuery = `
           foundationDate
           achievedMilestones
           achievedMilestonesProofs
+          problem
+          plans
+          impact
         }
         managingFunds {
           description
@@ -993,6 +1014,9 @@ export const projectsByUserIdQuery = `
               foundationDate
               achievedMilestones
               achievedMilestonesProofs
+              problem
+              plans
+              impact
             }
             managingFunds {
               description

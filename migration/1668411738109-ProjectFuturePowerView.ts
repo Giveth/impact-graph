@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectFuturePowerView1668411738109 implements MigrationInterface {
+export class ProjectFuturePowerView1668411738119 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
@@ -19,7 +19,7 @@ export class ProjectFuturePowerView1668411738109 implements MigrationInterface {
                 (
                   SELECT 
                     project.id AS "projectId", 
-                    CASE project.verified WHEN false THEN 0 :: double precision ELSE COALESCE(
+                    CASE project.verified and project."statusId" = 5 WHEN false THEN 0 :: double precision ELSE COALESCE(
                       sum(pp."boostedPower"), 
                       0 :: double precision
                     ) END AS "totalPower"

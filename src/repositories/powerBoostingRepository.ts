@@ -49,9 +49,22 @@ export const findUserPowerBoosting = async (
   }
 };
 
+export const findUsersWhoBoostedProject = async (
+  projectId: number,
+): Promise<{ walletAddress: string; email?: string }[]> => {
+  return PowerBoosting.createQueryBuilder('powerBoosting')
+    .leftJoin('powerBoosting.user', 'user')
+    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
+    .where(`"projectId"=:projectId`, {
+      projectId,
+    })
+    .andWhere(`percentage > 0`)
+    .getRawMany();
+};
+
 export const findPowerBoostings = async (params: {
-  take: number;
-  skip: number;
+  take?: number;
+  skip?: number;
   orderBy: {
     field: 'createdAt' | 'updatedAt' | 'percentage';
     direction: 'ASC' | 'DESC';
@@ -72,11 +85,18 @@ export const findPowerBoostings = async (params: {
   if (params.projectId) {
     query.andWhere(`"projectId" =${params.projectId}`);
   }
-  return query
-    .orderBy(`powerBoosting.${params.orderBy.field}`, params.orderBy.direction)
-    .take(params.take)
-    .skip(params.skip)
-    .getManyAndCount();
+  query.orderBy(
+    `powerBoosting.${params.orderBy.field}`,
+    params.orderBy.direction,
+  );
+
+  if (params.take) {
+    query.take(params.take);
+  }
+  if (params.skip) {
+    query.skip(params.skip);
+  }
+  return query.getManyAndCount();
 };
 
 export const findPowerBoostingsCountByUserId = async (
@@ -104,12 +124,30 @@ export const insertSinglePowerBoosting = async (params: {
   }).save();
 };
 
+export const cancelProjectBoosting = async (params: {
+  userId: number;
+  projectId: number;
+}): Promise<PowerBoosting[]> =>
+  _setSingleBoosting({
+    ...params,
+    percentage: 0,
+    projectIsCanceled: true,
+  });
+
 export const setSingleBoosting = async (params: {
   userId: number;
   projectId: number;
   percentage: number;
+}): Promise<PowerBoosting[]> =>
+  _setSingleBoosting({ ...params, projectIsCanceled: false });
+
+const _setSingleBoosting = async (params: {
+  userId: number;
+  projectId: number;
+  percentage: number;
+  projectIsCanceled: boolean;
 }): Promise<PowerBoosting[]> => {
-  const { userId, projectId, percentage } = params;
+  const { userId, projectId, percentage, projectIsCanceled } = params;
 
   if (percentage < 0 || percentage > 100) {
     throw new Error(
@@ -140,7 +178,7 @@ export const setSingleBoosting = async (params: {
     const commitData: PowerBoosting[] = [];
 
     if (otherProjectsPowerBoostings.length === 0) {
-      if (percentage !== 100)
+      if (percentage !== 100 && !projectIsCanceled)
         throw new Error(
           i18n.__(
             translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,

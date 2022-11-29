@@ -55,6 +55,7 @@ import {
 import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
+import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 
 // tslint:disable:no-var-requires
 const express = require('express');

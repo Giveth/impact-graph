@@ -16,6 +16,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_REJECTED = 'Project unverified',
 
   PROJECT_UNVERIFIED = 'Project unverified',
+  PROJECT_UNVERIFIED_USERS_WHO_BOOSTED = 'Project unverified - Users Who Boosted',
   PROJECT_ACTIVATED = 'Project activated',
   PROJECT_DEACTIVATED = 'Project deactivated',
   PROJECT_DEACTIVATED_DONORS = 'Project deactivated - Donors',
@@ -30,6 +31,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_RECEIVED_HEART = 'project liked',
   PROJECT_UPDATED_DONOR = 'Project updated - donor',
   PROJECT_UPDATED_OWNER = 'Project updated - owner',
+  PROJECT_UPDATED_USERS_WHO_LIKED = 'Project update - Users Who Liked',
   PROJECT_CREATED = 'The project saved as draft',
   UPDATED_PROFILE = 'Updated profile',
   GET_DONATION_PRICE_FAILED = 'Get Donation Price Failed',

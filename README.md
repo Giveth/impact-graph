@@ -128,6 +128,15 @@ bcrypt.hash(
 
 ```
 
+Add admin user to DB query
+
+```
+INSERT INTO public.user (email, "walletAddress", role,"loginType", name,"encryptedPassword") VALUES
+('test@giveth.io', 'walletAddress', 'admin','wallet', 'test', 'aboveHash')
+```
+
+
+
 
 ### Logging:
 

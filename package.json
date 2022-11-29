@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.7.1",
+  "version": "1.7.4",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -164,6 +164,7 @@
     "test:powerSnapshotService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/powerSnapshotServices.test.ts",
     "test:transactionsService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/transactionService.test.ts",
     "test:projectUpdatesService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/projectUpdatesService.test.ts",
+    "test:powerBoostingService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/powerBoostingService.test.ts",
     "test:blockByDateService": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./src/services/blockByDateService.test.ts",
     "test:categoryResolver": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/resolvers/categoryResolver.test.ts",
     "test:givpower": "NODE_ENV=test mocha -b -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts ./src/repositories/powerBoostingRepository.test.ts  ./src/repositories/userPowerRepository.test.ts ./src/repositories/powerRoundRepository.test.ts ./src/repositories/userProjectPowerViewRepository.test.ts ./src/repositories/projectPowerViewRepository.test.ts ./src/resolvers/powerBoostingResolver.test.ts ./src/resolvers/userProjectPowerResolver.test.ts  ./src/adapters/givpowerSubgraph/givPowerSubgraphAdapter.test.ts ./src/repositories/projectRepository.test.ts ./src/resolvers/projectResolver.test.ts ./src/repositories/dbCronRepository.test.ts",

@@ -86,6 +86,12 @@ import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
+import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
+import {
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../repositories/projectPowerViewRepository';
+import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -1293,7 +1299,7 @@ const getAdminBroInstance = async () => {
             isImported: {
               isVisible: {
                 list: false,
-                filter: false,
+                filter: true,
                 show: true,
                 edit: false,
               },
@@ -1367,6 +1373,64 @@ const getAdminBroInstance = async () => {
             edit: {
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              before: async (
+                request: AdminBroRequestInterface,
+                response,
+                context: AdminBroContextInterface,
+              ) => {
+                const { verified, listed } = request.payload;
+                const statusChanges: string[] = [];
+                if (request?.payload?.id) {
+                  const project = await findProjectById(
+                    Number(request.payload.id),
+                  );
+                  if (
+                    Number(request?.payload?.statusId) !== project?.status?.id
+                  ) {
+                    switch (Number(request?.payload?.statusId)) {
+                      case ProjStatus.active:
+                        statusChanges.push(
+                          NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
+                        );
+                        break;
+                      case ProjStatus.deactive:
+                        statusChanges.push(
+                          NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
+                        );
+                        break;
+                      case ProjStatus.cancelled:
+                        statusChanges.push(
+                          NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                        );
+                        break;
+                    }
+                  }
+                  if (project?.verified && !verified) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
+                    );
+                  }
+                  if (!project?.verified && verified) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
+                    );
+                  }
+                  if (project?.listed && !listed) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
+                    );
+                  }
+                  if (!project?.listed && listed) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                    );
+                  }
+
+                  // We put these status changes in payload, so in after hook we would know to send notification for users
+                  request.payload.statusChanges = statusChanges.join(',');
+                }
+                return request;
+              },
               after: async (
                 request: AdminBroRequestInterface,
                 response,
@@ -1385,8 +1449,62 @@ const getAdminBroInstance = async () => {
                     userId: currentAdmin.id,
                     description: HISTORY_DESCRIPTIONS.HAS_BEEN_EDITED,
                   });
-                }
+                  const statusChanges =
+                    request?.record?.params?.statusChanges?.split(',') || [];
 
+                  const eventAndHandlers = [
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
+                      handler: getNotificationAdapter().projectVerified,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
+                      handler: getNotificationAdapter().projectUnVerified,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                      handler: getNotificationAdapter().projectListed,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
+                      handler: getNotificationAdapter().projectDeListed,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
+                      handler: getNotificationAdapter().projectReactivated,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
+                      handler: getNotificationAdapter().projectDeactivated,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                      handler: getNotificationAdapter().projectCancelled,
+                    },
+                  ];
+
+                  eventAndHandlers.forEach(eventHandler => {
+                    if (statusChanges?.includes(eventHandler.event)) {
+                      // Dont put await before that intentionally to not block admin panel response with that
+                      eventHandler.handler({ project });
+                    }
+                  });
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                    )
+                  ) {
+                    await changeUserBoostingsAfterProjectCancelled({
+                      projectId: project.id,
+                    });
+                  }
+                }
+                await Promise.all([
+                  refreshUserProjectPowerView(),
+                  refreshProjectFuturePowerView(),
+                  refreshProjectPowerView(),
+                ]);
                 return request;
               },
             },
@@ -1750,6 +1868,7 @@ interface AdminBroProjectsQuery {
   slug?: string;
   verified?: string;
   listed?: string;
+  isImported?: string;
 }
 
 // add queries depending on which filters were selected
@@ -1773,6 +1892,11 @@ export const buildProjectsQuery = (
   if (queryStrings.verified)
     query.andWhere('project.verified = :verified', {
       verified: queryStrings.verified === 'true',
+    });
+
+  if (queryStrings.isImported)
+    query.andWhere('project.isImported = :isImported', {
+      isImported: queryStrings.isImported === 'true',
     });
 
   if (queryStrings.listed)
@@ -2287,6 +2411,12 @@ export const verifyProjects = async (
         }
       }
     }
+
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
   } catch (error) {
     logger.error('verifyProjects() error', error);
     throw error;
@@ -2338,6 +2468,9 @@ export const updateStatusOfProjects = async (
           await getNotificationAdapter().projectCancelled({
             project: projectWithAdmin,
           });
+          await changeUserBoostingsAfterProjectCancelled({
+            projectId: project.id,
+          });
         } else if (status === ProjStatus.active) {
           await getNotificationAdapter().projectReactivated({
             project: projectWithAdmin,
@@ -2348,6 +2481,11 @@ export const updateStatusOfProjects = async (
           });
         }
       }
+      await Promise.all([
+        refreshUserProjectPowerView(),
+        refreshProjectFuturePowerView(),
+        refreshProjectPowerView(),
+      ]);
     }
   } catch (error) {
     throw error;
