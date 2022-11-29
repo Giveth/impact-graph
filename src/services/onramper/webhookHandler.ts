@@ -28,7 +28,20 @@ export async function onramperWebhookHandler(request, response) {
     });
 
     if (!valid) throw i18n.__('ONRAMPER_SIGNATURE_INVALID');
-    await createFiatDonationFromOnramper(fiatTransaction);
+
+    // No point saving pending or failed transactions without txHash
+    if (fiatTransaction.type === 'transaction_completed') {
+      await createFiatDonationFromOnramper(fiatTransaction);
+    }
+
+    logger.info(
+      'User Onramper Transaction Arrived',
+      JSON.stringify({
+        type: fiatTransaction.type,
+        partnerContext: fiatTransaction.payload.partnerContext,
+        txId: fiatTransaction.payload.txId,
+      }),
+    );
 
     response.status(200).send();
   } catch (error) {
