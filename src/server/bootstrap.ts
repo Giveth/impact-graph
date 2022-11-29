@@ -20,7 +20,6 @@ import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonati
 import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncProjectsRequiredForListing';
 import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { webhookHandler } from '../services/transak/webhookHandler';
-import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 
 import {
   adminBroRootPath,
