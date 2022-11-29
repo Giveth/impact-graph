@@ -25,7 +25,7 @@ export const createFiatDonationFromOnramper = async (
   try {
     // TODO add givbackFactor, powerRound, ... later
     let donation = await Donation.findOne({
-      transactionId: fiatTransaction.payload.txId,
+      transactionId: fiatTransaction.payload.txHash!.toLowerCase(),
     });
 
     if (donation) {
