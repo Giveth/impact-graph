@@ -653,11 +653,12 @@ export class DonationResolver {
         );
       }
 
-      const { givbackFactor, projectRank, bottomRankInRound } =
+      const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
         await calculateGivbackFactor(projectId);
       donation.givbackFactor = givbackFactor;
       donation.projectRank = projectRank;
       donation.bottomRankInRound = bottomRankInRound;
+      donation.powerRound = powerRound;
       await donation.save();
 
       // After updating, recalculate user total donated and owner total received

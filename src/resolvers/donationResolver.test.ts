@@ -529,6 +529,7 @@ function createDonationTestCases() {
       donation?.givbackFactor,
       Number(process.env.GIVBACK_MAX_FACTOR),
     );
+    assert.equal(donation?.powerRound, roundNumber);
     assert.equal(donation?.projectRank, 1);
   });
   it('should create GIV donation for giveth project on mainnet successfully', async () => {

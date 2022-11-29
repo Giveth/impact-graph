@@ -127,6 +127,10 @@ export class Donation extends BaseEntity {
   givbackFactor: number;
 
   @Field({ nullable: true })
+  @Column({ nullable: true })
+  powerRound: number;
+
+  @Field({ nullable: true })
   @Column({ type: 'real', nullable: true })
   projectRank?: number;
 
