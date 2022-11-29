@@ -28,6 +28,12 @@ export const createFiatDonationFromOnramper = async (
       transactionId: fiatTransaction.payload.txId,
     });
 
+    if (donation) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.FIAT_DONATION_ALREADY_EXISTS),
+      );
+    }
+
     // Custom Metadata from the frontend at the time of donation
     let metadata: OnRamperMetadata;
     if (typeof fiatTransaction.payload.partnerContext === 'string') {
