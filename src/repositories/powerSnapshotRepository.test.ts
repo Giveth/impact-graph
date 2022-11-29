@@ -20,10 +20,7 @@ describe(
   'findInCompletePowerSnapShots() test cases',
   findInCompletePowerSnapShotsTestCases,
 );
-describe.only(
-  'findPowerSnapshotById() test cases',
-  findPowerSnapshotByIdTestCases,
-);
+describe('findPowerSnapshotById() test cases', findPowerSnapshotByIdTestCases);
 describe('test balance snapshot functions', balanceSnapshotTestCases);
 
 function balanceSnapshotTestCases() {
