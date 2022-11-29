@@ -15,7 +15,9 @@ const onramperSecret = process.env.ONRAMPER_SECRET as string;
  */
 export async function onramperWebhookHandler(request, response) {
   try {
-    const payloadSignature = request.headers['X-Onramper-Webhook-Signature'];
+    const payloadSignature =
+      request.headers['X-Onramper-Webhook-Signature'] ||
+      request.headers['x-onramper-webhook-signature'];
     if (!onramperSecret || !payloadSignature)
       throw new Error(i18n.__('ONRAMPER_SIGNATURE_MISSING'));
 
