@@ -61,6 +61,7 @@
     "i18n": "^0.15.1",
     "ioredis": "^4.23.0",
     "joi": "^17.6.0",
+    "js-sha256": "^0.9.0",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4",
     "monoswap": "0.3.14",
@@ -83,6 +84,7 @@
     "typeorm": "0.2.38",
     "typeorm-typedi-extensions": "0.2.3",
     "typescript": "^3.9.9",
+    "verify-hmac-sha": "^1.3.4",
     "web3": "1.7.5",
     "wkhtmltopdf": "^0.3.4"
   },
@@ -123,6 +125,7 @@
     "tslint:fix": "tslint -c tslint.json --fix '{src,test}/**/*.ts'",
     "test": "NODE_ENV=test mocha  -t 90000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
     "test:projectEntity": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/entities/project.test.ts",
+    "test:onramperWebhook": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/onramper/webhookHandler.test.ts",
     "test:powerSnapshotRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerSnapshotRepository.test.ts",
     "test:donationTracker": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/segment/DonationTracker.test.ts",
     "test:userRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userRepository.test.ts",
