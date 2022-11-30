@@ -27,7 +27,7 @@ export async function onramperWebhookHandler(request, response) {
       fiatTransactionStringified,
     );
     if (digestedHmac !== payloadSignature)
-      throw i18n.__('ONRAMPER_SIGNATURE_INVALID');
+      throw new Error(i18n.__('ONRAMPER_SIGNATURE_INVALID'));
 
     // No point saving pending or failed transactions without txHash
     if (fiatTransaction.type === 'transaction_completed') {
