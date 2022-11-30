@@ -17,6 +17,7 @@ import { findDonationById } from '../repositories/donationRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { getTokenPrices } from 'monoswap';
 import SentryLogger from '../sentryLogger';
+import { addSegmentEventToQueue } from '../analytics/segmentQueue';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -48,15 +49,16 @@ export const updateDonationPricesAndValues = async (
       donation,
     });
 
-    // await getNotificationAdapter().donationGetPriceFailed({
-    //   project,
-    //   donationInfo: {
-    //     reason: 'Getting price failed',
-
-    //     // TODO Add txLink
-    //     txLink: donation.transactionId,
-    //   },
-    // });
+    logger.error('Error in getting price from monoswap', {
+      error: e,
+      donation,
+    });
+    addSegmentEventToQueue({
+      event: NOTIFICATIONS_EVENT_NAMES.GET_DONATION_PRICE_FAILED,
+      analyticsUserId: String(donation.userId),
+      properties: donation,
+      anonymousId: null,
+    });
     SentryLogger.captureException(
       new Error('Error in getting price from monoswap'),
       {
