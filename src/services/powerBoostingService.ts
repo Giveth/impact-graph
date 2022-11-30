@@ -1,6 +1,6 @@
 import {
+  cancelProjectBoosting,
   findPowerBoostings,
-  setSingleBoosting,
 } from '../repositories/powerBoostingRepository';
 
 export const changeUserBoostingsAfterProjectCancelled = async (params: {
@@ -12,10 +12,9 @@ export const changeUserBoostingsAfterProjectCancelled = async (params: {
     projectId,
   });
   powerBoostings.forEach(powerBoosting =>
-    setSingleBoosting({
+    cancelProjectBoosting({
       userId: powerBoosting.userId,
       projectId,
-      percentage: 0,
     }),
   );
 };
