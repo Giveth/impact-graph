@@ -6,7 +6,7 @@ export const i18n = require('i18n');
 // global config, where ever its exported
 i18n.configure({
   locales: ['en', 'es'],
-  directory: path.join('./', 'locales'),
+  directory: path.join(__dirname, 'locales'),
   defaultLocale: 'en',
   header: 'accept-language',
 });
