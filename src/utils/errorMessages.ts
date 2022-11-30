@@ -1,4 +1,5 @@
 export const errorMessages = {
+  FIAT_DONATION_ALREADY_EXISTS: 'Onramper donation already exists',
   ONRAMPER_SIGNATURE_INVALID: 'Onramper signature invalid',
   ONRAMPER_SIGNATURE_MISSING: 'Onramper signature missing',
   CHANGE_API_INVALID_TITLE_OR_EIN:
