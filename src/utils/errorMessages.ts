@@ -4,13 +4,10 @@ import path from 'path';
 // tslint:disable:no-var-requires
 export const i18n = require('i18n');
 
-const pathLocation = path.join(__dirname, 'locales');
-logger.info('pathLocation: ', pathLocation);
-
 // global config, where ever its exported
 i18n.configure({
   locales: ['en', 'es'],
-  directory: pathLocation,
+  directory: path.join(__dirname, 'locales'),
   defaultLocale: 'en',
   header: 'accept-language',
 });
