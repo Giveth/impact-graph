@@ -1,6 +1,7 @@
 import {
   isWalletAddressSmartContract,
   isWalletAddressValid,
+  validateProjectTitle,
   validateProjectWalletAddress,
 } from './projectValidator';
 import { assert } from 'chai';
@@ -11,7 +12,11 @@ import {
   saveProjectDirectlyToDb,
   SEED_DATA,
 } from '../../../test/testUtils';
-import { errorMessages } from '../errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../errorMessages';
 
 describe('isWalletAddressValid() test cases', isWalletAddressValidTestCases);
 
@@ -21,10 +26,24 @@ describe(
   validateProjectWalletAddressTestCases,
 );
 // describe('validateProjectTitleForEdit() test cases', validateProjectTitleForEditTestCases);
+describe('validateProjectTitleTestCases', validateProjectTitleTestCases);
 describe(
   'isWalletAddressSmartContract() test cases',
   isWalletAddressSmartContractTestCases,
 );
+
+function validateProjectTitleTestCases() {
+  it('should return an english message if title is invalid', async () => {
+    try {
+      const valid = await validateProjectTitle('$fdf');
+    } catch (e) {
+      assert.equal(
+        e.message,
+        i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
+      );
+    }
+  });
+}
 
 function isWalletAddressSmartContractTestCases() {
   it('should return true for smart contract address in xdai', async () => {
