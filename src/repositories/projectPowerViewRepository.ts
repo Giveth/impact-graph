@@ -9,6 +9,13 @@ export const getProjectPowers = async (
 ): Promise<ProjectPowerView[]> => {
   return ProjectPowerView.find({ take, skip });
 };
+
+export const findProjectPowerViewByProjectId = async (
+  projectId: number,
+): Promise<ProjectPowerView | undefined> => {
+  return ProjectPowerView.findOne(projectId);
+};
+
 export const getProjectFuturePowers = async (
   take: number = 50,
   skip: number = 0,
@@ -16,7 +23,7 @@ export const getProjectFuturePowers = async (
   return ProjectFuturePowerView.find({ take, skip });
 };
 
-export const getTopPowerRank = async (): Promise<number> => {
+export const getBottomRank = async (): Promise<number> => {
   try {
     const powerRank = await getConnection().manager.query(`
         SELECT MAX("powerRank") FROM project_power_view

@@ -17,6 +17,7 @@ import { findDonationById } from '../repositories/donationRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { getTokenPrices } from 'monoswap';
 import SentryLogger from '../sentryLogger';
+import { calculateGivbackFactor } from './givbackService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -69,6 +70,13 @@ export const updateDonationPricesAndValues = async (
       },
     );
   }
+  const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+    await calculateGivbackFactor(project.id);
+  donation.givbackFactor = givbackFactor;
+  donation.projectRank = projectRank;
+  donation.bottomRankInRound = bottomRankInRound;
+  donation.powerRound = powerRound;
+
   return await donation.save();
 };
 

@@ -12,11 +12,12 @@ import {
 } from './powerBoostingRepository';
 import { setPowerRound } from './powerRoundRepository';
 import {
-  getTopPowerRank,
+  getBottomRank,
   getProjectPowers,
   refreshProjectPowerView,
   refreshProjectFuturePowerView,
   getProjectFuturePowers,
+  findProjectPowerViewByProjectId,
 } from './projectPowerViewRepository';
 import { Project, ProjStatus } from '../entities/project';
 import { getConnection } from 'typeorm';
@@ -35,11 +36,16 @@ describe(
 );
 
 describe(
+  'findProjectPowerViewByProjectId test',
+  findProjectPowerViewByProjectIdTestCases,
+);
+
+describe(
   'projectFuturePowerViewRepository test',
   projectFuturePowerViewRepositoryTestCases,
 );
 
-describe('getTopPowerRank test cases', getTopPowerRankTestCases);
+describe('getBottomPowerRank test cases', getBottomPowerRankTestCases);
 
 function projectPowerViewRepositoryTestCases() {
   beforeEach(async () => {
@@ -243,6 +249,48 @@ function projectPowerViewRepositoryTestCases() {
   });
 }
 
+function findProjectPowerViewByProjectIdTestCases() {
+  beforeEach(async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+  });
+
+  it('Return project rank correctly', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = project1.id * 10;
+
+    await insertSinglePowerBoosting({
+      user,
+      project: project1,
+      percentage: 10,
+    });
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
+    });
+
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+    const projectPower = await findProjectPowerViewByProjectId(project1.id);
+    assert.isOk(projectPower);
+    assert.equal(projectPower?.powerRank, 1);
+    assert.equal(projectPower?.totalPower, 10);
+  });
+}
+
 function projectFuturePowerViewRepositoryTestCases() {
   beforeEach(async () => {
     await getConnection().query('truncate power_snapshot cascade');
@@ -426,14 +474,14 @@ function projectFuturePowerViewRepositoryTestCases() {
   });
 }
 
-function getTopPowerRankTestCases() {
+function getBottomPowerRankTestCases() {
   beforeEach(async () => {
     await getConnection().query('truncate power_snapshot cascade');
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
   });
 
-  it('Should return topPowerRank correctly', async () => {
+  it('Should return bottomPowerRank correctly', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
@@ -470,7 +518,7 @@ function getTopPowerRankTestCases() {
     await setPowerRound(roundNumber);
     await refreshProjectPowerView();
 
-    const topPowerRank = await getTopPowerRank();
-    assert.equal(topPowerRank, 3);
+    const bottomPowerRank = await getBottomRank();
+    assert.equal(bottomPowerRank, 3);
   });
 }
