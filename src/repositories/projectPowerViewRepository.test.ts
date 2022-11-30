@@ -481,7 +481,7 @@ function getBottomPowerRankTestCases() {
     await PowerBoostingSnapshot.clear();
   });
 
-  it('Should return topPowerRank correctly', async () => {
+  it('Should return bottomPowerRank correctly', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
@@ -518,7 +518,7 @@ function getBottomPowerRankTestCases() {
     await setPowerRound(roundNumber);
     await refreshProjectPowerView();
 
-    const topPowerRank = await getBottomRank();
-    assert.equal(topPowerRank, 3);
+    const bottomPowerRank = await getBottomRank();
+    assert.equal(bottomPowerRank, 3);
   });
 }
