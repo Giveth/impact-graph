@@ -1,3 +1,4 @@
+import { logger } from 'ethers';
 import path from 'path';
 
 // tslint:disable:no-var-requires
@@ -6,7 +7,7 @@ export const i18n = require('i18n');
 // global config, where ever its exported
 i18n.configure({
   locales: ['en', 'es'],
-  directory: path.join('./', 'locales'),
+  directory: path.join(__dirname, 'locales'),
   defaultLocale: 'en',
   header: 'accept-language',
 });
@@ -19,6 +20,9 @@ export const setI18nLocaleForRequest = async (req, res, next) => {
 };
 
 export const errorMessages = {
+  FIAT_DONATION_ALREADY_EXISTS: 'Fiat donation already exists',
+  ONRAMPER_SIGNATURE_INVALID: 'Request payload or signature is invalid',
+  ONRAMPER_SIGNATURE_MISSING: 'Request headers does not contain signature',
   UPLOAD_FAILED: 'Upload file failed',
   SPECIFY_GIV_POWER_ADAPTER: 'Specify givPower adapter',
   CHANGE_API_INVALID_TITLE_OR_EIN:
@@ -167,6 +171,9 @@ export const errorMessages = {
 };
 
 export const translationErrorMessagesKeys = {
+  FIAT_DONATION_ALREADY_EXISTS: 'FIAT_DONATION_ALREADY_EXISTS',
+  ONRAMPER_SIGNATURE_INVALID: 'ONRAMPER_SIGNATURE_INVALID',
+  ONRAMPER_SIGNATURE_MISSING: 'ONRAMPER_SIGNATURE_MISSING',
   UPLOAD_FAILED: 'UPLOAD_FAILED',
   SPECIFY_GIV_POWER_ADAPTER: 'SPECIFY_GIV_POWER_ADAPTER',
   CHANGE_API_INVALID_TITLE_OR_EIN: 'SPECIFY_GIV_POWER_ADAPTER',

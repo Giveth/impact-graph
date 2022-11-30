@@ -1,4 +1,7 @@
 {
+  "FIAT_DONATION_ALREADY_EXISTS": "La donación Fiat ya existe",
+  "ONRAMPER_SIGNATURE_INVALID": "El cuerpo o firma son invalidos",
+  "ONRAMPER_SIGNATURE_MISSING": "El encabezado no continue la firma",
   "UPLOAD_FAILED": "No fue posible subir el archivo",
   "SPECIFY_GIV_POWER_ADAPTER": "Especificar adaptador givPower",
   "CHANGE_API_INVALID_TITLE_OR_EIN":

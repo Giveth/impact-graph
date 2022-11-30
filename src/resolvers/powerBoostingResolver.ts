@@ -29,7 +29,7 @@ import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
 import { OrderField, SortingField } from '../entities/project';
 import { logger } from '../utils/logger';
-import { getTopPowerRank } from '../repositories/projectPowerViewRepository';
+import { getBottomRank } from '../repositories/projectPowerViewRepository';
 
 enum PowerBoostingOrderDirection {
   ASC = 'ASC',
@@ -168,6 +168,6 @@ export class PowerBoostingResolver {
 
   @Query(returns => Number)
   async getTopPowerRank(): Promise<Number> {
-    return getTopPowerRank();
+    return getBottomRank();
   }
 }
