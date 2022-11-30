@@ -1909,6 +1909,35 @@ function projectsByUserIdTestCases() {
 }
 
 function createProjectTestCases() {
+  it('Create Project should return <<Access denied>>, calling without token IN ENGLISH when no-lang header is sent', async () => {
+    const sampleProject = {
+      title: 'title1',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {},
+    );
+
+    assert.equal(result.status, 200);
+    // default is english so it will match
+    assert.equal(
+      result.data.errors[0].message,
+      i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+    );
+  });
   it('Create Project should return <<Access denied>>, calling without token IN ENGLISH when non supported language is sent', async () => {
     const sampleProject = {
       title: 'title1',
