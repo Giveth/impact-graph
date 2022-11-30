@@ -31,8 +31,10 @@ import SentryLogger from '../sentryLogger';
 import { errorMessages } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
+  getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
+  updateDonationPricesAndValues,
   updateTotalDonationsOfProject,
 } from '../services/donationService';
 import {
@@ -451,7 +453,7 @@ export class DonationResolver {
     @Arg('symbol') symbol: string,
     @Arg('chainId') chainId: number,
   ) {
-    const prices = await this.getMonoSwapTokenPrices(
+    const prices = await getMonoSwapTokenPrices(
       symbol,
       ['USDT', 'ETH'],
       Number(chainId),
@@ -613,47 +615,16 @@ export class DonationResolver {
       });
       await donation.save();
       const baseTokens =
-        Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
+        priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
-      try {
-        const tokenPrices = await this.getMonoSwapTokenPrices(
-          token,
-          baseTokens,
-          Number(priceChainId),
-        );
-
-        if (tokenPrices.length !== 0) {
-          donation.priceUsd = Number(tokenPrices[0]);
-          donation.priceEth = Number(tokenPrices[1]);
-
-          donation.valueUsd = Number(amount) * donation.priceUsd;
-          donation.valueEth = Number(amount) * donation.priceEth;
-        }
-      } catch (e) {
-        logger.error('Error in getting price from monoswap', {
-          error: e,
-          donation,
-        });
-        addSegmentEventToQueue({
-          event: NOTIFICATIONS_EVENT_NAMES.GET_DONATION_PRICE_FAILED,
-          analyticsUserId: userId,
-          properties: donation,
-          anonymousId: null,
-        });
-        SentryLogger.captureException(
-          new Error('Error in getting price from monoswap'),
-          {
-            extra: {
-              donationId: donation.id,
-              txHash: donation.transactionId,
-              currency: donation.currency,
-              network: donation.transactionNetworkId,
-            },
-          },
-        );
-      }
-
-      await donation.save();
+      await updateDonationPricesAndValues(
+        donation,
+        project,
+        token,
+        baseTokens,
+        priceChainId,
+        amount,
+      );
 
       // After updating, recalculate user total donated and owner total received
       await updateUserTotalDonated(donorUser.id);
@@ -734,21 +705,6 @@ export class DonationResolver {
       SentryLogger.captureException(e);
       logger.error('updateDonationStatus() error', e);
       throw e;
-    }
-  }
-
-  private async getMonoSwapTokenPrices(
-    token: string,
-    baseTokens: string[],
-    chainId: number,
-  ): Promise<number[]> {
-    try {
-      const tokenPrices = await getTokenPrices(token, baseTokens, chainId);
-
-      return tokenPrices;
-    } catch (e) {
-      logger.debug('Unable to fetch monoswap prices: ', e);
-      return [];
     }
   }
 }

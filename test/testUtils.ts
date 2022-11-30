@@ -31,6 +31,8 @@ import { CATEGORY_NAMES } from '../src/entities/category';
 const moment = require('moment');
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
+export const serverBaseAddress = 'http://localhost:4000';
+
 export const assertThrowsAsync = async (fn, errorMessage) => {
   let f = () => {
     // empty function
