@@ -1,4 +1,6 @@
 export const errorMessages = {
+  ONRAMPER_SIGNATURE_INVALID: 'Onramper signature invalid',
+  ONRAMPER_SIGNATURE_MISSING: 'Onramper signature missing',
   CHANGE_API_INVALID_TITLE_OR_EIN:
     'ChangeAPI title or EIN not found or invalid',
   INVALID_SOCIAL_NETWORK: 'Invalid social network',

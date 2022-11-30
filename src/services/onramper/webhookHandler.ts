@@ -1,3 +1,4 @@
+import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { createFiatDonationFromOnramper } from './donationService';
 import { OnRamperFiatTransaction } from './fiatTransaction';
@@ -16,7 +17,7 @@ export async function onramperWebhookHandler(request, response) {
       request.headers['X-Onramper-Webhook-Signature'] ||
       request.headers['x-onramper-webhook-signature'];
     if (!onramperSecret || !payloadSignature)
-      throw new Error(i18n.__('ONRAMPER_SIGNATURE_MISSING'));
+      throw new Error(errorMessages.ONRAMPER_SIGNATURE_MISSING);
 
     const fiatTransaction = request.body as OnRamperFiatTransaction;
     const fiatTransactionStringified = JSON.stringify(fiatTransaction);
@@ -26,7 +27,7 @@ export async function onramperWebhookHandler(request, response) {
       fiatTransactionStringified,
     );
     if (digestedHmac !== payloadSignature)
-      throw i18n.__('ONRAMPER_SIGNATURE_INVALID');
+      throw new Error(errorMessages.ONRAMPER_SIGNATURE_INVALID);
 
     // No point saving pending or failed transactions without txHash
     if (fiatTransaction.type === 'transaction_completed') {
