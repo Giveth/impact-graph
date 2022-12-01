@@ -2,6 +2,7 @@ import { getConnection } from 'typeorm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { logger } from '../utils/logger';
+import { updatePowerSnapshotSyncedFlag } from './powerSnapshotRepository';
 
 export const getProjectPowers = async (
   take: number = 50,
@@ -43,7 +44,11 @@ export const refreshProjectPowerView = async (): Promise<void> => {
   );
 };
 
-export const refreshProjectFuturePowerView = async (): Promise<void> => {
+export const refreshProjectFuturePowerView = async (
+  updateSyncedFlag: boolean = true,
+): Promise<void> => {
+  if (updateSyncedFlag) await updatePowerSnapshotSyncedFlag();
+
   return getConnection().manager.query(
     `
       REFRESH MATERIALIZED VIEW project_future_power_view

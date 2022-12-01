@@ -294,6 +294,7 @@ function findProjectPowerViewByProjectIdTestCases() {
 function projectFuturePowerViewRepositoryTestCases() {
   beforeEach(async () => {
     await getConnection().query('truncate power_snapshot cascade');
+    await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
   });
@@ -472,6 +473,8 @@ function projectFuturePowerViewRepositoryTestCases() {
       0,
     );
   });
+  //
+  // it('should return null for future power when no snapshot is synced', async () => {});
 }
 
 function getBottomPowerRankTestCases() {
@@ -481,7 +484,7 @@ function getBottomPowerRankTestCases() {
     await PowerBoostingSnapshot.clear();
   });
 
-  it('Should return bottomPowerRank correctly', async () => {
+  it('should return bottomPowerRank correctly', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());

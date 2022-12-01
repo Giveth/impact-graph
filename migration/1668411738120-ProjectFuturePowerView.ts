@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectFuturePowerView1668411738119 implements MigrationInterface {
+export class ProjectFuturePowerView1668411738120 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
@@ -36,7 +36,7 @@ export class ProjectFuturePowerView1668411738119 implements MigrationInterface {
                         now() AS "updateTime" 
                       FROM 
                         power_round "powerRound" 
-                        JOIN power_snapshot "powerSnapshot" ON "powerSnapshot"."roundNumber" = "powerRound".round + 1
+                        JOIN power_snapshot "powerSnapshot" ON "powerSnapshot"."roundNumber" = "powerRound".round + 1 and "powerSnapshot".synced = true
                         JOIN power_balance_snapshot "powerBalanceSnapshot" ON "powerBalanceSnapshot"."powerSnapshotId" = "powerSnapshot".id 
                         JOIN power_boosting_snapshot "powerBoostingSnapshot" ON "powerBoostingSnapshot"."powerSnapshotId" = "powerSnapshot".id 
                         AND "powerBoostingSnapshot"."userId" = "powerBalanceSnapshot"."userId" 
@@ -45,7 +45,6 @@ export class ProjectFuturePowerView1668411738119 implements MigrationInterface {
                         "powerBoostingSnapshot"."projectId", 
                         "powerBoostingSnapshot"."userId"
                     ) pp ON pp."projectId" = project.id 
-                  WHERE pp."boostedPower" > 0::double precision
                   GROUP BY 
                     project.id
                 ) innerview, 

@@ -11,16 +11,6 @@ export const findInCompletePowerSnapShots = async (): Promise<
     .getMany();
 };
 
-export const findPowerSnapshotById = async (
-  id: number,
-): Promise<PowerSnapshot | undefined> => {
-  return PowerSnapshot.createQueryBuilder()
-    .where('id=:id', {
-      id,
-    })
-    .getOne();
-};
-
 export const updatePowerSnapShots = async (params: {
   blockNumber: number;
   roundNumber: number;
@@ -69,4 +59,27 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
   `,
     [limit, offset],
   );
+};
+
+export const updatePowerSnapshotSyncedFlag = async (): Promise<number> => {
+  const result = await getConnection().query(
+    `
+        update power_snapshot as "snapshot" set synced = true
+        where 
+        "snapshot"."blockNumber" is not NULL and 
+        "snapshot"."synced" is not true and
+        not exists (
+          select "userId", "powerSnapshotId", "blockNumber","walletAddress" 
+          from (select DISTINCT "powerSnapshotId", "userId" from power_boosting_snapshot) as boosting
+          inner join public."user" as "user" on  "userId"= "user".id 
+          where boosting."powerSnapshotId" = snapshot.id
+          and not exists (
+              select 
+              from power_balance_snapshot as "balance"
+              where balance."powerSnapshotId" = boosting."powerSnapshotId" and
+              balance."userId" = boosting."userId"
+            )
+        )`,
+  );
+  return result[1];
 };

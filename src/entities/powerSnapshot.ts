@@ -31,6 +31,11 @@ export class PowerSnapshot extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   roundNumber: number;
 
+  @Field(type => Boolean)
+  @Column({ nullable: true })
+  @Index()
+  synced?: boolean;
+
   @Field(type => [PowerBoostingSnapshot], { nullable: true })
   @OneToMany(
     type => PowerBoostingSnapshot,
