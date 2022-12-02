@@ -22,7 +22,7 @@ import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { getConnection } from 'typeorm';
 import { Reaction } from '../entities/reaction';
-import { findUsersWhoLikedProject } from './reactionRepository';
+import { findUsersWhoLikedProjectExcludeProjectOwner } from './reactionRepository';
 import { errorMessages } from '../utils/errorMessages';
 
 describe('findUserPowerBoosting() testCases', findUserPowerBoostingTestCases);
