@@ -24,6 +24,13 @@ import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository';
 import { UserProjectPowerArgs } from './userProjectPowerResolver';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import {
+  findUserPowerBoosting,
+  findUserPowerBoostings,
+  findUserProjectPowerBoostingsSnapshots,
+} from '../repositories/powerBoostingRepository';
+import { PowerBoosting } from '../entities/powerBoosting';
 
 @ObjectType()
 class PowerBalances {
@@ -66,9 +73,25 @@ class UserProjectBoostings {
   count: number;
 }
 
+class UserPowerBoostings {
+  @Field(type => [PowerBoosting])
+  powerBoostings: PowerBoosting[];
+
+  @Field(type => Int)
+  count: number;
+}
+
+class UserPowerBoostingsSnapshots {
+  @Field(type => [PowerBoostingSnapshot])
+  userPowerBoostingsSnapshot: PowerBoostingSnapshot[];
+
+  @Field(type => Int)
+  count: number;
+}
+
 // General resolver for testing team of givPower
 @Resolver()
-export class GivPowerResolver {
+export class GivPowerTestingResolver {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
@@ -109,6 +132,51 @@ export class GivPowerResolver {
     const [powerSnapshots, count] = await findPowerSnapshots(round, take, skip);
     return {
       powerSnapshots,
+      count,
+    };
+  }
+
+  @Query(returns => UserPowerBoostings)
+  async userProjectPowerBoostings({
+    take,
+    skip,
+    projectId,
+    userId,
+  }: UserProjectPowerArgs): Promise<UserPowerBoostings> {
+    const [powerBoostings, count] = await findUserPowerBoostings(
+      userId,
+      projectId,
+      take,
+      skip,
+    );
+
+    return {
+      powerBoostings,
+      count,
+    };
+  }
+
+  @Query(returns => UserPowerBoostingsSnapshots)
+  async userProjectPowerBoostingsSnapshots({
+    take,
+    skip,
+    projectId,
+    userId,
+    powerSnapshotId,
+    round,
+  }): Promise<UserProjectPowerBoostings> {
+    const [powerBoostings, count] =
+      await findUserProjectPowerBoostingsSnapshots(
+        userId,
+        projectId,
+        take,
+        skip,
+        powerSnapshotId,
+        round,
+      );
+
+    return {
+      powerBoostings,
       count,
     };
   }
