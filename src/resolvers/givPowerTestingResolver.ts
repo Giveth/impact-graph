@@ -7,10 +7,7 @@ import {
   Query,
   Resolver,
 } from 'type-graphql';
-import { Repository } from 'typeorm';
-import { InjectRepository } from 'typeorm-typedi-extensions';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { Project } from '../entities/project';
 import { findPowerBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
@@ -26,7 +23,6 @@ import { UserProjectPowerArgs } from './userProjectPowerResolver';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import {
-  findUserPowerBoosting,
   findUserPowerBoostings,
   findUserProjectPowerBoostingsSnapshots,
 } from '../repositories/powerBoostingRepository';
@@ -92,11 +88,6 @@ class UserPowerBoostingsSnapshots {
 // General resolver for testing team of givPower
 @Resolver()
 export class GivPowerTestingResolver {
-  constructor(
-    @InjectRepository(Project)
-    private readonly projectRepository: Repository<Project>,
-  ) {}
-
   // Returns powerBalances by userIds or powerSnapshotIds or round, or any combination of those 3
   // Further filtering as required
   @Query(returns => PowerBalances)
@@ -121,8 +112,8 @@ export class GivPowerTestingResolver {
     };
   }
 
-  // This is so Testing team know what snapshots where taken and in which rounds
-  // So they can use other endpoints
+  // // This is so Testing team know what snapshots where taken and in which rounds
+  // // So they can use other endpoints
   @Query(returns => PowerSnapshots)
   async powerSnapshots(
     @Arg('take', type => Number, { defaultValue: 100 }) take: number,
@@ -181,7 +172,7 @@ export class GivPowerTestingResolver {
     };
   }
 
-  // Know the current round running
+  // // Know the current round running
   @Query(returns => PowerRound)
   async currentPowerRound(): Promise<PowerRound | undefined> {
     return await getPowerRound();

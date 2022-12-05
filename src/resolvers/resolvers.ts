@@ -14,7 +14,7 @@ import { ProjectVerificationFormResolver } from './projectVerificationFormResolv
 import { SocialProfilesResolver } from './socialProfilesResolver';
 import { PowerBoostingResolver } from './powerBoostingResolver';
 import { UserProjectPowerResolver } from './userProjectPowerResolver';
-import { GivPowerTestingResolver } from './givPowerResolver';
+import { GivPowerTestingResolver } from './givPowerTestingResolver';
 
 export const resolvers: any = [
   UserResolver,
@@ -33,5 +33,5 @@ export const resolvers: any = [
   SocialProfilesResolver,
   PowerBoostingResolver,
   UserProjectPowerResolver,
-  GivPowerTestingResolver,
+  // GivPowerTestingResolver,
 ];
