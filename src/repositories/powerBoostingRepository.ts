@@ -12,6 +12,7 @@ import { PowerSnapshot } from '../entities/powerSnapshot';
 import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 import { getKeyByValue } from '../utils/utils';
 import { Reaction } from '../entities/reaction';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
@@ -67,7 +68,7 @@ export const findUserProjectPowerBoostingsSnapshots = async (
   powerSnapshotId?: number,
   round?: number,
 ) => {
-  const query = PowerBoosting.createQueryBuilder('powerBoosting')
+  const query = PowerBoostingSnapshot.createQueryBuilder('powerBoosting')
     .leftJoin('powerBoosting.powerSnapshot', 'powerSnapshot')
     .where(`percentage > 0`);
 

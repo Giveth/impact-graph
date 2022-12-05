@@ -164,8 +164,8 @@ export class GivPowerTestingResolver {
     userId,
     powerSnapshotId,
     round,
-  }): Promise<UserProjectPowerBoostings> {
-    const [powerBoostings, count] =
+  }): Promise<UserPowerBoostingsSnapshots> {
+    const [userPowerBoostingsSnapshot, count] =
       await findUserProjectPowerBoostingsSnapshots(
         userId,
         projectId,
@@ -176,7 +176,7 @@ export class GivPowerTestingResolver {
       );
 
     return {
-      powerBoostings,
+      userPowerBoostingsSnapshot,
       count,
     };
   }
