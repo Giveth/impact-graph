@@ -31,6 +31,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_RECEIVED_HEART = 'project liked',
   PROJECT_UPDATED_DONOR = 'Project updated - donor',
   PROJECT_UPDATED_OWNER = 'Project updated - owner',
+  PROJECT_UPDATED_USERS_WHO_LIKED = 'Project update - Users Who Liked',
   PROJECT_CREATED = 'The project saved as draft',
   UPDATED_PROFILE = 'Updated profile',
   GET_DONATION_PRICE_FAILED = 'Get Donation Price Failed',

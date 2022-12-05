@@ -9,7 +9,7 @@ import {
 } from '../../test/testUtils';
 import axios, { AxiosResponse } from 'axios';
 import {
-  getTopPowerRankQuery,
+  getBottomPowerRankQuery,
   getPowerBoostingsQuery,
   setMultiplePowerBoostingMutation,
   setSinglePowerBoostingMutation,
@@ -41,7 +41,7 @@ describe(
   setMultiplePowerBoostingTestCases,
 );
 describe('getPowerBoosting test cases', getPowerBoostingTestCases);
-describe('getTopPowerRank test cases', getTopPowerRankTestCases);
+describe('getBottomPowerRank test cases', getBottomPowerRankTestCases);
 
 // Clean percentages after setting
 const removePowerBoostings = async (boosts: PowerBoosting[]): Promise<void> => {
@@ -1086,7 +1086,7 @@ function getPowerBoostingTestCases() {
     assert.isTrue(powerBoostings[1].percentage <= powerBoostings[2].percentage);
   });
 }
-async function getTopPowerRankTestCases() {
+async function getBottomPowerRankTestCases() {
   beforeEach(async () => {
     await getConnection().query('truncate power_snapshot cascade');
     await PowerBalanceSnapshot.clear();
@@ -1144,7 +1144,7 @@ async function getTopPowerRankTestCases() {
     await refreshProjectPowerView();
 
     const result = await axios.post(graphqlUrl, {
-      query: getTopPowerRankQuery,
+      query: getBottomPowerRankQuery,
     });
     assert.isOk(result);
     assert.equal(result.data.data.getTopPowerRank, 4);

@@ -122,6 +122,22 @@ export class Donation extends BaseEntity {
   @Column({ type: 'real', nullable: true })
   priceUsd: number;
 
+  @Field({ nullable: true })
+  @Column({ type: 'real', nullable: true })
+  givbackFactor: number;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  powerRound: number;
+
+  @Field({ nullable: true })
+  @Column({ type: 'real', nullable: true })
+  projectRank?: number;
+
+  @Field({ nullable: true })
+  @Column({ type: 'real', nullable: true })
+  bottomRankInRound?: number;
+
   @Index()
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
@@ -144,6 +160,14 @@ export class Donation extends BaseEntity {
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   donationType?: string;
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  onramperTransactionStatus?: string;
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  onramperId?: string;
 
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })

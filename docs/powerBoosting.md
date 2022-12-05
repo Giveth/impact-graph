@@ -229,6 +229,28 @@ limit 5
 |82       |155876.872369|4        |1779 |
 |223531   |129154.467198|5        |1779 |
 
+## Project status changes affection on power boosting and ranking
+
+### Cancelled
+When a project becomes cancelled, we set all GIVpower allocations to (percentages) that project zero.
+In that case, the allocation values are added to other projects were supported by corresponding users proportionally.
+https://github.com/Giveth/giveth-dapps-v2/issues/1837
+
+**PS** However, we dont delete the snapshots' history of GIVpower boosting. Therefore, if the project gets active and verified again, the history of GIVpower allocations before cancellation will be included in projects total GIVpower and ranking in the leaderboard. (but we thought it's as super rare case)
+
+### Unverified/Verified
+When a project becomes unverified, we remove it from GIVpower ranking, and also we stop taking snapshot of GIVpower boosting to it.
+Nevertheless, the project doesn't lose its boosting history. We will notify 
+users who had boosted the project and inform them that they project is not verified anymore and their GIVpower allocation are being wasted. https://github.com/Giveth/GIVeconomy/issues/749.
+
+If a project becomes verified again, it will have GIVpower rank and return back to the leaderboard. Moreover, GIVpower allocations to it will be recorded again in the next snapshots. (obviously it would not have any snapshot for the time that project
+was unverified)
+https://github.com/Giveth/GIVeconomy/issues/739
+
+### Activate/Deactivate
+When a project becomes deactivated by project owner or the admin, we exclude it from the GIVPower ranking
+but keep taking snapshots from its boostings. Therefore, when it becomes activated again, it will appear in the ranking immediately.
+https://github.com/Giveth/giveth-dapps-v2/issues/1839
 
 ## FAQ
 

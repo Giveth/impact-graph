@@ -403,6 +403,15 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       }),
     );
 
+    const usersWhoLiked = await findUsersWhoLikedProject(project.id);
+    usersWhoLiked.map(user =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_USERS_WHO_LIKED,
+        user,
+      }),
+    );
+
     const projectOwner = project?.adminUser as User;
     await this.sendProjectRelatedNotification({
       project,

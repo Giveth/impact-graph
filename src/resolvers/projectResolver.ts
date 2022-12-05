@@ -595,7 +595,7 @@ export class ProjectResolver {
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
-      .innerJoinAndSelect(
+      .leftJoinAndSelect(
         'project.categories',
         'categories',
         'categories.isActive = :isActive',
@@ -721,7 +721,7 @@ export class ProjectResolver {
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
-      .innerJoinAndSelect(
+      .leftJoinAndSelect(
         'project.categories',
         'categories',
         'categories.isActive = :isActive',
