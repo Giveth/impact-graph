@@ -1,17 +1,5 @@
-import {
-  assertThrowsAsync,
-  createProjectData,
-  generateRandomEtheriumAddress,
-  saveProjectDirectlyToDb,
-  saveUserDirectlyToDb,
-} from '../../test/testUtils';
-import {
-  findPowerBoostings,
-  findUserPowerBoosting,
-  insertSinglePowerBoosting,
-  setMultipleBoosting,
-} from './powerBoostingRepository';
-import { assert, use } from 'chai';
+import { assertThrowsAsync } from '../../test/testUtils';
+import { assert } from 'chai';
 import { getPowerRound, setPowerRound } from './powerRoundRepository';
 import { PowerRound } from '../entities/powerRound';
 

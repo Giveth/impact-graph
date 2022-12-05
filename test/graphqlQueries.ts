@@ -1586,7 +1586,7 @@ export const getUserProjectPowerQuery = `
   }
 `;
 
-export const getTopPowerRankQuery = `
+export const getBottomPowerRankQuery = `
     query {
         getTopPowerRank
     }

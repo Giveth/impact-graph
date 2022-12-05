@@ -2,6 +2,7 @@ import { getConnection } from 'typeorm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { logger } from '../utils/logger';
+import { updatePowerSnapshotSyncedFlag } from './powerSnapshotRepository';
 
 export const getProjectPowers = async (
   take: number = 50,
@@ -33,6 +34,12 @@ export const findProjectsPowers = async (
   return query.take(take).skip(skip).getManyAndCount();
 };
 
+export const findProjectPowerViewByProjectId = async (
+  projectId: number,
+): Promise<ProjectPowerView | undefined> => {
+  return ProjectPowerView.findOne(projectId);
+};
+
 export const getProjectFuturePowers = async (
   take: number = 50,
   skip: number = 0,
@@ -40,7 +47,7 @@ export const getProjectFuturePowers = async (
   return ProjectFuturePowerView.find({ take, skip });
 };
 
-export const getTopPowerRank = async (): Promise<number> => {
+export const getBottomRank = async (): Promise<number> => {
   try {
     const powerRank = await getConnection().manager.query(`
         SELECT MAX("powerRank") FROM project_power_view
@@ -60,7 +67,11 @@ export const refreshProjectPowerView = async (): Promise<void> => {
   );
 };
 
-export const refreshProjectFuturePowerView = async (): Promise<void> => {
+export const refreshProjectFuturePowerView = async (
+  updateSyncedFlag: boolean = true,
+): Promise<void> => {
+  if (updateSyncedFlag) await updatePowerSnapshotSyncedFlag();
+
   return getConnection().manager.query(
     `
       REFRESH MATERIALIZED VIEW project_future_power_view
