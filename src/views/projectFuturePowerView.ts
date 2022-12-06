@@ -13,6 +13,7 @@ import { Field, Int, ObjectType } from 'type-graphql';
 @ViewEntity('project_future_power_view', { synchronize: false })
 @ObjectType()
 export class ProjectFuturePowerView extends BaseEntity {
+  @Field()
   @ViewColumn()
   @PrimaryColumn()
   @RelationId(

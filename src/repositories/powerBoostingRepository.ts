@@ -11,6 +11,8 @@ import {
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 import { getKeyByValue } from '../utils/utils';
+import { Reaction } from '../entities/reaction';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
@@ -21,6 +23,74 @@ const PERCENTAGE_PRECISION = Number(
 
 const formatPercentage = (p: number): number => {
   return +p.toFixed(PERCENTAGE_PRECISION);
+};
+
+export const findUserPowerBoostings = async (
+  userId?: number,
+  projectId?: number,
+  take?: number,
+  skip?: number,
+  forceProjectIds?: number[],
+): Promise<[PowerBoosting[], number]> => {
+  const query = PowerBoosting.createQueryBuilder('powerBoosting')
+    .leftJoinAndSelect('powerBoosting.project', 'project')
+    .leftJoinAndSelect('powerBoosting.user', 'user');
+
+  if (userId) {
+    query.where(`powerBoosting.userId = :userId`, { userId });
+  }
+
+  if (projectId) {
+    query.where('powerBoosting.projectId = :projectId', { projectId });
+  }
+
+  if (!forceProjectIds || forceProjectIds.length === 0) {
+    query.andWhere(`percentage > 0`);
+  } else {
+    query.andWhere(
+      new Brackets(qb =>
+        qb
+          .where('percentage > 0')
+          .orWhere(`powerBoosting.projectId IN (:...forceProjectIds)`, {
+            forceProjectIds,
+          }),
+      ),
+    );
+  }
+  return query.take(take).skip(skip).getManyAndCount();
+};
+
+export const findUserProjectPowerBoostingsSnapshots = async (
+  userId?: number,
+  projectId?: number,
+  take?: number,
+  skip?: number,
+  powerSnapshotId?: number,
+  round?: number,
+) => {
+  const query = PowerBoostingSnapshot.createQueryBuilder('powerBoosting')
+    .leftJoinAndSelect('powerBoosting.powerSnapshot', 'powerSnapshot')
+    .where(`percentage > 0`);
+
+  if (userId) {
+    query.andWhere(`powerBoosting.userId = :userId`, { userId });
+  }
+
+  if (projectId) {
+    query.andWhere('powerBoosting.projectId = :projectId', { projectId });
+  }
+
+  if (round) {
+    query.andWhere('powerSnapshot.roundNumber = :round', { round });
+  }
+
+  if (powerSnapshotId) {
+    query.andWhere('powerBoosting.powerSnapshotId = :powerSnapshotId', {
+      powerSnapshotId,
+    });
+  }
+
+  return query.take(take).skip(skip).getManyAndCount();
 };
 
 export const findUserPowerBoosting = async (

@@ -11,6 +11,31 @@ export const getProjectPowers = async (
   return ProjectPowerView.find({ take, skip });
 };
 
+export const findProjectsPowers = async (
+  projectIds: number[] = [],
+  round?: number,
+  take: number = 100,
+  skip: number = 0,
+): Promise<[ProjectPowerView[], number]> => {
+  const query = ProjectPowerView.createQueryBuilder(
+    'projectPowerView',
+  ).leftJoinAndSelect('projectPowerView.project', 'project');
+
+  if (projectIds.length > 0 && round) {
+    query
+      .where('projectPowerView.projectId IN (:...projectIds)', { projectIds })
+      .andWhere('projectPowerView.round = :round', { round });
+  } else if (projectIds.length === 0 && round) {
+    query.where('projectPowerView.round = :round', { round });
+  } else if (projectIds.length > 0 && !round) {
+    query.where('projectPowerView.projectId IN (:...projectIds)', {
+      projectIds,
+    });
+  }
+
+  return query.take(take).skip(skip).getManyAndCount();
+};
+
 export const findProjectPowerViewByProjectId = async (
   projectId: number,
 ): Promise<ProjectPowerView | undefined> => {

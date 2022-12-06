@@ -28,6 +28,27 @@ export const insertSinglePowerBalanceSnapshot = async (
   return PowerBalanceSnapshot.create(param).save();
 };
 
+export const findPowerSnapshots = async (
+  round?: number,
+  powerSnapshotId?: number,
+  take: number = 100,
+  skip: number = 0,
+) => {
+  const query = PowerSnapshot.createQueryBuilder('powerSnapshot');
+
+  if (round && !powerSnapshotId) {
+    query.where('powerSnapshot.roundNumber = :round', { round });
+  } else if (!round && powerSnapshotId) {
+    query.where('powerSnapshot.id = :id', { id: powerSnapshotId });
+  } else if (round && powerSnapshotId) {
+    query
+      .where('powerSnapshot.id = :id', { id: powerSnapshotId })
+      .andWhere('powerSnapshot.roundNumber = :round', { round });
+  }
+
+  return query.take(take).skip(skip).getManyAndCount();
+};
+
 export const getPowerBoostingSnapshotWithoutBalance = async (
   limit = 50,
   offset = 0,
