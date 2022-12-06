@@ -31,7 +31,7 @@ export class PowerSnapshot extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   roundNumber: number;
 
-  @Field(type => Boolean)
+  @Field(type => Boolean, { nullable: true })
   @Column({ nullable: true })
   @Index()
   synced?: boolean;

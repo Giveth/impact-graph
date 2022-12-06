@@ -33,5 +33,5 @@ export const resolvers: any = [
   SocialProfilesResolver,
   PowerBoostingResolver,
   UserProjectPowerResolver,
-  // GivPowerTestingResolver,
+  GivPowerTestingResolver,
 ];

@@ -28,58 +28,66 @@ import {
 } from '../repositories/powerBoostingRepository';
 import { PowerBoosting } from '../entities/powerBoosting';
 
+const enableGivPower = process.env.ENABLE_GIV_POWER_TESTING as string;
+
 @ObjectType()
 class PowerBalances {
-  @Field(type => [PowerBalanceSnapshot])
-  powerBalances: PowerBalanceSnapshot[];
+  @Field(type => [PowerBalanceSnapshot], { nullable: true })
+  powerBalances?: PowerBalanceSnapshot[] | undefined;
 
   @Field(type => Int)
   count: number;
 }
 
+@ObjectType()
 class PowerSnapshots {
-  @Field(type => [PowerSnapshot])
-  powerSnapshots: PowerSnapshot[];
+  @Field(type => [PowerSnapshot], { nullable: true })
+  powerSnapshots?: PowerSnapshot[];
 
   @Field(type => Int)
   count: number;
 }
 
+@ObjectType()
 class FuturePowers {
-  @Field(type => [ProjectFuturePowerView])
-  futurePowers: ProjectFuturePowerView[];
+  @Field(type => [ProjectFuturePowerView], { nullable: true })
+  futurePowers?: ProjectFuturePowerView[];
 
   @Field(type => Int)
   count: number;
 }
 
+@ObjectType()
 class ProjectsPowers {
-  @Field(type => [ProjectPowerView])
-  projectsPowers: ProjectPowerView[];
+  @Field(type => [ProjectPowerView], { nullable: true })
+  projectsPowers?: ProjectPowerView[];
 
   @Field(type => Int)
   count: number;
 }
 
+@ObjectType()
 class UserProjectBoostings {
-  @Field(type => [UserProjectPowerView])
-  userProjectBoostings: UserProjectPowerView[];
+  @Field(type => [UserProjectPowerView], { nullable: true })
+  userProjectBoostings?: UserProjectPowerView[];
 
   @Field(type => Int)
   count: number;
 }
 
+@ObjectType()
 class UserPowerBoostings {
-  @Field(type => [PowerBoosting])
-  powerBoostings: PowerBoosting[];
+  @Field(type => [PowerBoosting], { nullable: true })
+  powerBoostings?: PowerBoosting[];
 
   @Field(type => Int)
   count: number;
 }
 
+@ObjectType()
 class UserPowerBoostingsSnapshots {
-  @Field(type => [PowerBoostingSnapshot])
-  userPowerBoostingsSnapshot: PowerBoostingSnapshot[];
+  @Field(type => [PowerBoostingSnapshot], { nullable: true })
+  userPowerBoostingsSnapshot?: PowerBoostingSnapshot[];
 
   @Field(type => Int)
   count: number;
@@ -92,13 +100,20 @@ export class GivPowerTestingResolver {
   // Further filtering as required
   @Query(returns => PowerBalances)
   async powerBalances(
-    @Arg('userIds', type => [Number], { defaultValue: [] }) userIds: number[],
+    @Arg('userIds', type => [Number], { defaultValue: [] }) userIds?: number[],
     @Arg('powerSnapshotIds', type => [Number], { defaultValue: [] })
-    powerSnapshotIds: number[],
-    @Arg('take', type => Number, { defaultValue: 100 }) take: number,
-    @Arg('skip', type => Number, { defaultValue: 0 }) skip: number,
-    @Arg('round', type => Number) round?: number,
+    powerSnapshotIds?: number[],
+    @Arg('take', type => Number, { defaultValue: 100 }) take?: number,
+    @Arg('skip', type => Number, { defaultValue: 0 }) skip?: number,
+    @Arg('round', type => Number, { nullable: true }) round?: number,
   ): Promise<PowerBalances> {
+    if (enableGivPower !== 'true') {
+      return {
+        powerBalances: [],
+        count: 0,
+      };
+    }
+
     const [powerBalances, count] = await findPowerBalances(
       round,
       userIds,
@@ -112,15 +127,29 @@ export class GivPowerTestingResolver {
     };
   }
 
-  // // This is so Testing team know what snapshots where taken and in which rounds
-  // // So they can use other endpoints
+  // This is so Testing team know what snapshots where taken and in which rounds
+  // So they can use other endpoints
   @Query(returns => PowerSnapshots)
   async powerSnapshots(
-    @Arg('take', type => Number, { defaultValue: 100 }) take: number,
-    @Arg('skip', type => Number, { defaultValue: 0 }) skip: number,
-    @Arg('round', type => Number) round?: number,
+    @Arg('take', type => Number, { defaultValue: 100 }) take?: number,
+    @Arg('skip', type => Number, { defaultValue: 0 }) skip?: number,
+    @Arg('round', type => Number, { nullable: true }) round?: number,
+    @Arg('powerSnapshotId', type => Number, { nullable: true })
+    powerSnapshotId?: number,
   ): Promise<PowerSnapshots> {
-    const [powerSnapshots, count] = await findPowerSnapshots(round, take, skip);
+    if (enableGivPower !== 'true') {
+      return {
+        powerSnapshots: [],
+        count: 0,
+      };
+    }
+
+    const [powerSnapshots, count] = await findPowerSnapshots(
+      round,
+      powerSnapshotId,
+      take,
+      skip,
+    );
     return {
       powerSnapshots,
       count,
@@ -128,12 +157,19 @@ export class GivPowerTestingResolver {
   }
 
   @Query(returns => UserPowerBoostings)
-  async userProjectPowerBoostings({
-    take,
-    skip,
-    projectId,
-    userId,
-  }: UserProjectPowerArgs): Promise<UserPowerBoostings> {
+  async userProjectPowerBoostings(
+    @Arg('take', type => Number, { defaultValue: 100 }) take?: number,
+    @Arg('skip', type => Number, { defaultValue: 0 }) skip?: number,
+    @Arg('projectId', type => Number, { nullable: true }) projectId?: number,
+    @Arg('userId', type => Number, { nullable: true }) userId?: number,
+  ): Promise<UserPowerBoostings> {
+    if (enableGivPower !== 'true') {
+      return {
+        powerBoostings: [],
+        count: 0,
+      };
+    }
+
     const [powerBoostings, count] = await findUserPowerBoostings(
       userId,
       projectId,
@@ -148,14 +184,22 @@ export class GivPowerTestingResolver {
   }
 
   @Query(returns => UserPowerBoostingsSnapshots)
-  async userProjectPowerBoostingsSnapshots({
-    take,
-    skip,
-    projectId,
-    userId,
-    powerSnapshotId,
-    round,
-  }): Promise<UserPowerBoostingsSnapshots> {
+  async userProjectPowerBoostingsSnapshots(
+    @Arg('take', type => Number, { defaultValue: 100 }) take?: number,
+    @Arg('skip', type => Number, { defaultValue: 0 }) skip?: number,
+    @Arg('projectId', type => Number, { nullable: true }) projectId?: number,
+    @Arg('userId', type => Number, { nullable: true }) userId?: number,
+    @Arg('powerSnapshotId', type => Number, { nullable: true })
+    powerSnapshotId?: number,
+    @Arg('round', type => Number, { nullable: true }) round?: number,
+  ): Promise<UserPowerBoostingsSnapshots | undefined> {
+    if (enableGivPower !== 'true') {
+      return {
+        userPowerBoostingsSnapshot: [],
+        count: 0,
+      };
+    }
+
     const [userPowerBoostingsSnapshot, count] =
       await findUserProjectPowerBoostingsSnapshots(
         userId,
@@ -172,7 +216,7 @@ export class GivPowerTestingResolver {
     };
   }
 
-  // // Know the current round running
+  // Know the current round running
   @Query(returns => PowerRound)
   async currentPowerRound(): Promise<PowerRound | undefined> {
     return await getPowerRound();
@@ -181,11 +225,18 @@ export class GivPowerTestingResolver {
   @Query(returns => FuturePowers)
   async projectsFuturePowers(
     @Arg('projectIds', type => [Number], { defaultValue: [] })
-    projectIds: number[],
-    @Arg('round', type => Number) round: number,
-    @Arg('take', type => Number, { defaultValue: 100 }) take: number,
-    @Arg('skip', type => Number, { defaultValue: 0 }) skip: number,
+    projectIds?: number[],
+    @Arg('round', type => Number, { nullable: true }) round?: number,
+    @Arg('take', type => Number, { defaultValue: 100 }) take?: number,
+    @Arg('skip', type => Number, { defaultValue: 0 }) skip?: number,
   ): Promise<FuturePowers> {
+    if (enableGivPower !== 'true') {
+      return {
+        futurePowers: [],
+        count: 0,
+      };
+    }
+
     const [futurePowers, count] = await findFuturePowers(
       projectIds,
       round,
@@ -202,11 +253,18 @@ export class GivPowerTestingResolver {
   @Query(returns => ProjectsPowers)
   async projectsPowers(
     @Arg('projectIds', type => [Number], { defaultValue: [] })
-    projectIds: number[],
-    @Arg('round', type => Number) round: number,
-    @Arg('take', type => Number, { defaultValue: 100 }) take: number,
-    @Arg('skip', type => Number, { defaultValue: 0 }) skip: number,
-  ): Promise<ProjectsPowers> {
+    projectIds?: number[],
+    @Arg('round', type => Number, { nullable: true }) round?: number,
+    @Arg('take', type => Number, { defaultValue: 100 }) take?: number,
+    @Arg('skip', type => Number, { defaultValue: 0 }) skip?: number,
+  ): Promise<ProjectsPowers | undefined> {
+    if (enableGivPower !== 'true') {
+      return {
+        projectsPowers: [],
+        count: 0,
+      };
+    }
+
     const [projectsPowers, count] = await findProjectsPowers(
       projectIds,
       round,
@@ -224,7 +282,14 @@ export class GivPowerTestingResolver {
   async userProjectBoostings(
     @Args()
     { take, skip, projectId, userId, orderBy, round }: UserProjectPowerArgs,
-  ): Promise<UserProjectBoostings> {
+  ): Promise<UserProjectBoostings | undefined> {
+    if (enableGivPower !== 'true') {
+      return {
+        userProjectBoostings: [],
+        count: 0,
+      };
+    }
+
     if (!projectId && !userId) {
       throw new Error(
         i18n.__(

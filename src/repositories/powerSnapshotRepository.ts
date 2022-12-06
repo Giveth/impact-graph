@@ -30,13 +30,20 @@ export const insertSinglePowerBalanceSnapshot = async (
 
 export const findPowerSnapshots = async (
   round?: number,
+  powerSnapshotId?: number,
   take: number = 100,
   skip: number = 0,
 ) => {
   const query = PowerSnapshot.createQueryBuilder('powerSnapshot');
 
-  if (round) {
+  if (round && !powerSnapshotId) {
     query.where('powerSnapshot.roundNumber = :round', { round });
+  } else if (!round && powerSnapshotId) {
+    query.where('powerSnapshot.id = :id', { id: powerSnapshotId });
+  } else if (round && powerSnapshotId) {
+    query
+      .where('powerSnapshot.id = :id', { id: powerSnapshotId })
+      .andWhere('powerSnapshot.roundNumber = :round', { round });
   }
 
   return query.take(take).skip(skip).getManyAndCount();

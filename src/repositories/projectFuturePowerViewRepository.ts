@@ -2,13 +2,13 @@ import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 
 export const findFuturePowers = async (
   projectIds: number[] = [],
-  round: number,
+  round?: number,
   take: number = 100,
   skip: number = 0,
 ): Promise<[ProjectFuturePowerView[], number]> => {
   const query = ProjectFuturePowerView.createQueryBuilder(
     'projectFuturePowerView',
-  );
+  ).leftJoinAndSelect('projectFuturePowerView.project', 'project');
 
   if (projectIds.length > 0 && round) {
     query

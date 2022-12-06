@@ -48,7 +48,7 @@ export class PowerBoostingSnapshot extends BaseEntity {
   @Column()
   powerSnapshotId: number;
 
-  @Field(type => PowerSnapshot, { nullable: false })
+  @Field(type => PowerSnapshot, { nullable: true })
   @ManyToOne(type => PowerSnapshot, { nullable: false })
   powerSnapshot: PowerSnapshot;
 

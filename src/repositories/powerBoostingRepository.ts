@@ -69,7 +69,7 @@ export const findUserProjectPowerBoostingsSnapshots = async (
   round?: number,
 ) => {
   const query = PowerBoostingSnapshot.createQueryBuilder('powerBoosting')
-    .leftJoin('powerBoosting.powerSnapshot', 'powerSnapshot')
+    .leftJoinAndSelect('powerBoosting.powerSnapshot', 'powerSnapshot')
     .where(`percentage > 0`);
 
   if (userId) {

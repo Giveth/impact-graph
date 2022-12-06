@@ -33,7 +33,7 @@ export const findPowerBalances = async (
 ): Promise<[PowerBalanceSnapshot[], number]> => {
   const query = PowerBalanceSnapshot.createQueryBuilder(
     'powerBalance',
-  ).innerJoin('powerBalances.powerSnapshot', 'powerSnapshot');
+  ).innerJoin('powerBalance.powerSnapshot', 'powerSnapshot');
 
   if (round) {
     query.where('powerSnapshot.roundNumber = :round', { round });
@@ -42,13 +42,13 @@ export const findPowerBalances = async (
   if (userIds.length > 0 && powerSnapshotIds.length === 0) {
     query.where('powerBalance.userId IN (:...userIds)', { userIds });
   } else if (userIds.length === 0 && powerSnapshotIds.length > 0) {
-    query.where('powerBalance.powerSnapshotId IN (:...powerSnapshotId)', {
+    query.where('powerBalance.powerSnapshotId IN (:...powerSnapshotIds)', {
       powerSnapshotIds,
     });
   } else if (userIds.length > 0 && powerSnapshotIds.length > 0) {
     query
       .where('powerBalance.userId IN (:...userIds)', { userIds })
-      .andWhere('powerBalance.powerSnapshotId IN (:...powerSnapshotId)', {
+      .andWhere('powerBalance.powerSnapshotId IN (:...powerSnapshotIds)', {
         powerSnapshotIds,
       });
   }

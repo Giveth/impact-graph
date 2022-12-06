@@ -13,11 +13,13 @@ export const getProjectPowers = async (
 
 export const findProjectsPowers = async (
   projectIds: number[] = [],
-  round: number,
+  round?: number,
   take: number = 100,
   skip: number = 0,
 ): Promise<[ProjectPowerView[], number]> => {
-  const query = ProjectPowerView.createQueryBuilder('projectPowerView');
+  const query = ProjectPowerView.createQueryBuilder(
+    'projectPowerView',
+  ).leftJoinAndSelect('projectPowerView.project', 'project');
 
   if (projectIds.length > 0 && round) {
     query
