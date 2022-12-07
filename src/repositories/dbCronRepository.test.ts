@@ -4,6 +4,7 @@ import {
   EVERY_MINUTE_CRON_JOB_EXPRESSION,
   EVERY_YEAR_CRON_JOB_EXPRESSION,
   getTakeSnapshotJobsAndCount,
+  invokeGivPowerHistoricProcedures,
   POWER_BOOSTING_SNAPSHOT_TASK_NAME,
   schedulePowerBoostingSnapshot,
   setupPgCronExtension,
@@ -22,8 +23,93 @@ import {
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { insertSinglePowerBoosting } from './powerBoostingRepository';
+import {
+  insertSinglePowerBoosting,
+  takePowerBoostingSnapshot,
+} from './powerBoostingRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { getPowerRound, setPowerRound } from './powerRoundRepository';
+import { PowerSnapshotHistory } from '../entities/powerSnapshotHistory';
+import { PowerBoostingSnapshotHistory } from '../entities/powerBoostingSnapshotHistory';
+import { insertSinglePowerBalanceSnapshot } from './powerSnapshotRepository';
+import { PowerBalanceSnapshotHistory } from '../entities/powerBalanceSnapshotHistory';
+
+describe(
+  'db cron job historic procedures tests cases',
+  givPowerHistoricTestCases,
+);
+
+function givPowerHistoricTestCases() {
+  it('should move data older than 3 rounds to the historic tables', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+    await PowerBoostingSnapshotHistory.clear();
+    await PowerBalanceSnapshotHistory.clear();
+    await PowerSnapshotHistory.clear();
+
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+
+    await insertSinglePowerBoosting({
+      user: user1,
+      project: project1,
+      percentage: 10,
+    });
+
+    // Round 1
+    await setPowerRound(1);
+
+    await takePowerBoostingSnapshot();
+
+    const roundOneSnapshot = await PowerSnapshot.findOne({ id: 1 });
+    roundOneSnapshot!.roundNumber = 1;
+    await roundOneSnapshot!.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: roundOneSnapshot!.id,
+      balance: 20000,
+    });
+
+    assert.isDefined(roundOneSnapshot);
+
+    // Round 5
+    await setPowerRound(5);
+
+    await takePowerBoostingSnapshot();
+
+    const roundFiveSnapshot = await PowerSnapshot.findOne({ id: 2 });
+    roundFiveSnapshot!.roundNumber = 5;
+    await roundFiveSnapshot!.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: roundFiveSnapshot!.id,
+      balance: 25000,
+    });
+    /// --- end round 5
+
+    assert.isDefined(roundFiveSnapshot);
+
+    await invokeGivPowerHistoricProcedures();
+
+    const powerSnapshotHistory = await PowerSnapshotHistory.findOne();
+    const powerBalanceHistory = await PowerBalanceSnapshotHistory.findOne();
+    const powerBoostingSnapshotHistory =
+      await PowerBoostingSnapshotHistory.findOne();
+
+    assert.equal(
+      powerSnapshotHistory!.roundNumber,
+      roundOneSnapshot?.roundNumber,
+    );
+    assert.equal(powerBalanceHistory!.powerSnapshotId, roundOneSnapshot!.id);
+    assert.equal(
+      powerBoostingSnapshotHistory!.powerSnapshotId,
+      roundOneSnapshot!.id,
+    );
+  });
+}
 
 describe('db cron job test', () => {
   beforeEach(async () => {

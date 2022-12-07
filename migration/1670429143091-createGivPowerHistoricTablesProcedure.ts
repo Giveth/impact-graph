@@ -14,10 +14,11 @@ export class createGivPowerHistoricTablesProcedure1670429143091
                         FROM "power_snapshot" AS "snapshot", "power_round" AS "powerRound"
                         WHERE "snapshot"."roundNumber" < "powerRound"."round" - 3
                     )
-                    RETURNING pbs.*
+                    RETURNING pbs."id", pbs."userId", pbs."projectId", pbs."powerSnapshotId", pbs."percentage"
                 )
                 INSERT INTO "power_boosting_snapshot_history"
-                SELECT * FROM snapshot_entity
+                SELECT se."id", se."userId", se."projectId", se."powerSnapshotId", se."percentage"
+                FROM snapshot_entity AS se
             $BODY$;
         `);
 
@@ -31,10 +32,11 @@ export class createGivPowerHistoricTablesProcedure1670429143091
                         FROM "power_snapshot" AS "snapshot", "power_round" AS "powerRound"
                         WHERE "snapshot"."roundNumber" < "powerRound"."round" - 3
                     )
-                    RETURNING pbs.*
+                    RETURNING pbs."id", pbs."userId", pbs."balance", pbs."powerSnapshotId"
                 )
                 INSERT INTO "power_balance_snapshot_history"
-                SELECT * FROM snapshot_entity
+                SELECT se."id", se."userId", se."balance", se."powerSnapshotId"
+                FROM snapshot_entity AS se
             $BODY$;
         `);
 
@@ -48,10 +50,11 @@ export class createGivPowerHistoricTablesProcedure1670429143091
                         FROM "power_snapshot" AS "snapshot", "power_round" AS "powerRound"
                         WHERE "snapshot"."roundNumber" < "powerRound"."round" - 3
                     )
-                    RETURNING ps.*
+                    RETURNING ps."id", ps."time", ps."blockNumber", ps."roundNumber", ps."synced"
                 )
                 INSERT INTO "power_snapshot_history"
-                SELECT * FROM snapshot_entity
+                SELECT se."id", se."time", se."blockNumber", se."roundNumber", se."synced"
+                FROM snapshot_entity AS se
             $BODY$;
         `);
   }

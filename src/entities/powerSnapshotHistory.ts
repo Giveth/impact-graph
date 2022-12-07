@@ -36,20 +36,4 @@ export class PowerSnapshotHistory extends BaseEntity {
   @Column({ nullable: true })
   @Index()
   synced?: boolean;
-
-  @Field(type => [PowerBoostingSnapshotHistory], { nullable: true })
-  @OneToMany(
-    type => PowerBoostingSnapshotHistory,
-    powerBoostingSnapshotHistory =>
-      powerBoostingSnapshotHistory.powerSnapshotHistory,
-  )
-  powerBoostingSnapshotHistory?: PowerBoostingSnapshotHistory[];
-
-  @Field(type => [PowerBalanceSnapshotHistory], { nullable: true })
-  @OneToMany(
-    type => PowerBalanceSnapshotHistory,
-    powerBalanceSnapshotsHistory =>
-      powerBalanceSnapshotsHistory.powerSnapshotHistory,
-  )
-  powerBalanceSnapshotsHistory?: PowerBalanceSnapshotHistory[];
 }

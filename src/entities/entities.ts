@@ -26,6 +26,9 @@ import { PowerSnapshot } from './powerSnapshot';
 import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { PowerSnapshotHistory } from './powerSnapshotHistory';
+import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
+import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
 
 export const entities: any = [
   Organization,
@@ -60,4 +63,9 @@ export const entities: any = [
   UserProjectPowerView,
   ProjectPowerView,
   ProjectFuturePowerView,
+
+  // historic snapshots
+  PowerSnapshotHistory,
+  PowerBalanceSnapshotHistory,
+  PowerBoostingSnapshotHistory,
 ];

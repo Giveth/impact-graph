@@ -26,14 +26,6 @@ export class PowerBalanceSnapshotHistory extends BaseEntity {
   balance: number;
 
   @Field(type => ID)
-  @RelationId(
-    (powerBalanceSnapshotHistory: PowerBalanceSnapshotHistory) =>
-      powerBalanceSnapshotHistory.powerSnapshotHistory,
-  )
   @Column()
   powerSnapshotId: number;
-
-  @Field(type => PowerSnapshotHistory, { nullable: false })
-  @ManyToOne(type => PowerSnapshotHistory, { nullable: false })
-  powerSnapshotHistory: PowerSnapshotHistory;
 }

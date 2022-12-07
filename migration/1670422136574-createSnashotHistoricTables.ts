@@ -101,15 +101,6 @@ export class createSnashotHistoricTables1670422136574
       true,
     );
 
-    await queryRunner.createForeignKey(
-      'power_boosting_snapshot_history',
-      new TableForeignKey({
-        columnNames: ['powerSnapshotId'],
-        referencedColumnNames: ['id'],
-        referencedTableName: 'power_snapshot_history',
-      }),
-    );
-
     // power balance
     await queryRunner.createTable(
       new Table({
@@ -148,15 +139,6 @@ export class createSnashotHistoricTables1670422136574
         ],
       }),
       true,
-    );
-
-    await queryRunner.createForeignKey(
-      'power_balance_snapshot_history',
-      new TableForeignKey({
-        columnNames: ['powerSnapshotId'],
-        referencedColumnNames: ['id'],
-        referencedTableName: 'power_snapshot_history',
-      }),
     );
   }
 

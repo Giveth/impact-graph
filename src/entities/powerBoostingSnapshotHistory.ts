@@ -20,32 +20,16 @@ export class PowerBoostingSnapshotHistory extends BaseEntity {
   id: number;
 
   @Field(type => ID)
-  @RelationId(
-    (powerBoostingSnapshotHistory: PowerBoostingSnapshotHistory) =>
-      powerBoostingSnapshotHistory.user,
-  )
   @Column()
   userId: number;
-
-  @Field(type => User, { nullable: false })
-  @ManyToOne(type => User, { nullable: false })
-  user: User;
 
   @Field(type => ID)
   @Column()
   projectId: number;
 
   @Field(type => ID)
-  @RelationId(
-    (powerBoostingSnapshotHistory: PowerBoostingSnapshotHistory) =>
-      powerBoostingSnapshotHistory.powerSnapshotHistory,
-  )
   @Column()
   powerSnapshotId: number;
-
-  @Field(type => PowerSnapshotHistory, { nullable: true })
-  @ManyToOne(type => PowerSnapshotHistory, { nullable: false })
-  powerSnapshotHistory: PowerSnapshotHistory;
 
   @Field(type => Float)
   @Column('numeric', {
