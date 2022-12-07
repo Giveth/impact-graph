@@ -62,7 +62,7 @@ function givPowerHistoricTestCases() {
 
     await takePowerBoostingSnapshot();
 
-    const roundOneSnapshot = await PowerSnapshot.findOne({ id: 1 });
+    const roundOneSnapshot = await PowerSnapshot.findOne();
     roundOneSnapshot!.roundNumber = 1;
     await roundOneSnapshot!.save();
 
@@ -79,7 +79,9 @@ function givPowerHistoricTestCases() {
 
     await takePowerBoostingSnapshot();
 
-    const roundFiveSnapshot = await PowerSnapshot.findOne({ id: 2 });
+    const roundFiveSnapshot = await PowerSnapshot.findOne({
+      id: roundOneSnapshot!.id + 1,
+    });
     roundFiveSnapshot!.roundNumber = 5;
     await roundFiveSnapshot!.save();
 
