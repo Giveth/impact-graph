@@ -9,6 +9,24 @@ export class createSnashotHistoricTables1670422136574
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const [
+      powerSnapshotHistoricTableExists,
+      powerBalanceSnapshotHistoricTableExists,
+      powerBoostingSnapshotHistoricTableExists,
+    ] = await Promise.all([
+      queryRunner.hasTable('power_snapshot_history'),
+      queryRunner.hasTable('power_balance_snapshot_history'),
+      queryRunner.hasTable('power_boosting_snapshot_history'),
+    ]);
+
+    if (
+      powerSnapshotHistoricTableExists &&
+      powerBalanceSnapshotHistoricTableExists &&
+      powerBoostingSnapshotHistoricTableExists
+    ) {
+      return;
+    }
+
     // power snapshot
     await queryRunner.createTable(
       new Table({
