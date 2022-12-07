@@ -161,8 +161,12 @@ export class createSnashotHistoricTables1670422136574
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS "power_balance_snapshot_history"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "power_boosting_snapshot_history"`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "power_balance_snapshot_history"`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "power_boosting_snapshot_history"`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS "power_snapshot_history"`);
   }
 }
