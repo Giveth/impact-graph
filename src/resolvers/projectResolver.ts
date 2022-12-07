@@ -127,6 +127,15 @@ class ProjectAndAdmin {
   admin: User;
 }
 
+@ObjectType()
+class ProjectUpdatesResponse {
+  @Field(type => [ProjectUpdate])
+  projectUpdates: ProjectUpdate[];
+
+  @Field(type => Int, { nullable: false })
+  count: number;
+}
+
 export enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
@@ -246,12 +255,6 @@ class GetProjectArgs {
 }
 
 @ObjectType()
-class GetProjectUpdatesResult {
-  @Field(type => ProjectUpdate)
-  projectUpdate: ProjectUpdate;
-}
-
-@ObjectType()
 class ImageResponse {
   @Field(type => String)
   url: string;
@@ -329,6 +332,19 @@ export class ProjectResolver {
       Reaction,
       'reaction',
       `reaction.projectId = project.id AND reaction.userId = :userId`,
+      { userId },
+    );
+  }
+
+  static addReactionToProjectsUpdateQuery(
+    query: SelectQueryBuilder<ProjectUpdate>,
+    userId: number,
+  ) {
+    return query.leftJoinAndMapOne(
+      'projectUpdate.reaction',
+      Reaction,
+      'reaction',
+      'reaction.projectUpdateId = projectUpdate.id AND reaction.userId = :userId',
       { userId },
     );
   }
@@ -1240,6 +1256,8 @@ export class ProjectResolver {
     return true;
   }
 
+  // depracating this one, because it has no totals for pagination, we must avoid fetching all
+  // It's used in the single view for the time being only
   @Query(returns => [ProjectUpdate])
   async getProjectUpdates(
     @Arg('projectId', type => Int) projectId: number,
@@ -1271,12 +1289,9 @@ export class ProjectResolver {
 
     const viewerUserId = connectedWalletUserId || user?.userId;
     if (viewerUserId) {
-      query = query.leftJoinAndMapOne(
-        'projectUpdate.reaction',
-        Reaction,
-        'reaction',
-        'reaction.projectUpdateId = projectUpdate.id AND reaction.userId = :viewerUserId',
-        { viewerUserId },
+      query = ProjectResolver.addReactionToProjectsUpdateQuery(
+        query,
+        viewerUserId,
       );
     }
     return query.getMany();
@@ -1517,6 +1532,52 @@ export class ProjectResolver {
       logger.error('**similarProjectsBySlug** error', e);
       throw e;
     }
+  }
+
+  @Query(returns => ProjectUpdatesResponse, { nullable: true })
+  async projectUpdates(
+    @Arg('projectId', type => Int, { nullable: true }) projectId: number,
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('orderBy', type => OrderBy, {
+      defaultValue: {
+        field: OrderField.CreationAt,
+        direction: OrderDirection.DESC,
+      },
+    })
+    orderBy: OrderBy,
+    @Ctx() { req: { user } }: MyContext,
+  ): Promise<ProjectUpdatesResponse> {
+    const { field, direction } = orderBy;
+
+    let query = ProjectUpdate.createQueryBuilder('projectUpdate')
+      .innerJoinAndSelect(
+        Project,
+        'project',
+        'project.id = projectUpdate.projectId',
+      )
+      .where('projectUpdate.isMain = false');
+
+    if (projectId)
+      query = query.andWhere('projectUpdate.projectId = :projectId', {
+        projectId,
+      });
+    if (user && user?.id)
+      query = ProjectResolver.addReactionToProjectsUpdateQuery(
+        query,
+        user.userId,
+      );
+
+    const [projectUpdates, count] = await query
+      .orderBy(`projectUpdate.${field}`, direction)
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      projectUpdates,
+      count,
+    };
   }
 
   @Query(returns => AllProjects, { nullable: true })

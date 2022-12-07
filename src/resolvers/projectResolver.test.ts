@@ -20,6 +20,7 @@ import {
   deactivateProjectQuery,
   deleteProjectUpdateQuery,
   editProjectUpdateQuery,
+  fetchLatestProjectUpdates,
   fetchLikedProjectsQuery,
   fetchMultiFilterAllProjectsQuery,
   fetchNewProjectsPerDate,
@@ -132,6 +133,8 @@ describe(
   'similarProjectsBySlug test cases --->',
   similarProjectsBySlugTestCases,
 );
+
+describe('projectUpdates query test cases --->', projectUpdatesTestCases);
 
 describe(
   'getProjectsAcceptTokens() test cases --->',
@@ -3673,6 +3676,49 @@ function getPurpleListTestCases() {
     assert.isFalse(
       result.data.data.getPurpleList.includes(walletAddress.toLowerCase()),
     );
+  });
+}
+
+function projectUpdatesTestCases() {
+  it('should return all project updates limited by take and ordered by craetedAt desc', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
+    const user = await User.findOne({ id: SEED_DATA.FIRST_USER.id });
+
+    const projectUpdate = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project.id,
+      content: 'TestProjectUpdateFateme',
+      title: 'testEditProjectUpdateFateme',
+      createdAt: moment().add(10, 'days'),
+      isMain: false,
+    }).save();
+    const projectUpdate2 = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project2.id,
+      content: 'TestProjectUpdateFateme',
+      title: 'testEditProjectUpdateFateme',
+      createdAt: moment().add(9, 'days'),
+      isMain: false,
+    }).save();
+
+    const take = 2;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchLatestProjectUpdates,
+      variables: {
+        take,
+      },
+    });
+
+    assert.isOk(result);
+    const data = result.data.data.projectUpdates.projectUpdates;
+    assert.equal(data.length, 2);
+    assert.equal(Number(data[0].id), projectUpdate.id);
+    assert.equal(Number(data[1].id), projectUpdate2.id);
   });
 }
 
