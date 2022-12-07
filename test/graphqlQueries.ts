@@ -869,12 +869,14 @@ export const fetchLatestProjectUpdates = `
   query (
     $projectId: Int,
     $take: Int,
-    $skip: Int
+    $skip: Int,
+    $orderBy: OrderBy
   ) {
     projectUpdates(
       projectId: $projectId,
       take: $take,
       skip: $skip,
+      orderBy: $orderBy
     ) {
       projectUpdates {
         id

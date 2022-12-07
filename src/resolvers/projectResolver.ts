@@ -1256,7 +1256,7 @@ export class ProjectResolver {
     return true;
   }
 
-  // depracating this one, because it has no totals for pagination, we must avoid fetching all
+  // deprecating this one, because it has no totals for pagination, we must avoid fetching all
   // It's used in the single view for the time being only
   @Query(returns => [ProjectUpdate])
   async getProjectUpdates(
