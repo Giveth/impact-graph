@@ -40,7 +40,7 @@ describe(
 );
 
 function givPowerHistoricTestCases() {
-  it('should move data older than 3 rounds to the historic tables', async () => {
+  it('should move data older than 1 round less to the historic tables', async () => {
     await getConnection().query('truncate power_snapshot cascade');
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
