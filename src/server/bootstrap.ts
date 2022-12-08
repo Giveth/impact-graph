@@ -50,9 +50,7 @@ import { CronJob } from '../entities/CronJob';
 import {
   dropDbCronExtension,
   schedulePowerBoostingSnapshot,
-  schedulePowerSnapshotHistory,
-  schedulePowerBalanceSnapshotHistory,
-  schedulePowerBoostingSnapshotHistory,
+  schedulePowerSnapshotsHistory,
 } from '../repositories/dbCronRepository';
 import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
@@ -125,24 +123,12 @@ export async function bootstrap() {
         const scheduleExpression = config.get(
           'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
         ) as string;
-        const powerSnapshotHistoricScheduleExpression = config.get(
-          'DB_POWER_SNAPSHOT_HISTORY_CRONJOB_EXPRESSION',
-        ) as string;
-        const powerBalanceSnapshotHistoricScheduleExpression = config.get(
-          'DB_POWER_BALANCE_SNAPSHOT_HISTORY_CRONJOB_EXPRESSION',
-        ) as string;
-        const powerBoostingSnapshotHistoricScheduleExpression = config.get(
-          'DB_POWER_BOOSTING_SNAPSHOT_HISTORY_CRONJOB_EXPRESSION',
+        const powerSnapshotsHistoricScheduleExpression = config.get(
+          'DB_POWER_SNAPSHOTS_HISTORY_CRONJOB_EXPRESSION',
         ) as string;
         await schedulePowerBoostingSnapshot(scheduleExpression);
-        await schedulePowerSnapshotHistory(
-          powerSnapshotHistoricScheduleExpression,
-        );
-        await schedulePowerBalanceSnapshotHistory(
-          powerBalanceSnapshotHistoricScheduleExpression,
-        );
-        await schedulePowerBoostingSnapshotHistory(
-          powerBoostingSnapshotHistoricScheduleExpression,
+        await schedulePowerSnapshotsHistory(
+          powerSnapshotsHistoricScheduleExpression,
         );
       } catch (e) {
         logger.error('Enabling power boosting snapshot ', e);
