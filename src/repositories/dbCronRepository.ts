@@ -4,8 +4,7 @@ import { logger } from '../utils/logger';
 
 export const POWER_BOOSTING_SNAPSHOT_TASK_NAME =
   'take givpower boosting snapshot';
-export const POWER_SNAPSHOTS_HISTORY_TASK_NAME =
-  'take givpower snapshots history';
+export const POWER_SNAPSHOTS_HISTORY_TASK_NAME = 'archive givpower snapshots';
 
 export const EVERY_MINUTE_CRON_JOB_EXPRESSION = '* * * * * *';
 export const EVERY_YEAR_CRON_JOB_EXPRESSION = '0 0 1 1 *';
