@@ -43,7 +43,7 @@ export const invokeGivPowerHistoricProcedures = async () => {
 
   try {
     await queryRunner.query(`
-      CALL public."TAKE_GIV_POWER_SNAPSHOTS_HISTORY"()
+      CALL public."ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA"()
     `);
     await queryRunner.commitTransaction();
   } catch (e) {
@@ -66,7 +66,7 @@ export const schedulePowerSnapshotsHistory = async (
       SELECT CRON.SCHEDULE(
         '${POWER_SNAPSHOTS_HISTORY_TASK_NAME}',
         '${cronJobExpression}',
-        $$CALL public."TAKE_GIV_POWER_SNAPSHOTS_HISTORY"()$$
+        $$CALL public."ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA"()$$
       );
   `);
 };

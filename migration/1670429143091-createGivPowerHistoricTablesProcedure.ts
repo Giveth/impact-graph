@@ -6,13 +6,13 @@ export class createGivPowerHistoricTablesProcedure1670429143091
   public async up(queryRunner: QueryRunner): Promise<void> {
     // power boosting, power balance and power snapshots's historic procedures
     await queryRunner.query(`
-    CREATE OR REPLACE PROCEDURE PUBLIC."TAKE_GIV_POWER_SNAPSHOTS_HISTORY"() LANGUAGE 'sql' AS $BODY$
+    CREATE OR REPLACE PROCEDURE PUBLIC."ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA"() LANGUAGE 'sql' AS $BODY$
         WITH snapshot_entity AS (
           DELETE FROM "power_boosting_snapshot" AS pbs
           WHERE pbs."powerSnapshotId" IN (
               SELECT "snapshot"."id"
               FROM "power_snapshot" AS "snapshot", "power_round" AS "powerRound"
-              WHERE "snapshot"."roundNumber" < "powerRound"."round" - 3
+              WHERE "snapshot"."roundNumber" < "powerRound"."round" - 1
           )
           RETURNING pbs."id", pbs."userId", pbs."projectId", pbs."powerSnapshotId", pbs."percentage"
         )
@@ -25,7 +25,7 @@ export class createGivPowerHistoricTablesProcedure1670429143091
             WHERE pbs."powerSnapshotId" IN (
                 SELECT "snapshot"."id"
                 FROM "power_snapshot" AS "snapshot", "power_round" AS "powerRound"
-                WHERE "snapshot"."roundNumber" < "powerRound"."round" - 3
+                WHERE "snapshot"."roundNumber" < "powerRound"."round" - 1
             )
             RETURNING pbs."id", pbs."userId", pbs."balance", pbs."powerSnapshotId"
         )
@@ -38,7 +38,7 @@ export class createGivPowerHistoricTablesProcedure1670429143091
           WHERE ps."id" IN (
               SELECT "snapshot"."id"
               FROM "power_snapshot" AS "snapshot", "power_round" AS "powerRound"
-              WHERE "snapshot"."roundNumber" < "powerRound"."round" - 3
+              WHERE "snapshot"."roundNumber" < "powerRound"."round" - 1
           )
           RETURNING ps."id", ps."time", ps."blockNumber", ps."roundNumber", ps."synced"
         )
@@ -51,7 +51,7 @@ export class createGivPowerHistoricTablesProcedure1670429143091
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `DROP PROCEDURE IF EXISTS public."TAKE_GIV_POWER_SNAPSHOTS_HISTORY"();`,
+      `DROP PROCEDURE IF EXISTS public."ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA"();`,
     );
   }
 }

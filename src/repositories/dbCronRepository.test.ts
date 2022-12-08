@@ -74,53 +74,91 @@ function givPowerHistoricTestCases() {
 
     assert.isDefined(roundOneSnapshot);
 
-    // Round 5
-    await setPowerRound(5);
+    // Round 2
+    await setPowerRound(3);
 
     await takePowerBoostingSnapshot();
 
-    const roundFiveSnapshot = await PowerSnapshot.findOne({
+    const roundTwoSnapshot = await PowerSnapshot.findOne({
       id: roundOneSnapshot!.id + 1,
     });
-    roundFiveSnapshot!.roundNumber = 5;
-    await roundFiveSnapshot!.save();
+    roundTwoSnapshot!.roundNumber = 5;
+    await roundTwoSnapshot!.save();
 
     await insertSinglePowerBalanceSnapshot({
       userId: user1.id,
-      powerSnapshotId: roundFiveSnapshot!.id,
+      powerSnapshotId: roundTwoSnapshot!.id,
       balance: 25000,
     });
-    /// --- end round 5
 
-    assert.isDefined(roundFiveSnapshot);
+    // Round 3-----------------------------------
+    await setPowerRound(3);
+
+    await takePowerBoostingSnapshot();
+
+    const roundThreeSnapshot = await PowerSnapshot.findOne({
+      id: roundTwoSnapshot!.id + 1,
+    });
+    roundThreeSnapshot!.roundNumber = 5;
+    await roundThreeSnapshot!.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: roundThreeSnapshot!.id,
+      balance: 25000,
+    });
+    /// --- end round 3-------------------------
+
+    assert.isDefined(roundThreeSnapshot);
 
     await invokeGivPowerHistoricProcedures();
 
-    const powerSnapshotHistory = await PowerSnapshotHistory.findOne();
-    const powerBalanceHistory = await PowerBalanceSnapshotHistory.findOne();
-    const powerBoostingSnapshotHistory =
-      await PowerBoostingSnapshotHistory.findOne();
+    const [powerSnapshots, powerSnapshotsCount] =
+      await PowerSnapshot.createQueryBuilder().getManyAndCount();
+    const [powerBalanceSnapshots, powerBalanceSnapshotsCount] =
+      await PowerBalanceSnapshot.createQueryBuilder().getManyAndCount();
+    const [powerBoostingSnapshots, powerBoostingSnapshotsCount] =
+      await PowerBoostingSnapshot.createQueryBuilder().getManyAndCount();
 
-    // round one should have been inserted
-    assert.equal(
-      powerSnapshotHistory!.roundNumber,
-      roundOneSnapshot?.roundNumber,
-    );
-    assert.equal(powerBalanceHistory!.powerSnapshotId, roundOneSnapshot!.id);
-    assert.equal(
-      powerBoostingSnapshotHistory!.powerSnapshotId,
-      roundOneSnapshot!.id,
-    );
+    // Assert round 2 and 3 remain
+    assert.equal(powerSnapshotsCount, 2);
+    assert.equal(powerBalanceSnapshotsCount, 2);
+    assert.equal(powerBoostingSnapshotsCount, 2);
 
-    const powerSnapshotHistoryCount = await PowerSnapshotHistory.count();
-    const powerBalanceHistoryCount = await PowerBalanceSnapshotHistory.count();
-    const powerBoostingSnapshotHistoryCount =
-      await PowerBoostingSnapshotHistory.count();
+    // Assert round 1 is not present in main tables
+    for (const snapshot of powerSnapshots) {
+      assert.notEqual(snapshot!.roundNumber, roundOneSnapshot?.roundNumber);
+    }
 
-    // only round 1 was inserted
+    for (const balanceSnapshot of powerBalanceSnapshots) {
+      assert.notEqual(balanceSnapshot!.powerSnapshotId, roundOneSnapshot!.id);
+    }
+
+    for (const boostingSnapshot of powerBoostingSnapshots) {
+      assert.notEqual(boostingSnapshot!.powerSnapshotId, roundOneSnapshot!.id);
+    }
+
+    const [powerSnapshotHistory, powerSnapshotHistoryCount] =
+      await PowerSnapshotHistory.createQueryBuilder().getManyAndCount();
+    const [powerBalanceHistory, powerBalanceHistoryCount] =
+      await PowerBalanceSnapshotHistory.createQueryBuilder().getManyAndCount();
+    const [powerBoostingSnapshotHistory, powerBoostingSnapshotHistoryCount] =
+      await PowerBoostingSnapshotHistory.createQueryBuilder().getManyAndCount();
+
+    // only round 1 was inserted, while round 2 and 3 remain in main tables
     assert.equal(powerSnapshotHistoryCount, 1);
     assert.equal(powerBalanceHistoryCount, 1);
     assert.equal(powerBoostingSnapshotHistoryCount, 1);
+
+    assert.equal(
+      powerSnapshotHistory[0]!.roundNumber,
+      roundOneSnapshot!.roundNumber,
+    );
+    assert.equal(powerBalanceHistory[0]!.powerSnapshotId, roundOneSnapshot!.id);
+    assert.equal(
+      powerBoostingSnapshotHistory[0]!.powerSnapshotId,
+      roundOneSnapshot!.id,
+    );
   });
 }
 

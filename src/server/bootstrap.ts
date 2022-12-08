@@ -124,7 +124,7 @@ export async function bootstrap() {
           'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
         ) as string;
         const powerSnapshotsHistoricScheduleExpression = config.get(
-          'DB_POWER_SNAPSHOTS_HISTORY_CRONJOB_EXPRESSION',
+          'ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA_CRONJOB_EXPRESSION',
         ) as string;
         await schedulePowerBoostingSnapshot(scheduleExpression);
         await schedulePowerSnapshotsHistory(
