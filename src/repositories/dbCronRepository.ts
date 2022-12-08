@@ -4,7 +4,7 @@ import { logger } from '../utils/logger';
 
 export const POWER_BOOSTING_SNAPSHOT_TASK_NAME =
   'take givpower boosting snapshot';
-export const POWER_SNAPSHOTS_HISTORY_TASK_NAME = 'archive givpower snapshots';
+export const ARCHIVE_POWER_SNAPSHOTS_TASK_NAME = 'archive givpower snapshots';
 
 export const EVERY_MINUTE_CRON_JOB_EXPRESSION = '* * * * * *';
 export const EVERY_YEAR_CRON_JOB_EXPRESSION = '0 0 1 1 *';
@@ -63,7 +63,7 @@ export const schedulePowerSnapshotsHistory = async (
       GRANT USAGE ON SCHEMA CRON TO POSTGRES;
 
       SELECT CRON.SCHEDULE(
-        '${POWER_SNAPSHOTS_HISTORY_TASK_NAME}',
+        '${ARCHIVE_POWER_SNAPSHOTS_TASK_NAME}',
         '${cronJobExpression}',
         $$CALL public."ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA"()$$
       );
