@@ -4,6 +4,7 @@ import {
   EVERY_MINUTE_CRON_JOB_EXPRESSION,
   EVERY_YEAR_CRON_JOB_EXPRESSION,
   getTakeSnapshotJobsAndCount,
+  invokeGivPowerHistoricProcedures,
   POWER_BOOSTING_SNAPSHOT_TASK_NAME,
   schedulePowerBoostingSnapshot,
   setupPgCronExtension,
@@ -22,8 +23,144 @@ import {
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { insertSinglePowerBoosting } from './powerBoostingRepository';
+import {
+  insertSinglePowerBoosting,
+  takePowerBoostingSnapshot,
+} from './powerBoostingRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { getPowerRound, setPowerRound } from './powerRoundRepository';
+import { PowerSnapshotHistory } from '../entities/powerSnapshotHistory';
+import { PowerBoostingSnapshotHistory } from '../entities/powerBoostingSnapshotHistory';
+import { insertSinglePowerBalanceSnapshot } from './powerSnapshotRepository';
+import { PowerBalanceSnapshotHistory } from '../entities/powerBalanceSnapshotHistory';
+
+describe(
+  'db cron job historic procedures tests cases',
+  givPowerHistoricTestCases,
+);
+
+function givPowerHistoricTestCases() {
+  it('should move data older than 1 round less to the historic tables', async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+    await PowerBoostingSnapshotHistory.clear();
+    await PowerBalanceSnapshotHistory.clear();
+    await PowerSnapshotHistory.clear();
+
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+
+    await insertSinglePowerBoosting({
+      user: user1,
+      project: project1,
+      percentage: 10,
+    });
+
+    // Round 1
+    await setPowerRound(1);
+
+    await takePowerBoostingSnapshot();
+
+    const roundOneSnapshot = await PowerSnapshot.findOne();
+    roundOneSnapshot!.roundNumber = 1;
+    await roundOneSnapshot!.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: roundOneSnapshot!.id,
+      balance: 20000,
+    });
+
+    assert.isDefined(roundOneSnapshot);
+
+    // Round 2
+    await setPowerRound(3);
+
+    await takePowerBoostingSnapshot();
+
+    const roundTwoSnapshot = await PowerSnapshot.findOne({
+      id: roundOneSnapshot!.id + 1,
+    });
+    roundTwoSnapshot!.roundNumber = 5;
+    await roundTwoSnapshot!.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: roundTwoSnapshot!.id,
+      balance: 25000,
+    });
+
+    // Round 3-----------------------------------
+    await setPowerRound(3);
+
+    await takePowerBoostingSnapshot();
+
+    const roundThreeSnapshot = await PowerSnapshot.findOne({
+      id: roundTwoSnapshot!.id + 1,
+    });
+    roundThreeSnapshot!.roundNumber = 5;
+    await roundThreeSnapshot!.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: roundThreeSnapshot!.id,
+      balance: 25000,
+    });
+    /// --- end round 3-------------------------
+
+    assert.isDefined(roundThreeSnapshot);
+
+    await invokeGivPowerHistoricProcedures();
+
+    const [powerSnapshots, powerSnapshotsCount] =
+      await PowerSnapshot.createQueryBuilder().getManyAndCount();
+    const [powerBalanceSnapshots, powerBalanceSnapshotsCount] =
+      await PowerBalanceSnapshot.createQueryBuilder().getManyAndCount();
+    const [powerBoostingSnapshots, powerBoostingSnapshotsCount] =
+      await PowerBoostingSnapshot.createQueryBuilder().getManyAndCount();
+
+    // Assert round 2 and 3 remain
+    assert.equal(powerSnapshotsCount, 2);
+    assert.equal(powerBalanceSnapshotsCount, 2);
+    assert.equal(powerBoostingSnapshotsCount, 2);
+
+    // Assert round 1 is not present in main tables
+    for (const snapshot of powerSnapshots) {
+      assert.notEqual(snapshot!.roundNumber, roundOneSnapshot?.roundNumber);
+    }
+
+    for (const balanceSnapshot of powerBalanceSnapshots) {
+      assert.notEqual(balanceSnapshot!.powerSnapshotId, roundOneSnapshot!.id);
+    }
+
+    for (const boostingSnapshot of powerBoostingSnapshots) {
+      assert.notEqual(boostingSnapshot!.powerSnapshotId, roundOneSnapshot!.id);
+    }
+
+    const [powerSnapshotHistory, powerSnapshotHistoryCount] =
+      await PowerSnapshotHistory.createQueryBuilder().getManyAndCount();
+    const [powerBalanceHistory, powerBalanceHistoryCount] =
+      await PowerBalanceSnapshotHistory.createQueryBuilder().getManyAndCount();
+    const [powerBoostingSnapshotHistory, powerBoostingSnapshotHistoryCount] =
+      await PowerBoostingSnapshotHistory.createQueryBuilder().getManyAndCount();
+
+    // only round 1 was inserted, while round 2 and 3 remain in main tables
+    assert.equal(powerSnapshotHistoryCount, 1);
+    assert.equal(powerBalanceHistoryCount, 1);
+    assert.equal(powerBoostingSnapshotHistoryCount, 1);
+
+    assert.equal(
+      powerSnapshotHistory[0]!.roundNumber,
+      roundOneSnapshot!.roundNumber,
+    );
+    assert.equal(powerBalanceHistory[0]!.powerSnapshotId, roundOneSnapshot!.id);
+    assert.equal(
+      powerBoostingSnapshotHistory[0]!.powerSnapshotId,
+      roundOneSnapshot!.id,
+    );
+  });
+}
 
 describe('db cron job test', () => {
   beforeEach(async () => {

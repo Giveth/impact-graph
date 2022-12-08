@@ -229,6 +229,16 @@ limit 5
 |82       |155876.872369|4        |1779 |
 |223531   |129154.467198|5        |1779 |
 
+#### Power Boosting Snapshot, Power Balance Snapshot and Power Snapshot Historic tables
+
+Eventually our snapshot tables will be filled with a lot of information,
+this degrades the performance of the queries and the server. To solve this
+a cronjob will run periodically set by `ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA_CRONJOB_EXPRESSION` variable.
+
+This cronjob executes the procedure `ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA` that removes the data from `power_boosting_snapshot`, `power_balance_snapshot`, `power_snapshot` that is older than 2 rounds from the current powerRound.
+
+The deleted information is moved to the tables `power_balance_snapshot_history`, `power_boosting_snapshot_history` and `power_snapshot_history`.
+
 ## Project status changes affection on power boosting and ranking
 
 ### Cancelled

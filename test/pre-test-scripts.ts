@@ -26,6 +26,8 @@ import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-Us
 import { ProjectPowerView1662915983384 } from '../migration/1662915983383-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
 import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-ProjectFuturePowerView';
+import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
+import { createSnashotHistoricTables1670422136574 } from '../migration/1670422136574-createSnashotHistoricTables';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -301,11 +303,14 @@ async function runMigrations() {
     const projectFuturePowerView = new ProjectFuturePowerView1668411738120();
     const takeSnapshotProcedure =
       new TakePowerBoostingSnapshotProcedure1663594895751();
+    const takeSnapshotsHistoryProcedure =
+      new createGivPowerHistoricTablesProcedure1670429143091();
 
     await userProjectPowerView.up(queryRunner);
     await projectPowerView.up(queryRunner);
     await projectFuturePowerView.up(queryRunner);
     await takeSnapshotProcedure.up(queryRunner);
+    await takeSnapshotsHistoryProcedure.up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
