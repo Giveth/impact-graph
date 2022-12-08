@@ -101,6 +101,7 @@ function givPowerHistoricTestCases() {
     const powerBoostingSnapshotHistory =
       await PowerBoostingSnapshotHistory.findOne();
 
+    // round one should have been inserted
     assert.equal(
       powerSnapshotHistory!.roundNumber,
       roundOneSnapshot?.roundNumber,
@@ -110,6 +111,16 @@ function givPowerHistoricTestCases() {
       powerBoostingSnapshotHistory!.powerSnapshotId,
       roundOneSnapshot!.id,
     );
+
+    const powerSnapshotHistoryCount = await PowerSnapshotHistory.count();
+    const powerBalanceHistoryCount = await PowerBalanceSnapshotHistory.count();
+    const powerBoostingSnapshotHistoryCount =
+      await PowerBoostingSnapshotHistory.count();
+
+    // only round 1 was inserted
+    assert.equal(powerSnapshotHistoryCount, 1);
+    assert.equal(powerBalanceHistoryCount, 1);
+    assert.equal(powerBoostingSnapshotHistoryCount, 1);
   });
 }
 
