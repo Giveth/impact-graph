@@ -233,7 +233,7 @@ limit 5
 
 Eventually our snapshot tables will be filled with a lot of information,
 this degrades the performance of the queries and the server. To solve this
-a cronjob will run periodically set by `DB_POWER_SNAPSHOTS_HISTORY_CRONJOB_EXPRESSION` variable.
+a cronjob will run periodically set by `ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA_CRONJOB_EXPRESSION` variable.
 
 This cronjob executes the procedure `ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA` that removes the data from `power_boosting_snapshot`, `power_balance_snapshot`, `power_snapshot` that is older than 3 rounds from the current powerRound.
 
