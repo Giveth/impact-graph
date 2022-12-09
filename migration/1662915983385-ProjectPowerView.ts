@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectPowerView1662915983384 implements MigrationInterface {
+export class ProjectPowerView1662915983385 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
@@ -9,7 +9,7 @@ export class ProjectPowerView1662915983384 implements MigrationInterface {
               CREATE MATERIALIZED VIEW IF NOT EXISTS public.project_power_view AS 
               SELECT 
                 innerview."projectId", 
-                innerview."totalPower", 
+                ROUND(innerview."totalPower", 2) AS "totalPower", 
                 rank() OVER (
                   ORDER BY 
                     innerview."totalPower" DESC
