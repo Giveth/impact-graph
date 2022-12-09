@@ -16,7 +16,7 @@ export class createGivPowerHistoricTablesProcedure1670429143091
           )
           RETURNING pbs."id", pbs."userId", pbs."projectId", pbs."powerSnapshotId", pbs."percentage"
         )
-        INSERT INTO "power_boosting_snapshot_history"
+        INSERT INTO "power_boosting_snapshot_history" ("id", "userId", "projectId", "powerSnapshotId", "percentage")
         SELECT se."id", se."userId", se."projectId", se."powerSnapshotId", se."percentage"
         FROM snapshot_entity AS se;
 
@@ -29,7 +29,7 @@ export class createGivPowerHistoricTablesProcedure1670429143091
             )
             RETURNING pbs."id", pbs."userId", pbs."balance", pbs."powerSnapshotId"
         )
-        INSERT INTO "power_balance_snapshot_history"
+        INSERT INTO "power_balance_snapshot_history" ("id", "userId", "balance", "powerSnapshotId")
         SELECT se."id", se."userId", se."balance", se."powerSnapshotId"
         FROM snapshot_entity AS se;
 
@@ -42,7 +42,7 @@ export class createGivPowerHistoricTablesProcedure1670429143091
           )
           RETURNING ps."id", ps."time", ps."blockNumber", ps."roundNumber", ps."synced"
         )
-        INSERT INTO "power_snapshot_history"
+        INSERT INTO "power_snapshot_history" ("id", "time", "blockNumber", "roundNumber", "synced")
         SELECT se."id", se."time", se."blockNumber", se."roundNumber", se."synced"
         FROM snapshot_entity AS se;
     $BODY$;
