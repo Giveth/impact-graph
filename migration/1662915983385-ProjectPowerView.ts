@@ -9,7 +9,7 @@ export class ProjectPowerView1662915983385 implements MigrationInterface {
               CREATE MATERIALIZED VIEW IF NOT EXISTS public.project_power_view AS 
               SELECT 
                 innerview."projectId", 
-                ROUND(innerview."totalPower", 2) AS "totalPower", 
+                ROUND(CAST(innerview."totalPower" as NUMERIC), 2) as "totalPower", 
                 rank() OVER (
                   ORDER BY 
                     innerview."totalPower" DESC
