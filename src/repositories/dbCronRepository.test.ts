@@ -155,6 +155,7 @@ function givPowerHistoricTestCases() {
       roundOneSnapshot!.roundNumber,
     );
     assert.equal(powerBalanceHistory[0]!.powerSnapshotId, roundOneSnapshot!.id);
+    assert.equal(powerBalanceHistory[0]!.balance, 20000);
     assert.equal(
       powerBoostingSnapshotHistory[0]!.powerSnapshotId,
       roundOneSnapshot!.id,
