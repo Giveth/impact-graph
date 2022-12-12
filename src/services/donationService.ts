@@ -149,16 +149,17 @@ export const updateDonationByTransakData = async (
 
 export const updateTotalDonationsOfProject = async (projectId: number) => {
   try {
-    const donationsAmount = await Donation.query(
-      `SELECT COALESCE(SUM("valueUsd"),0) AS total
-            FROM donation
-            WHERE "projectId" = ${projectId}`,
-    );
-    await Project.update(
-      { id: projectId },
-      {
-        totalDonations: donationsAmount[0].total,
-      },
+    await Project.query(
+      `
+      UPDATE "project"
+      SET "totalDonations" = (
+        SELECT COALESCE(SUM(d."valueUsd"),0)
+        FROM "donation" as d
+        WHERE d."projectId" = $1 AND d."status" = 'verified'
+      )
+      WHERE "id" = $1
+    `,
+      [projectId],
     );
   } catch (e) {
     logger.error('updateTotalDonationsOfAProject error', e);
