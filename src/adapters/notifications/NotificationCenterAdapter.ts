@@ -10,8 +10,8 @@ import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import Bull from 'bull';
 import { redisConfig } from '../../redis';
 import config from '../../config';
-import { findUsersWhoDonatedToProject } from '../../repositories/donationRepository';
-import { findUsersWhoLikedProject } from '../../repositories/reactionRepository';
+import { findUsersWhoDonatedToProjectExcludeWhoLiked } from '../../repositories/donationRepository';
+import { findUsersWhoLikedProjectExcludeProjectOwner } from '../../repositories/reactionRepository';
 import { findUsersWhoBoostedProject } from '../../repositories/powerBoostingRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
@@ -355,7 +355,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async projectCancelled(params: { project: Project }): Promise<void> {
     const { project } = params;
 
-    const donors = await findUsersWhoDonatedToProject(project.id);
+    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
+      project.id,
+    );
     donors.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
@@ -364,7 +366,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       }),
     );
 
-    const usersWhoLiked = await findUsersWhoLikedProject(project.id);
+    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
+      project.id,
+    );
     usersWhoLiked.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
@@ -394,7 +398,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }): Promise<void> {
     const { project, update } = params;
 
-    const donors = await findUsersWhoDonatedToProject(project.id);
+    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
+      project.id,
+    );
     donors.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
@@ -403,7 +409,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       }),
     );
 
-    const usersWhoLiked = await findUsersWhoLikedProject(project.id);
+    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
+      project.id,
+    );
     usersWhoLiked.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
@@ -433,7 +441,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async projectDeListed(params: { project: Project }): Promise<void> {
     const { project } = params;
 
-    const donors = await findUsersWhoDonatedToProject(project.id);
+    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
+      project.id,
+    );
     donors.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
@@ -442,7 +452,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       }),
     );
 
-    const usersWhoLiked = await findUsersWhoLikedProject(project.id);
+    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
+      project.id,
+    );
     usersWhoLiked.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
@@ -475,7 +487,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     const metadata = {
       reason,
     };
-    const donors = await findUsersWhoDonatedToProject(project.id);
+    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
+      project.id,
+    );
     donors.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
@@ -485,7 +499,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       }),
     );
 
-    const usersWhoLiked = await findUsersWhoLikedProject(project.id);
+    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
+      project.id,
+    );
     usersWhoLiked.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
