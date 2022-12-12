@@ -6,6 +6,7 @@ import { findProjectRecipientAddressByNetworkId } from '../../repositories/proje
 import { findProjectById } from '../../repositories/projectRepository';
 import { findUserById } from '../../repositories/userRepository';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import {
   isTokenAcceptableForProject,

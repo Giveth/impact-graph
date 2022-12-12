@@ -15,10 +15,12 @@ import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice } from './givPriceService';
 import { findDonationById } from '../repositories/donationRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { calculateGivbackFactor } from './givbackService';
 import { getTokenPrices } from 'monoswap';
 import SentryLogger from '../sentryLogger';
 import { calculateGivbackFactor } from './givbackService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
+
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
