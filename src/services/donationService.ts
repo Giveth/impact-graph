@@ -18,6 +18,7 @@ import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { getTokenPrices } from 'monoswap';
 import SentryLogger from '../sentryLogger';
 import { calculateGivbackFactor } from './givbackService';
+import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -297,6 +298,14 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donation.transactionId = transaction.hash;
     }
     await donation.save();
+
+    // ONLY verified donations should be accumulated
+    // After updating, recalculate user total donated and owner total received
+    await updateUserTotalDonated(donation.userId);
+
+    // After updating price we update totalDonations
+    await updateTotalDonationsOfProject(donation.projectId);
+    await updateUserTotalReceived(donation.userId);
     await sendSegmentEventForDonation({
       donation,
     });
