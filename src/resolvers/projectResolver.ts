@@ -93,7 +93,6 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
-import { ResourcePerDateRange } from './donationResolver';
 
 @ObjectType()
 class AllProjects {
