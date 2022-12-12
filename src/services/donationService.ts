@@ -21,7 +21,6 @@ import SentryLogger from '../sentryLogger';
 import { calculateGivbackFactor } from './givbackService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 
-
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
 export const updateDonationPricesAndValues = async (
