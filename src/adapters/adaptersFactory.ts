@@ -1,18 +1,25 @@
 import { SocialNetworkOauth2AdapterInterface } from './oauth2/SocialNetworkOauth2AdapterInterface';
 import { DiscordAdapter } from './oauth2/discordAdapter';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { GoogleAdapter } from './oauth2/googleAdapter';
 import { LinkedinAdapter } from './oauth2/linkedinAdapter';
 import { TwitterAdapter } from './oauth2/twitterAdapter';
 import { NotificationAdapterInterface } from './notifications/NotificationAdapterInterface';
 import { NotificationCenterAdapter } from './notifications/NotificationCenterAdapter';
 import { MockNotificationAdapter } from './notifications/MockNotificationAdapter';
+import { GivPowerSubgraphAdapter } from './givpowerSubgraph/givPowerSubgraphAdapter';
+import { GivPowerSubgraphMock } from './givpowerSubgraph/givPowerSubgraphMock';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
 const linkedinAdapter = new LinkedinAdapter();
 const twitterAdapter = new TwitterAdapter();
+
 export const getSocialNetworkAdapter = (
   socialNetwork: string,
 ): SocialNetworkOauth2AdapterInterface => {
@@ -26,7 +33,9 @@ export const getSocialNetworkAdapter = (
     case SOCIAL_NETWORKS.TWITTER:
       return twitterAdapter;
     default:
-      throw new Error(errorMessages.INVALID_SOCIAL_NETWORK);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.INVALID_SOCIAL_NETWORK),
+      );
   }
 };
 
@@ -41,5 +50,21 @@ export const getNotificationAdapter = (): NotificationAdapterInterface => {
       return mockNotificationAdapter;
     default:
       return mockNotificationAdapter;
+  }
+};
+
+const givPowerSubgraphAdapter = new GivPowerSubgraphAdapter();
+const givPowerMockAdapter = new GivPowerSubgraphMock();
+
+export const getGivPowerSubgraphAdapter = () => {
+  switch (process.env.GIV_POWER_SUBGRAPH_ADAPTER) {
+    case 'givPower':
+      return givPowerSubgraphAdapter;
+    case 'mock':
+      return givPowerMockAdapter;
+    default:
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.SPECIFY_GIV_POWER_ADAPTER),
+      );
   }
 };

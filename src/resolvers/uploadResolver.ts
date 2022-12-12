@@ -13,7 +13,11 @@ import { MyContext } from '../types/MyContext';
 import { pinFile, pinFileDataBase64 } from '../middleware/pinataUtils';
 import { logger } from '../utils/logger';
 import { getLoggedInUser } from '../services/authorizationServices';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import SentryLogger from '../sentryLogger';
 
 @InputType()
@@ -72,7 +76,9 @@ export class UploadResolver {
       return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.data.IpfsHash}`;
     } catch (e) {
       logger.error('upload() error', e);
-      throw Error(errorMessages.IPFS_IMAGE_UPLOAD_FAILED);
+      throw Error(
+        i18n.__(translationErrorMessagesKeys.IPFS_IMAGE_UPLOAD_FAILED),
+      );
     }
   }
 
@@ -106,7 +112,9 @@ export class UploadResolver {
       return `/ipfs/${response.data.IpfsHash}`;
     } catch (e) {
       logger.error('upload() error', e);
-      throw Error(errorMessages.IPFS_IMAGE_UPLOAD_FAILED);
+      throw Error(
+        i18n.__(translationErrorMessagesKeys.IPFS_IMAGE_UPLOAD_FAILED),
+      );
     }
   }
 }

@@ -487,6 +487,11 @@ export const fetchMultiFilterAllProjectsQuery = `
           isRecipient
           networkId
         }
+        projectPower {
+          totalPower
+          powerRank
+          round
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -574,6 +579,11 @@ export const fetchAllProjectsQuery = `
         totalReactions
         totalDonations
         totalTraceDonations
+        projectPower {
+          totalPower
+          powerRank
+          round
+        }
       }
       totalCount
       categories {
@@ -606,6 +616,16 @@ export const fetchProjectsBySlugQuery = `
       traceCampaignId
       listed
       givingBlocksId
+      projectPower {
+        totalPower
+        powerRank
+        round
+      }
+      projectFuturePower {
+        totalPower
+        powerRank
+        round
+      }
       categories {
        name
        mainCategory {
@@ -860,6 +880,10 @@ export const userByAddress = `
       url
       location
       isSignedIn
+      boostedProjectsCount
+      likedProjectsCount
+      donationsCount
+      projectsCount
     }
   }
 `;
@@ -1464,3 +1488,112 @@ export const getCategoryData = `query {
         }
     }
 }`;
+
+export const setSinglePowerBoostingMutation = `
+        mutation ($projectId: Int!, $percentage: Float!) {
+          setSinglePowerBoosting(projectId: $projectId, percentage: $percentage) {
+            id
+            user {
+              id
+            }
+            project {
+              id
+            }
+            percentage
+          }
+        }
+ `;
+
+export const setMultiplePowerBoostingMutation = `
+        mutation ($projectIds: [Int!]!, $percentages: [Float!]!) {
+          setMultiplePowerBoosting(projectIds: $projectIds, percentages: $percentages) {
+            id
+            user {
+              id
+            }
+            project {
+              id
+            }
+            percentage
+          }
+        }
+ `;
+
+export const getPowerBoostingsQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: PowerBoostingOrderBy
+    $projectId: Int
+    $userId: Int
+  ) {
+    getPowerBoosting(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      projectId: $projectId
+      userId: $userId
+    ) {
+      powerBoostings {
+            id
+            updatedAt
+            createdAt
+            user {
+              id
+              email
+            }
+            project {
+              id
+            }
+            percentage
+      }      
+    }
+  }
+`;
+
+export const getUserProjectPowerQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $orderBy: UserPowerOrderBy
+    $projectId: Int
+    $userId: Int
+  ) {
+    userProjectPowers (
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      projectId: $projectId
+      userId: $userId
+    ) {
+      totalCount
+      userProjectPowers {
+            id
+            userId
+            projectId
+            round
+            boostedPower
+            rank
+            user {
+              id
+              firstName
+              lastName
+              name
+            }
+            
+      }      
+    }
+  }
+`;
+
+export const getBottomPowerRankQuery = `
+    query {
+        getTopPowerRank
+    }
+`;
+
+export const gePowerAmountRankQuery = `
+    query ($powerAmount: Float!) {
+        powerAmountRank(powerAmount: $powerAmount)
+    }
+`;

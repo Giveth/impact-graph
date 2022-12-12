@@ -8,7 +8,7 @@ import {
   PROJECT_UPDATE_SEED_DATA,
 } from './testUtils';
 import { User } from '../src/entities/user';
-import { dropdb, createdb } from 'pgtools';
+import { createdb } from 'pgtools';
 import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import { Project, ProjectUpdate } from '../src/entities/project';
@@ -21,11 +21,18 @@ import {
 } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
+import { getConnection } from 'typeorm';
+import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
+import { ProjectPowerView1662915983385 } from '../migration/1662915983385-ProjectPowerView';
+import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
+import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-ProjectFuturePowerView';
+import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
+import { createSnashotHistoricTables1670422136574 } from '../migration/1670422136574-createSnashotHistoricTables';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
 
-async function dropDatabaseAndCreateFreshOne() {
+async function CreateDatabase() {
   const config = {
     user: process.env.TYPEORM_DATABASE_USER,
     password: process.env.TYPEORM_DATABASE_PASSWORD,
@@ -33,22 +40,24 @@ async function dropDatabaseAndCreateFreshOne() {
     host: process.env.TYPEORM_DATABASE_HOST,
   };
 
-  // tslint:disable-next-line:no-console
-  console.log('Dropping DB');
-  try {
-    await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
-  } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('drop db error', e);
-  }
-
+  // // tslint:disable-next-line:no-console
+  // console.log('Dropping DB');
+  // try {
+  //   await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
+  //   // don't drop cron db, because it will be used by pg_cron extension
+  // } catch (e) {
+  //   // tslint:disable-next-line:no-console
+  //   console.log('drop db error', e);
+  // }
+  //
   // tslint:disable-next-line:no-console
   console.log('Create Fresh DB');
   try {
     await createdb(config, process.env.TYPEORM_DATABASE_NAME);
   } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('Create Fresh db error', e);
+    if (e?.name !== 'duplicate_database')
+      // tslint:disable-next-line:no-console
+      console.log('Create Fresh db error', e);
   }
 }
 
@@ -174,6 +183,9 @@ async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.FIRST_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.SECOND_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.TRANSAK_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.FOURTH_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.FIFTH_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.SIXTH_PROJECT);
 }
 
 async function seedProjectUpdates() {
@@ -281,11 +293,37 @@ async function seedStatusReasons() {
   }
 }
 
+async function runMigrations() {
+  const queryRunner = getConnection().createQueryRunner();
+  await queryRunner.connect();
+
+  try {
+    const userProjectPowerView = new UserProjectPowerView1662877385339();
+    const projectPowerView = new ProjectPowerView1662915983385();
+    const projectFuturePowerView = new ProjectFuturePowerView1668411738120();
+    const takeSnapshotProcedure =
+      new TakePowerBoostingSnapshotProcedure1663594895751();
+    const takeSnapshotsHistoryProcedure =
+      new createGivPowerHistoricTablesProcedure1670429143091();
+
+    await userProjectPowerView.up(queryRunner);
+    await projectPowerView.up(queryRunner);
+    await projectFuturePowerView.up(queryRunner);
+    await takeSnapshotProcedure.up(queryRunner);
+    await takeSnapshotsHistoryProcedure.up(queryRunner);
+  } catch (e) {
+    throw e;
+  } finally {
+    await queryRunner.release();
+  }
+}
+
 before(async () => {
   try {
-    await dropDatabaseAndCreateFreshOne();
+    await CreateDatabase();
     await bootstrap();
     await seedDb();
+    await runMigrations();
   } catch (e) {
     throw new Error(`Could not setup tests requirements \n${e.message}`);
   }

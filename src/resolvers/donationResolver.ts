@@ -15,20 +15,16 @@ import {
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
 import { InjectRepository } from 'typeorm-typedi-extensions';
-// import { getTokenPrices, getOurTokenList } from '../uniswap'
 import { getTokenPrices, getOurTokenList } from 'monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In, Brackets } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
-import { errorMessages } from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
   getMonoSwapTokenPrices,
@@ -41,10 +37,6 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../services/userService';
-import { addSegmentEventToQueue } from '../analytics/segmentQueue';
-import { bold } from 'chalk';
-import { getCampaignDonations } from '../services/trace/traceService';
-import { from } from 'form-data';
 import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
@@ -68,8 +60,10 @@ import {
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { MainCategory } from '../entities/mainCategory';
-
-const analytics = getAnalytics();
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { findProjectById } from '../repositories/projectRepository';
+import { calculateGivbackFactor } from '../services/givbackService';
 
 @ObjectType()
 class PaginateDonations {
@@ -204,13 +198,19 @@ export class DonationResolver {
         .leftJoin('donation.user', 'user')
         .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project')
-        .leftJoinAndSelect('project.categories', 'categories');
+        .leftJoinAndSelect('project.categories', 'categories')
+        .leftJoin('project.projectPower', 'projectPower')
+        .addSelect([
+          'projectPower.totalPower',
+          'projectPower.powerRank',
+          'projectPower.round',
+        ]);
 
       if (fromDate) {
-        query.andWhere(`"createdAt" >= '${fromDate}'`);
+        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
       }
       if (toDate) {
-        query.andWhere(`"createdAt" <= '${toDate}'`);
+        query.andWhere(`donation."createdAt" <= '${toDate}'`);
       }
       return await query.getMany();
     } catch (e) {
@@ -370,77 +370,64 @@ export class DonationResolver {
       id: projectId,
     });
     if (!project) {
-      throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
 
-    if (traceable) {
-      const { total, donations } = await getCampaignDonations({
-        campaignId: project.traceCampaignId as string,
-        take,
-        skip,
+    const query = this.donationRepository
+      .createQueryBuilder('donation')
+      .leftJoin('donation.user', 'user')
+      .addSelect(publicSelectionFields)
+      .where(`donation.projectId = ${projectId}`)
+      .orderBy(
+        `donation.${orderBy.field}`,
+        orderBy.direction,
+        nullDirection[orderBy.direction as string],
+      );
+
+    if (status) {
+      query.andWhere(`donation.status = :status`, {
+        status,
       });
-      return {
-        donations,
-        totalCount: total,
-        totalUsdBalance: project.totalTraceDonations,
-      };
-    } else {
-      const query = this.donationRepository
-        .createQueryBuilder('donation')
-        .leftJoin('donation.user', 'user')
-        .addSelect(publicSelectionFields)
-        .where(`donation.projectId = ${projectId}`)
-        .orderBy(
-          `donation.${orderBy.field}`,
-          orderBy.direction,
-          nullDirection[orderBy.direction as string],
-        );
-
-      if (status) {
-        query.andWhere(`donation.status = :status`, {
-          status,
-        });
-      }
-
-      if (searchTerm) {
-        query.andWhere(
-          new Brackets(qb => {
-            qb.where(
-              '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
-              {
-                searchTerm: `%${searchTerm}%`,
-              },
-            )
-              .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
-                searchTerm: `%${searchTerm}%`,
-              })
-              .orWhere('donation.currency ILIKE :searchTerm', {
-                searchTerm: `%${searchTerm}%`,
-              });
-
-            // WalletAddresses are translanted to huge integers
-            // this breaks postgresql query integer limit
-            if (!Web3.utils.isAddress(searchTerm)) {
-              const amount = Number(searchTerm);
-
-              qb.orWhere('donation.amount = :number', {
-                number: amount,
-              });
-            }
-          }),
-        );
-      }
-
-      const [donations, donationsCount] = await query
-        .take(take)
-        .skip(skip)
-        .getManyAndCount();
-      return {
-        donations,
-        totalCount: donationsCount,
-        totalUsdBalance: project.totalDonations,
-      };
     }
+
+    if (searchTerm) {
+      query.andWhere(
+        new Brackets(qb => {
+          qb.where(
+            '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
+            {
+              searchTerm: `%${searchTerm}%`,
+            },
+          )
+            .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            })
+            .orWhere('donation.currency ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            });
+
+          // WalletAddresses are translanted to huge integers
+          // this breaks postgresql query integer limit
+          if (!Web3.utils.isAddress(searchTerm)) {
+            const amount = Number(searchTerm);
+
+            qb.orWhere('donation.amount = :number', {
+              number: amount,
+            });
+          }
+        }),
+      );
+    }
+
+    const [donations, donationsCount] = await query
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+    return {
+      donations,
+      totalCount: donationsCount,
+      totalUsdBalance: project.totalDonations,
+    };
   }
 
   @Query(returns => [Token], { nullable: true })
@@ -465,7 +452,9 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
-      throw new Error(errorMessages.DONATION_VIEWING_LOGIN_REQUIRED);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.DONATION_VIEWING_LOGIN_REQUIRED),
+      );
     return this.donationRepository
       .createQueryBuilder('donation')
       .where({ user: ctx.req.user.userId })
@@ -528,7 +517,7 @@ export class DonationResolver {
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
       if (!donorUser) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       validateWithJoiSchema(
         {
@@ -551,17 +540,18 @@ export class DonationResolver {
           ? NETWORK_IDS.MAIN_NET
           : transactionNetworkId;
 
-      const project = await Project.createQueryBuilder('project')
-        .leftJoinAndSelect('project.organization', 'organization')
-        .leftJoinAndSelect('project.status', 'status')
-        .where(`project.id = :projectId`, {
-          projectId,
-        })
-        .getOne();
+      const project = await findProjectById(projectId);
 
-      if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      if (!project)
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+        );
       if (project.status.id !== ProjStatus.active) {
-        throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
+          ),
+        );
       }
       const tokenInDb = await Token.findOne({
         networkId: transactionNetworkId,
@@ -570,14 +560,18 @@ export class DonationResolver {
       const isCustomToken = !Boolean(tokenInDb);
       let isTokenEligibleForGivback = false;
       if (isCustomToken && !project.organization.supportCustomTokens) {
-        throw new Error(errorMessages.TOKEN_NOT_FOUND);
+        throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
       } else if (tokenInDb) {
         const acceptsToken = await isTokenAcceptableForProject({
           projectId,
           tokenId: tokenInDb.id,
         });
         if (!acceptsToken && !project.organization.supportCustomTokens) {
-          throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+          throw new Error(
+            i18n.__(
+              translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+            ),
+          );
         }
         isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
       }
@@ -588,7 +582,9 @@ export class DonationResolver {
         });
       if (!projectRelatedAddress) {
         throw new Error(
-          errorMessages.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+          i18n.__(
+            translationErrorMessagesKeys.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+          ),
         );
       }
       const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
@@ -652,11 +648,13 @@ export class DonationResolver {
     try {
       const userId = ctx?.req?.user?.userId;
       if (!userId) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       const donation = await findDonationById(donationId);
       if (!donation) {
-        throw new Error(errorMessages.DONATION_NOT_FOUND);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND),
+        );
       }
       if (donation.userId !== userId) {
         logger.error(
@@ -671,7 +669,11 @@ export class DonationResolver {
             },
           },
         );
-        throw new Error(errorMessages.YOU_ARE_NOT_OWNER_OF_THIS_DONATION);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.YOU_ARE_NOT_OWNER_OF_THIS_DONATION,
+          ),
+        );
       }
       validateWithJoiSchema(
         {
@@ -696,8 +698,9 @@ export class DonationResolver {
         status === DONATION_STATUS.FAILED
       ) {
         updatedDonation.status = DONATION_STATUS.FAILED;
-        updatedDonation.verifyErrorMessage =
-          errorMessages.DONOR_REPORTED_IT_AS_FAILED;
+        updatedDonation.verifyErrorMessage = i18n.__(
+          translationErrorMessagesKeys.DONOR_REPORTED_IT_AS_FAILED,
+        );
         await updatedDonation.save();
       }
       return updatedDonation;

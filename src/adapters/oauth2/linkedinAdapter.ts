@@ -6,7 +6,11 @@ import { stringify } from 'querystring';
 import axios from 'axios';
 import { decode, JwtPayload } from 'jsonwebtoken';
 import { logger } from '../../utils/logger';
-import { errorMessages } from '../../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages';
 
 const clientId = process.env.LINKEDIN_CLIENT_ID;
 const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
@@ -109,7 +113,9 @@ export class LinkedinAdapter implements SocialNetworkOauth2AdapterInterface {
     } catch (e) {
       logger.error('getUserInfoByOauth2Code linkedin error', e);
       throw new Error(
-        errorMessages.ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE,
+        i18n.__(
+          translationErrorMessagesKeys.ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE,
+        ),
       );
     }
   }

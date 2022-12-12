@@ -5,6 +5,7 @@ import { NETWORK_IDS } from '../../provider';
 import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
 import { findProjectById } from '../../repositories/projectRepository';
 import { findUserById } from '../../repositories/userRepository';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import {
@@ -29,7 +30,9 @@ export const createFiatDonationFromOnramper = async (
     });
 
     if (donation) {
-      throw new Error(errorMessages.FIAT_DONATION_ALREADY_EXISTS);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.FIAT_DONATION_ALREADY_EXISTS),
+      );
     }
 
     // Custom Metadata from the frontend at the time of donation
@@ -42,13 +45,18 @@ export const createFiatDonationFromOnramper = async (
 
     const donorUser = await findUserById(Number(metadata.userId));
     if (!donorUser) {
-      throw new Error(errorMessages.USER_NOT_FOUND);
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
     }
     const project = await findProjectById(Number(metadata.projectId));
 
-    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.status.id !== ProjStatus.active) {
-      throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
+        ),
+      );
     }
     // mainnet ETH is the out currency
     const priceChainId = NETWORK_IDS.MAIN_NET;
@@ -67,7 +75,11 @@ export const createFiatDonationFromOnramper = async (
     });
 
     if (!acceptsToken) {
-      throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+        ),
+      );
     }
 
     const projectRelatedAddress = await findProjectRecipientAddressByNetworkId({
@@ -77,7 +89,9 @@ export const createFiatDonationFromOnramper = async (
 
     if (!projectRelatedAddress) {
       throw new Error(
-        errorMessages.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+        i18n.__(
+          translationErrorMessagesKeys.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+        ),
       );
     }
 

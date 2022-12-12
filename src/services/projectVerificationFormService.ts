@@ -28,7 +28,11 @@ import {
   updateProjectVerificationStatus,
   updateTermsAndConditionsOfProjectVerification,
 } from '../repositories/projectVerificationRepository';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { ProjectVerificationUpdateInput } from '../resolvers/types/ProjectVerificationUpdateInput';
 import { removeUndefinedFieldsFromObject } from '../utils/utils';
 
@@ -170,7 +174,7 @@ export const updateProjectVerificationFormByUser = async (params: {
       });
       break;
     default:
-      throw new Error(errorMessages.INVALID_STEP);
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_STEP));
   }
 
   return updateLastStep({

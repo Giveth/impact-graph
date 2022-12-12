@@ -1,14 +1,14 @@
-import { errorMessages } from '../../utils/errorMessages';
-import { logger } from '../../utils/logger';
 import { createFiatDonationFromOnramper } from './donationService';
+// import { TransakOrder } from './order';
+import { logger } from '../../utils/logger';
 import { OnRamperFiatTransaction } from './fiatTransaction';
+import { i18n } from '../../utils/errorMessages';
 
 // tslint:disable:no-var-requires
 const sha256 = require('js-sha256');
 const onramperSecret = process.env.ONRAMPER_SECRET as string;
 
 /**
- * Returns status 200 always, most providers require this or they will keep sending requests indefinitely
  * @see { https://docs.onramper.com/API-Reference/#webhooks}
  */
 export async function onramperWebhookHandler(request, response) {
@@ -17,7 +17,7 @@ export async function onramperWebhookHandler(request, response) {
       request.headers['X-Onramper-Webhook-Signature'] ||
       request.headers['x-onramper-webhook-signature'];
     if (!onramperSecret || !payloadSignature)
-      throw new Error(errorMessages.ONRAMPER_SIGNATURE_MISSING);
+      throw new Error(i18n.__('ONRAMPER_SIGNATURE_MISSING'));
 
     const fiatTransaction = request.body as OnRamperFiatTransaction;
     const fiatTransactionStringified = JSON.stringify(fiatTransaction);
@@ -27,7 +27,7 @@ export async function onramperWebhookHandler(request, response) {
       fiatTransactionStringified,
     );
     if (digestedHmac !== payloadSignature)
-      throw new Error(errorMessages.ONRAMPER_SIGNATURE_INVALID);
+      throw new Error(i18n.__('ONRAMPER_SIGNATURE_INVALID'));
 
     // No point saving pending or failed transactions without txHash
     if (fiatTransaction.type === 'transaction_completed') {

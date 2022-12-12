@@ -17,7 +17,11 @@ import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
 import { findUserById } from '../../repositories/userRepository';
-import { errorMessages } from '../../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages';
 
 // Every week once on sunday at 0 hours
 const cronJobTime =
@@ -172,8 +176,16 @@ const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
   });
 
   if (!category) {
-    logger.error(errorMessages.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST);
-    throw new Error(errorMessages.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST);
+    logger.error(
+      i18n.__(
+        translationErrorMessagesKeys.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST,
+      ),
+    );
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST,
+      ),
+    );
   }
 
   return category;

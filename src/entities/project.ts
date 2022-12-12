@@ -24,18 +24,23 @@ import { Reaction } from './reaction';
 import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
-import ProjectTracker from '../services/segment/projectTracker';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
 import { SocialProfile } from './socialProfile';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { ProjectContacts } from './projectVerificationForm';
+import { ProjectPowerView } from '../views/projectPowerView';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -58,6 +63,7 @@ export enum SortingField {
   Newest = 'Newest',
   Oldest = 'Oldest',
   QualityScore = 'QualityScore',
+  GIVPower = 'GIVPower',
 }
 
 export enum OrderField {
@@ -75,6 +81,7 @@ export enum OrderField {
   Donations = 'totalDonations',
   TraceDonations = 'totalTraceDonations',
   AcceptGiv = 'givingBlocksId',
+  GIVPower = 'givPower',
 }
 
 export enum RevokeSteps {
@@ -264,6 +271,20 @@ class Project extends BaseEntity {
   )
   projectVerificationForm?: ProjectVerificationForm;
 
+  @Field(type => ProjectPowerView, { nullable: true })
+  @OneToOne(
+    type => ProjectPowerView,
+    projectPowerView => projectPowerView.project,
+  )
+  projectPower?: ProjectPowerView;
+
+  @Field(type => ProjectFuturePowerView, { nullable: true })
+  @OneToOne(
+    type => ProjectFuturePowerView,
+    projectFuturePowerView => projectFuturePowerView.project,
+  )
+  projectFuturePower?: ProjectFuturePowerView;
+
   @Field(type => String, { nullable: true })
   verificationFormStatus?: string;
 
@@ -314,19 +335,6 @@ class Project extends BaseEntity {
   /**
    * Custom Query Builders to chain together
    */
-
-  static notifySegment(project: Project, eventName: NOTIFICATIONS_EVENT_NAMES) {
-    new ProjectTracker(project, eventName).track();
-  }
-
-  static sendBulkEventsToSegment(
-    projects: [Project],
-    eventName: NOTIFICATIONS_EVENT_NAMES,
-  ) {
-    for (const project of projects) {
-      this.notifySegment(project, eventName);
-    }
-  }
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: Number) {
@@ -380,7 +388,9 @@ class Project extends BaseEntity {
   mayUpdateStatus(user: User) {
     if (this.statusId === ProjStatus.cancelled) {
       throw new Error(
-        errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+        i18n.__(
+          translationErrorMessagesKeys.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+        ),
       );
     }
 
@@ -388,7 +398,9 @@ class Project extends BaseEntity {
       return true;
     } else {
       throw new Error(
-        errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+        i18n.__(
+          translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+        ),
       );
     }
   }

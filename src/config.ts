@@ -1,10 +1,23 @@
+import path from 'path';
 import * as dotenv from 'dotenv';
-import * as path from 'path';
-import { logger } from './utils/logger';
 
-dotenv.config({
-  path: path.resolve(__dirname, `../config/${process.env.NODE_ENV || ''}.env`),
+const configPath = path.resolve(
+  __dirname,
+  `../config/${process.env.NODE_ENV || ''}.env`,
+);
+const loadConfigResult = dotenv.config({
+  path: configPath,
 });
+
+if (loadConfigResult.error) {
+  // tslint:disable-next-line:no-console
+  console.log('Load process.env error', {
+    path: configPath,
+    error: loadConfigResult.error,
+  });
+  throw loadConfigResult.error;
+}
+
 const envVars = [
   'JWT_SECRET',
   'JWT_MAX_AGE',
@@ -39,7 +52,13 @@ const envVars = [
   // 'XDAI_NODE_HTTP_URL',
   'SEGMENT_API_KEY',
   'TRACE_FILE_UPLOADER_PASSWORD',
+  'GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT',
+  'GIVPOWER_BOOSTING_PERCENTAGE_PRECISION',
+  'GIVPOWER_ROUND_DURATION',
+  'GIVBACK_MAX_FACTOR',
+  'GIVBACK_MIN_FACTOR',
 ];
+
 // tslint:disable-next-line:class-name
 interface requiredEnv {
   JWT_SECRET: string;
@@ -76,6 +95,9 @@ interface requiredEnv {
   XDAI_NODE_HTTP_URL: string;
   SEGMENT_API_KEY: string;
   TRACE_FILE_UPLOADER_PASSWORD: string;
+  GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT: string;
+  GIVPOWER_BOOSTING_PERCENTAGE_PRECISION: string;
+  GIVPOWER_ROUND_DURATION: string;
 }
 
 class Config {
