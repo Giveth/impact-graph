@@ -20,9 +20,9 @@ export const setI18nLocaleForRequest = async (req, res, next) => {
 };
 
 export const errorMessages = {
-  FIAT_DONATION_ALREADY_EXISTS: 'Fiat donation already exists',
-  ONRAMPER_SIGNATURE_INVALID: 'Request payload or signature is invalid',
-  ONRAMPER_SIGNATURE_MISSING: 'Request headers does not contain signature',
+  FIAT_DONATION_ALREADY_EXISTS: 'Onramper donation already exists',
+  ONRAMPER_SIGNATURE_INVALID: 'Onramper signature invalid',
+  ONRAMPER_SIGNATURE_MISSING: 'Onramper signature missing',
   UPLOAD_FAILED: 'Upload file failed',
   SPECIFY_GIV_POWER_ADAPTER: 'Specify givPower adapter',
   CHANGE_API_INVALID_TITLE_OR_EIN:
