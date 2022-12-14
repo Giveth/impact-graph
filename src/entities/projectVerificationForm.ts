@@ -188,6 +188,10 @@ export class ProjectVerificationForm extends BaseEntity {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  verifiedAt: Date;
+
   // https://github.com/typeorm/typeorm/issues/4674#issuecomment-618073862
   @Field(type => PersonalInfo, { nullable: true })
   @Column('jsonb', { nullable: true })

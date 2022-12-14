@@ -428,6 +428,15 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
+            verifiedAt: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: true,
+                new: false,
+              },
+            },
             email: {
               isVisible: {
                 list: false,

@@ -370,6 +370,7 @@ function verifyFormTestCases() {
       updateProjectVerificationForm.reviewer?.id,
       SEED_DATA.ADMIN_USER.id,
     );
+    assert.isNotNull(updateProjectVerificationForm?.verifiedAt);
   });
   it('Should rejected submitted verification form', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -522,6 +523,7 @@ function verifyMultipleFormTestCases() {
       updateProjectVerificationForm2?.status,
       PROJECT_VERIFICATION_STATUSES.VERIFIED,
     );
+    assert.isNotNull(updateProjectVerificationForm2?.verifiedAt);
   });
   it('Should reject multiple submitted verification forms', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
