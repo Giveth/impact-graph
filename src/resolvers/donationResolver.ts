@@ -622,13 +622,6 @@ export class DonationResolver {
         amount,
       );
 
-      // After updating, recalculate user total donated and owner total received
-      await updateUserTotalDonated(donorUser.id);
-
-      // After updating price we update totalDonations
-      await updateTotalDonationsOfProject(projectId);
-      await updateUserTotalReceived(Number(project.admin));
-
       return donation.id;
     } catch (e) {
       SentryLogger.captureException(e);

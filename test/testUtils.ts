@@ -1428,6 +1428,7 @@ export const DONATION_SEED_DATA = {
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
+    status: 'verified',
     segmentNotified: true,
   },
   SECOND_DONATION: {
@@ -1511,6 +1512,7 @@ export interface CreateDonationData {
   // userId?: number;
   projectId?: number;
   status?: string;
+  verified?: string;
 }
 
 export interface CategoryData {
