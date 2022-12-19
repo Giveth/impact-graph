@@ -3,6 +3,7 @@ import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { logger } from '../utils/logger';
 import { updatePowerSnapshotSyncedFlag } from './powerSnapshotRepository';
+import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
 
 export const getProjectPowers = async (
   take: number = 50,
@@ -72,7 +73,16 @@ export const refreshProjectPowerView = async (): Promise<void> => {
 export const refreshProjectFuturePowerView = async (
   updateSyncedFlag: boolean = true,
 ): Promise<void> => {
-  if (updateSyncedFlag) await updatePowerSnapshotSyncedFlag();
+  if (updateSyncedFlag) {
+    const numberNewSyncedSnapshots = await updatePowerSnapshotSyncedFlag();
+    if (numberNewSyncedSnapshots > 0) {
+      await getConnection().manager.query(
+        `
+      REFRESH MATERIALIZED VIEW last_snapshot_project_power_view
+    `,
+      );
+    }
+  }
 
   return getConnection().manager.query(
     `
@@ -87,7 +97,7 @@ export const getPowerAmountRank = async (
 ): Promise<number> => {
   if (powerAmount < 0) throw new Error('Power Amount cannot be zero');
 
-  const [belowProject] = await ProjectPowerView.find({
+  const [belowProject] = await LastSnapshotProjectPowerView.find({
     where: {
       totalPower: LessThanOrEqual(powerAmount),
     },
@@ -100,7 +110,7 @@ export const getPowerAmountRank = async (
 
   // There is no project, or all the projects are above that!
   if (!belowProject) {
-    const [aboveProject] = await ProjectPowerView.find({
+    const [aboveProject] = await LastSnapshotProjectPowerView.find({
       where: {
         totalPower: MoreThan(powerAmount),
       },
@@ -112,9 +122,9 @@ export const getPowerAmountRank = async (
     });
 
     if (aboveProject) {
-      return aboveProject.powerRank + 1;
+      return +aboveProject.powerRank + 1;
     } else return 1; // There is not any other project
   } else {
-    return belowProject.powerRank;
+    return +belowProject.powerRank;
   }
 };
