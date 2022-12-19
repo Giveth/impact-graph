@@ -6,7 +6,7 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import axios from 'axios';
-import { gePowerAmountRankQuery } from '../../test/graphqlQueries';
+import { getPowerAmountRankQuery } from '../../test/graphqlQueries';
 import { assert } from 'chai';
 import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
@@ -41,7 +41,7 @@ function projectPowersTestCases() {
   it('must return one where there is no project ranked', async () => {
     await refreshProjectPowerView();
     const result = await axios.post(graphqlUrl, {
-      query: gePowerAmountRankQuery,
+      query: getPowerAmountRankQuery,
       variables: { powerAmount: 100 },
     });
 
@@ -92,7 +92,7 @@ function projectPowersTestCases() {
 
     // 1. Higher than all -> must return 1
     let result = await axios.post(graphqlUrl, {
-      query: gePowerAmountRankQuery,
+      query: getPowerAmountRankQuery,
       variables: { powerAmount: 4000 },
     });
 
@@ -101,7 +101,7 @@ function projectPowersTestCases() {
 
     // 2. Between some, must return correct rank
     result = await axios.post(graphqlUrl, {
-      query: gePowerAmountRankQuery,
+      query: getPowerAmountRankQuery,
       variables: { powerAmount: 1500 }, // 3000, 2000, [1500], 1000
     });
 
@@ -110,7 +110,7 @@ function projectPowersTestCases() {
 
     // 2. Lower than all
     result = await axios.post(graphqlUrl, {
-      query: gePowerAmountRankQuery,
+      query: getPowerAmountRankQuery,
       variables: { powerAmount: 900 }, // 3000, 2000, 1000, [900]
     });
 
@@ -160,7 +160,7 @@ function projectPowersTestCases() {
     await refreshProjectFuturePowerView();
 
     let result = await axios.post(graphqlUrl, {
-      query: gePowerAmountRankQuery,
+      query: getPowerAmountRankQuery,
       variables: { powerAmount: 1500 }, // 3000, 2000, [1500], 1000
     });
 
@@ -172,7 +172,7 @@ function projectPowersTestCases() {
     await refreshProjectFuturePowerView();
 
     result = await axios.post(graphqlUrl, {
-      query: gePowerAmountRankQuery,
+      query: getPowerAmountRankQuery,
       variables: { powerAmount: 1500 }, // 3000, 2000, [1500], 1000
     });
 
@@ -235,7 +235,7 @@ function projectPowersTestCases() {
     // Project3: 3_000 + 5_000 = 8_000
 
     let result = await axios.post(graphqlUrl, {
-      query: gePowerAmountRankQuery,
+      query: getPowerAmountRankQuery,
       variables: { powerAmount: 9000 }, // 16000, 10000, [9000], 8000
     });
 
@@ -278,7 +278,7 @@ function projectPowersTestCases() {
     await refreshProjectFuturePowerView();
 
     result = await axios.post(graphqlUrl, {
-      query: gePowerAmountRankQuery,
+      query: getPowerAmountRankQuery,
       variables: { powerAmount: 9001 },
     });
 
@@ -286,7 +286,7 @@ function projectPowersTestCases() {
     assert.equal(result.data.data.powerAmountRank, 1);
 
     result = await axios.post(graphqlUrl, {
-      query: gePowerAmountRankQuery,
+      query: getPowerAmountRankQuery,
       variables: { powerAmount: 8999 },
     });
 

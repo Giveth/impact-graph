@@ -1592,7 +1592,7 @@ export const getBottomPowerRankQuery = `
     }
 `;
 
-export const gePowerAmountRankQuery = `
+export const getPowerAmountRankQuery = `
     query ($powerAmount: Float!) {
         powerAmountRank(powerAmount: $powerAmount)
     }
