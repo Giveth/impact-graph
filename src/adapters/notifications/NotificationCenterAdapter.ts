@@ -69,7 +69,7 @@ interface SendNotificationBody {
   };
 }
 
-export const getSegmentDonationAttributes = (params: {
+const getSegmentDonationAttributes = (params: {
   user: User;
   project: Project;
   donation: Donation;
@@ -94,7 +94,7 @@ export const getSegmentDonationAttributes = (params: {
   };
 };
 
-export const getSegmentProjectAttributes = (params: { project: Project }) => {
+const getSegmentProjectAttributes = (params: { project: Project }) => {
   const { project } = params;
   return {
     email: project?.adminUser?.email,
@@ -106,14 +106,14 @@ export const getSegmentProjectAttributes = (params: { project: Project }) => {
   };
 };
 
-export const authorizationHeader = () => {
+const authorizationHeader = () => {
   return createBasicAuthentication({
     userName: notificationCenterUsername,
     password: notificationCenterPassword,
   });
 };
 
-export const sendProjectRelatedNotification = async (params: {
+const sendProjectRelatedNotification = async (params: {
   project: Project;
   eventName: NOTIFICATIONS_EVENT_NAMES;
   metadata?: any;
@@ -142,7 +142,7 @@ export const sendProjectRelatedNotification = async (params: {
   });
 };
 
-export const callSendNotification = async (
+const callSendNotification = async (
   data: SendNotificationBody,
 ): Promise<void> => {
   try {
