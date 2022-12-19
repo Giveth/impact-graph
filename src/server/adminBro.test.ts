@@ -48,6 +48,7 @@ import {
   PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
 import { verifyMultipleProjects } from '../repositories/projectRepository';
+import { ProjectAddress } from '../entities/projectAddress';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -344,6 +345,14 @@ function importThirdPartyProjectTestCases() {
     });
     assert(createdProject);
     assert.isTrue(createdProject?.title === 'ChangeApiTestProject');
+    const address = await ProjectAddress.createQueryBuilder('address')
+      .where('address.projectId = :projectId', {
+        projectId: createdProject!.id,
+      })
+      .getOne();
+    assert.equal(address?.address, createdProject!.walletAddress);
+    assert.equal(address?.projectId, createdProject!.id);
+    assert.equal(address?.userId, adminUser!.id);
   });
 }
 
