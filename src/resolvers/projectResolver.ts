@@ -713,7 +713,6 @@ export class ProjectResolver {
     }: GetProjectsArgs,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<AllProjects> {
-    const categories = await Category.find();
     let query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
@@ -781,10 +780,13 @@ export class ProjectResolver {
         break;
     }
 
-    const [projects, totalCount] = await query
-      .take(limit)
-      .skip(skip)
-      .getManyAndCount();
+    query.take(limit).skip(skip);
+
+    const [categories, projects, totalCount] = await Promise.all([
+      Category.find({ cache: 60000 }),
+      query.getMany(),
+      query.getCount(),
+    ]);
     return { projects, totalCount, categories };
   }
 
