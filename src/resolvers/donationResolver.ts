@@ -31,7 +31,6 @@ import {
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
-  updateTotalDonationsOfProject,
 } from '../services/donationService';
 import {
   updateUserTotalDonated,
