@@ -203,14 +203,37 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async projectVerified(params: { project: Project }): Promise<void> {
     const { project } = params;
-    const user = project.adminUser as User;
+    const projectOwner = project.adminUser as User;
+
+    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
+      project.id,
+    );
+    donors.map(user =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_DONORS,
+        user,
+      }),
+    );
+
+    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
+      project.id,
+    );
+    usersWhoLiked.map(user =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_USERS_WHO_LIKED,
+        user,
+      }),
+    );
+
     return this.sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
       sendEmail: true,
       segment: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
+        analyticsUserId: projectOwner.segmentUserId(),
+        anonymousId: projectOwner.segmentUserId(),
         payload: this.getSegmentProjectAttributes({
           project,
         }),
@@ -602,9 +625,30 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  projectReactivated(params: { project: Project }): Promise<void> {
+  async projectReactivated(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;
+    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
+      project.id,
+    );
+    donors.map(user =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED_DONORS,
+        user,
+      }),
+    );
+
+    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
+      project.id,
+    );
+    usersWhoLiked.map(user =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED_USERS_WHO_LIKED,
+        user,
+      }),
+    );
     return this.sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
