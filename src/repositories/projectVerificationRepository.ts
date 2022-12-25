@@ -51,6 +51,7 @@ export const verifyMultipleForms = async (params: {
 }): Promise<UpdateResult> => {
   const updateParams = {
     status: params.verificationStatus,
+    verifiedAt: new Date(),
   };
 
   if (params.reviewerId) {
@@ -83,6 +84,7 @@ export const verifyForm = async (params: {
 
   form.status = params.verificationStatus;
   form.reviewer = await findUserById(params.adminId);
+  form.verifiedAt = new Date();
   return form.save();
 };
 
@@ -124,6 +126,7 @@ export const makeFormVerified = async (params: {
   form.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
   form.lastStep = PROJECT_VERIFICATION_STEPS.SUBMIT;
   form.isTermAndConditionsAccepted = true;
+  form.verifiedAt = new Date();
 
   if (params.adminId) {
     form.reviewer = await findUserById(params.adminId);

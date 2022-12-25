@@ -259,6 +259,15 @@ ORDER BY jobid DESC
 select cron.alter_job(job_id:=1,database:='develop');
 ```
 
+For archiving old givpower snapshots data we must follow the same structure above, except in the 2nd step we must this command instead 
+```postgresql
+CREATE EXTENSION IF NOT EXISTS PG_CRON;
+SELECT CRON.schedule(
+    '"archive givpower snapshots - develop"',
+    '*/5 * * * *',
+    $$CALL public."ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA"()$$);
+```
+
 ##### User GIVpower balance snapshot
 impact-graph monitors power_snapshot table and whenever a new record is created it find corresponding ethereum blockchain block number and fills in the snapshot record.
 Then for every user who has a percentage snapshot, fills balance snapshot table with the user balance at the corresponding block number by the help of impact graph block filter.

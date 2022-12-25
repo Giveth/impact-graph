@@ -20,8 +20,8 @@ const _queryBuilder = (params: {
     unipoolBalances(
       first: ${addresses.size}
     where: {
-      unipool: "${unipoolContractId}",
-        user_in: ${usersIn}
+      unipool: "${unipoolContractId.toLowerCase()}",
+        user_in: ${usersIn.toLowerCase()}
     },
     block: {number:${blockNumber} }
   ) {

@@ -5,14 +5,17 @@ import { logger } from '../utils/logger';
 
 export const updateUserTotalDonated = async (userId: number) => {
   try {
-    const userDonated = await Donation.query(
-      `select COALESCE(SUM("valueUsd"),0) as total from donation where "userId" = ${userId}`,
-    );
-    await User.update(
-      { id: userId },
-      {
-        totalDonated: userDonated[0].total,
-      },
+    await Donation.query(
+      `
+      UPDATE "user"
+      SET "totalDonated" = (
+        SELECT COALESCE(SUM(d."valueUsd"),0)
+        FROM donation as d
+        WHERE d."userId" = $1 AND d."status" = 'verified'
+      )
+      WHERE "id" = $1
+    `,
+      [userId],
     );
   } catch (e) {
     logger.error('updateUserTotalDonated() error', e);
@@ -21,14 +24,17 @@ export const updateUserTotalDonated = async (userId: number) => {
 
 export const updateUserTotalReceived = async (userId: number) => {
   try {
-    const userReceived = await Project.query(
-      `select COALESCE(SUM("totalDonations"),0) as total from project where "admin" = '${userId}'`,
-    );
-    await User.update(
-      { id: userId },
-      {
-        totalReceived: userReceived[0].total,
-      },
+    await User.query(
+      `
+      UPDATE "user"
+      SET "totalReceived" = (
+        SELECT COALESCE(SUM(p."totalDonations"),0)
+        FROM project as p
+        WHERE p."adminUserId" = $1
+      )
+      WHERE "id" = $1
+    `,
+      [userId],
     );
   } catch (e) {
     logger.error('updateUserTotalReceived() error', e);

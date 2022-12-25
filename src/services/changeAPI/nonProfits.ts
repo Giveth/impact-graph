@@ -18,6 +18,8 @@ import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { findUserById } from '../../repositories/userRepository';
 import { CATEGORY_NAMES } from '../../entities/category';
+import { addBulkNewProjectAddress } from '../../repositories/projectAddressRepository';
+import { NETWORK_IDS } from '../../provider';
 
 const changeAPIHandle = 'change';
 
@@ -87,7 +89,7 @@ export const getChangeNonProfitByNameOrIEN = async (
 
 export const createProjectFromChangeNonProfit = async (
   nonProfit: ChangeNonProfit,
-): Promise<Project> => {
+): Promise<Project | undefined> => {
   try {
     const changeCategory = await findOrCreateChangeAPICategory();
     const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
@@ -96,6 +98,8 @@ export const createProjectFromChangeNonProfit = async (
     });
 
     const adminUser = await findUserById(Number(adminId));
+    if (!adminUser) return;
+
     const slugBase = slugify(nonProfit.name, {
       remove: /[*+~.,()'"!:@]/g,
     });
@@ -110,7 +114,7 @@ export const createProjectFromChangeNonProfit = async (
       organization,
       description: nonProfit.mission,
       categories: [changeCategory],
-      walletAddress: nonProfit.crypto.ethereum_address,
+      walletAddress: nonProfit.crypto.ethereum_address.toLowerCase(),
       creationDate: new Date(),
       slug,
       youtube: nonProfit.socials.youtube,
@@ -131,6 +135,18 @@ export const createProjectFromChangeNonProfit = async (
       isImported: true,
     });
     await project.save();
+
+    // Add addresses relation
+    await addBulkNewProjectAddress([
+      {
+        project,
+        user: adminUser,
+        address: nonProfit.crypto.ethereum_address.toLowerCase(),
+        networkId: NETWORK_IDS.MAIN_NET,
+        isRecipient: true,
+      },
+    ]);
+
     logger.debug(
       'This changeAPI project has been created in our db with ID:',
       project.id,
