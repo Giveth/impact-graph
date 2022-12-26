@@ -14,9 +14,17 @@ export interface NotificationAdapterInterface {
     donor: User;
   }): Promise<void>;
 
-  projectReceivedHeartReaction(params: { project: Project }): Promise<void>;
+  projectReceivedHeartReaction(params: {
+    project: Project;
+    userId: number;
+  }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;
+  projectBoosted(params: { project: Project; userId: number }): Promise<void>;
+  projectBoostedBatch(params: {
+    projectIds: number[];
+    userId: number;
+  }): Promise<void>;
   projectBadgeRevoked(params: { project: Project }): Promise<void>;
   projectBadgeRevokeReminder(params: { project: Project }): Promise<void>;
   projectBadgeRevokeWarning(params: { project: Project }): Promise<void>;

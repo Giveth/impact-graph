@@ -36,6 +36,24 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     });
     return Promise.resolve(undefined);
   }
+
+  projectBoosted(params: { project: Project; userId: number }): Promise<void> {
+    logger.info('MockNotificationAdapter projectBoosted', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectBoostedBatch(params: {
+    projectIds: number[];
+    userId: number;
+  }): Promise<void> {
+    logger.info('MockNotificationAdapter projectBoostedBatch', {
+      projectIds: params.projectIds,
+      userId: params.userId,
+    });
+    return Promise.resolve(undefined);
+  }
   projectBadgeRevoked(params: { project: Project }): Promise<void> {
     logger.info('MockNotificationAdapter projectBadgeRevoked', {
       projectSlug: params.project.slug,
@@ -71,7 +89,10 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  projectReceivedHeartReaction(params: { project: Project }): Promise<void> {
+  projectReceivedHeartReaction(params: {
+    project: Project;
+    userId: number;
+  }): Promise<void> {
     logger.info('MockNotificationAdapter projectReceivedHeartReaction', {
       projectSlug: params.project.slug,
     });
