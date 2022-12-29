@@ -153,8 +153,11 @@ export class PowerBoostingResolver {
       projectId,
       percentage,
     });
-    const project = (await findProjectById(projectId)) as Project;
-    await getNotificationAdapter().projectBoosted({ project, userId });
+    getNotificationAdapter()
+      .projectBoosted({ projectId, userId })
+      .catch(err =>
+        logger.error('send projectBoosted notification error', err),
+      );
     return result;
   }
 
