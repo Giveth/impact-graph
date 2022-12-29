@@ -311,31 +311,22 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async projectBoosted(params: {
-    project: Project;
+    projectId: number;
     userId: number;
   }): Promise<void> {
-    const { project, userId } = params;
-    const projectOwner = project.adminUser as User;
-
-    return sendProjectRelatedNotification({
-      project,
+    const { projectId, userId } = params;
+    const project = (await findProjectById(projectId)) as Project;
+    sendProjectRelatedNotificationsQueue.add({
+      project: project as Project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED,
 
       // With adding trackId to notification, notification-center would not create new notification
       // If there is already a notification with this trackId in DB
       trackId: generateTrackId({
         userId,
-        projectId: project.id,
+        projectId: project?.id as number,
         action: 'boostProject',
       }),
-      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED,
-      sendEmail: true,
-      segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
-          project,
-        }),
-      },
     });
   }
 
@@ -344,23 +335,12 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     userId: number;
   }): Promise<void> {
     const { userId, projectIds } = params;
-    const projects = await Promise.all(
-      projectIds.map(projectId => findProjectById(projectId)),
-    );
-    projects.forEach(project => {
-      sendProjectRelatedNotificationsQueue.add({
-        project: project as Project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED,
-
-        // With adding trackId to notification, notification-center would not create new notification
-        // If there is already a notification with this trackId in DB
-        trackId: generateTrackId({
-          userId,
-          projectId: project?.id as number,
-          action: 'boostProject',
-        }),
+    for (const projectId of projectIds) {
+      await this.projectBoosted({
+        userId,
+        projectId,
       });
-    });
+    }
   }
 
   async projectBadgeRevoked(params: { project: Project }): Promise<void> {

@@ -37,9 +37,10 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  projectBoosted(params: { project: Project; userId: number }): Promise<void> {
+  projectBoosted(params: { projectId: number; userId: number }): Promise<void> {
     logger.info('MockNotificationAdapter projectBoosted', {
-      projectSlug: params.project.slug,
+      projectId: params.projectId,
+      userId: params.userId,
     });
     return Promise.resolve(undefined);
   }
