@@ -70,15 +70,6 @@ class PowerBoostingOrderBy {
 @Service()
 @ArgsType()
 export class GetPowerBoostingArgs {
-  @Field(type => Int, { defaultValue: 0 })
-  @Min(0)
-  skip: number;
-
-  @Field(type => Int, { defaultValue: 20 })
-  @Min(0)
-  @Max(50)
-  take: number;
-
   @Field(type => PowerBoostingOrderBy, {
     nullable: true,
     defaultValue: {
@@ -144,7 +135,7 @@ export class PowerBoostingResolver {
   @Query(returns => GivPowers)
   async getPowerBoosting(
     @Args()
-    { take, skip, projectId, userId, orderBy }: GetPowerBoostingArgs,
+    { projectId, userId, orderBy }: GetPowerBoostingArgs,
   ): Promise<GivPowers> {
     if (!projectId && !userId) {
       throw new Error(
@@ -156,9 +147,7 @@ export class PowerBoostingResolver {
     const [powerBoostings, totalCount] = await findPowerBoostings({
       userId,
       projectId,
-      skip,
       orderBy,
-      take,
     });
     return {
       powerBoostings,

@@ -21,8 +21,6 @@ import { PowerBoosting } from '../entities/powerBoosting';
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { getConnection } from 'typeorm';
-import { Reaction } from '../entities/reaction';
-import { findUsersWhoLikedProjectExcludeProjectOwner } from './reactionRepository';
 import { errorMessages } from '../utils/errorMessages';
 
 describe('findUserPowerBoosting() testCases', findUserPowerBoostingTestCases);
@@ -157,8 +155,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 20,
-      skip: 1,
       orderBy: {
         field: 'updatedAt',
         direction: 'DESC',
@@ -200,8 +196,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 20,
-      skip: 1,
       orderBy: {
         field: 'updatedAt',
         direction: 'DESC',
@@ -243,8 +237,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 20,
-      skip: 1,
       orderBy: {
         field: 'updatedAt',
         direction: 'DESC',
@@ -258,7 +250,7 @@ function findPowerBoostingsTestCases() {
       assert.equal(powerBoosting.project.id, firstProject.id);
     });
   });
-  it('should return all power boostings, filter by projectId, with sending take', async () => {
+  it('should return all power boostings, filter by projectId', async () => {
     const firstUser = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );
@@ -289,8 +281,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 1,
-      skip: 0,
       orderBy: {
         field: 'updatedAt',
         direction: 'DESC',
@@ -298,52 +288,29 @@ function findPowerBoostingsTestCases() {
       projectId: firstProject.id,
     });
     assert.equal(totalCount, 2);
-    assert.equal(powerBoostings.length, 1);
-    powerBoostings.forEach(powerBoosting => {
-      assert.equal(powerBoosting.id, secondPower.id);
-    });
+    assert.equal(powerBoostings.length, 2);
   });
-  it('should return all power boostings, filter by projectId, with sending skip', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const secondUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const secondProject = await saveProjectDirectlyToDb(createProjectData());
-    const firstPower = await insertSinglePowerBoosting({
-      user: firstUser,
-      project: firstProject,
-      percentage: 1,
-    });
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project: secondProject,
-      percentage: 2,
-    });
-    await insertSinglePowerBoosting({
-      user: secondUser,
-      project: firstProject,
-      percentage: 3,
-    });
-    await insertSinglePowerBoosting({
-      user: secondUser,
-      project: secondProject,
-      percentage: 4,
-    });
+  it('should return all (500) power boostings, filter by projectId', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    for (let i = 0; i < 500; i++) {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      await insertSinglePowerBoosting({
+        user,
+        project,
+        percentage: 3,
+      });
+    }
+
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 1,
-      skip: 1,
       orderBy: {
         field: 'updatedAt',
         direction: 'DESC',
       },
-      projectId: firstProject.id,
+      projectId: project.id,
     });
-    assert.equal(totalCount, 2);
-    assert.equal(powerBoostings.length, 1);
-    assert.equal(powerBoostings[0].id, firstPower.id);
+    assert.equal(totalCount, 500);
+    assert.equal(powerBoostings.length, 500);
+    powerBoostings.forEach(pb => assert.equal(pb.projectId, project.id));
   });
   it('should return all power boostings, filter by projectId,order by updateAt ASC', async () => {
     const firstUser = await saveUserDirectlyToDb(
@@ -375,8 +342,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 20,
-      skip: 0,
       orderBy: {
         field: 'updatedAt',
         direction: 'ASC',
@@ -416,8 +381,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 20,
-      skip: 0,
       orderBy: {
         field: 'updatedAt',
         direction: 'DESC',
@@ -457,8 +420,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 20,
-      skip: 0,
       orderBy: {
         field: 'createdAt',
         direction: 'ASC',
@@ -498,8 +459,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 20,
-      skip: 0,
       orderBy: {
         field: 'createdAt',
         direction: 'DESC',
@@ -540,8 +499,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 20,
-      skip: 0,
       orderBy: {
         field: 'percentage',
         direction: 'ASC',
@@ -581,8 +538,6 @@ function findPowerBoostingsTestCases() {
       percentage: 4,
     });
     const [powerBoostings, totalCount] = await findPowerBoostings({
-      take: 20,
-      skip: 0,
       orderBy: {
         field: 'percentage',
         direction: 'DESC',
