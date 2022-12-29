@@ -27,9 +27,11 @@ import {
 } from '../repositories/powerBoostingRepository';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
-import { OrderField, SortingField } from '../entities/project';
+import { OrderField, Project, SortingField } from '../entities/project';
 import { logger } from '../utils/logger';
 import { getBottomRank } from '../repositories/projectPowerViewRepository';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { findProjectById } from '../repositories/projectRepository';
 
 enum PowerBoostingOrderDirection {
   ASC = 'ASC',
@@ -112,18 +114,25 @@ export class PowerBoostingResolver {
     @Arg('percentages', type => [Float]) percentages: number[],
     @Ctx() { req: { user } }: MyContext,
   ): Promise<PowerBoosting[]> {
-    if (!user || !user?.userId) {
+    const userId = user?.userId;
+    if (!user || !userId) {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
     }
 
     // validator: sum of percentages should not be more than 100, all projects should active, ...
-    return setMultipleBoosting({
-      userId: user?.userId,
+    const result = await setMultipleBoosting({
+      userId,
       projectIds,
       percentages,
     });
+
+    await getNotificationAdapter().projectBoostedBatch({
+      userId,
+      projectIds,
+    });
+    return result;
   }
 
   @Mutation(returns => [PowerBoosting])
@@ -132,13 +141,24 @@ export class PowerBoostingResolver {
     @Arg('percentage', type => Float) percentage: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<PowerBoosting[]> {
-    if (!user || !user?.userId) {
+    const userId = user?.userId;
+    if (!user || !userId) {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
     }
 
-    return setSingleBoosting({ userId: user.userId, projectId, percentage });
+    const result = await setSingleBoosting({
+      userId,
+      projectId,
+      percentage,
+    });
+    getNotificationAdapter()
+      .projectBoosted({ projectId, userId })
+      .catch(err =>
+        logger.error('send projectBoosted notification error', err),
+      );
+    return result;
   }
 
   @Query(returns => GivPowers)

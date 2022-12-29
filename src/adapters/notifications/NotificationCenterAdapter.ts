@@ -13,6 +13,7 @@ import config from '../../config';
 import { findUsersWhoDonatedToProjectExcludeWhoLiked } from '../../repositories/donationRepository';
 import { findUsersWhoLikedProjectExcludeProjectOwner } from '../../repositories/reactionRepository';
 import { findUsersWhoBoostedProject } from '../../repositories/powerBoostingRepository';
+import { findProjectById } from '../../repositories/projectRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -43,6 +44,7 @@ interface ProjectRelatedNotificationsQueue {
     email?: string;
   };
   segment?: SegmentData;
+  trackId?: string;
 }
 
 const sendProjectRelatedNotificationsQueue =
@@ -59,6 +61,7 @@ interface SendNotificationBody {
   sendSegment?: boolean;
   eventName: string;
   email?: string;
+  trackId?: string;
   metadata?: any;
   projectId: string;
   userWalletAddress: string;
@@ -123,10 +126,12 @@ const sendProjectRelatedNotification = async (params: {
   };
   segment?: SegmentData;
   sendEmail?: boolean;
+  trackId?: string;
 }): Promise<void> => {
-  const { project, eventName, metadata, user, segment, sendEmail } = params;
+  const { project, eventName, metadata, user, segment, sendEmail, trackId } =
+    params;
   const receivedUser = user || (project.adminUser as User);
-  return callSendNotification({
+  const data: SendNotificationBody = {
     eventName,
     email: receivedUser.email,
     sendEmail: sendEmail || false,
@@ -139,7 +144,19 @@ const sendProjectRelatedNotification = async (params: {
       ...metadata,
     },
     segment,
-  });
+  };
+  if (trackId) {
+    data.trackId = trackId;
+  }
+  return callSendNotification(data);
+};
+
+const generateTrackId = (params: {
+  userId: number;
+  action: 'likeProject' | 'boostProject';
+  projectId: number;
+}): string => {
+  return `${params.action}-${params.projectId}-${params.userId}`;
 };
 
 const callSendNotification = async (
@@ -181,13 +198,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       numberOfSendNotificationsConcurrentJob,
       async (job, done) => {
         logger.debug('processing send notification job', job.data);
-        const { project, metadata, eventName, user } = job.data;
+        const { project, metadata, eventName, user, trackId } = job.data;
         try {
           await sendProjectRelatedNotification({
             project,
             eventName,
             metadata,
             user,
+            trackId,
           });
         } catch (e) {
           logger.error('processSendingNotifications >> error', e);
@@ -290,6 +308,39 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         }),
       },
     });
+  }
+
+  async projectBoosted(params: {
+    projectId: number;
+    userId: number;
+  }): Promise<void> {
+    const { projectId, userId } = params;
+    const project = (await findProjectById(projectId)) as Project;
+    sendProjectRelatedNotificationsQueue.add({
+      project: project as Project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED,
+
+      // With adding trackId to notification, notification-center would not create new notification
+      // If there is already a notification with this trackId in DB
+      trackId: generateTrackId({
+        userId,
+        projectId: project?.id as number,
+        action: 'boostProject',
+      }),
+    });
+  }
+
+  async projectBoostedBatch(params: {
+    projectIds: number[];
+    userId: number;
+  }): Promise<void> {
+    const { userId, projectIds } = params;
+    for (const projectId of projectIds) {
+      await this.projectBoosted({
+        userId,
+        projectId,
+      });
+    }
   }
 
   async projectBadgeRevoked(params: { project: Project }): Promise<void> {
@@ -410,11 +461,20 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async projectReceivedHeartReaction(params: {
     project: Project;
+    userId: number;
   }): Promise<void> {
     const { project } = params;
     return sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_RECEIVED_HEART,
+
+      // With adding trackId to notification, notification-center would not create new notification
+      // If there is already a notification with this trackId in DB
+      trackId: generateTrackId({
+        userId: params.userId,
+        projectId: project?.id as number,
+        action: 'likeProject',
+      }),
     });
   }
 

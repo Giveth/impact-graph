@@ -221,9 +221,9 @@ export class ReactionResolver {
 
       // commit transaction now:
       await queryRunner.commitTransaction();
-      const userWhoLiked = (await findUserById(user.userId)) as User;
       await getNotificationAdapter().projectReceivedHeartReaction({
         project,
+        userId: user.userId,
       });
       return reaction;
     } catch (e) {
