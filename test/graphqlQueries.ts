@@ -1593,7 +1593,10 @@ export const getBottomPowerRankQuery = `
 `;
 
 export const getPowerAmountRankQuery = `
-    query ($powerAmount: Float!) {
-        powerAmountRank(powerAmount: $powerAmount)
+    query (
+      $powerAmount: Float!
+      $projectId: Int
+      ) {
+        powerAmountRank(powerAmount: $powerAmount, projectId: $projectId)
     }
 `;
