@@ -8,7 +8,6 @@ import { Donation } from './donation';
 import { Wallet } from './wallet';
 import { ProjectStatus } from './projectStatus';
 import { ProjectImage } from './projectImage';
-import Notification from './notification';
 import { BankAccount, StripeTransaction } from './bankAccount';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusReason } from './projectStatusReason';
@@ -30,12 +29,12 @@ import { PowerSnapshotHistory } from './powerSnapshotHistory';
 import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
 import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
 import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
+import BroadcastNotification from './broadcastNotification';
 
 export const entities: any = [
   Organization,
   User,
   Project,
-  Notification,
   BankAccount,
   StripeTransaction,
   Category,
@@ -70,4 +69,6 @@ export const entities: any = [
   PowerSnapshotHistory,
   PowerBalanceSnapshotHistory,
   PowerBoostingSnapshotHistory,
+
+  BroadcastNotification,
 ];

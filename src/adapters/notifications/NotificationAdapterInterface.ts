@@ -45,4 +45,11 @@ export interface NotificationAdapterInterface {
     project: Project;
     donationInfo: { txLink: string; reason: string };
   }): Promise<void>;
+  broadcastNotification(params: {
+    broadCastTitle: string;
+    link: string;
+    linkTitle: string;
+    text: string;
+    sendEmail: boolean;
+  }): Promise<void>;
 }

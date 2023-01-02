@@ -92,6 +92,7 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
+import BroadcastNotification from '../entities/broadcastNotification';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -1861,6 +1862,61 @@ const getAdminBroInstance = async () => {
               isVisible: true,
             },
             description: {
+              isVisible: true,
+            },
+          },
+        },
+      },
+      {
+        resource: BroadcastNotification,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              before: async (request: AdminBroRequestInterface) => {
+                if (request?.payload?.title) {
+                  const { title, text, link, linkTitle, sendEmail } =
+                    request.payload;
+                  if (!text) {
+                    throw new Error(errorMessages.TEXT_IS_REQUIRED);
+                  }
+                  await getNotificationAdapter().broadcastNotification({
+                    broadCastTitle: title,
+                    text,
+                    link,
+                    linkTitle,
+                    sendEmail,
+                  });
+                }
+                return request;
+              },
+            },
+            edit: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            title: {
+              isVisible: true,
+            },
+            text: {
+              isVisible: true,
+            },
+            link: {
+              isVisible: true,
+            },
+            linkTitle: {
+              isVisible: true,
+            },
+            sendEmail: {
               isVisible: true,
             },
           },

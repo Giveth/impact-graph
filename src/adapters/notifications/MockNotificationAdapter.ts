@@ -179,4 +179,16 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     });
     return Promise.resolve(undefined);
   }
+
+  broadcastNotification(params: {
+    broadCastTitle: string;
+    link: string;
+    linkTitle: string;
+    text: string;
+    sendEmail: boolean;
+  }): Promise<void> {
+    // throw new Error('test adminBro')
+    logger.info('MockNotificationAdapter broadcastNotification', params);
+    return Promise.resolve(undefined);
+  }
 }

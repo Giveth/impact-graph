@@ -168,6 +168,7 @@ export const errorMessages = {
     'Number of boosted projects exceeds limit',
   REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST:
     'There is not any category with name registered-non-profits, probably you forgot to run migrations',
+  TEXT_IS_REQUIRED: '"text" is required',
 };
 
 export const translationErrorMessagesKeys = {
