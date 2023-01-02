@@ -38,7 +38,7 @@ function projectPowersTestCases() {
     await PowerBoostingSnapshot.clear();
   });
 
-  it('must return one where there is no project ranked', async () => {
+  it('should return one where there is no project ranked', async () => {
     await refreshProjectPowerView();
     const result = await axios.post(graphqlUrl, {
       query: getPowerAmountRankQuery,
@@ -49,7 +49,7 @@ function projectPowersTestCases() {
     assert.equal(result.data.data.powerAmountRank, 1);
   });
 
-  it('must return correct rank', async () => {
+  it('should return correct rank', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const project1 = await saveProjectDirectlyToDb(createProjectData());
@@ -118,7 +118,7 @@ function projectPowersTestCases() {
     assert.equal(result.data.data.powerAmountRank, 4);
   });
 
-  it('must be round independent', async () => {
+  it('should be round independent', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const project1 = await saveProjectDirectlyToDb(createProjectData());
@@ -180,7 +180,7 @@ function projectPowersTestCases() {
     assert.equal(result.data.data.powerAmountRank, 3);
   });
 
-  it('must update by new snapshot data', async () => {
+  it('should update by new snapshot data', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
@@ -292,5 +292,113 @@ function projectPowersTestCases() {
 
     assert.isOk(result);
     assert.equal(result.data.data.powerAmountRank, 2);
+  });
+
+  it('should return correct rank, when projectId is passed', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = project3.id * 10;
+
+    const boostings = await Promise.all(
+      [
+        [user1, project1, 10], // 1000
+        [user1, project2, 20], // 2000
+        [user1, project3, 30], // 3000
+      ].map(item => {
+        const [user, project, percentage] = item as [User, Project, number];
+        return insertSinglePowerBoosting({
+          user,
+          project,
+          percentage,
+        });
+      }),
+    );
+
+    await takePowerBoostingSnapshot();
+    let incompleteSnapshots = await findInCompletePowerSnapShots();
+    let snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
+    });
+
+    await setPowerRound(roundNumber - 1);
+    await refreshProjectFuturePowerView();
+
+    // project3 power is 3000
+    // Querying 2999 (lower than rank 1 power) power with passing project3 id
+    let result = await axios.post(graphqlUrl, {
+      query: getPowerAmountRankQuery,
+      variables: { powerAmount: 2999, projectId: project3.id },
+    });
+    assert.equal(result.data.data.powerAmountRank, 1);
+
+    // Querying 2999 power without passing project3 id
+    result = await axios.post(graphqlUrl, {
+      query: getPowerAmountRankQuery,
+      variables: { powerAmount: 2999 },
+    });
+    assert.equal(result.data.data.powerAmountRank, 2);
+
+    // Querying 2000 (rank 2 power) power with passing project3 id
+    result = await axios.post(graphqlUrl, {
+      query: getPowerAmountRankQuery,
+      variables: { powerAmount: 2000, projectId: project3.id },
+    });
+    assert.equal(result.data.data.powerAmountRank, 1);
+
+    // Querying 2000 (rank 2 power) power with passing project2 id (rank 2)
+    result = await axios.post(graphqlUrl, {
+      query: getPowerAmountRankQuery,
+      variables: { powerAmount: 2000, projectId: project2.id }, // 3000, 2000, [1500], 1000
+    });
+    assert.equal(result.data.data.powerAmountRank, 2);
+
+    // Two projects with same rank
+    boostings[0].percentage = 20; // Project 1 -> 20% = 2000
+    boostings[1].percentage = 20; // Project 2 -> 20% = 2000
+    boostings[2].percentage = 40; // Project 3 -> 40% = 4000
+    await PowerBoosting.save(boostings);
+
+    await takePowerBoostingSnapshot();
+    incompleteSnapshots = await findInCompletePowerSnapShots();
+    snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 2;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
+    });
+
+    await setPowerRound(roundNumber - 1);
+    await refreshProjectFuturePowerView();
+
+    result = await axios.post(graphqlUrl, {
+      query: getPowerAmountRankQuery,
+      variables: { powerAmount: 2000, projectId: project2.id },
+    });
+
+    assert.equal(result.data.data.powerAmountRank, 2);
+
+    result = await axios.post(graphqlUrl, {
+      query: getPowerAmountRankQuery,
+      variables: { powerAmount: 1999, projectId: project2.id },
+    });
+
+    assert.equal(result.data.data.powerAmountRank, 3);
   });
 }

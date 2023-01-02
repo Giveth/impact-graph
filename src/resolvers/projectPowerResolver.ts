@@ -7,7 +7,8 @@ export class ProjectPowerResolver {
   @Query(returns => Int)
   async powerAmountRank(
     @Arg('powerAmount', { nullable: false }) powerAmount: number,
+    @Arg('projectId', type => Int, { nullable: true }) projectId: number,
   ): Promise<number> {
-    return await getPowerAmountRank(powerAmount);
+    return await getPowerAmountRank(powerAmount, projectId);
   }
 }

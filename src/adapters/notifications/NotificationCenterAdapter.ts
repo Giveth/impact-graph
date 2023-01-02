@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 
 import { NotificationAdapterInterface } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
@@ -16,6 +16,7 @@ import config from '../../config';
 import { findUsersWhoDonatedToProjectExcludeWhoLiked } from '../../repositories/donationRepository';
 import { findUsersWhoLikedProjectExcludeProjectOwner } from '../../repositories/reactionRepository';
 import { findUsersWhoBoostedProject } from '../../repositories/powerBoostingRepository';
+import { findProjectById } from '../../repositories/projectRepository';
 import { findAllUsers } from '../../repositories/userRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
@@ -23,17 +24,8 @@ const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
 
 const numberOfSendNotificationsConcurrentJob =
   Number(
-    config.get('NUMBE' + 'R_OF_FILLING_POWER_SNAPSHOT_BALANCE_CONCURRENT_JOB'),
+    config.get('NUMBER_OF_FILLING_POWER_SNAPSHOT_BALANCE_CONCURRENT_JOB'),
   ) || 30;
-let isProcessingQueueEventsEnabled = false;
-
-const sendProjectRelatedNotificationsQueue =
-  new Bull<ProjectRelatedNotificationsQueue>(
-    'send-project-related-notifications',
-    {
-      redis: redisConfig,
-    },
-  );
 
 const sendBroadcastNotificationsQueue = new Bull<BroadcastNotificationsQueue>(
   'send-broadcast-notifications',
@@ -41,7 +33,6 @@ const sendBroadcastNotificationsQueue = new Bull<BroadcastNotificationsQueue>(
     redis: redisConfig,
   },
 );
-
 export class NotificationCenterAdapter implements NotificationAdapterInterface {
   readonly authorizationHeader: string;
   constructor() {
@@ -62,13 +53,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       numberOfSendNotificationsConcurrentJob,
       async (job, done) => {
         logger.debug('processing send notification job', job.data);
-        const { project, metadata, eventName, user } = job.data;
+        const { project, metadata, eventName, user, trackId } = job.data;
         try {
           await sendProjectRelatedNotification({
             project,
             eventName,
             metadata,
             user,
+            trackId,
           });
         } catch (e) {
           logger.error('processSendingNotifications >> error', e);
@@ -186,6 +178,39 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         }),
       },
     });
+  }
+
+  async projectBoosted(params: {
+    projectId: number;
+    userId: number;
+  }): Promise<void> {
+    const { projectId, userId } = params;
+    const project = (await findProjectById(projectId)) as Project;
+    sendProjectRelatedNotificationsQueue.add({
+      project: project as Project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED,
+
+      // With adding trackId to notification, notification-center would not create new notification
+      // If there is already a notification with this trackId in DB
+      trackId: generateTrackId({
+        userId,
+        projectId: project?.id as number,
+        action: 'boostProject',
+      }),
+    });
+  }
+
+  async projectBoostedBatch(params: {
+    projectIds: number[];
+    userId: number;
+  }): Promise<void> {
+    const { userId, projectIds } = params;
+    for (const projectId of projectIds) {
+      await this.projectBoosted({
+        userId,
+        projectId,
+      });
+    }
   }
 
   async projectBadgeRevoked(params: { project: Project }): Promise<void> {
@@ -306,11 +331,20 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async projectReceivedHeartReaction(params: {
     project: Project;
+    userId: number;
   }): Promise<void> {
     const { project } = params;
     return sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_RECEIVED_HEART,
+
+      // With adding trackId to notification, notification-center would not create new notification
+      // If there is already a notification with this trackId in DB
+      trackId: generateTrackId({
+        userId: params.userId,
+        projectId: project?.id as number,
+        action: 'likeProject',
+      }),
     });
   }
 
@@ -735,13 +769,6 @@ const getSegmentProjectAttributes = (params: { project: Project }) => {
   };
 };
 
-const authorizationHeader = () => {
-  return createBasicAuthentication({
-    userName: notificationCenterUsername,
-    password: notificationCenterPassword,
-  });
-};
-
 const sendProjectRelatedNotification = async (params: {
   project: Project;
   eventName: NOTIFICATIONS_EVENT_NAMES;
@@ -752,10 +779,12 @@ const sendProjectRelatedNotification = async (params: {
   };
   segment?: SegmentData;
   sendEmail?: boolean;
+  trackId?: string;
 }): Promise<void> => {
-  const { project, eventName, metadata, user, segment, sendEmail } = params;
+  const { project, eventName, metadata, user, segment, sendEmail, trackId } =
+    params;
   const receivedUser = user || (project.adminUser as User);
-  return callSendNotification({
+  const data: SendNotificationBody = {
     eventName,
     email: receivedUser.email,
     sendEmail: sendEmail || false,
@@ -768,11 +797,15 @@ const sendProjectRelatedNotification = async (params: {
       ...metadata,
     },
     segment,
-  });
+  };
+  if (trackId) {
+    data.trackId = trackId;
+  }
+  return callSendNotification(data);
 };
 
 const callSendNotification = async (
-  data: SendProjectRelatedNotificationBody,
+  data: SendNotificationBody,
 ): Promise<void> => {
   try {
     await axios.post(`${notificationCenterBaseUrl}/notifications`, data, {
@@ -829,21 +862,6 @@ interface BroadcastNotificationsQueue {
   notifications: SendBatchNotificationItem[];
 }
 
-interface SendProjectRelatedNotificationBody {
-  sendEmail?: boolean;
-  sendSegment?: boolean;
-  eventName: string;
-  email?: string;
-  metadata?: any;
-  projectId: string;
-  userWalletAddress: string;
-  segment?: {
-    payload: any;
-    analyticsUserId?: string;
-    anonymousId?: string;
-  };
-}
-
 interface SendBatchNotificationItem {
   sendEmail?: boolean;
   sendSegment?: boolean;
@@ -859,3 +877,61 @@ interface SendBatchNotificationItem {
   trackId: string;
 }
 type SendBatchNotificationBody = SendBatchNotificationItem[];
+
+interface SegmentData {
+  payload: any;
+  analyticsUserId?: string;
+  anonymousId?: string;
+}
+
+interface ProjectRelatedNotificationsQueue {
+  project: Project;
+  eventName: NOTIFICATIONS_EVENT_NAMES;
+  metadata?: any;
+  user?: {
+    walletAddress: string;
+    email?: string;
+  };
+  segment?: SegmentData;
+  trackId?: string;
+}
+
+const sendProjectRelatedNotificationsQueue =
+  new Bull<ProjectRelatedNotificationsQueue>(
+    'send-project-related-notifications',
+    {
+      redis: redisConfig,
+    },
+  );
+let isProcessingQueueEventsEnabled = false;
+
+interface SendNotificationBody {
+  sendEmail?: boolean;
+  sendSegment?: boolean;
+  eventName: string;
+  email?: string;
+  trackId?: string;
+  metadata?: any;
+  projectId: string;
+  userWalletAddress: string;
+  segment?: {
+    payload: any;
+    analyticsUserId?: string;
+    anonymousId?: string;
+  };
+}
+
+const authorizationHeader = () => {
+  return createBasicAuthentication({
+    userName: notificationCenterUsername,
+    password: notificationCenterPassword,
+  });
+};
+
+const generateTrackId = (params: {
+  userId: number;
+  action: 'likeProject' | 'boostProject';
+  projectId: number;
+}): string => {
+  return `${params.action}-${params.projectId}-${params.userId}`;
+};
