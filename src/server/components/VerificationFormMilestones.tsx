@@ -1,12 +1,8 @@
 import React from 'react';
 import { withTheme } from 'styled-components';
-import { Section, Label, Link } from '@admin-bro/design-system';
+import { Section, Label, Link } from '@adminjs/design-system';
 
 const VerificationFormMilestones = props => {
-  console.log(
-    'VerificationFormMilestones props.record.params',
-    props.record.params,
-  );
   const proofs: string[] = [];
   Object.keys(props.record.params).forEach(key => {
     if (key.startsWith('milestones.achievedMilestonesProofs.')) {
