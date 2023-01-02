@@ -74,9 +74,9 @@ export class GetPowerBoostingArgs {
   @Min(0)
   skip: number;
 
-  @Field(type => Int, { defaultValue: 20 })
+  @Field(type => Int, { defaultValue: 1000 })
   @Min(0)
-  @Max(50)
+  @Max(1000)
   take: number;
 
   @Field(type => PowerBoostingOrderBy, {
