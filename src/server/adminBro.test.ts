@@ -8,6 +8,7 @@ import {
   linkOrganizations,
   listDelist,
   permute,
+  sendBroadcastNotification,
   updateStatusOfProjects,
   verifyProjects,
 } from './adminBro';
@@ -49,6 +50,13 @@ import {
 } from '../entities/projectVerificationForm';
 import { verifyMultipleProjects } from '../repositories/projectRepository';
 import { ProjectAddress } from '../entities/projectAddress';
+import BroadcastNotification, {
+  BROAD_CAST_NOTIFICATION_STATUS,
+} from '../entities/broadcastNotification';
+import {
+  updateBroadcastNotificationStatus,
+  findBroadcastNotificationById,
+} from '../repositories/broadcastNotificationRepository';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -75,6 +83,10 @@ describe(
 describe(
   'importThirdPartyProject() test cases',
   importThirdPartyProjectTestCases,
+);
+describe(
+  'sendBroadcastNotification() test cases',
+  sendBroadcastNotificationTestCases,
 );
 
 const recursiveFactorial = (n: number) => {
@@ -1303,6 +1315,26 @@ function listDelistTestCases() {
       history?.description,
       HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
     );
+  });
+}
+
+function sendBroadcastNotificationTestCases() {
+  it('should update status of broadcastNotification after sending notifications', async () => {
+    const bn = await BroadcastNotification.create({
+      title: 'test',
+      text: 'test',
+      status: BROAD_CAST_NOTIFICATION_STATUS.PENDING,
+      link: 'test',
+      linkTitle: 'test',
+    }).save();
+    assert.equal(bn.status, BROAD_CAST_NOTIFICATION_STATUS.PENDING);
+    await sendBroadcastNotification({
+      record: {
+        params: bn,
+      },
+    });
+    const result = await findBroadcastNotificationById(bn.id);
+    assert.equal(result?.status, BROAD_CAST_NOTIFICATION_STATUS.SUCCESS);
   });
 }
 // @ts-ignore-end

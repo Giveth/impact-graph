@@ -150,6 +150,7 @@
     "test:projectRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/projectRepository.test.ts",
     "test:powerBalanceSnapshotRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerBalanceSnapshotRepository.test.ts",
     "test:powerBoostingRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerBoostingRepository.test.ts",
+    "test:broadcastNotificationRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/broadcastNotificationRepository.test.ts",
     "test:userPowerRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userPowerRepository.test.ts",
     "test:powerRoundRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/powerRoundRepository.test.ts",
     "test:userProjectPowerRepository": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/repositories/userProjectPowerViewRepository.test.ts",

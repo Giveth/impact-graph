@@ -169,6 +169,8 @@ export const errorMessages = {
   REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST:
     'There is not any category with name registered-non-profits, probably you forgot to run migrations',
   TEXT_IS_REQUIRED: '"text" is required',
+  YOU_SHOULD_FILL_EITHER_BOTH_LINK_AND_LINK_TITLE_OR_NONE:
+    'You should fille both link and linkTitle or dont fill none of them',
 };
 
 export const translationErrorMessagesKeys = {

@@ -92,7 +92,10 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
-import BroadcastNotification from '../entities/broadcastNotification';
+import BroadcastNotification, {
+  BROAD_CAST_NOTIFICATION_STATUS,
+} from '../entities/broadcastNotification';
+import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -1878,23 +1881,22 @@ const getAdminBroInstance = async () => {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
-              before: async (request: AdminBroRequestInterface) => {
+              before: (request: AdminBroRequestInterface) => {
                 if (request?.payload?.title) {
                   const { title, text, link, linkTitle, sendEmail } =
                     request.payload;
                   if (!text) {
                     throw new Error(errorMessages.TEXT_IS_REQUIRED);
                   }
-                  await getNotificationAdapter().broadcastNotification({
-                    broadCastTitle: title,
-                    text,
-                    link,
-                    linkTitle,
-                    sendEmail,
-                  });
+                  if ((link && !linkTitle) || (!link && linkTitle)) {
+                    throw new Error(
+                      errorMessages.YOU_SHOULD_FILL_EITHER_BOTH_LINK_AND_LINK_TITLE_OR_NONE,
+                    );
+                  }
                 }
                 return request;
               },
+              after: sendBroadcastNotification,
             },
             edit: {
               isVisible: false,
@@ -1912,6 +1914,14 @@ const getAdminBroInstance = async () => {
             },
             link: {
               isVisible: true,
+            },
+            status: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
             },
             linkTitle: {
               isVisible: true,
@@ -2187,6 +2197,36 @@ export const listDelist = async (
       type: 'success',
     },
   };
+};
+
+export const sendBroadcastNotification = async (
+  response,
+): Promise<After<ActionResponse>> => {
+  const record: RecordJSON = response.record || {};
+  if (record?.params) {
+    const { title, text, link, linkTitle, sendEmail, id } = record?.params;
+    try {
+      await getNotificationAdapter().broadcastNotification({
+        broadCastNotificationId: id,
+        broadCastTitle: title,
+        text,
+        link,
+        linkTitle,
+        sendEmail,
+      });
+      await updateBroadcastNotificationStatus(
+        id,
+        BROAD_CAST_NOTIFICATION_STATUS.SUCCESS,
+      );
+    } catch (e) {
+      logger.error('sendBroadcastNotification error', e);
+      await updateBroadcastNotificationStatus(
+        id,
+        BROAD_CAST_NOTIFICATION_STATUS.FAILED,
+      );
+    }
+  }
+  return response;
 };
 
 export const verifySingleVerificationForm = async (

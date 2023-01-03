@@ -1,6 +1,16 @@
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
+import exp from 'constants';
+
+export interface BroadCastNotificationInputParams {
+  broadCastNotificationId: number;
+  broadCastTitle: string;
+  link: string;
+  linkTitle: string;
+  text: string;
+  sendEmail: boolean;
+}
 
 export interface NotificationAdapterInterface {
   donationReceived(params: {
@@ -53,11 +63,7 @@ export interface NotificationAdapterInterface {
     project: Project;
     donationInfo: { txLink: string; reason: string };
   }): Promise<void>;
-  broadcastNotification(params: {
-    broadCastTitle: string;
-    link: string;
-    linkTitle: string;
-    text: string;
-    sendEmail: boolean;
-  }): Promise<void>;
+  broadcastNotification(
+    params: BroadCastNotificationInputParams,
+  ): Promise<void>;
 }

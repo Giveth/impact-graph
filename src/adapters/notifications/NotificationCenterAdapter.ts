@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-import { NotificationAdapterInterface } from './NotificationAdapterInterface';
+import {
+  BroadCastNotificationInputParams,
+  NotificationAdapterInterface,
+} from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
@@ -690,18 +693,21 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  async broadcastNotification(params: {
-    broadCastTitle: string;
-    link?: string;
-    linkTitle?: string;
-    text: string;
-    sendEmail: boolean;
-  }): Promise<void> {
-    const { broadCastTitle, link, linkTitle, text, sendEmail } = params;
+  async broadcastNotification(
+    params: BroadCastNotificationInputParams,
+  ): Promise<void> {
+    const {
+      broadCastTitle,
+      link,
+      linkTitle,
+      text,
+      sendEmail,
+      broadCastNotificationId,
+    } = params;
     let allUserFetched = false;
     const take = 100;
     let skip = 0;
-    const trackIdPrefix = `broadCast-${getTimestampInSeconds(new Date())}`;
+    const trackIdPrefix = `broadCast-${broadCastNotificationId}`;
     while (!allUserFetched) {
       const { users } = await findAllUsers({ take, skip });
       if (users.length === 0) {
@@ -716,11 +722,18 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           eventName: NOTIFICATIONS_EVENT_NAMES.BROADCAST_NOTIFICATION_BY_ADMIN,
           sendEmail,
           sendSegment: sendEmail,
+          segment: {
+            analyticsUserId: user.segmentUserId(),
+            anonymousId: user.segmentUserId(),
+            payload: {
+              email: user.email,
+            },
+          },
           metadata: {
-            link,
+            href: link,
             linkTitle,
-            title: broadCastTitle,
-            text,
+            content: broadCastTitle,
+            instruction: text,
           },
           userWalletAddress: user.walletAddress as string,
           trackId: `${trackIdPrefix}-${user.walletAddress}`,
