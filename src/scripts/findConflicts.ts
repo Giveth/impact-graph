@@ -209,15 +209,15 @@ async function checkTransactionWithOurDonations(
       return { message };
     }
 
-    const isFromAddressAnSmartContract = await isWalletAddressSmartContract(
-      transaction.from,
-    );
-    if (isFromAddressAnSmartContract) {
-      smartContractAddresses.push(transaction.from.toLowerCase());
-      throw new Error(
-        'FromAddress is a smart contract address ' + transaction.from,
-      );
-    }
+    // const isFromAddressAnSmartContract = await isWalletAddressSmartContract(
+    //   transaction.from,
+    // );
+    // if (isFromAddressAnSmartContract) {
+    //   smartContractAddresses.push(transaction.from.toLowerCase());
+    //   throw new Error(
+    //     'FromAddress is a smart contract address ' + transaction.from,
+    //   );
+    // }
     const correspondingDonation = await Donation.findOne({
       transactionId: transaction.hash,
     });
