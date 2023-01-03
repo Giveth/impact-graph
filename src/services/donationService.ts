@@ -2,21 +2,99 @@ import { Project } from '../entities/project';
 import { Token } from '../entities/token';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { TransakOrder } from './transak/order';
-import { User } from '../entities/user';
-import DonationTracker from './segment/DonationTracker';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
-import { Organization } from '../entities/organization';
 import { findUserById } from '../repositories/userRepository';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { getTransactionInfoFromNetwork } from './transactionService';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice } from './givPriceService';
 import { findDonationById } from '../repositories/donationRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { calculateGivbackFactor } from './givbackService';
+import { getTokenPrices } from 'monoswap';
+import SentryLogger from '../sentryLogger';
+import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
+
+export const updateDonationPricesAndValues = async (
+  donation: Donation,
+  project: Project,
+  currency: string,
+  baseTokens: string[],
+  priceChainId: string | number,
+  amount: string | number,
+) => {
+  try {
+    const tokenPrices = await getMonoSwapTokenPrices(
+      currency,
+      baseTokens,
+      Number(priceChainId),
+    );
+
+    if (tokenPrices.length !== 0) {
+      donation.priceUsd = Number(tokenPrices[0]);
+      donation.priceEth = Number(tokenPrices[1]);
+
+      donation.valueUsd = Number(amount) * donation.priceUsd;
+      donation.valueEth = Number(amount) * donation.priceEth;
+    }
+  } catch (e) {
+    logger.error('Error in getting price from monoswap', {
+      error: e,
+      donation,
+    });
+
+    await getNotificationAdapter().donationGetPriceFailed({
+      project,
+      donationInfo: {
+        reason: 'Getting price failed',
+
+        // TODO Add txLink
+        txLink: donation.transactionId,
+      },
+    });
+    SentryLogger.captureException(
+      new Error('Error in getting price from monoswap'),
+      {
+        extra: {
+          donationId: donation.id,
+          txHash: donation.transactionId,
+          currency: donation.currency,
+          network: donation.transactionNetworkId,
+        },
+      },
+    );
+  }
+  const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+    await calculateGivbackFactor(project.id);
+  donation.givbackFactor = givbackFactor;
+  donation.projectRank = projectRank;
+  donation.bottomRankInRound = bottomRankInRound;
+  donation.powerRound = powerRound;
+
+  return await donation.save();
+};
+
+export const getMonoSwapTokenPrices = async (
+  token: string,
+  baseTokens: string[],
+  chainId: number,
+): Promise<number[]> => {
+  try {
+    const tokenPrices = await getTokenPrices(token, baseTokens, chainId);
+
+    return tokenPrices;
+  } catch (e) {
+    logger.debug('Unable to fetch monoswap prices: ', e);
+    return [];
+  }
+};
 
 export const updateDonationByTransakData = async (
   transakData: TransakOrder,
@@ -76,16 +154,17 @@ export const updateDonationByTransakData = async (
 
 export const updateTotalDonationsOfProject = async (projectId: number) => {
   try {
-    const donationsAmount = await Donation.query(
-      `SELECT COALESCE(SUM("valueUsd"),0) AS total
-            FROM donation
-            WHERE "projectId" = ${projectId}`,
-    );
-    await Project.update(
-      { id: projectId },
-      {
-        totalDonations: donationsAmount[0].total,
-      },
+    await Project.query(
+      `
+      UPDATE "project"
+      SET "totalDonations" = (
+        SELECT COALESCE(SUM(d."valueUsd"),0)
+        FROM "donation" as d
+        WHERE d."projectId" = $1 AND d."status" = 'verified'
+      )
+      WHERE "id" = $1
+    `,
+      [projectId],
     );
   } catch (e) {
     logger.error('updateTotalDonationsOfAProject error', e);
@@ -199,7 +278,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
   const { donationId } = params;
   const donation = await findDonationById(donationId);
   if (!donation) {
-    throw new Error(errorMessages.DONATION_NOT_FOUND);
+    throw new Error(i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND));
   }
   logger.debug('syncDonationStatusWithBlockchainNetwork() has been called', {
     donationId,
@@ -223,6 +302,14 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donation.transactionId = transaction.hash;
     }
     await donation.save();
+
+    // ONLY verified donations should be accumulated
+    // After updating, recalculate user total donated and owner total received
+    await updateUserTotalDonated(donation.userId);
+
+    // After updating price we update totalDonations
+    await updateTotalDonationsOfProject(donation.projectId);
+    await updateUserTotalReceived(donation.userId);
     await sendSegmentEventForDonation({
       donation,
     });
@@ -239,7 +326,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     });
 
     if (failedVerifiedDonationErrorMessages.includes(e.message)) {
-      // if error message is in failedVerifiedDonationErrorMessages then we know we should change the status to failed
+      // if error message is in failedVerifiedDonationi18n.__(translationErrorMessagesKeys.then) we know we should change the status to failed
       // otherwise we leave it to be checked in next cycle
       donation.verifyErrorMessage = e.message;
       donation.status = DONATION_STATUS.FAILED;
@@ -270,12 +357,6 @@ export const sendSegmentEventForDonation = async (params: {
   const donorUser = await findUserById(donation.userId);
   const projectOwner = project.adminUser;
   if (projectOwner) {
-    new DonationTracker(
-      donation,
-      project,
-      projectOwner,
-      NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
-    ).track();
     await getNotificationAdapter().donationReceived({
       donation,
       project,
@@ -283,12 +364,6 @@ export const sendSegmentEventForDonation = async (params: {
   }
 
   if (donorUser) {
-    new DonationTracker(
-      donation,
-      project,
-      donorUser,
-      NOTIFICATIONS_EVENT_NAMES.MADE_DONATION,
-    ).track();
     await getNotificationAdapter().donationSent({
       donation,
       project,

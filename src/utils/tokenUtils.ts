@@ -1,4 +1,8 @@
-import { errorMessages } from './errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from './errorMessages';
 import { Token } from '../entities/token';
 import { logger } from './logger';
 
@@ -20,7 +24,7 @@ export const findTokenByNetworkAndSymbol = async (
     },
   });
   if (!token) {
-    throw new Error(errorMessages.TOKEN_NOT_FOUND);
+    throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
   }
   return {
     chainId: networkId,
@@ -49,7 +53,7 @@ export const findTokenByNetworkAndAddress = async (
     })
     .getOne();
   if (!token) {
-    throw new Error(errorMessages.TOKEN_NOT_FOUND);
+    throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
   }
   return {
     chainId: networkId,

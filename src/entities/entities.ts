@@ -1,6 +1,5 @@
 import { Organization } from './organization';
 import { User } from './user';
-import { UserPower } from './userPower';
 import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
 import { Category } from './category';
@@ -23,6 +22,14 @@ import { PowerBoosting } from './powerBoosting';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { PowerRound } from './powerRound';
 import { ProjectPowerView } from '../views/projectPowerView';
+import { PowerSnapshot } from './powerSnapshot';
+import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { PowerSnapshotHistory } from './powerSnapshotHistory';
+import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
+import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
+import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
 
 export const entities: any = [
   Organization,
@@ -48,10 +55,19 @@ export const entities: any = [
   SocialProfile,
   MainCategory,
   PowerBoosting,
-  UserPower,
   PowerRound,
+  PowerSnapshot,
+  PowerBalanceSnapshot,
+  PowerBoostingSnapshot,
 
   // View
   UserProjectPowerView,
   ProjectPowerView,
+  ProjectFuturePowerView,
+  LastSnapshotProjectPowerView,
+
+  // historic snapshots
+  PowerSnapshotHistory,
+  PowerBalanceSnapshotHistory,
+  PowerBoostingSnapshotHistory,
 ];

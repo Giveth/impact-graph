@@ -1,7 +1,11 @@
 import { SocialNetworkOauth2AdapterInterface } from './oauth2/SocialNetworkOauth2AdapterInterface';
 import { DiscordAdapter } from './oauth2/discordAdapter';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { GoogleAdapter } from './oauth2/googleAdapter';
 import { LinkedinAdapter } from './oauth2/linkedinAdapter';
 import { TwitterAdapter } from './oauth2/twitterAdapter';
@@ -29,7 +33,9 @@ export const getSocialNetworkAdapter = (
     case SOCIAL_NETWORKS.TWITTER:
       return twitterAdapter;
     default:
-      throw new Error(errorMessages.INVALID_SOCIAL_NETWORK);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.INVALID_SOCIAL_NETWORK),
+      );
   }
 };
 
@@ -57,6 +63,8 @@ export const getGivPowerSubgraphAdapter = () => {
     case 'mock':
       return givPowerMockAdapter;
     default:
-      throw new Error(errorMessages.SPECIFY_GIV_POWER_ADAPTER);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.SPECIFY_GIV_POWER_ADAPTER),
+      );
   }
 };

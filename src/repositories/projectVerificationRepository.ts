@@ -10,8 +10,12 @@ import {
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
-import { Brackets, UpdateResult } from 'typeorm';
-import { errorMessages } from '../utils/errorMessages';
+import { UpdateResult } from 'typeorm';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { User } from '../entities/user';
 
 export const createProjectVerificationForm = async (params: {
@@ -27,14 +31,37 @@ export const createProjectVerificationForm = async (params: {
   } as ProjectVerificationForm).save();
 };
 
+export const updateProjectVerificationFormStatusOnly = async (
+  projectVerificationFormId: number,
+  verificationStatus: PROJECT_VERIFICATION_STATUSES,
+  reviewerId?: number,
+): Promise<ProjectVerificationForm | void> => {
+  const form = await findProjectVerificationFormById(projectVerificationFormId);
+
+  if (!form) return;
+
+  form.status = verificationStatus;
+  if (reviewerId) form.reviewerId = reviewerId;
+  return form.save();
+};
+
 export const verifyMultipleForms = async (params: {
   verificationStatus: PROJECT_VERIFICATION_STATUSES;
   formIds?: number[] | string[];
+  reviewerId?: number;
 }): Promise<UpdateResult> => {
+  const updateParams = {
+    status: params.verificationStatus,
+    verifiedAt: new Date(),
+  };
+
+  if (params.reviewerId) {
+    const key = 'reviewerId';
+    updateParams[key] = params.reviewerId;
+  }
+
   return ProjectVerificationForm.createQueryBuilder()
-    .update<ProjectVerificationForm>(ProjectVerificationForm, {
-      status: params.verificationStatus,
-    })
+    .update<ProjectVerificationForm>(ProjectVerificationForm, updateParams)
     .where('id IN (:...ids)')
     .setParameter('ids', params.formIds)
     .returning('*')
@@ -51,27 +78,60 @@ export const verifyForm = async (params: {
     .where('id = :id', { id: params.formId })
     .getOne();
 
-  if (!form) throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+  if (!form)
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
 
   form.status = params.verificationStatus;
   form.reviewer = (await findUserById(params.adminId)) as User;
+  form.verifiedAt = new Date();
   return form.save();
 };
 
 export const makeFormDraft = async (params: {
   formId: number;
-  adminId: number;
+  adminId?: number;
 }): Promise<ProjectVerificationForm> => {
   const form = await ProjectVerificationForm.createQueryBuilder()
     .where('id = :id', { id: params.formId })
     .getOne();
 
-  if (!form) throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+  if (!form)
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
 
   form.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
   form.lastStep = PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS;
   form.isTermAndConditionsAccepted = false;
-  form.reviewer = (await findUserById(params.adminId)) as User;
+  if (params.adminId) {
+    form.reviewer = (await findUserById(params.adminId)) as User;
+  }
+  return form.save();
+};
+
+export const makeFormVerified = async (params: {
+  formId: number;
+  adminId?: number;
+}): Promise<ProjectVerificationForm> => {
+  const form = await ProjectVerificationForm.createQueryBuilder()
+    .where('id = :id', { id: params.formId })
+    .getOne();
+
+  if (!form)
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
+
+  form.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
+  form.lastStep = PROJECT_VERIFICATION_STEPS.SUBMIT;
+  form.isTermAndConditionsAccepted = true;
+  form.verifiedAt = new Date();
+
+  if (params.adminId) {
+    form.reviewer = await findUserById(params.adminId);
+  }
   return form.save();
 };
 
@@ -116,7 +176,9 @@ export const updateProjectPersonalInfoOfProjectVerification = async (params: {
     projectVerificationId,
   );
   if (!projectVerificationForm) {
-    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
   }
 
   projectVerificationForm.personalInfo = personalInfo;
@@ -132,7 +194,9 @@ export const updateProjectRegistryOfProjectVerification = async (params: {
     projectVerificationId,
   );
   if (!projectVerificationForm) {
-    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
   }
 
   projectVerificationForm.projectRegistry = projectRegistry;
@@ -148,7 +212,9 @@ export const updateProjectVerificationStatus = async (params: {
     projectVerificationId,
   );
   if (!projectVerificationForm) {
-    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
   }
 
   projectVerificationForm.status = status;
@@ -164,7 +230,9 @@ export const updateProjectVerificationLastStep = async (params: {
     projectVerificationId,
   );
   if (!projectVerificationForm) {
-    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
   }
 
   projectVerificationForm.lastStep = lastStep;
@@ -180,7 +248,9 @@ export const updateProjectContactsOfProjectVerification = async (params: {
     projectVerificationId,
   );
   if (!projectVerificationForm) {
-    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
   }
   // const projectContacts2 = new ProjectContacts()
   // projectContacts2.linkedin = projectContacts.linkedin
@@ -196,7 +266,9 @@ export const updateMilestonesOfProjectVerification = async (params: {
     projectVerificationId,
   );
   if (!projectVerificationForm) {
-    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
   }
   projectVerificationForm.milestones = milestones;
   return await projectVerificationForm?.save();
@@ -210,7 +282,9 @@ export const updateTermsAndConditionsOfProjectVerification = async (params: {
     projectVerificationId,
   );
   if (!projectVerificationForm) {
-    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
   }
   projectVerificationForm.isTermAndConditionsAccepted =
     isTermAndConditionsAccepted;
@@ -226,7 +300,9 @@ export const updateManagingFundsOfProjectVerification = async (params: {
     projectVerificationId,
   );
   if (!projectVerificationForm) {
-    throw new Error(errorMessages.PROJECT_VERIFICATION_FORM_NOT_FOUND);
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.PROJECT_VERIFICATION_FORM_NOT_FOUND),
+    );
   }
   projectVerificationForm.managingFunds = managingFunds;
   return projectVerificationForm?.save();

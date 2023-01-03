@@ -1,4 +1,10 @@
-import { Category, Project, ProjStatus } from '../entities/project';
+import {
+  Category,
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+  RevokeSteps,
+} from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
 import AdminBro, { ActionResponse, After } from 'adminjs';
@@ -6,7 +12,6 @@ import { User, UserRole } from '../entities/user';
 import AdminBroExpress from '@adminjs/express';
 import config from '../config';
 import { redis } from '../redis';
-import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { Database, Resource } from '@adminjs/typeorm';
 import { SelectQueryBuilder } from 'typeorm';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
@@ -34,7 +39,11 @@ import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../types/TransactionInquiry';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
 import { IncomingMessage } from 'connect';
 import {
@@ -57,7 +66,10 @@ import {
 } from '../entities/projectVerificationForm';
 import {
   findProjectVerificationFormById,
+  getVerificationFormByProjectId,
   makeFormDraft,
+  makeFormVerified,
+  updateProjectVerificationFormStatusOnly,
   verifyForm,
   verifyMultipleForms,
 } from '../repositories/projectVerificationRepository';
@@ -73,6 +85,13 @@ import { updateTotalDonationsOfProject } from '../services/donationService';
 import { updateUserTotalDonated } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
+import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
+import {
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../repositories/projectPowerViewRepository';
+import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -216,7 +235,9 @@ export const setSocialProfiles: After<ActionResponse> = async (
   const projectId = record.params.projectId || record.params.id;
 
   const socials = await findSocialProfilesByProjectId({ projectId });
+  const projectUpdates = await findProjectUpdatesByProjectId(projectId);
   const project = await findProjectById(projectId);
+  const adminBroBaseUrl = process.env.SERVER_URL;
   response.record = {
     ...record,
     params: {
@@ -225,6 +246,8 @@ export const setSocialProfiles: After<ActionResponse> = async (
         project!.slug
       }`,
       socials,
+      projectUpdates,
+      adminBroBaseUrl,
     },
   };
   return response;
@@ -402,6 +425,15 @@ const getAdminBroInstance = async () => {
                 filter: true,
                 show: true,
                 edit: false,
+                new: false,
+              },
+            },
+            verifiedAt: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: true,
                 new: false,
               },
             },
@@ -587,7 +619,8 @@ const getAdminBroInstance = async () => {
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin &&
                 (currentAdmin.role === UserRole.ADMIN ||
-                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER),
+                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER ||
+                  currentAdmin.role === UserRole.OPERATOR),
               isVisible: true,
               after: setCommentEmailAndTimeStamps,
             },
@@ -919,6 +952,198 @@ const getAdminBroInstance = async () => {
         },
       },
       {
+        resource: ProjectUpdate,
+        options: {
+          properties: {
+            id: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            title: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            projectId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            userId: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            content: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            totalReactions: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            createdAt: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            isMain: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: false,
+              },
+            },
+            isNonProfitOrganization: {
+              isVisible: {
+                list: true,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationCountry: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationWebsite: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            organizationDescription: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            twitter: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            facebook: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            linkedin: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            instagram: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            youtube: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            foundationDate: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            mission: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            achievedMilestones: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            managingFundDescription: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+          },
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+            show: {
+              isVisible: true,
+            },
+            edit: {
+              isVisible: false,
+            },
+          },
+        },
+      },
+      {
         resource: Project,
         options: {
           properties: {
@@ -1083,7 +1308,7 @@ const getAdminBroInstance = async () => {
             isImported: {
               isVisible: {
                 list: false,
-                filter: false,
+                filter: true,
                 show: true,
                 edit: false,
               },
@@ -1118,6 +1343,27 @@ const getAdminBroInstance = async () => {
                 filter: AdminBro.bundle('./components/FilterListedComponent'),
               },
             },
+            projectUpdates: {
+              type: 'mixed',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+              components: {
+                show: AdminBro.bundle('./components/ProjectUpdates'),
+              },
+            },
+            adminBroBaseUrl: {
+              type: 'string',
+              isVisible: {
+                list: false,
+                filter: false,
+                show: false,
+                edit: false,
+              },
+            },
           },
           actions: {
             delete: {
@@ -1136,6 +1382,64 @@ const getAdminBroInstance = async () => {
             edit: {
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              before: async (
+                request: AdminBroRequestInterface,
+                response,
+                context: AdminBroContextInterface,
+              ) => {
+                const { verified, listed } = request.payload;
+                const statusChanges: string[] = [];
+                if (request?.payload?.id) {
+                  const project = await findProjectById(
+                    Number(request.payload.id),
+                  );
+                  if (
+                    Number(request?.payload?.statusId) !== project?.status?.id
+                  ) {
+                    switch (Number(request?.payload?.statusId)) {
+                      case ProjStatus.active:
+                        statusChanges.push(
+                          NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
+                        );
+                        break;
+                      case ProjStatus.deactive:
+                        statusChanges.push(
+                          NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
+                        );
+                        break;
+                      case ProjStatus.cancelled:
+                        statusChanges.push(
+                          NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                        );
+                        break;
+                    }
+                  }
+                  if (project?.verified && !verified) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
+                    );
+                  }
+                  if (!project?.verified && verified) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
+                    );
+                  }
+                  if (project?.listed && !listed) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
+                    );
+                  }
+                  if (!project?.listed && listed) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                    );
+                  }
+
+                  // We put these status changes in payload, so in after hook we would know to send notification for users
+                  request.payload.statusChanges = statusChanges.join(',');
+                }
+                return request;
+              },
               after: async (
                 request: AdminBroRequestInterface,
                 response,
@@ -1146,7 +1450,6 @@ const getAdminBroInstance = async () => {
                 if (project) {
                   // Not required for now
                   // Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
-                  await dispatchProjectUpdateEvent(project);
 
                   // As we dont what fields has changed (listed, verified, ..), I just added new status and a description that project has been edited
                   await Project.addProjectStatusHistoryRecord({
@@ -1155,8 +1458,62 @@ const getAdminBroInstance = async () => {
                     userId: currentAdmin.id,
                     description: HISTORY_DESCRIPTIONS.HAS_BEEN_EDITED,
                   });
-                }
+                  const statusChanges =
+                    request?.record?.params?.statusChanges?.split(',') || [];
 
+                  const eventAndHandlers = [
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
+                      handler: getNotificationAdapter().projectVerified,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
+                      handler: getNotificationAdapter().projectUnVerified,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                      handler: getNotificationAdapter().projectListed,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
+                      handler: getNotificationAdapter().projectDeListed,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
+                      handler: getNotificationAdapter().projectReactivated,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
+                      handler: getNotificationAdapter().projectDeactivated,
+                    },
+                    {
+                      event: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                      handler: getNotificationAdapter().projectCancelled,
+                    },
+                  ];
+
+                  eventAndHandlers.forEach(eventHandler => {
+                    if (statusChanges?.includes(eventHandler.event)) {
+                      // Dont put await before that intentionally to not block admin panel response with that
+                      eventHandler.handler({ project });
+                    }
+                  });
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
+                    )
+                  ) {
+                    await changeUserBoostingsAfterProjectCancelled({
+                      projectId: project.id,
+                    });
+                  }
+                }
+                await Promise.all([
+                  refreshUserProjectPowerView(),
+                  refreshProjectFuturePowerView(),
+                  refreshProjectPowerView(),
+                ]);
                 return request;
               },
             },
@@ -1520,6 +1877,7 @@ interface AdminBroProjectsQuery {
   slug?: string;
   verified?: string;
   listed?: string;
+  isImported?: string;
 }
 
 // add queries depending on which filters were selected
@@ -1543,6 +1901,11 @@ export const buildProjectsQuery = (
   if (queryStrings.verified)
     query.andWhere('project.verified = :verified', {
       verified: queryStrings.verified === 'true',
+    });
+
+  if (queryStrings.isImported)
+    query.andWhere('project.isImported = :isImported', {
+      isImported: queryStrings.isImported === 'true',
     });
 
   if (queryStrings.listed)
@@ -1734,15 +2097,7 @@ export const listDelist = async (
       .returning('*')
       .updateEntity(true)
       .execute();
-
-    Project.sendBulkEventsToSegment(
-      projects.raw,
-      list
-        ? NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED
-        : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
-    );
     for (const project of projects.raw) {
-      await dispatchProjectUpdateEvent(project);
       await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
@@ -1801,14 +2156,20 @@ export const verifySingleVerificationForm = async (
       ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
     ) {
       throw new Error(
-        errorMessages.YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS,
+        i18n.__(
+          translationErrorMessagesKeys.YOU_JUST_CAN_VERIFY_REJECTED_AND_SUBMITTED_FORMS,
+        ),
       );
     }
     if (
       !verified &&
       PROJECT_VERIFICATION_STATUSES.SUBMITTED !== verificationFormInDb?.status
     ) {
-      throw new Error(errorMessages.YOU_JUST_CAN_REJECT_SUBMITTED_FORMS);
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.YOU_JUST_CAN_REJECT_SUBMITTED_FORMS,
+        ),
+      );
     }
     // call repositories
     const segmentEvent = verified
@@ -1821,12 +2182,11 @@ export const verifySingleVerificationForm = async (
       adminId: currentAdmin.id,
     });
     const projectId = verificationForm.projectId;
-    let project = (await findProjectById(projectId)) as Project;
+    const project = await verifyProject({ verified, projectId });
+
     if (verified) {
-      project = await verifyProject({ verified, projectId });
       await updateProjectWithVerificationForm(verificationForm, project);
     }
-    Project.notifySegment(project, segmentEvent);
     if (verified) {
       await getNotificationAdapter().projectVerified({
         project,
@@ -1883,20 +2243,18 @@ export const makeEditableByUser = async (
       ].includes(verificationFormInDb?.status as PROJECT_VERIFICATION_STATUSES)
     ) {
       throw new Error(
-        errorMessages.YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS,
+        i18n.__(
+          translationErrorMessagesKeys.YOU_JUST_CAN_MAKE_DRAFT_REJECTED_AND_SUBMITTED_FORMS,
+        ),
       );
     }
-
-    const segmentEvent =
-      NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN;
-
     const verificationForm = await makeFormDraft({
       formId,
       adminId: currentAdmin.id,
     });
     const projectId = verificationForm.projectId;
     const project = (await findProjectById(projectId)) as Project;
-    Project.notifySegment(project, segmentEvent);
+    await getNotificationAdapter().projectGotDraftByAdmin({ project });
 
     responseMessage = `Project(s) successfully got draft`;
   } catch (error) {
@@ -1941,6 +2299,7 @@ export const verifyVerificationForms = async (
     const projectsForms = await verifyMultipleForms({
       verificationStatus,
       formIds,
+      reviewerId: currentAdmin.id,
     });
     const projectsIds = projectsForms.raw.map(projectForm => {
       return projectForm.projectId;
@@ -1950,8 +2309,7 @@ export const verifyVerificationForms = async (
     const segmentEvent = verified
       ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
       : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
-
-    Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
+    // TODO send appropriate notification
     const projectIds = projects.raw.map(project => {
       return project.id;
     });
@@ -2002,25 +2360,25 @@ export const verifyProjects = async (
   // prioritize revokeBadge
   const verificationStatus = revokeBadge ? false : verified;
   try {
+    const updateParams = { verified: verificationStatus };
+
+    if (verificationStatus) {
+      await Project.query(`
+        UPDATE project
+        SET "verificationStatus" = NULL
+        WHERE id IN (${request?.query?.recordIds})
+      `);
+    }
+
     const projects = await Project.createQueryBuilder('project')
-      .update<Project>(Project, { verified: verificationStatus })
+      .update<Project>(Project, updateParams)
       .where('project.id IN (:...ids)')
       .setParameter('ids', request?.query?.recordIds?.split(','))
       .returning('*')
       .updateEntity(true)
       .execute();
 
-    let segmentEvent = verified
-      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
-      : NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED;
-
-    segmentEvent = revokeBadge
-      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED
-      : segmentEvent;
-
-    Project.sendBulkEventsToSegment(projects.raw, segmentEvent);
     for (const project of projects.raw) {
-      await dispatchProjectUpdateEvent(project);
       await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
@@ -2031,7 +2389,13 @@ export const verifyProjects = async (
       });
       const projectWithAdmin = (await findProjectById(project.id)) as Project;
 
-      if (verified) {
+      if (revokeBadge) {
+        projectWithAdmin.verificationStatus = RevokeSteps.Revoked;
+        await projectWithAdmin.save();
+        await getNotificationAdapter().projectBadgeRevoked({
+          project: projectWithAdmin,
+        });
+      } else if (verificationStatus) {
         await getNotificationAdapter().projectVerified({
           project: projectWithAdmin,
         });
@@ -2040,7 +2404,28 @@ export const verifyProjects = async (
           project: projectWithAdmin,
         });
       }
+
+      const verificationForm = await getVerificationFormByProjectId(project.id);
+      if (verificationForm) {
+        if (verificationStatus) {
+          await makeFormVerified({
+            formId: verificationForm.id,
+            adminId: currentAdmin.id,
+          });
+        } else {
+          await makeFormDraft({
+            formId: verificationForm.id,
+            adminId: currentAdmin.id,
+          });
+        }
+      }
     }
+
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
   } catch (error) {
     logger.error('verifyProjects() error', error);
     throw error;
@@ -2064,7 +2449,7 @@ export const updateStatusOfProjects = async (
   request: AdminBroRequestInterface,
   status,
 ) => {
-  const { h, resource, records, currentAdmin } = context;
+  const { records, currentAdmin } = context;
   try {
     const projectStatus = await ProjectStatus.findOne({
       where: { id: status },
@@ -2083,12 +2468,7 @@ export const updateStatusOfProjects = async (
         .updateEntity(true)
         .execute();
 
-      Project.sendBulkEventsToSegment(
-        projects.raw,
-        segmentProjectStatusEvents[projectStatus.symbol],
-      );
       for (const project of projects.raw) {
-        await dispatchProjectUpdateEvent(project);
         await Project.addProjectStatusHistoryRecord({
           project,
           status: projectStatus,
@@ -2098,6 +2478,9 @@ export const updateStatusOfProjects = async (
         if (status === ProjStatus.cancelled) {
           await getNotificationAdapter().projectCancelled({
             project: projectWithAdmin,
+          });
+          await changeUserBoostingsAfterProjectCancelled({
+            projectId: project.id,
           });
         } else if (status === ProjStatus.active) {
           await getNotificationAdapter().projectReactivated({
@@ -2109,6 +2492,11 @@ export const updateStatusOfProjects = async (
           });
         }
       }
+      await Promise.all([
+        refreshUserProjectPowerView(),
+        refreshProjectFuturePowerView(),
+        refreshProjectPowerView(),
+      ]);
     }
   } catch (error) {
     throw error;
@@ -2243,7 +2631,9 @@ export const importThirdPartyProject = async (
         break;
       }
       default: {
-        throw errorMessages.NOT_SUPPORTED_THIRD_PARTY_API;
+        throw i18n.__(
+          translationErrorMessagesKeys.NOT_SUPPORTED_THIRD_PARTY_API,
+        );
       }
     }
     // keep record of all created projects and who did from which api
@@ -2306,7 +2696,9 @@ export const createDonation = async (
       donationType = DONATION_TYPES.GNOSIS_SAFE;
     } else {
       if (!currency) {
-        throw new Error(errorMessages.INVALID_TOKEN_SYMBOL);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.INVALID_TOKEN_SYMBOL),
+        );
       }
       const txInfo = await findTransactionByHash({
         networkId,
@@ -2314,7 +2706,7 @@ export const createDonation = async (
         symbol: currency,
       } as TransactionDetailInput);
       if (!txInfo) {
-        throw new Error(errorMessages.INVALID_TX_HASH);
+        throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_TX_HASH));
       }
       transactions.push(txInfo);
     }
@@ -2332,7 +2724,9 @@ export const createDonation = async (
       if (!project) {
         logger.error(
           'Creating donation by admin bro, csv airdrop error ' +
-            errorMessages.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
+            i18n.__(
+              translationErrorMessagesKeys.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
+            ),
           {
             hash: txHash,
             toAddress: transactionInfo?.to,

@@ -74,13 +74,18 @@ export class ProjectContacts {
 export class Milestones {
   @Field(type => String, { nullable: true })
   foundationDate?: String;
-
   @Field({ nullable: true })
   mission?: string;
   @Field({ nullable: true })
   achievedMilestones?: string;
   @Field(type => [String], { nullable: true })
   achievedMilestonesProofs?: string[];
+  @Field(type => String, { nullable: true })
+  problem?: string;
+  @Field(type => String, { nullable: true })
+  plans?: string;
+  @Field(type => String, { nullable: true })
+  impact?: string;
 }
 
 @ObjectType()
@@ -182,6 +187,10 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  verifiedAt: Date;
 
   // https://github.com/typeorm/typeorm/issues/4674#issuecomment-618073862
   @Field(type => PersonalInfo, { nullable: true })

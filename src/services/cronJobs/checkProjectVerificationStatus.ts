@@ -5,19 +5,27 @@ import {
   ProjectUpdate,
   RevokeSteps,
 } from '../../entities/project';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
 import { User } from '../../entities/user';
 import config from '../../config';
 import { logger } from '../../utils/logger';
 import moment = require('moment');
 import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository';
-import { errorMessages } from '../../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 
-const analytics = getAnalytics();
+import {
+  makeFormDraft,
+  updateProjectVerificationFormStatusOnly,
+} from '../../repositories/projectVerificationRepository';
+import { SegmentAnalyticsSingleton } from '../segment/segmentAnalyticsSingleton';
+import { sleep } from '../../utils/utils';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
+import {
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../../repositories/projectPowerViewRepository';
 
 // Every 3 months if no project verification was added, the project
 // Verification status will be revoked
@@ -85,11 +93,15 @@ export const checkProjectVerificationStatus = async () => {
   );
 
   // Run all iterations async, resulting in array of promises
-  await Promise.all(
-    projects.map(async project => {
-      await remindUpdatesOrRevokeVerification(project);
-    }),
-  );
+  await Promise.all(projects.map(remindUpdatesOrRevokeVerification));
+
+  if (projects.length > 0) {
+    await Promise.all([
+      refreshUserProjectPowerView(),
+      refreshProjectPowerView(),
+      refreshProjectFuturePowerView(),
+    ]);
+  }
 };
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
@@ -103,39 +115,51 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   } else if (
     // Projects that already expired verification are given a last chance
     // for this feature
-    project.projectUpdate.createdAt <= maxDaysForSendingUpdateLastWarning &&
+    project.updatedAt <= maxDaysForSendingUpdateLastWarning &&
     project.verificationStatus === null
   ) {
     project.verificationStatus = RevokeSteps.UpForRevoking;
   } else if (
     // Projects that had the last chance and failed to add an update are revoked
-    project.projectUpdate.createdAt <= maxDaysForRevokingBadge &&
+    project.updatedAt <= maxDaysForRevokingBadge &&
     project.verificationStatus === RevokeSteps.LastChance
   ) {
     project.verificationStatus = RevokeSteps.Revoked;
     project.verified = false;
   } else if (
     // projects that were warned are sent a last chance warning
-    project.projectUpdate.createdAt <= maxDaysForSendingUpdateLastWarning &&
-    project.projectUpdate.createdAt > maxDaysForRevokingBadge &&
+    project.updatedAt <= maxDaysForSendingUpdateLastWarning &&
+    project.updatedAt > maxDaysForRevokingBadge &&
     project.verificationStatus === RevokeSteps.Warning
   ) {
     project.verificationStatus = RevokeSteps.LastChance;
   } else if (
     // After reminder at 60/75 days
-    project.projectUpdate.createdAt <= maxDaysForSendingUpdateWarning &&
-    project.projectUpdate.createdAt > maxDaysForSendingUpdateLastWarning
+    project.updatedAt <= maxDaysForSendingUpdateWarning &&
+    project.updatedAt > maxDaysForSendingUpdateLastWarning &&
+    project.verificationStatus !== RevokeSteps.Warning
   ) {
     project.verificationStatus = RevokeSteps.Warning;
   } else if (
     // First email for reminding to add an update
-    project.projectUpdate.createdAt <= maxDaysForSendingUpdateReminder &&
-    project.projectUpdate.createdAt > maxDaysForSendingUpdateWarning
+    project.updatedAt <= maxDaysForSendingUpdateReminder &&
+    project.updatedAt > maxDaysForSendingUpdateWarning &&
+    project.verificationStatus !== RevokeSteps.Reminder
   ) {
     project.verificationStatus = RevokeSteps.Reminder;
   }
 
   await project.save();
+
+  // draft the verification form to allow reapply
+  if (
+    project.projectVerificationForm &&
+    project.verificationStatus === RevokeSteps.Revoked
+  ) {
+    await makeFormDraft({
+      formId: project.projectVerificationForm.id,
+    });
+  }
 
   // save status changes history
   if (project.verificationStatus === RevokeSteps.Revoked) {
@@ -148,39 +172,33 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
 
   const user = await User.findOne({ where: { id: Number(project.admin) } });
 
-  // segment notifications
-  const segmentProject = {
-    email: user?.email,
-    title: project.title,
-    lastName: user?.lastName,
-    firstName: user?.firstName,
-    OwnerId: user?.id,
-    slug: project.slug,
-    walletAddress: project.walletAddress,
-    description: project.description,
-  };
-
-  analytics.track(
-    selectSegmentEvent(project.verificationStatus),
-    `givethId-${user?.id}`,
-    segmentProject,
-    null,
-  );
+  await sendProperNotification(project, project.verificationStatus as string);
+  await sleep(1000);
 };
 
-const selectSegmentEvent = projectVerificationStatus => {
+const sendProperNotification = (
+  project: Project,
+  projectVerificationStatus: string,
+) => {
   switch (projectVerificationStatus) {
     case RevokeSteps.Reminder:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_REMINDER;
+      return getNotificationAdapter().projectBadgeRevokeReminder({ project });
     case RevokeSteps.Warning:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_WARNING;
+      return getNotificationAdapter().projectBadgeRevokeWarning({ project });
     case RevokeSteps.LastChance:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_LAST_WARNING;
+      return getNotificationAdapter().projectBadgeRevokeLastWarning({
+        project,
+      });
     case RevokeSteps.Revoked:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED;
+      return getNotificationAdapter().projectBadgeRevoked({ project });
     case RevokeSteps.UpForRevoking:
-      return NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_UP_FOR_REVOKING;
+      return getNotificationAdapter().projectBadgeUpForRevoking({ project });
+
     default:
-      throw new Error(errorMessages.INVALID_VERIFICATION_REVOKE_STATUS);
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.INVALID_VERIFICATION_REVOKE_STATUS,
+        ),
+      );
   }
 };

@@ -9,6 +9,7 @@ import {
 } from '../../test/testUtils';
 import axios, { AxiosResponse } from 'axios';
 import {
+  getBottomPowerRankQuery,
   getPowerBoostingsQuery,
   setMultiplePowerBoostingMutation,
   setSinglePowerBoostingMutation,
@@ -16,7 +17,19 @@ import {
 import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
-import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
+import {
+  insertSinglePowerBoosting,
+  takePowerBoostingSnapshot,
+} from '../repositories/powerBoostingRepository';
+import { getConnection } from 'typeorm';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { setPowerRound } from '../repositories/powerRoundRepository';
+import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
+import {
+  findInCompletePowerSnapShots,
+  insertSinglePowerBalanceSnapshot,
+} from '../repositories/powerSnapshotRepository';
 
 describe(
   'setSinglePowerBoostingMutation test cases',
@@ -28,6 +41,7 @@ describe(
   setMultiplePowerBoostingTestCases,
 );
 describe('getPowerBoosting test cases', getPowerBoostingTestCases);
+describe('getBottomPowerRank test cases', getBottomPowerRankTestCases);
 
 // Clean percentages after setting
 const removePowerBoostings = async (boosts: PowerBoosting[]): Promise<void> => {
@@ -756,6 +770,34 @@ function getPowerBoostingTestCases() {
       assert.equal(powerBoosting.project.id, firstProject.id);
     });
   });
+  it('should get list of power with 1000 boostings filter by projectId', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    for (let i = 0; i < 1000; i++) {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      await insertSinglePowerBoosting({
+        user,
+        project,
+        percentage: 100,
+      });
+    }
+
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isOk(result);
+    assert.equal(result.data.data.getPowerBoosting.powerBoostings.length, 1000);
+
+    result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
+      assert.equal(powerBoosting.project.id, project.id);
+    });
+  });
   it('should get list of power boostings filter by projectId and userId', async () => {
     const firstUser = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
@@ -1070,5 +1112,69 @@ function getPowerBoostingTestCases() {
     assert.equal(powerBoostings.length, 3);
     assert.isTrue(powerBoostings[0].percentage <= powerBoostings[1].percentage);
     assert.isTrue(powerBoostings[1].percentage <= powerBoostings[2].percentage);
+  });
+}
+async function getBottomPowerRankTestCases() {
+  beforeEach(async () => {
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+  });
+
+  it('Get last power rank', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstProject = await saveProjectDirectlyToDb(createProjectData());
+    const secondProject = await saveProjectDirectlyToDb(createProjectData());
+    const thirdProject = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: firstProject,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: secondProject,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project: thirdProject,
+      percentage: 15,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project: firstProject,
+      percentage: 3,
+    });
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    const roundNumber = firstProject.id * 10;
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: firstUser.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
+    });
+
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+
+    const result = await axios.post(graphqlUrl, {
+      query: getBottomPowerRankQuery,
+    });
+    assert.isOk(result);
+    assert.equal(result.data.data.getTopPowerRank, 4);
   });
 }

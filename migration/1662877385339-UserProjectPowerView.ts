@@ -6,22 +6,27 @@ export class UserProjectPowerView1662877385339 implements MigrationInterface {
       `
               DROP 
                 MATERIALIZED VIEW IF EXISTS public.user_project_power_view;
-              CREATE MATERIALIZED VIEW public.user_project_power_view AS 
+              CREATE MATERIALIZED VIEW IF NOT EXISTS PUBLIC.USER_PROJECT_POWER_VIEW TABLESPACE PG_DEFAULT AS 
               SELECT 
-                "powerRound".round, 
-                "userPower".power AS "userPower", 
-                "powerBoosting".id, 
-                "powerBoosting"."projectId", 
-                "powerBoosting"."userId", 
-                "powerBoosting".percentage, 
-                "userPower".power * "powerBoosting".percentage :: double precision / 100 :: double precision AS "boostedPower", 
-                NOW() as "updateTime" 
+                row_number() over() as "id",
+                "powerRound".ROUND, 
+                "powerBoostingSnapshot"."projectId" as "projectId", 
+                "powerBoostingSnapshot"."userId" as "userId", 
+                avg(
+                  "powerBalanceSnapshot".balance * "powerBoostingSnapshot".PERCENTAGE :: double precision / 100 :: double precision
+                ) AS "boostedPower" 
               FROM 
-                power_round "powerRound" 
-                JOIN user_power "userPower" ON "userPower"."givbackRound" = "powerRound".round 
-                JOIN power_boosting "powerBoosting" ON "powerBoosting"."userId" = "userPower"."userId";
-              CREATE INDEX IF NOT EXISTS "user_project_power_view_project_id" ON public.user_project_power_view USING hash ("projectId") TABLESPACE pg_default;
-              CREATE INDEX IF NOT EXISTS "user_project_power_view_power_boosted" ON public.user_project_power_view USING btree ("boostedPower" DESC NULLS LAST) TABLESPACE pg_default;
+                POWER_ROUND "powerRound" 
+                JOIN POWER_SNAPSHOT "powerSnapshot" ON "powerSnapshot"."roundNumber" = "powerRound".ROUND 
+                JOIN POWER_BALANCE_SNAPSHOT "powerBalanceSnapshot" ON "powerBalanceSnapshot"."powerSnapshotId" = "powerSnapshot".id 
+                JOIN POWER_BOOSTING_SNAPSHOT "powerBoostingSnapshot" ON "powerBoostingSnapshot"."powerSnapshotId" = "powerSnapshot".id 
+                and "powerBoostingSnapshot"."userId" = "powerBalanceSnapshot"."userId" 
+              group by 
+                round, 
+                "powerBoostingSnapshot"."projectId", 
+                "powerBoostingSnapshot"."userId";
+              CREATE INDEX USER_PROJECT_POWER_VIEW_POWER_BOOSTED ON PUBLIC.USER_PROJECT_POWER_VIEW USING BTREE ("boostedPower" DESC) TABLESPACE PG_DEFAULT;
+              CREATE INDEX USER_PROJECT_POWER_VIEW_PROJECT_ID ON PUBLIC.USER_PROJECT_POWER_VIEW USING HASH ("projectId") TABLESPACE PG_DEFAULT;
           `,
     );
   }

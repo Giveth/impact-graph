@@ -1,30 +1,22 @@
 import {
-  Arg,
   Args,
   ArgsType,
-  Ctx,
   Field,
-  Float,
   InputType,
   Int,
-  Mutation,
   ObjectType,
   Query,
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { MyContext } from '../types/MyContext';
-import { errorMessages } from '../utils/errorMessages';
-import { PowerBoosting } from '../entities/powerBoosting';
 import {
-  setMultipleBoosting,
-  setSingleBoosting,
-  findPowerBoostings,
-} from '../repositories/powerBoostingRepository';
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
+import { PowerBoosting } from '../entities/powerBoosting';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
-import { OrderField, SortingField } from '../entities/project';
-import { logger } from '../utils/logger';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository';
 
@@ -35,7 +27,6 @@ enum UserPowerOrderDirection {
 
 enum UserPowerOrderField {
   Percentage = 'percentage',
-  UserPower = 'userPower',
   BoostedPower = 'boostedPower',
 }
 
@@ -90,6 +81,9 @@ export class UserProjectPowerArgs {
 
   @Field(type => Int, { nullable: true })
   userId?: number;
+
+  @Field(type => Int, { nullable: true })
+  round?: number;
 }
 
 @ObjectType()
@@ -110,7 +104,9 @@ export class UserProjectPowerResolver {
   ): Promise<UserProjectPowers> {
     if (!projectId && !userId) {
       throw new Error(
-        errorMessages.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
+        i18n.__(
+          translationErrorMessagesKeys.SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID,
+        ),
       );
     }
     const [userProjectPowers, totalCount] = await getUserProjectPowers({

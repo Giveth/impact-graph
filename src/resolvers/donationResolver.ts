@@ -24,33 +24,43 @@ import { Token } from '../entities/token';
 import { Repository, In, Brackets } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
-import { errorMessages } from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
+  getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
+  updateDonationPricesAndValues,
   updateTotalDonationsOfProject,
 } from '../services/donationService';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../services/userService';
-import { addSegmentEventToQueue } from '../analytics/segmentQueue';
-import { bold } from 'chalk';
-import { getCampaignDonations } from '../services/trace/traceService';
-import { from } from 'form-data';
 import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
+  resourcePerDateReportValidator,
   updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
 import { logger } from '../utils/logger';
 import { findUserById } from '../repositories/userRepository';
-import { findDonationById } from '../repositories/donationRepository';
+import {
+  donationsTotalAmountPerDateRange,
+  donationsTotalAmountPerDateRangeByMonth,
+  donorsCountPerDate,
+  donorsCountPerDateByMonthAndYear,
+  findDonationById,
+} from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
+import { MainCategory } from '../entities/mainCategory';
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { findProjectById } from '../repositories/projectRepository';
+import { calculateGivbackFactor } from '../services/givbackService';
 
 @ObjectType()
 class PaginateDonations {
@@ -65,6 +75,25 @@ class PaginateDonations {
 
   @Field(type => Number, { nullable: true })
   totalEthBalance: number;
+}
+
+// As general as posible types to reuse it
+@ObjectType()
+export class ResourcesTotalPerMonthAndYear {
+  @Field(type => Number, { nullable: true })
+  total?: Number;
+
+  @Field(type => String, { nullable: true })
+  date?: String;
+}
+
+@ObjectType()
+export class ResourcePerDateRange {
+  @Field(type => Number, { nullable: true })
+  total?: Number;
+
+  @Field(type => [ResourcesTotalPerMonthAndYear], { nullable: true })
+  totalPerMonthAndYear?: ResourcesTotalPerMonthAndYear[];
 }
 
 enum SortDirection {
@@ -131,6 +160,21 @@ class UserDonations {
   totalCount: number;
 }
 
+@ObjectType()
+class MainCategoryDonations {
+  @Field(type => Int)
+  id: number;
+
+  @Field(type => String)
+  title: string;
+
+  @Field(type => String)
+  slug: string;
+
+  @Field(type => Number)
+  totalUsd: number;
+}
+
 @Resolver(of => User)
 export class DonationResolver {
   constructor(
@@ -151,15 +195,112 @@ export class DonationResolver {
         .leftJoin('donation.user', 'user')
         .addSelect(publicSelectionFields)
         .leftJoinAndSelect('donation.project', 'project')
-        .leftJoinAndSelect('project.categories', 'categories');
+        .leftJoinAndSelect('project.categories', 'categories')
+        .leftJoin('project.projectPower', 'projectPower')
+        .addSelect([
+          'projectPower.totalPower',
+          'projectPower.powerRank',
+          'projectPower.round',
+        ]);
 
       if (fromDate) {
-        query.andWhere(`"createdAt" >= '${fromDate}'`);
+        query.andWhere(`donation."createdAt" >= '${fromDate}'`);
       }
       if (toDate) {
-        query.andWhere(`"createdAt" <= '${toDate}'`);
+        query.andWhere(`donation."createdAt" <= '${toDate}'`);
       }
       return await query.getMany();
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
+  @Query(returns => [MainCategoryDonations], { nullable: true })
+  async totalDonationsPerCategory(
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ): Promise<MainCategoryDonations[] | []> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const query = MainCategory.createQueryBuilder('mainCategory')
+        .select(
+          'mainCategory.id, mainCategory.title, mainCategory.slug, COALESCE(sum(donations.valueUsd), 0) as "totalUsd"',
+        )
+        .leftJoin('mainCategory.categories', 'categories')
+        .leftJoin('categories.projects', 'projects')
+        .leftJoin(
+          'projects.donations',
+          'donations',
+          `donations.status = 'verified'`,
+        )
+        .groupBy('mainCategory.id, mainCategory.title');
+
+      if (fromDate && toDate) {
+        query.where(`donations."createdAt" >= '${fromDate}'`);
+        query.andWhere(`donations."createdAt" <= '${toDate}'`);
+      } else if (fromDate && !toDate) {
+        query.where(`donations."createdAt" >= '${fromDate}'`);
+      } else if (!fromDate && toDate) {
+        query.where(`donations."createdAt" <= '${toDate}'`);
+      }
+
+      const result = await query.getRawMany();
+      return result;
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
+  @Query(returns => ResourcePerDateRange, { nullable: true })
+  async donationsTotalUsdPerDate(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ): Promise<ResourcePerDateRange> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await donationsTotalAmountPerDateRange(fromDate, toDate);
+      const totalPerMonthAndYear =
+        await donationsTotalAmountPerDateRangeByMonth(fromDate, toDate);
+
+      return {
+        total,
+        totalPerMonthAndYear,
+      };
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
+  @Query(returns => ResourcePerDateRange, { nullable: true })
+  async totalDonorsCountPerDate(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ): Promise<ResourcePerDateRange> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await donorsCountPerDate(fromDate, toDate);
+      const totalPerMonthAndYear = await donorsCountPerDateByMonthAndYear(
+        fromDate,
+        toDate,
+      );
+      return {
+        total,
+        totalPerMonthAndYear,
+      };
     } catch (e) {
       logger.error('donations query error', e);
       throw e;
@@ -228,77 +369,64 @@ export class DonationResolver {
       },
     });
     if (!project) {
-      throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
 
-    if (traceable) {
-      const { total, donations } = await getCampaignDonations({
-        campaignId: project.traceCampaignId as string,
-        take,
-        skip,
+    const query = this.donationRepository
+      .createQueryBuilder('donation')
+      .leftJoin('donation.user', 'user')
+      .addSelect(publicSelectionFields)
+      .where(`donation.projectId = ${projectId}`)
+      .orderBy(
+        `donation.${orderBy.field}`,
+        orderBy.direction,
+        nullDirection[orderBy.direction as string],
+      );
+
+    if (status) {
+      query.andWhere(`donation.status = :status`, {
+        status,
       });
-      return {
-        donations,
-        totalCount: total,
-        totalUsdBalance: project.totalTraceDonations,
-      };
-    } else {
-      const query = this.donationRepository
-        .createQueryBuilder('donation')
-        .leftJoin('donation.user', 'user')
-        .addSelect(publicSelectionFields)
-        .where(`donation.projectId = ${projectId}`)
-        .orderBy(
-          `donation.${orderBy.field}`,
-          orderBy.direction,
-          nullDirection[orderBy.direction as string],
-        );
-
-      if (status) {
-        query.andWhere(`donation.status = :status`, {
-          status,
-        });
-      }
-
-      if (searchTerm) {
-        query.andWhere(
-          new Brackets(qb => {
-            qb.where(
-              '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
-              {
-                searchTerm: `%${searchTerm}%`,
-              },
-            )
-              .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
-                searchTerm: `%${searchTerm}%`,
-              })
-              .orWhere('donation.currency ILIKE :searchTerm', {
-                searchTerm: `%${searchTerm}%`,
-              });
-
-            // WalletAddresses are translanted to huge integers
-            // this breaks postgresql query integer limit
-            if (!Web3.utils.isAddress(searchTerm)) {
-              const amount = Number(searchTerm);
-
-              qb.orWhere('donation.amount = :number', {
-                number: amount,
-              });
-            }
-          }),
-        );
-      }
-
-      const [donations, donationsCount] = await query
-        .take(take)
-        .skip(skip)
-        .getManyAndCount();
-      return {
-        donations,
-        totalCount: donationsCount,
-        totalUsdBalance: project.totalDonations,
-      };
     }
+
+    if (searchTerm) {
+      query.andWhere(
+        new Brackets(qb => {
+          qb.where(
+            '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
+            {
+              searchTerm: `%${searchTerm}%`,
+            },
+          )
+            .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            })
+            .orWhere('donation.currency ILIKE :searchTerm', {
+              searchTerm: `%${searchTerm}%`,
+            });
+
+          // WalletAddresses are translanted to huge integers
+          // this breaks postgresql query integer limit
+          if (!Web3.utils.isAddress(searchTerm)) {
+            const amount = Number(searchTerm);
+
+            qb.orWhere('donation.amount = :number', {
+              number: amount,
+            });
+          }
+        }),
+      );
+    }
+
+    const [donations, donationsCount] = await query
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+    return {
+      donations,
+      totalCount: donationsCount,
+      totalUsdBalance: project.totalDonations,
+    };
   }
 
   @Query(returns => [Token], { nullable: true })
@@ -311,7 +439,7 @@ export class DonationResolver {
     @Arg('symbol') symbol: string,
     @Arg('chainId') chainId: number,
   ) {
-    const prices = await this.getMonoSwapTokenPrices(
+    const prices = await getMonoSwapTokenPrices(
       symbol,
       ['USDT', 'ETH'],
       Number(chainId),
@@ -323,7 +451,9 @@ export class DonationResolver {
   @Query(returns => [Donation], { nullable: true })
   async donationsByDonor(@Ctx() ctx: MyContext) {
     if (!ctx.req.user)
-      throw new Error(errorMessages.DONATION_VIEWING_LOGIN_REQUIRED);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.DONATION_VIEWING_LOGIN_REQUIRED),
+      );
     return this.donationRepository
       .createQueryBuilder('donation')
       .where({ user: ctx.req.user.userId })
@@ -386,7 +516,7 @@ export class DonationResolver {
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
       if (!donorUser) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       validateWithJoiSchema(
         {
@@ -409,17 +539,18 @@ export class DonationResolver {
           ? NETWORK_IDS.MAIN_NET
           : transactionNetworkId;
 
-      const project = await Project.createQueryBuilder('project')
-        .leftJoinAndSelect('project.organization', 'organization')
-        .leftJoinAndSelect('project.status', 'status')
-        .where(`project.id = :projectId`, {
-          projectId,
-        })
-        .getOne();
+      const project = await findProjectById(projectId);
 
-      if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      if (!project)
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND),
+        );
       if (project.status.id !== ProjStatus.active) {
-        throw new Error(errorMessages.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
+          ),
+        );
       }
       const tokenInDb = await Token.findOne({
         where: {
@@ -430,14 +561,18 @@ export class DonationResolver {
       const isCustomToken = !Boolean(tokenInDb);
       let isTokenEligibleForGivback = false;
       if (isCustomToken && !project.organization.supportCustomTokens) {
-        throw new Error(errorMessages.TOKEN_NOT_FOUND);
+        throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
       } else if (tokenInDb) {
         const acceptsToken = await isTokenAcceptableForProject({
           projectId,
           tokenId: tokenInDb.id,
         });
         if (!acceptsToken && !project.organization.supportCustomTokens) {
-          throw new Error(errorMessages.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN);
+          throw new Error(
+            i18n.__(
+              translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+            ),
+          );
         }
         isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
       }
@@ -448,7 +583,9 @@ export class DonationResolver {
         });
       if (!projectRelatedAddress) {
         throw new Error(
-          errorMessages.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+          i18n.__(
+            translationErrorMessagesKeys.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+          ),
         );
       }
       const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
@@ -475,54 +612,17 @@ export class DonationResolver {
       });
       await donation.save();
       const baseTokens =
-        Number(priceChainId) === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
+        priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
-      try {
-        const tokenPrices = await this.getMonoSwapTokenPrices(
-          token,
-          baseTokens,
-          Number(priceChainId),
-        );
+      await updateDonationPricesAndValues(
+        donation,
+        project,
+        token,
+        baseTokens,
+        priceChainId,
+        amount,
+      );
 
-        if (tokenPrices.length !== 0) {
-          donation.priceUsd = Number(tokenPrices[0]);
-          donation.priceEth = Number(tokenPrices[1]);
-
-          donation.valueUsd = Number(amount) * donation.priceUsd;
-          donation.valueEth = Number(amount) * donation.priceEth;
-        }
-      } catch (e) {
-        logger.error('Error in getting price from monoswap', {
-          error: e,
-          donation,
-        });
-        addSegmentEventToQueue({
-          event: NOTIFICATIONS_EVENT_NAMES.GET_DONATION_PRICE_FAILED,
-          analyticsUserId: userId,
-          properties: donation,
-          anonymousId: null,
-        });
-        SentryLogger.captureException(
-          new Error('Error in getting price from monoswap'),
-          {
-            extra: {
-              donationId: donation.id,
-              txHash: donation.transactionId,
-              currency: donation.currency,
-              network: donation.transactionNetworkId,
-            },
-          },
-        );
-      }
-
-      await donation.save();
-
-      // After updating, recalculate user total donated and owner total received
-      await updateUserTotalDonated(donorUser.id);
-      await updateUserTotalReceived(Number(project.admin));
-
-      // After updating price we update totalDonations
-      await updateTotalDonationsOfProject(projectId);
       return donation.id;
     } catch (e) {
       SentryLogger.captureException(e);
@@ -542,11 +642,13 @@ export class DonationResolver {
     try {
       const userId = ctx?.req?.user?.userId;
       if (!userId) {
-        throw new Error(errorMessages.UN_AUTHORIZED);
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       const donation = await findDonationById(donationId);
       if (!donation) {
-        throw new Error(errorMessages.DONATION_NOT_FOUND);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND),
+        );
       }
       if (donation.userId !== userId) {
         logger.error(
@@ -561,7 +663,11 @@ export class DonationResolver {
             },
           },
         );
-        throw new Error(errorMessages.YOU_ARE_NOT_OWNER_OF_THIS_DONATION);
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.YOU_ARE_NOT_OWNER_OF_THIS_DONATION,
+          ),
+        );
       }
       validateWithJoiSchema(
         {
@@ -586,8 +692,9 @@ export class DonationResolver {
         status === DONATION_STATUS.FAILED
       ) {
         updatedDonation.status = DONATION_STATUS.FAILED;
-        updatedDonation.verifyErrorMessage =
-          errorMessages.DONOR_REPORTED_IT_AS_FAILED;
+        updatedDonation.verifyErrorMessage = i18n.__(
+          translationErrorMessagesKeys.DONOR_REPORTED_IT_AS_FAILED,
+        );
         await updatedDonation.save();
       }
       return updatedDonation;
@@ -595,21 +702,6 @@ export class DonationResolver {
       SentryLogger.captureException(e);
       logger.error('updateDonationStatus() error', e);
       throw e;
-    }
-  }
-
-  private async getMonoSwapTokenPrices(
-    token: string,
-    baseTokens: string[],
-    chainId: number,
-  ): Promise<number[]> {
-    try {
-      const tokenPrices = await getTokenPrices(token, baseTokens, chainId);
-
-      return tokenPrices;
-    } catch (e) {
-      logger.debug('Unable to fetch monoswap prices: ', e);
-      return [];
     }
   }
 }

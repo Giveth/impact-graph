@@ -51,7 +51,7 @@ const VerificationFormProjectRegistry = props => {
         <Section>
           <Label>Attachments</Label>
 
-          {attachments.map(attachment => {
+          {attachments?.map(attachment => {
             return (
               <div key={attachment}>
                 {' '}

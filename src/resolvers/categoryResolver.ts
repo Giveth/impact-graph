@@ -17,6 +17,7 @@ export class CategoryResolver {
   async categories() {
     return Category.createQueryBuilder('category')
       .leftJoinAndSelect('category.mainCategory', 'mainCategory')
+      .where(`"isActive"=true`)
       .orderBy({
         'category.name': 'ASC',
       })
@@ -25,7 +26,11 @@ export class CategoryResolver {
   @Query(returns => [MainCategory], { nullable: true })
   async mainCategories() {
     return MainCategory.createQueryBuilder('mainCategory')
-      .leftJoinAndSelect('mainCategory.categories', 'categories')
+      .innerJoinAndSelect(
+        'mainCategory.categories',
+        'categories',
+        `"isActive"=true`,
+      )
       .orderBy({
         'mainCategory.title': 'ASC',
         'categories.name': 'ASC',

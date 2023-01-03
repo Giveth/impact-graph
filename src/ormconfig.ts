@@ -1,14 +1,26 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-import { DataSource } from 'typeorm';
-import { entities } from './entities/entities';
-import config from './config';
-dotenv.config({
-  path: path.resolve(__dirname, `./config/${process.env.NODE_ENV || ''}.env`),
+const configPath = path.resolve(
+  __dirname,
+  `../config/${process.env.NODE_ENV || ''}.env`,
+);
+const loadConfigResult = dotenv.config({
+  path: configPath,
 });
 
-const dropSchema = config.get('DROP_DATABASE') === 'true';
+if (loadConfigResult.error) {
+  // tslint:disable-next-line:no-console
+  console.log('Load process.env error', {
+    path: configPath,
+    error: loadConfigResult.error,
+  });
+  throw loadConfigResult.error;
+}
+
+import { DataSource } from 'typeorm';
+import { entities } from './entities/entities';
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.TYPEORM_DATABASE_HOST,
@@ -16,8 +28,9 @@ export const AppDataSource = new DataSource({
   username: process.env.TYPEORM_DATABASE_USER,
   password: process.env.TYPEORM_DATABASE_PASSWORD,
   database: process.env.TYPEORM_DATABASE_NAME,
-  dropSchema,
   entities,
-  synchronize: true,
-  migrations: ['./migration/*.ts'],
+  migrations: ['migration/*.ts'],
+  cli: {
+    migrationsDir: 'migration',
+  },
 });

@@ -25,11 +25,14 @@ import {
   ProjectVerificationForm,
 } from '../src/entities/projectVerificationForm';
 import { MainCategory } from '../src/entities/mainCategory';
+import { CATEGORY_NAMES } from '../src/entities/category';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
+export const serverBaseAddress = 'http://localhost:4000';
+
 export const assertThrowsAsync = async (fn, errorMessage) => {
   let f = () => {
     // empty function
@@ -262,6 +265,9 @@ export const createProjectData = (): CreateProjectData => {
 };
 export const createDonationData = (params?: {
   status?: string;
+  createdAt?: Date;
+  valueUsd?: number;
+  anonymous?: boolean;
 }): CreateDonationData => {
   return {
     transactionId: generateRandomTxHash(),
@@ -270,10 +276,10 @@ export const createDonationData = (params?: {
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
     currency: 'ETH',
     status: params?.status || DONATION_STATUS.PENDING,
-    anonymous: false,
+    anonymous: params?.anonymous || false,
     amount: 15,
-    valueUsd: 15,
-    createdAt: moment(),
+    valueUsd: params?.valueUsd || 15,
+    createdAt: params?.createdAt || moment().toDate(),
     segmentNotified: true,
   };
 };
@@ -371,7 +377,8 @@ export const SEED_DATA = {
     id: 6,
     admin: '1',
   },
-  MAIN_CATEGORIES: ['drink', 'food'],
+  MAIN_CATEGORIES: ['drink', 'food', 'nonProfit'],
+  NON_PROFIT_SUB_CATEGORIES: [CATEGORY_NAMES.registeredNonProfits],
   FOOD_SUB_CATEGORIES: [
     'food1',
     'food2',
@@ -1427,6 +1434,7 @@ export const DONATION_SEED_DATA = {
     userId: SEED_DATA.FIRST_USER.id,
     projectId: SEED_DATA.FIRST_PROJECT.id,
     createdAt: moment(),
+    status: 'verified',
     segmentNotified: true,
   },
   SECOND_DONATION: {
@@ -1510,6 +1518,7 @@ export interface CreateDonationData {
   // userId?: number;
   projectId?: number;
   status?: string;
+  verified?: string;
 }
 
 export interface CategoryData {
@@ -1531,8 +1540,8 @@ export interface MainCategoryData {
 
 export const saveDonationDirectlyToDb = async (
   donationData: CreateDonationData,
-  userId: number,
-  projectId: number,
+  userId?: number,
+  projectId?: number,
 ) => {
   const user = (await User.findOne({
     where: {

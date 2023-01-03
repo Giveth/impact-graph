@@ -3,7 +3,16 @@ import { Project } from '../entities/project';
 import { publicSelectionFields, User } from '../entities/user';
 import { Brackets, getConnection } from 'typeorm';
 import { logger } from '../utils/logger';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
+import { PowerSnapshot } from '../entities/powerSnapshot';
+import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
+import { getKeyByValue } from '../utils/utils';
+import { Reaction } from '../entities/reaction';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
@@ -13,8 +22,75 @@ const PERCENTAGE_PRECISION = Number(
 );
 
 const formatPercentage = (p: number): number => {
-  const multiplier = Math.pow(10, PERCENTAGE_PRECISION);
-  return Math.ceil(p * multiplier) / multiplier;
+  return +p.toFixed(PERCENTAGE_PRECISION);
+};
+
+export const findUserPowerBoostings = async (
+  userId?: number,
+  projectId?: number,
+  take?: number,
+  skip?: number,
+  forceProjectIds?: number[],
+): Promise<[PowerBoosting[], number]> => {
+  const query = PowerBoosting.createQueryBuilder('powerBoosting')
+    .leftJoinAndSelect('powerBoosting.project', 'project')
+    .leftJoinAndSelect('powerBoosting.user', 'user');
+
+  if (userId) {
+    query.where(`powerBoosting.userId = :userId`, { userId });
+  }
+
+  if (projectId) {
+    query.where('powerBoosting.projectId = :projectId', { projectId });
+  }
+
+  if (!forceProjectIds || forceProjectIds.length === 0) {
+    query.andWhere(`percentage > 0`);
+  } else {
+    query.andWhere(
+      new Brackets(qb =>
+        qb
+          .where('percentage > 0')
+          .orWhere(`powerBoosting.projectId IN (:...forceProjectIds)`, {
+            forceProjectIds,
+          }),
+      ),
+    );
+  }
+  return query.take(take).skip(skip).getManyAndCount();
+};
+
+export const findUserProjectPowerBoostingsSnapshots = async (
+  userId?: number,
+  projectId?: number,
+  take?: number,
+  skip?: number,
+  powerSnapshotId?: number,
+  round?: number,
+) => {
+  const query = PowerBoostingSnapshot.createQueryBuilder('powerBoosting')
+    .leftJoinAndSelect('powerBoosting.powerSnapshot', 'powerSnapshot')
+    .where(`percentage > 0`);
+
+  if (userId) {
+    query.andWhere(`powerBoosting.userId = :userId`, { userId });
+  }
+
+  if (projectId) {
+    query.andWhere('powerBoosting.projectId = :projectId', { projectId });
+  }
+
+  if (round) {
+    query.andWhere('powerSnapshot.roundNumber = :round', { round });
+  }
+
+  if (powerSnapshotId) {
+    query.andWhere('powerBoosting.powerSnapshotId = :powerSnapshotId', {
+      powerSnapshotId,
+    });
+  }
+
+  return query.take(take).skip(skip).getManyAndCount();
 };
 
 export const findUserPowerBoosting = async (
@@ -43,9 +119,22 @@ export const findUserPowerBoosting = async (
   }
 };
 
+export const findUsersWhoBoostedProject = async (
+  projectId: number,
+): Promise<{ walletAddress: string; email?: string }[]> => {
+  return PowerBoosting.createQueryBuilder('powerBoosting')
+    .leftJoin('powerBoosting.user', 'user')
+    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
+    .where(`"projectId"=:projectId`, {
+      projectId,
+    })
+    .andWhere(`percentage > 0`)
+    .getRawMany();
+};
+
 export const findPowerBoostings = async (params: {
-  take: number;
-  skip: number;
+  take?: number;
+  skip?: number;
   orderBy: {
     field: 'createdAt' | 'updatedAt' | 'percentage';
     direction: 'ASC' | 'DESC';
@@ -66,11 +155,18 @@ export const findPowerBoostings = async (params: {
   if (params.projectId) {
     query.andWhere(`"projectId" =${params.projectId}`);
   }
-  return query
-    .orderBy(`powerBoosting.${params.orderBy.field}`, params.orderBy.direction)
-    .take(params.take)
-    .skip(params.skip)
-    .getManyAndCount();
+  query.orderBy(
+    `powerBoosting.${params.orderBy.field}`,
+    params.orderBy.direction,
+  );
+
+  if (params.take) {
+    query.take(params.take);
+  }
+  if (params.skip) {
+    query.skip(params.skip);
+  }
+  return query.getManyAndCount();
 };
 
 export const findPowerBoostingsCountByUserId = async (
@@ -98,15 +194,37 @@ export const insertSinglePowerBoosting = async (params: {
   }).save();
 };
 
+export const cancelProjectBoosting = async (params: {
+  userId: number;
+  projectId: number;
+}): Promise<PowerBoosting[]> =>
+  _setSingleBoosting({
+    ...params,
+    percentage: 0,
+    projectIsCanceled: true,
+  });
+
 export const setSingleBoosting = async (params: {
   userId: number;
   projectId: number;
   percentage: number;
+}): Promise<PowerBoosting[]> =>
+  _setSingleBoosting({ ...params, projectIsCanceled: false });
+
+const _setSingleBoosting = async (params: {
+  userId: number;
+  projectId: number;
+  percentage: number;
+  projectIsCanceled: boolean;
 }): Promise<PowerBoosting[]> => {
-  const { userId, projectId, percentage } = params;
+  const { userId, projectId, percentage, projectIsCanceled } = params;
 
   if (percentage < 0 || percentage > 100) {
-    throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
+      ),
+    );
   }
 
   const queryRunner = getConnection().createQueryRunner();
@@ -130,9 +248,11 @@ export const setSingleBoosting = async (params: {
     const commitData: PowerBoosting[] = [];
 
     if (otherProjectsPowerBoostings.length === 0) {
-      if (percentage !== 100)
+      if (percentage !== 100 && !projectIsCanceled)
         throw new Error(
-          errorMessages.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
+          i18n.__(
+            translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_FIRST_PROJECT_100_PERCENT,
+          ),
         );
     } else {
       if (
@@ -140,7 +260,9 @@ export const setSingleBoosting = async (params: {
         percentage !== 100
       ) {
         throw new Error(
-          errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
+          i18n.__(
+            translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
+          ),
         );
       }
 
@@ -182,8 +304,11 @@ export const setSingleBoosting = async (params: {
 
     // since we have errors let's rollback changes we made
     await queryRunner.rollbackTransaction();
-    if (Object.values(errorMessages).includes(e.message)) throw e;
-    else throw Error(errorMessages.SOMETHING_WENT_WRONG);
+    const errorKey = getKeyByValue(errorMessages, e.message);
+    if (errorKey)
+      throw new Error(i18n.__(translationErrorMessagesKeys[errorKey]));
+    else
+      throw Error(i18n.__(translationErrorMessagesKeys.SOMETHING_WENT_WRONG));
   } finally {
     await queryRunner.release();
   }
@@ -198,7 +323,11 @@ export const setMultipleBoosting = async (params: {
   const { userId, projectIds, percentages } = params;
 
   if (percentages.length > MAX_PROJECT_BOOST_LIMIT) {
-    throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT,
+      ),
+    );
   }
 
   if (
@@ -207,7 +336,11 @@ export const setMultipleBoosting = async (params: {
     new Set(projectIds).size !== projectIds.length ||
     percentages.some(percentage => percentage < 0 || percentage > 100)
   ) {
-    throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
+      ),
+    );
   }
 
   const total: number = percentages.reduce(
@@ -223,7 +356,11 @@ export const setMultipleBoosting = async (params: {
     total < 100 - 0.01 * percentages.length ||
     total > MAX_TOTAL_PERCENTAGES
   ) {
-    throw new Error(errorMessages.ERROR_GIVPOWER_BOOSTING_INVALID_DATA);
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.ERROR_GIVPOWER_BOOSTING_INVALID_DATA,
+      ),
+    );
   }
 
   const map = new Map<number, number>(
@@ -262,10 +399,23 @@ export const setMultipleBoosting = async (params: {
 
     // since we have errors let's rollback changes we made
     await queryRunner.rollbackTransaction();
-    if (Object.values(errorMessages).includes(e.message)) throw e;
-    else throw Error(errorMessages.SOMETHING_WENT_WRONG);
+    const errorKey = getKeyByValue(errorMessages, e.message);
+    if (errorKey)
+      throw new Error(i18n.__(translationErrorMessagesKeys[errorKey]));
+    else
+      throw Error(i18n.__(translationErrorMessagesKeys.SOMETHING_WENT_WRONG));
   } finally {
     await queryRunner.release();
   }
   return result;
+};
+
+export const takePowerBoostingSnapshot = async () => {
+  await getConnection().query('CALL public."TAKE_POWER_BOOSTING_SNAPSHOT"()');
+};
+
+export const getPowerBoostingSnapshotRound = (
+  snapshot: PowerSnapshot,
+): number => {
+  return getRoundNumberByDate(snapshot.time).round;
 };

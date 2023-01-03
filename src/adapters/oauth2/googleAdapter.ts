@@ -6,7 +6,11 @@ import axios from 'axios';
 import { stringify } from 'querystring';
 import { decode, JwtPayload } from 'jsonwebtoken';
 import { logger } from '../../utils/logger';
-import { errorMessages } from '../../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages';
 
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -77,7 +81,9 @@ export class GoogleAdapter implements SocialNetworkOauth2AdapterInterface {
     } catch (e) {
       logger.error('getUserInfoByOauth2Code google error', e);
       throw new Error(
-        errorMessages.ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE,
+        i18n.__(
+          translationErrorMessagesKeys.ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE,
+        ),
       );
     }
   }

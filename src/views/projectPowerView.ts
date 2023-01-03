@@ -6,20 +6,27 @@ import {
   RelationId,
   BaseEntity,
   PrimaryColumn,
+  Column,
 } from 'typeorm';
 import { Project } from '../entities/project';
-import { Field, Int, ObjectType } from 'type-graphql';
+import { Field, Float, Int, ObjectType } from 'type-graphql';
+import { ColumnNumericTransformer } from '../utils/entities';
 
 @ViewEntity('project_power_view', { synchronize: false })
 @ObjectType()
 export class ProjectPowerView extends BaseEntity {
+  @Field()
   @ViewColumn()
   @PrimaryColumn()
   @RelationId((projectPowerView: ProjectPowerView) => projectPowerView.project)
   projectId: number;
 
   @ViewColumn()
-  @Field()
+  @Field(type => Float)
+  @Column('numeric', {
+    scale: 2,
+    transformer: new ColumnNumericTransformer(),
+  })
   totalPower: number;
 
   @Field(type => Project)
@@ -32,6 +39,6 @@ export class ProjectPowerView extends BaseEntity {
   powerRank: number;
 
   @ViewColumn()
-  @Field(type => Date)
-  updateTime: Date;
+  @Field(type => Int)
+  round: number;
 }

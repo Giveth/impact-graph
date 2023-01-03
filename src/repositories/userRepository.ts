@@ -1,7 +1,5 @@
-import { getAnalytics } from '../analytics/analytics';
 import { publicSelectionFields, User, UserRole } from '../entities/user';
-
-const analytics = getAnalytics();
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 
 export const findAdminUserByEmail = async (
   email: string,
@@ -46,7 +44,7 @@ export const createUserWithPublicAddress = async (
     segmentIdentified: true,
   }).save();
 
-  analytics.identifyUser(user);
+  SegmentAnalyticsSingleton.getInstance().identifyUser(user);
 
   return user;
 };

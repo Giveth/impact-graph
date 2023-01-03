@@ -1,4 +1,3 @@
-import NotificationPayload from '../entities/notificationPayload';
 import { Reaction } from '../entities/reaction';
 import {
   OrderField,
@@ -20,10 +19,7 @@ import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { MyContext } from '../types/MyContext';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../analytics/analytics';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
@@ -47,7 +43,11 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   canUserVisitProject,
   validateProjectRelatedAddresses,
@@ -56,7 +56,6 @@ import {
   validateProjectWalletAddress,
 } from '../utils/validators/projectValidator';
 import { updateTotalProjectUpdatesOfAProject } from '../services/projectUpdatesService';
-import { dispatchProjectUpdateEvent } from '../services/trace/traceService';
 import { logger } from '../utils/logger';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 import { getLoggedInUser } from '../services/authorizationServices';
@@ -77,12 +76,23 @@ import {
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
   findProjectById,
+  totalProjectsPerDate,
+  totalProjectsPerDateByMonthAndYear,
   userIsOwnerOfProject,
 } from '../repositories/projectRepository';
 import { sortTokensByOrderAndAlphabets } from '../utils/tokenUtils';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
-
-const analytics = getAnalytics();
+import { NETWORK_IDS } from '../provider';
+import { getVerificationFormByProjectId } from '../repositories/projectVerificationRepository';
+import {
+  resourcePerDateReportValidator,
+  validateWithJoiSchema,
+} from '../utils/validators/graphqlQueryValidators';
+import {
+  refreshProjectFuturePowerView,
+  refreshProjectPowerView,
+} from '../repositories/projectPowerViewRepository';
+import { ResourcePerDateRange } from './donationResolver';
 
 @ObjectType()
 class AllProjects {
@@ -117,8 +127,10 @@ class ProjectAndAdmin {
 enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
+  AcceptFundOnGnosis = 'acceptFundOnGnosis',
   Traceable = 'traceCampaignId',
   GivingBlock = 'fromGivingBlock',
+  BoostedWithGivPower = 'boostedWithGivPower',
 }
 
 enum OrderDirection {
@@ -183,7 +195,7 @@ class GetProjectsArgs {
 
   @Field(type => OrderBy, {
     defaultValue: {
-      field: OrderField.QualityScore,
+      field: OrderField.GIVPower,
       direction: OrderDirection.DESC,
     },
   })
@@ -325,7 +337,12 @@ export class ProjectResolver {
     const query = Project.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
-      .innerJoinAndSelect('project.categories', 'categories')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
@@ -440,6 +457,20 @@ export class ProjectResolver {
       return query.andWhere(`project.${filter} ${isRequested} NULL`);
     }
 
+    if (filter === 'acceptFundOnGnosis' && filterValue) {
+      return query.andWhere(
+        new Brackets(subQuery => {
+          subQuery.where(
+            `EXISTS (
+              SELECT *
+              FROM project_address
+              WHERE "isRecipient" = true AND "networkId" = ${NETWORK_IDS.XDAI} AND "projectId" = project.id
+            )`,
+          );
+        }),
+      );
+    }
+
     return query.andWhere(`project.${filter} = ${filterValue}`);
   }
 
@@ -463,6 +494,18 @@ export class ProjectResolver {
 
           if (filter === FilterField.Traceable) {
             return subQuery.andWhere(`project.${filter} IS NOT NULL`);
+          }
+          if (filter === FilterField.BoostedWithGivPower) {
+            return subQuery.andWhere(`projectPower.totalPower > 0`);
+          }
+          if (filter === FilterField.AcceptFundOnGnosis && filter) {
+            return subQuery.andWhere(
+              `EXISTS (
+                        SELECT *
+                        FROM project_address
+                        WHERE "isRecipient" = true AND "networkId" = ${NETWORK_IDS.XDAI} AND "projectId" = project.id
+                      )`,
+            );
           }
 
           return subQuery.andWhere(`project.${filter} = true`);
@@ -552,7 +595,12 @@ export class ProjectResolver {
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
-      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
@@ -560,8 +608,8 @@ export class ProjectResolver {
       .leftJoin('project.projectPower', 'projectPower')
       .addSelect([
         'projectPower.totalPower',
-        'projectPower.updateTime',
         'projectPower.powerRank',
+        'projectPower.round',
       ]);
     // Filters
     query = ProjectResolver.addCategoryQuery(query, category);
@@ -673,8 +721,19 @@ export class ProjectResolver {
       // like defined in our project entity
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
-      .innerJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+      .leftJoin('project.projectPower', 'projectPower')
+      .addSelect([
+        'projectPower.totalPower',
+        'projectPower.powerRank',
+        'projectPower.round',
+      ])
       .where(
         `project.statusId = ${ProjStatus.active} AND project.listed = true`,
       );
@@ -688,22 +747,34 @@ export class ProjectResolver {
 
     switch (sortingBy) {
       case SortingField.MostFunded:
-        query.orderBy('project.totalDonations', 'DESC');
+        query.orderBy('project.totalDonations', OrderDirection.DESC);
         break;
       case SortingField.MostLiked:
-        query.orderBy('project.totalReactions', 'DESC');
+        query.orderBy('project.totalReactions', OrderDirection.DESC);
         break;
       case SortingField.Newest:
-        query.orderBy('project.creationDate', 'DESC');
+        query.orderBy('project.creationDate', OrderDirection.DESC);
         break;
       case SortingField.Oldest:
-        query.orderBy('project.creationDate', 'ASC');
+        query.orderBy('project.creationDate', OrderDirection.ASC);
         break;
       case SortingField.QualityScore:
-        query.orderBy('project.qualityScore', 'DESC');
+        query.orderBy('project.qualityScore', OrderDirection.DESC);
+        break;
+      case SortingField.GIVPower:
+        query
+          .orderBy(`project.verified`, OrderDirection.DESC)
+          .addOrderBy(
+            'projectPower.totalPower',
+            OrderDirection.DESC,
+            'NULLS LAST',
+          );
+
         break;
       default:
-        query.orderBy('project.qualityScore', 'DESC');
+        query
+          .orderBy('projectPower.totalPower', OrderDirection.DESC)
+          .addOrderBy(`project.verified`, OrderDirection.DESC);
         break;
     }
 
@@ -734,7 +805,12 @@ export class ProjectResolver {
       .orderBy(`project.${field}`, direction)
       .limit(skip)
       .take(take)
-      .innerJoinAndSelect('project.categories', 'categories')
+      .innerJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory');
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
@@ -757,7 +833,12 @@ export class ProjectResolver {
         id,
       })
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
@@ -794,11 +875,17 @@ export class ProjectResolver {
         slug,
       })
       .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.categories', 'categories')
+      .leftJoinAndSelect(
+        'project.categories',
+        'categories',
+        'categories.isActive = :isActive',
+        { isActive: true },
+      )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
@@ -818,8 +905,13 @@ export class ProjectResolver {
     });
 
     const project = await query.getOne();
-
     canUserVisitProject(project, String(user?.userId));
+    const verificationForm =
+      project?.projectVerificationForm ||
+      (await getVerificationFormByProjectId(project?.id as number));
+    if (verificationForm) {
+      (project as Project).verificationFormStatus = verificationForm?.status;
+    }
 
     return project;
   }
@@ -830,19 +922,25 @@ export class ProjectResolver {
     @Arg('newProjectData') newProjectData: UpdateProjectInput,
     @Ctx() { req: { user } }: MyContext,
   ) {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
     const { image } = newProjectData;
 
     // const project = await Project.findOne({ id: projectId });
     const project = await findProjectById(projectId);
 
-    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
 
     logger.debug(`project.admin ---> : ${project.admin}`);
     logger.debug(`user.userId ---> : ${user.userId}`);
     logger.debug(`updateProject, inputData :`, newProjectData);
     if (project.admin !== String(user.userId))
-      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
 
     for (const field in newProjectData) {
       if (field === 'addresses') {
@@ -854,7 +952,9 @@ export class ProjectResolver {
 
     if (!newProjectData.categories) {
       throw new Error(
-        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        ),
       );
     }
 
@@ -863,14 +963,14 @@ export class ProjectResolver {
         where: {
           name: category,
 
-          // TODO if we check the isActive for categories when updating the project, we would face error when updating givingBlocks and change projects
-          // As those categories are not active , so we assuem frontend takce care of not showing non-active categories in update page
-          // isActive: true,
+          isActive: true,
         },
       });
-      if (c === undefined) {
+      if (!c) {
         throw new Error(
-          errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+          i18n.__(
+            translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+          ),
         );
       }
       return c;
@@ -879,7 +979,9 @@ export class ProjectResolver {
     const categories = await Promise.all(categoriesPromise);
     if (categories.length > 5) {
       throw new Error(
-        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+        ),
       );
     }
     project.categories = categories;
@@ -937,10 +1039,8 @@ export class ProjectResolver {
     });
 
     // Edit emails
-    Project.notifySegment(project, NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED);
+    await getNotificationAdapter().projectEdited({ project });
 
-    // We dont wait for trace reponse, because it may increase our response time
-    dispatchProjectUpdateEvent(project);
     return project;
   }
 
@@ -978,10 +1078,37 @@ export class ProjectResolver {
 
         return response;
       } catch (e) {
-        throw Error('Upload file failed');
+        throw Error(i18n.__(translationErrorMessagesKeys.UPLOAD_FAILED));
       }
     }
-    throw Error('Upload file failed');
+    throw Error(i18n.__(translationErrorMessagesKeys.UPLOAD_FAILED));
+  }
+
+  @Query(returns => ResourcePerDateRange, { nullable: true })
+  async projectsPerDate(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ): Promise<ResourcePerDateRange> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await totalProjectsPerDate(fromDate, toDate);
+      const totalPerMonthAndYear = await totalProjectsPerDateByMonthAndYear(
+        fromDate,
+        toDate,
+      );
+
+      return {
+        total,
+        totalPerMonthAndYear,
+      };
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
   }
 
   @Mutation(returns => Project)
@@ -997,7 +1124,9 @@ export class ProjectResolver {
 
     if (!projectInput.categories) {
       throw new Error(
-        errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+        ),
       );
     }
 
@@ -1008,13 +1137,14 @@ export class ProjectResolver {
             const [c] = await this.categoryRepository.find({
               where: {
                 name: category,
-                // TODO When frontend got ready we should uncomment isActive filter
-                // isActive: true,
+                isActive: true,
               },
             });
-            if (c === undefined) {
+            if (!c) {
               throw new Error(
-                errorMessages.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+                i18n.__(
+                  translationErrorMessagesKeys.CATEGORIES_MUST_BE_FROM_THE_FRONTEND_SUBSELECTION,
+                ),
               );
             }
             return c;
@@ -1024,7 +1154,9 @@ export class ProjectResolver {
 
     if (categories.length > 5) {
       throw new Error(
-        errorMessages.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+        i18n.__(
+          translationErrorMessagesKeys.CATEGORIES_LENGTH_SHOULD_NOT_BE_MORE_THAN_FIVE,
+        ),
       );
     }
 
@@ -1119,30 +1251,6 @@ export class ProjectResolver {
     });
     await ProjectUpdate.save(update);
 
-    const payload: NotificationPayload = {
-      id: 1,
-      message: 'A new project was created',
-    };
-    const segmentProject = {
-      email: user.email,
-      title: project.title,
-      lastName: user.lastName,
-      firstName: user.firstName,
-      OwnerId: user.id,
-      slug: project.slug,
-      walletAddress: project.walletAddress,
-    };
-    if (status?.id === ProjStatus.active) {
-      analytics.track(
-        NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
-        `givethId-${ctx.req.user.userId}`,
-        segmentProject,
-        null,
-      );
-    }
-
-    await pubSub.publish('NOTIFICATIONS', payload);
-
     if (projectInput.isDraft) {
       await getNotificationAdapter().projectSavedAsDraft({
         project: newProject,
@@ -1163,17 +1271,24 @@ export class ProjectResolver {
     @Arg('content') content: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdate> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
     const owner = await findUserById(user.userId);
 
-    if (!owner) throw new Error(errorMessages.USER_NOT_FOUND);
+    if (!owner)
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
 
-    const project = await Project.findOne({ where: { id: projectId } });
+    const project = await findProjectById(projectId);
 
-    if (!project) throw new Error(errorMessages.PROJECT_NOT_FOUND);
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
-      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
 
     const update = await ProjectUpdate.create({
       userId: user.userId,
@@ -1196,46 +1311,9 @@ export class ProjectResolver {
 
     await updateTotalProjectUpdatesOfAProject(update.projectId);
 
-    analytics.track(
-      NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_OWNER,
-      `givethId-${user.userId}`,
-      projectUpdateInfo,
-      null,
-    );
-
-    const donations = await this.donationRepository.find({
-      where: { project: { id: project?.id } },
-      relations: ['user'],
-    });
-
-    const projectDonors = donations?.map(donation => {
-      return donation.user;
-    });
-    const uniqueDonors = projectDonors?.filter((currentDonor, index) => {
-      return (
-        currentDonor != null &&
-        projectDonors.findIndex(
-          duplicateDonor => duplicateDonor.id === currentDonor.id,
-        ) === index
-      );
-    });
-
-    uniqueDonors?.forEach(donor => {
-      const donorUpdateInfo = {
-        title: project.title,
-        projectId: project.id,
-        projectOwnerId: project.admin,
-        slug: project.slug,
-        update: title,
-        email: donor.email,
-        firstName: donor.firstName,
-      };
-      analytics.track(
-        NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_DONOR,
-        `givethId-${donor.id}`,
-        donorUpdateInfo,
-        null,
-      );
+    await getNotificationAdapter().projectUpdateAdded({
+      project,
+      update: title,
     });
     return save;
   }
@@ -1247,15 +1325,24 @@ export class ProjectResolver {
     @Arg('content') content: string,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdate> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
     const update = await ProjectUpdate.findOne({ where: { id: updateId } });
-    if (!update) throw new Error('Project Update not found.');
+    if (!update)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.PROJECT_UPDATE_NOT_FOUND),
+      );
 
     const project = await Project.findOne({ where: { id: update.projectId } });
-    if (!project) throw new Error('Project not found');
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
-      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
 
     update.title = title;
     update.content = content;
@@ -1268,15 +1355,24 @@ export class ProjectResolver {
     @Arg('updateId') updateId: number,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<Boolean> {
-    if (!user) throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
     const update = await ProjectUpdate.findOne({ where: { id: updateId } });
-    if (!update) throw new Error('Project Update not found.');
+    if (!update)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.PROJECT_UPDATE_NOT_FOUND),
+      );
 
     const project = await Project.findOne({ where: { id: update.projectId } });
-    if (!project) throw new Error('Project not found');
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
-      throw new Error(errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
 
     const [reactions, reactionsCount] = await Reaction.findAndCount({
       where: { projectUpdateId: update.id },
@@ -1494,7 +1590,12 @@ export class ProjectResolver {
       const viewedProject = await this.projectRepository
         .createQueryBuilder('project')
         .leftJoinAndSelect('project.addresses', 'addresses')
-        .innerJoinAndSelect('project.categories', 'categories')
+        .innerJoinAndSelect(
+          'project.categories',
+          'categories',
+          'categories.isActive = :isActive',
+          { isActive: true },
+        )
         .where(`project.slug = :slug OR :slug = ANY(project."slugHistory")`, {
           slug,
         })
@@ -1611,13 +1712,15 @@ export class ProjectResolver {
     const { projectId, statusId, user, reasonId } = inputData;
     const project = await findProjectById(projectId);
     if (!project) {
-      throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
 
     project.mayUpdateStatus(user);
     const status = await ProjectStatus.findOne({ where: { id: statusId } });
     if (!status) {
-      throw new Error(errorMessages.PROJECT_STATUS_NOT_FOUND);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.PROJECT_STATUS_NOT_FOUND),
+      );
     }
     const prevStatus = project.status;
     project.status = status;
@@ -1649,30 +1752,18 @@ export class ProjectResolver {
         reasonId,
       });
 
-      const segmentProject = {
-        email: user.email,
-        title: project.title,
-        LastName: user.lastName,
-        FirstName: user.firstName,
-        OwnerId: project.admin,
-        slug: project.slug,
-      };
-
-      analytics.track(
-        NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
-        `givethId-${ctx.req.user.userId}`,
-        segmentProject,
-        null,
-      );
       await getNotificationAdapter().projectDeactivated({
         project,
       });
+      await Promise.all([
+        refreshProjectPowerView(),
+        refreshProjectFuturePowerView(),
+      ]);
       return true;
     } catch (error) {
       logger.error('projectResolver.deactivateProject() error', error);
       SentryLogger.captureException(error);
       throw error;
-      return false;
     }
   }
   @Mutation(returns => Boolean)
@@ -1687,27 +1778,9 @@ export class ProjectResolver {
         statusId: ProjStatus.active,
         user,
       });
-      const segmentEventToDispatch =
-        project.prevStatusId === ProjStatus.drafted
-          ? NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED
-          : NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED;
 
       project.listed = null;
       await project.save();
-      const segmentProject = {
-        email: user.email,
-        title: project.title,
-        LastName: user.lastName,
-        FirstName: user.firstName,
-        OwnerId: project.admin,
-        slug: project.slug,
-      };
-      analytics.track(
-        segmentEventToDispatch,
-        `givethId-${ctx.req.user.userId}`,
-        segmentProject,
-        null,
-      );
 
       if (project.prevStatusId === ProjStatus.drafted) {
         await getNotificationAdapter().projectPublished({
@@ -1718,6 +1791,10 @@ export class ProjectResolver {
           project,
         });
       }
+      await Promise.all([
+        refreshProjectPowerView(),
+        refreshProjectFuturePowerView(),
+      ]);
       return true;
     } catch (error) {
       logger.error('projectResolver.activateProject() error', error);
