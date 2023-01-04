@@ -208,7 +208,6 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
   broadcastNotification(
     params: BroadCastNotificationInputParams,
   ): Promise<void> {
-    // throw new Error('test adminBro')
     logger.info('MockNotificationAdapter broadcastNotification', params);
     return Promise.resolve(undefined);
   }
