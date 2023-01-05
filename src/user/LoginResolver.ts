@@ -1,10 +1,6 @@
 // tslint:disable-next-line:no-var-requires
 import { logger } from '../utils/logger';
 
-// tslint:disable-next-line:no-var-requires
-require('dotenv').config();
-
-import { NETWORK_IDS } from '../provider';
 import * as bcrypt from 'bcryptjs';
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { keccak256 } from 'ethers/lib/utils';
@@ -14,10 +10,8 @@ import * as jwt from 'jsonwebtoken';
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql';
 import config from '../config';
 import SentryLogger from '../sentryLogger';
-import { getAnalytics } from '../analytics/analytics';
 import { findUserByWalletAddress } from '../repositories/userRepository';
-
-const analytics = getAnalytics();
+import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 // tslint:disable-next-line:no-var-requires
 const sigUtil = require('eth-sig-util');
 
@@ -238,7 +232,7 @@ export class LoginResolver {
         }).save();
         logger.debug(`analytics.identifyUser -> New user`);
 
-        analytics.identifyUser(user);
+        SegmentAnalyticsSingleton.getInstance().identifyUser(user);
       } else {
         let modified = false;
         const updateUserIfNeeded = (field, value) => {
@@ -256,7 +250,7 @@ export class LoginResolver {
         updateUserIfNeeded('walletAddress', publicAddressLowerCase);
         if (user.segmentIdentified === false) {
           logger.debug(`analytics.identifyUser -> User was already logged in`);
-          analytics.identifyUser(user);
+          SegmentAnalyticsSingleton.getInstance().identifyUser(user);
           user.segmentIdentified = true;
           modified = true;
         }

@@ -3,6 +3,7 @@ import { Project, ProjectUpdate } from '../src/entities/project';
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
+// tslint:disable-next-line:class-name
 export class fixUpdatetAtOfProjects1647514950889 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const projectTableExists = await queryRunner.hasTable('project');
@@ -24,7 +25,7 @@ export class fixUpdatetAtOfProjects1647514950889 implements MigrationInterface {
         continue;
       }
       await queryRunner.query(`
-            UPDATE project 
+            UPDATE project
             SET "updatedAt" ='${moment(projectUpdates[0].createdAt).format(
               'YYYY-MM-DD',
             )}'

@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class createProjectTable1662877385200 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const projectTableExists = await queryRunner.hasTable('project');
@@ -68,28 +69,28 @@ export class createProjectTable1662877385200 implements MigrationInterface {
                   ("changeId" COLLATE pg_catalog."default" ASC NULLS LAST)
                   TABLESPACE pg_default
                   WHERE "changeId" IS NOT NULL;
-              
+
               CREATE UNIQUE INDEX "IDX_4834506581f3c8eaddd003f770"
                   ON public.project USING btree
                   ("givingBlocksId" COLLATE pg_catalog."default" ASC NULLS LAST)
                   TABLESPACE pg_default
                   WHERE "givingBlocksId" IS NOT NULL;
-              
+
               CREATE INDEX "IDX_6fce32ddd71197807027be6ad3"
                   ON public.project USING btree
                   (slug COLLATE pg_catalog."default" ASC NULLS LAST)
                   TABLESPACE pg_default;
-              
+
               CREATE INDEX "IDX_b567170a13f26c67548fd9d159"
                   ON public.project USING btree
                   ("slugHistory" COLLATE pg_catalog."default" ASC NULLS LAST)
                   TABLESPACE pg_default;
-              
+
               CREATE INDEX "IDX_b6d55aff9b16e061712260da68"
                   ON public.project USING btree
                   ("statusId" ASC NULLS LAST)
                   TABLESPACE pg_default;
-              
+
               CREATE INDEX "IDX_da2bed8094dd6e19f78c122d5b"
                   ON public.project USING btree
                   ("adminUserId" ASC NULLS LAST)

@@ -2,17 +2,19 @@ import Axios, { AxiosResponse } from 'axios';
 import slugify from 'slugify';
 import config from '../../config';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
-import {
-  Category,
-  Project,
-  ProjectUpdate,
-  ProjStatus,
-} from '../../entities/project';
+import { Project, ProjectUpdate, ProjStatus } from '../../entities/project';
 import { ProjectStatus } from '../../entities/projectStatus';
-import { errorMessages } from '../../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { findUserById } from '../../repositories/userRepository';
+import { Category, CATEGORY_NAMES } from '../../entities/category';
+import { addBulkNewProjectAddress } from '../../repositories/projectAddressRepository';
+import { NETWORK_IDS } from '../../provider';
 import { BaseEntity } from 'typeorm';
 import { User } from '../../entities/user';
 
@@ -66,10 +68,14 @@ export const getChangeNonProfitByNameOrIEN = async (
 
     const nonProfits = result.data.nonprofits;
     if (nonProfits.length > 1)
-      throw errorMessages.CHANGE_API_TITLE_OR_EIN_NOT_PRECISE;
+      throw i18n.__(
+        translationErrorMessagesKeys.CHANGE_API_TITLE_OR_EIN_NOT_PRECISE,
+      );
 
     if (nonProfits.length === 0)
-      throw errorMessages.CHANGE_API_INVALID_TITLE_OR_EIN;
+      throw i18n.__(
+        translationErrorMessagesKeys.CHANGE_API_INVALID_TITLE_OR_EIN,
+      );
 
     return nonProfits[0];
   } catch (e) {
@@ -80,7 +86,7 @@ export const getChangeNonProfitByNameOrIEN = async (
 
 export const createProjectFromChangeNonProfit = async (
   nonProfit: ChangeNonProfit,
-): Promise<Project> => {
+): Promise<Project | undefined> => {
   try {
     const changeCategory = await findOrCreateChangeAPICategory();
     const activeStatus = await ProjectStatus.findOne({
@@ -93,6 +99,7 @@ export const createProjectFromChangeNonProfit = async (
     });
 
     const adminUser = (await findUserById(Number(adminId))) as User;
+    if (!adminUser) return;
     const slugBase = slugify(nonProfit.name, {
       remove: /[*+~.,()'"!:@]/g,
     });
@@ -106,7 +113,7 @@ export const createProjectFromChangeNonProfit = async (
       organization: organization as Organization,
       description: nonProfit.mission,
       categories: [changeCategory],
-      walletAddress: nonProfit.crypto.ethereum_address,
+      walletAddress: nonProfit.crypto.ethereum_address.toLowerCase(),
       creationDate: new Date(),
       slug,
       youtube: nonProfit.socials.youtube,
@@ -128,6 +135,18 @@ export const createProjectFromChangeNonProfit = async (
     };
     const project = Project.create(projectData);
     await project.save();
+
+    // Add addresses relation
+    await addBulkNewProjectAddress([
+      {
+        project,
+        user: adminUser,
+        address: nonProfit.crypto.ethereum_address.toLowerCase(),
+        networkId: NETWORK_IDS.MAIN_NET,
+        isRecipient: true,
+      },
+    ]);
+
     logger.debug(
       'This changeAPI project has been created in our db with ID:',
       project.id,
@@ -154,5 +173,19 @@ export const createProjectFromChangeNonProfit = async (
 
 const findOrCreateChangeAPICategory = async (): Promise<Category> => {
   const category = await Category.findOne({ where: { name: changeAPIHandle } });
-  return category as Category;
+
+  if (!category) {
+    logger.error(
+      i18n.__(
+        translationErrorMessagesKeys.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST,
+      ),
+    );
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST,
+      ),
+    );
+  }
+
+  return category;
 };

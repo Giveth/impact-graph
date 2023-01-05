@@ -1,6 +1,6 @@
 import { schedule } from 'node-cron';
 import { Project, ProjStatus, ProjectUpdate } from '../../entities/project';
-import { Category } from '../../entities/category';
+import { Category, CATEGORY_NAMES } from '../../entities/category';
 import { sleep } from '../../utils/utils';
 import {
   loginGivingBlocks,
@@ -17,9 +17,11 @@ import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
 import { findUserById } from '../../repositories/userRepository';
-
-const givingBlockCategoryName = 'The Giving Block';
-const givingBlockHandle = 'the-giving-block';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../utils/errorMessages';
 
 // Every week once on sunday at 0 hours
 const cronJobTime =
@@ -41,9 +43,13 @@ const exportGivingBlocksProjects = async () => {
   const authResponse = await loginGivingBlocks();
   const accessToken = authResponse.accessToken;
 
-  const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
+  const activeStatus = await ProjectStatus.findOne({
+    where: { id: ProjStatus.active },
+  });
   const organization = await Organization.findOne({
-    label: ORGANIZATION_LABELS.GIVING_BLOCK,
+    where: {
+      label: ORGANIZATION_LABELS.GIVING_BLOCK,
+    },
   });
 
   const givingBlocksProjects = await fetchGivingBlockProjects(accessToken);
@@ -64,8 +70,8 @@ const createGivingProject = async (data: {
   accessToken: string;
   givingBlockProject: GivingBlockProject;
   givingBlocksCategory: GivingBlocksCategory;
-  organization?: Organization;
-  activeStatus?: ProjectStatus;
+  organization: Organization | null;
+  activeStatus: ProjectStatus | null;
 }) => {
   const {
     accessToken,
@@ -77,7 +83,9 @@ const createGivingProject = async (data: {
     if (givingBlockProject.allowsAnon === false) return;
 
     const givethProject = await Project.findOne({
-      givingBlocksId: String(givingBlockProject.id),
+      where: {
+        givingBlocksId: String(givingBlockProject.id),
+      },
     });
     if (givethProject) {
       logger.debug(`GivingBlocksProject ${givingBlockProject.id}. Exists`);
@@ -127,7 +135,7 @@ const createGivingProject = async (data: {
       slugHistory: [],
       givingBlocksId: String(givingBlockProject.id),
       admin: adminId,
-      status: activeStatus,
+      statusId: activeStatus?.id,
       qualityScore,
       totalDonations: 0,
       totalReactions: 0,
@@ -136,7 +144,7 @@ const createGivingProject = async (data: {
       verified: true,
       giveBacks: true,
       isImported: true,
-      adminUser,
+      adminUserId: adminUser?.id,
     });
     await project.save();
     logger.debug(
@@ -169,13 +177,21 @@ type GivingBlocksCategory = {
 };
 
 const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
-  let category = await Category.findOne({ name: givingBlockHandle });
+  const category = await Category.findOne({
+    where: { name: CATEGORY_NAMES.registeredNonProfits },
+  });
 
   if (!category) {
-    category = new Category();
-    category.name = givingBlockHandle;
-    category.value = givingBlockCategoryName;
-    await category.save();
+    logger.error(
+      i18n.__(
+        translationErrorMessagesKeys.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST,
+      ),
+    );
+    throw new Error(
+      i18n.__(
+        translationErrorMessagesKeys.REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST,
+      ),
+    );
   }
 
   return category;

@@ -11,7 +11,11 @@ import {
 } from 'typeorm';
 import { Project } from './project';
 import { MainCategory } from './mainCategory';
-import { Organization } from './organization';
+
+export const CATEGORY_NAMES = {
+  // There are lots of categories but I put the ones that I use here
+  registeredNonProfits: 'registered-non-profits',
+};
 
 @Entity()
 @ObjectType()
@@ -46,5 +50,6 @@ export class Category extends BaseEntity {
   isActive: boolean;
 
   @RelationId((category: Category) => category.mainCategory)
+  @Column()
   mainCategoryId: number;
 }

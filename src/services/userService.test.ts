@@ -34,7 +34,7 @@ function updateUserTotalDonatedTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb(createProjectData());
     const valueUsd = 100;
-    await saveDonationDirectlyToDb(
+    const donation = await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
         status: DONATION_STATUS.VERIFIED,
@@ -44,10 +44,26 @@ function updateUserTotalDonatedTestCases() {
       project.id,
     );
 
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const donation2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: DONATION_STATUS.FAILED,
+        valueUsd: 500,
+      },
+      user.id,
+      project.id,
+    );
+
     await updateUserTotalDonated(user.id);
 
     const updatedUser = await findUserById(user.id);
+    const notUpdatedUser = await User.findOne({ where: { id: user2.id } });
+    // second failed donation is ignored
     assert.equal(updatedUser?.totalDonated, valueUsd);
+    // Non related user is not updated
+    assert.equal(notUpdatedUser?.totalDonated, 0);
   });
 }
 

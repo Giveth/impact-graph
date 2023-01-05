@@ -1,262 +1,287 @@
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
+  sleep,
 } from '../../test/testUtils';
-import { insertSinglePowerBoosting } from './powerBoostingRepository';
-import { insertNewUserPowers } from './userPowerRepository';
+import {
+  insertSinglePowerBoosting,
+  takePowerBoostingSnapshot,
+} from './powerBoostingRepository';
 import { setPowerRound } from './powerRoundRepository';
 import {
   getUserProjectPowers,
   refreshUserProjectPowerView,
 } from './userProjectPowerViewRepository';
+import {
+  findInCompletePowerSnapShots,
+  insertSinglePowerBalanceSnapshot,
+} from './powerSnapshotRepository';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { PowerBoosting } from '../entities/powerBoosting';
+import {
+  UserPowerOrderDirection,
+  UserPowerOrderField,
+} from '../resolvers/userProjectPowerResolver';
+import { AppDataSource } from '../orm';
 
 describe('userProjectPowerViewRepository test', () => {
-  it('should not be filled till refresh', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
+  beforeEach(async () => {
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
     );
-    const secondUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    await insertSinglePowerBoosting({
-      user: firstUser,
-      project,
-      percentage: 10,
-    });
-    await insertSinglePowerBoosting({
-      user: secondUser,
-      project,
-      percentage: 15,
-    });
-
-    const roundNumber = project.id * 10;
-
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber,
-      users: [firstUser, secondUser],
-      averagePowers: {
-        [firstUser.walletAddress as string]: 9999.9999,
-        [secondUser.walletAddress as string]: 200,
-      },
-    });
-
-    await setPowerRound(roundNumber);
-
-    let [projectPowers, count] = await getUserProjectPowers({
-      take: 20,
-      skip: 0,
-      projectId: project.id,
-      orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
-      },
-    });
-    assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, 0);
-    assert.equal(count, 0);
-
-    await refreshUserProjectPowerView();
-    [projectPowers, count] = await getUserProjectPowers({
-      take: 20,
-      skip: 0,
-      projectId: project.id,
-      orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
-      },
-    });
-    assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, 2);
-    assert.equal(count, 2);
-    assert.isTrue(
-      projectPowers[0].boostedPower > projectPowers[1].boostedPower,
-    );
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
   });
 
   it('should set correct power amount for different users', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project = await saveProjectDirectlyToDb(createProjectData());
 
-    const roundNumber = project1.id * 10;
+    const roundNumber = project.id * 10;
 
-    await insertSinglePowerBoosting({
+    const user1Boosting = await insertSinglePowerBoosting({
       user: user1,
-      project: project1,
+      project,
       percentage: 10,
     });
-    await insertSinglePowerBoosting({
+    const user2Boosting = await insertSinglePowerBoosting({
       user: user2,
-      project: project1,
-      percentage: 20,
+      project,
+      percentage: 15,
     });
 
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber,
-      users: [user1, user2],
-      averagePowers: {
-        [user1.walletAddress as string]: 10000,
-        [user2.walletAddress as string]: 20000,
-      },
+    await takePowerBoostingSnapshot();
+    let incompleteSnapshots = await findInCompletePowerSnapShots();
+    assert.lengthOf(incompleteSnapshots, 1);
+    let snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
     });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+    await sleep(1);
+
+    user1Boosting.percentage = 20;
+    user2Boosting.percentage = 30;
+    await PowerBoosting.save([user1Boosting, user2Boosting]);
+
+    await takePowerBoostingSnapshot();
+    incompleteSnapshots = await findInCompletePowerSnapShots();
+    assert.lengthOf(incompleteSnapshots, 1);
+    snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 2;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 400,
+    });
+
     await setPowerRound(roundNumber);
 
     await refreshUserProjectPowerView();
-    const [projectPowers] = await getUserProjectPowers({
-      take: 20,
+
+    const [userPowers, count] = await getUserProjectPowers({
+      take: 2,
       skip: 0,
-      projectId: project1.id,
+      projectId: project.id,
       orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
       },
     });
-    assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, 2);
 
-    const user1power = projectPowers.find(p => p.userId === user1.id);
-    const user2power = projectPowers.find(p => p.userId === user2.id);
+    assert.equal(count, 2);
+    assert.equal(userPowers[0].rank, 1);
+    assert.equal(userPowers[0].userId, user2.id);
+    assert.equal(userPowers[0].projectId, project.id);
+    assert.equal(userPowers[0].boostedPower, 75); // (0.15 * 200 + 0.30 * 400) / 2 = 75
 
-    assert.isDefined(user1power);
-    assert.isDefined(user2power);
-
-    expect(user1power?.boostedPower).to.be.closeTo((10 * 10000) / 100, 0.00001);
-    expect(user2power?.boostedPower).to.be.closeTo((20 * 20000) / 100, 0.00001);
+    assert.equal(userPowers[1].rank, 2);
+    assert.equal(userPowers[1].userId, user1.id);
+    assert.equal(userPowers[1].projectId, project.id);
+    assert.equal(userPowers[1].boostedPower, 25); // (0.10 * 100 + 0.20 * 200) / 2 = 25
   });
 
   it('should have correct power amount for different rounds', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project1 = await saveProjectDirectlyToDb(createProjectData());
-    const roundNumber = project1.id * 10;
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    await insertSinglePowerBoosting({
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    const roundNumber = project.id * 10;
+
+    const user1Boosting = await insertSinglePowerBoosting({
       user: user1,
-      project: project1,
+      project,
       percentage: 10,
     });
-
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber,
-      users: [user1],
-      averagePowers: {
-        [user1.walletAddress as string]: 10000,
-      },
+    const user2Boosting = await insertSinglePowerBoosting({
+      user: user2,
+      project,
+      percentage: 15,
     });
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber + 1,
-      users: [user1],
-      averagePowers: {
-        [user1.walletAddress as string]: 20000,
-      },
+
+    await takePowerBoostingSnapshot();
+    let incompleteSnapshots = await findInCompletePowerSnapShots();
+    let snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+    await sleep(1);
+
+    user1Boosting.percentage = 20;
+    user2Boosting.percentage = 30;
+    await PowerBoosting.save([user1Boosting, user2Boosting]);
+
+    await takePowerBoostingSnapshot();
+    incompleteSnapshots = await findInCompletePowerSnapShots();
+    snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 2;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 400,
+    });
+
+    await sleep(1);
+    user1Boosting.percentage = 30;
+    user2Boosting.percentage = 45;
+    await PowerBoosting.save([user1Boosting, user2Boosting]);
+
+    await takePowerBoostingSnapshot();
+    incompleteSnapshots = await findInCompletePowerSnapShots();
+    snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 3;
+    snapshot.roundNumber = roundNumber + 1;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 300,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 50,
+    });
+
+    await sleep(1);
+    user1Boosting.percentage = 40;
+    user2Boosting.percentage = 60;
+    await PowerBoosting.save([user1Boosting, user2Boosting]);
+
+    await takePowerBoostingSnapshot();
+    incompleteSnapshots = await findInCompletePowerSnapShots();
+    snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 4;
+    snapshot.roundNumber = roundNumber + 1;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 400,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 70,
     });
 
     await setPowerRound(roundNumber);
+
     await refreshUserProjectPowerView();
 
-    let [projectPowers] = await getUserProjectPowers({
-      take: 20,
+    let [userPowers, count] = await getUserProjectPowers({
+      take: 2,
       skip: 0,
-      projectId: project1.id,
+      projectId: project.id,
       orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
       },
     });
-    assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, 1);
 
-    let user1power = projectPowers.find(p => p.userId === user1.id);
+    assert.equal(count, 2);
+    assert.equal(userPowers[0].rank, 1);
+    assert.equal(userPowers[0].userId, user2.id);
+    assert.equal(userPowers[0].boostedPower, 75); // (0.15 * 200 + 0.30 * 400) / 2 = 75
 
-    assert.isDefined(user1power);
-    expect(user1power?.boostedPower).to.be.closeTo((10 * 10000) / 100, 0.00001);
+    assert.equal(userPowers[1].rank, 2);
+    assert.equal(userPowers[1].userId, user1.id);
+    assert.equal(userPowers[1].boostedPower, 25); // (0.10 * 100 + 0.20 * 200) / 2 = 25
 
     await setPowerRound(roundNumber + 1);
-    await refreshUserProjectPowerView();
-
-    [projectPowers] = await getUserProjectPowers({
-      take: 20,
-      skip: 0,
-      projectId: project1.id,
-      orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
-      },
-    });
-    assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, 1);
-
-    user1power = projectPowers.find(p => p.userId === user1.id);
-    assert.isDefined(user1power);
-    expect(user1power?.boostedPower).to.be.closeTo((10 * 20000) / 100, 0.00001);
-  });
-
-  it('should change power amount by boost change', async () => {
-    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project1 = await saveProjectDirectlyToDb(createProjectData());
-    const roundNumber = project1.id * 10;
-
-    const powerBoosting = await insertSinglePowerBoosting({
-      user: user1,
-      project: project1,
-      percentage: 10,
-    });
-
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber,
-      users: [user1],
-      averagePowers: {
-        [user1.walletAddress as string]: 10000,
-      },
-    });
-
-    await setPowerRound(roundNumber);
-    await refreshUserProjectPowerView();
-
-    let [projectPowers] = await getUserProjectPowers({
-      take: 20,
-      skip: 0,
-      projectId: project1.id,
-      orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
-      },
-    });
-    let user1power = projectPowers.find(p => p.userId === user1.id);
-
-    assert.isDefined(user1power);
-    expect(user1power?.boostedPower).to.be.closeTo((10 * 10000) / 100, 0.00001);
-
-    powerBoosting.percentage = 90;
-    await powerBoosting.save();
 
     await refreshUserProjectPowerView();
 
-    [projectPowers] = await getUserProjectPowers({
-      take: 20,
+    [userPowers, count] = await getUserProjectPowers({
+      take: 2,
       skip: 0,
-      projectId: project1.id,
+      projectId: project.id,
       orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
       },
     });
-    user1power = projectPowers.find(p => p.userId === user1.id);
-    expect(user1power?.boostedPower).to.be.closeTo((90 * 10000) / 100, 0.00001);
+
+    assert.equal(count, 2);
+    assert.equal(userPowers[0].rank, 1);
+    assert.equal(userPowers[0].userId, user1.id);
+    assert.equal(userPowers[0].boostedPower, 125); // (0.30 * 300 + 0.40 * 400) / 2 = 125
+
+    assert.equal(userPowers[1].rank, 2);
+    assert.equal(userPowers[1].userId, user2.id);
+    assert.equal(userPowers[1].boostedPower, 32.25); // (0.45 * 50 + 0.60 * 70) / 2 = 32.25
   });
 
   it('should set rank correctly', async () => {
@@ -268,142 +293,144 @@ describe('userProjectPowerViewRepository test', () => {
 
     const roundNumber = project1.id * 10;
 
-    const user1boost = await insertSinglePowerBoosting({
+    await insertSinglePowerBoosting({
       user: user1,
       project: project1,
       percentage: 10,
     });
-    const user2boost = await insertSinglePowerBoosting({
+    await insertSinglePowerBoosting({
       user: user2,
       project: project1,
       percentage: 20,
     });
-    const user3boost = await insertSinglePowerBoosting({
+    await insertSinglePowerBoosting({
       user: user3,
       project: project1,
       percentage: 30,
     });
 
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber,
-      users: [user1, user2, user3],
-      averagePowers: {
-        [user1.walletAddress as string]: 10000,
-        [user2.walletAddress as string]: 20000,
-        [user3.walletAddress as string]: 30000,
-      },
+    await takePowerBoostingSnapshot();
+    let incompleteSnapshots = await findInCompletePowerSnapShots();
+    let snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 100,
     });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user3.id,
+      powerSnapshotId: snapshot.id,
+      balance: 300,
+    });
+
+    await sleep(1);
+    await takePowerBoostingSnapshot();
+    incompleteSnapshots = await findInCompletePowerSnapShots();
+    snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 2;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 300,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user3.id,
+      powerSnapshotId: snapshot.id,
+      balance: 400,
+    });
+    await sleep(1);
+
+    await takePowerBoostingSnapshot();
+    incompleteSnapshots = await findInCompletePowerSnapShots();
+    snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 3;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 300,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 400,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user3.id,
+      powerSnapshotId: snapshot.id,
+      balance: 500,
+    });
+
     await setPowerRound(roundNumber);
 
     await refreshUserProjectPowerView();
-    let [projectPowers] = await getUserProjectPowers({
-      take: 20,
+
+    let [userPowers, count] = await getUserProjectPowers({
+      take: 3,
       skip: 0,
       projectId: project1.id,
       orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
       },
     });
 
-    assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, 3);
+    assert.equal(count, 3);
+    assert.isArray(userPowers);
+    assert.lengthOf(userPowers, 3);
 
     assert.deepEqual(
-      projectPowers.map(p => p.userId),
+      userPowers.map(p => p.userId),
       [user3.id, user2.id, user1.id],
     );
 
-    projectPowers.forEach((p, i) => {
+    userPowers.forEach((p, i) => {
       assert.equal(p.rank, i + 1);
     });
 
-    /// Change boosts and see the rank change
-
-    user1boost.percentage = 30;
-    user3boost.percentage = 10;
-
-    await user1boost.save();
-    await user3boost.save();
-    await refreshUserProjectPowerView();
-
-    [projectPowers] = await getUserProjectPowers({
-      take: 20,
-      skip: 0,
+    // Pagination
+    [userPowers, count] = await getUserProjectPowers({
+      take: 2,
+      skip: 1,
       projectId: project1.id,
       orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
       },
     });
+    assert.equal(count, 3);
+    assert.isArray(userPowers);
+    assert.lengthOf(userPowers, 2);
 
-    assert.equal(projectPowers[0].userId, user2.id); // 4000
-    assert.equal(projectPowers[0].rank, 1);
-
-    assert.includeMembers(
-      projectPowers.slice(1).map(p => p.userId),
-      [user1.id, user3.id],
+    assert.deepEqual(
+      userPowers.map(p => p.userId),
+      [user2.id, user1.id],
     );
 
-    assert.equal(projectPowers[1].rank, 2); // 3000
-    assert.equal(projectPowers[2].rank, 2); // 3000
-  });
-
-  it('should set rank correctly - pagination', async () => {
-    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const project1 = await saveProjectDirectlyToDb(createProjectData());
-
-    const roundNumber = project1.id * 10;
-
-    const user1boost = await insertSinglePowerBoosting({
-      user: user1,
-      project: project1,
-      percentage: 10,
+    userPowers.forEach((p, i) => {
+      assert.equal(p.rank, i + 2);
     });
-    const user2boost = await insertSinglePowerBoosting({
-      user: user2,
-      project: project1,
-      percentage: 20,
-    });
-    const user3boost = await insertSinglePowerBoosting({
-      user: user3,
-      project: project1,
-      percentage: 30,
-    });
-
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber,
-      users: [user1, user2, user3],
-      averagePowers: {
-        [user1.walletAddress as string]: 10000,
-        [user2.walletAddress as string]: 20000,
-        [user3.walletAddress as string]: 30000,
-      },
-    });
-    await setPowerRound(roundNumber);
-
-    await refreshUserProjectPowerView();
-    const [projectPowers] = await getUserProjectPowers({
-      take: 1,
-      skip: 2,
-      projectId: project1.id,
-      orderBy: {
-        field: 'boostedPower',
-        direction: 'DESC',
-      },
-    });
-
-    assert.isArray(projectPowers);
-    assert.lengthOf(projectPowers, 1);
-
-    assert.equal(projectPowers[0].userId, user1.id);
-    assert.equal(projectPowers[0].rank, 3);
   });
 });

@@ -4,7 +4,6 @@ import { logger } from '../../utils/logger';
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcryptjs');
 import { Resolver, Query, Mutation, Arg, UseMiddleware } from 'type-graphql';
-import { InjectRepository } from 'typeorm-typedi-extensions';
 
 import { User } from '../../entities/user';
 import { RegisterWalletInput } from './RegisterWalletInput';

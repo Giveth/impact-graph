@@ -1,12 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class relateCategoriesToMainCategories1657701834486
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
-            ALTER TABLE category 
+            ALTER TABLE category
             ADD IF NOT EXISTS "mainCategoryId" Integer`,
     );
 

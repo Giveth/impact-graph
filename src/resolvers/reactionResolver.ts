@@ -1,6 +1,5 @@
 import {
   Arg,
-  Args,
   Ctx,
   Field,
   Int,
@@ -9,18 +8,15 @@ import {
   Query,
   Resolver,
 } from 'type-graphql';
-import { Reaction, REACTION_TYPE } from '../entities/reaction';
+import { Reaction } from '../entities/reaction';
 import { Context } from '../context';
 import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
 import { MyContext } from '../types/MyContext';
-import { errorMessages } from '../utils/errorMessages';
-import { updateTotalReactionsOfAProject } from '../services/reactionsService';
-import { getConnection } from 'typeorm';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
-import { findUserById } from '../repositories/userRepository';
-import { User } from '../entities/user';
+import { AppDataSource } from '../orm';
 
 @ObjectType()
 class ToggleResponse {
@@ -49,9 +45,11 @@ export class ReactionResolver {
     @Ctx() { req: { user } }: MyContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
-      throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
 
     await queryRunner.connect();
 
@@ -62,7 +60,10 @@ export class ReactionResolver {
       select: ['projectId'],
     });
 
-    if (!projectUpdate) throw Error(errorMessages.PROJECT_UPDATE_NOT_FOUND);
+    if (!projectUpdate)
+      throw Error(
+        i18n.__(translationErrorMessagesKeys.PROJECT_UPDATE_NOT_FOUND),
+      );
 
     try {
       const reaction = await queryRunner.manager.create(Reaction, {
@@ -94,7 +95,7 @@ export class ReactionResolver {
 
       // since we have errors let's rollback changes we made
       await queryRunner.rollbackTransaction();
-      throw Error(errorMessages.SOMETHING_WENT_WRONG);
+      throw Error(i18n.__(translationErrorMessagesKeys.SOMETHING_WENT_WRONG));
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
@@ -108,9 +109,11 @@ export class ReactionResolver {
     { req: { user } }: MyContext,
   ): Promise<boolean> {
     if (!user || !user?.userId)
-      throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
     await queryRunner.connect();
 
     await queryRunner.startTransaction();
@@ -166,16 +169,20 @@ export class ReactionResolver {
     @Ctx() { req: { user } }: MyContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
-      throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
     const project = await findProjectById(projectId);
     if (!project) {
-      throw new Error(errorMessages.PROJECT_NOT_FOUND);
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
     if (project.statusId !== ProjStatus.active) {
-      throw new Error(errorMessages.PROJECT_IS_NOT_ACTIVE);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.PROJECT_IS_NOT_ACTIVE),
+      );
     }
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
 
     await queryRunner.connect();
 
@@ -206,10 +213,9 @@ export class ReactionResolver {
 
       // commit transaction now:
       await queryRunner.commitTransaction();
-      const userWhoLiked = (await findUserById(user.userId)) as User;
       await getNotificationAdapter().projectReceivedHeartReaction({
         project,
-        user: userWhoLiked,
+        userId: user.userId,
       });
       return reaction;
     } catch (e) {
@@ -217,7 +223,9 @@ export class ReactionResolver {
 
       // since we have errors let's rollback changes we made
       await queryRunner.rollbackTransaction();
-      throw new Error(errorMessages.SOMETHING_WENT_WRONG);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.SOMETHING_WENT_WRONG),
+      );
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
@@ -231,9 +239,11 @@ export class ReactionResolver {
     { req: { user } }: MyContext,
   ): Promise<boolean> {
     if (!user || !user?.userId)
-      throw new Error(errorMessages.AUTHENTICATION_REQUIRED);
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
     await queryRunner.connect();
 
     await queryRunner.startTransaction();

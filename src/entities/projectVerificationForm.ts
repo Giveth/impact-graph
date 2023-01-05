@@ -14,7 +14,7 @@ import {
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
-import { User, UserRole } from './user';
+import { User } from './user';
 import { SocialProfile } from './socialProfile';
 
 export enum PROJECT_VERIFICATION_STATUSES {
@@ -74,13 +74,18 @@ export class ProjectContacts {
 export class Milestones {
   @Field(type => String, { nullable: true })
   foundationDate?: String;
-
   @Field({ nullable: true })
   mission?: string;
   @Field({ nullable: true })
   achievedMilestones?: string;
   @Field(type => [String], { nullable: true })
   achievedMilestonesProofs?: string[];
+  @Field(type => String, { nullable: true })
+  problem?: string;
+  @Field(type => String, { nullable: true })
+  plans?: string;
+  @Field(type => String, { nullable: true })
+  impact?: string;
 }
 
 @ObjectType()
@@ -139,6 +144,7 @@ export class ProjectVerificationForm extends BaseEntity {
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.project,
   )
+  @Column({ nullable: true })
   projectId: number;
 
   @Index()
@@ -150,16 +156,19 @@ export class ProjectVerificationForm extends BaseEntity {
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.reviewer,
   )
+  @Column({ nullable: true })
   reviewerId: number;
 
   @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })
   user: User;
+
   @RelationId(
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.user,
   )
+  @Column({ nullable: true })
   userId: number;
 
   @Field(type => [SocialProfile], { nullable: true })
@@ -182,6 +191,10 @@ export class ProjectVerificationForm extends BaseEntity {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  verifiedAt: Date;
 
   // https://github.com/typeorm/typeorm/issues/4674#issuecomment-618073862
   @Field(type => PersonalInfo, { nullable: true })

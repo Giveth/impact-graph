@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class addOrderForTokens1656398065898 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -17,14 +18,14 @@ export class addOrderForTokens1656398065898 implements MigrationInterface {
     await queryRunner.query(`
           UPDATE "token"
           SET "order" = 2
-          WHERE symbol='XDAI' OR symbol='ETH' 
+          WHERE symbol='XDAI' OR symbol='ETH'
         `);
 
     // Important tokens
     await queryRunner.query(`
           UPDATE "token"
           SET "order" = 3
-          WHERE symbol='WETH' 
+          WHERE symbol='WETH'
         `);
   }
 

@@ -1,5 +1,5 @@
 import { assertThrowsAsync } from '../../test/testUtils';
-import { assert, use } from 'chai';
+import { assert } from 'chai';
 import { getPowerRound, setPowerRound } from './powerRoundRepository';
 import { PowerRound } from '../entities/powerRound';
 

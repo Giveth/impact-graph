@@ -1,9 +1,5 @@
 import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { logger } from '../../utils/logger';
-import {
-  getAnalytics,
-  NOTIFICATIONS_EVENT_NAMES,
-} from '../../analytics/analytics';
 import { schedule } from 'node-cron';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
@@ -46,7 +42,7 @@ export const notifyMissingDonationsWithSegment = async () => {
 };
 
 interface SegmentDonationInterFace {
-  slug?: string;
+  slug?: string | null;
   title: string;
   amount: number;
   transactionId: string;
@@ -58,10 +54,10 @@ interface SegmentDonationInterFace {
   projectOwnerId: number;
   transactionNetworkId: number;
   currency: string;
-  projectWalletAddress?: string;
+  projectWalletAddress?: string | null;
   createdAt: Date;
-  email?: string;
-  firstName?: string;
+  email?: string | null;
+  firstName?: string | null;
   anonymous: boolean;
 }
 

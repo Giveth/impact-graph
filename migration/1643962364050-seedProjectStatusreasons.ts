@@ -1,12 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { ProjStatus } from '../src/entities/project';
 
+// tslint:disable-next-line:class-name
 export class seedProjectStatusreasons1643962364050
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     // https://github.com/Giveth/giveth-io-typescript/issues/84#issuecomment-1016941722
-    await queryRunner.query(`INSERT INTO public.project_status_reason ("statusId", description ) VALUES 
+    await queryRunner.query(`INSERT INTO public.project_status_reason ("statusId", description ) VALUES
                     (${ProjStatus.deactive},'The project has completed its goals!'),
                     (${ProjStatus.deactive},'The project is no longer in need of funding.'),
                     (${ProjStatus.deactive},'The project is no longer active.'),
@@ -15,5 +16,6 @@ export class seedProjectStatusreasons1643962364050
                     ;`);
   }
 
+  // tslint:disable-next-line:no-empty
   async down(queryRunner: QueryRunner): Promise<void> {}
 }

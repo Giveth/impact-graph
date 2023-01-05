@@ -1,13 +1,20 @@
 import { CustomHelpers, number, ObjectSchema, ValidationResult } from 'joi';
 // tslint:disable-next-line:no-var-requires
 const Joi = require('joi');
-import { errorMessages } from '../errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../errorMessages';
 import { NETWORK_IDS } from '../../provider';
 import { DONATION_STATUS } from '../../entities/donation';
 import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
 import { countriesList } from '../utils';
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
+const resourcePerDateRegex = new RegExp(
+  '((?:19|20)\\d\\d)-(0?[1-9]|1[012])-([12][0-9]|3[01]|0?[1-9])',
+);
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
@@ -29,12 +36,35 @@ const throwHttpErrorIfJoiValidatorFails = (
 const projectIdValidator = Joi.number().integer().min(0).required();
 
 export const getDonationsQueryValidator = Joi.object({
-  fromDate: Joi.string().pattern(filterDateRegex).messages({
-    'string.base': errorMessages.INVALID_FROM_DATE,
-    'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
-  }),
+  fromDate: Joi.string()
+    .pattern(filterDateRegex)
+    .messages({
+      'string.base': i18n.__(translationErrorMessagesKeys.INVALID_FROM_DATE),
+      'string.pattern.base': i18n.__(
+        translationErrorMessagesKeys.INVALID_DATE_FORMAT,
+      ),
+    }),
 
-  toDate: Joi.string().pattern(filterDateRegex).messages({
+  toDate: Joi.string()
+    .pattern(filterDateRegex)
+    .messages({
+      'string.base': i18n.__(translationErrorMessagesKeys.INVALID_TO_DATE),
+      'string.pattern.base': i18n.__(
+        translationErrorMessagesKeys.INVALID_DATE_FORMAT,
+      ),
+    }),
+});
+
+export const resourcePerDateReportValidator = Joi.object({
+  fromDate: Joi.string()
+    .allow(null, '')
+    .pattern(resourcePerDateRegex)
+    .messages({
+      'string.base': errorMessages.INVALID_FROM_DATE,
+      'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
+    }),
+
+  toDate: Joi.string().allow(null, '').pattern(resourcePerDateRegex).messages({
     'string.base': errorMessages.INVALID_TO_DATE,
     'string.pattern.base': errorMessages.INVALID_DATE_FORMAT,
   }),
@@ -42,17 +72,27 @@ export const getDonationsQueryValidator = Joi.object({
 
 export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
-  transactionId: Joi.string().required().pattern(txHashRegex).messages({
-    'string.pattern.base': errorMessages.INVALID_TRANSACTION_ID,
-  }),
+  transactionId: Joi.string()
+    .required()
+    .pattern(txHashRegex)
+    .messages({
+      'string.pattern.base': i18n.__(
+        translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+      ),
+    }),
   transactionNetworkId: Joi.string()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
   tokenAddress: Joi.string().pattern(ethereumWalletAddressRegex),
-  token: Joi.string().required().pattern(tokenSymbolRegex).messages({
-    'string.pattern.base': errorMessages.CURRENCY_IS_INVALID,
-    'string.base': errorMessages.CURRENCY_IS_INVALID,
-  }),
+  token: Joi.string()
+    .required()
+    .pattern(tokenSymbolRegex)
+    .messages({
+      'string.pattern.base': i18n.__(
+        translationErrorMessagesKeys.CURRENCY_IS_INVALID,
+      ),
+      'string.base': i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID),
+    }),
   projectId: Joi.number().integer().min(0).required(),
   nonce: Joi.number().integer().min(0).required(),
   anonymous: Joi.boolean(),
@@ -103,6 +143,9 @@ const milestonesValidator = Joi.object({
   mission: Joi.string().allow(''),
   achievedMilestones: Joi.string().allow(''),
   achievedMilestonesProofs: Joi.array()?.items(Joi.string()).max(5),
+  problem: Joi.string().allow(''),
+  plans: Joi.string().allow(''),
+  impact: Joi.string().allow(''),
 });
 
 const managingFundsValidator = Joi.object({
@@ -156,7 +199,7 @@ export const submitProjectVerificationStepValidator = Joi.object({
   socialProfiles: Joi.array().required().min(0),
   // socialProfiles: Joi.array().required().min(1).messages({
   //   'string.base':
-  //     errorMessages.SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT,
+  //     i18n.__(translationErrorMessagesKeys.SHOULD_HAVE_AT_LEAST_ONE_CONNECTED_SOCIAL_NETWORK_BEFORE_SUBMIT),
   // }),
   status: Joi.string().required().valid(PROJECT_VERIFICATION_STATUSES.DRAFT),
   emailConfirmed: Joi.boolean().required().valid(true),

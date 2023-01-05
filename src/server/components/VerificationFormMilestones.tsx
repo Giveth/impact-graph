@@ -9,6 +9,9 @@ const VerificationFormMilestones = props => {
       proofs.push(props.record.params[key]);
     }
   });
+  const problem = props?.record?.params?.['milestones.problem'] || '';
+  const plans = props?.record?.params?.['milestones.plans'] || '';
+  const impact = props?.record?.params?.['milestones.impact'] || '';
   const foundationDate =
     props?.record?.params?.['milestones.foundationDate'] || '';
   const achievedMilestones =
@@ -19,6 +22,10 @@ const VerificationFormMilestones = props => {
       <Label>Project Milestones</Label>
 
       <Section>
+        <Section>
+          <Label>Problem</Label>
+          {problem}
+        </Section>
         <Section>
           <Label>Foundation date</Label>
           {foundationDate}
@@ -31,11 +38,19 @@ const VerificationFormMilestones = props => {
           <Label>Achieved Milestones</Label>
           {achievedMilestones}
         </Section>
+        <Section>
+          <Label>Plans</Label>
+          {plans}
+        </Section>
+        <Section>
+          <Label>Impact</Label>
+          {impact}
+        </Section>
 
         <Section>
           <Label>Milestones Proofs</Label>
 
-          {proofs.map(proof => {
+          {proofs?.map(proof => {
             return (
               <div key={proof}>
                 {' '}

@@ -4,11 +4,9 @@ import {
   AfterUpdate,
   BaseEntity,
   BeforeRemove,
-  Brackets,
   Column,
   Entity,
   Index,
-  JoinColumn,
   JoinTable,
   LessThan,
   ManyToMany,
@@ -21,15 +19,12 @@ import {
 
 import { Donation } from './donation';
 import { Reaction } from './reaction';
-import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
-import ProjectTracker from '../services/segment/projectTracker';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
-import { errorMessages } from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
 import { SocialProfile } from './socialProfile';
@@ -37,6 +32,8 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { ProjectAddress } from './projectAddress';
 import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { Category } from './category';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -59,6 +56,7 @@ export enum SortingField {
   Newest = 'Newest',
   Oldest = 'Oldest',
   QualityScore = 'QualityScore',
+  GIVPower = 'GIVPower',
 }
 
 export enum OrderField {
@@ -89,7 +87,7 @@ export enum RevokeSteps {
 
 @Entity()
 @ObjectType()
-class Project extends BaseEntity {
+export class Project extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
@@ -154,6 +152,7 @@ class Project extends BaseEntity {
   organization: Organization;
 
   @RelationId((project: Project) => project.organization)
+  @Column({ nullable: true })
   organizationId: number;
 
   @Field({ nullable: true })
@@ -222,6 +221,7 @@ class Project extends BaseEntity {
   @Field(type => [User], { nullable: true })
   users: User[];
 
+  @Field(() => [Reaction], { nullable: true })
   @OneToMany(type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
 
@@ -237,6 +237,7 @@ class Project extends BaseEntity {
   status: ProjectStatus;
 
   @RelationId((project: Project) => project.status)
+  @Column({ nullable: true })
   statusId: number;
 
   @Index()
@@ -268,6 +269,16 @@ class Project extends BaseEntity {
     projectPowerView => projectPowerView.project,
   )
   projectPower?: ProjectPowerView;
+
+  @Field(type => ProjectFuturePowerView, { nullable: true })
+  @OneToOne(
+    type => ProjectFuturePowerView,
+    projectFuturePowerView => projectFuturePowerView.project,
+  )
+  projectFuturePower?: ProjectFuturePowerView;
+
+  @Field(type => String, { nullable: true })
+  verificationFormStatus?: string;
 
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
@@ -304,25 +315,18 @@ class Project extends BaseEntity {
   @Field(type => ProjectUpdate, { nullable: true })
   projectUpdate?: any;
 
+  @Field(type => [ProjectUpdate], { nullable: true })
+  projectUpdates?: ProjectUpdate[];
+
+  @Field(type => String, { nullable: true })
+  adminBroBaseUrl: string;
+
   // User reaction to the project
-  @Field(type => Reaction, { nullable: true })
+  @Field({ nullable: true })
   reaction?: Reaction;
   /**
    * Custom Query Builders to chain together
    */
-
-  static notifySegment(project: Project, eventName: NOTIFICATIONS_EVENT_NAMES) {
-    new ProjectTracker(project, eventName).track();
-  }
-
-  static sendBulkEventsToSegment(
-    projects: [Project],
-    eventName: NOTIFICATIONS_EVENT_NAMES,
-  ) {
-    for (const project of projects) {
-      this.notifySegment(project, eventName);
-    }
-  }
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: Number) {
@@ -356,12 +360,7 @@ class Project extends BaseEntity {
 
     if (reasonId) {
       reason = await ProjectStatusReason.findOne({
-        where: { id: reasonId, status },
-      });
-    }
-    if (reasonId) {
-      reason = await ProjectStatusReason.findOne({
-        where: { id: reasonId, status },
+        where: { id: reasonId, statusId: status.id },
       });
     }
 
@@ -380,7 +379,9 @@ class Project extends BaseEntity {
   mayUpdateStatus(user: User) {
     if (this.statusId === ProjStatus.cancelled) {
       throw new Error(
-        errorMessages.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+        i18n.__(
+          translationErrorMessagesKeys.THIS_PROJECT_IS_CANCELLED_OR_DEACTIVATED_ALREADY,
+        ),
       );
     }
 
@@ -388,7 +389,9 @@ class Project extends BaseEntity {
       return true;
     } else {
       throw new Error(
-        errorMessages.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+        i18n.__(
+          translationErrorMessagesKeys.YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT,
+        ),
       );
     }
   }
@@ -413,7 +416,7 @@ class Project extends BaseEntity {
 
 @Entity()
 @ObjectType()
-class ProjectUpdate extends BaseEntity {
+export class ProjectUpdate extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
@@ -504,10 +507,13 @@ class ProjectUpdate extends BaseEntity {
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 
+  @AfterUpdate()
+  async updateProjectStampOnUpdate() {
+    await Project.update({ id: this.projectId }, { updatedAt: moment() });
+  }
+
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 }
-
-export { Project, Category, ProjectUpdate };

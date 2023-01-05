@@ -10,6 +10,8 @@ import {
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
 import { findProjectById } from '../../repositories/projectRepository';
+import { createProjectVerificationForm } from '../../repositories/projectVerificationRepository';
+import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -28,6 +30,7 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(31, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(31, 'days').endOf('day'),
     });
     const nonRevokableProject = await saveProjectDirectlyToDb({
@@ -56,6 +59,7 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(61, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(61, 'days').endOf('day'),
     });
 
@@ -75,6 +79,7 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(91, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(91, 'days').endOf('day'),
       verificationStatus: RevokeSteps.Warning,
     });
@@ -97,13 +102,28 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(105, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
       verificationStatus: RevokeSteps.LastChance,
     });
 
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: revokableProject.id,
+      userId: Number(revokableProject.admin),
+    });
+
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
+    await projectVerificationForm.save();
+
     await checkProjectVerificationStatus();
 
-    const revokableProjectUpdated = await findProjectById(revokableProject.id);
+    const revokableProjectUpdated = await Project.createQueryBuilder('project')
+      .leftJoinAndSelect(
+        'project.projectVerificationForm',
+        'projectVerificationForm',
+      )
+      .where('project.id = :id', { id: revokableProject.id })
+      .getOne();
 
     assert.isFalse(revokableProjectUpdated!.verified);
     assert.equal(
@@ -123,6 +143,12 @@ function checkProjectVerificationStatusTestCases() {
       revokableProjectHistory!.description,
       HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED_BY_CRONJOB,
     );
+
+    // set project verification as draft
+    assert.notEqual(
+      projectVerificationForm.status,
+      revokableProjectUpdated?.projectVerificationForm?.status,
+    );
   });
   it('should warn projects that update already expired when feature release', async () => {
     const expiredProject = await saveProjectDirectlyToDb({
@@ -130,6 +156,7 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(105, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
     });
 
@@ -149,17 +176,32 @@ function checkProjectVerificationStatusTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(300, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(300, 'days').endOf('day'),
       verificationStatus: RevokeSteps.UpForRevoking,
     });
+
+    const projectVerificationForm = await createProjectVerificationForm({
+      projectId: expiredRevokableProject.id,
+      userId: Number(expiredRevokableProject.admin),
+    });
+
+    projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
+    await projectVerificationForm.save();
 
     // setup an old date in the test.env (last year), so this is instantly revoked
 
     await checkProjectVerificationStatus();
 
-    const expiredRevokableProjectUpdated = await findProjectById(
-      expiredRevokableProject.id,
-    );
+    const expiredRevokableProjectUpdated = await Project.createQueryBuilder(
+      'project',
+    )
+      .leftJoinAndSelect(
+        'project.projectVerificationForm',
+        'projectVerificationForm',
+      )
+      .where('project.id = :id', { id: expiredRevokableProject.id })
+      .getOne();
 
     assert.isFalse(expiredRevokableProjectUpdated!.verified);
     assert.equal(
@@ -179,6 +221,12 @@ function checkProjectVerificationStatusTestCases() {
     assert.equal(
       expiredProjectHistory!.description,
       HISTORY_DESCRIPTIONS.CHANGED_TO_UNVERIFIED_BY_CRONJOB,
+    );
+
+    // set project verification as draft
+    assert.notEqual(
+      projectVerificationForm.status,
+      expiredRevokableProjectUpdated?.projectVerificationForm?.status,
     );
   });
 }

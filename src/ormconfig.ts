@@ -1,23 +1,40 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-import { DataSource } from 'typeorm';
-import { entities } from './entities/entities';
-import config from './config';
-dotenv.config({
-  path: path.resolve(__dirname, `./config/${process.env.NODE_ENV || ''}.env`),
+const configPath = path.resolve(
+  __dirname,
+  `../config/${process.env.NODE_ENV || ''}.env`,
+);
+const loadConfigResult = dotenv.config({
+  path: configPath,
 });
 
-const dropSchema = config.get('DROP_DATABASE') === 'true';
-export const AppDataSource = new DataSource({
+if (loadConfigResult.error) {
+  // tslint:disable-next-line:no-console
+  console.log('Load process.env error', {
+    path: configPath,
+    error: loadConfigResult.error,
+  });
+  throw loadConfigResult.error;
+}
+
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { getEntities } from './entities/entities';
+
+const ormConfig: DataSourceOptions = {
   type: 'postgres',
   host: process.env.TYPEORM_DATABASE_HOST,
   port: Number(process.env.TYPEORM_DATABASE_PORT),
   username: process.env.TYPEORM_DATABASE_USER,
   password: process.env.TYPEORM_DATABASE_PASSWORD,
   database: process.env.TYPEORM_DATABASE_NAME,
-  dropSchema,
-  entities,
-  synchronize: true,
-  migrations: ['./migration/*.ts'],
-});
+  entities: getEntities(),
+  migrations: ['migration/*.ts'],
+  // cli: {
+  //   migrationsDir: 'migration',
+  // },
+};
+
+export const AppDataSource = new DataSource(ormConfig);
+
+exports = ormConfig;

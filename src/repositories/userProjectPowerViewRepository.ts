@@ -1,22 +1,16 @@
 import { UserProjectPowerView } from '../views/userProjectPowerView';
-import { getConnection } from 'typeorm';
 import { publicSelectionFields } from '../entities/user';
 import { logger } from '../utils/logger';
+import { UserPowerOrderBy } from '../resolvers/userProjectPowerResolver';
+import { AppDataSource } from '../orm';
 
 export const getUserProjectPowers = async (params: {
   take: number;
   skip: number;
-  orderBy: {
-    field:
-      | 'createdAt'
-      | 'updatedAt'
-      | 'percentage'
-      | 'boostedPower'
-      | 'userPower';
-    direction: 'ASC' | 'DESC';
-  };
+  orderBy: UserPowerOrderBy;
   userId?: number;
   projectId?: number;
+  round?: number;
 }): Promise<[UserProjectPowerView[], number]> => {
   try {
     const query = UserProjectPowerView.createQueryBuilder('userProjectPower')
@@ -38,6 +32,11 @@ export const getUserProjectPowers = async (params: {
         projectId: params.projectId,
       });
     }
+    if (params.round) {
+      query.andWhere(`"round" = :round`, {
+        round: params.round,
+      });
+    }
     return await query
       .orderBy(
         `userProjectPower.${params.orderBy.field}`,
@@ -54,7 +53,7 @@ export const getUserProjectPowers = async (params: {
 };
 
 export const refreshUserProjectPowerView = async (): Promise<void> => {
-  return getConnection().manager.query(
+  return AppDataSource.getDataSource().query(
     `
       REFRESH MATERIALIZED VIEW user_project_power_view
     `,

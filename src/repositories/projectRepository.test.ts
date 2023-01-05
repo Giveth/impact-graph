@@ -1,4 +1,5 @@
 import {
+  findProjectById,
   findProjectBySlug,
   findProjectByWalletAddress,
   projectsWithoutUpdateAfterTimeFrame,
@@ -13,17 +14,25 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { assert } from 'chai';
-import { findProjectById } from './projectRepository';
 import { createProjectVerificationForm } from './projectVerificationRepository';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { NETWORK_IDS } from '../provider';
 import moment from 'moment';
 import { setPowerRound } from './powerRoundRepository';
 import { refreshProjectPowerView } from './projectPowerViewRepository';
-import { insertNewUserPowers } from './userPowerRepository';
-import { insertSinglePowerBoosting } from './powerBoostingRepository';
-import { OrderField, Project } from '../entities/project';
+import {
+  insertSinglePowerBoosting,
+  takePowerBoostingSnapshot,
+} from './powerBoostingRepository';
+import { Project } from '../entities/project';
 import { User } from '../entities/user';
+import {
+  findInCompletePowerSnapShots,
+  insertSinglePowerBalanceSnapshot,
+} from './powerSnapshotRepository';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { AppDataSource } from '../orm';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -47,8 +56,9 @@ function projectsWithoutUpdateAfterTimeFrameTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(1001, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment()
-        .subtract(1000, 'days')
+        .subtract(1001, 'days')
         .endOf('day')
         .toDate(),
     });
@@ -58,6 +68,7 @@ function projectsWithoutUpdateAfterTimeFrameTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
+      updatedAt: moment().subtract(900, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment()
         .subtract(900, 'days')
         .endOf('day')
@@ -282,6 +293,12 @@ function verifyMultipleProjectsTestCases() {
 
 function orderByTotalPower() {
   it('order by totalPower DESC', async () => {
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
@@ -308,15 +325,24 @@ function orderByTotalPower() {
     );
 
     const roundNumber = project3.id * 10;
-    await insertNewUserPowers({
-      fromTimestamp: new Date(),
-      toTimestamp: new Date(),
-      givbackRound: roundNumber,
-      users: [user1, user2],
-      averagePowers: {
-        [user1.walletAddress as string]: 10000,
-        [user2.walletAddress as string]: 20000,
-      },
+
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user1.id,
+      powerSnapshotId: snapshot.id,
+      balance: 10000,
+    });
+    await insertSinglePowerBalanceSnapshot({
+      userId: user2.id,
+      powerSnapshotId: snapshot.id,
+      balance: 20000,
     });
 
     await setPowerRound(roundNumber);

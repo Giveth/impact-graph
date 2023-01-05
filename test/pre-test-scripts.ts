@@ -8,7 +8,7 @@ import {
   PROJECT_UPDATE_SEED_DATA,
 } from './testUtils';
 import { User } from '../src/entities/user';
-import { dropdb, createdb } from 'pgtools';
+import { createdb } from 'pgtools';
 import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import { Project, ProjectUpdate } from '../src/entities/project';
@@ -21,14 +21,18 @@ import {
 } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
-import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
-import { ProjectPowerView1662915983382 } from '../migration/1662915983382-ProjectPowerView';
+import { ProjectPowerView1662915983385 } from '../migration/1662915983385-ProjectPowerView';
+import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
+import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-ProjectFuturePowerView';
+import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
+import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
+import { AppDataSource } from '../src/orm';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
 
-async function dropDatabaseAndCreateFreshOne() {
+async function CreateDatabase() {
   const config = {
     user: process.env.TYPEORM_DATABASE_USER,
     password: process.env.TYPEORM_DATABASE_PASSWORD,
@@ -36,22 +40,24 @@ async function dropDatabaseAndCreateFreshOne() {
     host: process.env.TYPEORM_DATABASE_HOST,
   };
 
-  // tslint:disable-next-line:no-console
-  console.log('Dropping DB');
-  try {
-    await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
-  } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('drop db error', e);
-  }
-
+  // // tslint:disable-next-line:no-console
+  // console.log('Dropping DB');
+  // try {
+  //   await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
+  //   // don't drop cron db, because it will be used by pg_cron extension
+  // } catch (e) {
+  //   // tslint:disable-next-line:no-console
+  //   console.log('drop db error', e);
+  // }
+  //
   // tslint:disable-next-line:no-console
   console.log('Create Fresh DB');
   try {
     await createdb(config, process.env.TYPEORM_DATABASE_NAME);
   } catch (e) {
-    // tslint:disable-next-line:no-console
-    console.log('Create Fresh db error', e);
+    if (e?.name !== 'duplicate_database')
+      // tslint:disable-next-line:no-console
+      console.log('Create Fresh db error', e);
   }
 }
 
@@ -262,6 +268,9 @@ async function seedCategories() {
   const drinkMainCategory = await MainCategory.findOne({
     where: { title: 'drink' },
   });
+  const nonProfitMainCategory = await MainCategory.findOne({
+    where: { title: 'nonProfit' },
+  });
   for (const category of SEED_DATA.FOOD_SUB_CATEGORIES) {
     await Category.create({
       name: category,
@@ -276,6 +285,15 @@ async function seedCategories() {
       value: category,
       source: 'adhoc',
       mainCategory: drinkMainCategory as MainCategory,
+    }).save();
+  }
+
+  for (const category of SEED_DATA.NON_PROFIT_SUB_CATEGORIES) {
+    await Category.create({
+      name: category,
+      value: category,
+      source: 'adhoc',
+      mainCategory: nonProfitMainCategory as MainCategory,
     }).save();
   }
 }
@@ -294,16 +312,27 @@ async function seedStatusReasons() {
   }
 }
 
-async function createMaterializedViews() {
-  const queryRunner = getConnection().createQueryRunner();
+async function runMigrations() {
+  const queryRunner = AppDataSource.getDataSource().createQueryRunner();
   await queryRunner.connect();
 
   try {
     const userProjectPowerView = new UserProjectPowerView1662877385339();
-    const projectPowerView = new ProjectPowerView1662915983382();
+    const projectPowerView = new ProjectPowerView1662915983385();
+    const lastSnapshotProjectPowerView =
+      new LastSnapshotProjectPowerView1671448387986();
+    const projectFuturePowerView = new ProjectFuturePowerView1668411738120();
+    const takeSnapshotProcedure =
+      new TakePowerBoostingSnapshotProcedure1663594895751();
+    const takeSnapshotsHistoryProcedure =
+      new createGivPowerHistoricTablesProcedure1670429143091();
 
     await userProjectPowerView.up(queryRunner);
     await projectPowerView.up(queryRunner);
+    await lastSnapshotProjectPowerView.up(queryRunner);
+    await projectFuturePowerView.up(queryRunner);
+    await takeSnapshotProcedure.up(queryRunner);
+    await takeSnapshotsHistoryProcedure.up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
@@ -313,10 +342,10 @@ async function createMaterializedViews() {
 
 before(async () => {
   try {
-    await dropDatabaseAndCreateFreshOne();
+    await CreateDatabase();
     await bootstrap();
     await seedDb();
-    await createMaterializedViews();
+    await runMigrations();
   } catch (e) {
     throw new Error(`Could not setup tests requirements \n${e.message}`);
   }

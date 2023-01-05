@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class seedCategories1640767827635 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const categories = await queryRunner.query(`SELECT * FROM category`);
@@ -7,7 +8,7 @@ export class seedCategories1640767827635 implements MigrationInterface {
       return;
     }
 
-    await queryRunner.query(`INSERT INTO public.category (name, value, source) VALUES 
+    await queryRunner.query(`INSERT INTO public.category (name, value, source) VALUES
                     ('community','Community','adhoc'),
                     ('food','Food','adhoc'),
                     ('non-profit','Non-profit','adhoc'),

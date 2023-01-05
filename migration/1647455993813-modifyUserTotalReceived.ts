@@ -1,9 +1,10 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class modifyUserTotalReceived1647455993813
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     // To run the update query SUM I should check table existance
     // UPDATE clause doesn't have a IF EXISTS conditional
     const userTableExists = await queryRunner.hasTable('user');
@@ -26,5 +27,6 @@ export class modifyUserTotalReceived1647455993813
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  // tslint:disable-next-line:no-empty
+  async down(queryRunner: QueryRunner): Promise<void> {}
 }

@@ -13,7 +13,7 @@ const ClickableLink = props => {
     <div>
       <Label>Project Link</Label>
       <Section>
-        <Link href={link || ''} target="_blank">
+        <Link href={link || ''} target='_blank'>
           {link}
         </Link>
       </Section>

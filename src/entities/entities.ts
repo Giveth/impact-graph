@@ -1,8 +1,4 @@
 import { Organization } from './organization';
-import { User } from './user';
-import { UserPower } from './userPower';
-import { Project, ProjectUpdate } from './project';
-import { Reaction } from './reaction';
 import { Category } from './category';
 import { Token } from './token';
 import { Donation } from './donation';
@@ -23,35 +19,58 @@ import { PowerBoosting } from './powerBoosting';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { PowerRound } from './powerRound';
 import { ProjectPowerView } from '../views/projectPowerView';
+import { PowerSnapshot } from './powerSnapshot';
+import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
+import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { PowerSnapshotHistory } from './powerSnapshotHistory';
+import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
+import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
+import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
+import { DataSourceOptions } from 'typeorm';
+import { User } from './user';
+import { Project, ProjectUpdate } from './project';
+import { Reaction } from './reaction';
 
-export const entities: any = [
-  Organization,
-  User,
-  Project,
-  Notification,
-  BankAccount,
-  StripeTransaction,
-  Category,
-  ProjectUpdate,
-  Reaction,
-  Donation,
-  Token,
-  Wallet,
-  ProjectStatus,
-  ProjectStatusReason,
-  ProjectStatusHistory,
-  AccountVerification,
-  ProjectImage,
-  ThirdPartyProjectImport,
-  ProjectVerificationForm,
-  ProjectAddress,
-  SocialProfile,
-  MainCategory,
-  PowerBoosting,
-  UserPower,
-  PowerRound,
+export const getEntities = (): DataSourceOptions['entities'] => {
+  return [
+    Organization,
+    User,
+    Project,
+    Notification,
+    BankAccount,
+    StripeTransaction,
+    Category,
+    ProjectUpdate,
+    Reaction,
+    Donation,
+    Token,
+    Wallet,
+    ProjectStatus,
+    ProjectStatusReason,
+    ProjectStatusHistory,
+    AccountVerification,
+    ProjectImage,
+    ThirdPartyProjectImport,
+    ProjectVerificationForm,
+    ProjectAddress,
+    SocialProfile,
+    MainCategory,
+    PowerBoosting,
+    PowerRound,
+    PowerSnapshot,
+    PowerBalanceSnapshot,
+    PowerBoostingSnapshot,
 
-  // View
-  UserProjectPowerView,
-  ProjectPowerView,
-];
+    // View
+    UserProjectPowerView,
+    ProjectPowerView,
+    ProjectFuturePowerView,
+    LastSnapshotProjectPowerView,
+
+    // historic snapshots
+    PowerSnapshotHistory,
+    PowerBalanceSnapshotHistory,
+    PowerBoostingSnapshotHistory,
+  ];
+};

@@ -2,13 +2,10 @@ import config from '../config';
 import RateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
-import * as jwt from 'jsonwebtoken';
-import * as TypeORM from 'typeorm';
-import { json, Request, response, Response } from 'express';
+import { json, Request, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
-import { resolvers } from '../resolvers/resolvers';
-import { entities } from '../entities/entities';
+import { getResolvers } from '../resolvers/resolvers';
 import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
@@ -27,14 +24,14 @@ import {
   getAdminBroRouter,
   adminBroQueryCache,
 } from './adminBro';
-import { runGivingBlocksProjectSynchronization } from '../services/the-giving-blocks/syncProjectsCronJob';
-import { initHandlingTraceCampaignUpdateEvents } from '../services/trace/traceService';
-import { processSendSegmentEventsJobs } from '../analytics/segmentQueue';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
-import { runUpdateTraceableProjectsTotalDonations } from '../services/cronJobs/syncTraceTotalDonationsValue';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  i18n,
+  setI18nLocaleForRequest,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { runSyncPoignArtDonations } from '../services/poignArt/syncPoignArtDonationCronJob';
 import { apiGivRouter } from '../routers/apiGivRoutes';
 import { runUpdateDonationsWithoutValueUsdPrices } from '../services/cronJobs/fillOldDonationsPrices';
@@ -43,16 +40,21 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import { ProjectVerificationForm } from '../entities/projectVerificationForm';
-import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
-import { TwitterAdapter } from '../adapters/oauth2/twitterAdapter';
-import { generateRandomEtheriumAddress } from '../../test/testUtils';
-import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
-import { runSyncUserPowersCronJob } from '../services/cronJobs/syncUserPowers';
-import { AppDataSource } from '../ormconfig';
+import {
+  dropDbCronExtension,
+  schedulePowerBoostingSnapshot,
+  schedulePowerSnapshotsHistory,
+} from '../repositories/dbCronRepository';
+import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
+import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
+import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
+import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
+import express from 'express';
+import { DataSource } from 'typeorm';
+import { AppDataSource, CronDataSource } from '../orm';
 
 // tslint:disable:no-var-requires
-const express = require('express');
+
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
@@ -60,43 +62,61 @@ const cors = require('cors');
 
 Resource.validate = validate;
 
-// AdminBro.registerAdapter({ Database, Resource });
-
 export async function bootstrap() {
   try {
-    TypeORM.useContainer(Container);
+    await AppDataSource.initialize();
+    await CronDataSource.initialize();
+    Container.set(DataSource, AppDataSource.getDataSource());
+    const resolvers = getResolvers();
 
     if (config.get('REGISTER_USERNAME_PASSWORD') === 'true') {
       resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver]);
     }
 
-    const dropSchema = config.get('DROP_DATABASE') === 'true';
-
     // Actually we should use await AppDataSource.initialize(); but it throw errors I think because some changes
     // are needed in using typeorm repositories, so currently I kept this
-    await TypeORM.createConnection({
-      type: 'postgres',
-      database: config.get('TYPEORM_DATABASE_NAME') as string,
-      username: config.get('TYPEORM_DATABASE_USER') as string,
-      password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-      port: config.get('TYPEORM_DATABASE_PORT') as number,
-      host: config.get('TYPEORM_DATABASE_HOST') as string,
-      entities,
-      synchronize: true,
-      logger: 'advanced-console',
-      logging: ['error'],
-      dropSchema,
-      cache: true,
-    });
+
+    const dropSchema = config.get('DROP_DATABASE') === 'true';
+    if (dropSchema) {
+      // tslint:disable-next-line:no-console
+      console.log('Drop database....');
+      await AppDataSource.getDataSource().synchronize(dropSchema);
+      // tslint:disable-next-line:no-console
+      console.log('Drop done.');
+      try {
+        await dropDbCronExtension();
+      } catch (e) {
+        logger.error('drop pg_cron extension error', e);
+      }
+    }
 
     const schema = await createSchema();
+
+    const enableDbCronJob =
+      config.get('ENABLE_DB_POWER_BOOSTING_SNAPSHOT') === 'true';
+    if (enableDbCronJob) {
+      try {
+        const scheduleExpression = config.get(
+          'DB_POWER_BOOSTING_SNAPSHOT_CRONJOB_EXPRESSION',
+        ) as string;
+        const powerSnapshotsHistoricScheduleExpression = config.get(
+          'ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA_CRONJOB_EXPRESSION',
+        ) as string;
+        await schedulePowerBoostingSnapshot(scheduleExpression);
+        await schedulePowerSnapshotsHistory(
+          powerSnapshotsHistoricScheduleExpression,
+        );
+      } catch (e) {
+        logger.error('Enabling power boosting snapshot ', e);
+      }
+    }
 
     // Create GraphQL server
     const apolloServer = new ApolloServer({
       uploads: false,
       schema,
       context: async ({ req, res }: any) => {
-        let token;
+        let token: string = '';
         try {
           if (!req) {
             return null;
@@ -137,12 +157,16 @@ export async function bootstrap() {
         ) {
           logger.error('DB connection error', err);
           SentryLogger.captureException(err);
-          return new Error(errorMessages.INTERNAL_SERVER_ERROR);
+          return new Error(
+            i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
+          );
         } else if (err?.message?.startsWith('connect ECONNREFUSED')) {
           // It could be error connecting DB, Redis, ...
           logger.error('Apollo server client error', err);
           SentryLogger.captureException(err);
-          return new Error(errorMessages.INTERNAL_SERVER_ERROR);
+          return new Error(
+            i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
+          );
         }
 
         // Otherwise return the original error. The error can also
@@ -193,6 +217,7 @@ export async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       },
     };
+    app.use(setI18nLocaleForRequest); // accept-language header
     app.use(cors(corsOptions));
     app.use(
       bodyParser.json({
@@ -245,6 +270,7 @@ export async function bootstrap() {
     app.get('/health', (req, res, next) => {
       res.send('Hi every thing seems ok');
     });
+    app.post('/fiat_webhook', onramperWebhookHandler);
     app.post('/transak_webhook', webhookHandler);
 
     // Start the server
@@ -260,24 +286,34 @@ export async function bootstrap() {
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
-    processSendSegmentEventsJobs();
-    initHandlingTraceCampaignUpdateEvents();
     runUpdateDonationsWithoutValueUsdPrices();
-    runUpdateTraceableProjectsTotalDonations();
-    if (process.env.ENABLE_SYNC_USER_POWER_CRONJOB === 'true') {
-      runSyncUserPowersCronJob();
-    }
 
     if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
       runCheckProjectVerificationStatus();
     }
 
-    // If we need to deactivate the process use the env var
+    // If we need to deactivate the process use the env var NO MORE
     // if ((config.get('GIVING_BLOCKS_SERVICE_ACTIVE') as string) === 'true') {
     //   runGivingBlocksProjectSynchronization();
     // }
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
+    }
+    if (
+      (config.get('FILL_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
+    ) {
+      runFillBlockNumbersOfSnapshotsCronjob();
+    }
+    if (
+      (config.get('FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE') as string) ===
+      'true'
+    ) {
+      runFillPowerSnapshotBalanceCronJob();
+    }
+    if (
+      (config.get('UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
+    ) {
+      runUpdatePowerRoundCronJob();
     }
   } catch (err) {
     logger.error(err);

@@ -43,7 +43,7 @@ export class SeedProjectStatus1614082100757 implements MigrationInterface {
 
     // await projectStatusRepository.save(projectStatuses)
 
-    await queryRunner.query(`INSERT INTO public.project_status (symbol,"name",description) VALUES 
+    await queryRunner.query(`INSERT INTO public.project_status (symbol,"name",description) VALUES
         ('rjt','rejected','This project has been rejected by Giveth or platform owner')
         ,('pen','pending','This project is created, but pending approval')
         ,('clr','clarificaiton','Clarification requested by Giveth or platform owner')
