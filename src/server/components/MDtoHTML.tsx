@@ -6,7 +6,7 @@ import marked from 'marked';
 
 const MDtoHTML = props => {
   console.log('props', props);
-  const { record, property, onChange, resource } = props;
+  const { record, property } = props;
   const value = record.params[property.path];
   const [md, setMd] = useState(value);
   const [html, setHtml] = useState('');
@@ -19,8 +19,9 @@ const MDtoHTML = props => {
 
   return (
     <div>
-      <Label>{record.label}</Label>
+      <Label>Markdown</Label>
       <StyledTextArea onChange={onChangeHandler} value={md} rows={4} />
+      <Label>Preview</Label>
       <MDRender dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );
@@ -33,9 +34,19 @@ const StyledTextArea = styled(TextArea)`
 `;
 
 const MDRender = styled.div`
+  border: 1px solid #c0c0ca;
+  border-radius: 4px;
+  padding: 24px;
   margin-bottom: 32px;
   strong {
     font-weight: bold !important;
+  }
+  a {
+    text-decoration: none;
+    color: #e1458d;
+  }
+  ul {
+    list-style-type: disc !important;
   }
 `;
 
