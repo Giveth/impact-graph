@@ -82,7 +82,10 @@ import {
 import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
 import { updateTotalDonationsOfProject } from '../services/donationService';
-import { updateUserTotalDonated } from '../services/userService';
+import {
+  checkAdminPassword,
+  updateUserTotalDonated,
+} from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
@@ -166,23 +169,12 @@ export const getAdminBroRouter = async () => {
   return AdminBroExpress.buildAuthenticatedRouter(
     await getAdminBroInstance(),
     {
-      authenticate: async (email, password) => {
-        try {
-          const user = await findAdminUserByEmail(email);
-          if (user) {
-            const matched = await bcrypt.compare(
-              password,
-              user.encryptedPassword,
-            );
-            if (matched) {
-              return user;
-            }
-          }
-          return false;
-        } catch (e) {
-          logger.error({ e });
+      authenticate: async (email, password): Promise<User | boolean> => {
+        const isPasswordCorrect = await checkAdminPassword({ email, password });
+        if (!isPasswordCorrect) {
           return false;
         }
+        return (await findAdminUserByEmail(email)) as User;
       },
       cookiePassword: secret,
     },
@@ -1881,8 +1873,15 @@ const getAdminBroInstance = async () => {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
-              before: (request: AdminBroRequestInterface) => {
+              before: async (
+                request: AdminBroRequestInterface,
+                response,
+                context: AdminBroContextInterface,
+              ) => {
                 if (request?.payload?.title) {
+                  const { currentAdmin } = context;
+
+                  const adminUser = await findUserById(currentAdmin?.id);
                   const { title, text, link, linkTitle, sendEmail } =
                     request.payload;
                   if (!text) {
@@ -1893,6 +1892,7 @@ const getAdminBroInstance = async () => {
                       errorMessages.YOU_SHOULD_FILL_EITHER_BOTH_LINK_AND_LINK_TITLE_OR_NONE,
                     );
                   }
+                  request.payload.admin = adminUser;
                 }
                 return request;
               },
@@ -1924,9 +1924,6 @@ const getAdminBroInstance = async () => {
               },
             },
             linkTitle: {
-              isVisible: true,
-            },
-            sendEmail: {
               isVisible: true,
             },
           },

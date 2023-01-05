@@ -2,6 +2,9 @@ import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { logger } from '../utils/logger';
+import { findAdminUserByEmail } from '../repositories/userRepository';
+// tslint:disable-next-line:no-var-requires
+const bcrypt = require('bcrypt');
 
 export const updateUserTotalDonated = async (userId: number) => {
   try {
@@ -39,4 +42,16 @@ export const updateUserTotalReceived = async (userId: number) => {
   } catch (e) {
     logger.error('updateUserTotalReceived() error', e);
   }
+};
+
+export const checkAdminPassword = async (params: {
+  email: string;
+  password: string;
+}): Promise<boolean> => {
+  const { password, email } = params;
+  const user = await findAdminUserByEmail(email);
+  if (!user) {
+    return false;
+  }
+  return await bcrypt.compare(password, user.encryptedPassword);
 };

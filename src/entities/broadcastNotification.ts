@@ -4,8 +4,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  ManyToOne,
   PrimaryGeneratedColumn,
+  RelationId,
 } from 'typeorm';
+import { User } from './user';
 
 export enum BROAD_CAST_NOTIFICATION_STATUS {
   PENDING = 'pending',
@@ -33,8 +37,14 @@ export default class BroadcastNotification extends BaseEntity {
   @Column({ nullable: true })
   linkTitle?: string;
 
-  @Column({ nullable: true, default: false })
-  sendEmail?: boolean;
+  @Field(type => User, { nullable: true })
+  @ManyToOne(type => User, { eager: true, nullable: true })
+  adminUser: User;
+  @RelationId(
+    (broadcastNotification: BroadcastNotification) =>
+      broadcastNotification.adminUser,
+  )
+  adminUserId: number;
 
   @CreateDateColumn()
   createdAt: Date;
