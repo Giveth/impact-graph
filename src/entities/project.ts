@@ -152,7 +152,7 @@ export class Project extends BaseEntity {
   organization: Organization;
 
   @RelationId((project: Project) => project.organization)
-  @Column()
+  @Column({ nullable: true })
   organizationId: number;
 
   @Field({ nullable: true })
@@ -237,7 +237,7 @@ export class Project extends BaseEntity {
   status: ProjectStatus;
 
   @RelationId((project: Project) => project.status)
-  @Column()
+  @Column({ nullable: true })
   statusId: number;
 
   @Index()
@@ -449,9 +449,9 @@ export class ProjectUpdate extends BaseEntity {
   @Column({ type: 'integer', default: 0 })
   totalReactions: number;
 
-  @Field(() => [Reaction], { nullable: true })
-  @OneToMany(type => Reaction, reaction => reaction.projectUpdate)
-  reactions?: Reaction[];
+  // User reaction to the project update
+  @Field(type => Reaction, { nullable: true })
+  reaction?: Reaction;
 
   @Field()
   @Column('boolean', { default: false })

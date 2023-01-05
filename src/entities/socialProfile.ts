@@ -42,7 +42,7 @@ export class SocialProfile extends BaseEntity {
   project: Project;
 
   @RelationId((socialProfile: SocialProfile) => socialProfile.project)
-  @Column()
+  @Column({ nullable: true })
   projectId: number;
 
   @Index()

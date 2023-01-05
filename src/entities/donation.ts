@@ -143,7 +143,7 @@ export class Donation extends BaseEntity {
   project: Project;
 
   @RelationId((donation: Donation) => donation.project)
-  @Column()
+  @Column({ nullable: true })
   projectId: number;
 
   @Index()
@@ -152,7 +152,7 @@ export class Donation extends BaseEntity {
   user: User;
 
   @RelationId((donation: Donation) => donation.user)
-  @Column()
+  @Column({ nullable: true })
   userId: number;
 
   @Index()

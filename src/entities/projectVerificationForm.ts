@@ -144,7 +144,7 @@ export class ProjectVerificationForm extends BaseEntity {
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.project,
   )
-  @Column()
+  @Column({ nullable: true })
   projectId: number;
 
   @Index()
@@ -156,7 +156,7 @@ export class ProjectVerificationForm extends BaseEntity {
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.reviewer,
   )
-  @Column()
+  @Column({ nullable: true })
   reviewerId: number;
 
   @Index()
@@ -168,7 +168,7 @@ export class ProjectVerificationForm extends BaseEntity {
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.user,
   )
-  @Column()
+  @Column({ nullable: true })
   userId: number;
 
   @Field(type => [SocialProfile], { nullable: true })

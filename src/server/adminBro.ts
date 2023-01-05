@@ -1450,7 +1450,9 @@ const getAdminBroInstance = async () => {
                 context: AdminBroContextInterface,
               ) => {
                 const { currentAdmin } = context;
-                const project = await Project.findOne(request?.record?.id);
+                const project = await Project.findOne({
+                  where: { id: request?.record?.id },
+                });
                 if (project) {
                   // Not required for now
                   // Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);

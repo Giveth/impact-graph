@@ -42,7 +42,7 @@ export class ProjectAddress extends BaseEntity {
   project: Project;
 
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.project)
-  @Column()
+  @Column({ nullable: true })
   projectId: number;
 
   @Index()
@@ -51,7 +51,7 @@ export class ProjectAddress extends BaseEntity {
   user: User;
 
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.user)
-  @Column()
+  @Column({ nullable: true })
   userId: number;
 
   @Field()

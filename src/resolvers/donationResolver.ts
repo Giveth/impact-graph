@@ -1,16 +1,16 @@
 import {
-  Resolver,
-  Query,
   Arg,
-  Mutation,
-  Ctx,
-  ObjectType,
-  Field,
   Args,
   ArgsType,
+  Ctx,
+  Field,
   InputType,
-  registerEnumType,
   Int,
+  Mutation,
+  ObjectType,
+  Query,
+  registerEnumType,
+  Resolver,
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
@@ -19,7 +19,7 @@ import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
 import { Token } from '../entities/token';
-import { Repository, In, Brackets } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -29,12 +29,7 @@ import {
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
-  updateTotalDonationsOfProject,
 } from '../services/donationService';
-import {
-  updateUserTotalDonated,
-  updateUserTotalReceived,
-} from '../services/userService';
 import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
@@ -55,10 +50,7 @@ import {
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { MainCategory } from '../entities/mainCategory';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
-import { calculateGivbackFactor } from '../services/givbackService';
 import { AppDataSource } from '../orm';
 
 @ObjectType()
@@ -455,7 +447,7 @@ export class DonationResolver {
       );
     return this.donationRepository
       .createQueryBuilder('donation')
-      .where({ user: ctx.req.user.userId })
+      .where({ userId: ctx.req.user.userId })
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')

@@ -1538,20 +1538,10 @@ export const saveDonationDirectlyToDb = async (
   userId?: number,
   projectId?: number,
 ) => {
-  const user = (await User.findOne({
-    where: {
-      id: userId,
-    },
-  })) as User;
-  const project = (await Project.findOne({
-    where: {
-      id: projectId,
-    },
-  })) as Project;
   return Donation.create({
     ...donationData,
-    user,
-    project,
+    userId,
+    projectId,
   }).save();
 };
 

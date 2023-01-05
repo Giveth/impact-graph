@@ -5,7 +5,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { json, Request, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
-import { resolvers } from '../resolvers/resolvers';
+import { getResolvers } from '../resolvers/resolvers';
 import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
@@ -67,6 +67,7 @@ export async function bootstrap() {
     await AppDataSource.initialize();
     await CronDataSource.initialize();
     Container.set(DataSource, AppDataSource.getDataSource());
+    const resolvers = getResolvers();
 
     if (config.get('REGISTER_USERNAME_PASSWORD') === 'true') {
       resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver]);

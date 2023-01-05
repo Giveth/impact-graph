@@ -63,7 +63,7 @@ function givPowerHistoricTestCases() {
 
     await takePowerBoostingSnapshot();
 
-    const roundOneSnapshot = await PowerSnapshot.findOne({});
+    const [roundOneSnapshot] = await PowerSnapshot.find({ take: 1 });
     roundOneSnapshot!.roundNumber = 1;
     await roundOneSnapshot!.save();
 

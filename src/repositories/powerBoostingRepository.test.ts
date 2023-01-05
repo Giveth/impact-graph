@@ -892,7 +892,7 @@ function powerBoostingSnapshotTests() {
 
     await takePowerBoostingSnapshot();
 
-    const snapshot = await PowerSnapshot.findOne({});
+    const [snapshot] = await PowerSnapshot.find({ take: 1 });
     assert.isDefined(snapshot);
 
     const [powerBoostings, powerBoostingCounts] =
@@ -925,7 +925,7 @@ function powerBoostingSnapshotTests() {
     );
     await takePowerBoostingSnapshot();
 
-    let snapshot = (await PowerSnapshot.findOne({})) as PowerSnapshot;
+    let [snapshot] = (await PowerSnapshot.find({ take: 1 })) as PowerSnapshot[];
     assert.isDefined(snapshot);
 
     const round = getPowerBoostingSnapshotRound(snapshot as PowerSnapshot);
@@ -944,7 +944,7 @@ function powerBoostingSnapshotTests() {
 
     snapshot.roundNumber = round;
     await snapshot.save();
-    snapshot = (await PowerSnapshot.findOne({})) as PowerSnapshot;
+    [snapshot] = (await PowerSnapshot.find({ take: 1 })) as PowerSnapshot[];
     assert.equal(snapshot.roundNumber, round);
   });
 }

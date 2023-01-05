@@ -24,6 +24,14 @@ describe('findPowerSnapshotById() test cases', findPowerSnapshotByIdTestCases);
 describe('test balance snapshot functions', balanceSnapshotTestCases);
 
 function balanceSnapshotTestCases() {
+  beforeEach(async () => {
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+  });
+
   it('should return power snapshots with not corresponding balance snapshot', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

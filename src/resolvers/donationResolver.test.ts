@@ -524,9 +524,9 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: { id: saveDonationResponse.data.data.createDonation },
+    });
 
     // because this project is rank1
     assert.equal(

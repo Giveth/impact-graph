@@ -36,7 +36,7 @@ export class ProjectStatusHistory extends BaseEntity {
     (projectStatusHistory: ProjectStatusHistory) =>
       projectStatusHistory.project,
   )
-  @Column()
+  @Column({ nullable: true })
   projectId: number;
 
   @Field(type => ProjectStatus)
@@ -57,7 +57,7 @@ export class ProjectStatusHistory extends BaseEntity {
     (projectStatusHistory: ProjectStatusHistory) =>
       projectStatusHistory.prevStatus,
   )
-  @Column()
+  @Column({ nullable: true })
   prevStatusId: number;
 
   @Field(type => ProjectStatusReason)

@@ -49,7 +49,7 @@ export class AccountVerification extends BaseEntity {
   @RelationId(
     (accountVerification: AccountVerification) => accountVerification.user,
   )
-  @Column()
+  @Column({ nullable: true })
   userId: number;
 
   @CreateDateColumn()
