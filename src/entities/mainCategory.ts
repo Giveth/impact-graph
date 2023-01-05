@@ -1,14 +1,12 @@
 import { Field, ID, ObjectType } from 'type-graphql';
 import {
-  PrimaryGeneratedColumn,
+  BaseEntity,
   Column,
   Entity,
-  BaseEntity,
-  Index,
-  ManyToMany,
   OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Category, Project } from './project';
+import { Category } from './category';
 
 @Entity()
 @ObjectType()

@@ -12,5 +12,6 @@ export class AddVerifiedGivebackDefaults1620412189526
     );
   }
 
+  // tslint:disable-next-line:no-empty
   async down(queryRunner: QueryRunner): Promise<void> {}
 }

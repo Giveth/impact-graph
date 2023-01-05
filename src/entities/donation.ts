@@ -1,11 +1,10 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, Int, ObjectType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
   Entity,
   BaseEntity,
   ManyToOne,
-  ColumnOptions,
   RelationId,
   Index,
   Unique,
@@ -142,14 +141,18 @@ export class Donation extends BaseEntity {
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
   project: Project;
+
   @RelationId((donation: Donation) => donation.project)
+  @Column()
   projectId: number;
 
   @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })
   user: User;
+
   @RelationId((donation: Donation) => donation.user)
+  @Column()
   userId: number;
 
   @Index()

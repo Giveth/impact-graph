@@ -4,8 +4,6 @@ import {
   Column,
   Entity,
   BaseEntity,
-  OneToMany,
-  Index,
   ManyToOne,
   RelationId,
 } from 'typeorm';
@@ -38,6 +36,7 @@ export class ProjectStatusHistory extends BaseEntity {
     (projectStatusHistory: ProjectStatusHistory) =>
       projectStatusHistory.project,
   )
+  @Column()
   projectId: number;
 
   @Field(type => ProjectStatus)
@@ -47,6 +46,7 @@ export class ProjectStatusHistory extends BaseEntity {
   @RelationId(
     (projectStatusHistory: ProjectStatusHistory) => projectStatusHistory.status,
   )
+  @Column({ nullable: true })
   statusId: number;
 
   @Field(type => ProjectStatus)
@@ -57,6 +57,7 @@ export class ProjectStatusHistory extends BaseEntity {
     (projectStatusHistory: ProjectStatusHistory) =>
       projectStatusHistory.prevStatus,
   )
+  @Column()
   prevStatusId: number;
 
   @Field(type => ProjectStatusReason)
@@ -66,6 +67,7 @@ export class ProjectStatusHistory extends BaseEntity {
   @RelationId(
     (projectStatusHistory: ProjectStatusHistory) => projectStatusHistory.reason,
   )
+  @Column({ nullable: true })
   reasonId: number;
 
   @Field(type => User)
@@ -75,6 +77,7 @@ export class ProjectStatusHistory extends BaseEntity {
   @RelationId(
     (projectStatusHistory: ProjectStatusHistory) => projectStatusHistory.user,
   )
+  @Column({ nullable: true })
   userId: number;
 
   @Field({ nullable: true })

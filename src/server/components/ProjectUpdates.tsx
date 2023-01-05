@@ -1,7 +1,6 @@
 import React from 'react';
 import { withTheme } from 'styled-components';
-import { Section, Label, Link } from '@admin-bro/design-system';
-import config from '../../config';
+import { Section, Label, Link } from '@adminjs/design-system';
 
 const ProjectUpdates = props => {
   const projectUpdates = props?.record?.params?.projectUpdates;
@@ -29,13 +28,13 @@ const ProjectUpdates = props => {
               </Section>
               <Section>
                 <Label>Adminbro User Link</Label>
-                <Link href={userLink || ''} target="_blank">
+                <Link href={userLink || ''} target='_blank'>
                   {userLink}
                 </Link>
               </Section>
               <Section>
                 <Label>Project Update Adminbro Edit Link</Label>
-                <Link href={updateLink || ''} target="_blank">
+                <Link href={updateLink || ''} target='_blank'>
                   {updateLink}
                 </Link>
               </Section>

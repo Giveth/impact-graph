@@ -1,10 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class addGivingBlockOrganizationToGivingBlockProjects1648085509369
   implements MigrationInterface
 {
   // this is to fix newly created givingBlocksProjects after the older migration ran
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     const projectTableExists = await queryRunner.hasTable('project');
 
     if (!projectTableExists) return;
@@ -22,5 +23,5 @@ export class addGivingBlockOrganizationToGivingBlockProjects1648085509369
         `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(queryRunner: QueryRunner): Promise<void> {}
 }

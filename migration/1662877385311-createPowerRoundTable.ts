@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class createPowerRoundTable1662877385311 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const powerRoundTableExists = await queryRunner.hasTable('power_round');

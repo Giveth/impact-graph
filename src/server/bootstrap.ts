@@ -2,12 +2,10 @@ import config from '../config';
 import RateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from 'apollo-server-express';
-import * as TypeORM from 'typeorm';
 import { json, Request, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
 import { resolvers } from '../resolvers/resolvers';
-import { entities } from '../entities/entities';
 import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
@@ -30,7 +28,6 @@ import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
 import {
-  errorMessages,
   i18n,
   setI18nLocaleForRequest,
   translationErrorMessagesKeys,
@@ -43,10 +40,6 @@ import {
   oauth2CallbacksRouter,
   SOCIAL_PROFILES_PREFIX,
 } from '../routers/oauth2Callbacks';
-import { SOCIAL_NETWORKS, SocialProfile } from '../entities/socialProfile';
-import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
-import { CronJob } from '../entities/CronJob';
 import {
   dropDbCronExtension,
   schedulePowerBoostingSnapshot,
@@ -57,6 +50,8 @@ import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSna
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
 import express from 'express';
+import { DataSource } from 'typeorm';
+import { AppDataSource, CronDataSource } from '../orm';
 
 // tslint:disable:no-var-requires
 
@@ -69,48 +64,24 @@ Resource.validate = validate;
 
 export async function bootstrap() {
   try {
-    TypeORM.useContainer(Container);
+    await AppDataSource.initialize();
+    await CronDataSource.initialize();
+    Container.set(DataSource, AppDataSource.getDataSource());
 
     if (config.get('REGISTER_USERNAME_PASSWORD') === 'true') {
       resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver]);
     }
 
-    const dropSchema = config.get('DROP_DATABASE') === 'true';
-
     // Actually we should use await AppDataSource.initialize(); but it throw errors I think because some changes
     // are needed in using typeorm repositories, so currently I kept this
-    await TypeORM.createConnections([
-      {
-        name: 'default',
-        schema: 'public',
-        type: 'postgres',
-        database: config.get('TYPEORM_DATABASE_NAME') as string,
-        username: config.get('TYPEORM_DATABASE_USER') as string,
-        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-        port: config.get('TYPEORM_DATABASE_PORT') as number,
-        host: config.get('TYPEORM_DATABASE_HOST') as string,
-        entities,
-        synchronize: true,
-        logger: 'advanced-console',
-        logging: ['error'],
-        dropSchema,
-        cache: true,
-      },
-      {
-        name: 'cron',
-        type: 'postgres',
-        database: config.get('TYPEORM_DATABASE_NAME') as string,
-        username: config.get('TYPEORM_DATABASE_USER') as string,
-        password: config.get('TYPEORM_DATABASE_PASSWORD') as string,
-        port: config.get('TYPEORM_DATABASE_PORT') as number,
-        host: config.get('TYPEORM_DATABASE_HOST') as string,
-        entities: [CronJob],
-        synchronize: false,
-        dropSchema: false,
-      },
-    ]);
 
+    const dropSchema = config.get('DROP_DATABASE') === 'true';
     if (dropSchema) {
+      // tslint:disable-next-line:no-console
+      console.log('Drop database....');
+      await AppDataSource.getDataSource().synchronize(dropSchema);
+      // tslint:disable-next-line:no-console
+      console.log('Drop done.');
       try {
         await dropDbCronExtension();
       } catch (e) {

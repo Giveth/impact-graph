@@ -14,7 +14,7 @@ import {
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
-import { User, UserRole } from './user';
+import { User } from './user';
 import { SocialProfile } from './socialProfile';
 
 export enum PROJECT_VERIFICATION_STATUSES {
@@ -144,6 +144,7 @@ export class ProjectVerificationForm extends BaseEntity {
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.project,
   )
+  @Column()
   projectId: number;
 
   @Index()
@@ -155,16 +156,19 @@ export class ProjectVerificationForm extends BaseEntity {
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.reviewer,
   )
+  @Column()
   reviewerId: number;
 
   @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })
   user: User;
+
   @RelationId(
     (projectVerificationForm: ProjectVerificationForm) =>
       projectVerificationForm.user,
   )
+  @Column()
   userId: number;
 
   @Field(type => [SocialProfile], { nullable: true })

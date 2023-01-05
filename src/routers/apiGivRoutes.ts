@@ -81,7 +81,7 @@ apiGivRouter.post(
           400,
         );
       }
-      const donationData = {
+      const donationData: Partial<Donation> = {
         fromWalletAddress,
         toWalletAddress,
         user: donor,

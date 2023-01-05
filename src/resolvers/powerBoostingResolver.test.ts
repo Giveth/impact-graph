@@ -21,7 +21,6 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from '../repositories/powerBoostingRepository';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { setPowerRound } from '../repositories/powerRoundRepository';
@@ -30,6 +29,7 @@ import {
   findInCompletePowerSnapShots,
   insertSinglePowerBalanceSnapshot,
 } from '../repositories/powerSnapshotRepository';
+import { AppDataSource } from '../orm';
 
 describe(
   'setSinglePowerBoostingMutation test cases',
@@ -1116,7 +1116,9 @@ function getPowerBoostingTestCases() {
 }
 async function getBottomPowerRankTestCases() {
   beforeEach(async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
   });

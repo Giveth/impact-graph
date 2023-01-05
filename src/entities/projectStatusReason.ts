@@ -30,5 +30,6 @@ export class ProjectStatusReason extends BaseEntity {
   @RelationId(
     (projectStatusReason: ProjectStatusReason) => projectStatusReason.status,
   )
+  @Column({ nullable: true })
   statusId: number;
 }

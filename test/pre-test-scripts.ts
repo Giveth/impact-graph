@@ -21,13 +21,13 @@ import {
 } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
-import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
 import { ProjectPowerView1662915983385 } from '../migration/1662915983385-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
 import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-ProjectFuturePowerView';
 import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
 import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
+import { AppDataSource } from '../src/orm';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -313,7 +313,7 @@ async function seedStatusReasons() {
 }
 
 async function runMigrations() {
-  const queryRunner = getConnection().createQueryRunner();
+  const queryRunner = AppDataSource.getDataSource().createQueryRunner();
   await queryRunner.connect();
 
   try {

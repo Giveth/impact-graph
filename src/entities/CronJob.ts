@@ -3,7 +3,6 @@ import { PrimaryGeneratedColumn, Column, Entity, BaseEntity } from 'typeorm';
 
 @ObjectType()
 @Entity('job', {
-  schema: 'cron',
   synchronize: false,
 })
 // Postgres cron jobs

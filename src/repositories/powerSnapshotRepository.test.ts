@@ -14,7 +14,7 @@ import {
 } from '../../test/testUtils';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { getConnection } from 'typeorm';
+import { AppDataSource } from '../orm';
 
 describe(
   'findInCompletePowerSnapShots() test cases',
@@ -29,7 +29,9 @@ function balanceSnapshotTestCases() {
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
 
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
@@ -104,7 +106,9 @@ function balanceSnapshotTestCases() {
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
 
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
@@ -181,7 +185,9 @@ function balanceSnapshotTestCases() {
     const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
 
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
@@ -284,7 +290,9 @@ function findInCompletePowerSnapShotsTestCases() {
 
 function findPowerSnapshotByIdTestCases() {
   it('should set synced snapshots flag', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 

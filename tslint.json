@@ -2,7 +2,8 @@
   "defaultSeverity": "error",
   "extends": [
     "tslint:recommended",
-    "tslint-plugin-prettier"
+    "tslint-plugin-prettier",
+    "tslint-config-prettier"
   ],
   "rules": {
     "prettier": [
@@ -19,10 +20,9 @@
     ],
     "jsdoc-format": false,
     "adjacent-overload-signatures": true,
-    "quotemark": [
-      true,
-      "single"
-    ],
+    "quotemark": {
+      "options": "single"
+    },
     "ban-types": false,
     "no-console": true,
     "no-namespace": false,

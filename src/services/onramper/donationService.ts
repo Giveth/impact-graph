@@ -26,7 +26,9 @@ export const createFiatDonationFromOnramper = async (
   try {
     // TODO add givbackFactor, powerRound, ... later
     let donation = await Donation.findOne({
-      transactionId: fiatTransaction.payload.txHash!.toLowerCase(),
+      where: {
+        transactionId: fiatTransaction.payload.txHash!.toLowerCase(),
+      },
     });
 
     if (donation) {
@@ -64,8 +66,10 @@ export const createFiatDonationFromOnramper = async (
 
     // Ethereum mainnet always exists
     const tokenInDb = await Token.findOne({
-      networkId: priceChainId,
-      symbol: fiatTransaction.payload.outCurrency,
+      where: {
+        networkId: priceChainId,
+        symbol: fiatTransaction.payload.outCurrency,
+      },
     });
     const isTokenEligibleForGivback = tokenInDb!.isGivbackEligible;
 

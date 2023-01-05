@@ -1,28 +1,12 @@
-import {
-  Resolver,
-  Query,
-  FieldResolver,
-  Arg,
-  Root,
-  Mutation,
-  Ctx,
-  Int,
-} from 'type-graphql';
-import { InjectRepository } from 'typeorm-typedi-extensions';
-import { Repository, In } from 'typeorm';
+import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import { Repository } from 'typeorm';
 
 import { User } from '../entities/user';
 import { RegisterInput } from '../user/register/RegisterInput';
-import { AccountVerification } from '../entities/accountVerification';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { MyContext } from '../types/MyContext';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { Project } from '../entities/project';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { validateEmail } from '../utils/validators/commonValidators';
 import {
   findUserById,
@@ -31,15 +15,13 @@ import {
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 import { UserByAddressResponse } from './types/userResolver';
 import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
+import { AppDataSource } from '../orm';
 
 @Resolver(of => User)
 export class UserResolver {
-  constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(AccountVerification)
-    @InjectRepository(Project)
-    private readonly accountVerificationRepository: Repository<AccountVerification>,
-  ) {}
+  constructor(private readonly userRepository: Repository<User>) {
+    this.userRepository = AppDataSource.getDataSource().getRepository(User);
+  }
 
   async create(@Arg('data', () => RegisterInput) data: any) {
     // return User.create(data).save();

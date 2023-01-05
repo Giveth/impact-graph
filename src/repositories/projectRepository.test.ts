@@ -1,4 +1,5 @@
 import {
+  findProjectById,
   findProjectBySlug,
   findProjectByWalletAddress,
   projectsWithoutUpdateAfterTimeFrame,
@@ -13,7 +14,6 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { assert } from 'chai';
-import { findProjectById } from './projectRepository';
 import { createProjectVerificationForm } from './projectVerificationRepository';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { NETWORK_IDS } from '../provider';
@@ -24,15 +24,15 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
-import { OrderField, Project } from '../entities/project';
+import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import {
   findInCompletePowerSnapShots,
   insertSinglePowerBalanceSnapshot,
 } from './powerSnapshotRepository';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { AppDataSource } from '../orm';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -293,7 +293,9 @@ function verifyMultipleProjectsTestCases() {
 
 function orderByTotalPower() {
   it('order by totalPower DESC', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 

@@ -1,5 +1,4 @@
 import {
-  Category,
   Project,
   ProjectUpdate,
   ProjStatus,
@@ -7,7 +6,7 @@ import {
 } from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
-import AdminBro, { ActionResponse, After } from 'adminjs';
+import AdminBro from 'adminjs';
 import { User, UserRole } from '../entities/user';
 import AdminBroExpress from '@adminjs/express';
 import config from '../config';
@@ -92,6 +91,11 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
+import {
+  ActionResponse,
+  After,
+} from 'adminjs/src/backend/actions/action.interface';
+import { Category } from '../entities/category';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -320,7 +324,7 @@ const getAdminBroInstance = async () => {
       favicon:
         'https://icoholder.com/media/cache/ico_logo_view_page/files/img/e15c430125a607a604a3aee82e65a8f7.png',
       companyName: 'Giveth',
-      softwareBrothers: false,
+      // softwareBrothers: false,
     },
     locale: {
       translations: {
@@ -2206,6 +2210,7 @@ export const verifySingleVerificationForm = async (
     responseMessage = 'Verify/Reject verification form failed ' + error.message;
   }
   const x: RecordJSON = {
+    baseError: null,
     id: String(formId),
     title: '',
     bulkActions: [],
@@ -2263,6 +2268,7 @@ export const makeEditableByUser = async (
     responseMessage = 'Verify/Reject verification form failed ' + error.message;
   }
   const x: RecordJSON = {
+    baseError: null,
     id: String(formId),
     title: '',
     bulkActions: [],

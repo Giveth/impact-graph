@@ -218,8 +218,8 @@ export class GivPowerTestingResolver {
 
   // Know the current round running
   @Query(returns => PowerRound)
-  async currentPowerRound(): Promise<PowerRound | undefined> {
-    return await getPowerRound();
+  async currentPowerRound(): Promise<PowerRound | null> {
+    return getPowerRound();
   }
 
   @Query(returns => FuturePowers)

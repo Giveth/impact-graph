@@ -59,23 +59,23 @@ export class User extends BaseEntity {
   )
   accountVerifications?: AccountVerification[];
 
-  @Field({ nullable: true })
+  @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   email?: string;
 
-  @Field({ nullable: true })
+  @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   firstName?: string;
 
-  @Field({ nullable: true })
+  @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   lastName?: string;
 
-  @Field({ nullable: true })
+  @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   name?: string;
 
-  @Field({ nullable: true })
+  @Field(type => String, { nullable: true })
   @Column({ unique: true })
   walletAddress?: string;
 
@@ -85,15 +85,15 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   encryptedPassword?: string;
 
-  @Field({ nullable: true })
+  @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   avatar?: string;
 
-  @Field({ nullable: true })
+  @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   url?: string;
 
-  @Field({ nullable: true })
+  @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   location?: string;
 

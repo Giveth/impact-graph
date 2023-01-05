@@ -1,6 +1,5 @@
 import {
   Arg,
-  Args,
   Ctx,
   Field,
   Int,
@@ -9,22 +8,15 @@ import {
   Query,
   Resolver,
 } from 'type-graphql';
-import { Reaction, REACTION_TYPE } from '../entities/reaction';
+import { Reaction } from '../entities/reaction';
 import { Context } from '../context';
 import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
 import { MyContext } from '../types/MyContext';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { updateTotalReactionsOfAProject } from '../services/reactionsService';
-import { getConnection } from 'typeorm';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
-import { findUserById } from '../repositories/userRepository';
-import { User } from '../entities/user';
+import { AppDataSource } from '../orm';
 
 @ObjectType()
 class ToggleResponse {
@@ -57,7 +49,7 @@ export class ReactionResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
 
     await queryRunner.connect();
 
@@ -121,7 +113,7 @@ export class ReactionResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
     await queryRunner.connect();
 
     await queryRunner.startTransaction();
@@ -190,7 +182,7 @@ export class ReactionResolver {
       );
     }
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
 
     await queryRunner.connect();
 
@@ -251,7 +243,7 @@ export class ReactionResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
     await queryRunner.connect();
 
     await queryRunner.startTransaction();

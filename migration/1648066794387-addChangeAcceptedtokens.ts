@@ -1,10 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import config from '../src/config';
 
+// tslint:disable-next-line:class-name
 export class addChangeAcceptedtokens1648066794387
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     const changeOrganization = (
       await queryRunner.query(`SELECT * FROM organization
         WHERE label = 'change'`)
@@ -42,5 +43,5 @@ export class addChangeAcceptedtokens1648066794387
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(queryRunner: QueryRunner): Promise<void> {}
 }

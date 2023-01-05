@@ -2,14 +2,9 @@ import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
-import { User, UserRole } from '../src/entities/user';
+import { User } from '../src/entities/user';
 import { Donation, DONATION_STATUS } from '../src/entities/donation';
-import {
-  Category,
-  Project,
-  ProjStatus,
-  ProjectUpdate,
-} from '../src/entities/project';
+import { Project, ProjectUpdate, ProjStatus } from '../src/entities/project';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import {
   Organization,
@@ -25,7 +20,7 @@ import {
   ProjectVerificationForm,
 } from '../src/entities/projectVerificationForm';
 import { MainCategory } from '../src/entities/mainCategory';
-import { CATEGORY_NAMES } from '../src/entities/category';
+import { Category, CATEGORY_NAMES } from '../src/entities/category';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');

@@ -2,12 +2,7 @@ import Axios, { AxiosResponse } from 'axios';
 import slugify from 'slugify';
 import config from '../../config';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
-import {
-  Category,
-  Project,
-  ProjectUpdate,
-  ProjStatus,
-} from '../../entities/project';
+import { Project, ProjectUpdate, ProjStatus } from '../../entities/project';
 import { ProjectStatus } from '../../entities/projectStatus';
 import {
   errorMessages,
@@ -17,7 +12,7 @@ import {
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { findUserById } from '../../repositories/userRepository';
-import { CATEGORY_NAMES } from '../../entities/category';
+import { Category, CATEGORY_NAMES } from '../../entities/category';
 import { addBulkNewProjectAddress } from '../../repositories/projectAddressRepository';
 import { NETWORK_IDS } from '../../provider';
 import { BaseEntity } from 'typeorm';

@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class FixProjectUpdatesCountOnProjects1638381277963
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `ALTER TABLE "project" ADD COLUMN IF NOT EXISTS "totalProjectUpdates" Integer default 0`,
     );
@@ -18,7 +18,7 @@ export class FixProjectUpdatesCountOnProjects1638381277963
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `ALTER TABLE "project" DROP COLUMN IF EXISTS "totalProjectUpdates"`,
     );

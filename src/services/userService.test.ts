@@ -59,7 +59,7 @@ function updateUserTotalDonatedTestCases() {
     await updateUserTotalDonated(user.id);
 
     const updatedUser = await findUserById(user.id);
-    const notUpdatedUser = await User.findOne({ id: user2.id });
+    const notUpdatedUser = await User.findOne({ where: { id: user2.id } });
     // second failed donation is ignored
     assert.equal(updatedUser?.totalDonated, valueUsd);
     // Non related user is not updated

@@ -63,10 +63,11 @@ const givingBlockTokenNames = [
   'Fetch',
 ];
 
+// tslint:disable-next-line:class-name
 export class relateGivingBlocksTokensToOrganization1649133587608
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     const givingBlockOrganization = (
       await queryRunner.query(`SELECT * FROM organization
                 WHERE label='givingBlock'`)
@@ -75,7 +76,7 @@ export class relateGivingBlocksTokensToOrganization1649133587608
     const tokens = await queryRunner.query(`
         SELECT *
         FROM token
-        WHERE name IN (${"'" + givingBlockTokenNames.join("','") + "'"})
+        WHERE name IN (${`'${givingBlockTokenNames.join('\',\'')}'`})
     `);
 
     const insertTokenValues = tokens.map(token => {
@@ -103,5 +104,5 @@ export class relateGivingBlocksTokensToOrganization1649133587608
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(queryRunner: QueryRunner): Promise<void> {}
 }

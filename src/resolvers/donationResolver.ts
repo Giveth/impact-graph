@@ -14,12 +14,10 @@ import {
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { InjectRepository } from 'typeorm-typedi-extensions';
-import { getTokenPrices, getOurTokenList } from 'monoswap';
+import { getOurTokenList } from 'monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Token } from '../entities/token';
 import { Repository, In, Brackets } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
@@ -61,6 +59,7 @@ import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsS
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
+import { AppDataSource } from '../orm';
 
 @ObjectType()
 class PaginateDonations {
@@ -177,10 +176,10 @@ class MainCategoryDonations {
 
 @Resolver(of => User)
 export class DonationResolver {
-  constructor(
-    @InjectRepository(Donation)
-    private readonly donationRepository: Repository<Donation>,
-  ) {}
+  constructor(private readonly donationRepository: Repository<Donation>) {
+    this.donationRepository =
+      AppDataSource.getDataSource().getRepository(Donation);
+  }
 
   @Query(returns => [Donation], { nullable: true })
   async donations(

@@ -1,5 +1,7 @@
+/* tslint:disable:no-console */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class addCategoryTable1640767594947 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

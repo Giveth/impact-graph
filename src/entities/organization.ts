@@ -4,7 +4,6 @@ import {
   Column,
   Entity,
   BaseEntity,
-  Index,
   ManyToMany,
   JoinTable,
   OneToMany,

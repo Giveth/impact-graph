@@ -130,7 +130,7 @@ export const makeFormVerified = async (params: {
   form.verifiedAt = new Date();
 
   if (params.adminId) {
-    form.reviewer = await findUserById(params.adminId);
+    form.reviewer = (await findUserById(params.adminId)) || undefined;
   }
   return form.save();
 };

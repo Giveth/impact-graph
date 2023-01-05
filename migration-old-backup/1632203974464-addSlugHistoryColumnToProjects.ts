@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class addSlugHistoryColumnToProjects1632203974464
   implements MigrationInterface
 {

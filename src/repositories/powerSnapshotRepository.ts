@@ -1,7 +1,7 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { logger } from '../utils/logger';
+import { AppDataSource } from '../orm';
 
 export const findInCompletePowerSnapShots = async (): Promise<
   PowerSnapshot[]
@@ -25,7 +25,12 @@ export const updatePowerSnapShots = async (params: {
 export const insertSinglePowerBalanceSnapshot = async (
   param: Pick<PowerBalanceSnapshot, 'userId' | 'powerSnapshotId' | 'balance'>,
 ) => {
-  return PowerBalanceSnapshot.create(param).save();
+  const { userId, powerSnapshotId, balance } = param;
+  return PowerBalanceSnapshot.create({
+    userId,
+    powerSnapshotId,
+    balance,
+  }).save();
 };
 
 export const findPowerSnapshots = async (
@@ -61,7 +66,7 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
   }[]
 > => {
   logger.info('getPowerBoostingSnapshotWithoutBalance()', { limit, offset });
-  return await getConnection().query(
+  return await AppDataSource.getDataSource().query(
     `
         select "userId", "powerSnapshotId", "blockNumber","walletAddress"
         from (select DISTINCT "powerSnapshotId", "userId" from power_boosting_snapshot) as boosting
@@ -83,7 +88,7 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
 };
 
 export const updatePowerSnapshotSyncedFlag = async (): Promise<number> => {
-  const result = await getConnection().query(
+  const result = await AppDataSource.getDataSource().query(
     `
         update power_snapshot as "snapshot" set synced = true
         where

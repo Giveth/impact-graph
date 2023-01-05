@@ -83,7 +83,7 @@ export const updateProjectWithVerificationForm = async (
       address: relatedAddress.address,
       networkId: relatedAddress.networkId,
       projectId: verificationForm.projectId,
-      user: verificationForm.user,
+      userId: verificationForm.user?.id,
       project,
       isRecipient: false,
     }).save();

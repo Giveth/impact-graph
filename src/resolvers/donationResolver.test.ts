@@ -44,9 +44,9 @@ import {
 } from '../repositories/powerSnapshotRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { AppDataSource } from '../orm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -469,7 +469,9 @@ function createDonationTestCases() {
     }).save();
 
     // Clear previous snapshots
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 

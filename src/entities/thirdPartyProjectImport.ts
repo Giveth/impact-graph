@@ -49,5 +49,6 @@ export class ThirdPartyProjectImport extends BaseEntity {
     (thirdPartyProjectImport: ThirdPartyProjectImport) =>
       thirdPartyProjectImport.project,
   )
+  @Column()
   projectId: number;
 }

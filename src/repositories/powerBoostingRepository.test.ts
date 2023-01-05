@@ -16,14 +16,12 @@ import {
   setSingleBoosting,
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
-import { assert, use } from 'chai';
+import { assert } from 'chai';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { getConnection } from 'typeorm';
-import { Reaction } from '../entities/reaction';
-import { findUsersWhoLikedProjectExcludeProjectOwner } from './reactionRepository';
 import { errorMessages } from '../utils/errorMessages';
+import { AppDataSource } from '../orm';
 
 describe('findUserPowerBoosting() testCases', findUserPowerBoostingTestCases);
 describe('findPowerBoostings() testCases', findPowerBoostingsTestCases);
@@ -862,7 +860,9 @@ function setSingleBoostingTestCases() {
 function powerBoostingSnapshotTests() {
   it('should take snapshot of power boosting', async () => {
     await PowerBoosting.clear();
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
 
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -892,7 +892,7 @@ function powerBoostingSnapshotTests() {
 
     await takePowerBoostingSnapshot();
 
-    const snapshot = await PowerSnapshot.findOne();
+    const snapshot = await PowerSnapshot.findOne({});
     assert.isDefined(snapshot);
 
     const [powerBoostings, powerBoostingCounts] =
@@ -920,10 +920,12 @@ function powerBoostingSnapshotTests() {
   });
 
   it('should return snapshot corresponding round correctly', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await takePowerBoostingSnapshot();
 
-    let snapshot = (await PowerSnapshot.findOne()) as PowerSnapshot;
+    let snapshot = (await PowerSnapshot.findOne({})) as PowerSnapshot;
     assert.isDefined(snapshot);
 
     const round = getPowerBoostingSnapshotRound(snapshot as PowerSnapshot);
@@ -942,7 +944,7 @@ function powerBoostingSnapshotTests() {
 
     snapshot.roundNumber = round;
     await snapshot.save();
-    snapshot = (await PowerSnapshot.findOne()) as PowerSnapshot;
+    snapshot = (await PowerSnapshot.findOne({})) as PowerSnapshot;
     assert.equal(snapshot.roundNumber, round);
   });
 }

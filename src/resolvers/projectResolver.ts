@@ -6,7 +6,6 @@ import {
   ProjStatus,
   SortingField,
 } from '../entities/project';
-import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
 import {
   CreateProjectInput,
@@ -19,7 +18,6 @@ import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { MyContext } from '../types/MyContext';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
@@ -43,11 +41,7 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import {
   canUserVisitProject,
   validateProjectRelatedAddresses,
@@ -93,6 +87,8 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
+import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
+import { AppDataSource } from '../orm';
 
 @ObjectType()
 class AllProjects {
@@ -425,7 +421,7 @@ export class ProjectResolver {
     query: SelectQueryBuilder<Project>,
     take: number,
     skip: number,
-    ownerId?: string,
+    ownerId?: string | null,
   ): Promise<AllProjects> {
     query.andWhere('project.admin = :ownerId', { ownerId });
     const [projects, totalCount] = await query
@@ -516,7 +512,7 @@ export class ProjectResolver {
     return query;
   }
 
-  private static addUserReaction<T>(
+  private static addUserReaction<T extends ObjectLiteral>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
     authenticatedUser?: any,
@@ -535,7 +531,7 @@ export class ProjectResolver {
     return query;
   }
 
-  private static addProjectVerificationForm<T>(
+  private static addProjectVerificationForm<T extends ObjectLiteral>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
     authenticatedUser?: any,
@@ -552,20 +548,24 @@ export class ProjectResolver {
   }
 
   constructor(
-    @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @InjectRepository(ProjectUpdate)
     private readonly projectUpdateRepository: Repository<ProjectUpdate>,
-    @InjectRepository(ProjectStatus)
     private readonly projectStatusRepository: Repository<ProjectStatus>,
-    @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(Donation)
+    private readonly userRepository: Repository<User>,
     private readonly donationRepository: Repository<Donation>,
-    @InjectRepository(ProjectImage)
     private readonly projectImageRepository: Repository<ProjectImage>,
-  ) {}
+  ) {
+    const ds = AppDataSource.getDataSource();
+    this.projectRepository = ds.getRepository(Project);
+    this.projectUpdateRepository = ds.getRepository(ProjectUpdate);
+    this.projectStatusRepository = ds.getRepository(ProjectStatus);
+    this.projectStatusRepository = ds.getRepository(ProjectStatus);
+    this.categoryRepository = ds.getRepository(Category);
+    this.userRepository = ds.getRepository(User);
+    this.donationRepository = ds.getRepository(Donation);
+    this.projectImageRepository = ds.getRepository(ProjectImage);
+  }
 
   // Backward Compatible Projects Query with added pagination, frontend sorts and category search
   @Query(returns => AllProjects)

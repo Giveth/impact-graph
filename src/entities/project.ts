@@ -4,11 +4,9 @@ import {
   AfterUpdate,
   BaseEntity,
   BeforeRemove,
-  Brackets,
   Column,
   Entity,
   Index,
-  JoinColumn,
   JoinTable,
   LessThan,
   ManyToMany,
@@ -21,18 +19,12 @@ import {
 
 import { Donation } from './donation';
 import { Reaction } from './reaction';
-import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
 import { SocialProfile } from './socialProfile';
@@ -41,6 +33,7 @@ import { ProjectAddress } from './projectAddress';
 import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { Category } from './category';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -94,7 +87,7 @@ export enum RevokeSteps {
 
 @Entity()
 @ObjectType()
-class Project extends BaseEntity {
+export class Project extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
@@ -159,6 +152,7 @@ class Project extends BaseEntity {
   organization: Organization;
 
   @RelationId((project: Project) => project.organization)
+  @Column()
   organizationId: number;
 
   @Field({ nullable: true })
@@ -227,6 +221,7 @@ class Project extends BaseEntity {
   @Field(type => [User], { nullable: true })
   users: User[];
 
+  @Field(() => [Reaction], { nullable: true })
   @OneToMany(type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
 
@@ -242,6 +237,7 @@ class Project extends BaseEntity {
   status: ProjectStatus;
 
   @RelationId((project: Project) => project.status)
+  @Column()
   statusId: number;
 
   @Index()
@@ -326,7 +322,7 @@ class Project extends BaseEntity {
   adminBroBaseUrl: string;
 
   // User reaction to the project
-  @Field(type => Reaction, { nullable: true })
+  @Field({ nullable: true })
   reaction?: Reaction;
   /**
    * Custom Query Builders to chain together
@@ -364,12 +360,7 @@ class Project extends BaseEntity {
 
     if (reasonId) {
       reason = await ProjectStatusReason.findOne({
-        where: { id: reasonId, status },
-      });
-    }
-    if (reasonId) {
-      reason = await ProjectStatusReason.findOne({
-        where: { id: reasonId, status },
+        where: { id: reasonId, statusId: status.id },
       });
     }
 
@@ -425,7 +416,7 @@ class Project extends BaseEntity {
 
 @Entity()
 @ObjectType()
-class ProjectUpdate extends BaseEntity {
+export class ProjectUpdate extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
@@ -458,9 +449,9 @@ class ProjectUpdate extends BaseEntity {
   @Column({ type: 'integer', default: 0 })
   totalReactions: number;
 
-  // User reaction to the project update
-  @Field(type => Reaction, { nullable: true })
-  reaction?: Reaction;
+  @Field(() => [Reaction], { nullable: true })
+  @OneToMany(type => Reaction, reaction => reaction.projectUpdate)
+  reactions?: Reaction[];
 
   @Field()
   @Column('boolean', { default: false })
@@ -526,5 +517,3 @@ class ProjectUpdate extends BaseEntity {
     await Project.update({ id: this.projectId }, { updatedAt: moment() });
   }
 }
-
-export { Project, Category, ProjectUpdate };
