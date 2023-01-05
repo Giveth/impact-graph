@@ -1906,13 +1906,16 @@ const getAdminBroInstance = async () => {
             },
           },
           properties: {
-            title: {
+            link: {
               isVisible: true,
+              components: {
+                edit: AdminBro.bundle('./components/MDtoHTML'),
+              },
             },
             text: {
               isVisible: true,
             },
-            link: {
+            title: {
               isVisible: true,
             },
             status: {
