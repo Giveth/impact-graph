@@ -1878,6 +1878,8 @@ const getAdminBroInstance = async () => {
                 response,
                 context: AdminBroContextInterface,
               ) => {
+                // tslint:disable-next-line:no-console
+                console.log('**request?.payload**', request?.payload);
                 if (request?.payload?.title) {
                   const { currentAdmin } = context;
 
