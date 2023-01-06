@@ -148,9 +148,13 @@ export class Donation extends BaseEntity {
   @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })
-  user: User;
+  user?: User;
   @RelationId((donation: Donation) => donation.user)
   userId: number;
+
+  @Field(type => String, { nullable: true })
+  @Column('text', { nullable: true })
+  contactEmail?: string | null;
 
   @Index()
   @Field(type => Date)
