@@ -46,9 +46,6 @@ export const createFiatDonationFromOnramper = async (
 
     if (metadata.userId) {
       donorUser = await findUserById(Number(metadata.userId));
-      if (!donorUser) {
-        throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
-      }
     }
     const project = await findProjectById(Number(metadata.projectId));
 
