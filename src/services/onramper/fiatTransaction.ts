@@ -50,4 +50,5 @@ export interface OnRamperMetadata {
   projectId: string;
   projectWallet: string;
   anonymous: string;
+  email: string;
 }
