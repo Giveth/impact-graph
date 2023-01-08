@@ -16,10 +16,8 @@ function updateBroadcastNotificationStatusTestCases() {
   it('should update broadcast notification status to success', async () => {
     const bn = await BroadcastNotification.create({
       title: 'test',
-      text: 'test',
+      html: 'test',
       status: BROAD_CAST_NOTIFICATION_STATUS.PENDING,
-      link: 'test',
-      linkTitle: 'test',
     }).save();
     assert.equal(bn.status, BROAD_CAST_NOTIFICATION_STATUS.PENDING);
     await updateBroadcastNotificationStatus(
@@ -32,10 +30,8 @@ function updateBroadcastNotificationStatusTestCases() {
   it('should update broadcast notification status to failed', async () => {
     const bn = await BroadcastNotification.create({
       title: 'test',
-      text: 'test',
+      html: 'test',
       status: BROAD_CAST_NOTIFICATION_STATUS.PENDING,
-      link: 'test',
-      linkTitle: 'test',
     }).save();
     assert.equal(bn.status, BROAD_CAST_NOTIFICATION_STATUS.PENDING);
     await updateBroadcastNotificationStatus(
