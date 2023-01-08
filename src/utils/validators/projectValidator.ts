@@ -26,14 +26,14 @@ export const validateProjectWalletAddress = async (
       i18n.__(translationErrorMessagesKeys.INVALID_WALLET_ADDRESS),
     );
   }
-  const isSmartContractWallet = await isWalletAddressSmartContract(
-    walletAddress,
-  );
-  if (isSmartContractWallet) {
-    throw new Error(
-      `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
-    );
-  }
+  // const isSmartContractWallet = await isWalletAddressSmartContract(
+  //   walletAddress,
+  // );
+  // if (isSmartContractWallet) {
+  //   throw new Error(
+  //     `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+  //   );
+  // }
   const relatedAddress = await findRelatedAddressByWalletAddress(walletAddress);
   if (relatedAddress && relatedAddress?.project?.id !== projectId) {
     throw new Error(

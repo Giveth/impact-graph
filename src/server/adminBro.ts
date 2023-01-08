@@ -711,7 +711,7 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             isFiat: {
-              isVisible: false,
+              isVisible: true,
             },
             donationType: {
               isVisible: false,

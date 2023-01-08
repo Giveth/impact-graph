@@ -24,6 +24,7 @@ export const createFiatDonationFromOnramper = async (
   fiatTransaction: OnRamperFiatTransaction,
 ): Promise<void> => {
   try {
+    let donorUser;
     // TODO add givbackFactor, powerRound, ... later
     let donation = await Donation.findOne({
       where: {
@@ -45,9 +46,8 @@ export const createFiatDonationFromOnramper = async (
       metadata = fiatTransaction.payload.partnerContext;
     }
 
-    const donorUser = await findUserById(Number(metadata.userId));
-    if (!donorUser) {
-      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+    if (metadata.userId) {
+      donorUser = await findUserById(Number(metadata.userId));
     }
     const project = await findProjectById(Number(metadata.projectId));
 
@@ -109,7 +109,6 @@ export const createFiatDonationFromOnramper = async (
       isFiat: true,
       transactionNetworkId: Number(priceChainId),
       currency: fiatTransaction.payload.outCurrency,
-      user: donorUser,
       tokenAddress: ethMainnetAddress,
       project,
       isTokenEligibleForGivback,
@@ -124,6 +123,14 @@ export const createFiatDonationFromOnramper = async (
       onramperTransactionStatus: fiatTransaction.type,
       status: DONATION_STATUS.VERIFIED,
     });
+
+    if (donorUser) {
+      donation.user = donorUser;
+    }
+
+    if (metadata.email) {
+      donation.contactEmail = metadata.email.toLowerCase();
+    }
 
     await donation.save();
     const baseTokens = priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
