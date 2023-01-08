@@ -28,7 +28,7 @@ const VerificationFormSocials = props => {
               </Section>
               <Section>
                 <Label>Verified</Label>
-                <span className='sc-bdnylx efSokc admin-bro_Badge'>
+                <span className="sc-bdnylx efSokc admin-bro_Badge">
                   {isVerified ? 'Yes' : 'No'}
                 </span>
               </Section>

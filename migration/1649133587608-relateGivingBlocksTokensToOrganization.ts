@@ -76,7 +76,7 @@ export class relateGivingBlocksTokensToOrganization1649133587608
     const tokens = await queryRunner.query(`
         SELECT *
         FROM token
-        WHERE name IN (${`'${givingBlockTokenNames.join('\',\'')}'`})
+        WHERE name IN (${`'${givingBlockTokenNames.join("','")}'`})
     `);
 
     const insertTokenValues = tokens.map(token => {

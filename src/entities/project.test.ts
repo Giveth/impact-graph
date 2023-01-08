@@ -31,11 +31,12 @@ function projectUpdateTestCases() {
     });
     await update.save();
     assert.isTrue(true);
-    const projectUpdated = await Project.findOne({ where: { id: project.id } });
-
+    const updatedProject = (await Project.findOne({
+      where: { id: project.id },
+    })) as Project;
     assert.isAbove(
+      updatedProject.updatedAt.getTime(),
       project.updatedAt.getTime(),
-      projectUpdated!.updatedAt.getTime(),
     );
   });
 }

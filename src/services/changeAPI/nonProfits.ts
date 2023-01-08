@@ -15,10 +15,7 @@ import { findUserById } from '../../repositories/userRepository';
 import { Category, CATEGORY_NAMES } from '../../entities/category';
 import { addBulkNewProjectAddress } from '../../repositories/projectAddressRepository';
 import { NETWORK_IDS } from '../../provider';
-import { BaseEntity } from 'typeorm';
 import { User } from '../../entities/user';
-
-const changeAPIHandle = 'change';
 
 const changeApiNonProfitUrl = config.get(
   'CHANGE_API_NON_PROFITS_SEARCH_URL',
@@ -172,7 +169,9 @@ export const createProjectFromChangeNonProfit = async (
 };
 
 const findOrCreateChangeAPICategory = async (): Promise<Category> => {
-  const category = await Category.findOne({ where: { name: changeAPIHandle } });
+  const category = await Category.findOne({
+    where: { name: CATEGORY_NAMES.registeredNonProfits },
+  });
 
   if (!category) {
     logger.error(

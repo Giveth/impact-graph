@@ -28,13 +28,13 @@ const ProjectUpdates = props => {
               </Section>
               <Section>
                 <Label>Adminbro User Link</Label>
-                <Link href={userLink || ''} target='_blank'>
+                <Link href={userLink || ''} target="_blank">
                   {userLink}
                 </Link>
               </Section>
               <Section>
                 <Label>Project Update Adminbro Edit Link</Label>
-                <Link href={updateLink || ''} target='_blank'>
+                <Link href={updateLink || ''} target="_blank">
                   {updateLink}
                 </Link>
               </Section>

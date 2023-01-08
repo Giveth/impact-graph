@@ -170,3 +170,13 @@ export const totalProjectsPerDateByMonthAndYear = async (
 
   return query.getRawMany();
 };
+
+export const makeProjectListed = async (id: number): Promise<void> => {
+  await Project.createQueryBuilder('broadcast_notification')
+    .update<Project>(Project, {
+      listed: true,
+    })
+    .where(`id =${id}`)
+    .updateEntity(true)
+    .execute();
+};

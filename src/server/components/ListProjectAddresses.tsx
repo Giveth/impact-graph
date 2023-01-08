@@ -41,7 +41,7 @@ const ListProjectAddresses = props => {
               </Section>
               <Section>
                 <Label>This address is recipient for project</Label>
-                <span className='sc-bdnylx efSokc admin-bro_Badge'>
+                <span className="sc-bdnylx efSokc admin-bro_Badge">
                   {projectAddress.isRecipient ? 'Yes' : 'No'}
                 </span>
               </Section>

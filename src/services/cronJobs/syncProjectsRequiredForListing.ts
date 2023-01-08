@@ -6,6 +6,7 @@ import config from '../../config';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import { logger } from '../../utils/logger';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { makeProjectListed } from '../../repositories/projectRepository';
 
 const cronJobTime =
   (config.get('MAKE_UNREVIEWED_PROJECT_LISTED_CRONJOB_EXPRESSION') as string) ||
@@ -31,11 +32,7 @@ export const updateProjectListing = async () => {
       'updateProjectListing() convert project to listed, projectId:',
       project.id,
     );
-    const projectRepository = getRepository(Project);
-    await projectRepository.save({
-      id: project.id,
-      listed: true,
-    });
+    await makeProjectListed(project.id);
     await getNotificationAdapter().projectListed({ project });
   }
 };

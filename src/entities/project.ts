@@ -504,16 +504,16 @@ export class ProjectUpdate extends BaseEntity {
   // does not call with createQueryBuilder
   @AfterInsert()
   async updateProjectStampOnCreation() {
-    await Project.update({ id: this.projectId }, { updatedAt: moment() });
+    await Project.update({ id: this.projectId }, { updatedAt: new Date() });
   }
 
   @AfterUpdate()
   async updateProjectStampOnUpdate() {
-    await Project.update({ id: this.projectId }, { updatedAt: moment() });
+    await Project.update({ id: this.projectId }, { updatedAt: new Date() });
   }
 
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
-    await Project.update({ id: this.projectId }, { updatedAt: moment() });
+    await Project.update({ id: this.projectId }, { updatedAt: new Date() });
   }
 }

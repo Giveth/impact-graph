@@ -356,7 +356,7 @@ function importThirdPartyProjectTestCases() {
         title: 'ChangeApiTestProject',
       },
     });
-    assert(createdProject);
+    assert.isOk(createdProject);
     assert.isTrue(createdProject?.title === 'ChangeApiTestProject');
     const address = await ProjectAddress.createQueryBuilder('address')
       .where('address.projectId = :projectId', {
