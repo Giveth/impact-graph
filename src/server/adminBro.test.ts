@@ -1322,10 +1322,8 @@ function sendBroadcastNotificationTestCases() {
   it('should update status of broadcastNotification after sending notifications', async () => {
     const bn = await BroadcastNotification.create({
       title: 'test',
-      text: 'test',
+      html: 'test',
       status: BROAD_CAST_NOTIFICATION_STATUS.PENDING,
-      link: 'test',
-      linkTitle: 'test',
     }).save();
     assert.equal(bn.status, BROAD_CAST_NOTIFICATION_STATUS.PENDING);
     await sendBroadcastNotification({
