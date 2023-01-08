@@ -712,7 +712,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       for (const user of users) {
         queueData.push({
           email: user.email as string,
-          eventName: NOTIFICATIONS_EVENT_NAMES.RAW_HTML,
+          eventName: NOTIFICATIONS_EVENT_NAMES.RAW_HTML_BROADCAST,
           sendEmail: false,
           sendSegment: false,
           metadata: {

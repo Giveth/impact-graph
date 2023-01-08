@@ -41,5 +41,5 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   UPDATED_PROFILE = 'Updated profile',
   GET_DONATION_PRICE_FAILED = 'Get Donation Price Failed',
   VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN = 'Verification form got draft by admin',
-  RAW_HTML = 'raw html',
+  RAW_HTML_BROADCAST = 'Raw HTML Broadcast',
 }
