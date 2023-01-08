@@ -22,20 +22,14 @@ export default class BroadcastNotification extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  title?: string;
-
-  @Column()
-  text: string;
-
   @Column({ nullable: true, default: BROAD_CAST_NOTIFICATION_STATUS.PENDING })
   status?: string;
 
-  @Column({ nullable: true })
-  link?: string;
+  @Column()
+  html: string;
 
-  @Column({ nullable: true })
-  linkTitle?: string;
+  @Column()
+  title: string;
 
   @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })

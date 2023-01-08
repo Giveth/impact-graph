@@ -1875,26 +1875,11 @@ const getAdminBroInstance = async () => {
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
               before: async (
                 request: AdminBroRequestInterface,
-                response,
                 context: AdminBroContextInterface,
               ) => {
-                // tslint:disable-next-line:no-console
-                console.log('**request?.payload**', request?.payload);
-                if (request?.payload?.title) {
+                if (request?.payload?.html) {
                   const { currentAdmin } = context;
-
-                  const adminUser = await findUserById(currentAdmin?.id);
-                  const { title, text, link, linkTitle, sendEmail } =
-                    request.payload;
-                  if (!text) {
-                    throw new Error(errorMessages.TEXT_IS_REQUIRED);
-                  }
-                  if ((link && !linkTitle) || (!link && linkTitle)) {
-                    throw new Error(
-                      errorMessages.YOU_SHOULD_FILL_EITHER_BOTH_LINK_AND_LINK_TITLE_OR_NONE,
-                    );
-                  }
-                  request.payload.admin = adminUser;
+                  request.payload.adminUserId = currentAdmin?.id;
                 }
                 return request;
               },
@@ -1908,17 +1893,19 @@ const getAdminBroInstance = async () => {
             },
           },
           properties: {
-            link: {
+            title: {
               isVisible: true,
+            },
+            html: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: true,
+                edit: true,
+              },
               components: {
                 edit: AdminBro.bundle('./components/MDtoHTML'),
               },
-            },
-            text: {
-              isVisible: true,
-            },
-            title: {
-              isVisible: true,
             },
             status: {
               isVisible: {
@@ -1928,8 +1915,13 @@ const getAdminBroInstance = async () => {
                 edit: false,
               },
             },
-            linkTitle: {
-              isVisible: true,
+            adminUserId: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
             },
           },
         },
@@ -2206,15 +2198,11 @@ export const sendBroadcastNotification = async (
 ): Promise<After<ActionResponse>> => {
   const record: RecordJSON = response.record || {};
   if (record?.params) {
-    const { title, text, link, linkTitle, sendEmail, id } = record?.params;
+    const { html, id } = record?.params;
     try {
       await getNotificationAdapter().broadcastNotification({
         broadCastNotificationId: id,
-        broadCastTitle: title,
-        text,
-        link,
-        linkTitle,
-        sendEmail,
+        html,
       });
       await updateBroadcastNotificationStatus(
         id,

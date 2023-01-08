@@ -2,10 +2,9 @@ import { useState, ChangeEvent } from 'react';
 import styled, { withTheme } from 'styled-components';
 import { Label, TextArea } from '@admin-bro/design-system';
 import React from 'react';
-import marked from 'marked';
+import { marked } from 'marked';
 
 const MDtoHTML = props => {
-  console.log('props', props);
   const { record, property } = props;
   const value = record.params[property.path];
   const [md, setMd] = useState(value);
@@ -13,7 +12,7 @@ const MDtoHTML = props => {
   const onChangeHandler = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setMd(e.currentTarget.value);
     const _html = marked.parse(e.currentTarget.value);
-    record.params.link = _html;
+    record.params.html = _html;
     setHtml(_html);
   };
 

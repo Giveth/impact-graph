@@ -5,11 +5,7 @@ import exp from 'constants';
 
 export interface BroadCastNotificationInputParams {
   broadCastNotificationId: number;
-  broadCastTitle: string;
-  link: string;
-  linkTitle: string;
-  text: string;
-  sendEmail: boolean;
+  html: string;
 }
 
 export interface NotificationAdapterInterface {

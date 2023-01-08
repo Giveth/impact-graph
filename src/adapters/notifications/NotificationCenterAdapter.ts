@@ -696,14 +696,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async broadcastNotification(
     params: BroadCastNotificationInputParams,
   ): Promise<void> {
-    const {
-      broadCastTitle,
-      link,
-      linkTitle,
-      text,
-      sendEmail,
-      broadCastNotificationId,
-    } = params;
+    const { html, broadCastNotificationId } = params;
     let allUserFetched = false;
     const take = 100;
     let skip = 0;
@@ -719,21 +712,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       for (const user of users) {
         queueData.push({
           email: user.email as string,
-          eventName: NOTIFICATIONS_EVENT_NAMES.BROADCAST_NOTIFICATION_BY_ADMIN,
-          sendEmail,
-          sendSegment: sendEmail,
-          segment: {
-            analyticsUserId: user.segmentUserId(),
-            anonymousId: user.segmentUserId(),
-            payload: {
-              email: user.email,
-            },
-          },
+          eventName: NOTIFICATIONS_EVENT_NAMES.RAW_HTML,
+          sendEmail: false,
+          sendSegment: false,
           metadata: {
-            href: link,
-            linkTitle,
-            content: broadCastTitle,
-            instruction: text,
+            html,
           },
           userWalletAddress: user.walletAddress as string,
           trackId: `${trackIdPrefix}-${user.walletAddress}`,
