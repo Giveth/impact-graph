@@ -1,8 +1,10 @@
-import { getConnection, LessThanOrEqual, MoreThan } from 'typeorm';
+import { getConnection, Not, MoreThan } from 'typeorm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { logger } from '../utils/logger';
 import { updatePowerSnapshotSyncedFlag } from './powerSnapshotRepository';
+import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
+import { FindOneOptions } from 'typeorm/find-options/FindOneOptions';
 
 export const getProjectPowers = async (
   take: number = 50,
@@ -72,7 +74,16 @@ export const refreshProjectPowerView = async (): Promise<void> => {
 export const refreshProjectFuturePowerView = async (
   updateSyncedFlag: boolean = true,
 ): Promise<void> => {
-  if (updateSyncedFlag) await updatePowerSnapshotSyncedFlag();
+  if (updateSyncedFlag) {
+    const numberNewSyncedSnapshots = await updatePowerSnapshotSyncedFlag();
+    if (numberNewSyncedSnapshots > 0) {
+      await getConnection().manager.query(
+        `
+      REFRESH MATERIALIZED VIEW last_snapshot_project_power_view
+    `,
+      );
+    }
+  }
 
   return getConnection().manager.query(
     `
@@ -84,37 +95,26 @@ export const refreshProjectFuturePowerView = async (
 // Return position of a project with powerAmount in the power ranking list
 export const getPowerAmountRank = async (
   powerAmount: number,
+  projectId?: number,
 ): Promise<number> => {
   if (powerAmount < 0) throw new Error('Power Amount cannot be zero');
 
-  const [belowProject] = await ProjectPowerView.find({
-    where: {
-      totalPower: LessThanOrEqual(powerAmount),
-    },
+  const where: FindOneOptions['where'] = {
+    totalPower: MoreThan(powerAmount),
+  };
+
+  if (projectId !== undefined) {
+    where.projectId = Not(projectId);
+  }
+
+  const [aboveProject] = await LastSnapshotProjectPowerView.find({
+    where,
     select: ['powerRank'],
     order: {
-      totalPower: 'DESC',
+      totalPower: 'ASC',
     },
     take: 1,
   });
 
-  // There is no project, or all the projects are above that!
-  if (!belowProject) {
-    const [aboveProject] = await ProjectPowerView.find({
-      where: {
-        totalPower: MoreThan(powerAmount),
-      },
-      select: ['powerRank'],
-      order: {
-        totalPower: 'ASC',
-      },
-      take: 1,
-    });
-
-    if (aboveProject) {
-      return aboveProject.powerRank + 1;
-    } else return 1; // There is not any other project
-  } else {
-    return belowProject.powerRank;
-  }
+  return aboveProject ? +aboveProject.powerRank + 1 : 1; // There is not any other project
 };

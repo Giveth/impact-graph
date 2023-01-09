@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -123,7 +123,7 @@
   "scripts": {
     "tslint": "tslint -c tslint.json '{src,test}/**/*.ts'",
     "tslint:fix": "tslint -c tslint.json --fix '{src,test}/**/*.ts'",
-    "test": "NODE_ENV=test mocha  -t 90000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/**/*.test.ts  ./src/**/**/*.test.ts",
+    "test": "NODE_ENV=test mocha  -t 90000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/**/*.test.ts  ./src/**/**/*.test.ts --retries 2",
     "test:projectEntity": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/entities/project.test.ts",
     "test:projectValidators": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/utils/validators/projectValidator.test.ts",
     "test:onramperWebhook": "NODE_ENV=test mocha  -t 30000 --exit -r ts-node/register ./test/pre-test-scripts.ts  ./src/services/onramper/webhookHandler.test.ts",

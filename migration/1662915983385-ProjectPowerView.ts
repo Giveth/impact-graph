@@ -53,7 +53,6 @@ export class ProjectPowerView1662915983385 implements MigrationInterface {
                 innerview."totalPower" DESC WITH DATA;
               CREATE INDEX project_power_view_project_id ON public.project_power_view USING hash ("projectId") TABLESPACE pg_default;
               CREATE INDEX project_power_view_total_power ON public.project_power_view USING btree ("totalPower" DESC) TABLESPACE pg_default;
-
           `,
     );
   }

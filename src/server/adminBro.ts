@@ -428,6 +428,15 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
             },
+            verifiedAt: {
+              isVisible: {
+                list: true,
+                filter: true,
+                show: true,
+                edit: true,
+                new: false,
+              },
+            },
             email: {
               isVisible: {
                 list: false,
@@ -698,7 +707,7 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             isFiat: {
-              isVisible: false,
+              isVisible: true,
             },
             donationType: {
               isVisible: false,

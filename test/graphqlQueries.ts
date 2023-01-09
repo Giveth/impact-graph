@@ -1592,8 +1592,11 @@ export const getBottomPowerRankQuery = `
     }
 `;
 
-export const gePowerAmountRankQuery = `
-    query ($powerAmount: Float!) {
-        powerAmountRank(powerAmount: $powerAmount)
+export const getPowerAmountRankQuery = `
+    query (
+      $powerAmount: Float!
+      $projectId: Int
+      ) {
+        powerAmountRank(powerAmount: $powerAmount, projectId: $projectId)
     }
 `;
