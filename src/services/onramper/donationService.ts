@@ -141,7 +141,9 @@ export const createFiatDonationFromOnramper = async (
     );
 
     // After updating, recalculate user total donated and owner total received
-    await updateUserTotalDonated(donorUser.id);
+    if (donorUser) {
+      await updateUserTotalDonated(donorUser.id);
+    }
 
     // After updating price we update totalDonations
     await updateTotalDonationsOfProject(project.id);
