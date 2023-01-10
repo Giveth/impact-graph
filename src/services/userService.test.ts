@@ -1,6 +1,6 @@
-import { assert } from 'chai';
+import { assert, use } from 'chai';
 import 'mocha';
-import { User } from '../entities/user';
+import { User, UserRole } from '../entities/user';
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import {
@@ -13,11 +13,14 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import {
+  fetchAdminAndValidatePassword,
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../services/userService';
 import { ORGANIZATION_LABELS } from '../entities/organization';
-import { create } from 'domain';
+import { generateRandomString } from '../utils/utils';
+// tslint:disable-next-line:no-var-requires
+const bcrypt = require('bcrypt');
 
 describe(
   'updateUserTotalDonated() test cases',
@@ -26,6 +29,11 @@ describe(
 describe(
   'updateUserTotalReceived() test cases',
   updateUserTotalReceivedTestCases,
+);
+
+describe(
+  'fetchAdminAndValidatePassword() test cases',
+  fetchAdminAndValidatePasswordTestCases,
 );
 
 function updateUserTotalDonatedTestCases() {
@@ -88,5 +96,38 @@ function updateUserTotalReceivedTestCases() {
     const updatedOwner = await User.findOne({ id: user.id });
     assert.notEqual(owner!.totalReceived, updatedOwner!.totalReceived);
     assert.equal(updatedOwner!.totalReceived, 180);
+  });
+}
+
+function fetchAdminAndValidatePasswordTestCases() {
+  it('should return the user when email and password are correct', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const password = generateRandomString(10);
+    user.role = UserRole.ADMIN;
+    user.encryptedPassword = await bcrypt.hash(
+      password,
+      Number(process.env.BCRYPT_SALT),
+    );
+    await user.save();
+    const validatedUser = await fetchAdminAndValidatePassword({
+      email: user.email as string,
+      password,
+    });
+    assert.equal(validatedUser?.id, user.id);
+  });
+  it('should return false if the password is incorrect', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const password = generateRandomString(10);
+    user.role = UserRole.ADMIN;
+    user.encryptedPassword = await bcrypt.hash(
+      password,
+      Number(process.env.BCRYPT_SALT),
+    );
+    await user.save();
+    const validatedUser = await fetchAdminAndValidatePassword({
+      email: user.email as string,
+      password: 'wrongPassword',
+    });
+    assert.isUndefined(validatedUser);
   });
 }

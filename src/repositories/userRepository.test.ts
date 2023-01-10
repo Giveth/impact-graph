@@ -5,10 +5,12 @@ import {
 import { User, UserRole } from '../entities/user';
 import {
   findAdminUserByEmail,
+  findAllUsers,
   findUserById,
   findUserByWalletAddress,
 } from './userRepository';
 import { assert } from 'chai';
+import { func } from 'joi';
 
 describe('sql injection test cases', () => {
   it('should not find user when sending SQL query instead of email (test to be safe on SQL injection)', async () => {
@@ -42,7 +44,17 @@ describe('sql injection test cases', () => {
   });
 });
 
-describe('findAdminUserByEmail test cases', () => {
+describe(' findAdminUserByEmail cases', findAdminUserByEmailTestCases);
+
+describe(
+  'findUserByWalletAddress test cases',
+  findUserByWalletAddressTestCases,
+);
+
+describe('findUserById test cases', findUserByIdTestCases);
+describe('findAllUsers test cases', findAllUsersTestCases);
+
+function findAdminUserByEmailTestCases() {
   it('should Find admin user by email', async () => {
     const email = `${new Date().getTime()}@giveth.io`;
     const user = await User.create({
@@ -158,9 +170,9 @@ describe('findAdminUserByEmail test cases', () => {
     assert.isOk(foundUser);
     assert.equal(foundUser?.id, adminUser.id);
   });
-});
+}
 
-describe('findUserByWalletAddress test cases', () => {
+function findUserByWalletAddressTestCases() {
   it('Should find user by walletAddress', async () => {
     const email = `${new Date().getTime()}@giveth.io`;
     const user = await User.create({
@@ -211,9 +223,9 @@ describe('findUserByWalletAddress test cases', () => {
     );
     assert.isNotOk(foundUser);
   });
-});
+}
 
-describe('findUserById test cases', () => {
+function findUserByIdTestCases() {
   it('Should find user by id', async () => {
     const email = `${new Date().getTime()}@giveth.io`;
     const user = await User.create({
@@ -230,4 +242,15 @@ describe('findUserById test cases', () => {
     const foundUser = await findUserById(1000000000);
     assert.isUndefined(foundUser);
   });
-});
+}
+
+function findAllUsersTestCases() {
+  it('should return all users, count sould work fine', async () => {
+    const { count, users } = await findAllUsers({ take: 7, skip: 0 });
+    assert.equal(users.length, 7);
+    const newUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const allUsers = await findAllUsers({ take: 1, skip: count });
+    assert.equal(allUsers.count, count + 1);
+    assert.equal(allUsers.users[0].id, newUser.id);
+  });
+}
