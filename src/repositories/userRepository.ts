@@ -1,5 +1,6 @@
 import { publicSelectionFields, User, UserRole } from '../entities/user';
 import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
+import { Project } from '../entities/project';
 
 export const findAdminUserByEmail = async (
   email: string,
@@ -29,6 +30,17 @@ export const findUserByWalletAddress = async (
 
 export const findUserById = (userId: number): Promise<User | undefined> => {
   return User.findOne({ id: userId });
+};
+
+export const findAllUsers = async (params: {
+  take: number;
+  skip: number;
+}): Promise<{ users: User[]; count: number }> => {
+  const [users, count] = await User.createQueryBuilder('user')
+    .take(params.take)
+    .skip(params.skip)
+    .getManyAndCount();
+  return { users, count };
 };
 
 export const createUserWithPublicAddress = async (
