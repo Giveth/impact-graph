@@ -13,7 +13,7 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import {
-  checkAdminPassword,
+  fetchAdminAndValidatePassword,
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../services/userService';
@@ -31,7 +31,10 @@ describe(
   updateUserTotalReceivedTestCases,
 );
 
-describe('checkAdminPassword() test cases', checkAdminPasswordTestCases);
+describe(
+  'fetchAdminAndValidatePassword() test cases',
+  fetchAdminAndValidatePasswordTestCases,
+);
 
 function updateUserTotalDonatedTestCases() {
   it('should update total donated of a donor', async () => {
@@ -96,8 +99,8 @@ function updateUserTotalReceivedTestCases() {
   });
 }
 
-function checkAdminPasswordTestCases() {
-  it('should return true when  email and password are correct', async () => {
+function fetchAdminAndValidatePasswordTestCases() {
+  it('should return the user when email and password are correct', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const password = generateRandomString(10);
     user.role = UserRole.ADMIN;
@@ -106,9 +109,25 @@ function checkAdminPasswordTestCases() {
       Number(process.env.BCRYPT_SALT),
     );
     await user.save();
-    assert.equal(
-      await checkAdminPassword({ email: user.email as string, password }),
-      true,
+    const validatedUser = await fetchAdminAndValidatePassword({
+      email: user.email as string,
+      password,
+    });
+    assert.equal(validatedUser?.id, user.id);
+  });
+  it('should return false if the password is incorrect', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const password = generateRandomString(10);
+    user.role = UserRole.ADMIN;
+    user.encryptedPassword = await bcrypt.hash(
+      password,
+      Number(process.env.BCRYPT_SALT),
     );
+    await user.save();
+    const validatedUser = await fetchAdminAndValidatePassword({
+      email: user.email as string,
+      password: 'wrongPassword',
+    });
+    assert.isUndefined(validatedUser);
   });
 }

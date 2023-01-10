@@ -83,7 +83,7 @@ import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interf
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
 import { updateTotalDonationsOfProject } from '../services/donationService';
 import {
-  checkAdminPassword,
+  fetchAdminAndValidatePassword,
   updateUserTotalDonated,
 } from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
@@ -170,11 +170,11 @@ export const getAdminBroRouter = async () => {
     await getAdminBroInstance(),
     {
       authenticate: async (email, password): Promise<User | boolean> => {
-        const isPasswordCorrect = await checkAdminPassword({ email, password });
-        if (!isPasswordCorrect) {
+        const admin = await fetchAdminAndValidatePassword({ email, password });
+        if (!admin) {
           return false;
         }
-        return (await findAdminUserByEmail(email)) as User;
+        return admin;
       },
       cookiePassword: secret,
     },

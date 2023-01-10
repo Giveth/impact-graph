@@ -44,14 +44,14 @@ export const updateUserTotalReceived = async (userId: number) => {
   }
 };
 
-export const checkAdminPassword = async (params: {
+export const fetchAdminAndValidatePassword = async (params: {
   email: string;
   password: string;
-}): Promise<boolean> => {
+}): Promise<User | undefined> => {
   const { password, email } = params;
   const user = await findAdminUserByEmail(email);
-  if (!user) {
-    return false;
+  if (user && (await bcrypt.compare(password, user.encryptedPassword))) {
+    return user;
   }
-  return await bcrypt.compare(password, user.encryptedPassword);
+  return;
 };
