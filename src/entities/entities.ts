@@ -5,7 +5,6 @@ import { Donation } from './donation';
 import { Wallet } from './wallet';
 import { ProjectStatus } from './projectStatus';
 import { ProjectImage } from './projectImage';
-import Notification from './notification';
 import { BankAccount, StripeTransaction } from './bankAccount';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusReason } from './projectStatusReason';
@@ -31,13 +30,14 @@ import { DataSourceOptions } from 'typeorm';
 import { User } from './user';
 import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
+import BroadcastNotification from './broadcastNotification';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
     Organization,
     User,
     Project,
-    Notification,
+
     BankAccount,
     StripeTransaction,
     Category,
@@ -72,5 +72,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     PowerSnapshotHistory,
     PowerBalanceSnapshotHistory,
     PowerBoostingSnapshotHistory,
+    BroadcastNotification,
   ];
 };

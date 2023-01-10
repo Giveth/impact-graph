@@ -81,7 +81,10 @@ import {
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
 import { updateTotalDonationsOfProject } from '../services/donationService';
-import { updateUserTotalDonated } from '../services/userService';
+import {
+  fetchAdminAndValidatePassword,
+  updateUserTotalDonated,
+} from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
@@ -96,6 +99,11 @@ import {
   After,
 } from 'adminjs/src/backend/actions/action.interface';
 import { Category } from '../entities/category';
+import BroadcastNotification, {
+  BROAD_CAST_NOTIFICATION_STATUS,
+} from '../entities/broadcastNotification';
+
+import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -166,23 +174,12 @@ export const getAdminBroRouter = async () => {
   return AdminBroExpress.buildAuthenticatedRouter(
     await getAdminBroInstance(),
     {
-      authenticate: async (email, password) => {
-        try {
-          const user = await findAdminUserByEmail(email);
-          if (user) {
-            const matched = await bcrypt.compare(
-              password,
-              user.encryptedPassword,
-            );
-            if (matched) {
-              return user;
-            }
-          }
-          return false;
-        } catch (e) {
-          logger.error({ e });
+      authenticate: async (email, password): Promise<User | boolean> => {
+        const admin = await fetchAdminAndValidatePassword({ email, password });
+        if (!admin) {
           return false;
         }
+        return admin;
       },
       cookiePassword: secret,
     },
@@ -1872,6 +1869,70 @@ const getAdminBroInstance = async () => {
           },
         },
       },
+      {
+        resource: BroadcastNotification,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              before: async (
+                request: AdminBroRequestInterface,
+                context: AdminBroContextInterface,
+              ) => {
+                if (request?.payload?.html) {
+                  const { currentAdmin } = context;
+                  request.payload.adminUserId = currentAdmin?.id;
+                }
+                return request;
+              },
+              after: sendBroadcastNotification,
+            },
+            edit: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            title: {
+              isVisible: true,
+            },
+            html: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: true,
+                edit: true,
+              },
+              components: {
+                edit: AdminBro.bundle('./components/MDtoHTML'),
+              },
+            },
+            status: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+            adminUserId: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+          },
+        },
+      },
     ],
     rootPath: adminBroRootPath,
   });
@@ -2137,6 +2198,32 @@ export const listDelist = async (
       type: 'success',
     },
   };
+};
+
+export const sendBroadcastNotification = async (
+  response,
+): Promise<After<ActionResponse>> => {
+  const record: RecordJSON = response.record || {};
+  if (record?.params) {
+    const { html, id } = record?.params;
+    try {
+      await getNotificationAdapter().broadcastNotification({
+        broadCastNotificationId: id,
+        html,
+      });
+      await updateBroadcastNotificationStatus(
+        id,
+        BROAD_CAST_NOTIFICATION_STATUS.SUCCESS,
+      );
+    } catch (e) {
+      logger.error('sendBroadcastNotification error', e);
+      await updateBroadcastNotificationStatus(
+        id,
+        BROAD_CAST_NOTIFICATION_STATUS.FAILED,
+      );
+    }
+  }
+  return response;
 };
 
 export const verifySingleVerificationForm = async (
