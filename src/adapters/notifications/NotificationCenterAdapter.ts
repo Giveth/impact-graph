@@ -718,7 +718,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
             html,
           },
           userWalletAddress: user.walletAddress as string,
-          trackId: `${trackIdPrefix}-${user.walletAddress}`,
+          trackId: `${trackIdPrefix}-${user.walletAddress?.toLowerCase()}`,
         });
       }
       sendBroadcastNotificationsQueue.add(queueData);
