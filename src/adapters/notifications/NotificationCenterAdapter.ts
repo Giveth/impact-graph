@@ -723,7 +723,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       }
       sendBroadcastNotificationsQueue.add(queueData);
     }
-    throw new Error('not implemented');
   }
 }
 
