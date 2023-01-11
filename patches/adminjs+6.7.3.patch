@@ -1,0 +1,26 @@
+diff --git a/node_modules/adminjs/src/backend/decorators/property/property-decorator.ts b/node_modules/adminjs/src/backend/decorators/property/property-decorator.ts
+index a09cdb1..04b60ea 100644
+--- a/node_modules/adminjs/src/backend/decorators/property/property-decorator.ts
++++ b/node_modules/adminjs/src/backend/decorators/property/property-decorator.ts
+@@ -182,7 +182,7 @@ class PropertyDecorator {
+    * @param {'list' | 'edit' | 'show' | 'filter'} where
+    */
+   isVisible(where: PropertyPlace): boolean {
+-    if (typeof this.options.isVisible === 'object' && this.options.isVisible !== 'null') {
++    if (typeof this.options.isVisible === 'object' && this.options.isVisible !== undefined) {
+       return !!this.options.isVisible[where]
+     }
+     if (typeof this.options.isVisible === 'boolean') {
+diff --git a/node_modules/adminjs/src/frontend/components/app/action-header/styled-back-button.tsx b/node_modules/adminjs/src/frontend/components/app/action-header/styled-back-button.tsx
+index bed93f3..605eb73 100644
+--- a/node_modules/adminjs/src/frontend/components/app/action-header/styled-back-button.tsx
++++ b/node_modules/adminjs/src/frontend/components/app/action-header/styled-back-button.tsx
+@@ -10,7 +10,7 @@ import {
+ import allowOverride from '../../../hoc/allow-override'
+ 
+ // eslint-disable-next-line @typescript-eslint/no-unused-vars
+-const StyledLink = styled(({ rounded, ...rest }) => <RouterLink {...rest} />)<ButtonProps>`${ButtonCSS}`
++const StyledLink = styled(({ rounded, ...rest }) => <RouterLink to={''} {...rest} />)<ButtonProps>`${ButtonCSS}`
+ 
+ export type StyledBackButtonProps = {
+   showInDrawer: boolean;
