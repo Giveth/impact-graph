@@ -4,9 +4,9 @@
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
-    "@adminjs/design-system": "^3.1.5",
-    "@adminjs/express": "^5.0.1",
-    "@adminjs/typeorm": "^4.0.0",
+    "@adminjs/design-system": "3.1.5",
+    "@adminjs/express": "5.0.1",
+    "@adminjs/typeorm": "4.0.0",
     "@apollo/client": "^3.6.9",
     "@ethersproject/testcases": "^5.6.0",
     "@sentry/node": "6.16.1",
@@ -24,7 +24,7 @@
     "@types/uuid": "^7.0.4",
     "@uniswap/sdk": "^3.0.3",
     "abi-decoder": "^2.4.0",
-    "adminjs": "^6.7.3",
+    "adminjs": "6.7.3",
     "analytics-node": "^4.0.1",
     "apollo-server": "^2.21.0",
     "apollo-server-express": "^2.21.0",
@@ -70,6 +70,7 @@
     "node-cron": "^3.0.2",
     "nodemailer": "^6.5.0",
     "npm": "8.11.0",
+    "patch-package": "^6.5.1",
     "pg": "^8.5.1",
     "pgtools": "^0.3.2",
     "querystring": "^0.2.1",
@@ -189,7 +190,8 @@
     "dev": "NODE_ENV=development node ./build/src/index.js",
     "production": "NODE_ENV=production node ./build/src/index.js",
     "start:docker:server": "npm run db:migrate:run:production && npm run production",
-    "start:docker:locally": "npm run db:migrate:run:local && npm run dev"
+    "start:docker:locally": "npm run db:migrate:run:local && npm run dev",
+    "postinstall": "patch-package"
   },
   "husky": {
     "hooks": {
