@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 
 
 COPY package*.json ./
+COPY patches ./patches
 COPY tsconfig.json .
 
 
