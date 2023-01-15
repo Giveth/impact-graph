@@ -5,7 +5,7 @@ export const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-export const creteSlugFromProject = (title: string): string => {
+export const titleWithoutSpecialCharacters = (title: string): string => {
   const ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
     '`',
     `'`,
@@ -27,12 +27,17 @@ export const creteSlugFromProject = (title: string): string => {
     '%',
     '`',
   ];
-  const cleanTitle = title;
-  ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(character =>
-    // this do like replaceAll
-    cleanTitle.split(character).join(''),
+  let cleanTitle = title;
+  ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(
+    character =>
+      // this do like replaceAll
+      (cleanTitle = cleanTitle.split(character).join('')),
   );
-  return slugify(cleanTitle);
+  return cleanTitle;
+};
+
+export const creteSlugFromProject = (title: string): string => {
+  return slugify(titleWithoutSpecialCharacters(title));
 };
 
 export const convertExponentialNumber = (n: number): number => {
