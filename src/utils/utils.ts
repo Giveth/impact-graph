@@ -10,6 +10,7 @@ export const titleWithoutSpecialCharacters = (title: string): string => {
     '`',
     `'`,
     '<',
+    '>',
     '"',
     '+',
     '&',
