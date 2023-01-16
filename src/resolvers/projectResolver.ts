@@ -124,7 +124,7 @@ class ProjectAndAdmin {
   admin: User;
 }
 
-enum FilterField {
+export enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
   AcceptFundOnGnosis = 'acceptFundOnGnosis',
@@ -159,7 +159,7 @@ registerEnumType(OrderDirection, {
 });
 
 @InputType()
-class OrderBy {
+export class OrderBy {
   @Field(type => OrderField)
   field: OrderField;
 
@@ -168,7 +168,7 @@ class OrderBy {
 }
 
 @InputType()
-class FilterBy {
+export class FilterBy {
   @Field(type => FilterField, { nullable: true })
   field: FilterField;
 
