@@ -6,9 +6,9 @@ import {
   OneToMany,
   ManyToMany,
   BaseEntity,
-  JoinTable,
   UpdateDateColumn,
   CreateDateColumn,
+  JoinTable,
 } from 'typeorm';
 import { Project, ProjStatus } from './project';
 import { Donation } from './donation';

@@ -5,7 +5,6 @@ import {
   Entity,
   BaseEntity,
   ManyToMany,
-  JoinTable,
   OneToMany,
 } from 'typeorm';
 import { Project } from './project';
@@ -44,7 +43,6 @@ export class Organization extends BaseEntity {
     nullable: true,
     cascade: true,
   })
-  @JoinTable()
   tokens: Token[];
 }
 

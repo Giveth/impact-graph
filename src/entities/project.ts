@@ -7,7 +7,6 @@ import {
   Column,
   Entity,
   Index,
-  JoinTable,
   LessThan,
   ManyToMany,
   ManyToOne,
@@ -15,6 +14,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
+  JoinTable,
 } from 'typeorm';
 
 import { Donation } from './donation';
@@ -145,9 +145,7 @@ export class Project extends BaseEntity {
   updatedAt: Date;
 
   @Field(type => Organization)
-  @ManyToOne(type => Organization, {
-    eager: true,
-  })
+  @ManyToOne(type => Organization)
   @JoinTable()
   organization: Organization;
 
@@ -170,8 +168,6 @@ export class Project extends BaseEntity {
   @Field(type => [Category], { nullable: true })
   @ManyToMany(type => Category, category => category.projects, {
     nullable: true,
-    eager: true,
-    cascade: true,
   })
   @JoinTable()
   categories: Category[];
@@ -216,9 +212,9 @@ export class Project extends BaseEntity {
   @Column('jsonb', { nullable: true })
   contacts: ProjectContacts[];
 
-  @ManyToMany(type => User, user => user.projects, { eager: true })
-  @JoinTable()
+  @ManyToMany(type => User, user => user.projects)
   @Field(type => [User], { nullable: true })
+  @JoinTable()
   users: User[];
 
   @Field(() => [Reaction], { nullable: true })
