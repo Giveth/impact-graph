@@ -2683,7 +2683,6 @@ export const createToken = async (
           labels: organizations.split(','),
         })
         .getMany();
-
       newToken.organizations = organizationsInDb;
     }
 

@@ -54,6 +54,5 @@ export class Token extends BaseEntity {
   isGivbackEligible: boolean;
 
   @ManyToMany(type => Organization, organization => organization.tokens)
-  @JoinTable()
   organizations: Organization[];
 }

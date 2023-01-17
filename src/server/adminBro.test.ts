@@ -243,7 +243,7 @@ function createTokenTestCases() {
     const tokensWithAddress = await Token.find({
       where: { address: DRGTTokenAddress },
     });
-    assert.isTrue(tokensWithAddress.length === 1);
+    assert.equal(tokensWithAddress.length, 1);
   });
 }
 
