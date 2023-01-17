@@ -163,7 +163,8 @@ This can be done either by creating a new migration file with:
 #### Create new Migration file
 
 ```
-typeorm migration:create ./migrations/createAccessTokenTable
+npx typeorm-ts-node-esm migration:create ./migration/create_organization_tokens_token_table
+
 ```
 
 #### Run migrations

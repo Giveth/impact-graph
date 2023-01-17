@@ -39,10 +39,7 @@ export class Organization extends BaseEntity {
   projects?: Project[];
 
   @Field(type => [Token], { nullable: true })
-  @ManyToMany(type => Token, token => token.organizations, {
-    nullable: true,
-    cascade: true,
-  })
+  @ManyToMany(type => Token, token => token.organizations)
   tokens: Token[];
 }
 

@@ -60,6 +60,7 @@ import {
 import { findUserById } from '../repositories/userRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import { findOneProjectStatusHistory } from '../repositories/projectSatusHistoryRepository';
+import { findTokenByTokenAddress } from '../repositories/tokenRepository';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -209,9 +210,7 @@ function createTokenTestCases() {
       },
     );
 
-    const newToken = await Token.findOne({
-      where: { address: DRGTTokenAddress },
-    });
+    const newToken = await findTokenByTokenAddress(DRGTTokenAddress);
     const organizations = await Organization.createQueryBuilder('organization')
       .where(`organization.label = 'giveth' OR organization.label = 'trace'`)
       .getMany();
@@ -268,9 +267,8 @@ function linkOrganizationsTestCases() {
       },
     });
 
-    const tokenUpdated = await Token.findOne({
-      where: { address: DRGTTokenAddress },
-    });
+    const tokenUpdated = await findTokenByTokenAddress(DRGTTokenAddress);
+
     assert.isTrue(tokenUpdated!.organizations.length === 1);
     assert.equal(
       tokenUpdated!.organizations[0].label,
