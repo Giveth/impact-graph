@@ -109,6 +109,10 @@ const options = {
   size: Number(process.env.PROJECT_FILTERS_THREADS_POOL_SIZE || 4),
 };
 
+const projectFiltersCacheDuration = Number(
+  process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
+);
+
 const projectsFiltersPool = Pool(
   () => spawn(new Worker('../workers/hashing')),
   options,
@@ -660,9 +664,13 @@ export class ProjectResolver {
       await Promise.all([filtersResultHashTask, filtersResultCountHashTask]);
 
     const [categories, projects, totalCount] = await Promise.all([
-      Category.find({ cache: 60000 }),
-      projectsQuery.cache(projectsQueryCacheKey, 60000).getMany(),
-      projectsCountQuery.cache(projectsCountQueryCacheKey, 60000).getCount(),
+      Category.find({ cache: projectFiltersCacheDuration }),
+      projectsQuery
+        .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
+        .getMany(),
+      projectsCountQuery
+        .cache(projectsCountQueryCacheKey, projectFiltersCacheDuration)
+        .getCount(),
     ]);
 
     return { projects, totalCount, categories };

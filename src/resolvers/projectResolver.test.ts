@@ -83,6 +83,8 @@ import { ProjectAddress } from '../entities/projectAddress';
 import moment from 'moment';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
+// We are using cache so redis needs to be cleared for tests with same filters
+import { redis } from '../redis';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -408,11 +410,40 @@ function allProjectsTestCases() {
     );
   });
   it('should return projects, filter by boosted by givPower, true', async () => {
-    await saveProjectDirectlyToDb({
+    await getConnection().query('truncate power_snapshot cascade');
+    await PowerBoosting.clear();
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
-      qualityScore: 0,
     });
+
+    const roundNumber = project.id * 10;
+    await insertSinglePowerBoosting({
+      user,
+      project,
+      percentage: 100,
+    });
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -421,8 +452,8 @@ function allProjectsTestCases() {
       },
     });
     assert.isNotEmpty(result.data.data.allProjects.projects);
-    result.data.data.allProjects.projects.forEach(project =>
-      assert.isOk(project?.projectPower?.totalPower > 0),
+    result.data.data.allProjects.projects.forEach(projectQueried =>
+      assert.isOk(projectQueried?.projectPower?.totalPower > 0),
     );
   });
   it('should return projects, filter from the givingblocks', async () => {
@@ -712,6 +743,7 @@ function allProjectsTestCases() {
     );
   });
   it('should return projects, filter by accept donation on gnosis, return all addresses', async () => {
+    await redis.flushall(); // clear cache from other tests
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -723,6 +755,7 @@ function allProjectsTestCases() {
       variables: {
         filters: ['AcceptFundOnGnosis'],
         sortingBy: SortingField.Newest,
+        limit: 50,
       },
     });
     result.data.data.allProjects.projects.forEach(item => {
