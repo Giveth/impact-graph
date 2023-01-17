@@ -2,11 +2,10 @@
 import { expose } from 'threads/worker';
 import { FilterField } from '../resolvers/projectResolver';
 import { SortingField } from '../entities/project';
-import { User } from '../entities/user';
 import { generateProjectFiltersCacheKey } from '../utils/utils';
 
 expose({
-  hashProjectFilters(args: {
+  async hashProjectFilters(args: {
     limit?: number;
     skip?: number;
     searchTerm?: string;
@@ -18,6 +17,6 @@ expose({
     userId?: number;
     suffix?: string;
   }) {
-    return generateProjectFiltersCacheKey(args);
+    return await generateProjectFiltersCacheKey(args);
   },
 });

@@ -6,7 +6,7 @@ import {
   ProjStatus,
   SortingField,
 } from '../entities/project';
-import { Pool, spawn, Thread, Worker } from 'threads';
+import { Pool, spawn, Worker } from 'threads';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
 import {
@@ -111,11 +111,6 @@ const options = {
 
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
-);
-
-const projectsFiltersPool = Pool(
-  () => spawn(new Worker('../workers/hashing')),
-  options,
 );
 
 @ObjectType()
@@ -606,6 +601,11 @@ export class ProjectResolver {
     }: GetProjectsArgs,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<AllProjects> {
+    const projectsFiltersPool = Pool(
+      () => spawn(new Worker('../workers/hashing')),
+      options,
+    );
+
     const userId = user?.id || 0;
     const projectsQuery = filterProjectsQuery(
       limit,
