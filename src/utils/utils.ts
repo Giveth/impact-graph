@@ -1,7 +1,44 @@
 import { Country } from '../entities/Country';
+import slugify from 'slugify';
 
 export const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+export const titleWithoutSpecialCharacters = (title: string): string => {
+  const ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
+    '`',
+    `'`,
+    '<',
+    '>',
+    '"',
+    '+',
+    '&',
+    '^',
+    '$',
+    '@',
+    '!',
+    '*',
+    '#',
+    '=',
+    '.',
+    '?',
+    '/',
+    '|',
+    '%',
+    '`',
+  ];
+  let cleanTitle = title;
+  ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(
+    character =>
+      // this do like replaceAll
+      (cleanTitle = cleanTitle.split(character).join('')),
+  );
+  return cleanTitle;
+};
+
+export const creteSlugFromProject = (title: string): string => {
+  return slugify(titleWithoutSpecialCharacters(title));
 };
 
 export const convertExponentialNumber = (n: number): number => {

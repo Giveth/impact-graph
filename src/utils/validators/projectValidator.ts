@@ -9,6 +9,7 @@ import {
 import { logger } from '../logger';
 import { findRelatedAddressByWalletAddress } from '../../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
+import { titleWithoutSpecialCharacters } from '../utils';
 
 export function isWalletAddressValid(address) {
   return Boolean(
@@ -76,11 +77,20 @@ export const validateProjectTitleForEdit = async (
 };
 
 export const getSimilarTitleInProjectsRegex = (title: string): RegExp => {
-  return new RegExp(`^\\s*${title.replace(titleReplacerRegex, '')}\\s*$`, 'i');
+  return new RegExp(
+    `^\\s*${titleWithoutSpecialCharacters(title).replace(
+      titleReplacerRegex,
+      '',
+    )}\\s*$`,
+    'i',
+  );
 };
 
 export const validateProjectTitle = async (title: string): Promise<boolean> => {
-  const isTitleValid = /^\w+$/.test(title.replace(/\s/g, ''));
+  const isTitleValid = /^[a-zA-Z0-9?!@#$%^&*+=._|/<">`'-]+$/.test(
+    // https://github.com/Giveth/giveth-dapps-v2/issues/1975#issuecomment-1383112084
+    title.replace(/\s/g, ''),
+  );
   if (!isTitleValid) {
     throw new Error(
       i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
