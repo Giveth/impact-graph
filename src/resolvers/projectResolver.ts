@@ -6,7 +6,7 @@ import {
   ProjStatus,
   SortingField,
 } from '../entities/project';
-import { spawn, Thread, Worker } from 'threads';
+import { Pool, spawn, Thread, Worker } from 'threads';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
 import {
@@ -96,6 +96,23 @@ import {
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
 import { generateProjectFiltersCacheKey } from '../utils/utils';
+
+const options = {
+  concurrency: Number(
+    process.env.PROJECT_FILTERS_THREADS_POOL_CONCURRENCY || 1,
+  ),
+  maxQueuedJobs: Number(
+    process.env.PROJECT_FILTERS_THREADS_POOL_MAX_QUEUED || 4,
+  ),
+  name:
+    process.env.PROJECT_FILTERS_THREADS_POOL_NAME || 'ProjectFiltersThreadPool',
+  size: Number(process.env.PROJECT_FILTERS_THREADS_POOL_SIZE || 4),
+};
+
+const projectsFiltersPool = Pool(
+  () => spawn(new Worker('../workers/hashing')),
+  options,
+);
 
 @ObjectType()
 class AllProjects {
@@ -609,41 +626,44 @@ export class ProjectResolver {
       connectedWalletUserId,
       user,
     );
+    const filtersResultHashTask = projectsFiltersPool.queue(hasher =>
+      hasher.hashProjectFilters({
+        limit,
+        skip,
+        searchTerm,
+        category,
+        mainCategory,
+        filters,
+        sortingBy,
+        connectedWalletUserId,
+        userId,
+        suffix: 'pq',
+      }),
+    );
 
-    const hasher = await spawn(new Worker('../workers/hashing'));
-    const projectsQueryCacheKey = await hasher.hashProjectfilters({
-      limit,
-      skip,
-      searchTerm,
-      category,
-      mainCategory,
-      filters,
-      sortingBy,
-      connectedWalletUserId,
-      userId,
-      suffix: 'pq',
-    });
+    const filtersResultCountHashTask = projectsFiltersPool.queue(hasher =>
+      hasher.hashProjectFilters({
+        limit,
+        skip,
+        searchTerm,
+        category,
+        mainCategory,
+        filters,
+        sortingBy,
+        connectedWalletUserId,
+        userId,
+        suffix: 'pqc',
+      }),
+    );
 
-    const projectsCountQueryCacheKey = await hasher.hashProjectfilters({
-      limit,
-      skip,
-      searchTerm,
-      category,
-      mainCategory,
-      filters,
-      sortingBy,
-      connectedWalletUserId,
-      userId,
-      suffix: 'pqc',
-    });
+    const [projectsQueryCacheKey, projectsCountQueryCacheKey] =
+      await Promise.all([filtersResultHashTask, filtersResultCountHashTask]);
 
     const [categories, projects, totalCount] = await Promise.all([
       Category.find({ cache: 60000 }),
       projectsQuery.cache(projectsQueryCacheKey, 60000).getMany(),
       projectsCountQuery.cache(projectsCountQueryCacheKey, 60000).getCount(),
     ]);
-
-    await Thread.terminate(hasher);
 
     return { projects, totalCount, categories };
   }

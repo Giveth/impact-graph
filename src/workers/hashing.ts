@@ -6,7 +6,7 @@ import { User } from '../entities/user';
 import { generateProjectFiltersCacheKey } from '../utils/utils';
 
 expose({
-  hashProjectfilters(args: {
+  hashProjectFilters(args: {
     limit?: number;
     skip?: number;
     searchTerm?: string;
