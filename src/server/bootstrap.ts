@@ -56,6 +56,7 @@ import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fill
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
+import { Pool, spawn, Worker } from 'threads';
 
 // tslint:disable:no-var-requires
 const express = require('express');
@@ -65,6 +66,18 @@ const cors = require('cors');
 // register 3rd party IOC container
 
 Resource.validate = validate;
+
+const options = {
+  concurrency: Number(
+    process.env.PROJECT_FILTERS_THREADS_POOL_CONCURRENCY || 1,
+  ),
+  maxQueuedJobs: Number(
+    process.env.PROJECT_FILTERS_THREADS_POOL_MAX_QUEUED || 4,
+  ),
+  name:
+    process.env.PROJECT_FILTERS_THREADS_POOL_NAME || 'ProjectFiltersThreadPool',
+  size: Number(process.env.PROJECT_FILTERS_THREADS_POOL_SIZE || 4),
+};
 
 export async function bootstrap() {
   try {
@@ -135,6 +148,12 @@ export async function bootstrap() {
       }
     }
 
+    // instantiate pool once and pass as context
+    const projectsFiltersThreadPool = Pool(
+      () => spawn(new Worker('../workers/hashing')),
+      options,
+    );
+
     // Create GraphQL server
     const apolloServer = new ApolloServer({
       uploads: false,
@@ -168,6 +187,7 @@ export async function bootstrap() {
         return {
           req,
           res,
+          projectsFiltersThreadPool,
         };
       },
       formatError: err => {

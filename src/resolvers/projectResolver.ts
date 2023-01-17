@@ -20,7 +20,6 @@ import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { MyContext } from '../types/MyContext';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
@@ -96,18 +95,6 @@ import {
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
 import { generateProjectFiltersCacheKey } from '../utils/utils';
-
-const options = {
-  concurrency: Number(
-    process.env.PROJECT_FILTERS_THREADS_POOL_CONCURRENCY || 1,
-  ),
-  maxQueuedJobs: Number(
-    process.env.PROJECT_FILTERS_THREADS_POOL_MAX_QUEUED || 4,
-  ),
-  name:
-    process.env.PROJECT_FILTERS_THREADS_POOL_NAME || 'ProjectFiltersThreadPool',
-  size: Number(process.env.PROJECT_FILTERS_THREADS_POOL_SIZE || 4),
-};
 
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
@@ -599,13 +586,8 @@ export class ProjectResolver {
       sortingBy,
       connectedWalletUserId,
     }: GetProjectsArgs,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user }, projectsFiltersThreadPool }: MyContext,
   ): Promise<AllProjects> {
-    const projectsFiltersPool = Pool(
-      () => spawn(new Worker('../workers/hashing')),
-      options,
-    );
-
     const userId = user?.id || 0;
     const projectsQuery = filterProjectsQuery(
       limit,
@@ -630,7 +612,7 @@ export class ProjectResolver {
       connectedWalletUserId,
       user,
     );
-    const filtersResultHashTask = projectsFiltersPool.queue(hasher =>
+    const filtersResultHashTask = projectsFiltersThreadPool.queue(hasher =>
       hasher.hashProjectFilters({
         limit,
         skip,
@@ -645,7 +627,7 @@ export class ProjectResolver {
       }),
     );
 
-    const filtersResultCountHashTask = projectsFiltersPool.queue(hasher =>
+    const filtersResultCountHashTask = projectsFiltersThreadPool.queue(hasher =>
       hasher.hashProjectFilters({
         limit,
         skip,

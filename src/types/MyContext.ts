@@ -8,4 +8,5 @@ interface GraphRequest extends Request {
 export interface MyContext {
   req: GraphRequest;
   res: Response;
+  projectsFiltersThreadPool: any;
 }
