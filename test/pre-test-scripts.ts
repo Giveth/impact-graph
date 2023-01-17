@@ -28,7 +28,6 @@ import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-
 import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
 import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
 import { AppDataSource } from '../src/orm';
-import { createOrganizationTokensTokenTable1673939407483 } from '../migration/1673939407483-create_organization_tokens_token_table';
 import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
 
 // This can also be a connection string
