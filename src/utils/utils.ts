@@ -10,19 +10,17 @@ export const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-export const generateFiltersCacheKey = async (args: {
+export const generateProjectFiltersCacheKey = async (args: {
   limit?: number;
-  take?: number;
   skip?: number;
   searchTerm?: string;
   category?: string;
   mainCategory?: string;
   filters?: FilterField[];
-  filterBy?: FilterBy;
-  orderBy?: OrderBy;
   sortingBy?: SortingField;
-  admin?: number;
   connectedWalletUserId?: number;
+  userId?: number;
+  suffix?: string;
 }) => {
   const orderedArgs = stringify(args);
 

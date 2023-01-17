@@ -6,6 +6,7 @@ import {
   ProjStatus,
   SortingField,
 } from '../entities/project';
+import { spawn, Thread, Worker } from 'threads';
 import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
 import {
@@ -75,6 +76,7 @@ import {
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
+  filterProjectsQuery,
   findProjectById,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
@@ -93,6 +95,7 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
+import { generateProjectFiltersCacheKey } from '../utils/utils';
 
 @ObjectType()
 class AllProjects {
@@ -133,7 +136,7 @@ export enum FilterField {
   BoostedWithGivPower = 'boostedWithGivPower',
 }
 
-enum OrderDirection {
+export enum OrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
@@ -264,7 +267,7 @@ class ImageResponse {
 export class ProjectResolver {
   static addCategoryQuery(
     query: SelectQueryBuilder<Project>,
-    category: string,
+    category?: string,
   ) {
     if (!category) return query;
 
@@ -278,7 +281,7 @@ export class ProjectResolver {
 
   static addMainCategoryQuery(
     query: SelectQueryBuilder<Project>,
-    mainCategory: string,
+    mainCategory?: string,
   ) {
     if (!mainCategory) return query;
 
@@ -295,7 +298,7 @@ export class ProjectResolver {
 
   static addSearchQuery(
     query: SelectQueryBuilder<Project>,
-    searchTerm: string,
+    searchTerm?: string,
   ) {
     if (!searchTerm) return query;
 
@@ -476,7 +479,7 @@ export class ProjectResolver {
 
   static addFiltersQuery(
     query: SelectQueryBuilder<Project>,
-    filtersArray: FilterField[],
+    filtersArray: FilterField[] = [],
   ) {
     if (filtersArray.length === 0) return query;
 
@@ -516,7 +519,7 @@ export class ProjectResolver {
     return query;
   }
 
-  private static addUserReaction<T>(
+  static addUserReaction<T>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
     authenticatedUser?: any,
@@ -578,85 +581,70 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
-      admin,
       connectedWalletUserId,
     }: GetProjectsArgs,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<AllProjects> {
-    let query = this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.organization', 'organization')
-      // you can alias it as user but it still is mapped as adminUser
-      // like defined in our project entity
-      .innerJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields) // aliased selection
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .leftJoin('project.projectPower', 'projectPower')
-      .addSelect([
-        'projectPower.totalPower',
-        'projectPower.powerRank',
-        'projectPower.round',
-      ])
-      .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      );
+    const userId = user?.id || 0;
+    const projectsQuery = filterProjectsQuery(
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      connectedWalletUserId,
+      user,
+    );
 
-    // Filters
-    query = ProjectResolver.addCategoryQuery(query, category);
-    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
-    query = ProjectResolver.addSearchQuery(query, searchTerm);
-    query = ProjectResolver.addFiltersQuery(query, filters);
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+    const projectsCountQuery = filterProjectsQuery(
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      connectedWalletUserId,
+      user,
+    );
 
-    switch (sortingBy) {
-      case SortingField.MostFunded:
-        query.orderBy('project.totalDonations', OrderDirection.DESC);
-        break;
-      case SortingField.MostLiked:
-        query.orderBy('project.totalReactions', OrderDirection.DESC);
-        break;
-      case SortingField.Newest:
-        query.orderBy('project.creationDate', OrderDirection.DESC);
-        break;
-      case SortingField.Oldest:
-        query.orderBy('project.creationDate', OrderDirection.ASC);
-        break;
-      case SortingField.QualityScore:
-        query.orderBy('project.qualityScore', OrderDirection.DESC);
-        break;
-      case SortingField.GIVPower:
-        query
-          .orderBy(`project.verified`, OrderDirection.DESC)
-          .addOrderBy(
-            'projectPower.totalPower',
-            OrderDirection.DESC,
-            'NULLS LAST',
-          );
+    const hasher = await spawn(new Worker('../workers/hashing'));
+    const projectsQueryCacheKey = await hasher.hashProjectfilters({
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      connectedWalletUserId,
+      userId,
+      suffix: 'pq',
+    });
 
-        break;
-      default:
-        query
-          .orderBy('projectPower.totalPower', OrderDirection.DESC)
-          .addOrderBy(`project.verified`, OrderDirection.DESC);
-        break;
-    }
-
-    query.take(limit).skip(skip);
+    const projectsCountQueryCacheKey = await hasher.hashProjectfilters({
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+      connectedWalletUserId,
+      userId,
+      suffix: 'pqc',
+    });
 
     const [categories, projects, totalCount] = await Promise.all([
       Category.find({ cache: 60000 }),
-      query.getMany(),
-      query.getCount(),
+      projectsQuery.cache(projectsQueryCacheKey, 60000).getMany(),
+      projectsCountQuery.cache(projectsCountQueryCacheKey, 60000).getCount(),
     ]);
+
+    await Thread.terminate(hasher);
+
     return { projects, totalCount, categories };
   }
 
