@@ -18,7 +18,6 @@ export const generateProjectFiltersCacheKey = async (args: {
   filters?: FilterField[];
   sortingBy?: SortingField;
   connectedWalletUserId?: number;
-  userId?: number;
   suffix?: string;
 }) => {
   return await hashMD5(args, { algorithm: 'md5' });

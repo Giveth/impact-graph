@@ -588,7 +588,6 @@ export class ProjectResolver {
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: MyContext,
   ): Promise<AllProjects> {
-    const userId = user?.id || 0;
     const projectsQuery = filterProjectsQuery(
       limit,
       skip,
@@ -601,17 +600,6 @@ export class ProjectResolver {
       user,
     );
 
-    const projectsCountQuery = filterProjectsQuery(
-      limit,
-      skip,
-      searchTerm,
-      category,
-      mainCategory,
-      filters,
-      sortingBy,
-      connectedWalletUserId,
-      user,
-    );
     const filtersResultHashTask = projectsFiltersThreadPool.queue(hasher =>
       hasher.hashProjectFilters({
         limit,
@@ -622,28 +610,11 @@ export class ProjectResolver {
         filters,
         sortingBy,
         connectedWalletUserId,
-        userId,
         suffix: 'pq',
       }),
     );
 
-    const filtersResultCountHashTask = projectsFiltersThreadPool.queue(hasher =>
-      hasher.hashProjectFilters({
-        limit,
-        skip,
-        searchTerm,
-        category,
-        mainCategory,
-        filters,
-        sortingBy,
-        connectedWalletUserId,
-        userId,
-        suffix: 'pqc',
-      }),
-    );
-
-    const [projectsQueryCacheKey, projectsCountQueryCacheKey] =
-      await Promise.all([filtersResultHashTask, filtersResultCountHashTask]);
+    const [projectsQueryCacheKey] = await Promise.all([filtersResultHashTask]);
 
     const [categories, [projects, totalCount]] = await Promise.all([
       Category.find({ cache: projectFiltersCacheDuration }),

@@ -14,7 +14,6 @@ expose({
     filters?: FilterField[];
     sortingBy?: SortingField;
     connectedWalletUserId?: number;
-    userId?: number;
     suffix?: string;
   }) {
     return await generateProjectFiltersCacheKey(args);
