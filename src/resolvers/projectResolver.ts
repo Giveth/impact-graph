@@ -645,14 +645,11 @@ export class ProjectResolver {
     const [projectsQueryCacheKey, projectsCountQueryCacheKey] =
       await Promise.all([filtersResultHashTask, filtersResultCountHashTask]);
 
-    const [categories, projects, totalCount] = await Promise.all([
+    const [categories, [projects, totalCount]] = await Promise.all([
       Category.find({ cache: projectFiltersCacheDuration }),
       projectsQuery
         .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
-        .getMany(),
-      projectsCountQuery
-        .cache(projectsCountQueryCacheKey, projectFiltersCacheDuration)
-        .getCount(),
+        .getManyAndCount(),
     ]);
 
     return { projects, totalCount, categories };

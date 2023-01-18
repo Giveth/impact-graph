@@ -3,7 +3,6 @@ import { SortingField } from '../entities/project';
 import { FilterBy, FilterField, OrderBy } from '../resolvers/projectResolver';
 
 // tslint:disable:no-var-requires
-const stringify = require('json-stable-stringify');
 const hashMD5 = require('object-hash');
 
 export const sleep = ms => {
@@ -22,9 +21,7 @@ export const generateProjectFiltersCacheKey = async (args: {
   userId?: number;
   suffix?: string;
 }) => {
-  const orderedArgs = stringify(args);
-
-  return await hashMD5(orderedArgs, { algorithm: 'md5' });
+  return await hashMD5(args, { algorithm: 'md5' });
 };
 
 export const convertExponentialNumber = (n: number): number => {

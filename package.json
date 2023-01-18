@@ -62,7 +62,6 @@
     "ioredis": "^4.23.0",
     "joi": "^17.6.0",
     "js-sha256": "^0.9.0",
-    "json-stable-stringify": "^1.0.2",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4",
     "monoswap": "0.3.14",

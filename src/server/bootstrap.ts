@@ -71,9 +71,6 @@ const options = {
   concurrency: Number(
     process.env.PROJECT_FILTERS_THREADS_POOL_CONCURRENCY || 1,
   ),
-  maxQueuedJobs: Number(
-    process.env.PROJECT_FILTERS_THREADS_POOL_MAX_QUEUED || 4,
-  ),
   name:
     process.env.PROJECT_FILTERS_THREADS_POOL_NAME || 'ProjectFiltersThreadPool',
   size: Number(process.env.PROJECT_FILTERS_THREADS_POOL_SIZE || 4),
