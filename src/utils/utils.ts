@@ -1,10 +1,11 @@
 import { Country } from '../entities/Country';
 import { SortingField } from '../entities/project';
-import { FilterBy, FilterField, OrderBy } from '../resolvers/projectResolver';
+import { FilterField } from '../resolvers/projectResolver';
 import slugify from 'slugify';
 
-// tslint:disable:no-var-requires
-const hashMD5 = require('object-hash');
+import stringify from 'json-stable-stringify';
+// tslint:disable-next-line:no-var-requires
+const { createHash } = require('node:crypto');
 
 export const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -18,10 +19,10 @@ export const generateProjectFiltersCacheKey = async (args: {
   mainCategory?: string;
   filters?: FilterField[];
   sortingBy?: SortingField;
-  connectedWalletUserId?: number;
   suffix?: string;
 }) => {
-  return await hashMD5(args, { algorithm: 'md5' });
+  const orderedArgs = stringify(args);
+  return createHash('md5').update(orderedArgs).digest();
 };
 
 export const titleWithoutSpecialCharacters = (title: string): string => {

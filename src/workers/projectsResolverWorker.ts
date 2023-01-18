@@ -14,7 +14,6 @@ expose({
     mainCategory?: string;
     filters?: FilterField[];
     sortingBy?: SortingField;
-    connectedWalletUserId?: number;
     suffix?: string;
   }) {
     return await generateProjectFiltersCacheKey(args);
@@ -23,15 +22,13 @@ expose({
     projects: Project[],
     userReactions: Reaction[],
   ) {
+    const projectIdReactionMap: Record<Project['id'], Reaction> = {};
+    userReactions.forEach(reaction => {
+      projectIdReactionMap[reaction.projectId] = reaction;
+    });
+
     return projects.map(project => {
-      const reaction = userReactions.find(
-        userReaction => userReaction.projectId === project.id,
-      );
-
-      if (reaction) {
-        project.reaction = reaction;
-      }
-
+      project.reaction = projectIdReactionMap[project.id];
       return project;
     });
   },
