@@ -4,8 +4,16 @@ import { FilterField } from '../resolvers/projectResolver';
 import { Project, SortingField } from '../entities/project';
 import { generateProjectFiltersCacheKey } from '../utils/utils';
 import { Reaction } from '../entities/reaction';
+import { WorkerModule } from 'threads/dist/types/worker';
 
-expose({
+type ProjectsResolverWorkerFunctions =
+  | 'hashProjectFilters'
+  | 'mergeUserReactionsToProjects';
+
+export type ProjectResolverWorker =
+  WorkerModule<ProjectsResolverWorkerFunctions>;
+
+const worker: ProjectResolverWorker = {
   async hashProjectFilters(args: {
     limit?: number;
     skip?: number;
@@ -32,4 +40,6 @@ expose({
       return project;
     });
   },
-});
+};
+
+expose(worker);
