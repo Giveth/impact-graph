@@ -79,7 +79,7 @@ export const filterProjectsQuery = (
   query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
   query = ProjectResolver.addSearchQuery(query, searchTerm);
   query = ProjectResolver.addFiltersQuery(query, filters);
-  query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+  // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
   switch (sortingBy) {
     case SortingField.MostFunded:

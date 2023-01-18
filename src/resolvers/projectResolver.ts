@@ -95,6 +95,7 @@ import {
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
 import { generateProjectFiltersCacheKey } from '../utils/utils';
+import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
 
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
@@ -588,6 +589,9 @@ export class ProjectResolver {
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: MyContext,
   ): Promise<AllProjects> {
+    let categories: Category[];
+    let projects: Project[];
+    let totalCount: number;
     const projectsQuery = filterProjectsQuery(
       limit,
       skip,
@@ -600,28 +604,39 @@ export class ProjectResolver {
       user,
     );
 
-    const filtersResultHashTask = projectsFiltersThreadPool.queue(hasher =>
-      hasher.hashProjectFilters({
-        limit,
-        skip,
-        searchTerm,
-        category,
-        mainCategory,
-        filters,
-        sortingBy,
-        connectedWalletUserId,
-        suffix: 'pq',
-      }),
+    const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
+      hasher =>
+        hasher.hashProjectFilters({
+          limit,
+          skip,
+          searchTerm,
+          category,
+          mainCategory,
+          filters,
+          sortingBy,
+          connectedWalletUserId,
+          suffix: 'pq',
+        }),
     );
 
-    const [projectsQueryCacheKey] = await Promise.all([filtersResultHashTask]);
-
-    const [categories, [projects, totalCount]] = await Promise.all([
+    [categories, [projects, totalCount]] = await Promise.all([
       Category.find({ cache: projectFiltersCacheDuration }),
       projectsQuery
         .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
         .getManyAndCount(),
     ]);
+
+    const userId = connectedWalletUserId || user?.userId;
+    const userReactions = await findUserReactionsByProjectIds(
+      userId,
+      projects.map(project => project.id),
+    );
+
+    if (userReactions.length > 0) {
+      projects = await projectsFiltersThreadPool.queue(merger =>
+        merger.mergeUserReactionsToProjects(projects, userReactions),
+      );
+    }
 
     return { projects, totalCount, categories };
   }

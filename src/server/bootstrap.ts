@@ -147,7 +147,7 @@ export async function bootstrap() {
 
     // instantiate pool once and pass as context
     const projectsFiltersThreadPool = Pool(
-      () => spawn(new Worker('../workers/hashing')),
+      () => spawn(new Worker('../workers/projectsResolverWorker')),
       options,
     );
 
