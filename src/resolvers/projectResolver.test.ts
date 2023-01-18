@@ -1335,7 +1335,7 @@ function createProjectTestCases() {
       `Eth address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
     );
   });
-  it('Should get error, when walletAddress of project is a smart contract address', async () => {
+  it('should create project when walletAddress of project is a smart contract address', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
       categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
@@ -1358,7 +1358,7 @@ function createProjectTestCases() {
       {
         query: createProjectQuery,
         variables: {
-          project: { ...sampleProject, title: String(new Date().getTime()) },
+          project: { ...sampleProject },
         },
       },
       {
@@ -1367,9 +1367,10 @@ function createProjectTestCases() {
         },
       },
     );
+    assert.isOk(addProjectResponse.data.data.createProject);
     assert.equal(
-      addProjectResponse.data.errors[0].message,
-      `Eth address ${SEED_DATA.DAI_SMART_CONTRACT_ADDRESS} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+      addProjectResponse.data.data.createProject.title,
+      sampleProject.title,
     );
   });
   it('Should get error, when title of project is repetitive', async () => {
@@ -1494,6 +1495,50 @@ function createProjectTestCases() {
     assert.equal(
       result.data.data.createProject.addresses[0].address,
       sampleProject.addresses[0].address,
+    );
+  });
+  it('Should create successfully with special characters in title', async () => {
+    const titleWithoutSpecialCharacters = 'title-_' + new Date().getTime();
+    const sampleProject: CreateProjectInput = {
+      title: titleWithoutSpecialCharacters + `?!@#$%^&*+=.|/<">'` + '`',
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
+      description: 'description',
+      image:
+        'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data);
+    assert.exists(result.data.data);
+    assert.exists(result.data.data.createProject);
+    assert.equal(result.data.data.createProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.createProject.slug,
+      titleWithoutSpecialCharacters,
     );
   });
 
@@ -1688,26 +1733,44 @@ function updateProjectTestCases() {
       `Eth address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
     );
   });
-  it('Should get error when sent walletAddress is smartContractAddress', async () => {
+  it('Should update project when sent walletAddress is smartContractAddress', async () => {
+    await ProjectAddress.createQueryBuilder()
+      .delete()
+      .from(ProjectAddress)
+      .where('address = :address', {
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      })
+      .execute();
+    await Project.createQueryBuilder()
+      .delete()
+      .from(Project)
+      .where('walletAddress = :address', {
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      })
+      .execute();
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
     const editProjectResult = await axios.post(
       graphqlUrl,
       {
         query: updateProjectQuery,
         variables: {
-          projectId: Number(SEED_DATA.FIRST_PROJECT.id),
+          projectId: project.id,
           newProjectData: {
             addresses: [
               {
-                address: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
+                address: '0x6b175474e89094c44da98b954eedeac495271d0f',
                 networkId: NETWORK_IDS.XDAI,
               },
               {
-                address: SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
+                address: '0x6b175474e89094c44da98b954eedeac495271d0f',
                 networkId: NETWORK_IDS.MAIN_NET,
               },
             ],
-            title: SEED_DATA.FIRST_PROJECT.title,
+            title: 'NewTestTitle',
           },
         },
       },
@@ -1717,9 +1780,20 @@ function updateProjectTestCases() {
         },
       },
     );
+    assert.isOk(editProjectResult.data.data.updateProject);
     assert.equal(
-      editProjectResult.data.errors[0].message,
-      `Eth address ${SEED_DATA.DAI_SMART_CONTRACT_ADDRESS} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+      editProjectResult.data.data.updateProject.title,
+      'NewTestTitle',
+    );
+    const walletaddressOfUpdateProject =
+      await ProjectAddress.createQueryBuilder()
+        .where('"projectId" = :projectId', {
+          projectId: Number(editProjectResult.data.data.updateProject.id),
+        })
+        .getOne();
+    assert.isOk(
+      walletaddressOfUpdateProject!.address,
+      SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
     );
   });
   it('Should update addresses successfully', async () => {
@@ -3113,7 +3187,22 @@ function walletAddressIsValidTestCases() {
       `Eth address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
     );
   });
-  it('should throw error walletAddress is smart contract address in mainnet', async () => {
+  it('should return true if walletAddress is smart contract address in mainnet', async () => {
+    await ProjectAddress.createQueryBuilder()
+      .delete()
+      .from(ProjectAddress)
+      .where('address = :address', {
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      })
+      .execute();
+    await Project.createQueryBuilder()
+      .delete()
+      .from(Project)
+      .where('walletAddress = :address', {
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      })
+      .execute();
+
     // DAI address https://etherscan.io/token/0x6b175474e89094c44da98b954eedeac495271d0f
     const walletAddress = '0x6b175474e89094c44da98b954eedeac495271d0f';
     const result = await axios.post(graphqlUrl, {
@@ -3122,13 +3211,10 @@ function walletAddressIsValidTestCases() {
         address: walletAddress,
       },
     });
-    assert.equal(
-      result.data.errors[0].message,
-      `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
-    );
+    assert.equal(result.data.data.walletAddressIsValid, true);
   });
 
-  it('should throw error walletAddress is smart contract address in xdai', async () => {
+  it('should return true if walletAddress is smart contract address in xdai', async () => {
     // GIV address https://blockscout.com/xdai/mainnet/token/0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75/token-transfers
     const walletAddress = '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75';
     const result = await axios.post(graphqlUrl, {
@@ -3137,10 +3223,7 @@ function walletAddressIsValidTestCases() {
         address: walletAddress,
       },
     });
-    assert.equal(
-      result.data.errors[0].message,
-      `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
-    );
+    assert.equal(result.data.data.walletAddressIsValid, true);
   });
 
   it('should throw error for existing walletAddress - upperCase', async () => {

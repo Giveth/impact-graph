@@ -770,6 +770,34 @@ function getPowerBoostingTestCases() {
       assert.equal(powerBoosting.project.id, firstProject.id);
     });
   });
+  it('should get list of power with 1000 boostings filter by projectId', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    for (let i = 0; i < 1000; i++) {
+      const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+      await insertSinglePowerBoosting({
+        user,
+        project,
+        percentage: 100,
+      });
+    }
+
+    const result = await axios.post(graphqlUrl, {
+      query: getPowerBoostingsQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isOk(result);
+    assert.equal(result.data.data.getPowerBoosting.powerBoostings.length, 1000);
+
+    result.data.data.getPowerBoosting.powerBoostings.forEach(powerBoosting => {
+      assert.equal(powerBoosting.project.id, project.id);
+    });
+  });
   it('should get list of power boostings filter by projectId and userId', async () => {
     const firstUser = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),

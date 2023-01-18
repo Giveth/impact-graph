@@ -1,6 +1,7 @@
 import { Country } from '../entities/Country';
 import { SortingField } from '../entities/project';
 import { FilterBy, FilterField, OrderBy } from '../resolvers/projectResolver';
+import slugify from 'slugify';
 
 // tslint:disable:no-var-requires
 const hashMD5 = require('object-hash');
@@ -21,6 +22,42 @@ export const generateProjectFiltersCacheKey = async (args: {
   suffix?: string;
 }) => {
   return await hashMD5(args, { algorithm: 'md5' });
+};
+
+export const titleWithoutSpecialCharacters = (title: string): string => {
+  const ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
+    '`',
+    `'`,
+    '<',
+    '>',
+    '"',
+    '+',
+    '&',
+    '^',
+    '$',
+    '@',
+    '!',
+    '*',
+    '#',
+    '=',
+    '.',
+    '?',
+    '/',
+    '|',
+    '%',
+    '`',
+  ];
+  let cleanTitle = title;
+  ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(
+    character =>
+      // this do like replaceAll
+      (cleanTitle = cleanTitle.split(character).join('')),
+  );
+  return cleanTitle;
+};
+
+export const creteSlugFromProject = (title: string): string => {
+  return slugify(titleWithoutSpecialCharacters(title));
 };
 
 export const convertExponentialNumber = (n: number): number => {

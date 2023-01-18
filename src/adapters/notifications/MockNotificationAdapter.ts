@@ -1,4 +1,7 @@
-import { NotificationAdapterInterface } from './NotificationAdapterInterface';
+import {
+  BroadCastNotificationInputParams,
+  NotificationAdapterInterface,
+} from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
@@ -33,6 +36,25 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
   projectVerified(params: { project: Project }): Promise<void> {
     logger.info('MockNotificationAdapter projectVerified', {
       projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectBoosted(params: { projectId: number; userId: number }): Promise<void> {
+    logger.info('MockNotificationAdapter projectBoosted', {
+      projectId: params.projectId,
+      userId: params.userId,
+    });
+    return Promise.resolve(undefined);
+  }
+
+  projectBoostedBatch(params: {
+    projectIds: number[];
+    userId: number;
+  }): Promise<void> {
+    logger.info('MockNotificationAdapter projectBoostedBatch', {
+      projectIds: params.projectIds,
+      userId: params.userId,
     });
     return Promise.resolve(undefined);
   }
@@ -71,7 +93,10 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  projectReceivedHeartReaction(params: { project: Project }): Promise<void> {
+  projectReceivedHeartReaction(params: {
+    project: Project;
+    userId: number;
+  }): Promise<void> {
     logger.info('MockNotificationAdapter projectReceivedHeartReaction', {
       projectSlug: params.project.slug,
     });
@@ -177,6 +202,13 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     logger.info('MockNotificationAdapter donationGetPriceFailed', {
       projectSlug: params.project.slug,
     });
+    return Promise.resolve(undefined);
+  }
+
+  broadcastNotification(
+    params: BroadCastNotificationInputParams,
+  ): Promise<void> {
+    logger.info('MockNotificationAdapter broadcastNotification', params);
     return Promise.resolve(undefined);
   }
 }

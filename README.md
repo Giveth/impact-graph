@@ -18,7 +18,7 @@ ImpactQL is a GraphQL server, that enables rapid development of serverless impac
 git clone git@github.com:topiahq/impact-graph.git
 cd impact-graph
 
-// we specief version in .nvmrc file, so when you just enter nvm use it will use exact version of required npm 
+// we specified version in .nvmrc file, so when you just enter nvm use it will use exact version of required npm
 nvm use
 
 // You should have installed chromium on your system, it can be installed by your or package maneger (apt,brew, ..)
@@ -111,10 +111,14 @@ If you want to see examples you can read test cases or see [Graphql queries](./t
 ### Admin panel
 We use [Admin Bro](https://github.com/SoftwareBrothers/adminjs) for Admin dashboard
 You should navigate to `/admin` for browsing admin panel.
-in your local database you can hash a desired password with `BCRYPT_SALT` that is in your `config/development.env` with 
+in your local database you can hash a desired password with `BCRYPT_SALT` that is in your `config/development.env` with
 [bcrypt](https://github.com/kelektiv/node.bcrypt.js) then you set that value in `encryptedPassword` of your user in DB and
 change `role` of user to `admin` in db
-Now you can login in admin dashboard with your user's `email` and the `password` you already set 
+Now you can login in admin dashboard with your user's `email` and the `password` you already set
+
+We wrote a migration file to create an admin user in local DB to can test it easily,
+so after executing migrations and run application you can navigate to http://localhost:4000/admin and login
+with this data `username`: **test-admin@giveth.io**, `password`: **admin**
 
 **PS**:
 A simple script for create encryptedPassword
@@ -180,7 +184,7 @@ npm run typeorm:cli -- migration:revert
 ### TEST
 For running tests you need to register infura and etherscan api-key, and you should pass this environment variables
 
-`PINATA_API_KEY=0000000000000 PINATA_SECRET_API_KEY=00000000000000000000000000000000000000000000000000000000  ETHERSCAN_API_KEY=0000000000000000000000000000000000 XDAI_NODE_HTTP_URL=https://xxxxxx.xdai.quiknode.pro INFURA_API_KEY=0000000000000000000000000000000000 ETHEREUM_NODE_ID=INFURA_API_KEY npm run test` 
+`PINATA_API_KEY=0000000000000 PINATA_SECRET_API_KEY=00000000000000000000000000000000000000000000000000000000  ETHERSCAN_API_KEY=0000000000000000000000000000000000 XDAI_NODE_HTTP_URL=https://xxxxxx.xdai.quiknode.pro INFURA_API_KEY=0000000000000000000000000000000000 ETHEREUM_NODE_ID=INFURA_API_KEY npm run test`
 
 ### PRE_COMMITS
 Please before committing your changes run
@@ -188,7 +192,7 @@ Please before committing your changes run
 
 You will need to add the above command to your build process so that all database migrations are run upon deployments.
 
-### Statuses 
+### Statuses
 You can generate table with this site
 https://www.tablesgenerator.com/markdown_tables
 
@@ -203,7 +207,7 @@ https://www.tablesgenerator.com/markdown_tables
 | 7  | cancelled     | cancelled     | Cancelled by Giveth Admin                                                            | admin                   |
 | 8  | drafted       | drafted       | This project is created as a draft for a potential new project, but can be discarded | project owner           |
 
-**PS** 
+**PS**
 * If a project is **cancelled** just admin can activate that
 * If project is **deactive** both admins and project owner can activate it
 * Both admins and project owner can deactivate an **active** project
@@ -222,14 +226,14 @@ in below image links
 
 ### Power Snapshot
 
-Impact graph supports ranking projects based on power boosted by users. 
+Impact graph supports ranking projects based on power boosted by users.
 Users who have GIVpower, can boost a project by allocating a portion (percentage) of their GIVpower to that project and after that impact-graph regularly takes snapshot of user GIVpower balance and boost percentages.
-At the end of each givback round (14 days), average of allocated power will be the effective power balance of each project. 
+At the end of each givback round (14 days), average of allocated power will be the effective power balance of each project.
 
 Snapshotting mechanism is implemented in by the hlp of database cron job and impact graph support of historic user balance on blockchain.
 ##### Database Snapshot
 Snapshot taking on database is implemented by the help `pg_cron` extension on Postgres database.
-On regular interval (defined by cron job expression), calls a db procedure called public."TAKE_POWER_BOOSTING_SNAPSHOT". 
+On regular interval (defined by cron job expression), calls a db procedure called public."TAKE_POWER_BOOSTING_SNAPSHOT".
 This procedure creates a new record of power_snapshot and copies power boosting percentages content to another table and associates them to the new power_snapshot record.
 ###### Cron Job Creation
 Cron job creation for test environment is already implemented in dbCronRepository.ts and a modified docker with enabled `pg_cron` extension.
@@ -251,15 +255,15 @@ The cronjob expression above `*/5 * * * *` is for getting snapshot every 5 minut
 3. Find created job id by running
 ```sql
 SELECT * FROM cron.job
-ORDER BY jobid DESC 
+ORDER BY jobid DESC
 ```
 ![img.png](docs/img/pg_cron_jobs.png)
-4. Alter the job (found its id above, supposed here 1) database to whatever is set for impact-graph, here `deveop`. 
+4. Alter the job (found its id above, supposed here 1) database to whatever is set for impact-graph, here `deveop`.
 ```sql
 select cron.alter_job(job_id:=1,database:='develop');
 ```
 
-For archiving old givpower snapshots data we must follow the same structure above, except in the 2nd step we must this command instead 
+For archiving old givpower snapshots data we must follow the same structure above, except in the 2nd step we must this command instead
 ```postgresql
 CREATE EXTENSION IF NOT EXISTS PG_CRON;
 SELECT CRON.schedule(

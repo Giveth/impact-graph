@@ -10,7 +10,10 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_BADGE_REVOKE_WARNING = 'Project badge revoke warning',
   PROJECT_BADGE_REVOKE_LAST_WARNING = 'Project badge revoke last warning',
   PROJECT_BADGE_UP_FOR_REVOKING = 'Project badge up for revoking',
+  PROJECT_BOOSTED = 'Project boosted',
   PROJECT_VERIFIED = 'Project verified',
+  PROJECT_VERIFIED_DONORS = 'Project verified - Donors',
+  PROJECT_VERIFIED_USERS_WHO_LIKED = 'Project verified - Users Who Liked',
 
   // https://github.com/Giveth/impact-graph/issues/624#issuecomment-1240364389
   PROJECT_REJECTED = 'Project unverified',
@@ -18,6 +21,8 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_UNVERIFIED = 'Project unverified',
   PROJECT_UNVERIFIED_USERS_WHO_BOOSTED = 'Project unverified - Users Who Boosted',
   PROJECT_ACTIVATED = 'Project activated',
+  PROJECT_ACTIVATED_DONORS = 'Project activated - Donors',
+  PROJECT_ACTIVATED_USERS_WHO_LIKED = 'Project activated - Users Who Liked',
   PROJECT_DEACTIVATED = 'Project deactivated',
   PROJECT_DEACTIVATED_DONORS = 'Project deactivated - Donors',
   PROJECT_DEACTIVATED_USERS_WHO_LIKED = 'Project deactivated - Users Who Liked',
@@ -36,4 +41,5 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   UPDATED_PROFILE = 'Updated profile',
   GET_DONATION_PRICE_FAILED = 'Get Donation Price Failed',
   VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN = 'Verification form got draft by admin',
+  RAW_HTML_BROADCAST = 'Raw HTML Broadcast',
 }

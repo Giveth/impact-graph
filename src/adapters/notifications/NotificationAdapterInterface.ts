@@ -1,6 +1,12 @@
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
+import exp from 'constants';
+
+export interface BroadCastNotificationInputParams {
+  broadCastNotificationId: number;
+  html: string;
+}
 
 export interface NotificationAdapterInterface {
   donationReceived(params: {
@@ -14,9 +20,17 @@ export interface NotificationAdapterInterface {
     donor: User;
   }): Promise<void>;
 
-  projectReceivedHeartReaction(params: { project: Project }): Promise<void>;
+  projectReceivedHeartReaction(params: {
+    project: Project;
+    userId: number;
+  }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;
+  projectBoosted(params: { projectId: number; userId: number }): Promise<void>;
+  projectBoostedBatch(params: {
+    projectIds: number[];
+    userId: number;
+  }): Promise<void>;
   projectBadgeRevoked(params: { project: Project }): Promise<void>;
   projectBadgeRevokeReminder(params: { project: Project }): Promise<void>;
   projectBadgeRevokeWarning(params: { project: Project }): Promise<void>;
@@ -45,4 +59,7 @@ export interface NotificationAdapterInterface {
     project: Project;
     donationInfo: { txLink: string; reason: string };
   }): Promise<void>;
+  broadcastNotification(
+    params: BroadCastNotificationInputParams,
+  ): Promise<void>;
 }
