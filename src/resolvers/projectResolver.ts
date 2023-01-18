@@ -589,7 +589,6 @@ export class ProjectResolver {
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: MyContext,
   ): Promise<AllProjects> {
-    let categories: Category[];
     let projects: Project[];
     let totalCount: number;
     const projectsQuery = filterProjectsQuery(
@@ -600,8 +599,6 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
-      connectedWalletUserId,
-      user,
     );
 
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
@@ -614,17 +611,17 @@ export class ProjectResolver {
           mainCategory,
           filters,
           sortingBy,
-          connectedWalletUserId,
           suffix: 'pq',
         }),
     );
 
-    [categories, [projects, totalCount]] = await Promise.all([
-      Category.find({ cache: projectFiltersCacheDuration }),
-      projectsQuery
-        .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
-        .getManyAndCount(),
-    ]);
+    const categoriesResolver = Category.find({
+      cache: projectFiltersCacheDuration,
+    });
+
+    [projects, totalCount] = await projectsQuery
+      .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
+      .getManyAndCount();
 
     const userId = connectedWalletUserId || user?.userId;
     const userReactions = await findUserReactionsByProjectIds(
@@ -637,6 +634,8 @@ export class ProjectResolver {
         merger.mergeUserReactionsToProjects(projects, userReactions),
       );
     }
+
+    const categories = await categoriesResolver;
 
     return { projects, totalCount, categories };
   }

@@ -47,8 +47,6 @@ export const filterProjectsQuery = (
   mainCategory?: string,
   filters?: FilterField[],
   sortingBy?: SortingField,
-  connectedWalletUserId?: number,
-  user?: Partial<User>,
 ) => {
   let query = Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.status', 'status')
