@@ -28,6 +28,7 @@ import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-
 import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
 import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
 import { AppDataSource } from '../src/orm';
+import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
 
 // This can also be a connection string
 // (in which case the database part is ignored and replaced with postgres)
@@ -333,6 +334,7 @@ async function runMigrations() {
     await projectFuturePowerView.up(queryRunner);
     await takeSnapshotProcedure.up(queryRunner);
     await takeSnapshotsHistoryProcedure.up(queryRunner);
+    await new createOrganisatioTokenTable1646302349926().up(queryRunner);
   } catch (e) {
     throw e;
   } finally {

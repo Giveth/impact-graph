@@ -104,6 +104,7 @@ import BroadcastNotification, {
 } from '../entities/broadcastNotification';
 
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
+import { findTokenByTokenId } from '../repositories/tokenRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -2617,9 +2618,7 @@ export const linkOrganizations = async (request: AdminBroRequestInterface) => {
   let type = 'success';
   const { organizations, id } = request.record.params;
   try {
-    const token = await Token.createQueryBuilder('token')
-      .where('token.id = :id', { id })
-      .getOne();
+    const token = await findTokenByTokenId(id);
 
     if (organizations) {
       // delete organization relation and relink them
@@ -2684,7 +2683,6 @@ export const createToken = async (
           labels: organizations.split(','),
         })
         .getMany();
-
       newToken.organizations = organizationsInDb;
     }
 
