@@ -33,15 +33,21 @@ describe(
 );
 
 function validateProjectTitleTestCases() {
-  it('should return an english message if title is invalid', async () => {
+  it('should return an english message if title is invalid with including ()', async () => {
     try {
-      const valid = await validateProjectTitle('$fdf');
+      const valid = await validateProjectTitle('fdf()');
     } catch (e) {
       assert.equal(
         e.message,
         i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
       );
     }
+  });
+
+  it('should return true for special characters', async () => {
+    assert.isTrue(
+      await validateProjectTitle(`test1234567890?!@#$%^&*+=._|/<">'-` + '`/'),
+    );
   });
 }
 

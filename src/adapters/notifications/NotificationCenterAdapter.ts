@@ -77,9 +77,8 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       numberOfSendNotificationsConcurrentJob,
       async (job, done) => {
         logger.debug('processing send broadcast notifications job', job.data);
-        const { notifications } = job.data;
         try {
-          await callBatchNotification(notifications);
+          await callBatchNotification(job.data);
         } catch (e) {
           logger.error('processSendingNotifications >> error', e);
         } finally {
@@ -708,9 +707,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         break;
       }
       skip += users.length;
-      const queueData: SendBatchNotificationBody = [];
+      const queueData: SendBatchNotificationBody = { notifications: [] };
       for (const user of users) {
-        queueData.push({
+        queueData.notifications.push({
           email: user.email as string,
           eventName: NOTIFICATIONS_EVENT_NAMES.RAW_HTML_BROADCAST,
           sendEmail: false,
@@ -722,9 +721,8 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           trackId: `${trackIdPrefix}-${user.walletAddress}`,
         });
       }
-      sendBroadcastNotificationsQueue.add({ notifications: queueData });
+      sendBroadcastNotificationsQueue.add(queueData);
     }
-    throw new Error('not implemented');
   }
 }
 
@@ -872,7 +870,7 @@ interface SendBatchNotificationItem {
   };
   trackId: string;
 }
-type SendBatchNotificationBody = SendBatchNotificationItem[];
+type SendBatchNotificationBody = { notifications: SendBatchNotificationItem[] };
 
 interface SegmentData {
   payload: any;

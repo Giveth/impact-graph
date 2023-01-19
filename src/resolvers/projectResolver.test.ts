@@ -2438,6 +2438,50 @@ function createProjectTestCases() {
       sampleProject.addresses[0].address,
     );
   });
+  it('Should create successfully with special characters in title', async () => {
+    const titleWithoutSpecialCharacters = 'title-_' + new Date().getTime();
+    const sampleProject: CreateProjectInput = {
+      title: titleWithoutSpecialCharacters + `?!@#$%^&*+=.|/<">'` + '`',
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
+      description: 'description',
+      image:
+        'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data);
+    assert.exists(result.data.data);
+    assert.exists(result.data.data.createProject);
+    assert.equal(result.data.data.createProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.createProject.slug,
+      titleWithoutSpecialCharacters,
+    );
+  });
 
   it('Should create draft successfully', async () => {
     const sampleProject: CreateProjectInput = {

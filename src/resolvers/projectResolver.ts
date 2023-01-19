@@ -89,6 +89,7 @@ import {
 import { ResourcePerDateRange } from './donationResolver';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { AppDataSource } from '../orm';
+import { creteSlugFromProject } from '../utils/utils';
 
 @ObjectType()
 class AllProjects {
@@ -1003,7 +1004,7 @@ export class ProjectResolver {
         projectId,
       );
     }
-    const slugBase = slugify(newProjectData.title);
+    const slugBase = creteSlugFromProject(newProjectData.title);
     const newSlug = await getAppropriateSlug(slugBase, projectId);
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
       // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
@@ -1164,7 +1165,7 @@ export class ProjectResolver {
       projectInput.addresses as RelatedAddressInputType[],
     );
     await validateProjectTitle(projectInput.title);
-    const slugBase = slugify(projectInput.title);
+    const slugBase = creteSlugFromProject(projectInput.title);
     const slug = await getAppropriateSlug(slugBase);
 
     const status = await this.projectStatusRepository.findOne({
