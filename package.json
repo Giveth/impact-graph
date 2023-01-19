@@ -24,7 +24,7 @@
     "@types/uuid": "^7.0.4",
     "@uniswap/sdk": "^3.0.3",
     "abi-decoder": "^2.4.0",
-    "adminjs": "6.7.3",
+    "adminjs": "^6.8.1",
     "analytics-node": "^4.0.1",
     "apollo-server": "^2.21.0",
     "apollo-server-express": "^2.21.0",
@@ -186,7 +186,7 @@
     "prettify": "prettier --write '**/*.ts*'",
     "db:migrate:seedToken:run": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:run",
     "db:migrate:seedToken:revert": "NODE_ENV=development ts-node ./node_modules/typeorm/cli -f ./src/seedToken-ormconfig.ts migration:revert",
-    "build": "rm -rf ./build && tsc && mkdir ./build/config && mkdir ./build/src/server/components && cp -r ./src/server/components/* ./build/src/server/components/ && mkdir ./build/src/utils/locales && cp -r ./src/utils/locales/* ./build/src/utils/locales/ ",
+    "build": "rm -rf ./build && tsc && mkdir ./build/config && mkdir ./build/src/server/components && cp -r src/server/adminbro-components/* ./build/src/server/components/ && mkdir ./build/src/utils/locales && cp -r ./src/utils/locales/* ./build/src/utils/locales/ ",
     "dev": "NODE_ENV=development node ./build/src/index.js",
     "production": "NODE_ENV=production node ./build/src/index.js",
     "start:docker:server": "npm run db:migrate:run:production && npm run production",
@@ -207,9 +207,6 @@
     "node": ">=16.14.2"
   },
   "overrides": {
-    "admin-bro": {
-      "rollup-plugin-terser": "7.0.2"
-    },
     "bull": {
       "cron-parser": {
         "moment-timezone": "0.5.37"

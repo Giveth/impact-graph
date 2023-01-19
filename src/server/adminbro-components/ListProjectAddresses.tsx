@@ -1,3 +1,4 @@
+// @ts-ignore
 import React from 'react';
 import { withTheme } from 'styled-components';
 import { Label, Section } from '@adminjs/design-system';

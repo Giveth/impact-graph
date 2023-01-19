@@ -1,3 +1,4 @@
+// @ts-ignore
 import React from 'react';
 import { withTheme } from 'styled-components';
 import { Box, Text } from '@adminjs/design-system';

@@ -1,3 +1,4 @@
+// @ts-ignore
 import React from 'react';
 import Select from 'react-select/async';
 import { withTheme } from 'styled-components';

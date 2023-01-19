@@ -105,6 +105,7 @@ import BroadcastNotification, {
 
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
+import { componentLoader, Components } from './adminbro-components/components';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -324,6 +325,7 @@ const getAdminBroInstance = async () => {
       companyName: 'Giveth',
       // softwareBrothers: false,
     },
+    componentLoader,
     locale: {
       translations: {
         resources: {
@@ -458,7 +460,7 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show: AdminBro.bundle('./components/VerificationFormSocials'),
+                show: Components.VerificationFormSocials,
               },
             },
             personalInfo: {
@@ -484,9 +486,7 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show: AdminBro.bundle(
-                  './components/VerificationFormProjectRegistry',
-                ),
+                show: Components.VerificationFormProjectRegistry,
               },
             },
             'projectRegistry.isNonProfitOrganization': { type: 'boolean' },
@@ -518,9 +518,7 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show: AdminBro.bundle(
-                  './components/VerificationFormMilestones',
-                ),
+                show: Components.VerificationFormMilestones,
               },
             },
             managingFunds: {
@@ -889,8 +887,8 @@ const getAdminBroInstance = async () => {
                 list: true,
               },
               components: {
-                show: AdminBro.bundle('./components/ListOrganizationsNames'),
-                list: AdminBro.bundle('./components/ListOrganizationsNames'),
+                show: Components.ListOrganizationsNames,
+                list: Components.ListOrganizationsNames,
               },
               availableValues: await generateOrganizationList(),
             },
@@ -1178,7 +1176,7 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show: AdminBro.bundle('./components/VerificationFormSocials'),
+                show: Components.VerificationFormSocials,
               },
             },
             adminUserId: {
@@ -1264,7 +1262,7 @@ const getAdminBroInstance = async () => {
                 edit: false,
               },
               components: {
-                show: AdminBro.bundle('./components/ClickableLink'),
+                show: Components.ClickableLink,
               },
             },
             organisationId: {
@@ -1336,13 +1334,13 @@ const getAdminBroInstance = async () => {
                 new: false,
               },
               components: {
-                show: AdminBro.bundle('./components/ListProjectAddresses'),
+                show: Components.ListProjectAddresses,
               },
             },
             listed: {
               isVisible: true,
               components: {
-                filter: AdminBro.bundle('./components/FilterListedComponent'),
+                filter: Components.FilterListedComponent,
               },
             },
             projectUpdates: {
@@ -1354,7 +1352,7 @@ const getAdminBroInstance = async () => {
                 edit: false,
               },
               components: {
-                show: AdminBro.bundle('./components/ProjectUpdates'),
+                show: Components.ProjectUpdates,
               },
             },
             adminBroBaseUrl: {
@@ -1912,7 +1910,7 @@ const getAdminBroInstance = async () => {
                 edit: true,
               },
               components: {
-                edit: AdminBro.bundle('./components/MDtoHTML'),
+                edit: Components.MDtoHTML,
               },
             },
             status: {
