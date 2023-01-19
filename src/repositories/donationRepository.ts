@@ -1,7 +1,6 @@
 import { Project } from '../entities/project';
 import { Donation } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { User } from '../entities/user';
 import { Reaction } from '../entities/reaction';
 
 export const createDonation = async (data: {
@@ -74,26 +73,6 @@ export const findDonationById = async (
     })
     .leftJoinAndSelect('donation.project', 'project')
     .getOne();
-};
-
-export const findUsersWhoDonatedToProjectExcludeWhoLiked = async (
-  projectId: number,
-): Promise<{ walletAddress: string; email?: string }[]> => {
-  return Donation.createQueryBuilder('donation')
-    .leftJoinAndSelect('donation.project', 'project')
-    .leftJoin('donation.user', 'user')
-    .leftJoin(
-      Reaction,
-      'reaction',
-      'reaction.projectId = project.id AND user.id = reaction.userId',
-    )
-    .distinctOn(['user.walletAddress'])
-    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
-    .where(`donation."projectId"=:projectId`, {
-      projectId,
-    })
-    .andWhere(`reaction.id IS NULL`)
-    .getRawMany();
 };
 
 export const donationsTotalAmountPerDateRange = async (

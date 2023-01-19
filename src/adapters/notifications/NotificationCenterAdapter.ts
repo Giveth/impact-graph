@@ -7,20 +7,21 @@ import {
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
-import {
-  createBasicAuthentication,
-  getTimestampInSeconds,
-} from '../../utils/utils';
+import { createBasicAuthentication } from '../../utils/utils';
 import { logger } from '../../utils/logger';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import Bull from 'bull';
 import { redisConfig } from '../../redis';
 import config from '../../config';
-import { findUsersWhoDonatedToProjectExcludeWhoLiked } from '../../repositories/donationRepository';
-import { findUsersWhoLikedProjectExcludeProjectOwner } from '../../repositories/reactionRepository';
-import { findUsersWhoBoostedProject } from '../../repositories/powerBoostingRepository';
+
 import { findProjectById } from '../../repositories/projectRepository';
-import { findAllUsers } from '../../repositories/userRepository';
+import {
+  findAllUsers,
+  findUsersWhoDonatedToProjectExcludeWhoLiked,
+  findUsersWhoBoostedProject,
+  findUsersWhoLikedProjectExcludeProjectOwner,
+  findUsersWhoSupportProject,
+} from '../../repositories/userRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -404,24 +405,12 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }): Promise<void> {
     const { project, update } = params;
 
-    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
-      project.id,
-    );
-    donors.map(user =>
+    const supporters = await findUsersWhoSupportProject(project.id);
+    supporters.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_DONOR,
-        user,
-      }),
-    );
-
-    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
-      project.id,
-    );
-    usersWhoLiked.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_USERS_WHO_LIKED,
+        eventName:
+          NOTIFICATIONS_EVENT_NAMES.PROJECT_ADD_AN_UPDATE_USERS_WHO_SUPPORT,
         user,
       }),
     );
@@ -429,7 +418,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     const projectOwner = project?.adminUser as User;
     await sendProjectRelatedNotification({
       project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATED_OWNER,
+      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATE_ADDED_OWNER,
       sendEmail: true,
       segment: {
         analyticsUserId: projectOwner.segmentUserId(),
@@ -723,6 +712,46 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       }
       sendBroadcastNotificationsQueue.add(queueData);
     }
+  }
+
+  async projectAddedAnUpdate(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    const projectOwner = project.adminUser as User;
+
+    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
+      project.id,
+    );
+    donors.map(user =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_DONORS,
+        user,
+      }),
+    );
+
+    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
+      project.id,
+    );
+    usersWhoLiked.map(user =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_USERS_WHO_LIKED,
+        user,
+      }),
+    );
+
+    return sendProjectRelatedNotification({
+      project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
+      sendEmail: true,
+      segment: {
+        analyticsUserId: projectOwner.segmentUserId(),
+        anonymousId: projectOwner.segmentUserId(),
+        payload: getSegmentProjectAttributes({
+          project,
+        }),
+      },
+    });
   }
 }
 
