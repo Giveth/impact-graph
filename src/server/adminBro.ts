@@ -105,6 +105,7 @@ import BroadcastNotification, {
 
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
+import { calculateGivbackFactor } from '../services/givbackService';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -696,6 +697,51 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
 
+            isCustomToken: {
+              isVisible: false,
+            },
+
+            contactEmail: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+
+            onramperTransactionStatus: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+
+            onramperId: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            givbackFactor: {
+              isVisible: false,
+            },
+            projectRank: {
+              isVisible: false,
+            },
+            bottomRankInRound: {
+              isVisible: false,
+            },
+            powerRound: {
+              isVisible: false,
+            },
             verifyErrorMessage: {
               isVisible: {
                 list: false,
@@ -709,7 +755,7 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             isFiat: {
-              isVisible: true,
+              isVisible: false,
             },
             donationType: {
               isVisible: false,
@@ -811,7 +857,7 @@ const getAdminBroInstance = async () => {
               availableValues: [
                 { value: 1, label: 'Mainnet' },
                 { value: 100, label: 'Xdai' },
-                { value: 3, label: 'Ropsten' },
+                { value: 3, label: 'Goerli' },
               ],
               isVisible: true,
             },
@@ -1938,7 +1984,6 @@ const getAdminBroInstance = async () => {
     rootPath: adminBroRootPath,
   });
 };
-
 interface AdminBroProjectsQuery {
   statusId?: string;
   title?: string;
@@ -2829,7 +2874,13 @@ export const createDonation = async (
         continue;
       }
 
+      const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+        await calculateGivbackFactor(project.id);
       const donation = Donation.create({
+        givbackFactor,
+        projectRank,
+        bottomRankInRound,
+        powerRound,
         fromWalletAddress: transactionInfo?.from,
         toWalletAddress: transactionInfo?.to,
         transactionId: txHash,
@@ -2867,7 +2918,7 @@ export const createDonation = async (
   }
 
   response.send({
-    redirectUrl: 'Donation',
+    redirectUrl: '/admin/resources/Donation',
     record: {},
     notice: {
       message,
