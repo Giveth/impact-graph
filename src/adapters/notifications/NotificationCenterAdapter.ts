@@ -436,24 +436,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async projectDeListed(params: { project: Project }): Promise<void> {
     const { project } = params;
 
-    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
-      project.id,
-    );
-    donors.map(user =>
+    const supporters = await findUsersWhoSupportProject(project.id);
+    supporters.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED_DONORS,
-        user,
-      }),
-    );
-
-    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
-      project.id,
-    );
-    usersWhoLiked.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED_USERS_WHO_LIKED,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED_SUPPORTED,
         user,
       }),
     );
