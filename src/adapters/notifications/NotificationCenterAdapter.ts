@@ -362,24 +362,12 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async projectCancelled(params: { project: Project }): Promise<void> {
     const { project } = params;
 
-    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
-      project.id,
-    );
-    donors.map(user =>
+    const supporters = await findUsersWhoSupportProject(project.id);
+    supporters.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED_DONORS,
-        user,
-      }),
-    );
-
-    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
-      project.id,
-    );
-    usersWhoLiked.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED_USERS_WHO_LIKED,
+        eventName:
+          NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED_USERS_WHO_SUPPORT,
         user,
       }),
     );
@@ -514,6 +502,15 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async projectListed(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;
+
+    const supporters = await findUsersWhoSupportProject(project.id);
+    supporters.map(user =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED_SUPPORTED,
+        user,
+      }),
+    );
 
     await sendProjectRelatedNotification({
       project,

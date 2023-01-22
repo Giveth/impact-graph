@@ -3,6 +3,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_LISTED = 'Project listed',
   PROJECT_UNLISTED = 'Project unlisted',
   PROJECT_UNLISTED_SUPPORTED = 'Project unlisted - Users who supported',
+  PROJECT_LISTED_SUPPORTED = 'Project listed - Users who supported',
   PROJECT_EDITED = 'Project edited',
   PROJECT_BADGE_REVOKED = 'Project badge revoked',
   PROJECT_BADGE_REVOKE_REMINDER = 'Project badge revoke reminder',
@@ -27,8 +28,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_DEACTIVATED_USERS_WHO_LIKED = 'Project deactivated - Users Who Liked',
 
   PROJECT_CANCELLED = 'Project cancelled',
-  PROJECT_CANCELLED_DONORS = 'Project cancelled - Donors',
-  PROJECT_CANCELLED_USERS_WHO_LIKED = 'Project cancelled - Users Who Liked',
+  PROJECT_CANCELLED_USERS_WHO_SUPPORT = 'Project cancelled - Users who supported',
   MADE_DONATION = 'Made donation',
   DONATION_RECEIVED = 'Donation received',
   DONATION_GET_PRICE_FAILED = 'Donation get price failed',
