@@ -56,14 +56,12 @@ import {
   donorsCountPerDate,
   donorsCountPerDateByMonthAndYear,
   findDonationById,
+  getRecentDonations,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { MainCategory } from '../entities/mainCategory';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
-import { calculateGivbackFactor } from '../services/givbackService';
 
 @ObjectType()
 class PaginateDonations {
@@ -282,6 +280,18 @@ export class DonationResolver {
       logger.error('donations query error', e);
       throw e;
     }
+  }
+
+  /**
+   *
+   * @param take
+   * @return last donations' id, valueUd, createdAt, user.walletAddress and project.slug
+   */
+  @Query(returns => [Donation], { nullable: true })
+  async recentDonations(
+    @Arg('take', type => Int, { nullable: true }) take: number = 30,
+  ): Promise<Donation[]> {
+    return getRecentDonations(take);
   }
 
   @Query(returns => ResourcePerDateRange, { nullable: true })

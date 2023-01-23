@@ -296,6 +296,25 @@ export const fetchTotalDonationsPerCategoryPerDate = `
   }
 `;
 
+export const fetchRecentDonations = `
+  query (
+    $take: Int
+  ) {
+    recentDonations(
+      take: $take
+    ) {
+      id
+      valueUsd
+      createdAt
+      project {
+        slug
+      }
+      user {
+        walletAddress
+      }
+    }
+  }
+`;
 export const fetchTotalDonors = `
   query (
     $fromDate: String

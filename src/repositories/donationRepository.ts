@@ -1,7 +1,6 @@
 import { Project } from '../entities/project';
-import { Donation } from '../entities/donation';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { User } from '../entities/user';
 import { Reaction } from '../entities/reaction';
 
 export const createDonation = async (data: {
@@ -188,4 +187,24 @@ export const donorsCountPerDateByMonthAndYear = async (
   query.addOrderBy('month', 'ASC');
 
   return await query.getRawMany();
+};
+
+export const getRecentDonations = async (take: number): Promise<Donation[]> => {
+  return await Donation.createQueryBuilder('donation')
+    .leftJoin('donation.user', 'user')
+    .leftJoin('donation.project', 'project')
+    .select([
+      'donation.id',
+      'donation.createdAt',
+      'donation.valueUsd',
+      'user.walletAddress',
+      'project.slug',
+    ])
+    .where('donation.status = :status', {
+      status: DONATION_STATUS.VERIFIED,
+    })
+    .orderBy('donation.createdAt', 'DESC')
+    .take(take)
+    .cache(`recent-${take}-donations`, 60000)
+    .getMany();
 };
