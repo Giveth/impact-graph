@@ -112,6 +112,11 @@ export const donationsTotalAmountPerDateRange = async (
   }
   const donationsUsdAmount = await query.getRawOne();
 
+  query.cache(
+    `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
+
   return donationsUsdAmount.sum;
 };
 
@@ -138,6 +143,11 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
 
+  query.cache(
+    `donationsTotalAmountPerDateRangeByMonth-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
+
   return await query.getRawMany();
 };
 
@@ -159,6 +169,8 @@ export const donorsCountPerDate = async (
   if (toDate) {
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
+
+  query.cache(`donorsCountPerDate-${fromDate || ''}-${toDate || ''}`, 300000);
 
   const queryResult = await query.getRawOne();
   return queryResult.count;
@@ -185,6 +197,11 @@ export const donorsCountPerDateByMonthAndYear = async (
   query.groupBy('year, month');
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
+
+  query.cache(
+    `donorsCountPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
 
   return await query.getRawMany();
 };
