@@ -857,7 +857,7 @@ const getAdminBroInstance = async () => {
               availableValues: [
                 { value: 1, label: 'Mainnet' },
                 { value: 100, label: 'Xdai' },
-                { value: 3, label: 'Goerli' },
+                { value: 5, label: 'Goerli' },
               ],
               isVisible: true,
             },

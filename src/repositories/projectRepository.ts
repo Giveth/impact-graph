@@ -76,8 +76,9 @@ export const updateProjectWithVerificationForm = async (
   verificationForm: ProjectVerificationForm,
   project: Project,
 ): Promise<Project> => {
-  for (const relatedAddress of verificationForm.managingFunds
-    .relatedAddresses) {
+  const relatedAddresses =
+    verificationForm?.managingFunds?.relatedAddresses || [];
+  for (const relatedAddress of relatedAddresses) {
     await ProjectAddress.create({
       title: relatedAddress.title,
       address: relatedAddress.address,
@@ -88,6 +89,7 @@ export const updateProjectWithVerificationForm = async (
       isRecipient: false,
     }).save();
   }
+
   project.contacts = verificationForm.projectContacts;
   await project.save();
   return (await findProjectById(project.id)) as Project;
