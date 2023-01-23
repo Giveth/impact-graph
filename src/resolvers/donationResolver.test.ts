@@ -28,6 +28,7 @@ import {
   fetchTotalDonationsUsdAmount,
   fetchTotalDonors,
   fetchTotalDonationsPerCategoryPerDate,
+  fetchRecentDonations,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -66,6 +67,7 @@ describe(
   'totalDonationsPerCategoryPerDate() test cases',
   totalDonationsPerCategoryPerDateTestCases,
 );
+describe('resetDonations() test cases', recentDonationsTestCases);
 
 // // describe('tokens() test cases', tokensTestCases);
 
@@ -3266,5 +3268,65 @@ function updateDonationStatusTestCases() {
       result.data.data.updateDonationStatus.verifyErrorMessage,
       errorMessages.DONOR_REPORTED_IT_AS_FAILED,
     );
+  });
+}
+
+async function recentDonationsTestCases() {
+  // Clear all other donations
+  beforeEach(async () => {
+    await Donation.clear();
+  });
+
+  it.only('should return limited number of recent donations', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const walletAddress2 = generateRandomEtheriumAddress();
+    const walletAddress3 = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(walletAddress);
+    const user2 = await saveUserDirectlyToDb(walletAddress2);
+    const user3 = await saveUserDirectlyToDb(walletAddress3);
+    const donation1 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date(1000),
+      }),
+      user.id,
+      project.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date(2000),
+      }),
+      user2.id,
+      project.id,
+    );
+    const donation3 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date(3000),
+      }),
+      user3.id,
+      project.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecentDonations,
+        variables: {
+          take: 2,
+        },
+      },
+      {},
+    );
+
+    assert.isOk(result);
+
+    const { recentDonations } = result.data.data;
+    assert.lengthOf(recentDonations, 2);
+    assert.equal(recentDonations[0].id, donation3.id);
+    assert.equal(recentDonations[1].id, donation2.id);
   });
 }

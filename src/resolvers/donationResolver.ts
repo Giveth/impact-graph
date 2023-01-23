@@ -46,6 +46,7 @@ import {
   donorsCountPerDate,
   donorsCountPerDateByMonthAndYear,
   findDonationById,
+  getRecentDonations,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -270,6 +271,18 @@ export class DonationResolver {
       logger.error('donations query error', e);
       throw e;
     }
+  }
+
+  /**
+   *
+   * @param take
+   * @return last donations' id, valueUd, createdAt, user.walletAddress and project.slug
+   */
+  @Query(returns => [Donation], { nullable: true })
+  async recentDonations(
+    @Arg('take', type => Int, { nullable: true }) take: number = 30,
+  ): Promise<Donation[]> {
+    return getRecentDonations(take);
   }
 
   @Query(returns => ResourcePerDateRange, { nullable: true })

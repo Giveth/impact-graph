@@ -1,7 +1,6 @@
 import { Project } from '../entities/project';
-import { Donation } from '../entities/donation';
+import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { User } from '../entities/user';
 import { Reaction } from '../entities/reaction';
 
 export const createDonation = async (data: {
@@ -113,6 +112,11 @@ export const donationsTotalAmountPerDateRange = async (
   }
   const donationsUsdAmount = await query.getRawOne();
 
+  query.cache(
+    `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
+
   return donationsUsdAmount.sum;
 };
 
@@ -139,6 +143,11 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
 
+  query.cache(
+    `donationsTotalAmountPerDateRangeByMonth-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
+
   return await query.getRawMany();
 };
 
@@ -160,6 +169,8 @@ export const donorsCountPerDate = async (
   if (toDate) {
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
+
+  query.cache(`donorsCountPerDate-${fromDate || ''}-${toDate || ''}`, 300000);
 
   const queryResult = await query.getRawOne();
   return queryResult.count;
@@ -187,5 +198,30 @@ export const donorsCountPerDateByMonthAndYear = async (
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
 
+  query.cache(
+    `donorsCountPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
+
   return await query.getRawMany();
+};
+
+export const getRecentDonations = async (take: number): Promise<Donation[]> => {
+  return await Donation.createQueryBuilder('donation')
+    .leftJoin('donation.user', 'user')
+    .leftJoin('donation.project', 'project')
+    .select([
+      'donation.id',
+      'donation.createdAt',
+      'donation.valueUsd',
+      'user.walletAddress',
+      'project.slug',
+    ])
+    .where('donation.status = :status', {
+      status: DONATION_STATUS.VERIFIED,
+    })
+    .orderBy('donation.createdAt', 'DESC')
+    .take(take)
+    .cache(`recent-${take}-donations`, 60000)
+    .getMany();
 };
