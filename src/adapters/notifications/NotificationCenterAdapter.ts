@@ -147,28 +147,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     const { project } = params;
     const projectOwner = project.adminUser as User;
 
-    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
-      project.id,
-    );
-    donors.map(user =>
+    const supporters = await findUsersWhoSupportProject(project.id);
+    supporters.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_DONORS,
+        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_USERS_WHO_SUPPORT,
         user,
       }),
     );
-
-    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
-      project.id,
-    );
-    usersWhoLiked.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_USERS_WHO_LIKED,
-        user,
-      }),
-    );
-
     return sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
@@ -219,6 +205,15 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async projectBadgeRevoked(params: { project: Project }): Promise<void> {
     const { project } = params;
     const user = project.adminUser as User;
+    const supporters = await findUsersWhoSupportProject(project.id);
+    supporters.map(u =>
+      sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName:
+          NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_SUPPORT,
+        user: u,
+      }),
+    );
     return sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED,
@@ -309,12 +304,12 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     const { project } = params;
     const user = project.adminUser as User;
 
-    const usersWhoBoosted = await findUsersWhoBoostedProject(project.id);
-    usersWhoBoosted.map(u =>
+    const supporters = await findUsersWhoSupportProject(project.id);
+    supporters.map(u =>
       sendProjectRelatedNotificationsQueue.add({
         project,
         eventName:
-          NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_BOOSTED,
+          NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_SUPPORT,
         user: u,
       }),
     );
@@ -457,26 +452,12 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     const metadata = {
       reason,
     };
-    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
-      project.id,
-    );
-    donors.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED_DONORS,
-        user,
-        metadata,
-      }),
-    );
-
-    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
-      project.id,
-    );
-    usersWhoLiked.map(user =>
+    const supporters = await findUsersWhoSupportProject(project.id);
+    supporters.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
         eventName:
-          NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED_USERS_WHO_LIKED,
+          NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED_USERS_WHO_SUPPORT,
         user,
         metadata,
       }),
@@ -584,27 +565,16 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async projectReactivated(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;
-    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
-      project.id,
-    );
-    donors.map(user =>
+    const supporters = await findUsersWhoSupportProject(project.id);
+    supporters.map(user =>
       sendProjectRelatedNotificationsQueue.add({
         project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED_DONORS,
+        eventName:
+          NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED_USERS_WHO_SUPPORT,
         user,
       }),
     );
 
-    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
-      project.id,
-    );
-    usersWhoLiked.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED_USERS_WHO_LIKED,
-        user,
-      }),
-    );
     return sendProjectRelatedNotification({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
@@ -696,46 +666,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       }
       sendBroadcastNotificationsQueue.add(queueData);
     }
-  }
-
-  async projectAddedAnUpdate(params: { project: Project }): Promise<void> {
-    const { project } = params;
-    const projectOwner = project.adminUser as User;
-
-    const donors = await findUsersWhoDonatedToProjectExcludeWhoLiked(
-      project.id,
-    );
-    donors.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_DONORS,
-        user,
-      }),
-    );
-
-    const usersWhoLiked = await findUsersWhoLikedProjectExcludeProjectOwner(
-      project.id,
-    );
-    usersWhoLiked.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_USERS_WHO_LIKED,
-        user,
-      }),
-    );
-
-    return sendProjectRelatedNotification({
-      project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
-      sendEmail: true,
-      segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
-          project,
-        }),
-      },
-    });
   }
 }
 

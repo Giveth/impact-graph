@@ -62,5 +62,4 @@ export interface NotificationAdapterInterface {
   broadcastNotification(
     params: BroadCastNotificationInputParams,
   ): Promise<void>;
-  projectAddedAnUpdate(params: { project: Project }): Promise<void>;
 }

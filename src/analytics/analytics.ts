@@ -12,20 +12,17 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_BADGE_UP_FOR_REVOKING = 'Project badge up for revoking',
   PROJECT_BOOSTED = 'Project boosted',
   PROJECT_VERIFIED = 'Project verified',
-  PROJECT_VERIFIED_DONORS = 'Project verified - Donors',
-  PROJECT_VERIFIED_USERS_WHO_LIKED = 'Project verified - Users Who Liked',
+  PROJECT_VERIFIED_USERS_WHO_SUPPORT = 'Project verified - Users who supported',
 
   // https://github.com/Giveth/impact-graph/issues/624#issuecomment-1240364389
   PROJECT_REJECTED = 'Project unverified',
 
   PROJECT_UNVERIFIED = 'Project unverified',
-  PROJECT_UNVERIFIED_USERS_WHO_BOOSTED = 'Project unverified - Users Who Boosted',
+  PROJECT_UNVERIFIED_USERS_WHO_SUPPORT = 'Project unverified - Users who supported',
   PROJECT_ACTIVATED = 'Project activated',
-  PROJECT_ACTIVATED_DONORS = 'Project activated - Donors',
-  PROJECT_ACTIVATED_USERS_WHO_LIKED = 'Project activated - Users Who Liked',
+  PROJECT_ACTIVATED_USERS_WHO_SUPPORT = 'Project activated - Users who supported',
   PROJECT_DEACTIVATED = 'Project deactivated',
-  PROJECT_DEACTIVATED_DONORS = 'Project deactivated - Donors',
-  PROJECT_DEACTIVATED_USERS_WHO_LIKED = 'Project deactivated - Users Who Liked',
+  PROJECT_DEACTIVATED_USERS_WHO_SUPPORT = 'Project deactivated - Users who supported',
 
   PROJECT_CANCELLED = 'Project cancelled',
   PROJECT_CANCELLED_USERS_WHO_SUPPORT = 'Project cancelled - Users who supported',
