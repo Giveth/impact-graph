@@ -150,6 +150,8 @@ export const totalProjectsPerDate = async (
     query.andWhere(`project."creationDate" <= '${toDate}'`);
   }
 
+  query.cache(`totalProjectPerDate-${fromDate || ''}-${toDate || ''}`, 300000);
+
   return await query.getCount();
 };
 
@@ -172,6 +174,10 @@ export const totalProjectsPerDateByMonthAndYear = async (
   query.groupBy('year, month');
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
+  query.cache(
+    `totalProjectsPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
 
   return query.getRawMany();
 };
