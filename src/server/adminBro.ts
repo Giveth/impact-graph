@@ -2789,7 +2789,7 @@ export const importThirdPartyProject = async (
   }
 
   response.send({
-    redirectUrl: 'list',
+    redirectUrl: '/admin/resources/ThirdPartyProjectImport',
     record: {},
     notice: {
       message,
