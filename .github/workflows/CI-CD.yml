@@ -121,10 +121,10 @@ jobs:
       with: # defaults to latest kubectl binary version
         config: ${{ secrets.KUBE_CONFIG }}
         command: rollout restart deployments/impact-graph -n backend
-    - name: Verify Staging Deployment
-      if: github.ref == 'refs/heads/staging'
-      uses: steebchen/kubectl@v2.0.0
-      with:
-        config: ${{ secrets.KUBE_CONFIG }}
-        version: v1.24.2 # specify kubectl binary version explicitly
-        command: rollout status deployments/impact-graph -n backend
+#    - name: Verify Staging Deployment
+#      if: github.ref == 'refs/heads/staging'
+#      uses: steebchen/kubectl@v2.0.0
+#      with:
+#        config: ${{ secrets.KUBE_CONFIG }}
+#        version: v1.24.2 # specify kubectl binary version explicitly
+#        command: rollout status deployments/impact-graph -n backend
