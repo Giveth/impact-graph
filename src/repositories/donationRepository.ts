@@ -196,6 +196,7 @@ export const getRecentDonations = async (take: number): Promise<Donation[]> => {
       'donation.valueUsd',
       'user.walletAddress',
       'project.slug',
+      'project.title',
     ])
     .where('donation.status = :status', {
       status: DONATION_STATUS.VERIFIED,

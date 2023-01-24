@@ -308,6 +308,7 @@ export const fetchRecentDonations = `
       createdAt
       project {
         slug
+        title
       }
       user {
         walletAddress
