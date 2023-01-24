@@ -2783,7 +2783,7 @@ export const importThirdPartyProject = async (
     });
     await importHistoryRecord.save();
   } catch (e) {
-    message = e.message;
+    message = e?.message || e;
     type = 'danger';
     logger.error('import third party project error', e.message);
   }
