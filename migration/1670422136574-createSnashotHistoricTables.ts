@@ -5,10 +5,11 @@ import {
   TableForeignKey,
 } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class createSnashotHistoricTables1670422136574
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     const [
       powerSnapshotHistoricTableExists,
       powerBalanceSnapshotHistoricTableExists,
@@ -160,7 +161,7 @@ export class createSnashotHistoricTables1670422136574
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `DROP TABLE IF EXISTS "power_balance_snapshot_history"`,
     );

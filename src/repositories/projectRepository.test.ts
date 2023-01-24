@@ -1,4 +1,5 @@
 import {
+  findProjectById,
   findProjectBySlug,
   findProjectByWalletAddress,
   projectsWithoutUpdateAfterTimeFrame,
@@ -13,7 +14,6 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { assert } from 'chai';
-import { findProjectById } from './projectRepository';
 import { createProjectVerificationForm } from './projectVerificationRepository';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { NETWORK_IDS } from '../provider';
@@ -24,15 +24,15 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
-import { OrderField, Project } from '../entities/project';
+import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import {
   findInCompletePowerSnapShots,
   insertSinglePowerBalanceSnapshot,
 } from './powerSnapshotRepository';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { AppDataSource } from '../orm';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -101,7 +101,7 @@ describe('findProjectById test cases', () => {
 
   it('should not find project when project doesnt exists', async () => {
     const foundProject = await findProjectById(1000000000);
-    assert.isUndefined(foundProject);
+    assert.isNull(foundProject);
   });
 });
 describe('findProjectBySlug test cases', () => {
@@ -114,7 +114,7 @@ describe('findProjectBySlug test cases', () => {
 
   it('should not find project when project doesnt exists', async () => {
     const foundProject = await findProjectBySlug(new Date().toString());
-    assert.isUndefined(foundProject);
+    assert.isNull(foundProject);
   });
 });
 
@@ -293,7 +293,9 @@ function verifyMultipleProjectsTestCases() {
 
 function orderByTotalPower() {
   it('order by totalPower DESC', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 

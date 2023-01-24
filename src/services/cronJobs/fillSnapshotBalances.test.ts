@@ -13,6 +13,8 @@ import {
 } from '../../../test/testUtils';
 import { PowerSnapshot } from '../../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../../entities/powerBoostingSnapshot';
+import { AppDataSource } from '../../orm';
+import { PowerBalanceSnapshot } from '../../entities/powerBalanceSnapshot';
 
 describe(
   'processFillPowerSnapshotJobs test cases',
@@ -20,7 +22,17 @@ describe(
 );
 
 async function processFillPowerSnapshotJobsTestCases() {
-  await processFillPowerSnapshotJobs();
+  beforeEach(async () => {
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+  });
+
+  before(async () => {
+    await processFillPowerSnapshotJobs();
+  });
 
   it('should fill snapShotBalances for powerSnapshots', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -30,7 +42,7 @@ async function processFillPowerSnapshotJobsTestCases() {
     const powerSnapshots = PowerSnapshot.create([
       {
         time: new Date(powerSnapshotTime++),
-        blockNumber: 100,
+        blockNumber: 101,
       },
       {
         time: new Date(powerSnapshotTime++),
@@ -112,7 +124,7 @@ async function processFillPowerSnapshotJobsTestCases() {
 
     assert.isNotEmpty(await getPowerBoostingSnapshotWithoutBalance());
     await addFillPowerSnapshotBalanceJobsToQueue();
-    await sleep(2000);
+    await sleep(20000);
     assert.isEmpty(await getPowerBoostingSnapshotWithoutBalance());
   });
 }

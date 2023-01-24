@@ -43,9 +43,13 @@ const exportGivingBlocksProjects = async () => {
   const authResponse = await loginGivingBlocks();
   const accessToken = authResponse.accessToken;
 
-  const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
+  const activeStatus = await ProjectStatus.findOne({
+    where: { id: ProjStatus.active },
+  });
   const organization = await Organization.findOne({
-    label: ORGANIZATION_LABELS.GIVING_BLOCK,
+    where: {
+      label: ORGANIZATION_LABELS.GIVING_BLOCK,
+    },
   });
 
   const givingBlocksProjects = await fetchGivingBlockProjects(accessToken);
@@ -66,8 +70,8 @@ const createGivingProject = async (data: {
   accessToken: string;
   givingBlockProject: GivingBlockProject;
   givingBlocksCategory: GivingBlocksCategory;
-  organization?: Organization;
-  activeStatus?: ProjectStatus;
+  organization: Organization | null;
+  activeStatus: ProjectStatus | null;
 }) => {
   const {
     accessToken,
@@ -79,7 +83,9 @@ const createGivingProject = async (data: {
     if (givingBlockProject.allowsAnon === false) return;
 
     const givethProject = await Project.findOne({
-      givingBlocksId: String(givingBlockProject.id),
+      where: {
+        givingBlocksId: String(givingBlockProject.id),
+      },
     });
     if (givethProject) {
       logger.debug(`GivingBlocksProject ${givingBlockProject.id}. Exists`);
@@ -129,7 +135,7 @@ const createGivingProject = async (data: {
       slugHistory: [],
       givingBlocksId: String(givingBlockProject.id),
       admin: adminId,
-      status: activeStatus,
+      statusId: activeStatus?.id,
       qualityScore,
       totalDonations: 0,
       totalReactions: 0,
@@ -138,7 +144,7 @@ const createGivingProject = async (data: {
       verified: true,
       giveBacks: true,
       isImported: true,
-      adminUser,
+      adminUserId: adminUser?.id,
     });
     await project.save();
     logger.debug(
@@ -172,7 +178,7 @@ type GivingBlocksCategory = {
 
 const findOrCreateGivingBlocksCategory = async (): Promise<Category> => {
   const category = await Category.findOne({
-    name: CATEGORY_NAMES.registeredNonProfits,
+    where: { name: CATEGORY_NAMES.registeredNonProfits },
   });
 
   if (!category) {

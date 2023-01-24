@@ -28,6 +28,7 @@ import {
   fetchTotalDonationsUsdAmount,
   fetchTotalDonors,
   fetchTotalDonationsPerCategoryPerDate,
+  fetchRecentDonations,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -44,9 +45,9 @@ import {
 } from '../repositories/powerSnapshotRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { AppDataSource } from '../orm';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -66,6 +67,7 @@ describe(
   'totalDonationsPerCategoryPerDate() test cases',
   totalDonationsPerCategoryPerDateTestCases,
 );
+describe('resetDonations() test cases', recentDonationsTestCases);
 
 // // describe('tokens() test cases', tokensTestCases);
 
@@ -452,9 +454,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should create GIV donation and fill averageGivbackFactor', async () => {
@@ -467,7 +471,9 @@ function createDonationTestCases() {
     }).save();
 
     // Clear previous snapshots
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
@@ -520,9 +526,9 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: { id: saveDonationResponse.data.data.createDonation },
+    });
 
     // because this project is rank1
     assert.equal(
@@ -561,9 +567,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.isFalse(donation?.anonymous);
     assert.isFalse(donation?.segmentNotified);
@@ -597,9 +605,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isFalse(donation?.isTokenEligibleForGivback);
   });
   it('should create GIV donation for trace project on mainnet successfully', async () => {
@@ -633,9 +643,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should create Not Eligible donation donation for projects in mainnet as nonEligible', async () => {
@@ -643,7 +655,9 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.GIVETH,
     });
-    const user = (await User.findOne({ id: SEED_DATA.ADMIN_USER.id })) as User;
+    const user = (await User.findOne({
+      where: { id: SEED_DATA.ADMIN_USER.id },
+    })) as User;
     const accessToken = await generateTestAccessToken(user.id);
     const token = Token.create({
       name: 'Not eligible',
@@ -655,7 +669,9 @@ function createDonationTestCases() {
     });
     await token.save();
     const givethOrganization = (await Organization.findOne({
-      label: ORGANIZATION_LABELS.GIVETH,
+      where: {
+        label: ORGANIZATION_LABELS.GIVETH,
+      },
     })) as Organization;
 
     await Token.query(
@@ -683,9 +699,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     // DOGE is in the list but not eligible
     assert.isFalse(donation?.isTokenEligibleForGivback);
   });
@@ -721,9 +739,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isFalse(donation?.isTokenEligibleForGivback);
   });
 
@@ -758,9 +778,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should throw error when create GIV donation for givingBlock project on xdai', async () => {
@@ -839,7 +861,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -867,7 +889,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -896,7 +918,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -925,7 +947,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -957,7 +979,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       organizationLabel: ORGANIZATION_LABELS.CHANGE,
     });
-    const user = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const user = await User.findOne({ where: { id: SEED_DATA.ADMIN_USER.id } });
     const accessToken = await generateTestAccessToken(user!.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -1014,9 +1036,11 @@ function createDonationTestCases() {
       },
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
-    const donation = await Donation.findOne(
-      saveDonationResponse.data.data.createDonation,
-    );
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
   it('should throw exception when creating donation for not logged-in users', async () => {
@@ -1099,7 +1123,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.equal(donation?.userId, user.id);
@@ -1136,7 +1162,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.isOk(donation?.valueUsd);
@@ -1172,7 +1200,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.isFalse(donation?.segmentNotified);
@@ -1241,7 +1271,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.isTrue(donation?.isProjectVerified);
@@ -1278,7 +1310,9 @@ function createDonationTestCases() {
     );
     assert.isOk(saveDonationResponse.data.data.createDonation);
     const donation = await Donation.findOne({
-      id: saveDonationResponse.data.data.createDonation,
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
     });
     assert.isOk(donation);
     assert.isFalse(donation?.isProjectVerified);
@@ -3234,5 +3268,65 @@ function updateDonationStatusTestCases() {
       result.data.data.updateDonationStatus.verifyErrorMessage,
       errorMessages.DONOR_REPORTED_IT_AS_FAILED,
     );
+  });
+}
+
+async function recentDonationsTestCases() {
+  // Clear all other donations
+  beforeEach(async () => {
+    await Donation.clear();
+  });
+
+  it.only('should return limited number of recent donations', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const walletAddress2 = generateRandomEtheriumAddress();
+    const walletAddress3 = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(walletAddress);
+    const user2 = await saveUserDirectlyToDb(walletAddress2);
+    const user3 = await saveUserDirectlyToDb(walletAddress3);
+    const donation1 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date(1000),
+      }),
+      user.id,
+      project.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date(2000),
+      }),
+      user2.id,
+      project.id,
+    );
+    const donation3 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: new Date(3000),
+      }),
+      user3.id,
+      project.id,
+    );
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecentDonations,
+        variables: {
+          take: 2,
+        },
+      },
+      {},
+    );
+
+    assert.isOk(result);
+
+    const { recentDonations } = result.data.data;
+    assert.lengthOf(recentDonations, 2);
+    assert.equal(recentDonations[0].id, donation3.id);
+    assert.equal(recentDonations[1].id, donation2.id);
   });
 }

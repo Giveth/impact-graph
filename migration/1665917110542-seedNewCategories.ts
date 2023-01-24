@@ -13,11 +13,12 @@ const addSubCategory = async (
         WHERE slug='${params.mainCategorySlug}'`)
   )[0];
 
-  await queryRunner.query(`INSERT INTO public.category (name, value, source, "isActive", "mainCategoryId") VALUES 
+  await queryRunner.query(`INSERT INTO public.category (name, value, source, "isActive", "mainCategoryId") VALUES
                     ('${params.subCategoryName}','${params.subCategoryValue}','adhoc', true, ${educationMainCategory.id} )
                     ;`);
 };
 
+// tslint:disable-next-line:class-name
 export class seedNewCategories1665917110542 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await Promise.all([
@@ -118,7 +119,7 @@ export class seedNewCategories1665917110542 implements MigrationInterface {
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
-                DELETE from category 
+                DELETE from category
                 WHERE name IN ('culture','social-services','family-and-children','partnerships','peace-and-justice', 'public-goods','poverty','ubi','education-tech','schooling','gender-equality','bipoc-communities','fundraising','mental-health','children-health','animals','desci','industry-and-innovation')
               `,
     );

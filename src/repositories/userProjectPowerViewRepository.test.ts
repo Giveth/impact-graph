@@ -1,4 +1,4 @@
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -19,14 +19,20 @@ import {
   findInCompletePowerSnapShots,
   insertSinglePowerBalanceSnapshot,
 } from './powerSnapshotRepository';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { PowerBoosting } from '../entities/powerBoosting';
+import {
+  UserPowerOrderDirection,
+  UserPowerOrderField,
+} from '../resolvers/userProjectPowerResolver';
+import { AppDataSource } from '../orm';
 
 describe('userProjectPowerViewRepository test', () => {
   beforeEach(async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
   });
@@ -103,7 +109,10 @@ describe('userProjectPowerViewRepository test', () => {
       take: 2,
       skip: 0,
       projectId: project.id,
-      orderBy: { field: 'boostedPower', direction: 'DESC' },
+      orderBy: {
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
+      },
     });
 
     assert.equal(count, 2);
@@ -236,7 +245,10 @@ describe('userProjectPowerViewRepository test', () => {
       take: 2,
       skip: 0,
       projectId: project.id,
-      orderBy: { field: 'boostedPower', direction: 'DESC' },
+      orderBy: {
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
+      },
     });
 
     assert.equal(count, 2);
@@ -256,7 +268,10 @@ describe('userProjectPowerViewRepository test', () => {
       take: 2,
       skip: 0,
       projectId: project.id,
-      orderBy: { field: 'boostedPower', direction: 'DESC' },
+      orderBy: {
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
+      },
     });
 
     assert.equal(count, 2);
@@ -376,7 +391,10 @@ describe('userProjectPowerViewRepository test', () => {
       take: 3,
       skip: 0,
       projectId: project1.id,
-      orderBy: { field: 'boostedPower', direction: 'DESC' },
+      orderBy: {
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
+      },
     });
 
     assert.equal(count, 3);
@@ -397,7 +415,10 @@ describe('userProjectPowerViewRepository test', () => {
       take: 2,
       skip: 1,
       projectId: project1.id,
-      orderBy: { field: 'boostedPower', direction: 'DESC' },
+      orderBy: {
+        field: UserPowerOrderField.BoostedPower,
+        direction: UserPowerOrderDirection.DESC,
+      },
     });
     assert.equal(count, 3);
     assert.isArray(userPowers);

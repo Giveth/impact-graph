@@ -1,6 +1,6 @@
 import React from 'react';
 import { withTheme } from 'styled-components';
-import { Section, Label, Link } from '@admin-bro/design-system';
+import { Section, Label, Link } from '@adminjs/design-system';
 
 const VerificationFormSocials = props => {
   const socials = props?.record?.params?.socials;

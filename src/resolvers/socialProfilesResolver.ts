@@ -39,7 +39,7 @@ export class SocialProfilesResolver {
         ),
       );
     }
-    if (projectVerificationForm.user.id !== user.userId) {
+    if (projectVerificationForm.user?.id !== user.userId) {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,

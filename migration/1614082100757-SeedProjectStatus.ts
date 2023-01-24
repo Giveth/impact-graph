@@ -9,7 +9,7 @@ export class SeedProjectStatus1614082100757 implements MigrationInterface {
     if (projectStatuses.length > 0) {
       return;
     }
-    await queryRunner.query(`INSERT INTO public.project_status (symbol,"name",description) VALUES 
+    await queryRunner.query(`INSERT INTO public.project_status (symbol,"name",description) VALUES
         ('rejected','rejected','This project has been rejected by Giveth or platform owner, We dont use it now')
         ,('pending','pending','This project is created, but pending approval, We dont use it now')
         ,('clarification','clarification','Clarification requested by Giveth or platform owner, We dont use it now')
@@ -20,7 +20,6 @@ export class SeedProjectStatus1614082100757 implements MigrationInterface {
         ,('drafted', 'drafted', 'This project is created as a draft for a potential new project, but can be discarded')
         ;`);
   }
-  x;
 
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

@@ -1,18 +1,20 @@
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql';
-import { InjectRepository } from 'typeorm-typedi-extensions';
 
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { MyContext } from '../types/MyContext';
 import { Repository, In } from 'typeorm';
 import { getLoggedInUser } from '../services/authorizationServices';
+import { AppDataSource } from '../orm';
 
 @Resolver()
 export class MeResolver {
   constructor(
-    @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>, // @InjectRepository(OrganisationProject) // private readonly organisationProjectRepository: Repository< //   OrganisationProject // >
-  ) {}
+  ) {
+    this.projectRepository =
+      AppDataSource.getDataSource().getRepository(Project);
+  }
 
   @Authorized()
   @Query(() => User, { nullable: true, complexity: 5 })

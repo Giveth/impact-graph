@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, Int, ObjectType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -6,6 +6,7 @@ import {
   BaseEntity,
   ManyToMany,
   Index,
+  JoinTable,
 } from 'typeorm';
 import { Organization } from './organization';
 
@@ -52,11 +53,6 @@ export class Token extends BaseEntity {
   @Column({ nullable: false, default: false })
   isGivbackEligible: boolean;
 
-  // @Field(type => [Organization])
-  // @JoinTable()
-
-  @ManyToMany(type => Organization, organization => organization.tokens, {
-    eager: true,
-  })
+  @ManyToMany(type => Organization, organization => organization.tokens)
   organizations: Organization[];
 }

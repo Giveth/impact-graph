@@ -73,7 +73,7 @@ export const oauth2CallbackHandler = async (params: {
   const { username, name, link } = await oauth2Adapter.getUserInfoByOauth2Code({
     oauth2Code: authorizationCodeOrAccessToken as string,
   });
-  if (projectVerificationForm.user.id !== userId) {
+  if (projectVerificationForm.user?.id !== userId) {
     throw new Error(
       i18n.__(
         translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT_VERIFICATION_FORM,

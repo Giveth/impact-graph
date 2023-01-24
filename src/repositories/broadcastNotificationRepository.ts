@@ -1,7 +1,4 @@
-import { Project } from '../entities/project';
-import BroadcastNotification, {
-  BROAD_CAST_NOTIFICATION_STATUS,
-} from '../entities/broadcastNotification';
+import BroadcastNotification from '../entities/broadcastNotification';
 
 export const updateBroadcastNotificationStatus = async (
   id: number,
@@ -18,6 +15,6 @@ export const updateBroadcastNotificationStatus = async (
 
 export const findBroadcastNotificationById = (
   id: number,
-): Promise<BroadcastNotification | undefined> => {
-  return BroadcastNotification.findOne({ id });
+): Promise<BroadcastNotification | null> => {
+  return BroadcastNotification.findOne({ where: { id } });
 };

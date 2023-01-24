@@ -1,5 +1,9 @@
 import {
+  createDonationData,
+  createProjectData,
   generateRandomEtheriumAddress,
+  saveDonationDirectlyToDb,
+  saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { User, UserRole } from '../entities/user';
@@ -8,41 +12,16 @@ import {
   findAllUsers,
   findUserById,
   findUserByWalletAddress,
+  findUsersWhoBoostedProject,
+  findUsersWhoDonatedToProjectExcludeWhoLiked,
+  findUsersWhoLikedProjectExcludeProjectOwner,
+  findUsersWhoSupportProject,
 } from './userRepository';
 import { assert } from 'chai';
-import { func } from 'joi';
+import { Reaction } from '../entities/reaction';
+import { insertSinglePowerBoosting } from './powerBoostingRepository';
 
-describe('sql injection test cases', () => {
-  it('should not find user when sending SQL query instead of email (test to be safe on SQL injection)', async () => {
-    const email = `${new Date().getTime()}@giveth.io`;
-    await User.create({
-      email,
-      role: UserRole.OPERATOR,
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-    }).save();
-
-    const foundUser = await findAdminUserByEmail(
-      `${email}' OR email = 'anotherEmail'`,
-    );
-    assert.isNotOk(foundUser);
-  });
-
-  it('should not find user when sending SQL query instead of walletAddress (test to be safe on SQL injection)', async () => {
-    const email = `${new Date().getTime()}@giveth.io`;
-    const walletAddress = generateRandomEtheriumAddress();
-    await User.create({
-      email,
-      role: UserRole.OPERATOR,
-      walletAddress,
-      loginType: 'wallet',
-    }).save();
-    const foundUser = await findUserByWalletAddress(
-      `${walletAddress}' OR "walletAddress" = '${generateRandomEtheriumAddress()}'`,
-    );
-    assert.isNotOk(foundUser);
-  });
-});
+describe('sql injection test cases', sqlInjectionTestCases);
 
 describe(' findAdminUserByEmail cases', findAdminUserByEmailTestCases);
 
@@ -53,6 +32,215 @@ describe(
 
 describe('findUserById test cases', findUserByIdTestCases);
 describe('findAllUsers test cases', findAllUsersTestCases);
+describe(
+  'findUsersWhoSupportProject test cases',
+  findUsersWhoSupportProjectTestCases,
+);
+describe(
+  'findUsersWhoLikedProjectExcludeProjectOwner() test cases',
+  findUsersWhoLikedProjectTestCases,
+);
+
+describe(
+  'findUsersWhoBoostedProject() testCases',
+  findUsersWhoBoostedProjectTests,
+);
+
+describe(
+  'findUsersWhoDonatedToProjectExcludeWhoLiked() test cases',
+  findUsersWhoDonatedToProjectTestCases,
+);
+
+function findUsersWhoDonatedToProjectTestCases() {
+  it('should find wallet addresses of who donated to a project, exclude who liked', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const whoLiked = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    await Reaction.create({
+      project,
+      userId: whoLiked.id,
+      reaction: 'heart',
+    }).save();
+    await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor2.id, project.id);
+    await saveDonationDirectlyToDb(
+      createDonationData(),
+      whoLiked.id,
+      project.id,
+    );
+
+    const users = await findUsersWhoDonatedToProjectExcludeWhoLiked(project.id);
+    assert.equal(users.length, 2);
+    assert.isOk(
+      users.find(user => user.walletAddress === donor1.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === donor2.walletAddress),
+    );
+    assert.notOk(
+      users.find(user => user.walletAddress === whoLiked.walletAddress),
+    );
+  });
+  it('should find wallet addresses of who donated to a project, not include repetitive items', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor2.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor2.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor3.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor3.id, project.id);
+    const users = await findUsersWhoDonatedToProjectExcludeWhoLiked(project.id);
+    assert.equal(users.length, 3);
+    assert.isOk(
+      users.find(user => user.walletAddress === donor1.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === donor2.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === donor3.walletAddress),
+    );
+  });
+}
+
+function findUsersWhoBoostedProjectTests() {
+  it('should find wallet addresses of who boosted a project', async () => {
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const thirdUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const fourthUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project,
+      percentage: 1,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: thirdUser,
+      project,
+      percentage: 3,
+    });
+    await insertSinglePowerBoosting({
+      user: fourthUser,
+      project,
+      percentage: 0,
+    });
+
+    const users = await findUsersWhoBoostedProject(project.id);
+    assert.equal(users.length, 3);
+    assert.isOk(
+      users.find(user => user.walletAddress === firstUser.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === secondUser.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === thirdUser.walletAddress),
+    );
+    assert.isNotOk(
+      users.find(user => user.walletAddress === fourthUser.walletAddress),
+    );
+  });
+}
+
+function findUsersWhoLikedProjectTestCases() {
+  it('should find wallet addresses of who liked to a project', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const firstUser1 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstUser2 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstUser3 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    await Reaction.create({
+      project,
+      userId: firstUser1.id,
+      reaction: 'heart',
+    }).save();
+    await Reaction.create({
+      project,
+      userId: firstUser2.id,
+      reaction: 'heart',
+    }).save();
+    await Reaction.create({
+      project,
+      userId: firstUser3.id,
+      reaction: 'heart',
+    }).save();
+
+    const users = await findUsersWhoLikedProjectExcludeProjectOwner(project.id);
+    assert.equal(users.length, 3);
+    assert.isOk(
+      users.find(user => user.walletAddress === firstUser1.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === firstUser2.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === firstUser3.walletAddress),
+    );
+  });
+  it('should find wallet addresses of who liked to a project, exclude project owner', async () => {
+    const admin = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData(), admin);
+    const firstUser1 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const firstUser2 = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    await Reaction.create({
+      project,
+      userId: firstUser1.id,
+      reaction: 'heart',
+    }).save();
+    await Reaction.create({
+      project,
+      userId: firstUser2.id,
+      reaction: 'heart',
+    }).save();
+    await Reaction.create({
+      project,
+      userId: admin.id,
+      reaction: 'heart',
+    }).save();
+
+    const users = await findUsersWhoLikedProjectExcludeProjectOwner(project.id);
+    assert.equal(users.length, 2);
+    assert.isOk(
+      users.find(user => user.walletAddress === firstUser1.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === firstUser2.walletAddress),
+    );
+    assert.isNotOk(
+      users.find(user => user.walletAddress === admin.walletAddress),
+    );
+  });
+}
 
 function findAdminUserByEmailTestCases() {
   it('should Find admin user by email', async () => {
@@ -84,7 +272,7 @@ function findAdminUserByEmailTestCases() {
   it('should not find operator/admin user when doesnt exists', async () => {
     const email = `${new Date().getTime()}@giveth.io`;
     const foundUser = await findAdminUserByEmail(email);
-    assert.isUndefined(foundUser);
+    assert.isNull(foundUser);
   });
 
   it('should find admin user when there is two user with similar email and restricted one created first', async () => {
@@ -240,7 +428,13 @@ function findUserByIdTestCases() {
 
   it('should not find  user when userId doesnt exists', async () => {
     const foundUser = await findUserById(1000000000);
-    assert.isUndefined(foundUser);
+    assert.isNull(foundUser);
+  });
+
+  it('should not find  user when userId is undefined', async () => {
+    // @ts-ignore
+    const foundUser = await findUserById(undefined);
+    assert.isNull(foundUser);
   });
 }
 
@@ -252,5 +446,147 @@ function findAllUsersTestCases() {
     const allUsers = await findAllUsers({ take: 1, skip: count });
     assert.equal(allUsers.count, count + 1);
     assert.equal(allUsers.users[0].id, newUser.id);
+  });
+}
+
+function sqlInjectionTestCases() {
+  it('should not find user when sending SQL query instead of email (test to be safe on SQL injection)', async () => {
+    const email = `${new Date().getTime()}@giveth.io`;
+    await User.create({
+      email,
+      role: UserRole.OPERATOR,
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+    }).save();
+
+    const foundUser = await findAdminUserByEmail(
+      `${email}' OR email = 'anotherEmail'`,
+    );
+    assert.isNotOk(foundUser);
+  });
+
+  it('should not find user when sending SQL query instead of walletAddress (test to be safe on SQL injection)', async () => {
+    const email = `${new Date().getTime()}@giveth.io`;
+    const walletAddress = generateRandomEtheriumAddress();
+    await User.create({
+      email,
+      role: UserRole.OPERATOR,
+      walletAddress,
+      loginType: 'wallet',
+    }).save();
+    const foundUser = await findUserByWalletAddress(
+      `${walletAddress}' OR "walletAddress" = '${generateRandomEtheriumAddress()}'`,
+    );
+    assert.isNotOk(foundUser);
+  });
+}
+
+function findUsersWhoSupportProjectTestCases() {
+  it('should find wallet addresses of who donated to a project + who liked + who boosted and not having repetitive items - projectOwner', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(projectOwner.id),
+    });
+
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const whoLiked = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const firstUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const secondUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const thirdUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const fourthUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    // Add donors
+    await saveDonationDirectlyToDb(createDonationData(), donor1.id, project.id);
+    await saveDonationDirectlyToDb(createDonationData(), donor2.id, project.id);
+    await saveDonationDirectlyToDb(
+      createDonationData(),
+      whoLiked.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData(),
+      firstUser.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData(),
+      projectOwner.id,
+      project.id,
+    );
+
+    // Add reaction
+    await Reaction.create({
+      project,
+      userId: whoLiked.id,
+      reaction: 'heart',
+    }).save();
+    await Reaction.create({
+      project,
+      userId: projectOwner.id,
+      reaction: 'heart',
+    }).save();
+
+    // Add power boostings
+    await insertSinglePowerBoosting({
+      user: firstUser,
+      project,
+      percentage: 1,
+    });
+    await insertSinglePowerBoosting({
+      user: secondUser,
+      project,
+      percentage: 2,
+    });
+    await insertSinglePowerBoosting({
+      user: thirdUser,
+      project,
+      percentage: 3,
+    });
+    await insertSinglePowerBoosting({
+      user: fourthUser,
+      project,
+      percentage: 5,
+    });
+
+    const users = await findUsersWhoSupportProject(project.id);
+    assert.equal(users.length, 7);
+    assert.isOk(
+      users.find(user => user.walletAddress === donor1.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === donor2.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === whoLiked.walletAddress),
+    );
+
+    assert.isOk(
+      users.find(user => user.walletAddress === firstUser.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === secondUser.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === thirdUser.walletAddress),
+    );
+    assert.isOk(
+      users.find(user => user.walletAddress === fourthUser.walletAddress),
+    );
   });
 }

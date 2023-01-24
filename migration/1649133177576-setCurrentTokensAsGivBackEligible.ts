@@ -1,9 +1,10 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class setCurrentTokensAsGivBackEligible1649133177576
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     const tokenTableExists = await queryRunner.hasTable('token');
     if (tokenTableExists) {
       await queryRunner.query(
@@ -19,7 +20,7 @@ export class setCurrentTokensAsGivBackEligible1649133177576
   }
 
   // Revert the boolean
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
         UPDATE token
         SET "isGivbackEligible" = false

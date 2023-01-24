@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class addIsActiveToCategories1657786628179
   implements MigrationInterface
 {

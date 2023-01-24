@@ -3,7 +3,6 @@ import { ProjectResolver } from './projectResolver';
 import { LoginResolver } from '../user/LoginResolver';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { MeResolver } from '../user/MeResolver';
-import { BankAccountResolver } from './bankAccountResolver';
 import { UploadResolver } from './uploadResolver';
 import { CategoryResolver } from './categoryResolver';
 import { DonationResolver } from './donationResolver';
@@ -16,22 +15,24 @@ import { UserProjectPowerResolver } from './userProjectPowerResolver';
 import { GivPowerTestingResolver } from './givPowerTestingResolver';
 import { ProjectPowerResolver } from './projectPowerResolver';
 
-export const resolvers: any = [
-  UserResolver,
-  ProjectResolver,
-  StatusReasonResolver,
-  LoginResolver,
-  RegisterResolver,
-  MeResolver,
-  BankAccountResolver,
-  UploadResolver,
-  CategoryResolver,
-  DonationResolver,
-  ReactionResolver,
-  ProjectVerificationFormResolver,
-  SocialProfilesResolver,
-  PowerBoostingResolver,
-  UserProjectPowerResolver,
-  ProjectPowerResolver,
-  GivPowerTestingResolver,
-];
+export const getResolvers = (): Function[] => {
+  return [
+    UserResolver,
+    ProjectResolver,
+    StatusReasonResolver,
+
+    LoginResolver,
+    RegisterResolver,
+    MeResolver,
+    UploadResolver,
+    CategoryResolver,
+    DonationResolver,
+    ReactionResolver,
+    ProjectVerificationFormResolver,
+    SocialProfilesResolver,
+    PowerBoostingResolver,
+    UserProjectPowerResolver,
+    ProjectPowerResolver,
+    GivPowerTestingResolver,
+  ];
+};

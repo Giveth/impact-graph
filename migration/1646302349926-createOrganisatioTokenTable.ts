@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class createOrganisatioTokenTable1646302349926
   implements MigrationInterface
 {

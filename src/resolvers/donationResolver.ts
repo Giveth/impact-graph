@@ -1,27 +1,25 @@
 import {
-  Resolver,
-  Query,
   Arg,
-  Mutation,
-  Ctx,
-  ObjectType,
-  Field,
   Args,
   ArgsType,
+  Ctx,
+  Field,
   InputType,
-  registerEnumType,
   Int,
+  Mutation,
+  ObjectType,
+  Query,
+  registerEnumType,
+  Resolver,
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { InjectRepository } from 'typeorm-typedi-extensions';
-import { getTokenPrices, getOurTokenList } from 'monoswap';
+import { getOurTokenList } from 'monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { MyContext } from '../types/MyContext';
 import { Project, ProjStatus } from '../entities/project';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Token } from '../entities/token';
-import { Repository, In, Brackets } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -33,10 +31,6 @@ import {
   updateDonationPricesAndValues,
 } from '../services/donationService';
 import {
-  updateUserTotalDonated,
-  updateUserTotalReceived,
-} from '../services/userService';
-import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
   resourcePerDateReportValidator,
@@ -45,24 +39,20 @@ import {
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
 import { logger } from '../utils/logger';
-import {
-  findUserById,
-  findUserByWalletAddress,
-} from '../repositories/userRepository';
+import { findUserById } from '../repositories/userRepository';
 import {
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
   donorsCountPerDate,
   donorsCountPerDateByMonthAndYear,
   findDonationById,
+  getRecentDonations,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { MainCategory } from '../entities/mainCategory';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
-import { calculateGivbackFactor } from '../services/givbackService';
+import { AppDataSource } from '../orm';
 
 @ObjectType()
 class PaginateDonations {
@@ -179,10 +169,10 @@ class MainCategoryDonations {
 
 @Resolver(of => User)
 export class DonationResolver {
-  constructor(
-    @InjectRepository(Donation)
-    private readonly donationRepository: Repository<Donation>,
-  ) {}
+  constructor(private readonly donationRepository: Repository<Donation>) {
+    this.donationRepository =
+      AppDataSource.getDataSource().getRepository(Donation);
+  }
 
   @Query(returns => [Donation], { nullable: true })
   async donations(
@@ -283,6 +273,18 @@ export class DonationResolver {
     }
   }
 
+  /**
+   *
+   * @param take
+   * @return last donations' id, valueUd, createdAt, user.walletAddress and project.slug
+   */
+  @Query(returns => [Donation], { nullable: true })
+  async recentDonations(
+    @Arg('take', type => Int, { nullable: true }) take: number = 30,
+  ): Promise<Donation[]> {
+    return getRecentDonations(take);
+  }
+
   @Query(returns => ResourcePerDateRange, { nullable: true })
   async totalDonorsCountPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
@@ -366,7 +368,9 @@ export class DonationResolver {
     orderBy: SortBy,
   ) {
     const project = await Project.findOne({
-      id: projectId,
+      where: {
+        id: projectId,
+      },
     });
     if (!project) {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
@@ -456,7 +460,7 @@ export class DonationResolver {
       );
     return this.donationRepository
       .createQueryBuilder('donation')
-      .where({ user: ctx.req.user.userId })
+      .where({ userId: ctx.req.user.userId })
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
@@ -553,8 +557,10 @@ export class DonationResolver {
         );
       }
       const tokenInDb = await Token.findOne({
-        networkId: transactionNetworkId,
-        symbol: token,
+        where: {
+          networkId: transactionNetworkId,
+          symbol: token,
+        },
       });
       const isCustomToken = !Boolean(tokenInDb);
       let isTokenEligibleForGivback = false;

@@ -1,6 +1,6 @@
 import { useState, ChangeEvent } from 'react';
 import styled, { withTheme } from 'styled-components';
-import { Label, TextArea } from '@admin-bro/design-system';
+import { Label, TextArea } from '@adminjs/design-system';
 import React from 'react';
 import { marked } from 'marked';
 

@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class createPowerBoostingTable1662877385300
   implements MigrationInterface
 {
@@ -39,12 +40,12 @@ export class createPowerBoostingTable1662877385300
                 ON public.power_boosting USING btree
                 ("userId" ASC NULLS LAST)
                 TABLESPACE pg_default;
-            
+
             CREATE INDEX "IDX_e22ae58004aa092dcb637bedd0"
                 ON public.power_boosting USING btree
                 ("projectId" ASC NULLS LAST)
                 TABLESPACE pg_default;
-            
+
             CREATE UNIQUE INDEX "IDX_f2a4cc9f7365bdce613f2ead9f"
                 ON public.power_boosting USING btree
                 ("projectId" ASC NULLS LAST, "userId" ASC NULLS LAST)

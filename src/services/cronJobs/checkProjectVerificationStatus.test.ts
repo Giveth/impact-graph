@@ -9,6 +9,7 @@ import {
   createProjectData,
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
+import { findProjectById } from '../../repositories/projectRepository';
 import { createProjectVerificationForm } from '../../repositories/projectVerificationRepository';
 import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
 
@@ -40,14 +41,12 @@ function checkProjectVerificationStatusTestCases() {
     });
     await checkProjectVerificationStatus();
 
-    const reminderProjectUpdated = await Project.findOne({
-      id: remindableProject.id,
-    });
-    const nonRevokableProjectUpdated = await Project.findOne({
-      id: nonRevokableProject.id,
-    });
+    const reminderProjectUpdated = await findProjectById(remindableProject.id);
+    const nonRevokableProjectUpdated = await findProjectById(
+      nonRevokableProject.id,
+    );
 
-    assert.isTrue(reminderProjectUpdated!.verified);
+    assert.isTrue(reminderProjectUpdated?.verified);
     assert.equal(
       reminderProjectUpdated!.verificationStatus,
       RevokeSteps.Reminder,
@@ -66,9 +65,7 @@ function checkProjectVerificationStatusTestCases() {
 
     await checkProjectVerificationStatus();
 
-    const warnableProjectUpdate = await Project.findOne({
-      id: warnableProject.id,
-    });
+    const warnableProjectUpdate = await findProjectById(warnableProject.id);
 
     assert.isTrue(warnableProjectUpdate!.verified);
     assert.equal(
@@ -89,9 +86,9 @@ function checkProjectVerificationStatusTestCases() {
 
     await checkProjectVerificationStatus();
 
-    const lastWarningProjectUpdated = await Project.findOne({
-      id: lastWarningProject.id,
-    });
+    const lastWarningProjectUpdated = await findProjectById(
+      lastWarningProject.id,
+    );
 
     assert.isTrue(lastWarningProjectUpdated!.verified);
     assert.equal(
@@ -165,9 +162,7 @@ function checkProjectVerificationStatusTestCases() {
 
     await checkProjectVerificationStatus();
 
-    const expiredProjectUpdated = await Project.findOne({
-      id: expiredProject.id,
-    });
+    const expiredProjectUpdated = await findProjectById(expiredProject.id);
 
     assert.isTrue(expiredProjectUpdated!.verified);
     assert.equal(

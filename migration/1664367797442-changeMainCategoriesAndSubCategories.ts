@@ -19,6 +19,7 @@ const updateSubCategory = async (
         `);
 };
 
+// tslint:disable-next-line:class-name
 export class changeMainCategoriesAndSubCategories1664367797442
   implements MigrationInterface
 {
@@ -191,14 +192,14 @@ export class changeMainCategoriesAndSubCategories1664367797442
       )[0];
       if (changeCategory) {
         await queryRunner.query(`
-           UPDATE project_categories_category 
+           UPDATE project_categories_category
            SET "categoryId"=${registeredNonProfitsCategory.id}
            WHERE "categoryId"=${changeCategory.id}
         `);
       }
       if (givingBlockCategory) {
         await queryRunner.query(`
-           UPDATE project_categories_category 
+           UPDATE project_categories_category
            SET "categoryId"=${registeredNonProfitsCategory.id}
            WHERE "categoryId"=${givingBlockCategory.id}
         `);
@@ -221,9 +222,9 @@ export class changeMainCategoriesAndSubCategories1664367797442
           WHERE "categoryId"=${waterAndSanitationCategory.id} AND "projectId"=${wastProjectCategory.projectId}`);
         if (!projectCategoryRelationExists) {
           await queryRunner.query(`
-           UPDATE project_categories_category 
+           UPDATE project_categories_category
            SET "categoryId"=${waterAndSanitationCategory.id}
-           WHERE id=${wastProjectCategory.id} 
+           WHERE id=${wastProjectCategory.id}
         `);
         }
       }
