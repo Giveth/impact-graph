@@ -37,7 +37,7 @@
     "bunyan": "^1.8.15",
     "bunyan-rotating-file-stream": "^2.0.0",
     "chalk": "^4.1.0",
-    "class-validator": "^0.12.2",
+    "class-validator": "^0.14.0",
     "connect": "^3.7.0",
     "connect-redis": "^4.0.4",
     "cookie-parser": "^1.4.5",
