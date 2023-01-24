@@ -6,8 +6,6 @@ import {
   ProjStatus,
   SortingField,
 } from '../entities/project';
-import { Pool, spawn, Worker } from 'threads';
-import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
 import {
   CreateProjectInput,
