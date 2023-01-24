@@ -26,7 +26,10 @@ function createBunyanLogger() {
     },
   ];
 
-  if (process.env.NODE_ENV !== 'production' || process.env.LOG_STDOUT) {
+  if (
+    process.env.NODE_ENV !== 'production' ||
+    process.env.LOG_STDOUT === 'true'
+  ) {
     // Adding logs to console in local machine and running tests
     bunyanStreams.push({
       stream: process.stdout,
