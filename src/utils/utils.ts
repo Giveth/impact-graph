@@ -22,7 +22,7 @@ export const generateProjectFiltersCacheKey = async (args: {
   suffix?: string;
 }) => {
   const orderedArgs = stringify(args);
-  return createHash('md5').update(orderedArgs).digest();
+  return createHash('md5').update(orderedArgs).digest().toString('hex');
 };
 
 export const titleWithoutSpecialCharacters = (title: string): string => {
