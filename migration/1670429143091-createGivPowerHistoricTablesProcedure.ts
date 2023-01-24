@@ -1,9 +1,10 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class createGivPowerHistoricTablesProcedure1670429143091
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     // power boosting, power balance and power snapshots's historic procedures
     await queryRunner.query(`
     CREATE OR REPLACE PROCEDURE PUBLIC."ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA"() LANGUAGE 'sql' AS $BODY$
@@ -49,7 +50,7 @@ export class createGivPowerHistoricTablesProcedure1670429143091
   `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `DROP PROCEDURE IF EXISTS public."ARCHIVE_POWER_BOOSTING_OLD_SNAPSHOT_DATA"();`,
     );

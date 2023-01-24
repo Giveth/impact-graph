@@ -20,6 +20,7 @@ const insertRelatedAddress = async (params: {
               `,
   );
 };
+// tslint:disable-next-line:class-name
 export class fillRelatedAddressesFromProjectsTable1654415838996
   implements MigrationInterface
 {
@@ -45,7 +46,7 @@ export class fillRelatedAddressesFromProjectsTable1654415838996
     // The project_address has changed so first of all we should drop existing table
     await queryRunner.query(
       `
-                 DROP TABLE IF EXISTS project_address; 
+                 DROP TABLE IF EXISTS project_address;
           `,
     );
     await queryRunner.query(

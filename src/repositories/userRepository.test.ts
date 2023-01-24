@@ -272,7 +272,7 @@ function findAdminUserByEmailTestCases() {
   it('should not find operator/admin user when doesnt exists', async () => {
     const email = `${new Date().getTime()}@giveth.io`;
     const foundUser = await findAdminUserByEmail(email);
-    assert.isUndefined(foundUser);
+    assert.isNull(foundUser);
   });
 
   it('should find admin user when there is two user with similar email and restricted one created first', async () => {
@@ -428,7 +428,13 @@ function findUserByIdTestCases() {
 
   it('should not find  user when userId doesnt exists', async () => {
     const foundUser = await findUserById(1000000000);
-    assert.isUndefined(foundUser);
+    assert.isNull(foundUser);
+  });
+
+  it('should not find  user when userId is undefined', async () => {
+    // @ts-ignore
+    const foundUser = await findUserById(undefined);
+    assert.isNull(foundUser);
   });
 }
 

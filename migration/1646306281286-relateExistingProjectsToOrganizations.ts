@@ -4,6 +4,7 @@ import { Project } from '../src/entities/project';
 import { Donation } from '../src/entities/donation';
 import createSchema from '../src/server/createSchema';
 
+// tslint:disable-next-line:class-name
 export class relateExistingProjectsToOrganizations1646306281286
   implements MigrationInterface
 {
@@ -18,7 +19,7 @@ export class relateExistingProjectsToOrganizations1646306281286
     }
     await queryRunner.query(
       `
-            ALTER TABLE project 
+            ALTER TABLE project
             ADD IF NOT EXISTS "organizationId" Integer`,
     );
     const givethOrganization = (

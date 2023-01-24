@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Donation } from '../src/entities/donation';
-import { sleep } from '../test/testUtils';
 
+// tslint:disable-next-line:class-name
 export class fillIsProjectVerifiedForProjects1647270507396
   implements MigrationInterface
 {
@@ -25,7 +24,7 @@ export class fillIsProjectVerifiedForProjects1647270507396
             `)
       )[0];
       await queryRunner.query(`
-            UPDATE donation 
+            UPDATE donation
             SET "isProjectVerified" =${project.verified}
             WHERE id=${donation.id}
             `);

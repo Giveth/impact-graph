@@ -40,14 +40,18 @@ export class ProjectAddress extends BaseEntity {
   @Field(type => Project)
   @ManyToOne(type => Project)
   project: Project;
+
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.project)
+  @Column({ nullable: true })
   projectId: number;
 
   @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(type => User, { eager: true, nullable: true })
   user: User;
+
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.user)
+  @Column({ nullable: true })
   userId: number;
 
   @Field()

@@ -50,5 +50,6 @@ export class Category extends BaseEntity {
   isActive: boolean;
 
   @RelationId((category: Category) => category.mainCategory)
+  @Column()
   mainCategoryId: number;
 }

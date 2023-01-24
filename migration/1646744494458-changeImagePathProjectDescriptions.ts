@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class changeImagePathProjectDescriptions1646744494458
   implements MigrationInterface
 {

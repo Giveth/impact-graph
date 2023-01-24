@@ -21,6 +21,7 @@ import { ORGANIZATION_LABELS } from '../entities/organization';
 import { generateRandomString } from '../utils/utils';
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
+import { findUserById } from '../repositories/userRepository';
 
 describe(
   'updateUserTotalDonated() test cases',
@@ -65,8 +66,8 @@ function updateUserTotalDonatedTestCases() {
 
     await updateUserTotalDonated(user.id);
 
-    const updatedUser = await User.findOne({ id: user.id });
-    const notUpdatedUser = await User.findOne({ id: user2.id });
+    const updatedUser = await findUserById(user.id);
+    const notUpdatedUser = await User.findOne({ where: { id: user2.id } });
     // second failed donation is ignored
     assert.equal(updatedUser?.totalDonated, valueUsd);
     // Non related user is not updated
@@ -87,13 +88,13 @@ function updateUserTotalReceivedTestCases() {
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
       totalDonations: 180,
     });
-    const owner = (await User.findOne({ id: user.id })) as User;
+    const owner = (await findUserById(user.id)) as User;
     owner.totalReceived = 0;
     await owner?.save();
 
     await updateUserTotalReceived(user.id);
 
-    const updatedOwner = await User.findOne({ id: user.id });
+    const updatedOwner = await findUserById(user.id);
     assert.notEqual(owner!.totalReceived, updatedOwner!.totalReceived);
     assert.equal(updatedOwner!.totalReceived, 180);
   });

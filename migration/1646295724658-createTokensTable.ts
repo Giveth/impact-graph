@@ -1,9 +1,10 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class createTokensTable1646295724658 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `      
+      `
        CREATE TABLE IF NOT EXISTS token
          (
           id SERIAL NOT NULL,

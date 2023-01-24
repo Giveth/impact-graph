@@ -6,7 +6,6 @@ import {
   ProjStatus,
   SortingField,
 } from '../entities/project';
-import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
 import {
   CreateProjectInput,
@@ -19,7 +18,6 @@ import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
 import { MyContext } from '../types/MyContext';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
@@ -43,11 +41,7 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import {
   canUserVisitProject,
   validateProjectRelatedAddresses,
@@ -93,6 +87,8 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
+import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
+import { AppDataSource } from '../orm';
 import { creteSlugFromProject } from '../utils/utils';
 
 @ObjectType()
@@ -333,7 +329,7 @@ export class ProjectResolver {
 
   static similarProjectsBaseQuery(
     userId?: number,
-    currentProject?: Project,
+    currentProject?: Project | null,
   ): SelectQueryBuilder<Project> {
     const query = Project.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
@@ -426,7 +422,7 @@ export class ProjectResolver {
     query: SelectQueryBuilder<Project>,
     take: number,
     skip: number,
-    ownerId?: string,
+    ownerId?: string | null,
   ): Promise<AllProjects> {
     query.andWhere('project.admin = :ownerId', { ownerId });
     const [projects, totalCount] = await query
@@ -517,7 +513,7 @@ export class ProjectResolver {
     return query;
   }
 
-  private static addUserReaction<T>(
+  private static addUserReaction<T extends ObjectLiteral>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
     authenticatedUser?: any,
@@ -536,7 +532,7 @@ export class ProjectResolver {
     return query;
   }
 
-  private static addProjectVerificationForm<T>(
+  private static addProjectVerificationForm<T extends ObjectLiteral>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
     authenticatedUser?: any,
@@ -553,20 +549,24 @@ export class ProjectResolver {
   }
 
   constructor(
-    @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @InjectRepository(ProjectUpdate)
     private readonly projectUpdateRepository: Repository<ProjectUpdate>,
-    @InjectRepository(ProjectStatus)
     private readonly projectStatusRepository: Repository<ProjectStatus>,
-    @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(Donation)
+    private readonly userRepository: Repository<User>,
     private readonly donationRepository: Repository<Donation>,
-    @InjectRepository(ProjectImage)
     private readonly projectImageRepository: Repository<ProjectImage>,
-  ) {}
+  ) {
+    const ds = AppDataSource.getDataSource();
+    this.projectRepository = ds.getRepository(Project);
+    this.projectUpdateRepository = ds.getRepository(ProjectUpdate);
+    this.projectStatusRepository = ds.getRepository(ProjectStatus);
+    this.projectStatusRepository = ds.getRepository(ProjectStatus);
+    this.categoryRepository = ds.getRepository(Category);
+    this.userRepository = ds.getRepository(User);
+    this.donationRepository = ds.getRepository(Donation);
+    this.projectImageRepository = ds.getRepository(ProjectImage);
+  }
 
   // Backward Compatible Projects Query with added pagination, frontend sorts and category search
   @Query(returns => AllProjects)
@@ -961,8 +961,11 @@ export class ProjectResolver {
 
     const categoriesPromise = newProjectData.categories.map(async category => {
       const [c] = await this.categoryRepository.find({
-        name: category,
-        isActive: true,
+        where: {
+          name: category,
+
+          isActive: true,
+        },
       });
       if (!c) {
         throw new Error(
@@ -984,9 +987,7 @@ export class ProjectResolver {
     }
     project.categories = categories;
 
-    const heartCount = await Reaction.count({
-      projectId,
-    });
+    const heartCount = await Reaction.count({ where: { projectId } });
 
     const qualityScore = getQualityScore(
       project.description,
@@ -1135,8 +1136,10 @@ export class ProjectResolver {
       projectInput.categories
         ? projectInput.categories.map(async category => {
             const [c] = await this.categoryRepository.find({
-              name: category,
-              isActive: true,
+              where: {
+                name: category,
+                isActive: true,
+              },
             });
             if (!c) {
               throw new Error(
@@ -1166,17 +1169,44 @@ export class ProjectResolver {
     const slug = await getAppropriateSlug(slugBase);
 
     const status = await this.projectStatusRepository.findOne({
-      id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
+      where: {
+        id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
+      },
     });
 
     const organization = await Organization.findOne({
-      label: ORGANIZATION_LABELS.GIVETH,
+      where: {
+        label: ORGANIZATION_LABELS.GIVETH,
+      },
     });
     const now = new Date();
-    const project = this.projectRepository.create({
+    // const [project] = Project.create({
+    //   ...projectInput,
+    //
+    //   // categories: categories as Category[],
+    //   organization,
+    //   image,
+    //   creationDate: now,
+    //   updatedAt: now,
+    //   slug: slug.toLowerCase(),
+    //   slugHistory: [],
+    //   admin: ctx.req.user.userId,
+    //   users: [user],
+    //   // status,
+    //   qualityScore,
+    //   totalDonations: 0,
+    //   totalReactions: 0,
+    //   totalProjectUpdates: 1,
+    //   verified: false,
+    //   giveBacks: false,
+    //   // adminUser: user,
+    // });
+
+    const project = Project.create({
       ...projectInput,
-      categories,
-      organization,
+
+      categories: categories as Category[],
+      organization: organization as Organization,
       image,
       creationDate: now,
       updatedAt: now,
@@ -1184,7 +1214,7 @@ export class ProjectResolver {
       slugHistory: [],
       admin: ctx.req.user.userId,
       users: [user],
-      status,
+      status: status as ProjectStatus,
       qualityScore,
       totalDonations: 0,
       totalReactions: 0,
@@ -1194,7 +1224,7 @@ export class ProjectResolver {
       adminUser: user,
     });
 
-    const newProject = await this.projectRepository.save(project);
+    const newProject = await project.save();
     const adminUser = (await findUserById(Number(newProject.admin))) as User;
     newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
@@ -1301,13 +1331,13 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const update = await ProjectUpdate.findOne({ id: updateId });
+    const update = await ProjectUpdate.findOne({ where: { id: updateId } });
     if (!update)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.PROJECT_UPDATE_NOT_FOUND),
       );
 
-    const project = await Project.findOne({ id: update.projectId });
+    const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
@@ -1331,13 +1361,13 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const update = await ProjectUpdate.findOne({ id: updateId });
+    const update = await ProjectUpdate.findOne({ where: { id: updateId } });
     if (!update)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.PROJECT_UPDATE_NOT_FOUND),
       );
 
-    const project = await Project.findOne({ id: update.projectId });
+    const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
@@ -1687,7 +1717,7 @@ export class ProjectResolver {
     }
 
     project.mayUpdateStatus(user);
-    const status = await ProjectStatus.findOne({ id: statusId });
+    const status = await ProjectStatus.findOne({ where: { id: statusId } });
     if (!status) {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.PROJECT_STATUS_NOT_FOUND),

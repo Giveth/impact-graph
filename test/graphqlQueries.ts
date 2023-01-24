@@ -214,7 +214,7 @@ export const fetchDonationsByProjectIdQuery = `
 export const donationsFromWallets = `
   query (
     $fromWalletAddresses: [String!]!
-   
+
   ) {
     donationsFromWallets(
       fromWalletAddresses: $fromWalletAddresses
@@ -239,7 +239,7 @@ export const donationsFromWallets = `
 export const donationsToWallets = `
   query (
     $toWalletAddresses: [String!]!
-   
+
   ) {
     donationsToWallets(
       toWalletAddresses: $toWalletAddresses
@@ -926,9 +926,9 @@ export const unlikeProjectQuery = `
 `;
 
 export const addProjectUpdateQuery = `
-        mutation addProjectUpdate($projectId: Float! $content: String! 
+        mutation addProjectUpdate($projectId: Float! $content: String!
                    $title: String!){
-       addProjectUpdate(content: $content projectId: $projectId 
+       addProjectUpdate(content: $content projectId: $projectId
                     title: $title) {
                     userId
                     projectId
@@ -955,15 +955,15 @@ export const unlikeProjectUpdateQuery = `
 
 export const fetchProjectUpdatesQuery = `
   query (
-    $projectId: Int!, 
-    $take: Int, 
+    $projectId: Int!,
+    $take: Int,
     $skip: Int,
     $connectedWalletUserId: Int,
     $orderBy: OrderBy
   ) {
     getProjectUpdates(
-      projectId: $projectId, 
-      take: $take, 
+      projectId: $projectId,
+      take: $take,
       skip: $skip,
       connectedWalletUserId: $connectedWalletUserId,
       orderBy: $orderBy
@@ -1079,8 +1079,8 @@ export const projectsByUserIdQuery = `
 
 export const projectByIdQuery = `
   query(
-      $id: Float!, 
-      $connectedWalletUserId: Int, 
+      $id: Float!,
+      $connectedWalletUserId: Int,
   ){
     projectById(
      id:$id,
@@ -1129,7 +1129,7 @@ export const projectByIdQuery = `
 `;
 export const getProjectsAcceptTokensQuery = `
   query(
-      $projectId: Float!, 
+      $projectId: Float!,
   ){
     getProjectAcceptTokens(
      projectId:$projectId){
@@ -1163,14 +1163,14 @@ export const walletAddressIsValid = `
 
 export const deleteProjectUpdateQuery = `
         mutation deleteProjectUpdate($updateId: Float!){
-       deleteProjectUpdate(updateId: $updateId 
-                    ) 
+       deleteProjectUpdate(updateId: $updateId
+                    )
          }`;
 
 export const editProjectUpdateQuery = `
         mutation editProjectUpdate($updateId: Float! $content: String!
                    $title: String!){
-       editProjectUpdate(content: $content updateId: $updateId 
+       editProjectUpdate(content: $content updateId: $updateId
                     title: $title) {
                     userId
                     projectId
@@ -1224,7 +1224,7 @@ export const createProjectVerificationFormMutation = `
                     }
                     status
                     }
-                    
+
             }
         `;
 
@@ -1282,7 +1282,7 @@ export const getCurrentProjectVerificationFormQuery = `
                     }
                     status
                     }
-                    
+
             }
         `;
 
@@ -1458,20 +1458,20 @@ export const updateProjectVerificationFormMutation = `
                     status
                     lastStep
                     }
-                    
+
             }
         `;
 
 export const addNewSocialProfileMutation = `
         mutation addNewSocialProfile($projectVerificationId: Int!, $socialNetwork: String!){
            addNewSocialProfile(projectVerificationId:$projectVerificationId, socialNetwork:$socialNetwork)
-          } 
+          }
         `;
 
 export const removeSocialProfileMutation = `
         mutation removeSocialProfile( $socialProfileId: Int!){
            removeSocialProfile(socialProfileId:$socialProfileId)
-          } 
+          }
         `;
 
 export const getAllowedCountries = `
@@ -1565,7 +1565,7 @@ export const getPowerBoostingsQuery = `
               id
             }
             percentage
-      }      
+      }
     }
   }
 `;
@@ -1599,8 +1599,8 @@ export const getUserProjectPowerQuery = `
               lastName
               name
             }
-            
-      }      
+
+      }
     }
   }
 `;

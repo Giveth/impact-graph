@@ -6,7 +6,7 @@ import { PowerBoosting } from '../entities/powerBoosting';
 
 export const findAdminUserByEmail = async (
   email: string,
-): Promise<User | undefined> => {
+): Promise<User | null> => {
   return User.createQueryBuilder()
     .where(`email = :email`, { email })
     .andWhere(`role != '${UserRole.RESTRICTED}'`)
@@ -16,7 +16,7 @@ export const findAdminUserByEmail = async (
 export const findUserByWalletAddress = async (
   walletAddress: string,
   includeSensitiveFields = true,
-): Promise<User | undefined> => {
+): Promise<User | null> => {
   const query = User.createQueryBuilder('user').where(
     `LOWER("walletAddress") = :walletAddress`,
     {
@@ -30,8 +30,12 @@ export const findUserByWalletAddress = async (
   return query.getOne();
 };
 
-export const findUserById = (userId: number): Promise<User | undefined> => {
-  return User.findOne({ id: userId });
+export const findUserById = (userId: number): Promise<User | null> => {
+  return User.createQueryBuilder('user')
+    .where(`id=:userId`, {
+      userId,
+    })
+    .getOne();
 };
 
 export const findAllUsers = async (params: {

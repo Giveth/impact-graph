@@ -57,6 +57,10 @@ import {
   updateBroadcastNotificationStatus,
   findBroadcastNotificationById,
 } from '../repositories/broadcastNotificationRepository';
+import { findUserById } from '../repositories/userRepository';
+import { findProjectById } from '../repositories/projectRepository';
+import { findOneProjectStatusHistory } from '../repositories/projectSatusHistoryRepository';
+import { findTokenByTokenAddress } from '../repositories/tokenRepository';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -206,7 +210,7 @@ function createTokenTestCases() {
       },
     );
 
-    const newToken = await Token.findOne({ address: DRGTTokenAddress });
+    const newToken = await findTokenByTokenAddress(DRGTTokenAddress);
     const organizations = await Organization.createQueryBuilder('organization')
       .where(`organization.label = 'giveth' OR organization.label = 'trace'`)
       .getMany();
@@ -236,14 +240,16 @@ function createTokenTestCases() {
       },
     );
 
-    const tokensWithAddress = await Token.find({ address: DRGTTokenAddress });
-    assert.isTrue(tokensWithAddress.length === 1);
+    const tokensWithAddress = await Token.find({
+      where: { address: DRGTTokenAddress },
+    });
+    assert.equal(tokensWithAddress.length, 1);
   });
 }
 
 function linkOrganizationsTestCases() {
   it('should overwrite token organizations relationships when present', async () => {
-    const token = await Token.findOne({ address: DRGTTokenAddress });
+    const token = await Token.findOne({ where: { address: DRGTTokenAddress } });
     await linkOrganizations({
       query: {},
       record: {
@@ -261,7 +267,8 @@ function linkOrganizationsTestCases() {
       },
     });
 
-    const tokenUpdated = await Token.findOne({ address: DRGTTokenAddress });
+    const tokenUpdated = await findTokenByTokenAddress(DRGTTokenAddress);
+
     assert.isTrue(tokenUpdated!.organizations.length === 1);
     assert.equal(
       tokenUpdated!.organizations[0].label,
@@ -272,7 +279,7 @@ function linkOrganizationsTestCases() {
 
 function importThirdPartyProjectTestCases() {
   it('should throw error when change api throws error', async () => {
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     const stub = sinon
       .stub(ChangeAPI, 'getChangeNonProfitByNameOrIEN')
       .rejects(errorMessages.CHANGE_API_INVALID_TITLE_OR_EIN);
@@ -299,13 +306,15 @@ function importThirdPartyProjectTestCases() {
     );
 
     const createdProject = await Project.findOne({
-      title: 'ChangeApiTestProject',
+      where: {
+        title: 'ChangeApiTestProject',
+      },
     });
-    assert.isUndefined(createdProject);
+    assert.isNull(createdProject);
     stub.restore();
   });
   it('creates the project succesfully when changeAPI returns data', async () => {
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     sinon.stub(ChangeAPI, 'getChangeNonProfitByNameOrIEN').resolves({
       address_line: 'test',
       category: 'test',
@@ -353,9 +362,11 @@ function importThirdPartyProjectTestCases() {
     );
 
     const createdProject = await Project.findOne({
-      title: 'ChangeApiTestProject',
+      where: {
+        title: 'ChangeApiTestProject',
+      },
     });
-    assert(createdProject);
+    assert.isOk(createdProject);
     assert.isTrue(createdProject?.title === 'ChangeApiTestProject');
     const address = await ProjectAddress.createQueryBuilder('address')
       .where('address.projectId = :projectId', {
@@ -392,8 +403,12 @@ function verifyMultipleProjectsTestCases() {
       projectsIds: [project1.id, project2.id],
     });
 
-    const project1Updated = await Project.findOne({ id: project1.id });
-    const project2Updated = await Project.findOne({ id: project2.id });
+    const project1Updated = await Project.findOne({
+      where: { id: project1.id },
+    });
+    const project2Updated = await Project.findOne({
+      where: { id: project2.id },
+    });
 
     assert.notEqual(project1Updated?.verificationStatus, 'revoked');
     assert.equal(project1Updated?.verificationStatus, null);
@@ -428,8 +443,12 @@ function verifyMultipleProjectsTestCases() {
       projectsIds: [project1.id, project2.id],
     });
 
-    const project1Updated = await Project.findOne({ id: project1.id });
-    const project2Updated = await Project.findOne({ id: project2.id });
+    const project1Updated = await Project.findOne({
+      where: { id: project1.id },
+    });
+    const project2Updated = await Project.findOne({
+      where: { id: project2.id },
+    });
 
     assert.equal(project1Updated?.verificationStatus, 'revoked');
     assert.notEqual(project1Updated?.verificationStatus, null);
@@ -480,7 +499,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       walletAddress: sixthProjectAddress,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await createDonation(
       {
         query: {
@@ -508,49 +527,63 @@ function createDonationTestCases() {
     );
 
     const firstDonation = await Donation.findOne({
-      transactionId: txHash,
-      toWalletAddress: firstProjectAddress.toLowerCase(),
+      where: {
+        transactionId: txHash,
+        toWalletAddress: firstProjectAddress.toLowerCase(),
+      },
     });
     assert.isOk(firstDonation);
     assert.equal(firstDonation?.projectId, firstProject.id);
 
     const secondDonation = await Donation.findOne({
-      transactionId: txHash,
-      toWalletAddress: secondProjectAddress.toLowerCase(),
+      where: {
+        transactionId: txHash,
+        toWalletAddress: secondProjectAddress.toLowerCase(),
+      },
     });
     assert.isOk(secondDonation);
     assert.equal(secondDonation?.projectId, secondProject.id);
 
     const thirdDonation = await Donation.findOne({
-      transactionId: txHash,
-      toWalletAddress: thirdProjectAddress.toLowerCase(),
+      where: {
+        transactionId: txHash,
+        toWalletAddress: thirdProjectAddress.toLowerCase(),
+      },
     });
     assert.isOk(thirdDonation);
     assert.equal(thirdDonation?.projectId, thirdProject.id);
 
     const forthDonation = await Donation.findOne({
-      transactionId: txHash,
-      toWalletAddress: forthProjectAddress.toLowerCase(),
+      where: {
+        transactionId: txHash,
+        toWalletAddress: forthProjectAddress.toLowerCase(),
+      },
     });
     assert.isOk(forthDonation);
     assert.equal(forthDonation?.projectId, forthProject.id);
 
     const fifthDonation = await Donation.findOne({
-      transactionId: txHash,
-      toWalletAddress: fifthProjectAddress.toLowerCase(),
+      where: {
+        transactionId: txHash,
+        toWalletAddress: fifthProjectAddress.toLowerCase(),
+      },
     });
     assert.isOk(fifthDonation);
     assert.equal(fifthDonation?.projectId, fifthProject.id);
 
     const sixthDonation = await Donation.findOne({
-      transactionId: txHash,
-      toWalletAddress: sixthProjectAddress.toLowerCase(),
+      where: {
+        transactionId: txHash,
+        toWalletAddress: sixthProjectAddress.toLowerCase(),
+      },
     });
     assert.isOk(sixthDonation);
     assert.equal(sixthDonation?.projectId, sixthProject.id);
 
     const allTxDonations = await Donation.find({
-      transactionId: txHash,
+      where: {
+        transactionId: txHash,
+      },
     });
     assert.equal(allTxDonations.length, 6);
     for (const donation of allTxDonations) {
@@ -581,7 +614,7 @@ function createDonationTestCases() {
       ...createProjectData(),
       walletAddress: firstProjectAddress,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await createDonation(
       {
         query: {
@@ -610,14 +643,18 @@ function createDonationTestCases() {
     );
 
     const firstDonation = await Donation.findOne({
-      transactionId: txHash,
-      toWalletAddress: firstProjectAddress.toLowerCase(),
+      where: {
+        transactionId: txHash,
+        toWalletAddress: firstProjectAddress.toLowerCase(),
+      },
     });
     assert.isOk(firstDonation);
     assert.equal(firstDonation?.projectId, firstProject.id);
 
     const allTxDonations = await Donation.find({
-      transactionId: txHash,
+      where: {
+        transactionId: txHash,
+      },
     });
     assert.equal(allTxDonations.length, 1);
     for (const donation of allTxDonations) {
@@ -649,7 +686,7 @@ function updateStatusOfProjectsTestCases() {
       verified: true,
       listed: true,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     const result = await updateStatusOfProjects(
       {
         currentAdmin: adminUser as User,
@@ -669,7 +706,7 @@ function updateStatusOfProjectsTestCases() {
       messages.PROJECT_STATUS_UPDATED_SUCCESSFULLY,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await findProjectById(project.id);
     assert.isOk(updatedProject);
     assert.equal(updatedProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedProject?.verified);
@@ -691,7 +728,7 @@ function updateStatusOfProjectsTestCases() {
       verified: true,
       listed: true,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     const result = await updateStatusOfProjects(
       {
         currentAdmin: adminUser as User,
@@ -711,15 +748,13 @@ function updateStatusOfProjectsTestCases() {
       'Project(s) status successfully updated',
     );
 
-    const updatedFirstProject = await Project.findOne({ id: firstProject.id });
+    const updatedFirstProject = await findProjectById(firstProject.id);
     assert.isOk(updatedFirstProject);
     assert.equal(updatedFirstProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedFirstProject?.verified);
     assert.isNotTrue(updatedFirstProject?.listed);
 
-    const updatedSecondProject = await Project.findOne({
-      id: secondProject.id,
-    });
+    const updatedSecondProject = await findProjectById(secondProject.id);
     assert.isOk(updatedSecondProject);
     assert.equal(updatedSecondProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedSecondProject?.verified);
@@ -732,7 +767,7 @@ function updateStatusOfProjectsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     const result = await updateStatusOfProjects(
       {
         currentAdmin: adminUser as User,
@@ -752,17 +787,20 @@ function updateStatusOfProjectsTestCases() {
       messages.PROJECT_STATUS_UPDATED_SUCCESSFULLY,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await findProjectById(project.id);
     assert.isOk(updatedProject);
     assert.equal(updatedProject?.statusId, ProjStatus.cancelled);
-    const status = await ProjectStatus.findOne({ id: ProjStatus.cancelled });
+    const status = await ProjectStatus.findOne({
+      where: { id: ProjStatus.cancelled },
+    });
 
     // We should wait to history be created because creating histories use fire and forget strategy
     await sleep(50);
-    const history = await ProjectStatusHistory.findOne({
-      project,
-      user: adminUser,
-      status,
+
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
+      statusId: status?.id,
     });
     assert.isOk(history);
   });
@@ -786,7 +824,7 @@ function verifyProjectsTestCases() {
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
     await projectVerificationForm.save();
 
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
       {
         currentAdmin: adminUser as User,
@@ -803,11 +841,10 @@ function verifyProjectsTestCases() {
       true, // revoke badge
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await findProjectById(project.id);
     const updatedVerificationForm = await getVerificationFormByProjectId(
       project.id,
     );
-
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
@@ -848,7 +885,7 @@ function verifyProjectsTestCases() {
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.DRAFT;
     await projectVerificationForm.save();
 
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
       {
         currentAdmin: adminUser as User,
@@ -864,11 +901,10 @@ function verifyProjectsTestCases() {
       true,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await findProjectById(project.id);
     const updatedVerificationForm = await getVerificationFormByProjectId(
       project.id,
     );
-
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
@@ -893,7 +929,7 @@ function verifyProjectsTestCases() {
       verified: false,
       listed: false,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
       {
         currentAdmin: adminUser as User,
@@ -909,7 +945,7 @@ function verifyProjectsTestCases() {
       true,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await findProjectById(project.id);
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
@@ -932,7 +968,7 @@ function verifyProjectsTestCases() {
     projectVerificationForm.status = PROJECT_VERIFICATION_STATUSES.VERIFIED;
     await projectVerificationForm.save();
 
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
       {
         currentAdmin: adminUser as User,
@@ -948,11 +984,10 @@ function verifyProjectsTestCases() {
       false,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await findProjectById(project.id);
     const updatedVerificationForm = await getVerificationFormByProjectId(
       project.id,
     );
-
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
@@ -976,7 +1011,7 @@ function verifyProjectsTestCases() {
       verified: true,
       listed: false,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
       {
         currentAdmin: adminUser as User,
@@ -992,7 +1027,7 @@ function verifyProjectsTestCases() {
       false,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await findProjectById(project.id);
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
@@ -1005,7 +1040,7 @@ function verifyProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: false,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
       {
         currentAdmin: adminUser as User,
@@ -1021,16 +1056,16 @@ function verifyProjectsTestCases() {
       true,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await findProjectById(project.id);
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
 
     // because we didn't put await before creating history item
     await sleep(10);
 
-    const history = await ProjectStatusHistory.findOne({
-      project,
-      user: adminUser,
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
     });
     assert.equal(
       history?.description,
@@ -1045,7 +1080,7 @@ function verifyProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
       {
         currentAdmin: adminUser as User,
@@ -1061,16 +1096,16 @@ function verifyProjectsTestCases() {
       false,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await findProjectById(project.id);
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
 
     // because we didn't put await before creating history item
     await sleep(10);
 
-    const history = await ProjectStatusHistory.findOne({
-      project,
-      user: adminUser,
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
     });
     assert.equal(
       history?.description,
@@ -1088,7 +1123,7 @@ function exportProjectsWithFiltersToCsvTestCases() {
       verified: true,
       listed: false,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     const result = await exportProjectsWithFiltersToCsv(
       {
         query: {
@@ -1126,7 +1161,9 @@ function listDelistTestCases() {
       verified: true,
       listed: false,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await User.findOne({
+      where: { id: SEED_DATA.ADMIN_USER.id },
+    });
     await listDelist(
       {
         currentAdmin: adminUser as User,
@@ -1142,7 +1179,7 @@ function listDelistTestCases() {
       true,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.listed);
     assert.isTrue(updatedProject?.listed);
@@ -1156,7 +1193,9 @@ function listDelistTestCases() {
       verified: false,
       listed: false,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await User.findOne({
+      where: { id: SEED_DATA.ADMIN_USER.id },
+    });
     await listDelist(
       {
         currentAdmin: adminUser as User,
@@ -1172,7 +1211,7 @@ function listDelistTestCases() {
       true,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
@@ -1186,7 +1225,9 @@ function listDelistTestCases() {
       verified: true,
       listed: true,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await User.findOne({
+      where: { id: SEED_DATA.ADMIN_USER.id },
+    });
     await listDelist(
       {
         currentAdmin: adminUser as User,
@@ -1202,7 +1243,7 @@ function listDelistTestCases() {
       false,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
@@ -1216,7 +1257,9 @@ function listDelistTestCases() {
       verified: false,
       listed: false,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await User.findOne({
+      where: { id: SEED_DATA.ADMIN_USER.id },
+    });
     await listDelist(
       {
         currentAdmin: adminUser as User,
@@ -1232,7 +1275,7 @@ function listDelistTestCases() {
       false,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
@@ -1246,7 +1289,9 @@ function listDelistTestCases() {
       verified: false,
       listed: true,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await User.findOne({
+      where: { id: SEED_DATA.ADMIN_USER.id },
+    });
     await listDelist(
       {
         currentAdmin: adminUser as User,
@@ -1262,16 +1307,16 @@ function listDelistTestCases() {
       true,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.listed);
 
     // because we didn't put await before creating history item
     await sleep(50);
 
-    const history = await ProjectStatusHistory.findOne({
-      project,
-      user: adminUser,
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
     });
     assert.equal(history?.description, HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED);
   });
@@ -1284,7 +1329,9 @@ function listDelistTestCases() {
       verified: false,
       listed: true,
     });
-    const adminUser = await User.findOne({ id: SEED_DATA.ADMIN_USER.id });
+    const adminUser = await User.findOne({
+      where: { id: SEED_DATA.ADMIN_USER.id },
+    });
     await listDelist(
       {
         currentAdmin: adminUser as User,
@@ -1300,16 +1347,16 @@ function listDelistTestCases() {
       false,
     );
 
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.listed);
 
     // because we didn't put await before creating history item
     await sleep(10);
 
-    const history = await ProjectStatusHistory.findOne({
-      project,
-      user: adminUser,
+    const history = await findOneProjectStatusHistory({
+      projectId: project.id,
+      userId: adminUser?.id,
     });
     assert.equal(
       history?.description,

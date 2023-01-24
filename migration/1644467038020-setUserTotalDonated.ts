@@ -1,7 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class setUserTotalDonated1644467038020 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     // To run the update query SUM I should check table existance
     // UPDATE clause doesn't have a IF EXISTS conditional
     const userTableExists = await queryRunner.hasTable('user');
@@ -24,7 +25,7 @@ export class setUserTotalDonated1644467038020 implements MigrationInterface {
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     // deleting the column from project entity removes it completely.
   }
 }

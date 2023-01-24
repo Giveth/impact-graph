@@ -220,6 +220,7 @@ const donations = [
   },
 ];
 
+// tslint:disable-next-line:class-name
 export class fillDonationsPriceManually1652369931352
   implements MigrationInterface
 {
@@ -233,7 +234,7 @@ export class fillDonationsPriceManually1652369931352
                      UPDATE donation
                      SET "priceUsd" = ${donation.priceUsd},
                          "valueUsd" = ${donation.priceUsd * donation.amount}
-                     WHERE LOWER("transactionId") = '${donation.txHash.toLowerCase()}'    
+                     WHERE LOWER("transactionId") = '${donation.txHash.toLowerCase()}'
             `);
     }
   }
@@ -248,7 +249,7 @@ export class fillDonationsPriceManually1652369931352
                      UPDATE donation
                      SET "priceUsd" = NULL,
                          "valueUsd" = NULL
-                     WHERE LOWER("transactionId") = '${donation.txHash.toLowerCase()}'    
+                     WHERE LOWER("transactionId") = '${donation.txHash.toLowerCase()}'
             `);
     }
   }

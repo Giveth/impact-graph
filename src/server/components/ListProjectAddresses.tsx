@@ -1,6 +1,6 @@
 import React from 'react';
 import { withTheme } from 'styled-components';
-import { Label, Section } from '@admin-bro/design-system';
+import { Label, Section } from '@adminjs/design-system';
 
 const ListProjectAddresses = props => {
   const project = props.record.params;
@@ -16,7 +16,6 @@ const ListProjectAddresses = props => {
     key => key.includes('addresses') && key.includes('.address'),
   ).length;
   const projectAddresses: any = [];
-  console.log(addressesCount);
   for (let i = 0; i < addressesCount; i++) {
     projectAddresses.push({
       address: project[`addresses.${i}.address`],

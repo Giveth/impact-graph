@@ -2,14 +2,9 @@ import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
-import { User, UserRole } from '../src/entities/user';
+import { User } from '../src/entities/user';
 import { Donation, DONATION_STATUS } from '../src/entities/donation';
-import {
-  Category,
-  Project,
-  ProjStatus,
-  ProjectUpdate,
-} from '../src/entities/project';
+import { Project, ProjectUpdate, ProjStatus } from '../src/entities/project';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import {
   Organization,
@@ -25,7 +20,7 @@ import {
   ProjectVerificationForm,
 } from '../src/entities/projectVerificationForm';
 import { MainCategory } from '../src/entities/mainCategory';
-import { CATEGORY_NAMES } from '../src/entities/category';
+import { Category, CATEGORY_NAMES } from '../src/entities/category';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -72,7 +67,7 @@ export const assertNotThrowsAsync = async fn => {
 };
 
 export const generateTestAccessToken = async (id: number): Promise<string> => {
-  const user = await User.findOne({ id });
+  const user = await User.findOne({ where: { id } });
   return jwt.sign(
     {
       userId: id,
@@ -100,7 +95,7 @@ export const generateConfirmationEmailToken = async (
 export const generateUserIdLessAccessToken = async (
   id: number,
 ): Promise<string> => {
-  const user = await User.findOne({ id });
+  const user = await User.findOne({ where: { id } });
   return jwt.sign(
     { firstName: user?.firstName },
     config.get('JWT_SECRET') as string,
@@ -174,23 +169,29 @@ export const saveProjectDirectlyToDb = async (
     return relatedAddress.project;
   }
   const statusId = projectData?.statusId || ProjStatus.active;
-  const status = await ProjectStatus.findOne({
-    id: statusId,
-  });
+  const status = (await ProjectStatus.findOne({
+    where: {
+      id: statusId,
+    },
+  })) as ProjectStatus;
   const organizationLabel =
     projectData.organizationLabel || ORGANIZATION_LABELS.GIVETH;
-  const organization = await Organization.findOne({
-    label: organizationLabel,
-  });
+  const organization = (await Organization.findOne({
+    where: {
+      label: organizationLabel,
+    },
+  })) as Organization;
   const user =
     owner ||
     ((await User.findOne({
-      id: Number(projectData.admin),
+      where: {
+        id: Number(projectData.admin),
+      },
     })) as User);
   const categoriesPromise = Promise.all(
     projectData.categories
       ? projectData.categories.map(async category => {
-          const c = await Category.findOne({ name: category });
+          const c = await Category.findOne({ where: { name: category } });
           if (!c) {
             throw new Error('Invalid category');
           }
@@ -1537,21 +1538,15 @@ export const saveDonationDirectlyToDb = async (
   userId?: number,
   projectId?: number,
 ) => {
-  const user = (await User.findOne({
-    id: userId,
-  })) as User;
-  const project = (await Project.findOne({
-    id: projectId,
-  })) as Project;
   return Donation.create({
     ...donationData,
-    user,
-    project,
+    userId,
+    projectId,
   }).save();
 };
 
 export const saveCategoryDirectlyToDb = async (categoryData: CategoryData) => {
-  return Category.create(categoryData).save();
+  return Category.create(categoryData as Category).save();
 };
 
 export const saveMainCategoryDirectlyToDb = async (

@@ -1,7 +1,7 @@
 import { PowerBoosting } from '../entities/powerBoosting';
 import { Project } from '../entities/project';
 import { publicSelectionFields, User } from '../entities/user';
-import { Brackets, getConnection } from 'typeorm';
+import { Brackets } from 'typeorm';
 import { logger } from '../utils/logger';
 import {
   errorMessages,
@@ -11,8 +11,8 @@ import {
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 import { getKeyByValue } from '../utils/utils';
-import { Reaction } from '../entities/reaction';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
+import { AppDataSource } from '../orm';
 
 const MAX_PROJECT_BOOST_LIMIT = Number(
   process.env.GIVPOWER_BOOSTING_USER_PROJECTS_LIMIT || '20',
@@ -214,7 +214,7 @@ const _setSingleBoosting = async (params: {
     );
   }
 
-  const queryRunner = getConnection().createQueryRunner();
+  const queryRunner = AppDataSource.getDataSource().createQueryRunner();
   await queryRunner.connect();
   await queryRunner.startTransaction();
 
@@ -354,7 +354,7 @@ export const setMultipleBoosting = async (params: {
     projectIds.map((projectId, index) => [projectId, percentages[index]]),
   );
 
-  const queryRunner = getConnection().createQueryRunner();
+  const queryRunner = AppDataSource.getDataSource().createQueryRunner();
   await queryRunner.connect();
   await queryRunner.startTransaction();
 
@@ -398,7 +398,9 @@ export const setMultipleBoosting = async (params: {
 };
 
 export const takePowerBoostingSnapshot = async () => {
-  await getConnection().query('CALL public."TAKE_POWER_BOOSTING_SNAPSHOT"()');
+  await AppDataSource.getDataSource().query(
+    'CALL public."TAKE_POWER_BOOSTING_SNAPSHOT"()',
+  );
 };
 
 export const getPowerBoostingSnapshotRound = (

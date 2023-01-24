@@ -1,7 +1,4 @@
 import { Organization } from './organization';
-import { User } from './user';
-import { Project, ProjectUpdate } from './project';
-import { Reaction } from './reaction';
 import { Category } from './category';
 import { Token } from './token';
 import { Donation } from './donation';
@@ -29,46 +26,52 @@ import { PowerSnapshotHistory } from './powerSnapshotHistory';
 import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
 import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
 import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
+import { DataSourceOptions } from 'typeorm';
+import { User } from './user';
+import { Project, ProjectUpdate } from './project';
+import { Reaction } from './reaction';
 import BroadcastNotification from './broadcastNotification';
 
-export const entities: any = [
-  Organization,
-  User,
-  Project,
-  BankAccount,
-  StripeTransaction,
-  Category,
-  ProjectUpdate,
-  Reaction,
-  Donation,
-  Token,
-  Wallet,
-  ProjectStatus,
-  ProjectStatusReason,
-  ProjectStatusHistory,
-  AccountVerification,
-  ProjectImage,
-  ThirdPartyProjectImport,
-  ProjectVerificationForm,
-  ProjectAddress,
-  SocialProfile,
-  MainCategory,
-  PowerBoosting,
-  PowerRound,
-  PowerSnapshot,
-  PowerBalanceSnapshot,
-  PowerBoostingSnapshot,
+export const getEntities = (): DataSourceOptions['entities'] => {
+  return [
+    Organization,
+    User,
+    Project,
 
-  // View
-  UserProjectPowerView,
-  ProjectPowerView,
-  ProjectFuturePowerView,
-  LastSnapshotProjectPowerView,
+    BankAccount,
+    StripeTransaction,
+    Category,
+    ProjectUpdate,
+    Reaction,
+    Donation,
+    Token,
+    Wallet,
+    ProjectStatus,
+    ProjectStatusReason,
+    ProjectStatusHistory,
+    AccountVerification,
+    ProjectImage,
+    ThirdPartyProjectImport,
+    ProjectVerificationForm,
+    ProjectAddress,
+    SocialProfile,
+    MainCategory,
+    PowerBoosting,
+    PowerRound,
+    PowerSnapshot,
+    PowerBalanceSnapshot,
+    PowerBoostingSnapshot,
 
-  // historic snapshots
-  PowerSnapshotHistory,
-  PowerBalanceSnapshotHistory,
-  PowerBoostingSnapshotHistory,
+    // View
+    UserProjectPowerView,
+    ProjectPowerView,
+    ProjectFuturePowerView,
+    LastSnapshotProjectPowerView,
 
-  BroadcastNotification,
-];
+    // historic snapshots
+    PowerSnapshotHistory,
+    PowerBalanceSnapshotHistory,
+    PowerBoostingSnapshotHistory,
+    BroadcastNotification,
+  ];
+};

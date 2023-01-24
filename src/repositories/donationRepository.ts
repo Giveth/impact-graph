@@ -56,7 +56,7 @@ export const createDonation = async (data: {
 
 export const findDonationsByTransactionId = async (
   txHash: string,
-): Promise<Donation | undefined> => {
+): Promise<Donation | null> => {
   return Donation.createQueryBuilder('donation')
     .where(`"transactionId" = :txHash`, {
       txHash: txHash.toLowerCase(),
@@ -66,7 +66,7 @@ export const findDonationsByTransactionId = async (
 
 export const findDonationById = async (
   donationId: number,
-): Promise<Donation | undefined> => {
+): Promise<Donation | null> => {
   return Donation.createQueryBuilder('donation')
     .where(`donation.id = :donationId`, {
       donationId,

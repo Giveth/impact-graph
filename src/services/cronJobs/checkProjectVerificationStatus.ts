@@ -170,7 +170,7 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
     });
   }
 
-  const user = await User.findOne({ id: Number(project.admin) });
+  const user = await User.findOne({ where: { id: Number(project.admin) } });
 
   await sendProperNotification(project, project.verificationStatus as string);
   await sleep(1000);
