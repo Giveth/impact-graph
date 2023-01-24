@@ -1,8 +1,28 @@
 import { Country } from '../entities/Country';
+import { SortingField } from '../entities/project';
+import { FilterField } from '../resolvers/projectResolver';
 import slugify from 'slugify';
+
+import stringify from 'json-stable-stringify';
+// tslint:disable-next-line:no-var-requires
+const { createHash } = require('node:crypto');
 
 export const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+export const generateProjectFiltersCacheKey = async (args: {
+  limit?: number;
+  skip?: number;
+  searchTerm?: string;
+  category?: string;
+  mainCategory?: string;
+  filters?: FilterField[];
+  sortingBy?: SortingField;
+  suffix?: string;
+}) => {
+  const orderedArgs = stringify(args);
+  return createHash('md5').update(orderedArgs).digest();
 };
 
 export const titleWithoutSpecialCharacters = (title: string): string => {

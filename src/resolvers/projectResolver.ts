@@ -69,6 +69,7 @@ import {
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
+  filterProjectsQuery,
   findProjectById,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
@@ -87,6 +88,11 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
+import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
+
+const projectFiltersCacheDuration = Number(
+  process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
+);
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { AppDataSource } from '../orm';
 import { creteSlugFromProject } from '../utils/utils';
@@ -121,7 +127,7 @@ class ProjectAndAdmin {
   admin: User;
 }
 
-enum FilterField {
+export enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
   AcceptFundOnGnosis = 'acceptFundOnGnosis',
@@ -130,7 +136,7 @@ enum FilterField {
   BoostedWithGivPower = 'boostedWithGivPower',
 }
 
-enum OrderDirection {
+export enum OrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
@@ -156,7 +162,7 @@ registerEnumType(OrderDirection, {
 });
 
 @InputType()
-class OrderBy {
+export class OrderBy {
   @Field(type => OrderField)
   field: OrderField;
 
@@ -165,7 +171,7 @@ class OrderBy {
 }
 
 @InputType()
-class FilterBy {
+export class FilterBy {
   @Field(type => FilterField, { nullable: true })
   field: FilterField;
 
@@ -261,7 +267,7 @@ class ImageResponse {
 export class ProjectResolver {
   static addCategoryQuery(
     query: SelectQueryBuilder<Project>,
-    category: string,
+    category?: string,
   ) {
     if (!category) return query;
 
@@ -275,7 +281,7 @@ export class ProjectResolver {
 
   static addMainCategoryQuery(
     query: SelectQueryBuilder<Project>,
-    mainCategory: string,
+    mainCategory?: string,
   ) {
     if (!mainCategory) return query;
 
@@ -292,7 +298,7 @@ export class ProjectResolver {
 
   static addSearchQuery(
     query: SelectQueryBuilder<Project>,
-    searchTerm: string,
+    searchTerm?: string,
   ) {
     if (!searchTerm) return query;
 
@@ -473,7 +479,7 @@ export class ProjectResolver {
 
   static addFiltersQuery(
     query: SelectQueryBuilder<Project>,
-    filtersArray: FilterField[],
+    filtersArray: FilterField[] = [],
   ) {
     if (filtersArray.length === 0) return query;
 
@@ -513,7 +519,7 @@ export class ProjectResolver {
     return query;
   }
 
-  private static addUserReaction<T extends ObjectLiteral>(
+  static addUserReaction<T extends ObjectLiteral>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
     authenticatedUser?: any,
@@ -568,133 +574,6 @@ export class ProjectResolver {
     this.projectImageRepository = ds.getRepository(ProjectImage);
   }
 
-  // Backward Compatible Projects Query with added pagination, frontend sorts and category search
-  @Query(returns => AllProjects)
-  async projects(
-    @Args()
-    {
-      take,
-      skip,
-      orderBy,
-      searchTerm,
-      category,
-      mainCategory,
-      filterBy,
-      admin,
-      connectedWalletUserId,
-    }: GetProjectsArgs,
-    @Ctx() { req: { user } }: MyContext,
-  ): Promise<AllProjects> {
-    const categories = await Category.find();
-    let query = this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.organization', 'organization')
-      // you can alias it as user, but it still is mapped as adminUser
-      // like defined in our project entity
-      .innerJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields) // aliased selection
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      )
-      .leftJoin('project.projectPower', 'projectPower')
-      .addSelect([
-        'projectPower.totalPower',
-        'projectPower.powerRank',
-        'projectPower.round',
-      ]);
-    // Filters
-    query = ProjectResolver.addCategoryQuery(query, category);
-    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
-    query = ProjectResolver.addSearchQuery(query, searchTerm);
-    query = ProjectResolver.addFilterQuery(
-      query,
-      filterBy?.field,
-      filterBy?.value,
-    );
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-
-    switch (orderBy.field) {
-      case OrderField.Traceable:
-        // const traceableDirection: {
-        //   [key: string]: 'NULLS FIRST' | 'NULLS LAST';
-        // } = {
-        //   ASC: 'NULLS FIRST',
-        //   DESC: 'NULLS LAST',
-        // };
-        //
-        // query.orderBy(
-        //   `project.${orderBy.field}`,
-        //   orderBy.direction,
-        //   traceableDirection[orderBy.direction],
-        // );
-
-        query.andWhere(
-          `project.${orderBy.field} IS${
-            orderBy.direction === OrderDirection.ASC ? '' : ' NOT'
-          } NULL`,
-        );
-        query.orderBy(
-          `project.${OrderField.CreationDate}`,
-          OrderDirection.DESC,
-        );
-        break;
-      case OrderField.AcceptGiv:
-        // const acceptGivDirection: {
-        //   [key: string]: 'NULLS FIRST' | 'NULLS LAST';
-        // } = {
-        //   ASC: 'NULLS LAST',
-        //   DESC: 'NULLS FIRST',
-        // };
-        //
-        // query.orderBy(
-        //   `project.${orderBy.field}`,
-        //   orderBy.direction,
-        //   acceptGivDirection[orderBy.direction],
-        // );
-        query.andWhere(
-          `project.${orderBy.field} IS${
-            orderBy.direction === OrderDirection.DESC ? '' : ' NOT'
-          } NULL`,
-        );
-        query.orderBy(
-          `project.${OrderField.CreationDate}`,
-          OrderDirection.DESC,
-        );
-        break;
-      case OrderField.Verified:
-        query.andWhere(`project.${orderBy.field} = true`);
-        query.orderBy(`project.${OrderField.CreationDate}`, orderBy.direction);
-        break;
-      case OrderField.GIVPower:
-        query
-          .orderBy('projectPower.totalPower', orderBy.direction, 'NULLS LAST')
-          .addOrderBy(
-            `project.${OrderField.CreationDate}`,
-            OrderDirection.DESC,
-          );
-        break;
-      default:
-        query.orderBy(`project.${orderBy.field}`, orderBy.direction);
-        break;
-    }
-
-    const [projects, totalCount] = await query
-      .take(take)
-      .skip(skip)
-      .getManyAndCount();
-    return { projects, totalCount, categories };
-  }
-
   @Query(returns => AllProjects)
   async allProjects(
     @Args()
@@ -706,83 +585,58 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
-      admin,
       connectedWalletUserId,
     }: GetProjectsArgs,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user }, projectsFiltersThreadPool }: MyContext,
   ): Promise<AllProjects> {
-    const categories = await Category.find();
-    let query = this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.organization', 'organization')
-      // you can alias it as user but it still is mapped as adminUser
-      // like defined in our project entity
-      .innerJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields) // aliased selection
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .leftJoin('project.projectPower', 'projectPower')
-      .addSelect([
-        'projectPower.totalPower',
-        'projectPower.powerRank',
-        'projectPower.round',
-      ])
-      .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+    let projects: Project[];
+    let totalCount: number;
+    const projectsQuery = filterProjectsQuery(
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+    );
+
+    const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
+      hasher =>
+        hasher.hashProjectFilters({
+          limit,
+          skip,
+          searchTerm,
+          category,
+          mainCategory,
+          filters,
+          sortingBy,
+          suffix: 'pq',
+        }),
+    );
+
+    const categoriesResolver = Category.find({
+      cache: projectFiltersCacheDuration,
+    });
+
+    [projects, totalCount] = await projectsQuery
+      .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
+      .getManyAndCount();
+
+    const userId = connectedWalletUserId || user?.userId;
+    const userReactions = await findUserReactionsByProjectIds(
+      userId,
+      projects.map(project => project.id),
+    );
+
+    if (userReactions.length > 0) {
+      projects = await projectsFiltersThreadPool.queue(merger =>
+        merger.mergeUserReactionsToProjects(projects, userReactions),
       );
-
-    // Filters
-    query = ProjectResolver.addCategoryQuery(query, category);
-    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
-    query = ProjectResolver.addSearchQuery(query, searchTerm);
-    query = ProjectResolver.addFiltersQuery(query, filters);
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-
-    switch (sortingBy) {
-      case SortingField.MostFunded:
-        query.orderBy('project.totalDonations', OrderDirection.DESC);
-        break;
-      case SortingField.MostLiked:
-        query.orderBy('project.totalReactions', OrderDirection.DESC);
-        break;
-      case SortingField.Newest:
-        query.orderBy('project.creationDate', OrderDirection.DESC);
-        break;
-      case SortingField.Oldest:
-        query.orderBy('project.creationDate', OrderDirection.ASC);
-        break;
-      case SortingField.QualityScore:
-        query.orderBy('project.qualityScore', OrderDirection.DESC);
-        break;
-      case SortingField.GIVPower:
-        query
-          .orderBy(`project.verified`, OrderDirection.DESC)
-          .addOrderBy(
-            'projectPower.totalPower',
-            OrderDirection.DESC,
-            'NULLS LAST',
-          );
-
-        break;
-      default:
-        query
-          .orderBy('projectPower.totalPower', OrderDirection.DESC)
-          .addOrderBy(`project.verified`, OrderDirection.DESC);
-        break;
     }
 
-    const [projects, totalCount] = await query
-      .take(limit)
-      .skip(skip)
-      .getManyAndCount();
+    const categories = await categoriesResolver;
+
     return { projects, totalCount, categories };
   }
 

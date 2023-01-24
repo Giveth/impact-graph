@@ -1,5 +1,10 @@
 import { UpdateResult } from 'typeorm';
-import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
+import {
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+  SortingField,
+} from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { ProjectAddress } from '../entities/projectAddress';
 import {
@@ -7,8 +12,13 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { publicSelectionFields } from '../entities/user';
+import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
+import {
+  FilterField,
+  OrderDirection,
+  ProjectResolver,
+} from '../resolvers/projectResolver';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -23,6 +33,83 @@ export const findProjectById = (projectId: number): Promise<Project | null> => {
       id: projectId,
     })
     .getOne();
+};
+
+// return query without execution
+export const filterProjectsQuery = (
+  limit: number,
+  skip: number,
+  searchTerm?: string,
+  category?: string,
+  mainCategory?: string,
+  filters?: FilterField[],
+  sortingBy?: SortingField,
+) => {
+  let query = Project.createQueryBuilder('project')
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect('project.users', 'users')
+    .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoinAndSelect('project.organization', 'organization')
+    // you can alias it as user but it still is mapped as adminUser
+    // like defined in our project entity
+    .innerJoin('project.adminUser', 'user')
+    .addSelect(publicSelectionFields) // aliased selection
+    .leftJoinAndSelect(
+      'project.categories',
+      'categories',
+      'categories.isActive = :isActive',
+      { isActive: true },
+    )
+    .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
+    .leftJoin('project.projectPower', 'projectPower')
+    .addSelect([
+      'projectPower.totalPower',
+      'projectPower.powerRank',
+      'projectPower.round',
+    ])
+    .where(`project.statusId = ${ProjStatus.active} AND project.listed = true`);
+
+  // Filters
+  query = ProjectResolver.addCategoryQuery(query, category);
+  query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
+  query = ProjectResolver.addSearchQuery(query, searchTerm);
+  query = ProjectResolver.addFiltersQuery(query, filters);
+  // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+  switch (sortingBy) {
+    case SortingField.MostFunded:
+      query.orderBy('project.totalDonations', OrderDirection.DESC);
+      break;
+    case SortingField.MostLiked:
+      query.orderBy('project.totalReactions', OrderDirection.DESC);
+      break;
+    case SortingField.Newest:
+      query.orderBy('project.creationDate', OrderDirection.DESC);
+      break;
+    case SortingField.Oldest:
+      query.orderBy('project.creationDate', OrderDirection.ASC);
+      break;
+    case SortingField.QualityScore:
+      query.orderBy('project.qualityScore', OrderDirection.DESC);
+      break;
+    case SortingField.GIVPower:
+      query
+        .orderBy(`project.verified`, OrderDirection.DESC)
+        .addOrderBy(
+          'projectPower.totalPower',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        );
+
+      break;
+    default:
+      query
+        .orderBy('projectPower.totalPower', OrderDirection.DESC)
+        .addOrderBy(`project.verified`, OrderDirection.DESC);
+      break;
+  }
+
+  return query.take(limit).skip(skip);
 };
 
 export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
