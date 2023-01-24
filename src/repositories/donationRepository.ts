@@ -75,26 +75,6 @@ export const findDonationById = async (
     .getOne();
 };
 
-export const findUsersWhoDonatedToProjectExcludeWhoLiked = async (
-  projectId: number,
-): Promise<{ walletAddress: string; email?: string }[]> => {
-  return Donation.createQueryBuilder('donation')
-    .leftJoinAndSelect('donation.project', 'project')
-    .leftJoin('donation.user', 'user')
-    .leftJoin(
-      Reaction,
-      'reaction',
-      'reaction.projectId = project.id AND user.id = reaction.userId',
-    )
-    .distinctOn(['user.walletAddress'])
-    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
-    .where(`donation."projectId"=:projectId`, {
-      projectId,
-    })
-    .andWhere(`reaction.id IS NULL`)
-    .getRawMany();
-};
-
 export const donationsTotalAmountPerDateRange = async (
   fromDate?: string,
   toDate?: string,

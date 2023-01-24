@@ -119,19 +119,6 @@ export const findUserPowerBoosting = async (
   }
 };
 
-export const findUsersWhoBoostedProject = async (
-  projectId: number,
-): Promise<{ walletAddress: string; email?: string }[]> => {
-  return PowerBoosting.createQueryBuilder('powerBoosting')
-    .leftJoin('powerBoosting.user', 'user')
-    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
-    .where(`"projectId"=:projectId`, {
-      projectId,
-    })
-    .andWhere(`percentage > 0`)
-    .getRawMany();
-};
-
 export const findPowerBoostings = async (params: {
   take?: number;
   skip?: number;
