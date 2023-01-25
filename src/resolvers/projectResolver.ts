@@ -1256,8 +1256,6 @@ export class ProjectResolver {
     return true;
   }
 
-  // deprecating this one, because it has no totals for pagination, we must avoid fetching all
-  // It's used in the single view for the time being only
   @Query(returns => [ProjectUpdate])
   async getProjectUpdates(
     @Arg('projectId', type => Int) projectId: number,
