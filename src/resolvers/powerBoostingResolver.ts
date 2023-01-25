@@ -13,7 +13,7 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import {
   errorMessages,
   i18n,
@@ -110,7 +110,7 @@ export class PowerBoostingResolver {
   async setMultiplePowerBoosting(
     @Arg('projectIds', type => [Int]) projectIds: number[],
     @Arg('percentages', type => [Float]) percentages: number[],
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<PowerBoosting[]> {
     const userId = user?.userId;
     if (!user || !userId) {
@@ -137,7 +137,7 @@ export class PowerBoostingResolver {
   async setSinglePowerBoosting(
     @Arg('projectId', type => Int) projectId: number,
     @Arg('percentage', type => Float) percentage: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<PowerBoosting[]> {
     const userId = user?.userId;
     if (!user || !userId) {

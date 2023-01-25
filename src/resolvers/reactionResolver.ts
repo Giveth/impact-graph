@@ -11,7 +11,7 @@ import {
 import { Reaction } from '../entities/reaction';
 import { Context } from '../context';
 import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
@@ -42,7 +42,7 @@ export class ReactionResolver {
   @Mutation(returns => Reaction)
   async likeProjectUpdate(
     @Arg('projectUpdateId', type => Int) projectUpdateId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
       throw new Error(
@@ -106,7 +106,7 @@ export class ReactionResolver {
   async unlikeProjectUpdate(
     @Arg('reactionId', type => Int) reactionId: number,
     @Ctx()
-    { req: { user } }: MyContext,
+    { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user || !user?.userId)
       throw new Error(
@@ -166,7 +166,7 @@ export class ReactionResolver {
   @Mutation(returns => Reaction)
   async likeProject(
     @Arg('projectId', type => Int) projectId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
       throw new Error(
@@ -236,7 +236,7 @@ export class ReactionResolver {
   async unlikeProject(
     @Arg('reactionId', type => Int) reactionId: number,
     @Ctx()
-    { req: { user } }: MyContext,
+    { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user || !user?.userId)
       throw new Error(

@@ -1,0 +1,6 @@
+{
+  "extensions": ["ts"],
+  "node-option": [
+    "loader=ts-node/register"
+  ]
+}

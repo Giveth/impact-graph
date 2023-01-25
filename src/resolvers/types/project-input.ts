@@ -1,7 +1,9 @@
-import { MaxLength, Length } from 'class-validator';
-import { InputType, Field } from 'type-graphql';
-import { GraphQLUpload, FileUpload } from 'graphql-upload';
+import { MaxLength } from 'class-validator';
+import { Field, InputType } from 'type-graphql';
 import { RelatedAddressInputType } from './ProjectVerificationUpdateInput';
+
+import { FileUpload } from 'graphql-upload/Upload.js';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 
 @InputType()
 export class ImageUpload {
