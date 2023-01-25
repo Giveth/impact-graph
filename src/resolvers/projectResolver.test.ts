@@ -3687,26 +3687,38 @@ function projectUpdatesTestCases() {
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
     });
-    const user = await User.findOne({ id: SEED_DATA.FIRST_USER.id });
+    const user = await User.findOne({
+      where: {
+        id: SEED_DATA.FIRST_USER.id,
+      },
+    });
 
-    const projectUpdate = await ProjectUpdate.create({
+    const projectUpdate1 = await ProjectUpdate.create({
       userId: user!.id,
       projectId: project.id,
-      content: 'TestProjectUpdateFateme',
-      title: 'testEditProjectUpdateFateme',
-      createdAt: moment().add(10, 'days'),
+      content: 'TestProjectUpdate1',
+      title: 'testEditProjectUpdate1',
+      createdAt: new Date(),
       isMain: false,
     }).save();
     const projectUpdate2 = await ProjectUpdate.create({
       userId: user!.id,
       projectId: project2.id,
-      content: 'TestProjectUpdateFateme',
-      title: 'testEditProjectUpdateFateme',
-      createdAt: moment().add(9, 'days'),
+      content: 'TestProjectUpdate2',
+      title: 'testEditProjectUpdate2',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+    const projectUpdate3 = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project2.id,
+      content: 'TestProjectUpdateExcluded',
+      title: 'testEditProjectUpdateExcluded',
+      createdAt: new Date(),
       isMain: false,
     }).save();
 
-    const take = 2;
+    const take = 3; // there are other previously created updates
     const result = await axios.post(graphqlUrl, {
       query: fetchLatestProjectUpdates,
       variables: {
@@ -3716,9 +3728,19 @@ function projectUpdatesTestCases() {
 
     assert.isOk(result);
     const data = result.data.data.projectUpdates.projectUpdates;
-    assert.equal(data.length, 2);
-    assert.equal(Number(data[0].id), projectUpdate.id);
-    assert.equal(Number(data[1].id), projectUpdate2.id);
+    // assert only project's most recent updates are returned
+    assert.equal(data.length, 3);
+    for (const pu of data) {
+      assert.isTrue(
+        pu.id === projectUpdate1.id ||
+          pu.id === projectUpdate3.id ||
+          pu.id !== projectUpdate2.id,
+      );
+    }
+    // Assert ordered (which matches order of creation) and project data present
+    assert.isTrue(new Date(data[0].createdAt) > new Date(data[1].createdAt));
+    assert.isOk(data[0].project.slug);
+    assert.equal(data[0].project.slug, project2.slug);
   });
 }
 

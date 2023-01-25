@@ -867,16 +867,12 @@ export const unlikeProjectUpdateQuery = `
 
 export const fetchLatestProjectUpdates = `
   query (
-    $projectId: Int,
     $take: Int,
-    $skip: Int,
-    $orderBy: OrderBy
+    $skip: Int
   ) {
     projectUpdates(
-      projectId: $projectId,
       take: $take,
-      skip: $skip,
-      orderBy: $orderBy
+      skip: $skip
     ) {
       projectUpdates {
         id
@@ -886,11 +882,17 @@ export const fetchLatestProjectUpdates = `
         content
         isMain
         totalReactions
+        createdAt
         reaction {
           id
           userId
           reaction
           projectUpdateId
+        }
+        project {
+          id
+          slug
+          totalReactions
         }
       }
       count

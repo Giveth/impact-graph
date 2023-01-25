@@ -1536,43 +1536,46 @@ export class ProjectResolver {
 
   @Query(returns => ProjectUpdatesResponse, { nullable: true })
   async projectUpdates(
-    @Arg('projectId', type => Int, { nullable: true }) projectId: number,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Arg('orderBy', type => OrderBy, {
-      defaultValue: {
-        field: OrderField.CreationAt,
-        direction: OrderDirection.DESC,
-      },
-    })
-    orderBy: OrderBy,
     @Ctx() { req: { user } }: MyContext,
   ): Promise<ProjectUpdatesResponse> {
-    const { field, direction } = orderBy;
+    const latestProjectUpdates = await ProjectUpdate.query(`
+      SELECT pu.id, pu."projectId"
+      FROM project_update as pu
+      WHERE pu.id = (
+        SELECT puu.id
+        FROM project_update as puu
+        WHERE puu."isMain" = false AND pu."projectId" = puu."projectId"
+        ORDER BY puu."createdAt" DESC
+        LIMIT 1
+      )
+      ORDER BY pu."createdAt" DESC
+      LIMIT ${take}
+      OFFSET ${skip}
+    `);
 
+    // When using distinctOn with joins and orderBy, typeorm threw errors
+    // So separated into two queries
     let query = ProjectUpdate.createQueryBuilder('projectUpdate')
-      .innerJoinAndSelect(
+      .innerJoinAndMapOne(
+        'projectUpdate.project',
         Project,
         'project',
-        'project.id = projectUpdate.projectId',
+        'project.id = projectUpdate.projectId AND projectUpdate.isMain = false',
       )
-      .where('projectUpdate.isMain = false');
+      .where('projectUpdate.id IN (:...ids)', {
+        ids: latestProjectUpdates.map(p => p.id),
+      })
+      .orderBy('projectUpdate.id', 'DESC');
 
-    if (projectId)
-      query = query.andWhere('projectUpdate.projectId = :projectId', {
-        projectId,
-      });
     if (user && user?.id)
       query = ProjectResolver.addReactionToProjectsUpdateQuery(
         query,
         user.userId,
       );
 
-    const [projectUpdates, count] = await query
-      .orderBy(`projectUpdate.${field}`, direction)
-      .take(take)
-      .skip(skip)
-      .getManyAndCount();
+    const [projectUpdates, count] = await query.getManyAndCount();
 
     return {
       projectUpdates,
