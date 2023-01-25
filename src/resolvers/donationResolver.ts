@@ -16,7 +16,7 @@ import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
 import { getOurTokenList } from 'monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import { Project, ProjStatus } from '../entities/project';
 import { Token } from '../entities/token';
 import { Brackets, In, Repository } from 'typeorm';
@@ -314,7 +314,7 @@ export class DonationResolver {
   // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
   async donationsFromWallets(
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @Arg('fromWalletAddresses', type => [String])
     fromWalletAddresses: string[],
   ) {
@@ -333,7 +333,7 @@ export class DonationResolver {
   // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
   async donationsToWallets(
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[],
   ) {
     const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
@@ -351,7 +351,7 @@ export class DonationResolver {
 
   @Query(returns => PaginateDonations, { nullable: true })
   async donationsByProjectId(
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Arg('traceable', type => Boolean, { defaultValue: false })
@@ -453,7 +453,7 @@ export class DonationResolver {
 
   // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
-  async donationsByDonor(@Ctx() ctx: MyContext) {
+  async donationsByDonor(@Ctx() ctx: ApolloContext) {
     if (!ctx.req.user)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.DONATION_VIEWING_LOGIN_REQUIRED),
@@ -470,7 +470,7 @@ export class DonationResolver {
   @Query(returns => UserDonations, { nullable: true })
   async donationsByUserId(
     @Args() { take, skip, orderBy, userId, status }: UserDonationsArgs,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ) {
     const loggedInUserId = ctx?.req?.user?.userId;
     const query = this.donationRepository
@@ -514,7 +514,7 @@ export class DonationResolver {
     @Arg('projectId') projectId: number,
     @Arg('nonce') nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<Number> {
     try {
       const userId = ctx?.req?.user?.userId;
@@ -639,7 +639,7 @@ export class DonationResolver {
   async updateDonationStatus(
     @Arg('donationId') donationId: number,
     @Arg('status', { nullable: true }) status: string,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<Donation> {
     // We just update status of donation with tx status in blockchain network
     // but if user send failed status, and there were nothing in network we change it to failed

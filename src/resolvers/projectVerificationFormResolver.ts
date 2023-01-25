@@ -1,5 +1,5 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import {
   createProjectVerificationRequestValidator,
@@ -114,7 +114,7 @@ export class ProjectVerificationFormResolver {
   async projectVerificationSendEmailConfirmation(
     @Arg('projectVerificationFormId')
     projectVerificationFormId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectVerificationForm> {
     try {
       const userId = user?.userId;
@@ -193,7 +193,7 @@ export class ProjectVerificationFormResolver {
   @Mutation(returns => ProjectVerificationForm)
   async createProjectVerificationForm(
     @Arg('slug') slug: string,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectVerificationForm> {
     try {
       const userId = user?.userId;
@@ -247,7 +247,7 @@ export class ProjectVerificationFormResolver {
   async updateProjectVerificationForm(
     @Arg('projectVerificationUpdateInput')
     projectVerificationUpdateInput: ProjectVerificationUpdateInput,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectVerificationForm> {
     try {
       const userId = user?.userId;
@@ -295,7 +295,7 @@ export class ProjectVerificationFormResolver {
   @Query(returns => ProjectVerificationForm)
   async getCurrentProjectVerificationForm(
     @Arg('slug') slug: string,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectVerificationForm> {
     try {
       const userId = user?.userId;

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from '../entities/user';
 import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerificationInput } from './types/accountVerificationInput';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { validateEmail } from '../utils/validators/commonValidators';
@@ -30,7 +30,7 @@ export class UserResolver {
   @Query(returns => UserByAddressResponse, { nullable: true })
   async userByAddress(
     @Arg('address', type => String) address: string,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     const includeSensitiveFields =
       user?.walletAddress?.toLowerCase() === address.toLowerCase();
@@ -52,7 +52,7 @@ export class UserResolver {
     @Arg('email', { nullable: true }) email: string,
     @Arg('url', { nullable: true }) url: string,
     @Arg('avatar', { nullable: true }) avatar: string,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user)
       throw new Error(
@@ -130,7 +130,7 @@ export class UserResolver {
     @Arg('dId', { nullable: true }) dId: string,
     @Arg('verifications', type => [AccountVerificationInput])
     verificationsInput: AccountVerificationInput[],
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user)
       throw new Error(
