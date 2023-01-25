@@ -2139,7 +2139,7 @@ export const exportProjectsWithFiltersToCsv = async (
     await sendProjectsToGoogleSheet(projects);
 
     return {
-      redirectUrl: 'Project',
+      redirectUrl: '/admin/resources/Project',
       records,
       notice: {
         message: `Project(s) successfully exported`,
@@ -2148,7 +2148,7 @@ export const exportProjectsWithFiltersToCsv = async (
     };
   } catch (e) {
     return {
-      redirectUrl: 'Project',
+      redirectUrl: '/admin/resources/Project',
       record: {},
       notice: {
         message: e.message,
@@ -2235,7 +2235,7 @@ export const listDelist = async (
     throw error;
   }
   return {
-    redirectUrl: 'Project',
+    redirectUrl: '/admin/resources/Project',
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -2479,7 +2479,7 @@ export const verifyVerificationForms = async (
     responseType = 'danger';
   }
   return {
-    redirectUrl: 'ProjectVerificationForm',
+    redirectUrl: '/admin/resources/ProjectVerificationForm',
     // record: {},
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
@@ -2572,7 +2572,7 @@ export const verifyProjects = async (
     throw error;
   }
   return {
-    redirectUrl: 'Project',
+    redirectUrl: '/admin/resources/Project',
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -2643,7 +2643,7 @@ export const updateStatusOfProjects = async (
     throw error;
   }
   return {
-    redirectUrl: 'Project',
+    redirectUrl: '/admin/resources/Project',
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -2739,7 +2739,7 @@ export const createToken = async (
   }
 
   response.send({
-    redirectUrl: 'Token',
+    redirectUrl: '/admin/resources/Token',
     record: {},
     notice: {
       message,
