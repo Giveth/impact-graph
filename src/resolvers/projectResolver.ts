@@ -127,6 +127,15 @@ class ProjectAndAdmin {
   admin: User;
 }
 
+@ObjectType()
+class ProjectUpdatesResponse {
+  @Field(type => [ProjectUpdate])
+  projectUpdates: ProjectUpdate[];
+
+  @Field(type => Int, { nullable: false })
+  count: number;
+}
+
 export enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
@@ -246,12 +255,6 @@ class GetProjectArgs {
 }
 
 @ObjectType()
-class GetProjectUpdatesResult {
-  @Field(type => ProjectUpdate)
-  projectUpdate: ProjectUpdate;
-}
-
-@ObjectType()
 class ImageResponse {
   @Field(type => String)
   url: string;
@@ -329,6 +332,19 @@ export class ProjectResolver {
       Reaction,
       'reaction',
       `reaction.projectId = project.id AND reaction.userId = :userId`,
+      { userId },
+    );
+  }
+
+  static addReactionToProjectsUpdateQuery(
+    query: SelectQueryBuilder<ProjectUpdate>,
+    userId: number,
+  ) {
+    return query.leftJoinAndMapOne(
+      'projectUpdate.reaction',
+      Reaction,
+      'reaction',
+      'reaction.projectUpdateId = projectUpdate.id AND reaction.userId = :userId',
       { userId },
     );
   }
@@ -1271,12 +1287,9 @@ export class ProjectResolver {
 
     const viewerUserId = connectedWalletUserId || user?.userId;
     if (viewerUserId) {
-      query = query.leftJoinAndMapOne(
-        'projectUpdate.reaction',
-        Reaction,
-        'reaction',
-        'reaction.projectUpdateId = projectUpdate.id AND reaction.userId = :viewerUserId',
-        { viewerUserId },
+      query = ProjectResolver.addReactionToProjectsUpdateQuery(
+        query,
+        viewerUserId,
       );
     }
     return query.getMany();
@@ -1517,6 +1530,55 @@ export class ProjectResolver {
       logger.error('**similarProjectsBySlug** error', e);
       throw e;
     }
+  }
+
+  @Query(returns => ProjectUpdatesResponse, { nullable: true })
+  async projectUpdates(
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Ctx() { req: { user } }: MyContext,
+  ): Promise<ProjectUpdatesResponse> {
+    const latestProjectUpdates = await ProjectUpdate.query(`
+      SELECT pu.id, pu."projectId"
+      FROM project_update as pu
+      WHERE pu.id = (
+        SELECT puu.id
+        FROM project_update as puu
+        WHERE puu."isMain" = false AND pu."projectId" = puu."projectId"
+        ORDER BY puu."createdAt" DESC
+        LIMIT 1
+      )
+      ORDER BY pu."createdAt" DESC
+      LIMIT ${take}
+      OFFSET ${skip}
+    `);
+
+    // When using distinctOn with joins and orderBy, typeorm threw errors
+    // So separated into two queries
+    let query = ProjectUpdate.createQueryBuilder('projectUpdate')
+      .innerJoinAndMapOne(
+        'projectUpdate.project',
+        Project,
+        'project',
+        'project.id = projectUpdate.projectId AND projectUpdate.isMain = false',
+      )
+      .where('projectUpdate.id IN (:...ids)', {
+        ids: latestProjectUpdates.map(p => p.id),
+      })
+      .orderBy('projectUpdate.id', 'DESC');
+
+    if (user && user?.id)
+      query = ProjectResolver.addReactionToProjectsUpdateQuery(
+        query,
+        user.userId,
+      );
+
+    const [projectUpdates, count] = await query.getManyAndCount();
+
+    return {
+      projectUpdates,
+      count,
+    };
   }
 
   @Query(returns => AllProjects, { nullable: true })

@@ -865,6 +865,41 @@ export const unlikeProjectUpdateQuery = `
   }
 `;
 
+export const fetchLatestProjectUpdates = `
+  query (
+    $take: Int,
+    $skip: Int
+  ) {
+    projectUpdates(
+      take: $take,
+      skip: $skip
+    ) {
+      projectUpdates {
+        id
+        title
+        projectId
+        userId
+        content
+        isMain
+        totalReactions
+        createdAt
+        reaction {
+          id
+          userId
+          reaction
+          projectUpdateId
+        }
+        project {
+          id
+          slug
+          totalReactions
+        }
+      }
+      count
+    }
+  }
+`;
+
 export const fetchProjectUpdatesQuery = `
   query (
     $projectId: Int!,

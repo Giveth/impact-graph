@@ -449,6 +449,10 @@ export class ProjectUpdate extends BaseEntity {
   @Field(type => Reaction, { nullable: true })
   reaction?: Reaction;
 
+  // Project oneToOne as virtual attribute as relation was not set properly
+  @Field(type => Project, { nullable: true })
+  project?: Project;
+
   @Field()
   @Column('boolean', { default: false })
   isNonProfitOrganization: boolean;
