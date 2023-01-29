@@ -52,16 +52,18 @@ import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fill
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
-import { ModuleThread, Pool, spawn } from 'threads';
+import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { DataSource } from 'typeorm';
 import { AppDataSource, CronDataSource } from '../orm';
 import http from 'http';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { ApolloContext, ContextRequest } from '../types/ApolloContext';
+import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
 
 Resource.validate = validate;
 
@@ -130,17 +132,24 @@ export async function bootstrap() {
         options,
       );
 
-    const apolloServerPlugins = [ApolloServerPluginSchemaReporting()];
-    if (process.env.DISABLE_APOLLO_PLAYGROUND !== 'true') {
-      apolloServerPlugins.push(
-        ApolloServerPluginLandingPageGraphQLPlayground(),
-      );
+    const apolloServerPlugins = [
+      process.env.DISABLE_APOLLO_PLAYGROUND !== 'true'
+        ? ApolloServerPluginLandingPageGraphQLPlayground({
+            endpoint: '/graphql',
+          })
+        : ApolloServerPluginLandingPageDisabled(),
+    ];
+
+    if (process.env.APOLLO_GRAPH_REF) {
+      apolloServerPlugins.push(ApolloServerPluginSchemaReporting());
     }
 
     // Create GraphQL server
     const apolloServer = new ApolloServer<ApolloContext>({
       schema,
-      formatError: err => {
+      csrfPrevention: false, // TODO: Prevent CSRF attack
+      formatError: (formattedError, _err) => {
+        const err = _err as Error;
         /**
          * @see {@link https://www.apollographql.com/docs/apollo-server/data/errors/#for-client-responses}
          */
@@ -162,10 +171,20 @@ export async function bootstrap() {
             i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
           );
         }
+        // Return a different error message
+        if (
+          formattedError?.extensions?.code ===
+          ApolloServerErrorCode.GRAPHQL_VALIDATION_FAILED
+        ) {
+          return {
+            ...formattedError,
+            message: `Your query doesn't match the schema. Try double-checking it!`,
+          };
+        }
 
-        // Otherwise return the original error. The error can also
+        // Otherwise return the formatted error. This error can also
         // be manipulated in other ways, as long as it's returned.
-        return err;
+        return formattedError;
       },
       plugins: apolloServerPlugins,
       introspection: true,
@@ -203,20 +222,20 @@ export async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       },
     };
+    const bodyParserJson = bodyParser.json({
+      limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
+    });
+
     app.use(setI18nLocaleForRequest); // accept-language header
-    app.use(cors(corsOptions));
-    app.use(
-      bodyParser.json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
-      }),
-    );
+    // app.use(cors(corsOptions));
+    // app.use(bodyParserJson);
     const limiter = new RateLimit({
       store: new RedisStore({
         prefix: 'rate-limit:',
         client: redis,
         // see Configuration
       }),
-      windowMs: 1 * 60 * 1000, // 1 minutes
+      windowMs: 60 * 1000, // 1 minutes
       max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
       skip: (req: Request, res: Response) => {
         const vercelKey = process.env.VERCEL_KEY;
@@ -245,8 +264,12 @@ export async function bootstrap() {
         maxFiles: 10,
       }),
     );
+
+    await apolloServer.start();
     app.use(
       '/graphql',
+      cors(corsOptions),
+      bodyParserJson,
       expressMiddleware<ApolloContext>(apolloServer, {
         context: async ({ req }) => {
           let token: string = '';
