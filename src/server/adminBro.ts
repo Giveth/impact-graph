@@ -1274,7 +1274,12 @@ const getAdminBroInstance = async () => {
               },
             },
             totalDonations: {
-              isVisible: { list: false, filter: false, show: true, edit: true },
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
             },
             totalTraceDonations: {
               isVisible: { list: false, filter: false, show: true, edit: true },
