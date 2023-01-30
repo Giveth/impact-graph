@@ -3277,7 +3277,7 @@ async function recentDonationsTestCases() {
     await Donation.clear();
   });
 
-  it.only('should return limited number of recent donations', async () => {
+  it('should return limited number of recent donations', async () => {
     const walletAddress = generateRandomEtheriumAddress();
     const walletAddress2 = generateRandomEtheriumAddress();
     const walletAddress3 = generateRandomEtheriumAddress();
