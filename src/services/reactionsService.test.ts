@@ -36,11 +36,6 @@ function updateTotalReactionsOfAProjectTestCases() {
 
   it('should update totalReaction of project', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const donation = await saveDonationDirectlyToDb(
-      DONATION_SEED_DATA.FIRST_DONATION,
-      SEED_DATA.FIRST_USER.id,
-      project.id,
-    );
     await Reaction.create({
       project,
       reaction: 'heart',
