@@ -3,6 +3,9 @@ import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepos
 import { assert } from 'chai';
 import { fillIncompletePowerSnapshots } from './powerSnapshotServices';
 import moment from 'moment';
+import { AppDataSource } from '../orm';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 
 describe(
   'fillIncompletePowerSnapshots() test cases',
@@ -10,6 +13,13 @@ describe(
 );
 
 function fillIncompletePowerSnapshotsTestCases() {
+  beforeEach(async () => {
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+  });
   it('should fill all incomplete powerSnapshots', async () => {
     await PowerSnapshot.create({
       time: moment().subtract(5, 'minutes').toDate(),
