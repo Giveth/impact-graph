@@ -14,9 +14,11 @@ import {
   createDonation,
   findDonationById,
   findDonationsByTransactionId,
+  findStableCoinDonationsWithoutPrice,
   findUsersWhoDonatedToProjectExcludeWhoLiked,
 } from './donationRepository';
 import { Reaction } from '../entities/reaction';
+import { updateOldStableCoinDonationsPrice } from '../services/donationService';
 
 describe('createDonation test cases', () => {
   it('should create donation ', async () => {
@@ -56,6 +58,10 @@ describe('createDonation test cases', () => {
 describe(
   'findDonationsByTransactionId() test cases',
   findDonationsByTransactionIdTestCases,
+);
+describe(
+  'findStableCoinDonationsWithoutPrice() test cases',
+  findStableCoinDonationsWithoutPriceTestCases,
 );
 describe('findDonationById() test cases', findDonationByIdTestCases);
 describe(
@@ -183,5 +189,83 @@ function findUsersWhoDonatedToProjectTestCases() {
     assert.isOk(
       users.find(user => user.walletAddress === donor3.walletAddress),
     );
+  });
+}
+
+function findStableCoinDonationsWithoutPriceTestCases() {
+  it('should just return stable coin donations without price', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const donationData1 = createDonationData();
+    delete donationData1.valueUsd;
+    donationData1.currency = 'USDC';
+
+    const donationData2 = createDonationData();
+    donationData2.currency = 'USDC';
+
+    const donationData3 = createDonationData();
+    delete donationData3.valueUsd;
+    donationData3.currency = 'USDT';
+
+    const donationData4 = createDonationData();
+    donationData4.currency = 'USDT';
+
+    const donationData5 = createDonationData();
+    delete donationData5.valueUsd;
+    donationData5.currency = 'WXDAI';
+
+    const donationData6 = createDonationData();
+    donationData6.currency = 'WXDAI';
+
+    const donationData7 = createDonationData();
+    delete donationData7.valueUsd;
+    donationData7.currency = 'XDAI';
+
+    const donationData8 = createDonationData();
+    donationData8.currency = 'XDAI';
+
+    const donationData9 = createDonationData();
+    delete donationData9.valueUsd;
+
+    await saveDonationDirectlyToDb(donationData1, donor.id, project.id);
+    await saveDonationDirectlyToDb(donationData2, donor.id, project.id);
+    await saveDonationDirectlyToDb(donationData3, donor.id, project.id);
+    await saveDonationDirectlyToDb(donationData4, donor.id, project.id);
+    await saveDonationDirectlyToDb(donationData5, donor.id, project.id);
+    await saveDonationDirectlyToDb(donationData6, donor.id, project.id);
+    await saveDonationDirectlyToDb(donationData7, donor.id, project.id);
+    await saveDonationDirectlyToDb(donationData8, donor.id, project.id);
+    await saveDonationDirectlyToDb(donationData9, donor.id, project.id);
+
+    const donations = await findStableCoinDonationsWithoutPrice();
+    assert.equal(donations.length, 4);
+    assert.isOk(
+      donations.find(
+        donation => donation.transactionId === donationData1.transactionId,
+      ),
+    );
+    assert.isOk(
+      donations.find(
+        donation => donation.transactionId === donationData3.transactionId,
+      ),
+    );
+    assert.isOk(
+      donations.find(
+        donation => donation.transactionId === donationData5.transactionId,
+      ),
+    );
+    assert.isOk(
+      donations.find(
+        donation => donation.transactionId === donationData7.transactionId,
+      ),
+    );
+
+    await updateOldStableCoinDonationsPrice();
+
+    // Shoud fill valuUsd of all stable coin donations
+    const stableDonationsWithoutPrice =
+      await findStableCoinDonationsWithoutPrice();
+    assert.isEmpty(stableDonationsWithoutPrice);
   });
 }
