@@ -42,7 +42,7 @@ export const notifyMissingDonationsWithSegment = async () => {
 };
 
 interface SegmentDonationInterFace {
-  slug?: string;
+  slug?: string | null;
   title: string;
   amount: number;
   transactionId: string;
@@ -54,10 +54,10 @@ interface SegmentDonationInterFace {
   projectOwnerId: number;
   transactionNetworkId: number;
   currency: string;
-  projectWalletAddress?: string;
+  projectWalletAddress?: string | null;
   createdAt: Date;
-  email?: string;
-  firstName?: string;
+  email?: string | null;
+  firstName?: string | null;
   anonymous: boolean;
 }
 

@@ -18,22 +18,23 @@ if (loadConfigResult.error) {
   throw loadConfigResult.error;
 }
 
-import { ConnectionOptions } from 'typeorm';
-import { entities } from './entities/entities';
-import { logger } from './utils/logger';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { getEntities } from './entities/entities';
 
-const ormConfig: ConnectionOptions = {
+const ormConfig: DataSourceOptions = {
   type: 'postgres',
   host: process.env.TYPEORM_DATABASE_HOST,
   port: Number(process.env.TYPEORM_DATABASE_PORT),
   username: process.env.TYPEORM_DATABASE_USER,
   password: process.env.TYPEORM_DATABASE_PASSWORD,
   database: process.env.TYPEORM_DATABASE_NAME,
-  entities,
+  entities: getEntities(),
   migrations: ['migration/*.ts'],
-  cli: {
-    migrationsDir: 'migration',
-  },
+  // cli: {
+  //   migrationsDir: 'migration',
+  // },
 };
 
-export = ormConfig;
+export const AppDataSource = new DataSource(ormConfig);
+
+exports = ormConfig;

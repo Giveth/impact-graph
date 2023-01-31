@@ -1,12 +1,10 @@
 import React from 'react';
 import Select from 'react-select/async';
 import { withTheme } from 'styled-components';
-import { FormGroup, filterStyles, Label } from '@admin-bro/design-system';
+import { FormGroup, filterStyles, Label } from '@adminjs/design-system';
 
 const FilterListedComponent = props => {
   const { onChange, property, theme, value } = props;
-
-  console.log(props);
 
   const handleChange = selected => {
     onChange(property.path, selected ? selected.value : '');

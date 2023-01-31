@@ -1,3 +1,4 @@
+/* tslint:disable:no-console */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddProjectStatus1614079067364 implements MigrationInterface {

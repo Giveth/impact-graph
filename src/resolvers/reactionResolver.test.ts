@@ -67,7 +67,7 @@ function likeUnlikeProjectTestCases() {
 
   beforeEach(async () => {
     firstUserAccessToken = await generateTestAccessToken(USER_DATA.id);
-    projectBefore = await Project.findOne({ id: PROJECT_DATA.id });
+    projectBefore = await Project.findOne({ where: { id: PROJECT_DATA.id } });
   });
 
   it('should create/delete reaction on like/unlike project', async () => {
@@ -113,7 +113,9 @@ function likeUnlikeProjectTestCases() {
 
     const reaction = likeResp?.data?.data?.likeProject;
 
-    const projectAfterLike = await Project.findOne({ id: PROJECT_DATA.id });
+    const projectAfterLike = await Project.findOne({
+      where: { id: PROJECT_DATA.id },
+    });
 
     assert.equal(
       projectAfterLike!.totalReactions - projectBefore!.totalReactions,
@@ -132,7 +134,9 @@ function likeUnlikeProjectTestCases() {
     );
 
     assert.isOk(unlikeResp);
-    const projectAfterUnlike = await Project.findOne({ id: PROJECT_DATA.id });
+    const projectAfterUnlike = await Project.findOne({
+      where: { id: PROJECT_DATA.id },
+    });
 
     assert.equal(
       projectAfterUnlike!.totalReactions - projectBefore!.totalReactions,
@@ -195,7 +199,9 @@ function likeUnlikeProjectUpdateTestCases() {
   beforeEach(async () => {
     firstUserAccessToken = await generateTestAccessToken(USER_DATA.id);
     projectUpdateBefore = await ProjectUpdate.findOne({
-      id: PROJECT_UPDATE_DATA.id,
+      where: {
+        id: PROJECT_UPDATE_DATA.id,
+      },
     });
   });
 
@@ -244,7 +250,9 @@ function likeUnlikeProjectUpdateTestCases() {
     const reaction = likeResp?.data?.data?.likeProjectUpdate;
 
     const projectUpdateAfterLike = await ProjectUpdate.findOne({
-      id: PROJECT_UPDATE_DATA.id,
+      where: {
+        id: PROJECT_UPDATE_DATA.id,
+      },
     });
 
     assert.equal(
@@ -261,7 +269,9 @@ function likeUnlikeProjectUpdateTestCases() {
 
     assert.isOk(unlikeResp);
     const projectUpdateAfterUnlike = await ProjectUpdate.findOne({
-      id: PROJECT_UPDATE_DATA.id,
+      where: {
+        id: PROJECT_UPDATE_DATA.id,
+      },
     });
 
     assert.equal(

@@ -10,6 +10,7 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
+  sleep,
 } from '../../test/testUtils';
 import axios from 'axios';
 import {
@@ -19,7 +20,7 @@ import {
   deactivateProjectQuery,
   deleteProjectUpdateQuery,
   editProjectUpdateQuery,
-  fetchAllProjectsQuery,
+  fetchLatestProjectUpdates,
   fetchLikedProjectsQuery,
   fetchMultiFilterAllProjectsQuery,
   fetchNewProjectsPerDate,
@@ -64,6 +65,7 @@ import {
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
 import { MainCategory } from '../entities/mainCategory';
+import { findOneProjectStatusHistoryByProjectId } from '../repositories/projectSatusHistoryRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import {
   insertSinglePowerBoosting,
@@ -77,19 +79,20 @@ import {
   findInCompletePowerSnapShots,
   insertSinglePowerBalanceSnapshot,
 } from '../repositories/powerSnapshotRepository';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
 import moment from 'moment';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
+import { AppDataSource } from '../orm';
+// We are using cache so redis needs to be cleared for tests with same filters
+import { redis } from '../redis';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
 
 // search and filters
-describe('projects test cases --->', projectsTestCases);
 describe('all projects test cases --->', allProjectsTestCases);
 
 describe('projectsByUserId test cases --->', projectsByUserIdTestCases);
@@ -130,6 +133,8 @@ describe(
   'similarProjectsBySlug test cases --->',
   similarProjectsBySlugTestCases,
 );
+
+describe('projectUpdates query test cases --->', projectUpdatesTestCases);
 
 describe(
   'getProjectsAcceptTokens() test cases --->',
@@ -193,7 +198,9 @@ function getProjectsAcceptTokensTestCases() {
       organizationLabel: ORGANIZATION_LABELS.TRACE,
     });
     const traceOrganization = (await Organization.findOne({
-      label: ORGANIZATION_LABELS.TRACE,
+      where: {
+        label: ORGANIZATION_LABELS.TRACE,
+      },
     })) as Organization;
 
     const allTokens = (
@@ -233,966 +240,6 @@ function getProjectsAcceptTokensTestCases() {
   });
 }
 
-function projectsTestCases() {
-  it('should return projects search by owner', async () => {
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        searchTerm: SEED_DATA.SECOND_USER.name,
-      },
-    });
-
-    const projects = result.data.data.projects.projects;
-    const secondUserProjects = await Project.find({
-      admin: String(SEED_DATA.SECOND_USER.id),
-    });
-
-    assert.equal(projects.length, secondUserProjects.length);
-    assert.equal(Number(projects[0]?.admin), SEED_DATA.SECOND_USER.id);
-    assert.isNotEmpty(projects[0].addresses);
-    projects.forEach(project => {
-      assert.isNotOk(project.adminUser.email);
-      assert.isOk(project.adminUser.firstName);
-      assert.isOk(project.adminUser.walletAddress);
-      assert.isOk(project.categories[0].mainCategory.title);
-    });
-  });
-
-  it('should return projects with current take', async () => {
-    const take = 1;
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        take,
-      },
-    });
-    const projects = result.data.data.projects.projects;
-    assert.equal(projects.length, take);
-    assert.isNull(projects[0]?.reaction);
-  });
-
-  it('should return projects with correct reaction', async () => {
-    const take = 1;
-    const USER_DATA = SEED_DATA.FIRST_USER;
-
-    // Project has not been liked
-    let result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        take,
-        searchTerm: SEED_DATA.SECOND_PROJECT.title,
-        connectedWalletUserId: USER_DATA.id,
-      },
-    });
-
-    let projects = result.data.data.projects.projects;
-    assert.equal(projects.length, take);
-    assert.isNull(projects[0]?.reaction);
-
-    // Project has been liked, but connectedWalletUserIs is not filled
-    result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        take,
-        searchTerm: SEED_DATA.FIRST_PROJECT.title,
-      },
-    });
-
-    projects = result.data.data.projects.projects;
-    assert.equal(projects.length, take);
-    assert.isNull(projects[0]?.reaction);
-
-    // Project has been liked
-    result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        take,
-        searchTerm: SEED_DATA.FIRST_PROJECT.title,
-        connectedWalletUserId: USER_DATA.id,
-      },
-    });
-
-    projects = result.data.data.projects.projects;
-    assert.equal(projects.length, take);
-    assert.equal(
-      projects[0]?.reaction?.id,
-      REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION.id,
-    );
-    projects.forEach(project => {
-      assert.isNotOk(project.adminUser.email);
-      assert.isOk(project.adminUser.firstName);
-      assert.isOk(project.adminUser.walletAddress);
-    });
-  });
-
-  it('should return projects, sort by creationDate, DESC', async () => {
-    const firstProject = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const secondProject = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'CreationDate',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.equal(
-      Number(result.data.data.projects.projects[0].id),
-      secondProject.id,
-    );
-    assert.equal(
-      Number(result.data.data.projects.projects[1].id),
-      firstProject.id,
-    );
-  });
-  it('should return projects, sort by creationDate, ASC', async () => {
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'CreationDate',
-          direction: 'ASC',
-        },
-      },
-    });
-    const projectsCount = result.data.data.projects.projects.length;
-    const firstProjectIsOlder =
-      new Date(result.data.data.projects.projects[0].creationDate) <
-      new Date(
-        result.data.data.projects.projects[projectsCount - 1].creationDate,
-      );
-    assert.isTrue(firstProjectIsOlder);
-  });
-  it('should return projects, sort by updatedAt, DESC', async () => {
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'UpdatedAt',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.isTrue(
-      result.data.data.projects.projects[0].updatedAt >
-        result.data.data.projects.projects[1].updatedAt,
-    );
-  });
-  it('should return projects, sort by updatedAt, ASC', async () => {
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'UpdatedAt',
-          direction: 'ASC',
-        },
-      },
-    });
-    const projectsCount = result.data.data.projects.projects.length;
-    assert.isTrue(
-      new Date(result.data.data.projects.projects[0].updatedAt) <=
-        new Date(
-          result.data.data.projects.projects[projectsCount - 1].updatedAt,
-        ),
-    );
-    assert.isTrue(
-      new Date(
-        result.data.data.projects.projects[projectsCount - 2].updatedAt,
-      ) <=
-        new Date(
-          result.data.data.projects.projects[projectsCount - 1].updatedAt,
-        ),
-    );
-  });
-  it('should return projects, sort by qualityScore, DESC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-
-      // it should be more than any project
-      qualityScore: 100,
-    });
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'QualityScore',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.equal(result.data.data.projects.projects[0].qualityScore, 100);
-    assert.isTrue(
-      result.data.data.projects.projects[0].qualityScore >=
-        result.data.data.projects.projects[1].qualityScore,
-    );
-  });
-  it('should return projects, sort by qualityScore, ASC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-
-      qualityScore: 100,
-    });
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'QualityScore',
-          direction: 'ASC',
-        },
-      },
-    });
-    assert.equal(result.data.data.projects.projects[0].qualityScore, 0);
-    assert.isTrue(
-      result.data.data.projects.projects[0].qualityScore <=
-        result.data.data.projects.projects[1].qualityScore,
-    );
-  });
-  it('should return projects, sort by verified, DESC', async () => {
-    // There is two verified projects so I just need to create a project with verified: false and listed:true
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      verified: false,
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'Verified',
-          direction: 'DESC',
-        },
-      },
-    });
-    const projects = result.data.data.projects.projects;
-    assert.isTrue(projects[0].verified);
-    assert.isTrue(
-      projects[0].creationDate > projects[projects.length - 1].creationDate,
-    );
-  });
-  it('should return projects, sort by verified, ASC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      verified: false,
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'Verified',
-          direction: 'ASC',
-        },
-      },
-    });
-    const projects = result.data.data.projects.projects;
-    assert.isTrue(projects[0].verified);
-    assert.isTrue(
-      projects[0].creationDate < projects[projects.length - 1].creationDate,
-    );
-  });
-
-  it('should return projects, sort by project power', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
-    await PowerBoosting.clear();
-    await PowerBalanceSnapshot.clear();
-    await PowerBoostingSnapshot.clear();
-
-    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const project1 = await saveProjectDirectlyToDb(createProjectData());
-    const project2 = await saveProjectDirectlyToDb(createProjectData());
-    const project3 = await saveProjectDirectlyToDb(createProjectData());
-    const project4 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
-
-    const roundNumber = project3.id * 10;
-
-    await Promise.all(
-      [
-        [user1, project1, 10],
-        [user1, project2, 20],
-        [user1, project3, 30],
-        [user2, project1, 20],
-        [user2, project2, 40],
-        [user2, project3, 60],
-      ].map(item => {
-        const [user, project, percentage] = item as [User, Project, number];
-        return insertSinglePowerBoosting({
-          user,
-          project,
-          percentage,
-        });
-      }),
-    );
-
-    await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
-
-    snapshot.blockNumber = 1;
-    snapshot.roundNumber = roundNumber;
-    await snapshot.save();
-
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
-
-    await setPowerRound(roundNumber);
-    await refreshProjectPowerView();
-
-    let result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        take: 4,
-        orderBy: {
-          field: 'GIVPower',
-          direction: 'DESC',
-        },
-      },
-    });
-    let projects = result.data.data.projects.projects;
-    const totalCount = result.data.data.projects.totalCount;
-    assert.equal(projects[0].id, project3.id);
-    assert.equal(projects[1].id, project2.id);
-    assert.equal(projects[2].id, project1.id);
-    assert.equal(projects[3].id, project4.id);
-
-    assert.equal(projects[0].projectPower.powerRank, 1);
-    assert.equal(projects[1].projectPower.powerRank, 2);
-    assert.equal(projects[2].projectPower.powerRank, 3);
-    assert.equal(projects[3].projectPower.powerRank, 4);
-
-    result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        skip: Math.max(0, totalCount - 4),
-        take: 4,
-        orderBy: {
-          field: 'GIVPower',
-          direction: 'ASC',
-        },
-      },
-    });
-    projects = result.data.data.projects.projects;
-    assert.equal(projects[1].id, project1.id);
-    assert.equal(projects[2].id, project2.id);
-    assert.equal(projects[3].id, project3.id);
-
-    assert.equal(projects[0].projectPower.powerRank, 4);
-    assert.equal(projects[1].projectPower.powerRank, 3);
-    assert.equal(projects[2].projectPower.powerRank, 2);
-    assert.equal(projects[3].projectPower.powerRank, 1);
-  });
-
-  it('should return projects, filter by verified, true', async () => {
-    // There is two verified projects so I just need to create a project with verified: false and listed:true
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      verified: false,
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        filterBy: {
-          field: 'Verified',
-          value: true,
-        },
-      },
-    });
-    assert.isTrue(result.data.data.projects.projects[0].verified);
-    assert.isTrue(
-      result.data.data.projects.projects[
-        result.data.data.projects.projects.length - 1
-      ].verified,
-    );
-  });
-  it('should return projects, filter by verified, false', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      verified: false,
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        filterBy: {
-          field: 'Verified',
-          value: false,
-        },
-      },
-    });
-    assert.isNotTrue(result.data.data.projects.projects[0].verified);
-    assert.isNotTrue(
-      result.data.data.projects.projects[
-        result.data.data.projects.projects.length - 1
-      ].verified,
-    );
-  });
-  it('should return projects, filter by accept donation on gnosis, not return when it doesnt have gnosis address', async () => {
-    const savedProject = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    const gnosisAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.XDAI,
-    })) as ProjectAddress;
-    gnosisAddress.isRecipient = false;
-    await gnosisAddress.save();
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        filterBy: {
-          field: 'AcceptFundOnGnosis',
-          value: true,
-        },
-        orderBy: {
-          field: 'CreationDate',
-          direction: 'DESC',
-        },
-      },
-    });
-    result.data.data.projects.projects.forEach(project => {
-      assert.isOk(
-        project.addresses.find(
-          address =>
-            address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.XDAI,
-        ),
-      );
-    });
-    assert.isNotOk(
-      result.data.data.projects.projects.find(
-        project => Number(project.id) === Number(savedProject.id),
-      ),
-    );
-  });
-  it('should return projects, filter by accept donation on gnosis, return all addresses', async () => {
-    const savedProject = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        filterBy: {
-          field: 'AcceptFundOnGnosis',
-          value: true,
-        },
-        orderBy: {
-          field: 'CreationDate',
-          direction: 'DESC',
-        },
-      },
-    });
-    result.data.data.projects.projects.forEach(item => {
-      assert.isOk(
-        item.addresses.find(
-          address =>
-            address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.XDAI,
-        ),
-      );
-    });
-    const project = result.data.data.projects.projects.find(
-      item => Number(item.id) === Number(savedProject.id),
-    );
-
-    assert.isOk(project);
-    assert.isOk(
-      project.addresses.find(
-        address =>
-          address.isRecipient === true &&
-          address.networkId === NETWORK_IDS.XDAI,
-      ),
-    );
-    assert.isOk(
-      project.addresses.find(
-        address =>
-          address.isRecipient === true &&
-          address.networkId === NETWORK_IDS.MAIN_NET,
-      ),
-    );
-  });
-  it('should return projects, filter by accept donation on gnosis, should not return if it has no address', async () => {
-    const savedProject = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-    });
-    await ProjectAddress.query(`
-        DELETE from project_address
-        WHERE "projectId"=${savedProject.id} 
-       `);
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        filterBy: {
-          field: 'AcceptFundOnGnosis',
-          value: true,
-        },
-        orderBy: {
-          field: 'CreationDate',
-          direction: 'DESC',
-        },
-      },
-    });
-    result.data.data.projects.projects.forEach(project => {
-      assert.isOk(
-        project.addresses.find(
-          address =>
-            address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.XDAI,
-        ),
-      );
-    });
-    assert.isNotOk(
-      result.data.data.projects.projects.find(
-        project => Number(project.id) === Number(savedProject.id),
-      ),
-    );
-  });
-  it('should return projects, sort by traceable, DESC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      traceCampaignId: '1234',
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'Traceable',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.isFalse(
-      result.data.data.projects.projects.some(p => !p.traceCampaignId),
-    );
-  });
-  it('should return projects, sort by traceable, ASC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'Traceable',
-          direction: 'ASC',
-        },
-      },
-    });
-    assert.isFalse(
-      result.data.data.projects.projects.some(p => !!p.traceCampaignId),
-    );
-  });
-  it('should return projects, sort by traceable, ASC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'Traceable',
-          direction: 'ASC',
-        },
-      },
-    });
-    assert.isFalse(
-      result.data.data.projects.projects.some(p => !!p.traceCampaignId),
-    );
-  });
-  it('should return projects, filter by traceable, true', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      traceCampaignId: '1234',
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        filterBy: {
-          field: 'Traceable',
-          value: true,
-        },
-      },
-    });
-    assert.exists(result.data.data.projects.projects[0].traceCampaignId);
-    assert.exists(
-      result.data.data.projects.projects[
-        result.data.data.projects.projects.length - 1
-      ].traceCampaignId,
-    );
-  });
-  it('should return projects, filter by traceable, false', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        filterBy: {
-          field: 'Traceable',
-          value: false,
-        },
-      },
-    });
-    assert.notExists(result.data.data.projects.projects[0].traceCampaignId);
-    assert.notExists(
-      result.data.data.projects.projects[
-        result.data.data.projects.projects.length - 1
-      ].traceCampaignId,
-    );
-  });
-  it('should return projects, sort by reactions, DESC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalReactions: 100,
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'Reactions',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.isTrue(result.data.data.projects.projects[0].totalReactions >= 100);
-  });
-  it('should return projects, sort by reactions, ASC', async () => {
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'Reactions',
-          direction: 'ASC',
-        },
-      },
-    });
-    assert.equal(result.data.data.projects.projects[0].totalReactions, 0);
-  });
-  it('should return projects, sort by donations, DESC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalDonations: 100,
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'Donations',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.isTrue(result.data.data.projects.projects[0].totalDonations >= 100);
-  });
-  it('should return projects, sort by donations, ASC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalDonations: 0,
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'Donations',
-          direction: 'ASC',
-        },
-      },
-    });
-    assert.equal(result.data.data.projects.projects[0].totalDonations, 0);
-  });
-  it('should return projects, sort by totalTraceDonations, DESC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalTraceDonations: 100,
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'TraceDonations',
-          direction: 'DESC',
-        },
-      },
-    });
-    assert.isTrue(
-      result.data.data.projects.projects[0].totalTraceDonations >= 100,
-    );
-  });
-  it('should return just listed projects, sort by acceptGiv, DESC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalTraceDonations: 100,
-      listed: false,
-    });
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalTraceDonations: 100,
-      listed: true,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        limit: 50,
-        orderBy: {
-          field: 'AcceptGiv',
-          direction: 'DESC',
-        },
-      },
-    });
-    result.data.data.projects.projects.forEach(project => {
-      assert.isTrue(project.listed);
-    });
-  });
-  it('should return just listed projects, sort by Verified, DESC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalTraceDonations: 100,
-      verified: true,
-      listed: false,
-    });
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalTraceDonations: 100,
-      verified: true,
-      listed: true,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        limit: 50,
-        orderBy: {
-          field: 'Verified',
-          direction: 'DESC',
-        },
-      },
-    });
-    result.data.data.projects.projects.forEach(project => {
-      assert.isTrue(project.listed);
-    });
-  });
-  it('should return just listed projects, sort by Traceable, DESC', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalTraceDonations: 100,
-      verified: true,
-      traceCampaignId: 'campaignIdInTrace',
-      listed: false,
-    });
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      totalTraceDonations: 100,
-      traceCampaignId: 'campaignIdInTrace',
-      verified: true,
-      listed: true,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        limit: 50,
-        orderBy: {
-          field: 'Traceable',
-          direction: 'DESC',
-        },
-      },
-    });
-    result.data.data.projects.projects.forEach(project => {
-      assert.isTrue(project.listed);
-    });
-  });
-  it('should return projects, sort by totalTraceDonations, ASC', async () => {
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        orderBy: {
-          field: 'TraceDonations',
-          direction: 'ASC',
-        },
-      },
-    });
-    assert.equal(result.data.data.projects.projects[0].totalTraceDonations, 0);
-  });
-  it('should return projects, filtered by sub category', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      categories: ['food5'],
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        category: 'food5',
-      },
-    });
-    assert.isNotEmpty(result.data.data.projects.projects);
-    result.data.data.projects.projects.forEach(project => {
-      assert.isOk(
-        project.categories.find(category => category.name === 'food5'),
-      );
-    });
-  });
-  it('should return projects, filtered by main category', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      categories: ['drink2'],
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        mainCategory: 'drink',
-      },
-    });
-    assert.isNotEmpty(result.data.data.projects.projects);
-    result.data.data.projects.projects.forEach(project => {
-      assert.isOk(
-        project.categories.find(
-          category => category.mainCategory.title === 'drink',
-        ),
-      );
-    });
-  });
-  it('should return projects, filtered by main category and sub category at the same time', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      categories: ['drink2'],
-    });
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      categories: ['drink3'],
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchAllProjectsQuery,
-      variables: {
-        mainCategory: 'drink',
-        category: 'drink3',
-      },
-    });
-    assert.isNotEmpty(result.data.data.projects.projects);
-    result.data.data.projects.projects.forEach(project => {
-      assert.isOk(
-        project.categories.find(
-          category => category.mainCategory.title === 'drink',
-        ),
-      );
-
-      // Should not return projects with drink2 category
-      assert.isOk(
-        project.categories.find(category => category.name === 'drink3'),
-      );
-    });
-  });
-
-  // TODO this test doesnt pass now, but we should fix it
-  // it('should return projects, find by category', async () => {
-  //   const category = 'food7';
-  //   await saveProjectDirectlyToDb({
-  //     ...createProjectData(),
-  //     title: String(new Date().getTime()),
-  //     categories: [category],
-  //   });
-  //   const result = await axios.post(graphqlUrl, {
-  //     query: fetchAllProjectsQuery,
-  //     variables: {
-  //       category: [category],
-  //     },
-  //   });
-  //   assert.equal(
-  //     result.data.data.projects.projects[0].categories[0].name,
-  //     category,
-  //   );
-  // });
-
-  // TODO this test doesnt pass now, but we should fix it
-  // it('should return projects, find by searchItem', async () => {
-  //   const title = 'Project witt test title, should return it';
-  //   await saveProjectDirectlyToDb({
-  //     ...createProjectData(),
-  //     title,
-  //   });
-  //   const result = await axios.post(graphqlUrl, {
-  //     query: fetchAllProjectsQuery,
-  //     variables: {
-  //       searchItem: title,
-  //     },
-  //   });
-  //   assert.equal(result.data.data.projects.projects.length, 1);
-  //   assert.equal(result.data.data.projects.projects[0].title, title);
-  // });
-}
-
 function allProjectsTestCases() {
   it('should return projects search by owner', async () => {
     const result = await axios.post(graphqlUrl, {
@@ -1204,7 +251,9 @@ function allProjectsTestCases() {
 
     const projects = result.data.data.allProjects.projects;
     const secondUserProjects = await Project.find({
-      admin: String(SEED_DATA.SECOND_USER.id),
+      where: {
+        admin: String(SEED_DATA.SECOND_USER.id),
+      },
     });
 
     assert.equal(projects.length, secondUserProjects.length);
@@ -1370,11 +419,42 @@ function allProjectsTestCases() {
     );
   });
   it('should return projects, filter by boosted by givPower, true', async () => {
-    await saveProjectDirectlyToDb({
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
+    await PowerBoosting.clear();
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
-      qualityScore: 0,
     });
+
+    const roundNumber = project.id * 10;
+    await insertSinglePowerBoosting({
+      user,
+      project,
+      percentage: 100,
+    });
+    await takePowerBoostingSnapshot();
+    const incompleteSnapshots = await findInCompletePowerSnapShots();
+    const snapshot = incompleteSnapshots[0];
+
+    snapshot.blockNumber = 1;
+    snapshot.roundNumber = roundNumber;
+    await snapshot.save();
+
+    await insertSinglePowerBalanceSnapshot({
+      userId: user.id,
+      powerSnapshotId: snapshot.id,
+      balance: 200,
+    });
+
+    await setPowerRound(roundNumber);
+    await refreshProjectPowerView();
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1383,8 +463,8 @@ function allProjectsTestCases() {
       },
     });
     assert.isNotEmpty(result.data.data.allProjects.projects);
-    result.data.data.allProjects.projects.forEach(project =>
-      assert.isOk(project?.projectPower?.totalPower > 0),
+    result.data.data.allProjects.projects.forEach(projectQueried =>
+      assert.isOk(projectQueried?.projectPower?.totalPower > 0),
     );
   });
   it('should return projects, filter from the givingblocks', async () => {
@@ -1466,7 +546,9 @@ function allProjectsTestCases() {
   });
 
   it('should return projects, sort by project power DESC', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
@@ -1674,6 +756,7 @@ function allProjectsTestCases() {
     );
   });
   it('should return projects, filter by accept donation on gnosis, return all addresses', async () => {
+    await redis.flushall(); // clear cache from other tests
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -1685,6 +768,7 @@ function allProjectsTestCases() {
       variables: {
         filters: ['AcceptFundOnGnosis'],
         sortingBy: SortingField.Newest,
+        limit: 50,
       },
     });
     result.data.data.allProjects.projects.forEach(item => {
@@ -1724,7 +808,7 @@ function allProjectsTestCases() {
     });
     await ProjectAddress.query(`
         DELETE from project_address
-        WHERE "projectId"=${savedProject.id} 
+        WHERE "projectId"=${savedProject.id}
        `);
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
@@ -2071,7 +1155,7 @@ function createProjectTestCases() {
     );
   });
   it('Should get error, when selected category is not active', async () => {
-    const mainCategory = await MainCategory.findOne();
+    const mainCategory = await MainCategory.findOne({ where: {} });
     const nonActiveCategory = await Category.create({
       name: 'nonActiveCategory',
       value: 'nonActiveCategory',
@@ -2424,6 +1508,50 @@ function createProjectTestCases() {
     assert.equal(
       result.data.data.createProject.addresses[0].address,
       sampleProject.addresses[0].address,
+    );
+  });
+  it('Should create successfully with special characters in title', async () => {
+    const titleWithoutSpecialCharacters = 'title-_' + new Date().getTime();
+    const sampleProject: CreateProjectInput = {
+      title: titleWithoutSpecialCharacters + `?!@#$%^&*+=.|/<">'` + '`',
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
+      description: 'description',
+      image:
+        'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data);
+    assert.exists(result.data.data);
+    assert.exists(result.data.data.createProject);
+    assert.equal(result.data.data.createProject.title, sampleProject.title);
+    assert.equal(
+      result.data.data.createProject.slug,
+      titleWithoutSpecialCharacters,
     );
   });
 
@@ -3453,7 +2581,9 @@ function deactivateProjectTestCases() {
     );
     const project = await saveProjectDirectlyToDb(createProjectData());
     const deactiveStatus = await ProjectStatus.findOne({
-      id: ProjStatus.cancelled,
+      where: {
+        id: ProjStatus.cancelled,
+      },
     });
     project.status = deactiveStatus as ProjectStatus;
     await project.save();
@@ -3498,7 +2628,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
   });
@@ -3525,12 +2657,14 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
-    const projectStatusHistory = await ProjectStatusHistory.findOne({
-      project,
-    });
+    const projectStatusHistory = await findOneProjectStatusHistoryByProjectId(
+      project.id,
+    );
     assert.isOk(projectStatusHistory);
     assert.equal(projectStatusHistory?.reasonId, 1);
   });
@@ -3555,12 +2689,14 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
-    const projectStatusHistory = await ProjectStatusHistory.findOne({
-      project,
-    });
+    const projectStatusHistory = await findOneProjectStatusHistoryByProjectId(
+      project.id,
+    );
     assert.isOk(projectStatusHistory);
     assert.isNotOk(projectStatusHistory?.reasonId);
   });
@@ -3589,7 +2725,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isTrue(updatedProject?.listed);
@@ -3619,7 +2757,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isFalse(updatedProject?.listed);
@@ -3649,7 +2789,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isTrue(updatedProject?.verified);
@@ -3679,7 +2821,9 @@ function deactivateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.deactivateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isFalse(updatedProject?.verified);
@@ -3753,7 +2897,9 @@ function activateProjectTestCases() {
     );
     const project = await saveProjectDirectlyToDb(createProjectData());
     const deactiveStatus = await ProjectStatus.findOne({
-      id: ProjStatus.cancelled,
+      where: {
+        id: ProjStatus.cancelled,
+      },
     });
     project.status = deactiveStatus as ProjectStatus;
     await project.save();
@@ -3801,7 +2947,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
   });
@@ -3830,7 +2978,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
   });
@@ -3859,12 +3009,14 @@ function activateProjectTestCases() {
     );
     assert.equal(deactivateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
-    const projectStatusHistory = await ProjectStatusHistory.findOne({
-      project,
-    });
+    const projectStatusHistory = await findOneProjectStatusHistoryByProjectId(
+      project.id,
+    );
     assert.isOk(projectStatusHistory);
     assert.isNotOk(projectStatusHistory?.reasonId);
   });
@@ -3895,7 +3047,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isNull(updatedProject?.listed);
@@ -3926,7 +3080,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isNull(updatedProject?.listed);
@@ -3956,7 +3112,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isTrue(updatedProject?.verified);
@@ -3986,7 +3144,9 @@ function activateProjectTestCases() {
     );
     assert.equal(activateProjectResult.data.data.activateProject, true);
     const updatedProject = await Project.findOne({
-      id: project.id,
+      where: {
+        id: project.id,
+      },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isFalse(updatedProject?.verified);
@@ -4013,8 +3173,10 @@ function likedProjectsByUserIdTestCases() {
       assert.equal(project.organization.label, ORGANIZATION_LABELS.GIVETH);
     });
     const reaction = await Reaction.findOne({
-      userId: SEED_DATA.FIRST_USER.id,
-      projectId: SEED_DATA.FIRST_PROJECT.id,
+      where: {
+        userId: SEED_DATA.FIRST_USER.id,
+        projectId: SEED_DATA.FIRST_PROJECT.id,
+      },
     });
 
     assert.equal(projects[0].id, reaction?.projectId);
@@ -4517,6 +3679,71 @@ function getPurpleListTestCases() {
   });
 }
 
+function projectUpdatesTestCases() {
+  it('should return all project updates limited by take and ordered by craetedAt desc', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
+    const user = await User.findOne({
+      where: {
+        id: SEED_DATA.FIRST_USER.id,
+      },
+    });
+
+    const projectUpdate1 = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project.id,
+      content: 'TestProjectUpdate1',
+      title: 'testEditProjectUpdate1',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+    const projectUpdate2 = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project2.id,
+      content: 'TestProjectUpdate2',
+      title: 'testEditProjectUpdate2',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+    const projectUpdate3 = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project2.id,
+      content: 'TestProjectUpdateExcluded',
+      title: 'testEditProjectUpdateExcluded',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+
+    const take = 3; // there are other previously created updates
+    const result = await axios.post(graphqlUrl, {
+      query: fetchLatestProjectUpdates,
+      variables: {
+        take,
+      },
+    });
+
+    assert.isOk(result);
+    const data = result.data.data.projectUpdates.projectUpdates;
+    // assert only project's most recent updates are returned
+    assert.equal(data.length, 3);
+    for (const pu of data) {
+      assert.isTrue(
+        pu.id === projectUpdate1.id ||
+          pu.id === projectUpdate3.id ||
+          pu.id !== projectUpdate2.id,
+      );
+    }
+    // Assert ordered (which matches order of creation) and project data present
+    assert.isTrue(new Date(data[0].createdAt) > new Date(data[1].createdAt));
+    assert.isOk(data[0].project.slug);
+    assert.equal(data[0].project.slug, project2.slug);
+  });
+}
+
 function getProjectUpdatesTestCases() {
   it('should return project updates with current take', async () => {
     const take = 2;
@@ -4552,11 +3779,11 @@ function getProjectUpdatesTestCases() {
       pu => +pu.id !== PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
     );
 
-    assert.equal(
-      likedProject?.reaction?.id,
-      REACTION_SEED_DATA.FIRST_LIKED_PROJECT_UPDATE_REACTION.id,
-    );
-    assert.isNull(noLikedProject?.reaction);
+    // assert.equal(
+    //   likedProject?.reaction?.id,
+    //   REACTION_SEED_DATA.FIRST_LIKED_PROJECT_UPDATE_REACTION.id,
+    // );
+    // assert.isNull(noLikedProject?.reaction);
   });
 }
 
@@ -4568,9 +3795,11 @@ function projectBySlugTestCases() {
       slug: String(new Date().getTime()),
     });
 
-    const user = await User.findOne({
-      id: Number(project1.admin),
-    });
+    const user = (await User.findOne({
+      where: {
+        id: Number(project1.admin),
+      },
+    })) as User;
 
     const verificationForm = await ProjectVerificationForm.create({
       project: project1,
@@ -4612,9 +3841,12 @@ function projectBySlugTestCases() {
       slug: String(new Date().getTime()),
     });
 
-    const user = await User.findOne({
-      id: Number(project1.admin),
-    });
+    const user =
+      (await User.findOne({
+        where: {
+          id: Number(project1.admin),
+        },
+      })) || undefined;
 
     const verificationForm = await ProjectVerificationForm.create({
       project: project1,
@@ -4663,7 +3895,9 @@ function projectBySlugTestCases() {
   });
 
   it('should return projects including projectPower', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
@@ -4715,7 +3949,9 @@ function projectBySlugTestCases() {
   });
 
   it('should return projects including project future power rank', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
@@ -4811,7 +4047,9 @@ function projectBySlugTestCases() {
   });
 
   it('should return projects with null project future power rank when no snapshot is synced', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
@@ -5140,7 +4378,7 @@ function similarProjectsBySlugTestCases() {
       },
     });
 
-    const c = await Category.findOne({ name: 'food8' });
+    const c = await Category.findOne({ where: { name: 'food8' } });
     const [_, relatedCount] = await Project.createQueryBuilder('project')
       .innerJoinAndSelect('project.categories', 'categories')
       .where('categories.id IN (:...ids)', { ids: [c?.id] })

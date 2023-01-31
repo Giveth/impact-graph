@@ -2,7 +2,6 @@
   "defaultSeverity": "error",
   "extends": [
     "tslint:recommended",
-    "tslint-eslint-rules",
     "tslint-plugin-prettier",
     "tslint-config-prettier"
   ],
@@ -21,10 +20,9 @@
     ],
     "jsdoc-format": false,
     "adjacent-overload-signatures": true,
-    "quotemark": [
-      true,
-      "single"
-    ],
+    "quotemark": {
+      "options": "single"
+    },
     "ban-types": false,
     "no-console": true,
     "no-namespace": false,
@@ -72,7 +70,6 @@
       "check-branch",
       "check-module"
     ],
-    "object-curly-spacing": true,
     "indent": [
       true,
       "spaces",

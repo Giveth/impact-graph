@@ -41,8 +41,8 @@ export class SegmentAnalyticsSingleton {
     await SegmentAnalyticsSingleton.segmentAnalyticsInstance.identify({
       userId: user.segmentUserId(),
       traits: {
-        firstName: user.firstName,
-        email: user.email,
+        firstName: user.firstName || undefined,
+        email: user.email || undefined,
         registeredAt: new Date(),
       },
     });

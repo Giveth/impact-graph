@@ -1,5 +1,4 @@
 import {
-  Category,
   Project,
   ProjectUpdate,
   ProjStatus,
@@ -7,12 +6,12 @@ import {
 } from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
 import { ProjectStatus } from '../entities/projectStatus';
-import AdminBro, { ActionResponse, After } from 'admin-bro';
+import AdminBro from 'adminjs';
 import { User, UserRole } from '../entities/user';
-import AdminBroExpress from '@admin-bro/express';
+import AdminBroExpress from '@adminjs/express';
 import config from '../config';
 import { redis } from '../redis';
-import { Database, Resource } from '@admin-bro/typeorm';
+import { Database, Resource } from '@adminjs/typeorm';
 import { SelectQueryBuilder } from 'typeorm';
 import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { logger } from '../utils/logger';
@@ -79,10 +78,13 @@ import {
   verifyMultipleProjects,
   verifyProject,
 } from '../repositories/projectRepository';
-import { RecordJSON } from 'admin-bro/src/frontend/interfaces/record-json.interface';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
 import { updateTotalDonationsOfProject } from '../services/donationService';
-import { updateUserTotalDonated } from '../services/userService';
+import {
+  fetchAdminAndValidatePassword,
+  updateUserTotalDonated,
+} from '../services/userService';
 import { MainCategory } from '../entities/mainCategory';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
@@ -92,6 +94,18 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
+import {
+  ActionResponse,
+  After,
+} from 'adminjs/src/backend/actions/action.interface';
+import { Category } from '../entities/category';
+import BroadcastNotification, {
+  BROAD_CAST_NOTIFICATION_STATUS,
+} from '../entities/broadcastNotification';
+
+import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
+import { findTokenByTokenId } from '../repositories/tokenRepository';
+import { calculateGivbackFactor } from '../services/givbackService';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -162,23 +176,12 @@ export const getAdminBroRouter = async () => {
   return AdminBroExpress.buildAuthenticatedRouter(
     await getAdminBroInstance(),
     {
-      authenticate: async (email, password) => {
-        try {
-          const user = await findAdminUserByEmail(email);
-          if (user) {
-            const matched = await bcrypt.compare(
-              password,
-              user.encryptedPassword,
-            );
-            if (matched) {
-              return user;
-            }
-          }
-          return false;
-        } catch (e) {
-          logger.error({ e });
+      authenticate: async (email, password): Promise<User | boolean> => {
+        const admin = await fetchAdminAndValidatePassword({ email, password });
+        if (!admin) {
           return false;
         }
+        return admin;
       },
       cookiePassword: secret,
     },
@@ -320,7 +323,7 @@ const getAdminBroInstance = async () => {
       favicon:
         'https://icoholder.com/media/cache/ico_logo_view_page/files/img/e15c430125a607a604a3aee82e65a8f7.png',
       companyName: 'Giveth',
-      softwareBrothers: false,
+      // softwareBrothers: false,
     },
     locale: {
       translations: {
@@ -694,6 +697,51 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
 
+            isCustomToken: {
+              isVisible: false,
+            },
+
+            contactEmail: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+
+            onramperTransactionStatus: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+
+            onramperId: {
+              isVisible: {
+                list: false,
+                filter: true,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
+            givbackFactor: {
+              isVisible: false,
+            },
+            projectRank: {
+              isVisible: false,
+            },
+            bottomRankInRound: {
+              isVisible: false,
+            },
+            powerRound: {
+              isVisible: false,
+            },
             verifyErrorMessage: {
               isVisible: {
                 list: false,
@@ -707,7 +755,7 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             isFiat: {
-              isVisible: true,
+              isVisible: false,
             },
             donationType: {
               isVisible: false,
@@ -809,7 +857,7 @@ const getAdminBroInstance = async () => {
               availableValues: [
                 { value: 1, label: 'Mainnet' },
                 { value: 100, label: 'Xdai' },
-                { value: 3, label: 'Ropsten' },
+                { value: 5, label: 'Goerli' },
               ],
               isVisible: true,
             },
@@ -1226,7 +1274,12 @@ const getAdminBroInstance = async () => {
               },
             },
             totalDonations: {
-              isVisible: { list: false, filter: false, show: true, edit: true },
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+              },
             },
             totalTraceDonations: {
               isVisible: { list: false, filter: false, show: true, edit: true },
@@ -1446,7 +1499,9 @@ const getAdminBroInstance = async () => {
                 context: AdminBroContextInterface,
               ) => {
                 const { currentAdmin } = context;
-                const project = await Project.findOne(request?.record?.id);
+                const project = await Project.findOne({
+                  where: { id: request?.record?.id },
+                });
                 if (project) {
                   // Not required for now
                   // Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
@@ -1866,11 +1921,74 @@ const getAdminBroInstance = async () => {
           },
         },
       },
+      {
+        resource: BroadcastNotification,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              before: async (
+                request: AdminBroRequestInterface,
+                context: AdminBroContextInterface,
+              ) => {
+                if (request?.payload?.html) {
+                  const { currentAdmin } = context;
+                  request.payload.adminUserId = currentAdmin?.id;
+                }
+                return request;
+              },
+              after: sendBroadcastNotification,
+            },
+            edit: {
+              isVisible: false,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            title: {
+              isVisible: true,
+            },
+            html: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: true,
+                edit: true,
+              },
+              components: {
+                edit: AdminBro.bundle('./components/MDtoHTML'),
+              },
+            },
+            status: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+            adminUserId: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+          },
+        },
+      },
     ],
     rootPath: adminBroRootPath,
   });
 };
-
 interface AdminBroProjectsQuery {
   statusId?: string;
   title?: string;
@@ -2026,7 +2144,7 @@ export const exportProjectsWithFiltersToCsv = async (
     await sendProjectsToGoogleSheet(projects);
 
     return {
-      redirectUrl: 'Project',
+      redirectUrl: '/admin/resources/Project',
       records,
       notice: {
         message: `Project(s) successfully exported`,
@@ -2035,7 +2153,7 @@ export const exportProjectsWithFiltersToCsv = async (
     };
   } catch (e) {
     return {
-      redirectUrl: 'Project',
+      redirectUrl: '/admin/resources/Project',
       record: {},
       notice: {
         message: e.message,
@@ -2122,7 +2240,7 @@ export const listDelist = async (
     throw error;
   }
   return {
-    redirectUrl: 'Project',
+    redirectUrl: '/admin/resources/Project',
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -2131,6 +2249,32 @@ export const listDelist = async (
       type: 'success',
     },
   };
+};
+
+export const sendBroadcastNotification = async (
+  response,
+): Promise<After<ActionResponse>> => {
+  const record: RecordJSON = response.record || {};
+  if (record?.params) {
+    const { html, id } = record?.params;
+    try {
+      await getNotificationAdapter().broadcastNotification({
+        broadCastNotificationId: id,
+        html,
+      });
+      await updateBroadcastNotificationStatus(
+        id,
+        BROAD_CAST_NOTIFICATION_STATUS.SUCCESS,
+      );
+    } catch (e) {
+      logger.error('sendBroadcastNotification error', e);
+      await updateBroadcastNotificationStatus(
+        id,
+        BROAD_CAST_NOTIFICATION_STATUS.FAILED,
+      );
+    }
+  }
+  return response;
 };
 
 export const verifySingleVerificationForm = async (
@@ -2206,6 +2350,7 @@ export const verifySingleVerificationForm = async (
     responseMessage = 'Verify/Reject verification form failed ' + error.message;
   }
   const x: RecordJSON = {
+    baseError: null,
     id: String(formId),
     title: '',
     bulkActions: [],
@@ -2263,6 +2408,7 @@ export const makeEditableByUser = async (
     responseMessage = 'Verify/Reject verification form failed ' + error.message;
   }
   const x: RecordJSON = {
+    baseError: null,
     id: String(formId),
     title: '',
     bulkActions: [],
@@ -2338,7 +2484,7 @@ export const verifyVerificationForms = async (
     responseType = 'danger';
   }
   return {
-    redirectUrl: 'ProjectVerificationForm',
+    redirectUrl: '/admin/resources/ProjectVerificationForm',
     // record: {},
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
@@ -2431,7 +2577,7 @@ export const verifyProjects = async (
     throw error;
   }
   return {
-    redirectUrl: 'Project',
+    redirectUrl: '/admin/resources/Project',
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -2451,7 +2597,9 @@ export const updateStatusOfProjects = async (
 ) => {
   const { records, currentAdmin } = context;
   try {
-    const projectStatus = await ProjectStatus.findOne({ id: status });
+    const projectStatus = await ProjectStatus.findOne({
+      where: { id: status },
+    });
     if (projectStatus) {
       const updateData: any = { status: projectStatus };
       if (status === ProjStatus.cancelled) {
@@ -2500,7 +2648,7 @@ export const updateStatusOfProjects = async (
     throw error;
   }
   return {
-    redirectUrl: 'Project',
+    redirectUrl: '/admin/resources/Project',
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
@@ -2520,9 +2668,7 @@ export const linkOrganizations = async (request: AdminBroRequestInterface) => {
   let type = 'success';
   const { organizations, id } = request.record.params;
   try {
-    const token = await Token.createQueryBuilder('token')
-      .where('token.id = :id', { id })
-      .getOne();
+    const token = await findTokenByTokenId(id);
 
     if (organizations) {
       // delete organization relation and relink them
@@ -2587,7 +2733,6 @@ export const createToken = async (
           labels: organizations.split(','),
         })
         .getMany();
-
       newToken.organizations = organizationsInDb;
     }
 
@@ -2599,7 +2744,7 @@ export const createToken = async (
   }
 
   response.send({
-    redirectUrl: 'Token',
+    redirectUrl: '/admin/resources/Token',
     record: {},
     notice: {
       message,
@@ -2643,13 +2788,13 @@ export const importThirdPartyProject = async (
     });
     await importHistoryRecord.save();
   } catch (e) {
-    message = e.message;
+    message = e?.message || e;
     type = 'danger';
     logger.error('import third party project error', e.message);
   }
 
   response.send({
-    redirectUrl: 'list',
+    redirectUrl: '/admin/resources/ThirdPartyProjectImport',
     record: {},
     notice: {
       message,
@@ -2734,7 +2879,13 @@ export const createDonation = async (
         continue;
       }
 
+      const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+        await calculateGivbackFactor(project.id);
       const donation = Donation.create({
+        givbackFactor,
+        projectRank,
+        bottomRankInRound,
+        powerRound,
         fromWalletAddress: transactionInfo?.from,
         toWalletAddress: transactionInfo?.to,
         transactionId: txHash,
@@ -2772,7 +2923,7 @@ export const createDonation = async (
   }
 
   response.send({
-    redirectUrl: 'Donation',
+    redirectUrl: '/admin/resources/Donation',
     record: {},
     notice: {
       message,

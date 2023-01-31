@@ -20,7 +20,6 @@ import {
   findProjectPowerViewByProjectId,
 } from './projectPowerViewRepository';
 import { Project, ProjStatus } from '../entities/project';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import {
@@ -29,6 +28,7 @@ import {
 } from './powerSnapshotRepository';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { ProjectStatus } from '../entities/projectStatus';
+import { AppDataSource } from '../orm';
 
 describe(
   'projectPowerViewRepository test',
@@ -49,7 +49,9 @@ describe('getBottomPowerRank test cases', getBottomPowerRankTestCases);
 
 function projectPowerViewRepositoryTestCases() {
   beforeEach(async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
   });
@@ -108,7 +110,9 @@ function projectPowerViewRepositoryTestCases() {
     await saveProjectDirectlyToDb(createProjectData());
     const nonActiveProject = await saveProjectDirectlyToDb(createProjectData());
     const status = await ProjectStatus.findOne({
-      id: ProjStatus.deactive,
+      where: {
+        id: ProjStatus.deactive,
+      },
     });
     nonActiveProject.status = status as ProjectStatus;
     await nonActiveProject.save();
@@ -251,7 +255,9 @@ function projectPowerViewRepositoryTestCases() {
 
 function findProjectPowerViewByProjectIdTestCases() {
   beforeEach(async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
   });
@@ -293,7 +299,9 @@ function findProjectPowerViewByProjectIdTestCases() {
 
 function projectFuturePowerViewRepositoryTestCases() {
   beforeEach(async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
@@ -395,7 +403,9 @@ function projectFuturePowerViewRepositoryTestCases() {
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const nonActiveProject = await saveProjectDirectlyToDb(createProjectData());
     const status = await ProjectStatus.findOne({
-      id: ProjStatus.deactive,
+      where: {
+        id: ProjStatus.deactive,
+      },
     });
     nonActiveProject.status = status as ProjectStatus;
     await nonActiveProject.save();
@@ -479,7 +489,9 @@ function projectFuturePowerViewRepositoryTestCases() {
 
 function getBottomPowerRankTestCases() {
   beforeEach(async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
   });

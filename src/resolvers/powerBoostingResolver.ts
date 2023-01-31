@@ -27,11 +27,9 @@ import {
 } from '../repositories/powerBoostingRepository';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
-import { OrderField, Project, SortingField } from '../entities/project';
 import { logger } from '../utils/logger';
 import { getBottomRank } from '../repositories/projectPowerViewRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { findProjectById } from '../repositories/projectRepository';
 
 enum PowerBoostingOrderDirection {
   ASC = 'ASC',

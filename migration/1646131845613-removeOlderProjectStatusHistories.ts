@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class removeOlderProjectStatusHistories1646131845613
   implements MigrationInterface
 {
@@ -9,5 +10,6 @@ export class removeOlderProjectStatusHistories1646131845613
     await queryRunner.query(`DROP TABLE IF EXISTS project_status_history`);
   }
 
+  // tslint:disable-next-line:no-empty
   async down(queryRunner: QueryRunner): Promise<void> {}
 }

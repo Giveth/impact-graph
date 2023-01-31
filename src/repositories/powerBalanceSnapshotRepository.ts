@@ -1,4 +1,5 @@
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { DeepPartial } from 'typeorm';
 
 export const createPowerSnapshotBalances = async (
   params: {
@@ -7,7 +8,9 @@ export const createPowerSnapshotBalances = async (
     balance: number;
   }[],
 ): Promise<void> => {
-  const powerBalanceSnapshots = PowerBalanceSnapshot.create(params);
+  const powerBalanceSnapshots = PowerBalanceSnapshot.create(
+    params as DeepPartial<PowerBalanceSnapshot>[],
+  );
   await PowerBalanceSnapshot.save(powerBalanceSnapshots);
 };
 

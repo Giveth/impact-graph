@@ -9,6 +9,7 @@ import sinon from 'sinon';
 import { Donation, DONATION_STATUS } from '../../entities/donation';
 import { notifyMissingDonationsWithSegment } from './notifyDonationsWithSegment';
 import * as utils from '../../utils/utils';
+import { findDonationById } from '../../repositories/donationRepository';
 
 describe(
   'notifyMissingDonationsWithSegment() test cases',
@@ -51,9 +52,9 @@ function notifyMissingDonationsWithSegmentTestCases() {
     );
 
     await notifyMissingDonationsWithSegment();
-    const updatedVerifiedDonation = await Donation.findOne(verifiedDonation.id);
-    const updatedPendingDonation = await Donation.findOne(pendingDonation.id);
-    const updatedFailedDonation = await Donation.findOne(failedDonation.id);
+    const updatedVerifiedDonation = await findDonationById(verifiedDonation.id);
+    const updatedPendingDonation = await findDonationById(pendingDonation.id);
+    const updatedFailedDonation = await findDonationById(failedDonation.id);
     assert.isTrue(updatedVerifiedDonation?.segmentNotified);
     assert.isFalse(updatedPendingDonation?.segmentNotified);
     assert.isFalse(updatedFailedDonation?.segmentNotified);

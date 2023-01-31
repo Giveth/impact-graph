@@ -3,6 +3,7 @@ import { Token } from '../src/entities/token';
 import seedTokens from './data/seedTokens';
 import config from '../src/config';
 
+// tslint:disable-next-line:class-name
 export class addGoerliTokens1661116436720 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;

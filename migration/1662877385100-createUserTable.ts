@@ -1,5 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// tslint:disable-next-line:class-name
 export class createUserTable1662877385100 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const userTableExists = await queryRunner.hasTable('public.user');
@@ -12,7 +13,7 @@ export class createUserTable1662877385100 implements MigrationInterface {
     await queryRunner.query(
       `
               CREATE TYPE user_role_enum AS ENUM ('reviewer', 'operator', 'restricted', 'admin');
-              
+
               CREATE TABLE IF NOT EXISTS public."user"
               (
                   id SERIAL NOT NULL,
@@ -35,7 +36,7 @@ export class createUserTable1662877385100 implements MigrationInterface {
                   "totalReceived" real DEFAULT 0,
                   CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY (id),
                   CONSTRAINT "UQ_efbd1135797e451d834bcf88cd2" UNIQUE ("walletAddress")
-              )                  
+              )
             `,
     );
   }

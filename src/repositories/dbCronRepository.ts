@@ -1,6 +1,6 @@
-import { Connection, getConnection } from 'typeorm';
 import { CronJob } from '../entities/CronJob';
 import { logger } from '../utils/logger';
+import { AppDataSource, CronDataSource } from '../orm';
 
 export const POWER_BOOSTING_SNAPSHOT_TASK_NAME =
   'take givpower boosting snapshot';
@@ -10,8 +10,7 @@ export const EVERY_MINUTE_CRON_JOB_EXPRESSION = '* * * * * *';
 export const EVERY_YEAR_CRON_JOB_EXPRESSION = '0 0 1 1 *';
 
 export const setupPgCronExtension = async () => {
-  const connection = getConnection('cron');
-  await connection.query(`
+  await CronDataSource.getDataSource().query(`
       CREATE EXTENSION IF NOT EXISTS PG_CRON;
 
       GRANT USAGE ON SCHEMA CRON TO POSTGRES;
@@ -21,8 +20,7 @@ export const setupPgCronExtension = async () => {
 export const schedulePowerBoostingSnapshot = async (
   cronJobExpression: string,
 ) => {
-  const connection = getConnection('cron');
-  await connection.query(`
+  await CronDataSource.getDataSource().query(`
       CREATE EXTENSION IF NOT EXISTS PG_CRON;
 
       GRANT USAGE ON SCHEMA CRON TO POSTGRES;
@@ -36,7 +34,7 @@ export const schedulePowerBoostingSnapshot = async (
 };
 
 export const invokeGivPowerHistoricProcedures = async () => {
-  const queryRunner = getConnection().createQueryRunner();
+  const queryRunner = AppDataSource.getDataSource().createQueryRunner();
   await queryRunner.connect();
   await queryRunner.startTransaction();
 
@@ -56,8 +54,7 @@ export const invokeGivPowerHistoricProcedures = async () => {
 export const schedulePowerSnapshotsHistory = async (
   cronJobExpression: string,
 ) => {
-  const connection = getConnection('cron');
-  await connection.query(`
+  await CronDataSource.getDataSource().query(`
       CREATE EXTENSION IF NOT EXISTS PG_CRON;
 
       GRANT USAGE ON SCHEMA CRON TO POSTGRES;
@@ -71,8 +68,7 @@ export const schedulePowerSnapshotsHistory = async (
 };
 
 export const unSchedulePowerBoostingSnapshot = async () => {
-  const connection = getConnection('cron');
-  await connection.query(
+  await CronDataSource.getDataSource().query(
     `SELECT cron.unschedule('${POWER_BOOSTING_SNAPSHOT_TASK_NAME}')`,
   );
 };
@@ -80,7 +76,7 @@ export const unSchedulePowerBoostingSnapshot = async () => {
 export const getTakeSnapshotJobsAndCount = async (): Promise<
   [CronJob[], number]
 > => {
-  return await getConnection('cron')
+  return await CronDataSource.getDataSource()
     .createQueryBuilder(CronJob, 'job')
     .where('job.jobname = :jobName', {
       jobName: POWER_BOOSTING_SNAPSHOT_TASK_NAME,
@@ -89,6 +85,7 @@ export const getTakeSnapshotJobsAndCount = async (): Promise<
 };
 
 export const dropDbCronExtension = async () => {
-  const connection = getConnection('cron');
-  await connection.query(`DROP EXTENSION IF EXISTS PG_CRON;`);
+  await CronDataSource.getDataSource().query(
+    `DROP EXTENSION IF EXISTS PG_CRON;`,
+  );
 };

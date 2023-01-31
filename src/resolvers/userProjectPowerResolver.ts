@@ -20,12 +20,12 @@ import { Service } from 'typedi';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository';
 
-enum UserPowerOrderDirection {
+export enum UserPowerOrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
 
-enum UserPowerOrderField {
+export enum UserPowerOrderField {
   Percentage = 'percentage',
   BoostedPower = 'boostedPower',
 }
@@ -41,12 +41,12 @@ registerEnumType(UserPowerOrderDirection, {
 });
 
 @InputType()
-class UserPowerOrderBy {
+export class UserPowerOrderBy {
   @Field(type => UserPowerOrderField, {
     nullable: true,
     defaultValue: UserPowerOrderField.BoostedPower,
   })
-  field: UserPowerOrderField;
+  field: UserPowerOrderField | null;
 
   @Field(type => UserPowerOrderDirection, {
     nullable: true,

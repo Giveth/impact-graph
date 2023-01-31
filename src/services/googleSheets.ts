@@ -30,12 +30,12 @@ export const addSheetWithRows = async (
   rows: {
     id: number;
     title: string;
-    slug?: string;
-    admin?: string;
+    slug?: string | null;
+    admin?: string | null;
     creationDate: Date;
     updatedAt: Date;
-    impactLocation?: string;
-    walletAddress?: string;
+    impactLocation?: string | null;
+    walletAddress?: string | null;
     statusId: number;
     qualityScore: number;
     verified: boolean;

@@ -14,7 +14,6 @@ import {
   createDonation,
   findDonationById,
   findDonationsByTransactionId,
-  findStableCoinDonationsWithoutPrice,
   findUsersWhoDonatedToProjectExcludeWhoLiked,
 } from './donationRepository';
 import { Reaction } from '../entities/reaction';
@@ -64,10 +63,6 @@ describe(
   findStableCoinDonationsWithoutPriceTestCases,
 );
 describe('findDonationById() test cases', findDonationByIdTestCases);
-describe(
-  'findUsersWhoDonatedToProjectExcludeWhoLiked() test cases',
-  findUsersWhoDonatedToProjectTestCases,
-);
 
 function findDonationsByTransactionIdTestCases() {
   it('should return donation with txHash ', async () => {

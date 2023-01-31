@@ -20,7 +20,7 @@ function updateProjectListingTestCases() {
     const project = await saveProjectDirectlyToDb(projectData);
 
     await updateProjectListing();
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isTrue(updatedProject?.listed);
   });
 
@@ -31,7 +31,7 @@ function updateProjectListingTestCases() {
     const project = await saveProjectDirectlyToDb(projectData);
 
     await updateProjectListing();
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isNotOk(updatedProject?.listed);
   });
 
@@ -43,7 +43,7 @@ function updateProjectListingTestCases() {
     const project = await saveProjectDirectlyToDb(projectData);
 
     await updateProjectListing();
-    const updatedProject = await Project.findOne({ id: project.id });
+    const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isNotOk(updatedProject?.listed);
   });
 }

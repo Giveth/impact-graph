@@ -1,8 +1,6 @@
-import { getConnection } from 'typeorm';
 import {
   dropDbCronExtension,
   EVERY_MINUTE_CRON_JOB_EXPRESSION,
-  EVERY_YEAR_CRON_JOB_EXPRESSION,
   getTakeSnapshotJobsAndCount,
   invokeGivPowerHistoricProcedures,
   POWER_BOOSTING_SNAPSHOT_TASK_NAME,
@@ -12,7 +10,6 @@ import {
 } from './dbCronRepository';
 import { assert } from 'chai';
 import config from '../config';
-import { CronJob } from '../entities/CronJob';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -28,11 +25,12 @@ import {
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { getPowerRound, setPowerRound } from './powerRoundRepository';
+import { setPowerRound } from './powerRoundRepository';
 import { PowerSnapshotHistory } from '../entities/powerSnapshotHistory';
 import { PowerBoostingSnapshotHistory } from '../entities/powerBoostingSnapshotHistory';
 import { insertSinglePowerBalanceSnapshot } from './powerSnapshotRepository';
 import { PowerBalanceSnapshotHistory } from '../entities/powerBalanceSnapshotHistory';
+import { AppDataSource } from '../orm';
 
 describe(
   'db cron job historic procedures tests cases',
@@ -41,7 +39,9 @@ describe(
 
 function givPowerHistoricTestCases() {
   it('should move data older than 1 round less to the historic tables', async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
@@ -63,7 +63,7 @@ function givPowerHistoricTestCases() {
 
     await takePowerBoostingSnapshot();
 
-    const roundOneSnapshot = await PowerSnapshot.findOne();
+    const [roundOneSnapshot] = await PowerSnapshot.find({ take: 1 });
     roundOneSnapshot!.roundNumber = 1;
     await roundOneSnapshot!.save();
 
@@ -81,7 +81,9 @@ function givPowerHistoricTestCases() {
     await takePowerBoostingSnapshot();
 
     const roundTwoSnapshot = await PowerSnapshot.findOne({
-      id: roundOneSnapshot!.id + 1,
+      where: {
+        id: roundOneSnapshot!.id + 1,
+      },
     });
     roundTwoSnapshot!.roundNumber = 5;
     await roundTwoSnapshot!.save();
@@ -98,7 +100,9 @@ function givPowerHistoricTestCases() {
     await takePowerBoostingSnapshot();
 
     const roundThreeSnapshot = await PowerSnapshot.findOne({
-      id: roundTwoSnapshot!.id + 1,
+      where: {
+        id: roundTwoSnapshot!.id + 1,
+      },
     });
     roundThreeSnapshot!.roundNumber = 5;
     await roundThreeSnapshot!.save();
@@ -166,7 +170,9 @@ function givPowerHistoricTestCases() {
 
 describe('db cron job test', () => {
   beforeEach(async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
   });

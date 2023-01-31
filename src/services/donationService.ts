@@ -103,7 +103,9 @@ export const updateDonationByTransakData = async (
   transakData: TransakOrder,
 ) => {
   const donation = await Donation.findOne({
-    transactionId: transakData.webhookData.id,
+    where: {
+      transactionId: transakData.webhookData.id,
+    },
   });
   if (!donation) throw new Error('Donation not found.');
   let donationProjectIsValid = true;
@@ -129,7 +131,9 @@ export const updateDonationByTransakData = async (
     // we should check the walletAddress is matched with what is in donation, ir prevents fraud
     donation.toWalletAddress = transakData.webhookData.walletAddress;
     const project = await Project.findOne({
-      walletAddress: transakData.webhookData.walletAddress,
+      where: {
+        walletAddress: transakData.webhookData.walletAddress,
+      },
     });
     if (project) {
       donation.projectId = project.id || 0;

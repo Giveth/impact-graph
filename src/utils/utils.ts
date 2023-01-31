@@ -1,7 +1,64 @@
 import { Country } from '../entities/Country';
+import { SortingField } from '../entities/project';
+import { FilterField } from '../resolvers/projectResolver';
+import slugify from 'slugify';
+
+import stringify from 'json-stable-stringify';
+// tslint:disable-next-line:no-var-requires
+const { createHash } = require('node:crypto');
 
 export const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+export const generateProjectFiltersCacheKey = async (args: {
+  limit?: number;
+  skip?: number;
+  searchTerm?: string;
+  category?: string;
+  mainCategory?: string;
+  filters?: FilterField[];
+  sortingBy?: SortingField;
+  suffix?: string;
+}) => {
+  const orderedArgs = stringify(args);
+  return createHash('md5').update(orderedArgs).digest().toString('hex');
+};
+
+export const titleWithoutSpecialCharacters = (title: string): string => {
+  const ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
+    '`',
+    `'`,
+    '<',
+    '>',
+    '"',
+    '+',
+    '&',
+    '^',
+    '$',
+    '@',
+    '!',
+    '*',
+    '#',
+    '=',
+    '.',
+    '?',
+    '/',
+    '|',
+    '%',
+    '`',
+  ];
+  let cleanTitle = title;
+  ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(
+    character =>
+      // this do like replaceAll
+      (cleanTitle = cleanTitle.split(character).join('')),
+  );
+  return cleanTitle;
+};
+
+export const creteSlugFromProject = (title: string): string => {
+  return slugify(titleWithoutSpecialCharacters(title));
 };
 
 export const convertExponentialNumber = (n: number): number => {

@@ -2,12 +2,7 @@ import Axios, { AxiosResponse } from 'axios';
 import slugify from 'slugify';
 import config from '../../config';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
-import {
-  Category,
-  Project,
-  ProjectUpdate,
-  ProjStatus,
-} from '../../entities/project';
+import { Project, ProjectUpdate, ProjStatus } from '../../entities/project';
 import { ProjectStatus } from '../../entities/projectStatus';
 import {
   errorMessages,
@@ -17,11 +12,10 @@ import {
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { findUserById } from '../../repositories/userRepository';
-import { CATEGORY_NAMES } from '../../entities/category';
+import { Category, CATEGORY_NAMES } from '../../entities/category';
 import { addBulkNewProjectAddress } from '../../repositories/projectAddressRepository';
 import { NETWORK_IDS } from '../../provider';
-
-const changeAPIHandle = 'change';
+import { User } from '../../entities/user';
 
 const changeApiNonProfitUrl = config.get(
   'CHANGE_API_NON_PROFITS_SEARCH_URL',
@@ -92,14 +86,17 @@ export const createProjectFromChangeNonProfit = async (
 ): Promise<Project | undefined> => {
   try {
     const changeCategory = await findOrCreateChangeAPICategory();
-    const activeStatus = await ProjectStatus.findOne({ id: ProjStatus.active });
+    const activeStatus = await ProjectStatus.findOne({
+      where: { id: ProjStatus.active },
+    });
     const organization = await Organization.findOne({
-      label: ORGANIZATION_LABELS.CHANGE,
+      where: {
+        label: ORGANIZATION_LABELS.CHANGE,
+      },
     });
 
-    const adminUser = await findUserById(Number(adminId));
+    const adminUser = (await findUserById(Number(adminId))) as User;
     if (!adminUser) return;
-
     const slugBase = slugify(nonProfit.name, {
       remove: /[*+~.,()'"!:@]/g,
     });
@@ -108,10 +105,9 @@ export const createProjectFromChangeNonProfit = async (
     const image = nonProfit?.cover_image_url || nonProfit?.icon_url;
 
     const qualityScore = getQualityScore(nonProfit.mission, Boolean(image));
-
-    const project = Project.create({
+    const projectData = {
       title: nonProfit.name,
-      organization,
+      organization: organization as Organization,
       description: nonProfit.mission,
       categories: [changeCategory],
       walletAddress: nonProfit.crypto.ethereum_address.toLowerCase(),
@@ -124,7 +120,7 @@ export const createProjectFromChangeNonProfit = async (
       changeId: String(nonProfit.id),
       admin: adminId,
       adminUser,
-      status: activeStatus,
+      status: activeStatus as ProjectStatus,
       qualityScore,
       totalDonations: 0,
       totalReactions: 0,
@@ -133,7 +129,8 @@ export const createProjectFromChangeNonProfit = async (
       verified: true,
       giveBacks: true,
       isImported: true,
-    });
+    };
+    const project = Project.create(projectData);
     await project.save();
 
     // Add addresses relation
@@ -173,7 +170,7 @@ export const createProjectFromChangeNonProfit = async (
 
 const findOrCreateChangeAPICategory = async (): Promise<Category> => {
   const category = await Category.findOne({
-    name: CATEGORY_NAMES.registeredNonProfits,
+    where: { name: CATEGORY_NAMES.registeredNonProfits },
   });
 
   if (!category) {

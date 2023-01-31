@@ -9,9 +9,11 @@ import { ProjStatus } from '../entities/project';
 
 describe('findAllStatusReasons test cases', () => {
   it('should find all status reasons', async () => {
-    const status = await ProjectStatus.findOne({
-      id: ProjStatus.active,
-    });
+    const status = (await ProjectStatus.findOne({
+      where: {
+        id: ProjStatus.active,
+      },
+    })) as ProjectStatus;
     await ProjectStatusReason.create({
       status,
       description: 'test',
@@ -25,7 +27,9 @@ describe('findAllStatusReasons test cases', () => {
 describe('findStatusReasonsByStatusId test cases', () => {
   it('should find status reasons by statusId', async () => {
     const status = (await ProjectStatus.findOne({
-      id: ProjStatus.active,
+      where: {
+        id: ProjStatus.active,
+      },
     })) as ProjectStatus;
     await ProjectStatusReason.create({
       status,

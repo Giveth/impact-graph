@@ -40,7 +40,9 @@ export class SocialProfile extends BaseEntity {
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
   project: Project;
+
   @RelationId((socialProfile: SocialProfile) => socialProfile.project)
+  @Column({ nullable: true })
   projectId: number;
 
   @Index()
