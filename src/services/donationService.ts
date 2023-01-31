@@ -322,7 +322,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     });
     return donation;
   } catch (e) {
-    logger.debug('syncDonationStatusWithBlockchainNetwork() error', {
+    logger.error('syncDonationStatusWithBlockchainNetwork() error', {
       error: e,
       donationId: donation.id,
       txHash: donation.transactionId,
