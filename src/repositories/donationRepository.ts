@@ -2,6 +2,7 @@ import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { Reaction } from '../entities/reaction';
+import { Brackets } from 'typeorm';
 
 export const createDonation = async (data: {
   amount: number;
@@ -184,6 +185,19 @@ export const donorsCountPerDateByMonthAndYear = async (
   );
 
   return await query.getRawMany();
+};
+
+export const findStableCoinDonationsWithoutPrice = () => {
+  return Donation.createQueryBuilder('donation')
+    .where(
+      new Brackets(qb =>
+        qb.where(
+          `donation.currency = 'DAI' OR donation.currency= 'XDAI' OR donation.currency= 'WXDAI' OR donation.currency= 'USDT' OR donation.currency= 'USDC'`,
+        ),
+      ),
+    )
+    .andWhere(`donation."valueUsd" IS NULL `)
+    .getMany();
 };
 
 export const getRecentDonations = async (take: number): Promise<Donation[]> => {
