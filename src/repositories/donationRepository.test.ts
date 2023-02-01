@@ -16,48 +16,22 @@ import {
   findDonationsByTransactionId,
   findStableCoinDonationsWithoutPrice,
   findUsersWhoDonatedToProjectExcludeWhoLiked,
+  getPendingDonationsIds,
 } from './donationRepository';
 import { Reaction } from '../entities/reaction';
 import { updateOldStableCoinDonationsPrice } from '../services/donationService';
+import { DONATION_STATUS } from '../entities/donation';
+import moment from 'moment';
 
-describe('createDonation test cases', () => {
-  it('should create donation ', async () => {
-    const email = `${new Date().getTime()}@giveth.io`;
-    const user = await User.create({
-      email,
-      role: UserRole.ADMIN,
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-    }).save();
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const donationData = createDonationData();
-    const walletAddress = generateRandomEtheriumAddress();
-    donationData.toWalletAddress = walletAddress;
-    donationData.projectId = project.id;
-    const newDonation = await createDonation({
-      donationAnonymous: false,
-      donorUser: user,
-      isProjectVerified: false,
-      isTokenEligibleForGivback: false,
-      project,
-      segmentNotified: false,
-      tokenAddress: '',
-      transakId: '',
-      transactionId: '9151faa1-e69b-4a36-b959-3c4f894afb68',
-      transactionNetworkId: 10,
-      toWalletAddress: '134',
-      fromWalletAddress: '134',
-      amount: 10,
-      token: 'jgjbjbkjbnjknb',
-    });
-    assert.isOk(newDonation);
-    assert.equal(newDonation.projectId, project.id);
-  });
-});
+describe('createDonation test cases', createDonationTestCases);
 
 describe(
   'findDonationsByTransactionId() test cases',
   findDonationsByTransactionIdTestCases,
+);
+describe(
+  'getPendingDonationsIds() test cases',
+  getPendingDonationsIdsTestCases,
 );
 describe(
   'findStableCoinDonationsWithoutPrice() test cases',
@@ -267,5 +241,96 @@ function findStableCoinDonationsWithoutPriceTestCases() {
     const stableDonationsWithoutPrice =
       await findStableCoinDonationsWithoutPrice();
     assert.isEmpty(stableDonationsWithoutPrice);
+  });
+}
+
+function createDonationTestCases() {
+  it('should create donation ', async () => {
+    const email = `${new Date().getTime()}@giveth.io`;
+    const user = await User.create({
+      email,
+      role: UserRole.ADMIN,
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+    }).save();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donationData = createDonationData();
+    const walletAddress = generateRandomEtheriumAddress();
+    donationData.toWalletAddress = walletAddress;
+    donationData.projectId = project.id;
+    const newDonation = await createDonation({
+      donationAnonymous: false,
+      donorUser: user,
+      isProjectVerified: false,
+      isTokenEligibleForGivback: false,
+      project,
+      segmentNotified: false,
+      tokenAddress: '',
+      transakId: '',
+      transactionId: '9151faa1-e69b-4a36-b959-3c4f894afb68',
+      transactionNetworkId: 10,
+      toWalletAddress: '134',
+      fromWalletAddress: '134',
+      amount: 10,
+      token: 'jgjbjbkjbnjknb',
+    });
+    assert.isOk(newDonation);
+    assert.equal(newDonation.projectId, project.id);
+  });
+}
+
+function getPendingDonationsIdsTestCases() {
+  it('should return pending donations in last 48 hours', async () => {
+    const pendingDonations = await getPendingDonationsIds();
+
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const newDonation = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.PENDING,
+      }),
+      donor.id,
+      project.id,
+    );
+
+    const oldDonation = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.PENDING,
+        createdAt: moment()
+          .subtract({
+            hours:
+              Number(process.env.DONATION_VERIFICAITON_EXPIRATION_HOURS) + 1,
+          })
+          .toDate(),
+      }),
+      donor.id,
+      project.id,
+    );
+    const oldDonation2 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.PENDING,
+        createdAt: moment()
+          .subtract({
+            hours:
+              Number(process.env.DONATION_VERIFICAITON_EXPIRATION_HOURS) + 2,
+          })
+          .toDate(),
+      }),
+      donor.id,
+      project.id,
+    );
+    const newPendingDonations = await getPendingDonationsIds();
+
+    assert.equal(newPendingDonations.length, pendingDonations.length + 1);
+    assert.isOk(
+      newPendingDonations.find(donation => donation.id === newDonation.id),
+    );
+    assert.notOk(
+      newPendingDonations.find(donation => donation.id === oldDonation.id),
+    );
+    assert.notOk(
+      newPendingDonations.find(donation => donation.id === oldDonation2.id),
+    );
   });
 }
