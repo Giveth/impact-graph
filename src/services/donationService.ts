@@ -318,7 +318,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donation,
     });
 
-    // send chainvine the referral
+    // // send chainvine the referral
     if (donation.referrerWallet) {
       await ChainvineSDK.referralConversion({
         wallet_address: donation.fromWalletAddress,

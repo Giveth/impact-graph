@@ -1,4 +1,4 @@
-import { ChainvineClient } from '@chainvine/sdk/src';
+import { ChainvineClient } from '@chainvine/sdk/lib';
 
 // Initialise the client
 export const ChainvineSDK = new ChainvineClient({
