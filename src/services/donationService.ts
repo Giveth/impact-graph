@@ -22,6 +22,7 @@ import { calculateGivbackFactor } from './givbackService';
 import { getTokenPrices } from 'monoswap';
 import SentryLogger from '../sentryLogger';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
+import { ChainvineSDK } from './chainvine/api';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -316,6 +317,19 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await sendSegmentEventForDonation({
       donation,
     });
+
+    // send chainvine the referral
+    if (donation.referrerWallet) {
+      await ChainvineSDK.referralConversion({
+        wallet_address: donation.fromWalletAddress,
+        amount: donation.amount,
+        transaction_hash: donation.transactionId, // optional
+        token_address: donation.tokenAddress, // optional
+        usd_value: donation.valueUsd, // optional, the USD value of the token at the time of the conversion
+        external_identifier: donation.id, // optional (e.g. a product ID in your system)
+      });
+    }
+
     logger.debug('donation and transaction', {
       transaction,
       donationId: donation.id,

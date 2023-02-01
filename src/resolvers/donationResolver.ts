@@ -53,6 +53,7 @@ import { findProjectRecipientAddressByNetworkId } from '../repositories/projectA
 import { MainCategory } from '../entities/mainCategory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
+import { ChainvineSDK } from '../services/chainvine/api';
 
 @ObjectType()
 class PaginateDonations {
@@ -514,9 +515,11 @@ export class DonationResolver {
     @Arg('projectId') projectId: number,
     @Arg('nonce') nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
+    @Arg('referrerId', { nullable: true }) referrerId: string,
     @Ctx() ctx: MyContext,
   ): Promise<Number> {
     try {
+      let referrerWallet;
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
       if (!donorUser) {
@@ -533,9 +536,18 @@ export class DonationResolver {
           projectId,
           nonce,
           transakId,
+          referrerId,
         },
         createDonationQueryValidator,
       );
+
+      if (referrerId) {
+        try {
+          referrerWallet = ChainvineSDK.getWalletAddressForUser(referrerId); // the user's ChainVine id
+        } catch (e) {
+          logger.error('createDonation error', e);
+        }
+      }
 
       const priceChainId =
         transactionNetworkId === NETWORK_IDS.ROPSTEN ||
@@ -614,6 +626,8 @@ export class DonationResolver {
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: Boolean(anonymous),
       });
+
+      if (referrerWallet) donation.referrerWallet = referrerWallet;
       await donation.save();
       const baseTokens =
         priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
