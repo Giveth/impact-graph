@@ -268,8 +268,6 @@ export async function bootstrap() {
     await apolloServer.start();
     app.use(
       '/graphql',
-      // cors(corsOptions),
-      // bodyParserJson,
       expressMiddleware<ApolloContext>(apolloServer, {
         context: async ({ req }) => {
           let token: string = '';
