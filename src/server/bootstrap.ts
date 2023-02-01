@@ -227,8 +227,8 @@ export async function bootstrap() {
     });
 
     app.use(setI18nLocaleForRequest); // accept-language header
-    // app.use(cors(corsOptions));
-    // app.use(bodyParserJson);
+    app.use(cors(corsOptions));
+    app.use(bodyParserJson);
     const limiter = new RateLimit({
       store: new RedisStore({
         prefix: 'rate-limit:',
@@ -268,8 +268,8 @@ export async function bootstrap() {
     await apolloServer.start();
     app.use(
       '/graphql',
-      cors(corsOptions),
-      bodyParserJson,
+      // cors(corsOptions),
+      // bodyParserJson,
       expressMiddleware<ApolloContext>(apolloServer, {
         context: async ({ req }) => {
           let token: string = '';
