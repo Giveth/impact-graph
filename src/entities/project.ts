@@ -34,6 +34,7 @@ import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { Category } from './category';
+import { Campaign } from './campaign';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -203,6 +204,10 @@ export class Project extends BaseEntity {
   @Field(type => [Donation], { nullable: true })
   @OneToMany(type => Donation, donation => donation.project)
   donations?: Donation[];
+
+  @Field(type => [Campaign], { nullable: true })
+  @ManyToMany(type => Campaign, campaign => campaign.relatedProjects)
+  campaigns?: Campaign[];
 
   @Field(type => Float, { nullable: true })
   @Column({ nullable: true })
