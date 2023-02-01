@@ -1,6 +1,7 @@
 import { getNetworkWeb3, NETWORK_IDS } from '../provider';
 import Web3 from 'web3';
 import moment from 'moment';
+import { logger } from '../utils/logger';
 
 interface WrappedBlock {
   number: number;
@@ -134,6 +135,10 @@ class BlockByDate {
 
   async getBlockWrapper(block) {
     if (this.savedBlocks[block]) return this.savedBlocks[block];
+    logger.debug(
+      'NODE RPC request count - getBlockWrapper  web3.eth.getBlock:',
+      block,
+    );
     // tslint:disable-next-line:variable-name
     const { number, timestamp } = await this.web3.eth.getBlock(block);
     this.savedBlocks[number] = {
