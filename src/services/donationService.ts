@@ -326,7 +326,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
         transaction_hash: donation.transactionId, // optional
         token_address: donation.tokenAddress, // optional
         usd_value: donation.valueUsd, // optional, the USD value of the token at the time of the conversion
-        external_identifier: donation.id, // optional (e.g. a product ID in your system)
+        external_identifier: String(donation.id), // optional (e.g. a product ID in your system)
       });
     }
 
