@@ -14,6 +14,7 @@ import { PowerBoostingResolver } from './powerBoostingResolver';
 import { UserProjectPowerResolver } from './userProjectPowerResolver';
 import { GivPowerTestingResolver } from './givPowerTestingResolver';
 import { ProjectPowerResolver } from './projectPowerResolver';
+import { CampaignResolver } from './campaignResolver';
 
 export const getResolvers = (): Function[] => {
   return [
@@ -34,5 +35,7 @@ export const getResolvers = (): Function[] => {
     UserProjectPowerResolver,
     ProjectPowerResolver,
     GivPowerTestingResolver,
+
+    CampaignResolver,
   ];
 };

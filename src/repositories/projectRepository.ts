@@ -1,5 +1,6 @@
 import { UpdateResult } from 'typeorm';
 import {
+  FilterField,
   Project,
   ProjectUpdate,
   ProjStatus,
@@ -14,11 +15,7 @@ import {
 } from '../utils/errorMessages';
 import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import {
-  FilterField,
-  OrderDirection,
-  ProjectResolver,
-} from '../resolvers/projectResolver';
+import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });

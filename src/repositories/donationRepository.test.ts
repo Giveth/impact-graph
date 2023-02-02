@@ -5,7 +5,6 @@ import {
   generateRandomTxHash,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
-  saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
 import { User, UserRole } from '../entities/user';
@@ -15,7 +14,6 @@ import {
   findDonationById,
   findDonationsByTransactionId,
 } from './donationRepository';
-import { Reaction } from '../entities/reaction';
 
 describe('createDonation test cases', () => {
   it('should create donation ', async () => {

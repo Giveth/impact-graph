@@ -60,6 +60,15 @@ export enum SortingField {
   GIVPower = 'GIVPower',
 }
 
+export enum FilterField {
+  Verified = 'verified',
+  AcceptGiv = 'givingBlocksId',
+  AcceptFundOnGnosis = 'acceptFundOnGnosis',
+  Traceable = 'traceCampaignId',
+  GivingBlock = 'fromGivingBlock',
+  BoostedWithGivPower = 'boostedWithGivPower',
+}
+
 export enum OrderField {
   CreationDate = 'creationDate',
   CreationAt = 'createdAt',
@@ -173,6 +182,13 @@ export class Project extends BaseEntity {
   @JoinTable()
   categories: Category[];
 
+  @Field(type => [Campaign], { nullable: true })
+  @ManyToMany(type => Campaign, campaign => campaign.relatedProjects, {
+    nullable: true,
+    eager: true,
+  })
+  campaigns: Campaign[];
+
   @Field(type => Float, { nullable: true })
   @Column('float', { nullable: true })
   balance: number = 0;
@@ -204,10 +220,6 @@ export class Project extends BaseEntity {
   @Field(type => [Donation], { nullable: true })
   @OneToMany(type => Donation, donation => donation.project)
   donations?: Donation[];
-
-  @Field(type => [Campaign], { nullable: true })
-  @ManyToMany(type => Campaign, campaign => campaign.relatedProjects)
-  campaigns?: Campaign[];
 
   @Field(type => Float, { nullable: true })
   @Column({ nullable: true })

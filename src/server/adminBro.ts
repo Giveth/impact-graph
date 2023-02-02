@@ -106,6 +106,7 @@ import BroadcastNotification, {
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
+import { Campaign } from '../entities/campaign';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -1975,6 +1976,87 @@ const getAdminBroInstance = async () => {
               },
             },
             adminUserId: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+          },
+        },
+      },
+      {
+        resource: Campaign,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              before: async (
+                request: AdminBroRequestInterface,
+                context: AdminBroContextInterface,
+              ) => {
+                // TODO validate input data
+                return request;
+              },
+            },
+            edit: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            name: {
+              isVisible: true,
+            },
+            title: {
+              isVisible: true,
+            },
+            description: {
+              isVisible: true,
+            },
+            hashtags: {
+              isVisible: true,
+            },
+            media: {
+              isVisible: true,
+            },
+            relatedProjects: {
+              isVisible: true,
+            },
+            landingLink: {
+              isVisible: true,
+            },
+            order: {
+              isVisible: true,
+            },
+            isActive: {
+              isVisible: true,
+            },
+            filterFields: {
+              isVisible: true,
+            },
+            sortingField: {
+              isVisible: true,
+            },
+            createdAt: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+            updatedAt: {
               isVisible: {
                 show: true,
                 list: true,

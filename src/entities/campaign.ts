@@ -4,13 +4,34 @@ import {
   Column,
   Entity,
   BaseEntity,
-  Index,
   ManyToMany,
+  UpdateDateColumn,
+  CreateDateColumn,
+  JoinTable,
+  Index,
   ManyToOne,
   RelationId,
-  OneToMany,
 } from 'typeorm';
 import { Project } from './project';
+import { User } from './user';
+
+// Copied from projects enums
+enum SortingField {
+  MostFunded = 'MostFunded',
+  MostLiked = 'MostLiked',
+  Newest = 'Newest',
+  Oldest = 'Oldest',
+  QualityScore = 'QualityScore',
+  GIVPower = 'GIVPower',
+}
+
+enum FilterField {
+  Verified = 'verified',
+  AcceptGiv = 'givingBlocksId',
+  AcceptFundOnGnosis = 'acceptFundOnGnosis',
+  GivingBlock = 'fromGivingBlock',
+  BoostedWithGivPower = 'boostedWithGivPower',
+}
 
 @Entity()
 @ObjectType()
@@ -31,8 +52,8 @@ export class Campaign extends BaseEntity {
   @Column('text', { unique: true, nullable: false })
   description: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Field(type => [String], { nullable: true })
+  @Column('text', { nullable: true, array: true })
   hashtags: string[];
 
   @Field({ nullable: true })
@@ -40,8 +61,12 @@ export class Campaign extends BaseEntity {
   // ipfs link
   media: string;
 
-  @ManyToMany(type => Project, project => project.campaigns)
-  relatedProjects: Project[];
+  @ManyToMany(type => Project, project => project.campaigns, {
+    nullable: true,
+  })
+  @Field(type => [Project], { nullable: true })
+  @JoinTable()
+  relatedProjects?: Project[];
 
   @Field()
   @Column({ default: true })
@@ -55,11 +80,24 @@ export class Campaign extends BaseEntity {
   @Column({ nullable: true })
   landingLink: string;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  usedHomepageFilter: string;
+  @Column({
+    type: 'enum',
+    enum: FilterField,
+    nullable: true,
+    array: true,
+  })
+  filterFields: FilterField[];
 
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  usedHomepageSorting: string;
+  @Column({
+    type: 'enum',
+    enum: SortingField,
+    nullable: true,
+  })
+  sortingField: SortingField;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

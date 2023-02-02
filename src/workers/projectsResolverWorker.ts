@@ -1,7 +1,6 @@
 // workers/auth.js
 import { expose } from 'threads/worker';
-import { FilterField } from '../resolvers/projectResolver';
-import { Project, SortingField } from '../entities/project';
+import { FilterField, Project, SortingField } from '../entities/project';
 import { generateProjectFiltersCacheKey } from '../utils/utils';
 import { Reaction } from '../entities/reaction';
 import { WorkerModule } from 'threads/dist/types/worker';

@@ -1,5 +1,6 @@
 import { Reaction } from '../entities/reaction';
 import {
+  FilterField,
   OrderField,
   Project,
   ProjectUpdate,
@@ -134,15 +135,6 @@ class ProjectUpdatesResponse {
 
   @Field(type => Int, { nullable: false })
   count: number;
-}
-
-export enum FilterField {
-  Verified = 'verified',
-  AcceptGiv = 'givingBlocksId',
-  AcceptFundOnGnosis = 'acceptFundOnGnosis',
-  Traceable = 'traceCampaignId',
-  GivingBlock = 'fromGivingBlock',
-  BoostedWithGivPower = 'boostedWithGivPower',
 }
 
 export enum OrderDirection {
