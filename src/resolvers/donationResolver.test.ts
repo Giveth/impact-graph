@@ -16,6 +16,7 @@ import {
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
+import sinon from 'sinon';
 import {
   fetchDonationsByUserIdQuery,
   fetchDonationsByDonorQuery,
@@ -48,6 +49,8 @@ import { refreshProjectPowerView } from '../repositories/projectPowerViewReposit
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
+import { generateRandomString } from '../utils/utils';
+import { ChainvineSDK } from '../services/chainvine/api';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -426,6 +429,90 @@ function donationsTestCases() {
 }
 
 function createDonationTestCases() {
+  const stub = sinon.stub(ChainvineSDK, 'getWalletAddressForUser');
+
+  it('do not save refererr wallet if user refers himself', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    stub.resolves({ wallet_address: user.walletAddress, user_id: 'xxxx' });
+    const referrerId = generateRandomString();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+          referrerId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.isNotOk(donation?.referrerWallet);
+  });
+  it('should create a donation for giveth project on xdai successfully with referralId', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const user2 = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    stub.resolves({ wallet_address: user2.walletAddress, user_id: 'xxxx' });
+    const referrerId = generateRandomString();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+          referrerId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.isTrue(donation?.isTokenEligibleForGivback);
+    assert.equal(donation?.referrerWallet, user2.walletAddress);
+  });
   it('should create GIV donation for giveth project on xdai successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({

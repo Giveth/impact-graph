@@ -53,7 +53,10 @@ import { findProjectRecipientAddressByNetworkId } from '../repositories/projectA
 import { MainCategory } from '../entities/mainCategory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
-import { ChainvineSDK } from '../services/chainvine/api';
+import {
+  ChainvineRetrieveWalletResponse,
+  ChainvineSDK,
+} from '../services/chainvine/api';
 
 @ObjectType()
 class PaginateDonations {
@@ -541,14 +544,6 @@ export class DonationResolver {
         createDonationQueryValidator,
       );
 
-      if (referrerId) {
-        try {
-          referrerWallet = ChainvineSDK.getWalletAddressForUser(referrerId); // the user's ChainVine id
-        } catch (e) {
-          logger.error('createDonation error', e);
-        }
-      }
-
       const priceChainId =
         transactionNetworkId === NETWORK_IDS.ROPSTEN ||
         transactionNetworkId === NETWORK_IDS.GOERLI
@@ -607,6 +602,28 @@ export class DonationResolver {
       const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
       const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
 
+      if (referrerId) {
+        try {
+          const response = (await ChainvineSDK.getWalletAddressForUser(
+            referrerId,
+          )) as ChainvineRetrieveWalletResponse; // the user's ChainVine id
+
+          const chainvineWalletAddress =
+            response?.wallet_address?.toLowerCase();
+
+          if (chainvineWalletAddress !== fromAddress) {
+            referrerWallet = chainvineWalletAddress;
+          } else {
+            logger.info(
+              'createDonation info',
+              `User ${fromAddress} tried to refer himself.`,
+            );
+          }
+        } catch (e) {
+          logger.error('createDonation error', e);
+        }
+      }
+
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId?.toLowerCase() || transakId,
@@ -627,7 +644,10 @@ export class DonationResolver {
         anonymous: Boolean(anonymous),
       });
 
-      if (referrerWallet) donation.referrerWallet = referrerWallet;
+      if (referrerWallet) {
+        donation.referrerWallet = referrerWallet;
+      }
+
       await donation.save();
       const baseTokens =
         priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
