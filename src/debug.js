@@ -1,3 +1,4 @@
+// @ts-ignore
 JSON.safeStringify = (obj, indent = 2) => {
   let cache = []
   const retVal = JSON.stringify(
@@ -10,6 +11,6 @@ JSON.safeStringify = (obj, indent = 2) => {
         : value,
     indent
   )
-  cache = null
+  cache = []
   return retVal
 }

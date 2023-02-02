@@ -7,8 +7,9 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { GraphQLUpload, FileUpload } from 'graphql-upload';
-import { MyContext } from '../types/MyContext';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import { FileUpload } from 'graphql-upload/Upload.js';
+import { ApolloContext } from '../types/ApolloContext';
 
 import { pinFile, pinFileDataBase64 } from '../middleware/pinataUtils';
 import { logger } from '../utils/logger';
@@ -63,7 +64,7 @@ export class UploadResolver {
   @Mutation(() => String, { nullable: true })
   async upload(
     @Arg('fileUpload') fileUpload: FileUploadInputType,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<String> {
     await getLoggedInUser(ctx);
     // if (!fileUpload.image) {
@@ -85,7 +86,7 @@ export class UploadResolver {
   @Mutation(() => String, { nullable: true })
   async traceImageUpload(
     @Arg('traceFileUpload') traceFileUpload: TraceFileUploadInputType,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<String> {
     const { fileDataBase64, user, imageOwnerType, password } = traceFileUpload;
 
@@ -93,6 +94,7 @@ export class UploadResolver {
     if (!process.env.TRACE_FILE_UPLOADER_PASSWORD) {
       errorMessage = `No password is defined for trace file uploader `;
     } else if (password !== process.env.TRACE_FILE_UPLOADER_PASSWORD) {
+      // @ts-ignore
       errorMessage = `Invalid password to upload trace image from ip ${ctx?.req?.ip}`;
     }
 
