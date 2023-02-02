@@ -1445,6 +1445,24 @@ query {
     }
 }`;
 
+export const getCampaigns = `
+query {
+    campaigns{
+        title
+        description
+        relatedProjectsSlugs
+        media
+        name
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
+    }
+}`;
+
 export const getCategoryData = `query {
     categories{
         name

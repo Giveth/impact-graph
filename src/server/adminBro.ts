@@ -2031,7 +2031,20 @@ const getAdminBroInstance = async () => {
               isVisible: true,
             },
             relatedProjects: {
-              isVisible: true,
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+            relatedProjectsSlugs: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: true,
+              },
             },
             landingLink: {
               isVisible: true,

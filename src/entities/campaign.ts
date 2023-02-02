@@ -56,6 +56,10 @@ export class Campaign extends BaseEntity {
   @Column('text', { nullable: true, array: true })
   hashtags: string[];
 
+  @Field(type => [String], { nullable: true })
+  @Column('text', { nullable: true, array: true })
+  relatedProjectsSlugs: string[];
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   // ipfs link
