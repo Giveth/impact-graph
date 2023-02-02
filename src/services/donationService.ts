@@ -13,7 +13,10 @@ import { getTransactionInfoFromNetwork } from './transactionService';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice } from './givPriceService';
-import { findDonationById } from '../repositories/donationRepository';
+import {
+  findDonationById,
+  findStableCoinDonationsWithoutPrice,
+} from '../repositories/donationRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { calculateGivbackFactor } from './givbackService';
 import { getTokenPrices } from 'monoswap';
@@ -241,7 +244,7 @@ export const updateOldGivDonationsPrice = async () => {
 };
 
 export const updateOldStableCoinDonationsPrice = async () => {
-  const donations = await Donation.findStableCoinDonationsWithoutPrice();
+  const donations = await findStableCoinDonationsWithoutPrice();
   logger.debug(
     'updateOldStableCoinDonationPrice donations count',
     donations.length,
@@ -319,7 +322,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     });
     return donation;
   } catch (e) {
-    logger.debug('syncDonationStatusWithBlockchainNetwork() error', {
+    logger.error('syncDonationStatusWithBlockchainNetwork() error', {
       error: e,
       donationId: donation.id,
       txHash: donation.transactionId,

@@ -16,94 +16,108 @@ import { errorMessages } from '../utils/errorMessages';
 import { TraceImageOwnerType } from './uploadResolver';
 // tslint:disable-next-line:no-var-requires
 const path = require('path');
+// tslint:disable-next-line:no-var-requires
+const FormData = require('form-data');
 
 // test cases
 describe('upload() test cases', uploadTestCases);
 describe('traceImageUpload() test cases', traceImageUpload);
 
 function uploadTestCases() {
-  it('should not allow uploading an image when not logged in', async () => {
-    try {
-      const filename = '../../test/images/testImage.jpg';
-      const result = await axios.post(graphqlUrl, {
-        query: uploadImageToIpfsQuery,
-        variables: {
-          fileUpload: {
-            image: createReadStream(path.resolve(__dirname, `./${filename}`)),
-          },
-        },
-      });
-      assert.equal(
-        result.data.errors[0].message,
-        errorMessages.AUTHENTICATION_REQUIRED,
-      );
-    } catch (e) {
-      // tslint:disable-next-line:no-console
-      console.log(
-        'should allow uploading an image when logged in error',
-        JSON.stringify(e.response.data, null, 4),
-      );
-      // TODO currently I dont know how upload images to graphql mutation, so we got error, but we should fix this test case later and remove try-catch
-      assert.isTrue(
-        e.response.data.errors[0].message.includes(
-          'Variable "$fileUpload" got invalid value',
-        ),
-      );
-    }
+  const IpfsHash = 'MockIpfsHash';
+  before(() => {
+    sinon.stub(pinataUtils, 'pinFile').resolves({
+      data: {
+        IpfsHash,
+      },
+    });
   });
-  it('should allow uploading an image when logged in', async () => {
+
+  after(() => {
+    sinon.restore();
+  });
+
+  it('should not allow uploading an image when not logged in', async () => {
+    const formData = new FormData();
     const filename = '../../test/images/testImage.jpg';
+    const fileUpload = {
+      image: null,
+    };
+    const operations = JSON.stringify({
+      query: uploadImageToIpfsQuery,
+      variables: { fileUpload },
+    });
+    formData.append('operations', operations);
+    const map = {
+      '0': ['variables.fileUpload.image'],
+    };
+    formData.append('map', JSON.stringify(map));
+    formData.append(
+      '0',
+      createReadStream(path.resolve(__dirname, `./${filename}`)),
+    );
 
+    const result = await axios.post(graphqlUrl, formData, {
+      // You need to use `getHeaders()` in Node.js because Axios doesn't
+      // automatically set the multipart form boundary in Node.
+      headers: formData.getHeaders(),
+    });
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
+  });
+
+  it('should allow uploading an image when logged in', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
-    const resultString = 'ipfsString';
-    sinon.stub(pinataUtils, 'pinFile').resolves(resultString);
 
-    try {
-      const image = createReadStream(path.resolve(__dirname, `./${filename}`));
+    const formData = new FormData();
+    const filename = '../../test/images/testImage.jpg';
+    const fileUpload = {
+      image: null,
+    };
+    const operations = JSON.stringify({
+      query: uploadImageToIpfsQuery,
+      variables: { fileUpload },
+    });
+    formData.append('operations', operations);
+    const map = {
+      '0': ['variables.fileUpload.image'],
+    };
+    formData.append('map', JSON.stringify(map));
+    formData.append(
+      '0',
+      createReadStream(path.resolve(__dirname, `./${filename}`)),
+    );
+    const result = await axios.post(graphqlUrl, formData, {
+      headers: {
+        ...formData.getHeaders(),
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-      const result = await axios.post(
-        graphqlUrl,
-        {
-          query: uploadImageToIpfsQuery,
-          variables: {
-            fileUpload: {
-              image,
-            },
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-
-      assert.equal(result.data.data, resultString);
-    } catch (e) {
-      // tslint:disable-next-line:no-console
-      console.log(
-        'should allow uploading an image when logged in error',
-        JSON.stringify(e.response.data, null, 4),
-      );
-      // TODO currently I dont know how upload images to graphql mutation, so we got error, but we should fix this test case later and remove try-catch
-      assert.isTrue(
-        e.response.data.errors[0].message.includes(
-          'Variable "$fileUpload" got invalid value',
-        ),
-      );
-    }
+    assert.equal(
+      result.data.data.upload,
+      `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${IpfsHash}`,
+    );
   });
 }
 
 function traceImageUpload() {
-  const resultString = 'ipfsString';
-  sinon.stub(pinataUtils, 'pinFileDataBase64').returns(
-    Promise.resolve({
-      data: {
-        ipfsHash: resultString,
-      },
-    }),
-  );
+  const IpfsHash = 'MockIpfsHash';
+  before(() => {
+    sinon.stub(pinataUtils, 'pinFileDataBase64').returns(
+      Promise.resolve({
+        data: {
+          IpfsHash,
+        },
+      }),
+    );
+  });
+
+  after(() => {
+    sinon.restore();
+  });
 
   it('should allow uploading 400k size image successfully', async () => {
     const filename = '../../test/images/testImage400k.jpg';
@@ -133,7 +147,7 @@ function traceImageUpload() {
       },
     );
 
-    assert.isTrue(result.data.data.traceImageUpload.startsWith('/ipfs/'));
+    assert.equal(result.data.data.traceImageUpload, '/ipfs/' + IpfsHash);
   });
   it('should allow uploading 4k size image successfully', async () => {
     const filename = '../../test/images/testImage.jpg';
@@ -162,6 +176,6 @@ function traceImageUpload() {
       },
     );
 
-    assert.isTrue(result.data.data.traceImageUpload.startsWith('/ipfs/'));
+    assert.equal(result.data.data.traceImageUpload, '/ipfs/' + IpfsHash);
   });
 }

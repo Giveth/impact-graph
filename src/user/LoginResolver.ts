@@ -5,7 +5,7 @@ import * as bcrypt from 'bcryptjs';
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { keccak256 } from 'ethers/lib/utils';
 import { User } from '../entities/user';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import * as jwt from 'jsonwebtoken';
 import { registerEnumType, Field, ID, ObjectType } from 'type-graphql';
 import config from '../config';
@@ -82,7 +82,7 @@ export class LoginResolver {
   @Mutation(() => Boolean, { nullable: true })
   async validateToken(
     @Arg('token') token: string,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<Boolean | null> {
     const secret = config.get('JWT_SECRET') as string;
 
@@ -103,7 +103,7 @@ export class LoginResolver {
     @Arg('email') email: string,
     @Arg('password') password: string,
     @Arg('loginType', { nullable: true }) loginType: LoginType,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<LoginResponse | null> {
     if (typeof loginType === 'undefined') {
       loginType = LoginType.Password;
@@ -175,7 +175,7 @@ export class LoginResolver {
     @Arg('name', { nullable: true }) name: string,
     @Arg('avatar', { nullable: true }) avatar: string,
     @Arg('networkId') networkId: number,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<LoginResponse | null> {
     const hashedMsg = this.getHostnameSignMessageHash(hostname);
 

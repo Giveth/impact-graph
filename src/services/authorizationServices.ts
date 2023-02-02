@@ -5,7 +5,7 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import SentryLogger from '../sentryLogger';
 import { logger } from '../utils/logger';
 import {
@@ -16,15 +16,15 @@ import {
 import config from '../config';
 
 // Add any other service that checks auth on a query or mutation
-export const checkIfUserInRequest = (ctx: MyContext) => {
-  if (!ctx.req.user) {
+export const checkIfUserInRequest = (ctx: ApolloContext) => {
+  if (!ctx?.req?.user) {
     throw new Error(
       i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
     );
   }
 };
 
-export const getLoggedInUser = async (ctx: MyContext) => {
+export const getLoggedInUser = async (ctx: ApolloContext) => {
   checkIfUserInRequest(ctx);
 
   const user = await findUserById(ctx.req.user.userId);
@@ -42,7 +42,7 @@ export const getLoggedInUser = async (ctx: MyContext) => {
   return user;
 };
 
-interface JwtVerifiedUser {
+export interface JwtVerifiedUser {
   email?: string;
   name?: string;
   firstName?: string;

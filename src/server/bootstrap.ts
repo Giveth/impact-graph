@@ -1,15 +1,18 @@
+// @ts-check
 import config from '../config';
 import RateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
-import { ApolloServer } from 'apollo-server-express';
-import { json, Request, Response } from 'express';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
+import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
+import express, { json, Request, Response } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
 import { getResolvers } from '../resolvers/resolvers';
 import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
-import { graphqlUploadExpress } from 'graphql-upload';
 import { Resource } from '@adminjs/typeorm';
 import { validate } from 'class-validator';
 import SentryLogger from '../sentryLogger';
@@ -20,9 +23,9 @@ import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkPro
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 import {
+  adminBroQueryCache,
   adminBroRootPath,
   getAdminBroRouter,
-  adminBroQueryCache,
 } from './adminBro';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
@@ -49,17 +52,18 @@ import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fill
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
-import { Pool, spawn, Worker } from 'threads';
-import express from 'express';
+import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { DataSource } from 'typeorm';
 import { AppDataSource, CronDataSource } from '../orm';
+import http from 'http';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import { ApolloContext } from '../types/ApolloContext';
+import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
-// tslint:disable:no-var-requires
-
-const bodyParser = require('body-parser');
-const cors = require('cors');
-
-// register 3rd party IOC container
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
 
 Resource.validate = validate;
 
@@ -122,48 +126,30 @@ export async function bootstrap() {
     }
 
     // instantiate pool once and pass as context
-    const projectsFiltersThreadPool = Pool(
-      () => spawn(new Worker('../workers/projectsResolverWorker')),
-      options,
-    );
+    const projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>> =
+      Pool(
+        () => spawn(new Worker('../workers/projectsResolverWorker')),
+        options,
+      );
+
+    const apolloServerPlugins = [
+      process.env.DISABLE_APOLLO_PLAYGROUND !== 'true'
+        ? ApolloServerPluginLandingPageGraphQLPlayground({
+            endpoint: '/graphql',
+          })
+        : ApolloServerPluginLandingPageDisabled(),
+    ];
+
+    if (process.env.APOLLO_GRAPH_REF) {
+      apolloServerPlugins.push(ApolloServerPluginSchemaReporting());
+    }
 
     // Create GraphQL server
-    const apolloServer = new ApolloServer({
-      uploads: false,
+    const apolloServer = new ApolloServer<ApolloContext>({
       schema,
-      context: async ({ req, res }: any) => {
-        let token: string = '';
-        try {
-          if (!req) {
-            return null;
-          }
-
-          const { headers } = req;
-          const authVersion = headers.authversion || '1';
-          if (headers.authorization) {
-            token = headers.authorization.split(' ')[1].toString();
-            const user = await authorizationHandler(authVersion, token);
-            req.user = user;
-          }
-        } catch (error) {
-          SentryLogger.captureException(`Error: ${error} for token ${token}`);
-          logger.error(
-            `Error: ${error} for token ${token} authVersion ${
-              req?.headers?.authversion || '1'
-            }`,
-          );
-          req.auth = {};
-          req.auth.token = token;
-          req.auth.error = error;
-        }
-
-        return {
-          req,
-          res,
-          projectsFiltersThreadPool,
-        };
-      },
-      formatError: err => {
+      csrfPrevention: false, // TODO: Prevent CSRF attack
+      formatError: (formattedError, _err) => {
+        const err = _err as Error;
         /**
          * @see {@link https://www.apollographql.com/docs/apollo-server/data/errors/#for-client-responses}
          */
@@ -185,20 +171,22 @@ export async function bootstrap() {
             i18n.__(translationErrorMessagesKeys.INTERNAL_SERVER_ERROR),
           );
         }
+        // Return a different error message
+        if (
+          formattedError?.extensions?.code ===
+          ApolloServerErrorCode.GRAPHQL_VALIDATION_FAILED
+        ) {
+          return {
+            ...formattedError,
+            message: `Your query doesn't match the schema. Try double-checking it!`,
+          };
+        }
 
-        // Otherwise return the original error. The error can also
+        // Otherwise return the formatted error. This error can also
         // be manipulated in other ways, as long as it's returned.
-        return err;
+        return formattedError;
       },
-      engine: {
-        reportSchema: true,
-      },
-      playground:
-        process.env.DISABLE_APOLLO_PLAYGROUND === 'true'
-          ? false
-          : {
-              endpoint: '/graphql',
-            },
+      plugins: apolloServerPlugins,
       introspection: true,
     });
 
@@ -234,20 +222,20 @@ export async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       },
     };
+    const bodyParserJson = bodyParser.json({
+      limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
+    });
+
     app.use(setI18nLocaleForRequest); // accept-language header
     app.use(cors(corsOptions));
-    app.use(
-      bodyParser.json({
-        limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
-      }),
-    );
+    app.use(bodyParserJson);
     const limiter = new RateLimit({
       store: new RedisStore({
         prefix: 'rate-limit:',
         client: redis,
         // see Configuration
       }),
-      windowMs: 1 * 60 * 1000, // 1 minutes
+      windowMs: 60 * 1000, // 1 minutes
       max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
       skip: (req: Request, res: Response) => {
         const vercelKey = process.env.VERCEL_KEY;
@@ -276,9 +264,47 @@ export async function bootstrap() {
         maxFiles: 10,
       }),
     );
+
+    await apolloServer.start();
+    app.use(
+      '/graphql',
+      expressMiddleware<ApolloContext>(apolloServer, {
+        context: async ({ req }) => {
+          let token: string = '';
+          let user;
+          let auth;
+          try {
+            if (req) {
+              const { headers } = req;
+              const authVersion = headers.authversion || '1';
+              if (headers.authorization) {
+                token = headers.authorization.split(' ')[1].toString();
+                user = await authorizationHandler(authVersion as string, token);
+              }
+            }
+          } catch (error) {
+            SentryLogger.captureException(`Error: ${error} for token ${token}`);
+            logger.error(
+              `Error: ${error} for token ${token} authVersion ${
+                req?.headers?.authversion || '1'
+              }`,
+            );
+            auth = {
+              token,
+              error,
+            };
+          }
+
+          const apolloContext: ApolloContext = {
+            projectsFiltersThreadPool,
+            req: { user, auth },
+          };
+          return apolloContext;
+        },
+      }),
+    );
     app.use('/apigive', apiGivRouter);
     app.use(SOCIAL_PROFILES_PREFIX, oauth2CallbacksRouter);
-    apolloServer.applyMiddleware({ app });
     app.post(
       '/stripe-webhook',
       bodyParser.raw({ type: 'application/json' }),
@@ -290,8 +316,14 @@ export async function bootstrap() {
     app.post('/fiat_webhook', onramperWebhookHandler);
     app.post('/transak_webhook', webhookHandler);
 
+    const httpServer = http.createServer(app);
+
     // Start the server
-    app.listen({ port: 4000 });
+    // app.listen({ port: 4000 });
+    await new Promise<void>(resolve =>
+      httpServer.listen({ port: 4000 }, resolve),
+    );
+
     logger.debug(
       `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
     );

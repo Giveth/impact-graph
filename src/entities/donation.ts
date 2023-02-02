@@ -8,6 +8,7 @@ import {
   RelationId,
   Index,
   Unique,
+  Brackets,
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
@@ -194,15 +195,6 @@ export class Donation extends BaseEntity {
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')
       .where(`donation.currency = 'GIV' AND donation."valueUsd" IS NULL `)
-      .getMany();
-  }
-
-  static async findStableCoinDonationsWithoutPrice() {
-    return this.createQueryBuilder('donation')
-      .where(
-        `donation.currency = 'DAI' OR donation.currency= 'XDAI' OR donation.currency= 'WXDAI' OR donation.currency= 'USDT' OR donation.currency= 'USDC'`,
-      )
-      .andWhere(`donation."valueUsd" IS NULL `)
       .getMany();
   }
 }
