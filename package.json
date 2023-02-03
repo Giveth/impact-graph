@@ -73,7 +73,6 @@
     "npm": "8.11.0",
     "patch-package": "^6.5.1",
     "pg": "^8.5.1",
-    "pgtools": "^0.3.2",
     "querystring": "^0.2.1",
     "rate-limit-redis": "^2.1.0",
     "reflect-metadata": "^0.1.13",

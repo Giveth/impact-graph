@@ -8,7 +8,6 @@ import {
   PROJECT_UPDATE_SEED_DATA,
 } from './testUtils';
 import { User } from '../src/entities/user';
-import { createdb } from 'pgtools';
 import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import { Project, ProjectUpdate } from '../src/entities/project';
@@ -29,38 +28,6 @@ import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration
 import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
 import { AppDataSource } from '../src/orm';
 import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
-
-// This can also be a connection string
-// (in which case the database part is ignored and replaced with postgres)
-
-async function CreateDatabase() {
-  const config = {
-    user: process.env.TYPEORM_DATABASE_USER,
-    password: process.env.TYPEORM_DATABASE_PASSWORD,
-    port: process.env.TYPEORM_DATABASE_PORT,
-    host: process.env.TYPEORM_DATABASE_HOST,
-  };
-
-  // // tslint:disable-next-line:no-console
-  // console.log('Dropping DB');
-  // try {
-  //   await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
-  //   // don't drop cron db, because it will be used by pg_cron extension
-  // } catch (e) {
-  //   // tslint:disable-next-line:no-console
-  //   console.log('drop db error', e);
-  // }
-  //
-  // tslint:disable-next-line:no-console
-  console.log('Create Fresh DB');
-  try {
-    await createdb(config, process.env.TYPEORM_DATABASE_NAME);
-  } catch (e) {
-    if (e?.name !== 'duplicate_database')
-      // tslint:disable-next-line:no-console
-      console.log('Create Fresh db error', e);
-  }
-}
 
 async function seedDb() {
   await seedUsers();
@@ -344,7 +311,6 @@ async function runMigrations() {
 
 before(async () => {
   try {
-    // await CreateDatabase();
     await bootstrap();
     await seedDb();
     await runMigrations();
