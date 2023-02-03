@@ -344,7 +344,7 @@ async function runMigrations() {
 
 before(async () => {
   try {
-    await CreateDatabase();
+    // await CreateDatabase();
     await bootstrap();
     await seedDb();
     await runMigrations();
