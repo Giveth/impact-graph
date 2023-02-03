@@ -57,6 +57,7 @@ const envVars = [
   'GIVPOWER_ROUND_DURATION',
   'GIVBACK_MAX_FACTOR',
   'GIVBACK_MIN_FACTOR',
+  'DONATION_VERIFICAITON_EXPIRATION_HOURS',
 ];
 
 // tslint:disable-next-line:class-name
