@@ -1450,7 +1450,10 @@ query {
     campaigns{
         title
         description
-        relatedProjectsSlugs
+        relatedProjects {
+          id
+          slug  
+        }
         media
         name
         isActive

@@ -107,6 +107,7 @@ import { updateBroadcastNotificationStatus } from '../repositories/broadcastNoti
 import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { Campaign } from '../entities/campaign';
+import { fillRelatedProjectsOfACampaign } from '../repositories/campaignRepository';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -1285,14 +1286,6 @@ const getAdminBroInstance = async () => {
             totalTraceDonations: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
-            traceCampaignId: {
-              isVisible: {
-                list: false,
-                filter: false,
-                show: true,
-                edit: false,
-              },
-            },
             admin: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -1997,18 +1990,19 @@ const getAdminBroInstance = async () => {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
-              before: async (
-                request: AdminBroRequestInterface,
-                context: AdminBroContextInterface,
-              ) => {
-                // TODO validate input data
-                return request;
+              after: async (response, request, _context) => {
+                await fillRelatedProjectsOfACampaign(response.record.params.id);
+                return response;
               },
             },
             edit: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              after: async (response, request, _context) => {
+                await fillRelatedProjectsOfACampaign(response.record.params.id);
+                return response;
+              },
             },
             bulkDelete: {
               isVisible: false,

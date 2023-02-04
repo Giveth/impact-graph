@@ -16,7 +16,7 @@ import { Project } from './project';
 import { User } from './user';
 
 // Copied from projects enums
-enum SortingField {
+export enum CampaignSortingField {
   MostFunded = 'MostFunded',
   MostLiked = 'MostLiked',
   Newest = 'Newest',
@@ -25,12 +25,12 @@ enum SortingField {
   GIVPower = 'GIVPower',
 }
 
-enum FilterField {
-  Verified = 'verified',
-  AcceptGiv = 'givingBlocksId',
-  AcceptFundOnGnosis = 'acceptFundOnGnosis',
-  GivingBlock = 'fromGivingBlock',
-  BoostedWithGivPower = 'boostedWithGivPower',
+export enum CampaignFilterField {
+  Verified = 'Verified',
+  AcceptGiv = 'AcceptGiv',
+  AcceptFundOnGnosis = 'AcceptFundOnGnosis',
+  GivingBlock = 'GivingBlock',
+  BoostedWithGivPower = 'BoostedWithGivPower',
 }
 
 @Entity()
@@ -41,15 +41,15 @@ export class Campaign extends BaseEntity {
   id: number;
 
   @Field()
-  @Column('text', { unique: true, nullable: false })
+  @Column('text', { nullable: false })
   name: string;
 
   @Field()
-  @Column('text', { unique: true, nullable: false })
+  @Column('text', { nullable: false })
   title: string;
 
   @Field()
-  @Column('text', { unique: true, nullable: false })
+  @Column('text', { nullable: false })
   description: string;
 
   @Field(type => [String], { nullable: true })
@@ -68,9 +68,10 @@ export class Campaign extends BaseEntity {
   @ManyToMany(type => Project, project => project.campaigns, {
     nullable: true,
   })
-  @Field(type => [Project], { nullable: true })
+  @Field(type => [Project])
+  // @Field(type => [Project], { nullable: true })
   @JoinTable()
-  relatedProjects?: Project[];
+  relatedProjects: Project[];
 
   @Field()
   @Column({ default: true })
@@ -84,24 +85,28 @@ export class Campaign extends BaseEntity {
   @Column({ nullable: true })
   landingLink: string;
 
+  @Field(() => CampaignFilterField, { nullable: true })
   @Column({
     type: 'enum',
-    enum: FilterField,
+    enum: CampaignFilterField,
     nullable: true,
     array: true,
   })
-  filterFields: FilterField[];
+  filterFields: CampaignFilterField[];
 
+  @Field(() => CampaignSortingField, { nullable: true })
   @Column({
     type: 'enum',
-    enum: SortingField,
+    enum: CampaignSortingField,
     nullable: true,
   })
-  sortingField: SortingField;
+  sortingField: CampaignSortingField;
 
+  @Field()
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Field()
   @CreateDateColumn()
   createdAt: Date;
 }
