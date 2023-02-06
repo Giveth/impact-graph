@@ -50,7 +50,7 @@ import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
 import { generateRandomString } from '../utils/utils';
-import { ChainvineSDK } from '../services/chainvine/api';
+import { ChainvineMockAdapter } from '../adapters/chainvine/chainvineMockAdapter';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -429,7 +429,7 @@ function donationsTestCases() {
 }
 
 function createDonationTestCases() {
-  const stub = sinon.stub(ChainvineSDK, 'getWalletAddressForUser');
+  const stub = sinon.stub(ChainvineMockAdapter, 'getWalletAddressFromReferer');
 
   it('do not save refererr wallet if user refers himself', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
