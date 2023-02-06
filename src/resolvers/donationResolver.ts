@@ -53,10 +53,7 @@ import { findProjectRecipientAddressByNetworkId } from '../repositories/projectA
 import { MainCategory } from '../entities/mainCategory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
-import {
-  ChainvineRetrieveWalletResponse,
-  ChainvineSDK,
-} from '../services/chainvine/api';
+import { getChainvineAdapter } from '../adapters/adaptersFactory';
 
 @ObjectType()
 class PaginateDonations {
@@ -604,15 +601,10 @@ export class DonationResolver {
 
       if (referrerId) {
         try {
-          const response = (await ChainvineSDK.getWalletAddressForUser(
-            referrerId,
-          )) as ChainvineRetrieveWalletResponse; // the user's ChainVine id
-
-          const chainvineWalletAddress =
-            response?.wallet_address?.toLowerCase();
-
-          if (chainvineWalletAddress !== fromAddress) {
-            referrerWallet = chainvineWalletAddress;
+          const referrerWalletAddress =
+            await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
+          if (referrerWalletAddress !== fromAddress) {
+            referrerWallet = referrerWalletAddress;
           } else {
             logger.info(
               'createDonation info',
@@ -620,7 +612,7 @@ export class DonationResolver {
             );
           }
         } catch (e) {
-          logger.error('createDonation error', e);
+          logger.error('get chainvine wallet address error', e);
         }
       }
 

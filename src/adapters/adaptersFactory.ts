@@ -14,6 +14,8 @@ import { NotificationCenterAdapter } from './notifications/NotificationCenterAda
 import { MockNotificationAdapter } from './notifications/MockNotificationAdapter';
 import { GivPowerSubgraphAdapter } from './givpowerSubgraph/givPowerSubgraphAdapter';
 import { GivPowerSubgraphMock } from './givpowerSubgraph/givPowerSubgraphMock';
+import { ChainvineAdapter } from './chainvine/chainvineAdapter';
+import { ChainvineMockAdapter } from './chainvine/chainvineMockAdapter';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -66,5 +68,19 @@ export const getGivPowerSubgraphAdapter = () => {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.SPECIFY_GIV_POWER_ADAPTER),
       );
+  }
+};
+
+const chainvineAdapter = new ChainvineAdapter();
+const mockChainvineAdapter = new ChainvineMockAdapter();
+
+export const getChainvineAdapter = () => {
+  switch (process.env.CHAINVINE_ADAPTER) {
+    case 'chainvine':
+      return chainvineAdapter;
+    case 'mock':
+      return mockChainvineAdapter;
+    default:
+      return mockChainvineAdapter;
   }
 };
