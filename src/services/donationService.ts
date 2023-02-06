@@ -17,12 +17,14 @@ import {
   findDonationById,
   findStableCoinDonationsWithoutPrice,
 } from '../repositories/donationRepository';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import {
+  getChainvineAdapter,
+  getNotificationAdapter,
+} from '../adapters/adaptersFactory';
 import { calculateGivbackFactor } from './givbackService';
 import { getTokenPrices } from 'monoswap';
 import SentryLogger from '../sentryLogger';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
-import { ChainvineSDK } from './chainvine/api';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -320,13 +322,13 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
 
     // send chainvine the referral as last step to not interrupt previous
     if (donation.referrerWallet) {
-      await ChainvineSDK.referralConversion({
-        wallet_address: donation.fromWalletAddress,
+      await getChainvineAdapter().notifyChainVine({
+        fromWalletAddress: donation.fromWalletAddress,
         amount: donation.amount,
-        transaction_hash: donation.transactionId, // optional
-        token_address: donation.tokenAddress, // optional
-        usd_value: donation.valueUsd, // optional, the USD value of the token at the time of the conversion
-        external_identifier: String(donation.id), // optional (e.g. a product ID in your system)
+        transactionId: donation.transactionId,
+        tokenAddress: donation.tokenAddress,
+        valueUsd: donation.valueUsd, // the USD value of the token at the time of the conversion
+        donationId: donation.id, //
       });
     }
 
