@@ -33,15 +33,25 @@ export const findProjectById = (projectId: number): Promise<Project | null> => {
 };
 
 // return query without execution
-export const filterProjectsQuery = (
-  limit: number,
-  skip: number,
-  searchTerm?: string,
-  category?: string,
-  mainCategory?: string,
-  filters?: FilterField[],
-  sortingBy?: SortingField,
-) => {
+export const filterProjectsQuery = (params: {
+  limit: number;
+  skip: number;
+  searchTerm?: string;
+  category?: string;
+  mainCategory?: string;
+  filters?: FilterField[];
+  sortingBy?: SortingField;
+}) => {
+  const {
+    limit,
+    skip,
+    searchTerm,
+    category,
+    mainCategory,
+    filters,
+    sortingBy,
+  } = params;
+
   let query = Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.users', 'users')

@@ -3,7 +3,6 @@ import { findProjectBySlug } from './projectRepository';
 import { errorMessages } from '../utils/errorMessages';
 
 export const findAllActiveCampaigns = async (): Promise<Campaign[]> => {
-  // TODO Write raw SQL query
   return Campaign.createQueryBuilder('campaign')
     .leftJoinAndSelect('campaign.relatedProjects', 'relatedProjects')
     .where('campaign.isActive = :isActive', {
@@ -12,6 +11,17 @@ export const findAllActiveCampaigns = async (): Promise<Campaign[]> => {
     .orderBy('campaign.order', 'ASC')
     .addOrderBy('campaign.id', 'DESC')
     .getMany();
+};
+
+export const findCampaignBySlug = async (
+  slug: string,
+): Promise<Campaign | null> => {
+  return Campaign.createQueryBuilder('campaign')
+    .leftJoinAndSelect('campaign.relatedProjects', 'relatedProjects')
+    .where('campaign.slug = :slug', {
+      slug,
+    })
+    .getOne();
 };
 
 export const fillRelatedProjectsOfACampaign = async (campaignId: number) => {

@@ -9,9 +9,9 @@ describe('findAllActiveCampaigns test cases', findAllActiveCampaignsTestCases);
 
 function findAllActiveCampaignsTestCases() {
   it('should return active campaigns', async () => {
-    await Campaign.create({
+    const campaign1 = await Campaign.create({
       isActive: true,
-      name: 'name1',
+      slug: 'slug1',
       title: 'title1',
       description: 'description1',
       media: 'https://google.com',
@@ -22,9 +22,9 @@ function findAllActiveCampaignsTestCases() {
       order: 2,
     }).save();
 
-    await Campaign.create({
+    const campaign2 = await Campaign.create({
       isActive: false,
-      name: 'name2',
+      slug: 'slug2',
       title: 'title2',
       description: 'description2',
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
@@ -40,5 +40,7 @@ function findAllActiveCampaignsTestCases() {
     activeCampaigns.forEach(campaign =>
       assert.isOk(campaign?.relatedProjects[0].slug),
     );
+    await campaign1.remove();
+    await campaign2.remove();
   });
 }

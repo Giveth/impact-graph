@@ -144,6 +144,7 @@
     "test:traceImageUpload": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/traceImageUpload.test.ts",
     "test:socialProfileResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/socialProfilesResolver.test.ts",
     "test:userResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/userResolver.test.ts",
+    "test:campaignResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/campaignResolver.test.ts",
     "test:reactionResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/reactionResolver.test.ts",
     "test:donationResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/donationResolver.test.ts",
     "test:projectResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/projectResolver.test.ts",

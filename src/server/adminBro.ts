@@ -2009,7 +2009,7 @@ const getAdminBroInstance = async () => {
             },
           },
           properties: {
-            name: {
+            slug: {
               isVisible: true,
             },
             title: {
@@ -2047,6 +2047,9 @@ const getAdminBroInstance = async () => {
               isVisible: true,
             },
             isActive: {
+              isVisible: true,
+            },
+            isFeatured: {
               isVisible: true,
             },
             filterFields: {

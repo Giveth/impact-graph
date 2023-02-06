@@ -1448,6 +1448,7 @@ query {
 export const getCampaigns = `
 query {
     campaigns{
+        id
         title
         description
         relatedProjects {
@@ -1455,7 +1456,29 @@ query {
           slug  
         }
         media
-        name
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
+    }
+}`;
+
+export const findCampaignBySlug = `
+query {
+    findCampaignBySlug{
+        id
+        title
+        description
+        relatedProjects {
+          id
+          slug  
+        }
+        media
+        slug
         isActive
         order
         landingLink

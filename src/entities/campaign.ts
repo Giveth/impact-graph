@@ -41,8 +41,8 @@ export class Campaign extends BaseEntity {
   id: number;
 
   @Field()
-  @Column('text', { nullable: false })
-  name: string;
+  @Column('text', { nullable: false, unique: true })
+  slug: string;
 
   @Field()
   @Column('text', { nullable: false })
@@ -77,6 +77,10 @@ export class Campaign extends BaseEntity {
   @Column({ default: true })
   isActive: boolean;
 
+  @Field()
+  @Column({ default: false })
+  isFeatured: boolean;
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   order: number;
@@ -85,7 +89,7 @@ export class Campaign extends BaseEntity {
   @Column({ nullable: true })
   landingLink: string;
 
-  @Field(() => CampaignFilterField, { nullable: true })
+  @Field(type => [String], { nullable: true })
   @Column({
     type: 'enum',
     enum: CampaignFilterField,
@@ -94,7 +98,7 @@ export class Campaign extends BaseEntity {
   })
   filterFields: CampaignFilterField[];
 
-  @Field(() => CampaignSortingField, { nullable: true })
+  @Field(type => String, { nullable: true })
   @Column({
     type: 'enum',
     enum: CampaignSortingField,

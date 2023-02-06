@@ -1,4 +1,12 @@
-import { Query, registerEnumType, Resolver } from 'type-graphql';
+import {
+  Arg,
+  Ctx,
+  Field,
+  Int,
+  Query,
+  registerEnumType,
+  Resolver,
+} from 'type-graphql';
 import { Repository } from 'typeorm';
 
 import { User } from '../entities/user';
@@ -10,8 +18,13 @@ import {
   CampaignFilterField,
   CampaignSortingField,
 } from '../entities/campaign';
-import { findAllActiveCampaigns } from '../repositories/campaignRepository';
+import {
+  findAllActiveCampaigns,
+  findCampaignBySlug,
+} from '../repositories/campaignRepository';
 import { FilterField, SortingField } from '../entities/project';
+import { ApolloContext } from '../types/ApolloContext';
+import { errorMessages } from '../utils/errorMessages';
 
 registerEnumType(CampaignSortingField, {
   name: 'CampaignSortingField',
@@ -26,7 +39,29 @@ registerEnumType(CampaignFilterField, {
 @Resolver(of => Campaign)
 export class CampaignResolver {
   @Query(returns => [Campaign], { nullable: true })
+  // @Arg('connectedWalletUserId') connectedWalletUserId: number,
+  // @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   async campaigns() {
-    return findAllActiveCampaigns();
+    // const userId = connectedWalletUserId || user?.userId;
+    const campaigns = await findAllActiveCampaigns();
+    // return Promise.all(
+    //   campaigns.map(campaign => fillCampaignProjects({ campaign, userId })),
+    // );
+    return campaigns;
+  }
+
+  @Query(returns => Campaign, { nullable: true })
+  async findCampaignBySlug(
+    @Arg('slug') slug: string,
+    @Arg('connectedWalletUserId') connectedWalletUserId: number,
+    @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
+  ) {
+    const campaign = await findCampaignBySlug(slug);
+    if (!campaign) {
+      throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
+    }
+    const userId = connectedWalletUserId || user?.userId;
+    // return fillCampaignProjects({ campaign, userId });
+    return campaign;
   }
 }

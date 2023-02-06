@@ -599,7 +599,7 @@ export class ProjectResolver {
   ): Promise<AllProjects> {
     let projects: Project[];
     let totalCount: number;
-    const projectsQuery = filterProjectsQuery(
+    const projectsQuery = filterProjectsQuery({
       limit,
       skip,
       searchTerm,
@@ -607,7 +607,7 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
-    );
+    });
 
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
       hasher =>
