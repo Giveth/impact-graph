@@ -17,7 +17,7 @@ import { pinFile } from '../middleware/pinataUtils';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
@@ -603,7 +603,7 @@ export class ProjectResolver {
       sortingBy,
       connectedWalletUserId,
     }: GetProjectsArgs,
-    @Ctx() { req: { user }, projectsFiltersThreadPool }: MyContext,
+    @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
     let projects: Project[];
     let totalCount: number;
@@ -660,7 +660,7 @@ export class ProjectResolver {
   async topProjects(
     @Args()
     { take, skip, orderBy, category, connectedWalletUserId }: GetProjectsArgs,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<TopProjects> {
     const { field, direction } = orderBy;
     const order = {};
@@ -696,7 +696,7 @@ export class ProjectResolver {
     @Arg('id') id: number,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
@@ -729,7 +729,7 @@ export class ProjectResolver {
     @Arg('slug') slug: string,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     const viewerUserId = connectedWalletUserId || user?.userId;
     let isOwnerOfProject = false;
@@ -791,7 +791,7 @@ export class ProjectResolver {
   async updateProject(
     @Arg('projectId') projectId: number,
     @Arg('newProjectData') newProjectData: UpdateProjectInput,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     if (!user)
       throw new Error(
@@ -918,7 +918,7 @@ export class ProjectResolver {
   @Mutation(returns => ImageResponse)
   async uploadImage(
     @Arg('imageUpload') imageUpload: ImageUpload,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<ImageResponse> {
     const user = await getLoggedInUser(ctx);
     let url = '';
@@ -985,7 +985,7 @@ export class ProjectResolver {
   @Mutation(returns => Project)
   async createProject(
     @Arg('project') projectInput: CreateProjectInput,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @PubSub() pubSub: PubSubEngine,
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx);
@@ -1082,7 +1082,7 @@ export class ProjectResolver {
       updatedAt: now,
       slug: slug.toLowerCase(),
       slugHistory: [],
-      admin: ctx.req.user.userId,
+      admin: String(ctx.req.user.userId),
       users: [user],
       status: status as ProjectStatus,
       qualityScore,
@@ -1091,7 +1091,7 @@ export class ProjectResolver {
       totalProjectUpdates: 1,
       verified: false,
       giveBacks: false,
-      adminUser: user,
+      adminUserId: ctx.req.user.userId,
     });
 
     const newProject = await project.save();
@@ -1140,7 +1140,7 @@ export class ProjectResolver {
     @Arg('projectId') projectId: number,
     @Arg('title') title: string,
     @Arg('content') content: string,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdate> {
     if (!user)
       throw new Error(
@@ -1194,7 +1194,7 @@ export class ProjectResolver {
     @Arg('updateId') updateId: number,
     @Arg('title') title: string,
     @Arg('content') content: string,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdate> {
     if (!user)
       throw new Error(
@@ -1224,7 +1224,7 @@ export class ProjectResolver {
   @Mutation(returns => Boolean)
   async deleteProjectUpdate(
     @Arg('updateId') updateId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<Boolean> {
     if (!user)
       throw new Error(
@@ -1270,7 +1270,7 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdate[]> {
     const { field, direction } = orderBy;
     let query = this.projectUpdateRepository
@@ -1406,7 +1406,7 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     const { field, direction } = orderBy;
     let query = this.projectRepository
@@ -1452,7 +1452,7 @@ export class ProjectResolver {
     @Arg('slug', type => String, { nullable: false }) slug: string,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     try {
       const viewedProject = await this.projectRepository
@@ -1536,7 +1536,7 @@ export class ProjectResolver {
   async projectUpdates(
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdatesResponse> {
     const latestProjectUpdates = await ProjectUpdate.query(`
       SELECT pu.id, pu."projectId"
@@ -1567,7 +1567,7 @@ export class ProjectResolver {
       })
       .orderBy('projectUpdate.id', 'DESC');
 
-    if (user && user?.id)
+    if (user && user?.userId)
       query = ProjectResolver.addReactionToProjectsUpdateQuery(
         query,
         user.userId,
@@ -1586,7 +1586,7 @@ export class ProjectResolver {
     @Arg('userId', type => Int, { nullable: false }) userId: number,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
@@ -1657,7 +1657,7 @@ export class ProjectResolver {
   @Mutation(returns => Boolean)
   async deactivateProject(
     @Arg('projectId') projectId: number,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @Arg('reasonId', { nullable: true }) reasonId?: number,
   ): Promise<Boolean> {
     try {
@@ -1686,7 +1686,7 @@ export class ProjectResolver {
   @Mutation(returns => Boolean)
   async activateProject(
     @Arg('projectId') projectId: number,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx);

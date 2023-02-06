@@ -4,6 +4,7 @@ import { Container } from 'typedi';
 import { userCheck } from '../auth/userCheck';
 import { GraphQLSchema } from 'graphql';
 import { NonEmptyArray } from 'type-graphql';
+import config from '../config';
 
 const createSchema = async (): Promise<GraphQLSchema> => {
   // James: removing for safety. We shouldn't need to do this again except on a local dev machine
@@ -14,11 +15,16 @@ const createSchema = async (): Promise<GraphQLSchema> => {
   //     const { defaultUser } = await seedDatabase()
   // }
 
+  const environment = config.get('ENVIRONMENT') as string;
   // build TypeGraphQL executable schema
   const schema = await TypeGraphQL.buildSchema({
     resolvers: getResolvers() as NonEmptyArray<Function>,
     container: Container,
     authChecker: userCheck,
+    validate: {
+      forbidUnknownValues: false,
+      enableDebugMessages: environment !== 'production',
+    },
   });
   return schema;
 };

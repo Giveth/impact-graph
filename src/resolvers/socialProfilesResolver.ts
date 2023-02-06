@@ -1,6 +1,6 @@
 import { Arg, Ctx, Float, Int, Mutation, Query, Resolver } from 'type-graphql';
 import { SocialProfile } from '../entities/socialProfile';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import {
   errorMessages,
   i18n,
@@ -22,7 +22,7 @@ export class SocialProfilesResolver {
   async addNewSocialProfile(
     @Arg('projectVerificationId', type => Int) projectVerificationId: number,
     @Arg('socialNetwork', type => String) socialNetwork: string,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<string> {
     if (!user || !user?.userId) {
       throw new Error(
@@ -71,7 +71,7 @@ export class SocialProfilesResolver {
   @Mutation(returns => Boolean)
   async removeSocialProfile(
     @Arg('socialProfileId', type => Int) socialProfileId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user || !user?.userId) {
       throw new Error(
