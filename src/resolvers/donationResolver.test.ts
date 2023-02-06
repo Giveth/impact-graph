@@ -51,6 +51,7 @@ import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
 import { generateRandomString } from '../utils/utils';
 import { ChainvineMockAdapter } from '../adapters/chainvine/chainvineMockAdapter';
+import { getChainvineAdapter } from '../adapters/adaptersFactory';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -433,13 +434,14 @@ function createDonationTestCases() {
 
   it('do not save refererr wallet if user refers himself', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
+    const referrerId = generateRandomString();
+    const referrerWalletAddress =
+      await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
     const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
+      walletAddress: referrerWalletAddress,
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
-    stub.resolves({ wallet_address: user.walletAddress, user_id: 'xxxx' });
-    const referrerId = generateRandomString();
     const accessToken = await generateTestAccessToken(user.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
