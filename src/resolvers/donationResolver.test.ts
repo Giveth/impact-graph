@@ -430,8 +430,6 @@ function donationsTestCases() {
 }
 
 function createDonationTestCases() {
-  const stub = sinon.stub(ChainvineMockAdapter, 'getWalletAddressFromReferer');
-
   it('do not save refererr wallet if user refers himself', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const referrerId = generateRandomString();
@@ -478,13 +476,15 @@ function createDonationTestCases() {
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
+    const referrerId = generateRandomString();
+    const referrerWalletAddress =
+      await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
+
     const user2 = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
+      walletAddress: referrerWalletAddress,
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
-    stub.resolves({ wallet_address: user2.walletAddress, user_id: 'xxxx' });
-    const referrerId = generateRandomString();
     const accessToken = await generateTestAccessToken(user.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
