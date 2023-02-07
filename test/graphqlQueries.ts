@@ -9,6 +9,7 @@ export const createDonationMutation = `
     $transakId: String
     $tokenAddress: String
     $anonymous: Boolean
+    $referrerId: String
   ) {
     createDonation(
       transactionId: $transactionId
@@ -20,6 +21,7 @@ export const createDonationMutation = `
       transakId: $transakId
       tokenAddress: $tokenAddress
       anonymous: $anonymous
+      referrerId: $referrerId
     )
   }
 `;
