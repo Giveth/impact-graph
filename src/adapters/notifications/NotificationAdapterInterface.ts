@@ -37,6 +37,7 @@ export interface NotificationAdapterInterface {
   projectBadgeRevokeLastWarning(params: { project: Project }): Promise<void>;
   projectBadgeUpForRevoking(params: { project: Project }): Promise<void>;
   projectUnVerified(params: { project: Project }): Promise<void>;
+  verificationFormRejected(params: { project: Project }): Promise<void>;
 
   projectListed(params: { project: Project }): Promise<void>;
 

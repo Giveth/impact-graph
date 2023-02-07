@@ -327,6 +327,23 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
+  async verificationFormRejected(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    const user = project.adminUser as User;
+    return sendProjectRelatedNotification({
+      project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_REJECTED,
+      sendEmail: true,
+      segment: {
+        analyticsUserId: user.segmentUserId(),
+        anonymousId: user.segmentUserId(),
+        payload: getSegmentProjectAttributes({
+          project,
+        }),
+      },
+    });
+  }
+
   async projectReceivedHeartReaction(params: {
     project: Project;
     userId: number;

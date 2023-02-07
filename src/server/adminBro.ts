@@ -2336,7 +2336,7 @@ export const verifySingleVerificationForm = async (
         project,
       });
     } else {
-      await getNotificationAdapter().projectUnVerified({
+      await getNotificationAdapter().verificationFormRejected({
         project,
       });
     }

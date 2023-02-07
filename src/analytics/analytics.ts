@@ -18,6 +18,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_REJECTED = 'Project unverified',
 
   PROJECT_UNVERIFIED = 'Project unverified',
+  VERIFICATION_FORM_REJECTED = 'Form rejected',
   PROJECT_UNVERIFIED_USERS_WHO_SUPPORT = 'Project unverified - Users who supported',
   PROJECT_ACTIVATED = 'Project activated',
   PROJECT_ACTIVATED_USERS_WHO_SUPPORT = 'Project activated - Users who supported',

@@ -195,6 +195,13 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
+  verificationFormRejected(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter verificationFormRejected', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
   donationGetPriceFailed(params: {
     project: Project;
     donationInfo: { txLink: string; reason: string };
