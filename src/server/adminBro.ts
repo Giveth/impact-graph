@@ -2546,11 +2546,11 @@ export const verifyProjects = async (
     for (const project of projects.raw) {
       if (
         projectsBeforeUpdating.find(p => p.id === project.id)?.verified ===
-        verified
+        verificationStatus
       ) {
         logger.info('verifying/unVerifying project but no changes happened', {
           projectId: project.id,
-          verified,
+          verificationStatus,
         });
         // if project.verified have not changed so we should not execute rest of the codes
         continue;
