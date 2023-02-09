@@ -74,6 +74,7 @@ import {
 } from '../repositories/projectVerificationRepository';
 import {
   findProjectById,
+  findProjectsByIdArray,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
@@ -2208,14 +2209,28 @@ export const listDelist = async (
 ) => {
   const { records, currentAdmin } = context;
   try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, { listed: list })
       .where('project.id IN (:...ids)')
-      .setParameter('ids', request.query.recordIds.split(','))
+      .setParameter('ids', projectIds)
       .returning('*')
       .updateEntity(true)
       .execute();
     for (const project of projects.raw) {
+      if (
+        projectsBeforeUpdating.find(p => p.id === project.id)?.listed === list
+      ) {
+        logger.info('listing/uListing project but no changes happened', {
+          projectId: project.id,
+          list,
+        });
+        // if project.listed have not changed so we should not execute rest of the codes
+        continue;
+      }
       await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
@@ -2506,6 +2521,10 @@ export const verifyProjects = async (
   // prioritize revokeBadge
   const verificationStatus = revokeBadge ? false : verified;
   try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
     const updateParams = { verified: verificationStatus };
 
     if (verificationStatus) {
@@ -2519,12 +2538,23 @@ export const verifyProjects = async (
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, updateParams)
       .where('project.id IN (:...ids)')
-      .setParameter('ids', request?.query?.recordIds?.split(','))
+      .setParameter('ids', projectIds)
       .returning('*')
       .updateEntity(true)
       .execute();
 
     for (const project of projects.raw) {
+      if (
+        projectsBeforeUpdating.find(p => p.id === project.id)?.verified ===
+        verified
+      ) {
+        logger.info('verifying/unVerifying project but no changes happened', {
+          projectId: project.id,
+          verified,
+        });
+        // if project.verified have not changed so we should not execute rest of the codes
+        continue;
+      }
       await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
@@ -2597,6 +2627,10 @@ export const updateStatusOfProjects = async (
 ) => {
   const { records, currentAdmin } = context;
   try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
     const projectStatus = await ProjectStatus.findOne({
       where: { id: status },
     });
@@ -2609,12 +2643,23 @@ export const updateStatusOfProjects = async (
       const projects = await Project.createQueryBuilder('project')
         .update<Project>(Project, updateData)
         .where('project.id IN (:...ids)')
-        .setParameter('ids', request?.query?.recordIds?.split(','))
+        .setParameter('ids', projectIds)
         .returning('*')
         .updateEntity(true)
         .execute();
 
       for (const project of projects.raw) {
+        if (
+          projectsBeforeUpdating.find(p => p.id === project.id)?.statusId ===
+          projectStatus.id
+        ) {
+          logger.info('Changing project status but no changes happened', {
+            projectId: project.id,
+            projectStatus,
+          });
+          // if project.listed have not changed so we should not execute rest of the codes
+          continue;
+        }
         await Project.addProjectStatusHistoryRecord({
           project,
           status: projectStatus,
