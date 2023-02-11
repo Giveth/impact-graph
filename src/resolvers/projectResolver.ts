@@ -1461,7 +1461,7 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     const { field, direction } = orderBy;
     let query = this.projectRepository
