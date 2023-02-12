@@ -35,6 +35,20 @@ export const findProjectById = (projectId: number): Promise<Project | null> => {
     .getOne();
 };
 
+export const findProjectsByIdArray = (
+  projectIds: number[],
+): Promise<Project[]> => {
+  return Project.createQueryBuilder('project')
+    .leftJoinAndSelect('project.status', 'status')
+    .leftJoinAndSelect('project.organization', 'organization')
+    .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoin('project.adminUser', 'user')
+    .addSelect(publicSelectionFields)
+    .where('project.id IN (:...ids)')
+    .setParameter('ids', projectIds)
+    .getMany();
+};
+
 // return query without execution
 export const filterProjectsQuery = (
   limit: number,

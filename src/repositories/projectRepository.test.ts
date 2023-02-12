@@ -2,6 +2,7 @@ import {
   findProjectById,
   findProjectBySlug,
   findProjectByWalletAddress,
+  findProjectsByIdArray,
   projectsWithoutUpdateAfterTimeFrame,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
@@ -91,19 +92,8 @@ function projectsWithoutUpdateAfterTimeFrameTestCases() {
 
 describe('verifyProject test cases', verifyProjectTestCases);
 describe('verifyMultipleProjects test cases', verifyMultipleProjectsTestCases);
-describe('findProjectById test cases', () => {
-  it('Should find project by id', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const foundProject = await findProjectById(project.id);
-    assert.isOk(foundProject);
-    assert.equal(foundProject?.id, project.id);
-  });
-
-  it('should not find project when project doesnt exists', async () => {
-    const foundProject = await findProjectById(1000000000);
-    assert.isNull(foundProject);
-  });
-});
+describe('findProjectById test cases', findProjectByIdTestCases);
+describe('findProjectsByIdArray test cases', findProjectsByIdArrayTestCases);
 describe('findProjectBySlug test cases', () => {
   it('Should find project by id', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -117,6 +107,45 @@ describe('findProjectBySlug test cases', () => {
     assert.isNull(foundProject);
   });
 });
+
+function findProjectByIdTestCases() {
+  it('Should find project by id', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const foundProject = await findProjectById(project.id);
+    assert.isOk(foundProject);
+    assert.equal(foundProject?.id, project.id);
+  });
+
+  it('should not find project when project doesnt exists', async () => {
+    const foundProject = await findProjectById(1000000000);
+    assert.isNull(foundProject);
+  });
+}
+
+function findProjectsByIdArrayTestCases() {
+  it('Should find projects by multiple id', async () => {
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const projects = await findProjectsByIdArray([project1.id, project2.id]);
+    assert.equal(projects.length, 2);
+    assert.ok(projects.find(project => project.id === project1.id));
+    assert.ok(projects.find(project => project.id === project2.id));
+  });
+  it('Should find projects by multiple id even if some of them doesnt exist', async () => {
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const bigNumber = 999999999;
+    const projects = await findProjectsByIdArray([
+      project1.id,
+      project2.id,
+      bigNumber,
+    ]);
+    assert.equal(projects.length, 2);
+    assert.ok(projects.find(project => project.id === project1.id));
+    assert.ok(projects.find(project => project.id === project2.id));
+    assert.notOk(projects.find(project => project.id === bigNumber));
+  });
+}
 
 function findProjectByWalletAddressTestCases() {
   it('should find project by walletAddress', async () => {
