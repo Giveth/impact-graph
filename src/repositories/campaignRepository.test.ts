@@ -1,4 +1,4 @@
-import { Campaign } from '../entities/campaign';
+import { Campaign, CampaignType } from '../entities/campaign';
 import { findAllActiveCampaigns } from './campaignRepository';
 import { assert } from 'chai';
 import { findProjectById } from './projectRepository';
@@ -15,6 +15,7 @@ function findAllActiveCampaignsTestCases() {
       title: 'title1',
       description: 'description1',
       media: 'https://google.com',
+      type: CampaignType.RelatedProjects,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
       relatedProjects: [
         (await findProjectById(SEED_DATA.FIRST_PROJECT.id)) as Project,
@@ -27,6 +28,7 @@ function findAllActiveCampaignsTestCases() {
       slug: 'slug2',
       title: 'title2',
       description: 'description2',
+      type: CampaignType.RelatedProjects,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
       relatedProjects: [
         (await findProjectById(SEED_DATA.FIRST_PROJECT.id)) as Project,
