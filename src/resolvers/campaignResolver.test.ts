@@ -36,8 +36,8 @@ function fetchCampaignsTestCases() {
       description: 'description1',
       media: 'https://google.com',
       filterFields: [
-        CampaignFilterField.AcceptGiv,
-        CampaignFilterField.AcceptFundOnGnosis,
+        CampaignFilterField.givingBlocksId,
+        CampaignFilterField.acceptFundOnGnosis,
       ],
       order: 2,
     }).save();

@@ -26,11 +26,11 @@ export enum CampaignSortingField {
 }
 
 export enum CampaignFilterField {
-  Verified = 'Verified',
-  AcceptGiv = 'AcceptGiv',
-  AcceptFundOnGnosis = 'AcceptFundOnGnosis',
-  GivingBlock = 'GivingBlock',
-  BoostedWithGivPower = 'BoostedWithGivPower',
+  verified = 'verified',
+  givingBlocksId = 'givingBlocksId',
+  acceptFundOnGnosis = 'acceptFundOnGnosis',
+  fromGivingBlock = 'fromGivingBlock',
+  boostedWithGivPower = 'boostedWithGivPower',
 }
 
 export enum CampaignType {
