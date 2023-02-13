@@ -88,6 +88,9 @@ export class Campaign extends BaseEntity {
   isFeatured: boolean;
 
   @Field({ nullable: true })
+  relatedProjectsCount?: number;
+
+  @Field({ nullable: true })
   @Column({ nullable: true })
   order: number;
 
@@ -112,11 +115,10 @@ export class Campaign extends BaseEntity {
   })
   sortingField: CampaignSortingField;
 
-  @Field(type => String, { nullable: true })
+  @Field(type => String)
   @Column({
     type: 'enum',
     enum: CampaignType,
-    nullable: true,
   })
   type: CampaignType;
 

@@ -107,7 +107,7 @@ import BroadcastNotification, {
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
-import { Campaign } from '../entities/campaign';
+import { Campaign, CampaignType } from '../entities/campaign';
 import { fillRelatedProjectsOfACampaign } from '../repositories/campaignRepository';
 
 // use redis for session data instead of in-memory storage

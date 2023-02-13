@@ -1,34 +1,38 @@
-import { Campaign } from '../entities/campaign';
+import { Campaign, CampaignType } from '../entities/campaign';
 import { filterProjectsQuery } from '../repositories/projectRepository';
 import { FilterField, Project, SortingField } from '../entities/project';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
 
 export const fillCampaignProjects = async (params: {
-  userId: number;
+  userId?: number;
   campaign: Campaign;
+  skip?: number;
+  limit?: number;
 }): Promise<Campaign> => {
   const { campaign, userId } = params;
   let projects: Project[] = [];
   let projectsQuery;
-  const limit = 5;
-  const skip = 0;
+  const limit = params.limit || 10;
+  const skip = params.skip || 0;
+  let totalCount = 0;
 
-  if (campaign.relatedProjects.length > 0) {
+  if (campaign.type === CampaignType.RelatedProjects) {
     projects = campaign.relatedProjects;
-  } else if (campaign.filterFields.length > 0) {
+    totalCount = campaign.relatedProjects.length;
+  } else if (campaign.type === CampaignType.FilterFields) {
     projectsQuery = filterProjectsQuery({
       limit,
       skip,
       filters: campaign.filterFields as unknown as FilterField[],
     });
-    projects = await projectsQuery.getMany();
-  } else if (campaign.sortingField) {
+    [projects, totalCount] = await projectsQuery.getManyAndCount();
+  } else if (campaign.type === CampaignType.SortField) {
     projectsQuery = filterProjectsQuery({
       limit,
       skip,
       sortingBy: campaign.sortingField as unknown as SortingField,
     });
-    projects = await projectsQuery.getMany();
+    [projects, totalCount] = await projectsQuery.getManyAndCount();
   }
 
   if (userId) {
@@ -43,7 +47,7 @@ export const fillCampaignProjects = async (params: {
       return project;
     });
   }
-
   campaign.relatedProjects = projects;
+  campaign.relatedProjectsCount = totalCount;
   return campaign;
 };

@@ -30,7 +30,7 @@ export const fillRelatedProjectsOfACampaign = async (campaignId: number) => {
     throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
   }
   campaign.relatedProjects = [];
-  for (const slug of campaign.relatedProjectsSlugs) {
+  for (const slug of campaign.relatedProjectsSlugs || []) {
     const project = await findProjectBySlug(slug);
     if (project) {
       campaign.relatedProjects.push(project);

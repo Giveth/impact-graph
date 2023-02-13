@@ -1499,10 +1499,12 @@ query {
         id
         title
         description
+        type
         relatedProjects {
           id
           slug  
         }
+        relatedProjectsCount
         media
         slug
         isActive
@@ -1517,14 +1519,20 @@ query {
 
 export const findCampaignBySlug = `
 query {
-    findCampaignBySlug{
+    findCampaignBySlug(
+      $slug: String!
+      $limit: Int
+      $skip: Int
+    ){
         id
         title
+        type
         description
         relatedProjects {
           id
           slug  
         }
+        relatedProjectsCount
         media
         slug
         isActive

@@ -489,7 +489,7 @@ export class ProjectResolver {
     query: SelectQueryBuilder<Project>,
     filtersArray: FilterField[] = [],
   ) {
-    if (filtersArray.length === 0) return query;
+    if (!filtersArray || filtersArray.length === 0) return query;
 
     query = query.andWhere(
       new Brackets(subQuery => {

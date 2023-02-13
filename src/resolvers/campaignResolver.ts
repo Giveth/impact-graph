@@ -7,12 +7,6 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { Repository } from 'typeorm';
-
-import { User } from '../entities/user';
-import { Category } from '../entities/category';
-import { MainCategory } from '../entities/mainCategory';
-import { AppDataSource } from '../orm';
 import {
   Campaign,
   CampaignFilterField,
@@ -22,9 +16,9 @@ import {
   findAllActiveCampaigns,
   findCampaignBySlug,
 } from '../repositories/campaignRepository';
-import { FilterField, SortingField } from '../entities/project';
 import { ApolloContext } from '../types/ApolloContext';
 import { errorMessages } from '../utils/errorMessages';
+import { fillCampaignProjects } from '../services/campaignService';
 
 registerEnumType(CampaignSortingField, {
   name: 'CampaignSortingField',
@@ -39,29 +33,33 @@ registerEnumType(CampaignFilterField, {
 @Resolver(of => Campaign)
 export class CampaignResolver {
   @Query(returns => [Campaign], { nullable: true })
-  // @Arg('connectedWalletUserId') connectedWalletUserId: number,
-  // @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
-  async campaigns() {
-    // const userId = connectedWalletUserId || user?.userId;
+  async campaigns(
+    @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
+    @Arg('connectedWalletUserId', { nullable: true })
+    connectedWalletUserId?: number,
+  ) {
+    const userId = connectedWalletUserId || user?.userId;
     const campaigns = await findAllActiveCampaigns();
-    // return Promise.all(
-    //   campaigns.map(campaign => fillCampaignProjects({ campaign, userId })),
-    // );
-    return campaigns;
+    return Promise.all(
+      campaigns?.map(campaign => fillCampaignProjects({ campaign, userId })),
+    );
   }
 
   @Query(returns => Campaign, { nullable: true })
   async findCampaignBySlug(
     @Arg('slug') slug: string,
-    @Arg('connectedWalletUserId') connectedWalletUserId: number,
-    @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
+    @Ctx()
+    { req: { user }, projectsFiltersThreadPool }: ApolloContext,
+    @Arg('connectedWalletUserId', { nullable: true })
+    connectedWalletUserId?: number,
+    @Arg('skip', type => Int, { nullable: true }) skip?: number,
+    @Arg('limit', type => Int, { nullable: true }) limit?: number,
   ) {
     const campaign = await findCampaignBySlug(slug);
     if (!campaign) {
       throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
     }
     const userId = connectedWalletUserId || user?.userId;
-    // return fillCampaignProjects({ campaign, userId });
-    return campaign;
+    return fillCampaignProjects({ campaign, userId, skip, limit });
   }
 }
