@@ -8,7 +8,7 @@ export const fillCampaignProjects = async (params: {
   campaign: Campaign;
 }): Promise<Campaign> => {
   const { campaign, userId } = params;
-  let projects: Project[];
+  let projects: Project[] = [];
   let projectsQuery;
   const limit = 5;
   const skip = 0;

@@ -2,7 +2,11 @@ import axios from 'axios';
 import { graphqlUrl, SEED_DATA } from '../../test/testUtils';
 import { getCampaigns } from '../../test/graphqlQueries';
 import { assert } from 'chai';
-import { Campaign, CampaignFilterField } from '../entities/campaign';
+import {
+  Campaign,
+  CampaignFilterField,
+  CampaignType,
+} from '../entities/campaign';
 import { findProjectById } from '../repositories/projectRepository';
 import { Project } from '../entities/project';
 
@@ -12,7 +16,8 @@ function fetchCampaignsTestCases() {
   it('should return active categories', async () => {
     const campaign1 = await Campaign.create({
       isActive: true,
-      name: 'name1',
+      type: CampaignType.RelatedProjects,
+      slug: 'slug',
       title: 'title1',
       description: 'description1',
       media: 'https://google.com',
@@ -25,8 +30,9 @@ function fetchCampaignsTestCases() {
 
     const campaign2 = await Campaign.create({
       isActive: true,
-      name: 'name1',
+      slug: 'name1',
       title: 'title1',
+      type: CampaignType.FilterFields,
       description: 'description1',
       media: 'https://google.com',
       filterFields: [
@@ -38,8 +44,9 @@ function fetchCampaignsTestCases() {
 
     const campaign3 = await Campaign.create({
       isActive: false,
-      name: 'name2',
+      slug: 'name2',
       title: 'title2',
+      type: CampaignType.RelatedProjects,
       description: 'description2',
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
       relatedProjects: [

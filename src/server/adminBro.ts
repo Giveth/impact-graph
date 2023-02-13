@@ -2016,6 +2016,9 @@ const getAdminBroInstance = async () => {
             title: {
               isVisible: true,
             },
+            type: {
+              isVisible: true,
+            },
             description: {
               isVisible: true,
             },

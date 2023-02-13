@@ -33,6 +33,12 @@ export enum CampaignFilterField {
   BoostedWithGivPower = 'BoostedWithGivPower',
 }
 
+export enum CampaignType {
+  RelatedProjects = 'RelatedProjects',
+  SortField = 'SortField',
+  FilterFields = 'FilterFields',
+}
+
 @Entity()
 @ObjectType()
 export class Campaign extends BaseEntity {
@@ -105,6 +111,14 @@ export class Campaign extends BaseEntity {
     nullable: true,
   })
   sortingField: CampaignSortingField;
+
+  @Field(type => String, { nullable: true })
+  @Column({
+    type: 'enum',
+    enum: CampaignType,
+    nullable: true,
+  })
+  type: CampaignType;
 
   @Field()
   @UpdateDateColumn()
