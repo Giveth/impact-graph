@@ -327,6 +327,23 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
+  async verificationFormRejected(params: { project: Project }): Promise<void> {
+    const { project } = params;
+    const user = project.adminUser as User;
+    return sendProjectRelatedNotification({
+      project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_REJECTED,
+      sendEmail: true,
+      segment: {
+        analyticsUserId: user.segmentUserId(),
+        anonymousId: user.segmentUserId(),
+        payload: getSegmentProjectAttributes({
+          project,
+        }),
+      },
+    });
+  }
+
   async projectReceivedHeartReaction(params: {
     project: Project;
     userId: number;
@@ -652,6 +669,19 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       skip += users.length;
       const queueData: SendBatchNotificationBody = { notifications: [] };
       for (const user of users) {
+        // with adding .toLowerCase() to wallet address we make sure if two wallet address with different case
+        // exist we would set same trackId for them
+        const trackId = `${trackIdPrefix}-${user.walletAddress?.toLowerCase()}`;
+        if (
+          queueData.notifications.find(
+            notificationData => notificationData.trackId === trackId,
+          )
+        ) {
+          // We should not have items with repetitive trackIds in sending bulk notifications
+          // and we may have some users with same wallet address, so we need to add this checking
+          // https://github.com/Giveth/giveth-dapps-v2/issues/2084
+          continue;
+        }
         queueData.notifications.push({
           email: user.email as string,
           eventName: NOTIFICATIONS_EVENT_NAMES.RAW_HTML_BROADCAST,
@@ -661,7 +691,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
             html,
           },
           userWalletAddress: user.walletAddress as string,
-          trackId: `${trackIdPrefix}-${user.walletAddress}`,
+          trackId,
         });
       }
       sendBroadcastNotificationsQueue.add(queueData);

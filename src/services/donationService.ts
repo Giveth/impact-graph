@@ -17,7 +17,10 @@ import {
   findDonationById,
   findStableCoinDonationsWithoutPrice,
 } from '../repositories/donationRepository';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import {
+  getChainvineAdapter,
+  getNotificationAdapter,
+} from '../adapters/adaptersFactory';
 import { calculateGivbackFactor } from './givbackService';
 import { getTokenPrices } from 'monoswap';
 import SentryLogger from '../sentryLogger';
@@ -316,6 +319,19 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await sendSegmentEventForDonation({
       donation,
     });
+
+    // send chainvine the referral as last step to not interrupt previous
+    if (donation.referrerWallet) {
+      await getChainvineAdapter().notifyChainVine({
+        fromWalletAddress: donation.fromWalletAddress,
+        amount: donation.amount,
+        transactionId: donation.transactionId,
+        tokenAddress: donation.tokenAddress,
+        valueUsd: donation.valueUsd, // the USD value of the token at the time of the conversion
+        donationId: donation.id, //
+      });
+    }
+
     logger.debug('donation and transaction', {
       transaction,
       donationId: donation.id,

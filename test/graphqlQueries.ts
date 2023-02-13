@@ -9,6 +9,7 @@ export const createDonationMutation = `
     $transakId: String
     $tokenAddress: String
     $anonymous: Boolean
+    $referrerId: String
   ) {
     createDonation(
       transactionId: $transactionId
@@ -20,6 +21,7 @@ export const createDonationMutation = `
       transakId: $transakId
       tokenAddress: $tokenAddress
       anonymous: $anonymous
+      referrerId: $referrerId
     )
   }
 `;
@@ -931,6 +933,52 @@ export const fetchProjectUpdatesQuery = `
     }
   }
 `;
+
+export const projectsBySlugsQuery = `
+  query ($take: Float, $skip: Float, $slugs: [String!]!) {
+      projectsBySlugs(take: $take, skip: $skip, slugs: $slugs) {
+        projects {
+          id
+          title
+          balance
+          description
+          image
+          slug
+          creationDate
+          admin
+          walletAddress
+          impactLocation
+          listed
+          givingBlocksId
+          categories {
+            name
+          }
+          reaction {
+            reaction
+            id
+            projectUpdateId
+            userId
+          }
+          addresses {
+            address
+            isRecipient
+            networkId
+          }
+          organization {
+            label
+          }
+          adminUser {
+            firstName
+            email
+            id
+            walletAddress
+          }
+          qualityScore
+        }
+        totalCount
+      }
+    }
+  `;
 
 export const projectsByUserIdQuery = `
   query ($take: Float, $skip: Float, $userId: Int!) {

@@ -53,6 +53,7 @@ import { findProjectRecipientAddressByNetworkId } from '../repositories/projectA
 import { MainCategory } from '../entities/mainCategory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
+import { getChainvineAdapter } from '../adapters/adaptersFactory';
 
 @ObjectType()
 class PaginateDonations {
@@ -514,9 +515,11 @@ export class DonationResolver {
     @Arg('projectId') projectId: number,
     @Arg('nonce') nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
+    @Arg('referrerId', { nullable: true }) referrerId: string,
     @Ctx() ctx: ApolloContext,
   ): Promise<Number> {
     try {
+      let referrerWallet;
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
       if (!donorUser) {
@@ -533,6 +536,7 @@ export class DonationResolver {
           projectId,
           nonce,
           transakId,
+          referrerId,
         },
         createDonationQueryValidator,
       );
@@ -595,6 +599,23 @@ export class DonationResolver {
       const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
       const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
 
+      if (referrerId) {
+        try {
+          const referrerWalletAddress =
+            await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
+          if (referrerWalletAddress !== fromAddress) {
+            referrerWallet = referrerWalletAddress;
+          } else {
+            logger.info(
+              'createDonation info',
+              `User ${fromAddress} tried to refer himself.`,
+            );
+          }
+        } catch (e) {
+          logger.error('get chainvine wallet address error', e);
+        }
+      }
+
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId?.toLowerCase() || transakId,
@@ -614,6 +635,11 @@ export class DonationResolver {
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: Boolean(anonymous),
       });
+
+      if (referrerWallet) {
+        donation.referrerWallet = referrerWallet;
+      }
+
       await donation.save();
       const baseTokens =
         priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];

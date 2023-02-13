@@ -1287,7 +1287,7 @@ function listDelistTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: false,
-      listed: true,
+      listed: false,
     });
     const adminUser = await User.findOne({
       where: { id: SEED_DATA.ADMIN_USER.id },
