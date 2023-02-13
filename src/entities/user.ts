@@ -11,7 +11,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Project, ProjStatus } from './project';
-import { Donation } from './donation';
+import { Donation, DONATION_STATUS } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusHistory } from './projectStatusHistory';
@@ -158,11 +158,13 @@ export class User extends BaseEntity {
 
   @Field(type => Int, { nullable: true })
   async donationsCount() {
-    const donationsCount = await Donation.createQueryBuilder('donation')
+    const query = await Donation.createQueryBuilder('donation')
       .where(`donation."userId" = :id`, { id: this.id })
-      .getCount();
+      .andWhere(`status = :status`, {
+        status: DONATION_STATUS.VERIFIED,
+      });
 
-    return donationsCount;
+    return query.getCount();
   }
 
   @Field(type => Int, { nullable: true })
