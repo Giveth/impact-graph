@@ -13,6 +13,7 @@ import { fetchGivHistoricPrice } from '../givPriceService';
 import { NETWORK_IDS } from '../../provider';
 import { updateUserTotalReceived } from '../userService';
 import { updateTotalDonationsOfProject } from '../donationService';
+import { findDonationsByTransactionId } from '../../repositories/donationRepository';
 
 /**
  * @see{@link https://github.com/Giveth/impact-graph/issues/433}
@@ -72,7 +73,13 @@ const importPoignArtDonations = async () => {
 const createPoignArtDonationInDb = async (
   poignArtWithdrawal: PoignArtWithdrawal,
   unchainProject: Project,
-) => {
+): Promise<void> => {
+  const isDonationExist = await findDonationsByTransactionId(
+    poignArtWithdrawal.txHash,
+  );
+  if (isDonationExist) {
+    return;
+  }
   const ethPrice = (
     await fetchGivHistoricPrice(poignArtWithdrawal.txHash, NETWORK_IDS.MAIN_NET)
   ).ethPriceInUsd;
