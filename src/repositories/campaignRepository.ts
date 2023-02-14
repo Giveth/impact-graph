@@ -1,10 +1,10 @@
 import { Campaign } from '../entities/campaign';
 import { findProjectBySlug } from './projectRepository';
 import { errorMessages } from '../utils/errorMessages';
+import { Project } from '../entities/project';
 
 export const findAllActiveCampaigns = async (): Promise<Campaign[]> => {
   return Campaign.createQueryBuilder('campaign')
-    .leftJoinAndSelect('campaign.relatedProjects', 'relatedProjects')
     .where('campaign.isActive = :isActive', {
       isActive: true,
     })
@@ -17,34 +17,20 @@ export const findCampaignBySlug = async (
   slug: string,
 ): Promise<Campaign | null> => {
   return Campaign.createQueryBuilder('campaign')
-    .leftJoinAndSelect('campaign.relatedProjects', 'relatedProjects')
     .where('campaign.slug = :slug', {
       slug,
+    })
+    .andWhere('campaign.isActive = :isActive', {
+      isActive: true,
     })
     .getOne();
 };
 
-export const fillRelatedProjectsOfACampaign = async (campaignId: number) => {
-  const campaign = await findCampaignById(campaignId);
-  if (!campaign) {
-    throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
-  }
-  campaign.relatedProjects = [];
-  for (const slug of campaign.relatedProjectsSlugs || []) {
-    const project = await findProjectBySlug(slug);
-    if (project) {
-      campaign.relatedProjects.push(project);
-    }
-  }
-  await campaign.save();
-};
-
-export const findCampaignById = async (
-  campaignId: number,
-): Promise<Campaign | null> => {
-  return Campaign.findOne({
-    where: {
-      id: campaignId,
-    },
-  });
+export const findFeaturedCampaign = async (): Promise<Campaign | null> => {
+  return Campaign.createQueryBuilder('campaign')
+    .where('campaign."isFeatured" = true')
+    .andWhere('campaign.isActive = :isActive', {
+      isActive: true,
+    })
+    .getOne();
 };

@@ -37,6 +37,7 @@ export enum CampaignType {
   RelatedProjects = 'RelatedProjects',
   SortField = 'SortField',
   FilterFields = 'FilterFields',
+  WithoutProjects = 'WithoutProjects',
 }
 
 @Entity()
@@ -71,12 +72,7 @@ export class Campaign extends BaseEntity {
   // ipfs link
   media: string;
 
-  @ManyToMany(type => Project, project => project.campaigns, {
-    nullable: true,
-  })
   @Field(type => [Project])
-  // @Field(type => [Project], { nullable: true })
-  @JoinTable()
   relatedProjects: Project[];
 
   @Field()

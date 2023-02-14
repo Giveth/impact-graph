@@ -15,6 +15,7 @@ import {
 import {
   findAllActiveCampaigns,
   findCampaignBySlug,
+  findFeaturedCampaign,
 } from '../repositories/campaignRepository';
 import { ApolloContext } from '../types/ApolloContext';
 import { errorMessages } from '../utils/errorMessages';
@@ -47,18 +48,30 @@ export class CampaignResolver {
 
   @Query(returns => Campaign, { nullable: true })
   async findCampaignBySlug(
-    @Arg('slug') slug: string,
     @Ctx()
     { req: { user }, projectsFiltersThreadPool }: ApolloContext,
     @Arg('connectedWalletUserId', { nullable: true })
     connectedWalletUserId?: number,
     @Arg('skip', type => Int, { nullable: true }) skip?: number,
     @Arg('limit', type => Int, { nullable: true }) limit?: number,
+
+    // If user dont send slug, we return first featured campaign
+    @Arg('slug', { nullable: true }) slug?: string,
   ) {
-    const campaign = await findCampaignBySlug(slug);
-    if (!campaign) {
-      throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
+    // TODO Write test cases
+    let campaign: Campaign | null;
+    if (slug) {
+      campaign = await findCampaignBySlug(slug);
+      if (!campaign) {
+        throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
+      }
+    } else {
+      campaign = await findFeaturedCampaign();
+      if (!campaign) {
+        throw new Error(errorMessages.THERE_IS_NOT_ANY_FEATURED_CAMPAIGN);
+      }
     }
+
     const userId = connectedWalletUserId || user?.userId;
     return fillCampaignProjects({ campaign, userId, skip, limit });
   }

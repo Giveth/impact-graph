@@ -1,5 +1,9 @@
 import { Campaign, CampaignType } from '../entities/campaign';
-import { filterProjectsQuery } from '../repositories/projectRepository';
+import {
+  filterProjectsQuery,
+  findProjectBySlug,
+  findProjectsBySlugArray,
+} from '../repositories/projectRepository';
 import { FilterField, Project, SortingField } from '../entities/project';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
 
@@ -16,9 +20,10 @@ export const fillCampaignProjects = async (params: {
   const skip = params.skip || 0;
   let totalCount = 0;
 
+  // TODO Add caching for fetch projects
   if (campaign.type === CampaignType.RelatedProjects) {
-    projects = campaign.relatedProjects;
-    totalCount = campaign.relatedProjects.length;
+    projects = await findProjectsBySlugArray(campaign.relatedProjectsSlugs);
+    totalCount = projects.length;
   } else if (campaign.type === CampaignType.FilterFields) {
     projectsQuery = filterProjectsQuery({
       limit,
@@ -33,6 +38,8 @@ export const fillCampaignProjects = async (params: {
       sortingBy: campaign.sortingField as unknown as SortingField,
     });
     [projects, totalCount] = await projectsQuery.getManyAndCount();
+  } else if (campaign.type === CampaignType.WithoutProjects) {
+    // Dont add projects to this campaign type
   }
 
   if (userId) {

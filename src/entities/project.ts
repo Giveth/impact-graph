@@ -182,13 +182,6 @@ export class Project extends BaseEntity {
   @JoinTable()
   categories: Category[];
 
-  @Field(type => [Campaign], { nullable: true })
-  @ManyToMany(type => Campaign, campaign => campaign.relatedProjects, {
-    nullable: true,
-    eager: true,
-  })
-  campaigns: Campaign[];
-
   @Field(type => Float, { nullable: true })
   @Column('float', { nullable: true })
   balance: number = 0;

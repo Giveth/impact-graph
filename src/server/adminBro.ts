@@ -107,8 +107,7 @@ import BroadcastNotification, {
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
-import { Campaign, CampaignType } from '../entities/campaign';
-import { fillRelatedProjectsOfACampaign } from '../repositories/campaignRepository';
+import { Campaign } from '../entities/campaign';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -123,12 +122,6 @@ const cookie = require('cookie');
 const cookieParser = require('cookie-parser');
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminBroCookie = 'adminbro';
-
-const segmentProjectStatusEvents = {
-  activate: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
-  deactivate: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
-  cancelled: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
-};
 
 // headers defined by the verification team for exporting
 const headers = [
@@ -1991,19 +1984,11 @@ const getAdminBroInstance = async () => {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
-              after: async (response, request, _context) => {
-                await fillRelatedProjectsOfACampaign(response.record.params.id);
-                return response;
-              },
             },
             edit: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
-              after: async (response, request, _context) => {
-                await fillRelatedProjectsOfACampaign(response.record.params.id);
-                return response;
-              },
             },
             bulkDelete: {
               isVisible: false,

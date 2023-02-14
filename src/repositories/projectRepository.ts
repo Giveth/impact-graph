@@ -150,11 +150,19 @@ export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
 
 export const findProjectBySlug = (slug: string): Promise<Project | null> => {
   // check current slug and previous slugs
-  return Project.createQueryBuilder('project')
-    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-      slug,
-    })
-    .getOne();
+  return (
+    Project.createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
+      // you can alias it as user but it still is mapped as adminUser
+      // like defined in our project entity
+      .innerJoin('project.adminUser', 'user')
+      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+        slug,
+      })
+      .getOne()
+  );
 };
 
 export const verifyMultipleProjects = async (params: {
@@ -295,4 +303,22 @@ export const makeProjectListed = async (id: number): Promise<void> => {
     .where(`id =${id}`)
     .updateEntity(true)
     .execute();
+};
+
+export const findProjectsBySlugArray = async (
+  slugArray: string[],
+): Promise<Project[]> => {
+  // TODO should refactor it and convert it to single query
+  // TODO Write test cases for that
+  const projects: Project[] = [];
+  const result = await Promise.all(
+    slugArray.map(slug => findProjectBySlug(slug)),
+  );
+
+  result.forEach(project => {
+    if (project) {
+      projects.push(project);
+    }
+  });
+  return projects;
 };
