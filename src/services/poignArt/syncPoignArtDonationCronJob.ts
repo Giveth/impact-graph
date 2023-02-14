@@ -66,7 +66,6 @@ const importPoignArtDonations = async () => {
     await updateTotalDonationsOfProject(unchainProject.id);
   } catch (e) {
     logger.error('importPoignArtDonations() error', e);
-    throw e;
   }
 };
 
