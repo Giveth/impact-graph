@@ -100,6 +100,9 @@ export const filterProjectsQuery = (
     case SortingField.Newest:
       query.orderBy('project.creationDate', OrderDirection.DESC);
       break;
+    case SortingField.RecentlyUpdated:
+      query.orderBy('project.updatedAt', OrderDirection.DESC);
+      break;
     case SortingField.Oldest:
       query.orderBy('project.creationDate', OrderDirection.ASC);
       break;
