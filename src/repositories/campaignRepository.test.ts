@@ -24,9 +24,6 @@ function findAllActiveCampaignsTestCases() {
       media: 'https://google.com',
       type: CampaignType.RelatedProjects,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
-      relatedProjects: [
-        (await findProjectById(SEED_DATA.FIRST_PROJECT.id)) as Project,
-      ],
       order: 2,
     }).save();
 
@@ -37,9 +34,6 @@ function findAllActiveCampaignsTestCases() {
       description: 'description2',
       type: CampaignType.RelatedProjects,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
-      relatedProjects: [
-        (await findProjectById(SEED_DATA.FIRST_PROJECT.id)) as Project,
-      ],
       media: 'https://google.com',
       order: 3,
     }).save();
@@ -47,7 +41,10 @@ function findAllActiveCampaignsTestCases() {
     const activeCampaigns = await findAllActiveCampaigns();
     activeCampaigns.forEach(campaign => assert.isTrue(campaign.isActive));
     activeCampaigns.forEach(campaign =>
-      assert.isOk(campaign?.relatedProjects[0].slug),
+      assert.isOk(
+        campaign?.relatedProjectsSlugs[0],
+        SEED_DATA.FIRST_PROJECT.slug,
+      ),
     );
     await campaign1.remove();
     await campaign2.remove();
