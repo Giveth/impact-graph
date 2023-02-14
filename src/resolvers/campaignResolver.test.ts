@@ -9,15 +9,16 @@ import {
 } from '../entities/campaign';
 import { findProjectById } from '../repositories/projectRepository';
 import { Project } from '../entities/project';
+import { generateRandomString } from '../utils/utils';
 
 describe('Fetch campaigns test cases', fetchCampaignsTestCases);
 
 function fetchCampaignsTestCases() {
-  it('should return active categories', async () => {
+  it('should return active campaigns', async () => {
     const campaign1 = await Campaign.create({
       isActive: true,
       type: CampaignType.RelatedProjects,
-      slug: 'slug',
+      slug: generateRandomString(),
       title: 'title1',
       description: 'description1',
       media: 'https://google.com',
@@ -30,7 +31,7 @@ function fetchCampaignsTestCases() {
 
     const campaign2 = await Campaign.create({
       isActive: true,
-      slug: 'name1',
+      slug: generateRandomString(),
       title: 'title1',
       type: CampaignType.FilterFields,
       description: 'description1',
@@ -44,7 +45,7 @@ function fetchCampaignsTestCases() {
 
     const campaign3 = await Campaign.create({
       isActive: false,
-      slug: 'name2',
+      slug: generateRandomString(),
       title: 'title2',
       type: CampaignType.RelatedProjects,
       description: 'description2',

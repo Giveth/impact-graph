@@ -18,7 +18,7 @@ function findAllActiveCampaignsTestCases() {
   it('should return active campaigns', async () => {
     const campaign1 = await Campaign.create({
       isActive: true,
-      slug: 'slug1',
+      slug: generateRandomString(),
       title: 'title1',
       description: 'description1',
       media: 'https://google.com',
@@ -32,7 +32,7 @@ function findAllActiveCampaignsTestCases() {
 
     const campaign2 = await Campaign.create({
       isActive: false,
-      slug: 'slug2',
+      slug: generateRandomString(),
       title: 'title2',
       description: 'description2',
       type: CampaignType.RelatedProjects,
