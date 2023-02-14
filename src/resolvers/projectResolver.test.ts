@@ -361,6 +361,7 @@ function allProjectsTestCases() {
     });
 
     firstProject.title = String(new Date().getTime());
+    firstProject.updatedAt = moment().add(2,'days').toDate();
     await firstProject.save();
 
     const result = await axios.post(graphqlUrl, {
