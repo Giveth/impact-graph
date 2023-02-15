@@ -37,7 +37,6 @@ import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { Category } from './category';
 import { getHtmlTextSummary } from '../utils/utils';
-import ProjectUpdates from '../server/components/ProjectUpdates';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
