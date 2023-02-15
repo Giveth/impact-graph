@@ -60,7 +60,6 @@ export class CampaignResolver {
     // If user dont send slug, we return first featured campaign
     @Arg('slug', { nullable: true }) slug?: string,
   ) {
-    // TODO Write test cases
     let campaign: Campaign | null;
     if (slug) {
       campaign = await findCampaignBySlug(slug);

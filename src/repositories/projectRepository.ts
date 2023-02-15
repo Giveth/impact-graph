@@ -310,7 +310,6 @@ export const findProjectsBySlugArray = async (
   slugArray: string[],
 ): Promise<Project[]> => {
   // TODO should refactor it and convert it to single query
-  // TODO Write test cases for that
   const projects: Project[] = [];
   const result = await Promise.all(
     slugArray.map(slug => findProjectBySlug(slug)),

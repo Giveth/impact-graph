@@ -1502,7 +1502,7 @@ query {
         type
         relatedProjects {
           id
-          slug  
+          slug
         }
         relatedProjectsCount
         media

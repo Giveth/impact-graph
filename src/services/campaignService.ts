@@ -26,7 +26,6 @@ export const fillCampaignProjects = async (params: {
   const skip = params.skip || 0;
   let totalCount = 0;
 
-  // TODO Add caching for fetch projects
   if (campaign.type === CampaignType.RelatedProjects) {
     projects = await findProjectsBySlugArray(campaign.relatedProjectsSlugs);
     totalCount = projects.length;
