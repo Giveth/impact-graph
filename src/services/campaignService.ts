@@ -6,14 +6,20 @@ import {
 } from '../repositories/projectRepository';
 import { FilterField, Project, SortingField } from '../entities/project';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
+import { ModuleThread, Pool } from 'threads';
+import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
+
+const projectFiltersCacheDuration =
+  Number(process.env.PROJECT_FILTERS_THREADS_POOL_DURATION) || 60000;
 
 export const fillCampaignProjects = async (params: {
   userId?: number;
   campaign: Campaign;
   skip?: number;
   limit?: number;
+  projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>>;
 }): Promise<Campaign> => {
-  const { campaign, userId } = params;
+  const { campaign, userId, projectsFiltersThreadPool } = params;
   let projects: Project[] = [];
   let projectsQuery;
   const limit = params.limit || 10;
@@ -30,14 +36,36 @@ export const fillCampaignProjects = async (params: {
       skip,
       filters: campaign.filterFields as unknown as FilterField[],
     });
-    [projects, totalCount] = await projectsQuery.getManyAndCount();
+    const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
+      hasher =>
+        hasher.hashProjectFilters({
+          limit,
+          skip,
+          filters: campaign.filterFields as unknown as FilterField[],
+          suffix: 'cq',
+        }),
+    );
+    [projects, totalCount] = await projectsQuery
+      .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
+      .getManyAndCount();
   } else if (campaign.type === CampaignType.SortField) {
     projectsQuery = filterProjectsQuery({
       limit,
       skip,
       sortingBy: campaign.sortingField as unknown as SortingField,
     });
-    [projects, totalCount] = await projectsQuery.getManyAndCount();
+    const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
+      hasher =>
+        hasher.hashProjectFilters({
+          limit,
+          skip,
+          sortingBy: campaign.sortingField as unknown as SortingField,
+          suffix: 'cq',
+        }),
+    );
+    [projects, totalCount] = await projectsQuery
+      .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
+      .getManyAndCount();
   } else if (campaign.type === CampaignType.WithoutProjects) {
     // Dont add projects to this campaign type
   }

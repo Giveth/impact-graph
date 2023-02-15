@@ -55,6 +55,21 @@ export class Campaign extends BaseEntity {
   @Column('text', { nullable: false })
   title: string;
 
+  @Field(type => String)
+  @Column({
+    type: 'enum',
+    enum: CampaignType,
+  })
+  type: CampaignType;
+
+  @Field()
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Field()
+  @Column({ default: false })
+  isFeatured: boolean;
+
   @Field()
   @Column('text', { nullable: false })
   description: string;
@@ -74,14 +89,6 @@ export class Campaign extends BaseEntity {
 
   @Field(type => [Project])
   relatedProjects: Project[];
-
-  @Field()
-  @Column({ default: true })
-  isActive: boolean;
-
-  @Field()
-  @Column({ default: false })
-  isFeatured: boolean;
 
   @Field({ nullable: true })
   relatedProjectsCount?: number;
@@ -110,13 +117,6 @@ export class Campaign extends BaseEntity {
     nullable: true,
   })
   sortingField: CampaignSortingField;
-
-  @Field(type => String)
-  @Column({
-    type: 'enum',
-    enum: CampaignType,
-  })
-  type: CampaignType;
 
   @Field()
   @UpdateDateColumn()

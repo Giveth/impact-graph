@@ -157,7 +157,8 @@ export const findProjectBySlug = (slug: string): Promise<Project | null> => {
       .leftJoinAndSelect('project.organization', 'organization')
       // you can alias it as user but it still is mapped as adminUser
       // like defined in our project entity
-      .innerJoin('project.adminUser', 'user')
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields)
       .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
         slug,
       })

@@ -42,7 +42,9 @@ export class CampaignResolver {
     const userId = connectedWalletUserId || user?.userId;
     const campaigns = await findAllActiveCampaigns();
     return Promise.all(
-      campaigns?.map(campaign => fillCampaignProjects({ campaign, userId })),
+      campaigns?.map(campaign =>
+        fillCampaignProjects({ campaign, userId, projectsFiltersThreadPool }),
+      ),
     );
   }
 
@@ -73,6 +75,12 @@ export class CampaignResolver {
     }
 
     const userId = connectedWalletUserId || user?.userId;
-    return fillCampaignProjects({ campaign, userId, skip, limit });
+    return fillCampaignProjects({
+      campaign,
+      userId,
+      skip,
+      limit,
+      projectsFiltersThreadPool,
+    });
   }
 }

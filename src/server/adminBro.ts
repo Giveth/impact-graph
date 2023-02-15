@@ -2005,18 +2005,25 @@ const getAdminBroInstance = async () => {
               isVisible: true,
             },
             description: {
-              isVisible: true,
-            },
-            hashtags: {
-              isVisible: true,
-            },
-            media: {
-              isVisible: true,
-            },
-            relatedProjects: {
               isVisible: {
                 show: true,
-                list: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            hashtags: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            media: {
+              isVisible: {
+                show: true,
+                list: false,
                 new: false,
                 edit: false,
               },
@@ -2024,7 +2031,7 @@ const getAdminBroInstance = async () => {
             relatedProjectsSlugs: {
               isVisible: {
                 show: true,
-                list: true,
+                list: false,
                 new: false,
                 edit: true,
               },
@@ -2042,10 +2049,20 @@ const getAdminBroInstance = async () => {
               isVisible: true,
             },
             filterFields: {
-              isVisible: true,
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
             },
             sortingField: {
-              isVisible: true,
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
             },
             createdAt: {
               isVisible: {
