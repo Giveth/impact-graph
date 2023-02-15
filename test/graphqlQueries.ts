@@ -90,6 +90,7 @@ export const updateProjectQuery = `
       id
       title
       description
+      descriptionSummary
       image
       slug
       listed
@@ -107,7 +108,7 @@ export const updateProjectQuery = `
         isRecipient
         networkId
       }
-      adminUser{
+      adminUser {
         id
         name
         email

@@ -889,6 +889,8 @@ export class ProjectResolver {
     project.listed = null;
 
     await project.save();
+    await project.reload();
+
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
       await removeRecipientAddressOfProject({ project });
@@ -904,6 +906,7 @@ export class ProjectResolver {
         }),
       );
     }
+
     project.adminUser = adminUser;
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
@@ -911,8 +914,6 @@ export class ProjectResolver {
 
     // Edit emails
     await getNotificationAdapter().projectEdited({ project });
-
-    await project.reload();
 
     return project;
   }
