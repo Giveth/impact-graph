@@ -34,6 +34,8 @@ import {
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
+import { SUMMARY_LENGTH } from '../constants/summary';
+import { getHtmlTextSummary } from '../utils/utils';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -49,6 +51,10 @@ describe(
   updateProjectWithVerificationFormTestCases,
 );
 describe('order by totalPower', orderByTotalPower);
+describe(
+  'update descriptionSummary test cases',
+  updateDescriptionSummaryTestCases,
+);
 
 function projectsWithoutUpdateAfterTimeFrameTestCases() {
   it('should return projects created a long time ago', async () => {
@@ -389,5 +395,52 @@ function orderByTotalPower() {
     assert.equal(projects[0]?.id, project3.id);
     assert.equal(projects[1]?.id, project2.id);
     assert.equal(projects[2]?.id, project1.id);
+  });
+}
+
+function updateDescriptionSummaryTestCases() {
+  const SHORT_DESCRIPTION = '<div>Short Description</div>';
+  const SHORT_DESCRIPTION_SUMMARY = 'Short Description';
+
+  it('should set description summary on creation', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      description: SHORT_DESCRIPTION,
+    });
+
+    assert.equal(project.descriptionSummary, SHORT_DESCRIPTION_SUMMARY);
+  });
+
+  it('should update description summary on update', async () => {
+    let project: Project | null = await saveProjectDirectlyToDb(
+      createProjectData(),
+    );
+
+    project.description = SHORT_DESCRIPTION;
+    await project.save();
+    project = await Project.findOne({ where: { id: project.id } });
+    assert.equal(project?.descriptionSummary, SHORT_DESCRIPTION_SUMMARY);
+  });
+
+  it('should set limited length description summary', async () => {
+    const longDescription = `
+    <div>
+      ${SHORT_DESCRIPTION.repeat(
+        Math.ceil(SUMMARY_LENGTH / SHORT_DESCRIPTION_SUMMARY.length) + 1,
+      )}
+    </div>
+    `;
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      description: longDescription,
+    });
+
+    assert.isOk(project.descriptionSummary);
+    assert.lengthOf(project.descriptionSummary as string, SUMMARY_LENGTH);
+    assert.equal(
+      project.descriptionSummary,
+      getHtmlTextSummary(longDescription),
+    );
   });
 }
