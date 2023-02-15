@@ -58,6 +58,7 @@ export enum SortingField {
   MostFunded = 'MostFunded',
   MostLiked = 'MostLiked',
   Newest = 'Newest',
+  RecentlyUpdated = 'RecentlyUpdated',
   Oldest = 'Oldest',
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',

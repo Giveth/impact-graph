@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import config from './config';
 import { CronJob } from './entities/CronJob';
 import { getEntities } from './entities/entities';
+import { redis, redisConfig } from './redis';
 
 export class AppDataSource {
   private static datasource: DataSource;
@@ -23,7 +24,13 @@ export class AppDataSource {
         dropSchema,
         logger: 'advanced-console',
         logging: ['error'],
-        cache: true,
+        cache: {
+          type: 'redis',
+          options: {
+            ...redisConfig,
+            db: 1, // Query Caching
+          },
+        },
       });
       await AppDataSource.datasource.initialize();
     }
