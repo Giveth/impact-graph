@@ -912,6 +912,8 @@ export class ProjectResolver {
     // Edit emails
     await getNotificationAdapter().projectEdited({ project });
 
+    await project.reload();
+
     return project;
   }
 
@@ -1217,8 +1219,10 @@ export class ProjectResolver {
 
     update.title = title;
     update.content = content;
+    await update.save();
+    await update.reload();
 
-    return update.save();
+    return update;
   }
 
   @Mutation(returns => Boolean)

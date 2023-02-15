@@ -48,6 +48,7 @@ export const createProjectQuery = `
         id
         title
         description
+        descriptionSummary
         admin
         image
         impactLocation
@@ -464,6 +465,8 @@ export const fetchMultiFilterAllProjectsQuery = `
         balance
         image
         slug
+        description
+        descriptionSummary
         creationDate
         updatedAt
         admin
@@ -1170,6 +1173,8 @@ export const editProjectUpdateQuery = `
                     userId
                     projectId
                     title
+                    content
+                    contentSummary
                     }
          }`;
 
