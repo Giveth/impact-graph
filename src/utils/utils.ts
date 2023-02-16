@@ -391,7 +391,15 @@ export const getHtmlTextSummary = (
   html: string = '',
   lengthLimit: number = SUMMARY_LENGTH,
 ): string => {
-  const text = convert(html);
+  const text = convert(html, {
+    selectors: [
+      { selector: 'a', options: { ignoreHref: true } },
+      { selector: 'img', format: 'skip' },
+    ],
+  })
+    .replace(/^\n+/, '') // Remove new lines from the beginning
+    .replace(/\n{2,}/g, '\n') // Replace multiple \n with single one
+    .replace(/\n$/, ''); // Remove new line from the end
 
   switch (true) {
     case text.length <= lengthLimit:
