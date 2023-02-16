@@ -1,9 +1,11 @@
 import { Country } from '../entities/Country';
 import { SortingField } from '../entities/project';
 import { FilterField } from '../resolvers/projectResolver';
+import { convert } from 'html-to-text';
 import slugify from 'slugify';
 
 import stringify from 'json-stable-stringify';
+import { SUMMARY_LENGTH } from '../constants/summary';
 // tslint:disable-next-line:no-var-requires
 const { createHash } = require('node:crypto');
 
@@ -383,4 +385,20 @@ export const ENVIRONMENTS = {
   STAGING: 'staging',
   DEVELOP: 'develop',
   LOCAL: 'local',
+};
+
+export const getHtmlTextSummary = (
+  html: string = '',
+  lengthLimit: number = SUMMARY_LENGTH,
+): string => {
+  const text = convert(html);
+
+  switch (true) {
+    case text.length <= lengthLimit:
+      return text;
+    case lengthLimit < 3:
+      return '.'.repeat(Math.max(0, lengthLimit));
+    default:
+      return text.slice(0, lengthLimit - 3) + '...';
+  }
 };

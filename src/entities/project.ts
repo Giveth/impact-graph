@@ -2,6 +2,8 @@ import { Field, Float, ID, ObjectType } from 'type-graphql';
 import {
   AfterInsert,
   AfterUpdate,
+  BeforeUpdate,
+  BeforeInsert,
   BaseEntity,
   BeforeRemove,
   Column,
@@ -34,6 +36,7 @@ import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { Category } from './category';
+import { getHtmlTextSummary } from '../utils/utils';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -114,6 +117,10 @@ export class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   description?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  descriptionSummary?: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -409,6 +416,19 @@ export class Project extends BaseEntity {
   owner() {
     return this.users[0];
   }
+
+  @BeforeUpdate()
+  async updateProjectDescriptionSummary() {
+    await Project.update(
+      { id: this.id },
+      { descriptionSummary: getHtmlTextSummary(this.description) },
+    );
+  }
+
+  @BeforeInsert()
+  setProjectDescriptionSummary() {
+    this.descriptionSummary = getHtmlTextSummary(this.description);
+  }
 }
 
 @Entity()
@@ -433,6 +453,10 @@ export class ProjectUpdate extends BaseEntity {
   @Field(type => String)
   @Column()
   content: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  contentSummary?: string;
 
   @Field(type => Date)
   @Column()
@@ -516,5 +540,18 @@ export class ProjectUpdate extends BaseEntity {
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
     await Project.update({ id: this.projectId }, { updatedAt: new Date() });
+  }
+
+  @BeforeUpdate()
+  async updateProjectUpdateContentSummary() {
+    await ProjectUpdate.update(
+      { id: this.id },
+      { contentSummary: getHtmlTextSummary(this.content) },
+    );
+  }
+
+  @BeforeInsert()
+  setProjectUpdateContentSummary() {
+    this.contentSummary = getHtmlTextSummary(this.content);
   }
 }
