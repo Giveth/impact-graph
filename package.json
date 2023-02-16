@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.9.5",
+  "version": "1.9.6",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -61,7 +61,7 @@
     "jsonwebtoken": "^9.0.0",
     "marked": "^4.2.5",
     "moment": "^2.29.4",
-    "monoswap": "0.3.14",
+    "monoswap": "0.3.16",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.5.0",
     "patch-package": "^6.5.1",

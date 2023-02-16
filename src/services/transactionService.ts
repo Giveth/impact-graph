@@ -35,6 +35,10 @@ export async function getTransactionInfoFromNetwork(
   const { networkId, nonce } = input;
 
   const web3 = getNetworkWeb3(networkId);
+  logger.debug(
+    'NODE RPC request count - getTransactionInfoFromNetwork  web3.eth.getTransactionCount txHash:',
+    input.txHash,
+  );
   const userTransactionsCount = await web3.eth.getTransactionCount(
     input.fromAddress,
   );
@@ -175,6 +179,10 @@ async function getListOfTransactionsByAddress(input: {
   const { address, page, offset, networkId } = input;
   // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
   // https://blockscout.com/xdai/mainnet/api-docs#account
+  logger.debug(
+    'NODE RPC request count - getTransactionDetailForTokenTransfer  web3.eth.getTransaction fromAddress:',
+    address,
+  );
   const result = await axios.get(getEtherscanOrBlockScoutUrl(networkId), {
     params: {
       module: 'account',
@@ -206,12 +214,20 @@ async function getTransactionDetailForNormalTransfer(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId } = input;
+  logger.debug(
+    'NODE RPC request count - getTransactionDetailForNormalTransfer  web3.eth.getTransaction txHash:',
+    input.txHash,
+  );
   const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
     txHash,
   );
   if (!transaction) {
     return null;
   }
+  logger.debug(
+    'NODE RPC request count - getTransactionDetailForNormalTransfer  web3.eth.getTransactionReceipt txHash:',
+    input.txHash,
+  );
   const receipt = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
     txHash,
   );
@@ -227,6 +243,10 @@ async function getTransactionDetailForNormalTransfer(
       ),
     );
   }
+  logger.debug(
+    'NODE RPC request count - getTransactionDetailForNormalTransfer  web3.eth.getBlock txHash:',
+    input.txHash,
+  );
   const block = await getNetworkWeb3(networkId).eth.getBlock(
     transaction.blockNumber as number,
   );
@@ -247,7 +267,15 @@ async function getTransactionDetailForTokenTransfer(
   const { txHash, symbol, networkId } = input;
   const token = await findTokenByNetworkAndSymbol(networkId, symbol);
   const web3 = getNetworkWeb3(networkId);
+  logger.debug(
+    'NODE RPC request count - getTransactionDetailForTokenTransfer  web3.eth.getTransaction txHash:',
+    input.txHash,
+  );
   const transaction = await web3.eth.getTransaction(txHash);
+  logger.debug(
+    'NODE RPC request count - getTransactionDetailForTokenTransfer  web3.eth.getTransactionReceipt txHash:',
+    input.txHash,
+  );
   const receipt = await web3.eth.getTransactionReceipt(txHash);
   logger.debug('getTransactionDetailForTokenTransfer', {
     receipt,
@@ -286,6 +314,10 @@ async function getTransactionDetailForTokenTransfer(
   const transactionToAddress = transactionData.params.find(
     item => item.name === '_to',
   ).value;
+  logger.debug(
+    'NODE RPC request count - getTransactionDetailForTokenTransfer  web3.eth.getBlock txHash:',
+    input.txHash,
+  );
   const block = await getNetworkWeb3(networkId).eth.getBlock(
     transaction.blockNumber as number,
   );

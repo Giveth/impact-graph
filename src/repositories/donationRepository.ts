@@ -2,7 +2,8 @@ import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { Reaction } from '../entities/reaction';
-import { Brackets } from 'typeorm';
+import { Brackets, LessThan, MoreThan } from 'typeorm';
+import moment from 'moment';
 
 export const createDonation = async (data: {
   amount: number;
@@ -219,4 +220,20 @@ export const getRecentDonations = async (take: number): Promise<Donation[]> => {
     .take(take)
     .cache(`recent-${take}-donations`, 60000)
     .getMany();
+};
+
+export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
+  const date = moment()
+    .subtract({
+      hours: Number(process.env.DONATION_VERIFICAITON_EXPIRATION_HOURS),
+    })
+    .toDate();
+  return Donation.find({
+    where: {
+      status: DONATION_STATUS.PENDING,
+      isFiat: false,
+      createdAt: MoreThan(date),
+    },
+    select: ['id'],
+  });
 };
