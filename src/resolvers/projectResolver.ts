@@ -1454,6 +1454,7 @@ export class ProjectResolver {
 
   @Query(returns => AllProjects, { nullable: true })
   async projectsBySlugs(
+    // TODO Write test cases
     @Arg('slugs', type => [String]) slugs: string[],
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,
@@ -1467,49 +1468,6 @@ export class ProjectResolver {
     })
     orderBy: OrderBy,
     @Ctx() { req: { user } }: ApolloContext,
-  ) {
-    const { field, direction } = orderBy;
-    let query = this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.organization', 'organization')
-      .innerJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields)
-      .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      )
-      .andWhere('project.slug IN (:...slugs)', { slugs });
-
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-
-    const [projects, projectsCount] = await query
-      .orderBy(`project.${field}`, direction)
-      .take(take)
-      .skip(skip)
-      .getManyAndCount();
-
-    return {
-      projects,
-      totalCount: projectsCount,
-    };
-  }
-
-  @Query(returns => AllProjects, { nullable: true })
-  async projectsBySlugs(
-    @Arg('slugs', type => [String]) slugs: string[],
-    @Arg('take', { defaultValue: 10 }) take: number,
-    @Arg('skip', { defaultValue: 0 }) skip: number,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
-    connectedWalletUserId: number,
-    @Arg('orderBy', type => OrderBy, {
-      defaultValue: {
-        field: OrderField.CreationDate,
-        direction: OrderDirection.DESC,
-      },
-    })
-    orderBy: OrderBy,
-    @Ctx() { req: { user } }: MyContext,
   ) {
     const { field, direction } = orderBy;
     let query = this.projectRepository

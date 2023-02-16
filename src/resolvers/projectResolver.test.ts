@@ -50,7 +50,6 @@ import {
 import { Category } from '../entities/category';
 import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
-import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { User } from '../entities/user';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';

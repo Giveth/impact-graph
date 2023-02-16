@@ -15,7 +15,6 @@ import {
   findDonationById,
   findDonationsByTransactionId,
   findStableCoinDonationsWithoutPrice,
-  findUsersWhoDonatedToProjectExcludeWhoLiked,
   getPendingDonationsIds,
 } from './donationRepository';
 import { updateOldStableCoinDonationsPrice } from '../services/donationService';
