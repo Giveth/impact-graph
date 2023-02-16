@@ -889,6 +889,8 @@ export class ProjectResolver {
     project.listed = null;
 
     await project.save();
+    await project.reload();
+
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
       await removeRecipientAddressOfProject({ project });
@@ -904,6 +906,7 @@ export class ProjectResolver {
         }),
       );
     }
+
     project.adminUser = adminUser;
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
@@ -1217,8 +1220,10 @@ export class ProjectResolver {
 
     update.title = title;
     update.content = content;
+    await update.save();
+    await update.reload();
 
-    return update.save();
+    return update;
   }
 
   @Mutation(returns => Boolean)
