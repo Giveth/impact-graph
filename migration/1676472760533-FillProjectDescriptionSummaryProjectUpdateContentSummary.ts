@@ -14,6 +14,7 @@ export class FillProjectDescriptionSummaryProjectUpdateContentSummary16764727605
           select: ['id', 'description'],
           order: { id: 'ASC' },
           skip,
+          take: 100,
         },
       );
 
@@ -38,6 +39,7 @@ export class FillProjectDescriptionSummaryProjectUpdateContentSummary16764727605
           select: ['id', 'content'],
           order: { id: 'ASC' },
           skip,
+          take: 100,
         });
 
       await Promise.all(
