@@ -36,7 +36,7 @@ export class CampaignResolver {
   @Query(returns => [Campaign], { nullable: true })
   async campaigns(
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
-    @Arg('connectedWalletUserId', { nullable: true })
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId?: number,
   ) {
     const userId = connectedWalletUserId || user?.userId;
@@ -52,7 +52,7 @@ export class CampaignResolver {
   async findCampaignBySlug(
     @Ctx()
     { req: { user }, projectsFiltersThreadPool }: ApolloContext,
-    @Arg('connectedWalletUserId', { nullable: true })
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId?: number,
     @Arg('skip', type => Int, { nullable: true }) skip?: number,
     @Arg('limit', type => Int, { nullable: true }) limit?: number,
