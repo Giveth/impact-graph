@@ -347,6 +347,35 @@ function allProjectsTestCases() {
       firstProject.id,
     );
   });
+
+  it('should return projects, sort by updatedAt, DESC', async () => {
+    const firstProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const secondProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    firstProject.title = String(new Date().getTime());
+    firstProject.updatedAt = moment().add(2, 'days').toDate();
+    await firstProject.save();
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        sortingBy: SortingField.RecentlyUpdated,
+      },
+    });
+    // First project should move to first position
+    assert.equal(
+      Number(result.data.data.allProjects.projects[0].id),
+      firstProject.id,
+    );
+  });
   it('should return projects, sort by creationDate, ASC', async () => {
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
