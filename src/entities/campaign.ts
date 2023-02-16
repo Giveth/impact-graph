@@ -21,6 +21,7 @@ export enum CampaignSortingField {
   MostLiked = 'MostLiked',
   Newest = 'Newest',
   Oldest = 'Oldest',
+  RecentlyUpdated = 'RecentlyUpdated',
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',
 }
