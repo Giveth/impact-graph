@@ -34,7 +34,7 @@ export enum CampaignFilterField {
 }
 
 export enum CampaignType {
-  RelatedProjects = 'RelatedProjects',
+  ManuallySelected = 'ManuallySelected',
   SortField = 'SortField',
   FilterFields = 'FilterFields',
   WithoutProjects = 'WithoutProjects',
@@ -85,7 +85,12 @@ export class Campaign extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   // ipfs link
-  media: string;
+  photo?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  // ipfs link
+  video?: string;
 
   @Field(type => [Project])
   relatedProjects: Project[];

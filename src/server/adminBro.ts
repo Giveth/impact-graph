@@ -2020,12 +2020,20 @@ const getAdminBroInstance = async () => {
                 edit: true,
               },
             },
-            media: {
+            photo: {
               isVisible: {
                 show: true,
                 list: false,
                 new: false,
-                edit: false,
+                edit: true,
+              },
+            },
+            video: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
               },
             },
             relatedProjectsSlugs: {
