@@ -446,6 +446,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $searchTerm: String
     $category: String
     $mainCategory: String
+    $campaignSlug: String
     $connectedWalletUserId: Int
   ) {
     allProjects(
@@ -455,6 +456,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       filters: $filters
       searchTerm: $searchTerm
       category: $category
+      campaignSlug: $campaignSlug
       mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
     ) {
@@ -1505,7 +1507,8 @@ query {
           slug
         }
         relatedProjectsCount
-        media
+        photo
+        video
         slug
         isActive
         order
@@ -1517,12 +1520,12 @@ query {
     }
 }`;
 
-export const findCampaignBySlug = `
-query {
+export const fetchCampaignBySlug = `
+  query (
+    $slug: String
+  ) {
     findCampaignBySlug(
-      $slug: String!
-      $limit: Int
-      $skip: Int
+      slug: $slug
     ){
         id
         title
@@ -1533,7 +1536,8 @@ query {
           slug  
         }
         relatedProjectsCount
-        media
+        photo
+        video
         slug
         isActive
         order

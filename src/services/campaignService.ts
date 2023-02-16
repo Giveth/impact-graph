@@ -1,8 +1,7 @@
 import { Campaign, CampaignType } from '../entities/campaign';
 import {
+  FilterProjectQueryInputParams,
   filterProjectsQuery,
-  findProjectBySlug,
-  findProjectsBySlugArray,
 } from '../repositories/projectRepository';
 import { FilterField, Project, SortingField } from '../entities/project';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
@@ -15,58 +14,53 @@ const projectFiltersCacheDuration =
 export const fillCampaignProjects = async (params: {
   userId?: number;
   campaign: Campaign;
-  skip?: number;
-  limit?: number;
   projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>>;
 }): Promise<Campaign> => {
   const { campaign, userId, projectsFiltersThreadPool } = params;
-  let projects: Project[] = [];
-  let projectsQuery;
-  const limit = params.limit || 10;
-  const skip = params.skip || 0;
-  let totalCount = 0;
+  const limit = 10;
+  const skip = 0;
+  const projectsQueryParams: FilterProjectQueryInputParams = {
+    limit,
+    skip,
+  };
 
-  if (campaign.type === CampaignType.RelatedProjects) {
-    projects = await findProjectsBySlugArray(campaign.relatedProjectsSlugs);
-    totalCount = projects.length;
+  if (campaign.type === CampaignType.ManuallySelected) {
+    projectsQueryParams.slugArray = campaign.relatedProjectsSlugs;
+    // In this case we should fetch all projects
+    projectsQueryParams.limit = 100;
   } else if (campaign.type === CampaignType.FilterFields) {
-    projectsQuery = filterProjectsQuery({
-      limit,
-      skip,
-      filters: campaign.filterFields as unknown as FilterField[],
-    });
-    const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
-      hasher =>
-        hasher.hashProjectFilters({
-          limit,
-          skip,
-          filters: campaign.filterFields as unknown as FilterField[],
-          suffix: 'cq',
-        }),
-    );
-    [projects, totalCount] = await projectsQuery
-      .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
-      .getManyAndCount();
+    projectsQueryParams.filters =
+      campaign.filterFields as unknown as FilterField[];
   } else if (campaign.type === CampaignType.SortField) {
-    projectsQuery = filterProjectsQuery({
-      limit,
-      skip,
-      sortingBy: campaign.sortingField as unknown as SortingField,
-    });
-    const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
-      hasher =>
-        hasher.hashProjectFilters({
-          limit,
-          skip,
-          sortingBy: campaign.sortingField as unknown as SortingField,
-          suffix: 'cq',
-        }),
-    );
-    [projects, totalCount] = await projectsQuery
-      .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
-      .getManyAndCount();
+    projectsQueryParams.sortingBy =
+      campaign.sortingField as unknown as SortingField;
   } else if (campaign.type === CampaignType.WithoutProjects) {
     // Dont add projects to this campaign type
+    return campaign;
+  }
+
+  const projectsQuery = filterProjectsQuery(projectsQueryParams);
+  const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(hasher =>
+    hasher.hashProjectFilters({
+      ...projectsQueryParams,
+      suffix: 'cq',
+    }),
+  );
+  let projects: Project[];
+  let totalCount: number;
+  [projects, totalCount] = await projectsQuery
+    .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
+    .getManyAndCount();
+
+  if (campaign.type === CampaignType.ManuallySelected) {
+    // This function would be called just for showing campaigns in homepage, and we should
+    // show projects that has been set manually in order of what admin has chosen in admin panel
+    // so we do this sorting at the end to override other sorting
+    projects = projects.sort(
+      (a, b) =>
+        campaign.relatedProjectsSlugs.findIndex(slug => a.slug === slug) -
+        campaign.relatedProjectsSlugs.findIndex(slug => b.slug === slug),
+    );
   }
 
   if (userId) {

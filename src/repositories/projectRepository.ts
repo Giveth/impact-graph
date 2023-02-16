@@ -47,15 +47,17 @@ export const findProjectsByIdArray = (
 };
 
 // return query without execution
-export const filterProjectsQuery = (params: {
+export type FilterProjectQueryInputParams = {
   limit: number;
   skip: number;
   searchTerm?: string;
   category?: string;
   mainCategory?: string;
   filters?: FilterField[];
+  slugArray?: string[];
   sortingBy?: SortingField;
-}) => {
+};
+export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
     limit,
     skip,
@@ -64,6 +66,7 @@ export const filterProjectsQuery = (params: {
     mainCategory,
     filters,
     sortingBy,
+    slugArray,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -95,6 +98,13 @@ export const filterProjectsQuery = (params: {
   query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
   query = ProjectResolver.addSearchQuery(query, searchTerm);
   query = ProjectResolver.addFiltersQuery(query, filters);
+  if (slugArray && slugArray.length > 0) {
+    // This is used for getting projects that manually has been set to campaigns
+    // TODO this doesnt query slug in project.slugHistory, but we should add it later
+    query.andWhere(`project.slug IN (:...slugs)`, {
+      slugs: slugArray,
+    });
+  }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
   switch (sortingBy) {

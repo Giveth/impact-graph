@@ -42,7 +42,11 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   canUserVisitProject,
   validateProjectRelatedAddresses,
@@ -70,6 +74,7 @@ import {
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
+  FilterProjectQueryInputParams,
   filterProjectsQuery,
   findProjectById,
   totalProjectsPerDate,
@@ -97,6 +102,7 @@ const projectFiltersCacheDuration = Number(
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { AppDataSource } from '../orm';
 import { creteSlugFromProject } from '../utils/utils';
+import { findCampaignBySlug } from '../repositories/campaignRepository';
 
 @ObjectType()
 class AllProjects {
@@ -225,6 +231,11 @@ class GetProjectsArgs {
     defaultValue: [],
   })
   filters: FilterField[];
+
+  @Field(type => String, {
+    nullable: true,
+  })
+  campaignSlug: string;
 
   @Field(type => SortingField, {
     nullable: true,
@@ -594,12 +605,13 @@ export class ProjectResolver {
       filters,
       sortingBy,
       connectedWalletUserId,
+      campaignSlug,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
     let projects: Project[];
     let totalCount: number;
-    const projectsQuery = filterProjectsQuery({
+    const filterQueryParams: FilterProjectQueryInputParams = {
       limit,
       skip,
       searchTerm,
@@ -607,18 +619,21 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
-    });
+    };
+    if (campaignSlug) {
+      const campaign = await findCampaignBySlug(campaignSlug);
+      if (!campaign) {
+        throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
+      }
+      filterQueryParams.slugArray = campaign.relatedProjectsSlugs;
+    }
+
+    const projectsQuery = filterProjectsQuery(filterQueryParams);
 
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
       hasher =>
         hasher.hashProjectFilters({
-          limit,
-          skip,
-          searchTerm,
-          category,
-          mainCategory,
-          filters,
-          sortingBy,
+          ...filterQueryParams,
           suffix: 'pq',
         }),
     );

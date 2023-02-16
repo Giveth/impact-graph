@@ -54,9 +54,6 @@ export class CampaignResolver {
     { req: { user }, projectsFiltersThreadPool }: ApolloContext,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId?: number,
-    @Arg('skip', type => Int, { nullable: true }) skip?: number,
-    @Arg('limit', type => Int, { nullable: true }) limit?: number,
-
     // If user dont send slug, we return first featured campaign
     @Arg('slug', { nullable: true }) slug?: string,
   ) {
@@ -77,8 +74,6 @@ export class CampaignResolver {
     return fillCampaignProjects({
       campaign,
       userId,
-      skip,
-      limit,
       projectsFiltersThreadPool,
     });
   }

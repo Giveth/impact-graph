@@ -21,8 +21,8 @@ function findAllActiveCampaignsTestCases() {
       slug: generateRandomString(),
       title: 'title1',
       description: 'description1',
-      media: 'https://google.com',
-      type: CampaignType.RelatedProjects,
+      photo: 'https://google.com',
+      type: CampaignType.ManuallySelected,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
       order: 2,
     }).save();
@@ -32,9 +32,9 @@ function findAllActiveCampaignsTestCases() {
       slug: generateRandomString(),
       title: 'title2',
       description: 'description2',
-      type: CampaignType.RelatedProjects,
+      type: CampaignType.ManuallySelected,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
-      media: 'https://google.com',
+      photo: 'https://google.com',
       order: 3,
     }).save();
 
@@ -59,8 +59,8 @@ function findCampaignBySlugTestCases() {
       slug,
       title: 'title1',
       description: 'description1',
-      media: 'https://google.com',
-      type: CampaignType.RelatedProjects,
+      photo: 'https://google.com',
+      type: CampaignType.ManuallySelected,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
       relatedProjects: [
         (await findProjectById(SEED_DATA.FIRST_PROJECT.id)) as Project,
@@ -80,8 +80,8 @@ function findCampaignBySlugTestCases() {
       slug,
       title: 'title1',
       description: 'description1',
-      media: 'https://google.com',
-      type: CampaignType.RelatedProjects,
+      photo: 'https://google.com',
+      type: CampaignType.ManuallySelected,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
       relatedProjects: [
         (await findProjectById(SEED_DATA.FIRST_PROJECT.id)) as Project,
@@ -107,8 +107,8 @@ function findFeaturedCampaignTestCases() {
       slug: generateRandomString(),
       title: 'title1',
       description: 'description1',
-      media: 'https://google.com',
-      type: CampaignType.RelatedProjects,
+      photo: 'https://google.com',
+      type: CampaignType.ManuallySelected,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
       relatedProjects: [
         (await findProjectById(SEED_DATA.FIRST_PROJECT.id)) as Project,
@@ -121,8 +121,8 @@ function findFeaturedCampaignTestCases() {
       slug: generateRandomString(),
       title: 'title1',
       description: 'description1',
-      media: 'https://google.com',
-      type: CampaignType.RelatedProjects,
+      photo: 'https://google.com',
+      type: CampaignType.ManuallySelected,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
       relatedProjects: [
         (await findProjectById(SEED_DATA.FIRST_PROJECT.id)) as Project,
@@ -142,8 +142,8 @@ function findFeaturedCampaignTestCases() {
       slug: generateRandomString(),
       title: 'title1',
       description: 'description1',
-      media: 'https://google.com',
-      type: CampaignType.RelatedProjects,
+      photo: 'https://google.com',
+      type: CampaignType.ManuallySelected,
       relatedProjectsSlugs: [SEED_DATA.FIRST_PROJECT.slug],
       relatedProjects: [
         (await findProjectById(SEED_DATA.FIRST_PROJECT.id)) as Project,

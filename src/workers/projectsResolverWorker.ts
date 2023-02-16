@@ -21,6 +21,7 @@ const worker: ProjectResolverWorker = {
     mainCategory?: string;
     filters?: FilterField[];
     sortingBy?: SortingField;
+    slugArray?: string[];
     suffix?: string;
   }) {
     return await generateProjectFiltersCacheKey(args);
