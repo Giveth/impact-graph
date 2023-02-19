@@ -1,6 +1,5 @@
 import { Country } from '../entities/Country';
-import { SortingField } from '../entities/project';
-import { FilterField } from '../resolvers/projectResolver';
+import { FilterField, SortingField } from '../entities/project';
 import { convert } from 'html-to-text';
 import slugify from 'slugify';
 

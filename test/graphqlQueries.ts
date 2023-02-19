@@ -448,6 +448,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $searchTerm: String
     $category: String
     $mainCategory: String
+    $campaignSlug: String
     $connectedWalletUserId: Int
   ) {
     allProjects(
@@ -457,9 +458,16 @@ export const fetchMultiFilterAllProjectsQuery = `
       filters: $filters
       searchTerm: $searchTerm
       category: $category
+      campaignSlug: $campaignSlug
       mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
     ) {
+    
+      campaign{
+        slug
+        title
+      }
+      
       projects {
         id
         title
@@ -1496,6 +1504,60 @@ query {
             value
             isActive
         }
+    }
+}`;
+
+export const getCampaigns = `
+query {
+    campaigns{
+        id
+        title
+        description
+        type
+        relatedProjects {
+          id
+          slug
+        }
+        relatedProjectsCount
+        photo
+        video
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
+    }
+}`;
+
+export const fetchCampaignBySlug = `
+  query (
+    $slug: String
+  ) {
+    findCampaignBySlug(
+      slug: $slug
+    ){
+        id
+        title
+        type
+        description
+        relatedProjects {
+          id
+          slug  
+        }
+        relatedProjectsCount
+        photo
+        video
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
     }
 }`;
 

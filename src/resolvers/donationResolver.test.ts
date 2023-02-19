@@ -1972,6 +1972,14 @@ function donationsByProjectIdTestCases() {
     assert.isTrue(anonymousDonations.length === 0);
   });
   it('should search by donation amount', async () => {
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.THIRD_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    donation.status = DONATION_STATUS.VERIFIED;
+    donation.amount = 100;
+    await donation.save();
     const result = await axios.post(
       graphqlUrl,
       {
