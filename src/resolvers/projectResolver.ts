@@ -1098,13 +1098,13 @@ export class ProjectResolver {
     });
 
     const newProject = await project.save();
-    const adminUser = (await findUserById(Number(newProject.admin))) as User;
-    newProject.adminUser = adminUser;
+    // const adminUser = (await findUserById(Number(newProject.admin))) as User;
+    // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
       projectInput?.addresses.map(relatedAddress => {
         return {
           project,
-          user: adminUser,
+          user,
           address: relatedAddress.address.toLowerCase(),
           networkId: relatedAddress.networkId,
           isRecipient: true,
