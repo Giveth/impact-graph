@@ -649,15 +649,17 @@ export class ProjectResolver {
       .getManyAndCount();
 
     const userId = connectedWalletUserId || user?.userId;
-    const userReactions = await findUserReactionsByProjectIds(
-      userId,
-      projects.map(project => project.id),
-    );
-
-    if (userReactions.length > 0) {
-      projects = await projectsFiltersThreadPool.queue(merger =>
-        merger.mergeUserReactionsToProjects(projects, userReactions),
+    if (projects.length > 0 && userId) {
+      const userReactions = await findUserReactionsByProjectIds(
+        userId,
+        projects.map(project => project.id),
       );
+
+      if (userReactions.length > 0) {
+        projects = await projectsFiltersThreadPool.queue(merger =>
+          merger.mergeUserReactionsToProjects(projects, userReactions),
+        );
+      }
     }
 
     const categories = await categoriesResolver;

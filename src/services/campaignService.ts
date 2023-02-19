@@ -63,7 +63,7 @@ export const fillCampaignProjects = async (params: {
     );
   }
 
-  if (userId) {
+  if (userId && projects.length > 0) {
     const userReactions = await findUserReactionsByProjectIds(
       userId,
       projects.map(project => project.id),

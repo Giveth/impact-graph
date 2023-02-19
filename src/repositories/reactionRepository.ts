@@ -4,7 +4,7 @@ export const findUserReactionsByProjectIds = async (
   authenticatedUserId: number,
   projectIds: number[],
 ): Promise<Reaction[]> => {
-  if (!authenticatedUserId) return [];
+  if (!authenticatedUserId || projectIds.length === 0) return [];
 
   return Reaction.createQueryBuilder('reaction')
     .where('reaction.userId = :userId', { userId: authenticatedUserId })
