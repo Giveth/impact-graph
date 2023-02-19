@@ -87,7 +87,8 @@ import { refreshUserProjectPowerView } from '../repositories/userProjectPowerVie
 import { AppDataSource } from '../orm';
 // We are using cache so redis needs to be cleared for tests with same filters
 import { redis } from '../redis';
-import { getHtmlTextSummary } from '../utils/utils';
+import { Campaign, CampaignType } from '../entities/campaign';
+import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -413,24 +414,6 @@ function allProjectsTestCases() {
     assert.isNotEmpty(result.data.data.allProjects.projects);
     result.data.data.allProjects.projects.forEach(project =>
       assert.isTrue(project.verified),
-    );
-  });
-  it('should return projects, filter by traceable, true', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      traceCampaignId: '1234',
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchMultiFilterAllProjectsQuery,
-      variables: {
-        filters: ['Traceable'],
-      },
-    });
-    assert.isNotEmpty(result.data.data.allProjects.projects);
-    result.data.data.allProjects.projects.forEach(project =>
-      assert.exists(project.traceCampaignId),
     );
   });
   it('should return projects, filter by acceptGiv, true', async () => {
@@ -864,6 +847,57 @@ function allProjectsTestCases() {
         project => Number(project.id) === Number(savedProject.id),
       ),
     );
+  });
+  it('should return projects, filter by campaignSlug and limit, skip', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const campaign = await Campaign.create({
+      isActive: true,
+      type: CampaignType.ManuallySelected,
+      slug: generateRandomString(),
+      title: 'title1',
+      description: 'description1',
+      photo: 'https://google.com',
+      relatedProjectsSlugs: [
+        project1.slug as string,
+        project2.slug as string,
+        project3.slug as string,
+      ],
+      order: 1,
+    }).save();
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit: 1,
+        skip: 1,
+        campaignSlug: campaign.slug,
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 1);
+    assert.equal(result.data.data.allProjects.campaign.title, campaign.title);
+    assert.isOk(
+      [project1.slug, project2.slug, project3.slug].includes(
+        result.data.data.allProjects.projects[0].slug,
+      ),
+    );
+
+    await campaign.remove();
   });
 }
 

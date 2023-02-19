@@ -107,6 +107,7 @@ import BroadcastNotification, {
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
+import { Campaign } from '../entities/campaign';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -121,12 +122,6 @@ const cookie = require('cookie');
 const cookieParser = require('cookie-parser');
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminBroCookie = 'adminbro';
-
-const segmentProjectStatusEvents = {
-  activate: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
-  deactivate: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
-  cancelled: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
-};
 
 // headers defined by the verification team for exporting
 const headers = [
@@ -1285,14 +1280,6 @@ const getAdminBroInstance = async () => {
             totalTraceDonations: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
-            traceCampaignId: {
-              isVisible: {
-                list: false,
-                filter: false,
-                show: true,
-                edit: false,
-              },
-            },
             admin: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -1976,6 +1963,124 @@ const getAdminBroInstance = async () => {
               },
             },
             adminUserId: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+          },
+        },
+      },
+      {
+        resource: Campaign,
+        options: {
+          actions: {
+            delete: {
+              isVisible: false,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            edit: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            slug: {
+              isVisible: true,
+            },
+            title: {
+              isVisible: true,
+            },
+            type: {
+              isVisible: true,
+            },
+            description: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            hashtags: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            photo: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            video: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            relatedProjectsSlugs: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            landingLink: {
+              isVisible: true,
+            },
+            order: {
+              isVisible: true,
+            },
+            isActive: {
+              isVisible: true,
+            },
+            isFeatured: {
+              isVisible: true,
+            },
+            filterFields: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            sortingField: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            createdAt: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+            updatedAt: {
               isVisible: {
                 show: true,
                 list: true,

@@ -1,5 +1,6 @@
 import { Reaction } from '../entities/reaction';
 import {
+  FilterField,
   OrderField,
   Project,
   ProjectUpdate,
@@ -41,7 +42,11 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   canUserVisitProject,
   validateProjectRelatedAddresses,
@@ -69,6 +74,7 @@ import {
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
+  FilterProjectQueryInputParams,
   filterProjectsQuery,
   findProjectById,
   totalProjectsPerDate,
@@ -96,6 +102,8 @@ const projectFiltersCacheDuration = Number(
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { AppDataSource } from '../orm';
 import { creteSlugFromProject } from '../utils/utils';
+import { findCampaignBySlug } from '../repositories/campaignRepository';
+import { Campaign } from '../entities/campaign';
 
 @ObjectType()
 class AllProjects {
@@ -107,6 +115,9 @@ class AllProjects {
 
   @Field(type => [Category], { nullable: true })
   categories: Category[];
+
+  @Field(type => Campaign, { nullable: true })
+  campaign?: Campaign;
 }
 
 @ObjectType()
@@ -134,15 +145,6 @@ class ProjectUpdatesResponse {
 
   @Field(type => Int, { nullable: false })
   count: number;
-}
-
-export enum FilterField {
-  Verified = 'verified',
-  AcceptGiv = 'givingBlocksId',
-  AcceptFundOnGnosis = 'acceptFundOnGnosis',
-  Traceable = 'traceCampaignId',
-  GivingBlock = 'fromGivingBlock',
-  BoostedWithGivPower = 'boostedWithGivPower',
 }
 
 export enum OrderDirection {
@@ -233,6 +235,11 @@ class GetProjectsArgs {
     defaultValue: [],
   })
   filters: FilterField[];
+
+  @Field(type => String, {
+    nullable: true,
+  })
+  campaignSlug: string;
 
   @Field(type => SortingField, {
     nullable: true,
@@ -497,7 +504,7 @@ export class ProjectResolver {
     query: SelectQueryBuilder<Project>,
     filtersArray: FilterField[] = [],
   ) {
-    if (filtersArray.length === 0) return query;
+    if (!filtersArray || filtersArray.length === 0) return query;
 
     query = query.andWhere(
       new Brackets(subQuery => {
@@ -511,9 +518,6 @@ export class ProjectResolver {
             return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
           }
 
-          if (filter === FilterField.Traceable) {
-            return subQuery.andWhere(`project.${filter} IS NOT NULL`);
-          }
           if (filter === FilterField.BoostedWithGivPower) {
             return subQuery.andWhere(`projectPower.totalPower > 0`);
           }
@@ -602,12 +606,13 @@ export class ProjectResolver {
       filters,
       sortingBy,
       connectedWalletUserId,
+      campaignSlug,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
     let projects: Project[];
     let totalCount: number;
-    const projectsQuery = filterProjectsQuery(
+    const filterQueryParams: FilterProjectQueryInputParams = {
       limit,
       skip,
       searchTerm,
@@ -615,18 +620,22 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
-    );
+    };
+    let campaign;
+    if (campaignSlug) {
+      campaign = await findCampaignBySlug(campaignSlug);
+      if (!campaign) {
+        throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
+      }
+      filterQueryParams.slugArray = campaign.relatedProjectsSlugs;
+    }
+
+    const projectsQuery = filterProjectsQuery(filterQueryParams);
 
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
       hasher =>
         hasher.hashProjectFilters({
-          limit,
-          skip,
-          searchTerm,
-          category,
-          mainCategory,
-          filters,
-          sortingBy,
+          ...filterQueryParams,
           suffix: 'pq',
         }),
     );
@@ -653,7 +662,7 @@ export class ProjectResolver {
 
     const categories = await categoriesResolver;
 
-    return { projects, totalCount, categories };
+    return { projects, totalCount, categories, campaign };
   }
 
   @Query(returns => TopProjects)
