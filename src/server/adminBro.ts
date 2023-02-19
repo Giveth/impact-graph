@@ -107,6 +107,7 @@ import BroadcastNotification, {
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
+import { FeaturedProject } from '../entities/featuredProject';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -962,6 +963,42 @@ const getAdminBroInstance = async () => {
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
               handler: createToken,
               // component: false
+            },
+          },
+        },
+      },
+      {
+        resource: FeaturedProject,
+        options: {
+          properties: {
+            id: {
+              isVisible: { show: true, edit: false, new: false, list: true },
+            },
+            projectId: {
+              isVisible: { show: true, edit: true, new: true, list: true },
+            },
+            updatedAt: {
+              isVisible: { show: true, edit: false, new: false, list: true },
+            },
+            createdAt: {
+              isVisible: { show: true, edit: false, new: false, list: true },
+            },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: true,
+            },
+            show: {
+              isVisible: true,
+            },
+            edit: {
+              isVisible: true,
+            },
+            delete: {
+              isVisible: true,
+            },
+            new: {
+              isVisible: true,
             },
           },
         },

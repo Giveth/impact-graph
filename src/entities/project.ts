@@ -34,6 +34,7 @@ import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { Category } from './category';
+import { FeaturedProject } from './featuredProject';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -259,6 +260,14 @@ export class Project extends BaseEntity {
     { nullable: true },
   )
   projectVerificationForm?: ProjectVerificationForm;
+
+  @Field(type => FeaturedProject, { nullable: true })
+  @OneToOne(
+    type => FeaturedProject,
+    featuredProject => featuredProject.project,
+    { nullable: true },
+  )
+  featuredProject?: FeaturedProject;
 
   @Field(type => ProjectPowerView, { nullable: true })
   @OneToOne(

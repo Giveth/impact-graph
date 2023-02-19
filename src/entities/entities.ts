@@ -31,6 +31,7 @@ import { User } from './user';
 import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
 import BroadcastNotification from './broadcastNotification';
+import { FeaturedProject } from './featuredProject';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -42,6 +43,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     StripeTransaction,
     Category,
     ProjectUpdate,
+    FeaturedProject,
     Reaction,
     Donation,
     Token,

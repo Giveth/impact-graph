@@ -590,6 +590,68 @@ export class ProjectResolver {
     this.projectImageRepository = ds.getRepository(ProjectImage);
   }
 
+  @Query(returns => TopProjects)
+  async featuredProjects(
+    @Args()
+    { take, skip }: GetProjectsArgs,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<TopProjects> {
+    const query = Project.createQueryBuilder('project')
+      .innerJoin('project.featuredProject', 'featured')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields)
+      .where('featured.position IS NOT NULL')
+      .orderBy('featured.position');
+
+    // if loggedIn get his reactions
+    const viewerUserId = connectedWalletUserId || user?.userId;
+    if (viewerUserId)
+      ProjectResolver.addReactionToProjectsQuery(query, viewerUserId);
+
+    const [featuredProjects, totalCount] = await query
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      projects: featuredProjects,
+      totalCount,
+    };
+  }
+
+  @Query(returns => ProjectUpdate)
+  async featureProjectUpdate(
+    @Arg('projectId') projectId: number,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<ProjectUpdate | null> {
+    let query = this.projectUpdateRepository
+      .createQueryBuilder('projectUpdate')
+      .where(
+        'projectUpdate.projectId = :projectId and projectUpdate.isMain = false',
+        {
+          projectId,
+        },
+      )
+      .orderBy(`projectUpdate.createdAt`, 'DESC')
+      .take(1);
+
+    const viewerUserId = connectedWalletUserId || user?.userId;
+    if (viewerUserId) {
+      query = ProjectResolver.addReactionToProjectsUpdateQuery(
+        query,
+        viewerUserId,
+      );
+    }
+    return query.getOne();
+  }
+
   @Query(returns => AllProjects)
   async allProjects(
     @Args()
