@@ -1105,11 +1105,10 @@ export class ProjectResolver {
       totalProjectUpdates: 1,
       verified: false,
       giveBacks: false,
-      adminUserId: user.id,
+      adminUser: user,
     });
 
     await project.save();
-    await project.reload();
     // const adminUser = (await findUserById(Number(newProject.admin))) as User;
     // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
