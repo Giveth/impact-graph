@@ -254,7 +254,7 @@ export class Project extends BaseEntity {
   statusId: number;
 
   @Index()
-  @Field(type => User)
+  @Field(type => User, { nullable: true })
   @ManyToOne(() => User, { eager: true })
   adminUser: User;
 
