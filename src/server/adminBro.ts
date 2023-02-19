@@ -1318,6 +1318,9 @@ const getAdminBroInstance = async () => {
             givingBlocksId: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
+            traceCampaignId: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
             website: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -1361,6 +1364,9 @@ const getAdminBroInstance = async () => {
               isVisible: { list: false, filter: true, show: true, edit: true },
             },
             impactLocation: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            descriptionSummary: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             slugHistory: {
