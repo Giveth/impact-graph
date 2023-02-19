@@ -177,7 +177,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     const project = (await findProjectById(projectId)) as Project;
     sendProjectRelatedNotificationsQueue.add({
       project: project as Project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED,
+      eventName:
+        project.adminUser?.id === userId
+          ? // We send different notifications when project owner or someone else boost the project https://github.com/Giveth/notification-center/issues/41
+            NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED_BY_PROJECT_OWNER
+          : NOTIFICATIONS_EVENT_NAMES.PROJECT_BOOSTED,
 
       // With adding trackId to notification, notification-center would not create new notification
       // If there is already a notification with this trackId in DB
