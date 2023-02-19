@@ -87,6 +87,8 @@ import { refreshUserProjectPowerView } from '../repositories/userProjectPowerVie
 import { AppDataSource } from '../orm';
 // We are using cache so redis needs to be cleared for tests with same filters
 import { redis } from '../redis';
+import { Campaign, CampaignType } from '../entities/campaign';
+import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
