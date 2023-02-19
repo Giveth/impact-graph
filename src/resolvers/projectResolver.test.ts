@@ -414,24 +414,6 @@ function allProjectsTestCases() {
       assert.isTrue(project.verified),
     );
   });
-  it('should return projects, filter by traceable, true', async () => {
-    await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      traceCampaignId: '1234',
-      qualityScore: 0,
-    });
-    const result = await axios.post(graphqlUrl, {
-      query: fetchMultiFilterAllProjectsQuery,
-      variables: {
-        filters: ['Traceable'],
-      },
-    });
-    assert.isNotEmpty(result.data.data.allProjects.projects);
-    result.data.data.allProjects.projects.forEach(project =>
-      assert.exists(project.traceCampaignId),
-    );
-  });
   it('should return projects, filter by acceptGiv, true', async () => {
     await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -906,11 +888,13 @@ function allProjectsTestCases() {
     });
 
     assert.equal(result.data.data.allProjects.projects.length, 1);
+    assert.equal(result.data.data.allProjects.campaign.title, campaign.title);
     assert.isOk(
       [project1.slug, project2.slug, project3.slug].includes(
         result.data.data.allProjects.projects[0].slug,
       ),
     );
+
     await campaign.remove();
   });
 }

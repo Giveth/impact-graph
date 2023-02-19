@@ -103,6 +103,7 @@ import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { AppDataSource } from '../orm';
 import { creteSlugFromProject } from '../utils/utils';
 import { findCampaignBySlug } from '../repositories/campaignRepository';
+import { Campaign } from '../entities/campaign';
 
 @ObjectType()
 class AllProjects {
@@ -114,6 +115,9 @@ class AllProjects {
 
   @Field(type => [Category], { nullable: true })
   categories: Category[];
+
+  @Field(type => Campaign, { nullable: true })
+  campaign?: Campaign;
 }
 
 @ObjectType()
@@ -514,9 +518,6 @@ export class ProjectResolver {
             return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
           }
 
-          if (filter === FilterField.Traceable) {
-            return subQuery.andWhere(`project.${filter} IS NOT NULL`);
-          }
           if (filter === FilterField.BoostedWithGivPower) {
             return subQuery.andWhere(`projectPower.totalPower > 0`);
           }
@@ -620,8 +621,9 @@ export class ProjectResolver {
       filters,
       sortingBy,
     };
+    let campaign;
     if (campaignSlug) {
-      const campaign = await findCampaignBySlug(campaignSlug);
+      campaign = await findCampaignBySlug(campaignSlug);
       if (!campaign) {
         throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
       }
@@ -660,7 +662,7 @@ export class ProjectResolver {
 
     const categories = await categoriesResolver;
 
-    return { projects, totalCount, categories };
+    return { projects, totalCount, categories, campaign };
   }
 
   @Query(returns => TopProjects)

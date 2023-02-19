@@ -460,6 +460,12 @@ export const fetchMultiFilterAllProjectsQuery = `
       mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
     ) {
+    
+      campaign{
+        slug
+        title
+      }
+      
       projects {
         id
         title
