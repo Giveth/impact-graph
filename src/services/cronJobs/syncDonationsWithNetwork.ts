@@ -9,6 +9,7 @@ import config from '../../config';
 import { redisConfig } from '../../redis';
 import { logger } from '../../utils/logger';
 import { syncDonationStatusWithBlockchainNetwork } from '../donationService';
+import { getPendingDonationsIds } from '../../repositories/donationRepository';
 
 const verifyDonationsQueue = new Bull('verify-donations-queue', {
   redis: redisConfig,
@@ -44,13 +45,7 @@ export const runCheckPendingDonationsCronJob = () => {
 const addJobToCheckPendingDonationsWithNetwork = async () => {
   logger.debug('addJobToCheckPendingDonationsWithNetwork() has been called');
 
-  const donations = await Donation.find({
-    where: {
-      status: DONATION_STATUS.PENDING,
-      isFiat: false,
-    },
-    select: ['id'],
-  });
+  const donations = await getPendingDonationsIds();
   logger.debug('Pending donations to be check', donations.length);
   donations.forEach(donation => {
     logger.debug('Add pending donation to queue', { donationId: donation.id });

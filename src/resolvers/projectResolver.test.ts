@@ -50,7 +50,6 @@ import {
 import { Category } from '../entities/category';
 import { Reaction } from '../entities/reaction';
 import { ProjectStatus } from '../entities/projectStatus';
-import { ProjectStatusHistory } from '../entities/projectStatusHistory';
 import { User } from '../entities/user';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
 import { Token } from '../entities/token';
@@ -88,9 +87,6 @@ import { refreshUserProjectPowerView } from '../repositories/userProjectPowerVie
 import { AppDataSource } from '../orm';
 // We are using cache so redis needs to be cleared for tests with same filters
 import { redis } from '../redis';
-import { Campaign, CampaignType } from '../entities/campaign';
-import { generateRandomString } from '../utils/utils';
-import { findProjectById } from '../repositories/projectRepository';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -267,6 +263,10 @@ function allProjectsTestCases() {
       assert.isOk(project.adminUser.firstName);
       assert.isOk(project.adminUser.walletAddress);
       assert.isOk(project.categories[0].mainCategory.title);
+      assert.equal(
+        project.descriptionSummary,
+        getHtmlTextSummary(project.description),
+      );
     });
   });
 
@@ -1305,7 +1305,7 @@ function createProjectTestCases() {
         SEED_DATA.FOOD_SUB_CATEGORIES[0],
         SEED_DATA.FOOD_SUB_CATEGORIES[1],
       ],
-      description: 'description',
+      description: '<div>Sample Project Creation</div>',
       admin: String(SEED_DATA.FIRST_USER.id),
       addresses: [
         {
@@ -1330,6 +1330,10 @@ function createProjectTestCases() {
       },
     );
     assert.isOk(result.data.data.createProject);
+    assert.equal(
+      result.data.data.createProject.descriptionSummary,
+      'Sample Project Creation',
+    );
   });
   it('Should get error, when sending more thant two recipient address', async () => {
     const sampleProject: CreateProjectInput = {
@@ -4681,7 +4685,7 @@ function editProjectUpdateTestCases() {
         query: editProjectUpdateQuery,
         variables: {
           updateId: updateProject.id,
-          content: 'TestProjectUpdateAfterUpdateFateme',
+          content: '<div>TestProjectUpdateAfterUpdateFateme</div>',
           title: 'testEditProjectUpdateAfterUpdateFateme',
         },
       },
@@ -4694,6 +4698,14 @@ function editProjectUpdateTestCases() {
     assert.equal(
       result.data.data.editProjectUpdate.title,
       'testEditProjectUpdateAfterUpdateFateme',
+    );
+    assert.equal(
+      result.data.data.editProjectUpdate.content,
+      '<div>TestProjectUpdateAfterUpdateFateme</div>',
+    );
+    assert.equal(
+      result.data.data.editProjectUpdate.contentSummary,
+      'TestProjectUpdateAfterUpdateFateme',
     );
   });
   it('should can not edit project update because of ownerShip ', async () => {

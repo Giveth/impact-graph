@@ -898,6 +898,8 @@ export class ProjectResolver {
     project.listed = null;
 
     await project.save();
+    await project.reload();
+
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
       await removeRecipientAddressOfProject({ project });
@@ -913,6 +915,7 @@ export class ProjectResolver {
         }),
       );
     }
+
     project.adminUser = adminUser;
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
@@ -1226,8 +1229,10 @@ export class ProjectResolver {
 
     update.title = title;
     update.content = content;
+    await update.save();
+    await update.reload();
 
-    return update.save();
+    return update;
   }
 
   @Mutation(returns => Boolean)
@@ -1458,6 +1463,7 @@ export class ProjectResolver {
 
   @Query(returns => AllProjects, { nullable: true })
   async projectsBySlugs(
+    // TODO Write test cases
     @Arg('slugs', type => [String]) slugs: string[],
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,

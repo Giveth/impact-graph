@@ -48,6 +48,7 @@ export const createProjectQuery = `
         id
         title
         description
+        descriptionSummary
         admin
         image
         impactLocation
@@ -89,6 +90,7 @@ export const updateProjectQuery = `
       id
       title
       description
+      descriptionSummary
       image
       slug
       listed
@@ -106,7 +108,7 @@ export const updateProjectQuery = `
         isRecipient
         networkId
       }
-      adminUser{
+      adminUser {
         id
         name
         email
@@ -472,6 +474,8 @@ export const fetchMultiFilterAllProjectsQuery = `
         balance
         image
         slug
+        description
+        descriptionSummary
         creationDate
         updatedAt
         admin
@@ -1178,6 +1182,8 @@ export const editProjectUpdateQuery = `
                     userId
                     projectId
                     title
+                    content
+                    contentSummary
                     }
          }`;
 
