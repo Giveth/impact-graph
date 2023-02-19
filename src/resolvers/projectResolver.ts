@@ -1094,7 +1094,7 @@ export class ProjectResolver {
       totalProjectUpdates: 1,
       verified: false,
       giveBacks: false,
-      adminUserId: ctx.req.user.userId,
+      adminUser: user,
     });
 
     const newProject = await project.save();
