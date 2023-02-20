@@ -437,6 +437,73 @@ export const fetchDonationsByUserIdQuery = `
   }
 `;
 
+export const fetchFeaturedProjectUpdates = `
+  query (
+    $limit: Int
+    $skip: Int
+    $connectedWalletUserId: Int
+  ) {
+    featuredProjects(
+      limit: $limit
+      skip: $skip
+      connectedWalletUserId: $connectedWalletUserId
+    ) {
+      projects {
+        id
+        title
+        balance
+        image
+        slug
+        creationDate
+        updatedAt
+        admin
+        description
+        walletAddress
+        impactLocation
+        qualityScore
+        verified
+        traceCampaignId
+        listed
+        givingBlocksId
+        status {
+          id
+          symbol
+          name
+          description
+        }
+        reaction {
+          id
+        }
+        adminUser {
+          id
+          email
+          firstName
+          walletAddress
+        }
+        organization {
+          name
+          label
+          supportCustomTokens
+        }
+        addresses {
+          address
+          isRecipient
+          networkId
+        }
+        projectPower {
+          totalPower
+          powerRank
+          round
+        }
+        totalReactions
+        totalDonations
+        totalTraceDonations
+      }
+      totalCount
+    }
+  }
+`;
+
 export const fetchMultiFilterAllProjectsQuery = `
   query (
     $limit: Int

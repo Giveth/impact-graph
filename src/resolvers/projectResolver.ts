@@ -593,20 +593,19 @@ export class ProjectResolver {
   @Query(returns => TopProjects)
   async featuredProjects(
     @Args()
-    { take, skip }: GetProjectsArgs,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
-    connectedWalletUserId: number,
+    { limit, skip, connectedWalletUserId }: GetProjectsArgs,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<TopProjects> {
     const query = Project.createQueryBuilder('project')
-      .innerJoin('project.featuredProject', 'featured')
+      .innerJoin('project.featuredProject', 'featuredProject')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.projectPower', 'projectPower')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
-      .where('featured.position IS NOT NULL')
-      .orderBy('featured.position');
+      .where('featuredProject.position IS NOT NULL')
+      .orderBy('featuredProject.position');
 
     // if loggedIn get his reactions
     const viewerUserId = connectedWalletUserId || user?.userId;
@@ -614,7 +613,7 @@ export class ProjectResolver {
       ProjectResolver.addReactionToProjectsQuery(query, viewerUserId);
 
     const [featuredProjects, totalCount] = await query
-      .take(take)
+      .take(limit)
       .skip(skip)
       .getManyAndCount();
 
@@ -625,7 +624,7 @@ export class ProjectResolver {
   }
 
   @Query(returns => ProjectUpdate)
-  async featureProjectUpdate(
+  async featuredProjectUpdate(
     @Arg('projectId') projectId: number,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId: number,

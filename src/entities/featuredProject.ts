@@ -37,7 +37,7 @@ import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { Category } from './category';
-import { Project } from './project';
+import { Project, ProjectUpdate } from './project';
 
 @Entity()
 @ObjectType()
@@ -52,14 +52,10 @@ export class FeaturedProject extends BaseEntity {
   @JoinColumn()
   project: Project;
 
-  @RelationId(
-    (projectVerificationForm: ProjectVerificationForm) =>
-      projectVerificationForm.project,
-  )
+  @RelationId((featuredProject: FeaturedProject) => featuredProject.project)
   @Column({ nullable: true })
   projectId: number;
 
-  @Index({ unique: true })
   @Field(type => Int, { nullable: true })
   @Column({ type: 'integer', nullable: true })
   position: number;

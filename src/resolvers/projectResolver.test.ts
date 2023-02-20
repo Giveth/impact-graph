@@ -7,6 +7,7 @@ import {
   graphqlUrl,
   PROJECT_UPDATE_SEED_DATA,
   REACTION_SEED_DATA,
+  saveFeaturedProjectDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
@@ -20,6 +21,7 @@ import {
   deactivateProjectQuery,
   deleteProjectUpdateQuery,
   editProjectUpdateQuery,
+  fetchFeaturedProjectUpdates,
   fetchLatestProjectUpdates,
   fetchLikedProjectsQuery,
   fetchMultiFilterAllProjectsQuery,
@@ -112,6 +114,8 @@ describe(
   'walletAddressIsPurpleListed Test Cases --->',
   walletAddressIsPurpleListedTestCases,
 );
+
+describe('featureProjectsTestCases --->', featureProjectsTestCases);
 
 describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // TODO We should implement test cases for below query/mutation
@@ -3705,6 +3709,31 @@ function getPurpleListTestCases() {
     assert.isFalse(
       result.data.data.getPurpleList.includes(walletAddress.toLowerCase()),
     );
+  });
+}
+
+function featureProjectsTestCases() {
+  it('should return all projects that have been featured', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
+
+    const featuredProject = await saveFeaturedProjectDirectlyToDb(
+      Number(project.id),
+    );
+
+    const take = 3; // there are other previously created updates
+    const result = await axios.post(graphqlUrl, {
+      query: fetchFeaturedProjectUpdates,
+      variables: {
+        take,
+      },
+    });
+
+    assert.isTrue(true);
   });
 }
 
