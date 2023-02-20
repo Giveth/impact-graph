@@ -1,7 +1,6 @@
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { User } from '../entities/user';
 import { Reaction } from '../entities/reaction';
 import { Brackets, LessThan, MoreThan } from 'typeorm';
 import moment from 'moment';
@@ -59,7 +58,7 @@ export const createDonation = async (data: {
 
 export const findDonationsByTransactionId = async (
   txHash: string,
-): Promise<Donation | undefined> => {
+): Promise<Donation | null> => {
   return Donation.createQueryBuilder('donation')
     .where(`"transactionId" = :txHash`, {
       txHash: txHash.toLowerCase(),
@@ -69,33 +68,13 @@ export const findDonationsByTransactionId = async (
 
 export const findDonationById = async (
   donationId: number,
-): Promise<Donation | undefined> => {
+): Promise<Donation | null> => {
   return Donation.createQueryBuilder('donation')
     .where(`donation.id = :donationId`, {
       donationId,
     })
     .leftJoinAndSelect('donation.project', 'project')
     .getOne();
-};
-
-export const findUsersWhoDonatedToProjectExcludeWhoLiked = async (
-  projectId: number,
-): Promise<{ walletAddress: string; email?: string }[]> => {
-  return Donation.createQueryBuilder('donation')
-    .leftJoinAndSelect('donation.project', 'project')
-    .leftJoin('donation.user', 'user')
-    .leftJoin(
-      Reaction,
-      'reaction',
-      'reaction.projectId = project.id AND user.id = reaction.userId',
-    )
-    .distinctOn(['user.walletAddress'])
-    .select('LOWER(user.walletAddress) AS "walletAddress", user.email as email')
-    .where(`donation."projectId"=:projectId`, {
-      projectId,
-    })
-    .andWhere(`reaction.id IS NULL`)
-    .getRawMany();
 };
 
 export const donationsTotalAmountPerDateRange = async (
@@ -114,6 +93,11 @@ export const donationsTotalAmountPerDateRange = async (
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
   const donationsUsdAmount = await query.getRawOne();
+
+  query.cache(
+    `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
 
   return donationsUsdAmount.sum;
 };
@@ -141,6 +125,11 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
 
+  query.cache(
+    `donationsTotalAmountPerDateRangeByMonth-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
+
   return await query.getRawMany();
 };
 
@@ -162,6 +151,8 @@ export const donorsCountPerDate = async (
   if (toDate) {
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
+
+  query.cache(`donorsCountPerDate-${fromDate || ''}-${toDate || ''}`, 300000);
 
   const queryResult = await query.getRawOne();
   return queryResult.count;
@@ -189,6 +180,11 @@ export const donorsCountPerDateByMonthAndYear = async (
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
 
+  query.cache(
+    `donorsCountPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}`,
+    300000,
+  );
+
   return await query.getRawMany();
 };
 
@@ -202,6 +198,27 @@ export const findStableCoinDonationsWithoutPrice = () => {
       ),
     )
     .andWhere(`donation."valueUsd" IS NULL `)
+    .getMany();
+};
+
+export const getRecentDonations = async (take: number): Promise<Donation[]> => {
+  return await Donation.createQueryBuilder('donation')
+    .leftJoin('donation.user', 'user')
+    .leftJoin('donation.project', 'project')
+    .select([
+      'donation.id',
+      'donation.createdAt',
+      'donation.valueUsd',
+      'user.walletAddress',
+      'project.slug',
+      'project.title',
+    ])
+    .where('donation.status = :status', {
+      status: DONATION_STATUS.VERIFIED,
+    })
+    .orderBy('donation.createdAt', 'DESC')
+    .take(take)
+    .cache(`recent-${take}-donations`, 60000)
     .getMany();
 };
 

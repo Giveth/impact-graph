@@ -15,7 +15,7 @@ import axios from 'axios';
 import { getEtherscanOrBlockScoutUrl, NETWORK_IDS } from '../provider';
 import { Container } from 'typedi';
 import * as TypeORM from 'typeorm';
-import { entities } from '../entities/entities';
+import { getEntities } from '../entities/entities';
 import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import { sleep } from '../utils/utils';
@@ -59,28 +59,31 @@ setupDb().then(async () => {
 });
 
 async function setupDb() {
-  TypeORM.useContainer(Container);
   // tslint:disable-next-line:no-console
   console.log('setupDb connections', {
     host: process.env.TYPEORM_DATABASE_HOST,
   });
-  await TypeORM.createConnection({
+  const ds = new TypeORM.DataSource({
     type: 'postgres',
     database: process.env.TYPEORM_DATABASE_NAME,
     username: process.env.TYPEORM_DATABASE_USER,
     password: process.env.TYPEORM_DATABASE_PASSWORD,
     port: Number(process.env.TYPEORM_DATABASE_PORT),
     host: process.env.TYPEORM_DATABASE_HOST,
-    entities,
+    entities: getEntities(),
     logger: 'advanced-console',
     logging: ['error'],
     cache: true,
   });
+  await ds.initialize();
+  Container.set(TypeORM.DataSource, ds);
 }
 
 async function findMissedDonations() {
   const projects = await Project.find({
-    verified: true,
+    where: {
+      verified: true,
+    },
   });
   const walletAddresses = projects.map(project => {
     return project.walletAddress;
@@ -219,7 +222,9 @@ async function checkTransactionWithOurDonations(
     //   );
     // }
     const correspondingDonation = await Donation.findOne({
-      transactionId: transaction.hash,
+      where: {
+        transactionId: transaction.hash,
+      },
     });
     if (!correspondingDonation) {
       // tslint:disable-next-line:no-console

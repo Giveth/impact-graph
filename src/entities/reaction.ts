@@ -1,5 +1,4 @@
 import { Field, ID, ObjectType } from 'type-graphql';
-
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -28,7 +27,7 @@ export class Reaction extends BaseEntity {
   @RelationId((reaction: Reaction) => reaction.projectUpdate)
   @Field(type => ID, { nullable: true })
   @Column({ nullable: true })
-  projectUpdateId: number;
+  projectUpdateId?: number;
 
   // We just fill it with join when making query so dont need to Add @Column or @ManyToOne
   user: User;

@@ -15,7 +15,7 @@ export class ChangeProjectAddressToGoerli1661163993626
     await queryRunner.query(`
             UPDATE project_address
             SET "networkId" = 5
-            WHERE "networkId" = 3 
+            WHERE "networkId" = 3
         `);
   }
 

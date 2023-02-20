@@ -1,7 +1,65 @@
 import { Country } from '../entities/Country';
+import { FilterField, SortingField } from '../entities/project';
+import { convert } from 'html-to-text';
+import slugify from 'slugify';
+
+import stringify from 'json-stable-stringify';
+import { SUMMARY_LENGTH } from '../constants/summary';
+// tslint:disable-next-line:no-var-requires
+const { createHash } = require('node:crypto');
 
 export const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+export const generateProjectFiltersCacheKey = async (args: {
+  limit?: number;
+  skip?: number;
+  searchTerm?: string;
+  category?: string;
+  mainCategory?: string;
+  filters?: FilterField[];
+  sortingBy?: SortingField;
+  suffix?: string;
+}) => {
+  const orderedArgs = stringify(args);
+  return createHash('md5').update(orderedArgs).digest().toString('hex');
+};
+
+export const titleWithoutSpecialCharacters = (title: string): string => {
+  const ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
+    '`',
+    `'`,
+    '<',
+    '>',
+    '"',
+    '+',
+    '&',
+    '^',
+    '$',
+    '@',
+    '!',
+    '*',
+    '#',
+    '=',
+    '.',
+    '?',
+    '/',
+    '|',
+    '%',
+    '`',
+  ];
+  let cleanTitle = title;
+  ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(
+    character =>
+      // this do like replaceAll
+      (cleanTitle = cleanTitle.split(character).join('')),
+  );
+  return cleanTitle;
+};
+
+export const creteSlugFromProject = (title: string): string => {
+  return slugify(titleWithoutSpecialCharacters(title));
 };
 
 export const convertExponentialNumber = (n: number): number => {
@@ -326,4 +384,28 @@ export const ENVIRONMENTS = {
   STAGING: 'staging',
   DEVELOP: 'develop',
   LOCAL: 'local',
+};
+
+export const getHtmlTextSummary = (
+  html: string = '',
+  lengthLimit: number = SUMMARY_LENGTH,
+): string => {
+  const text = convert(html, {
+    selectors: [
+      { selector: 'a', options: { ignoreHref: true } },
+      { selector: 'img', format: 'skip' },
+    ],
+  })
+    .replace(/^\n+/, '') // Remove new lines from the beginning
+    .replace(/\n{2,}/g, '\n') // Replace multiple \n with single one
+    .replace(/\n$/, ''); // Remove new line from the end
+
+  switch (true) {
+    case text.length <= lengthLimit:
+      return text;
+    case lengthLimit < 3:
+      return '.'.repeat(Math.max(0, lengthLimit));
+    default:
+      return text.slice(0, lengthLimit - 3) + '...';
+  }
 };

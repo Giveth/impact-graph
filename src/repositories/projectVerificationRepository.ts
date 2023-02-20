@@ -16,6 +16,7 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
+import { User } from '../entities/user';
 
 export const createProjectVerificationForm = async (params: {
   userId: number;
@@ -27,7 +28,7 @@ export const createProjectVerificationForm = async (params: {
   return ProjectVerificationForm.create({
     project,
     user,
-  }).save();
+  } as ProjectVerificationForm).save();
 };
 
 export const updateProjectVerificationFormStatusOnly = async (
@@ -83,7 +84,7 @@ export const verifyForm = async (params: {
     );
 
   form.status = params.verificationStatus;
-  form.reviewer = await findUserById(params.adminId);
+  form.reviewer = (await findUserById(params.adminId)) as User;
   form.verifiedAt = new Date();
   return form.save();
 };
@@ -105,7 +106,7 @@ export const makeFormDraft = async (params: {
   form.lastStep = PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS;
   form.isTermAndConditionsAccepted = false;
   if (params.adminId) {
-    form.reviewer = await findUserById(params.adminId);
+    form.reviewer = (await findUserById(params.adminId)) as User;
   }
   return form.save();
 };
@@ -129,14 +130,14 @@ export const makeFormVerified = async (params: {
   form.verifiedAt = new Date();
 
   if (params.adminId) {
-    form.reviewer = await findUserById(params.adminId);
+    form.reviewer = (await findUserById(params.adminId)) || undefined;
   }
   return form.save();
 };
 
 export const findProjectVerificationFormById = async (
   projectVerificationId: number,
-): Promise<ProjectVerificationForm | undefined> => {
+): Promise<ProjectVerificationForm | null> => {
   return ProjectVerificationForm.createQueryBuilder('project_verification_form')
     .where({
       id: projectVerificationId,
@@ -152,7 +153,7 @@ export const findProjectVerificationFormById = async (
 
 export const findProjectVerificationFormByEmailConfirmationToken = async (
   emailConfirmationToken: string,
-): Promise<ProjectVerificationForm | undefined> => {
+): Promise<ProjectVerificationForm | null> => {
   return ProjectVerificationForm.createQueryBuilder('project_verification_form')
     .where({
       emailConfirmationToken,
@@ -309,7 +310,7 @@ export const updateManagingFundsOfProjectVerification = async (params: {
 
 export const getVerificationFormByProjectId = async (
   projectId: number,
-): Promise<ProjectVerificationForm | undefined> => {
+): Promise<ProjectVerificationForm | null> => {
   return ProjectVerificationForm.createQueryBuilder('project_verification_form')
     .where(`project_verification_form.projectId=:projectId`, {
       projectId,

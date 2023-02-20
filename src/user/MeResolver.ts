@@ -1,22 +1,24 @@
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql';
-import { InjectRepository } from 'typeorm-typedi-extensions';
 
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import { Repository, In } from 'typeorm';
 import { getLoggedInUser } from '../services/authorizationServices';
+import { AppDataSource } from '../orm';
 
 @Resolver()
 export class MeResolver {
   constructor(
-    @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>, // @InjectRepository(OrganisationProject) // private readonly organisationProjectRepository: Repository< //   OrganisationProject // >
-  ) {}
+  ) {
+    this.projectRepository =
+      AppDataSource.getDataSource().getRepository(Project);
+  }
 
   @Authorized()
   @Query(() => User, { nullable: true, complexity: 5 })
-  async me(@Ctx() ctx: MyContext): Promise<User | undefined> {
+  async me(@Ctx() ctx: ApolloContext): Promise<User | undefined> {
     const user = await getLoggedInUser(ctx);
 
     return user;
@@ -44,7 +46,7 @@ export class MeResolver {
 
   // @Authorized()
   @Query(() => [Project], { nullable: true, complexity: 5 })
-  async myProjects(@Ctx() ctx: MyContext): Promise<Project[] | undefined> {
+  async myProjects(@Ctx() ctx: ApolloContext): Promise<Project[] | undefined> {
     const user = await getLoggedInUser(ctx);
 
     const projects = this.projectRepository.find({

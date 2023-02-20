@@ -1,4 +1,7 @@
-import { NotificationAdapterInterface } from './NotificationAdapterInterface';
+import {
+  BroadCastNotificationInputParams,
+  NotificationAdapterInterface,
+} from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
@@ -192,6 +195,13 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
+  verificationFormRejected(params: { project: Project }): Promise<void> {
+    logger.info('MockNotificationAdapter verificationFormRejected', {
+      projectSlug: params.project.slug,
+    });
+    return Promise.resolve(undefined);
+  }
+
   donationGetPriceFailed(params: {
     project: Project;
     donationInfo: { txLink: string; reason: string };
@@ -199,6 +209,13 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     logger.info('MockNotificationAdapter donationGetPriceFailed', {
       projectSlug: params.project.slug,
     });
+    return Promise.resolve(undefined);
+  }
+
+  broadcastNotification(
+    params: BroadCastNotificationInputParams,
+  ): Promise<void> {
+    logger.info('MockNotificationAdapter broadcastNotification', params);
     return Promise.resolve(undefined);
   }
 }

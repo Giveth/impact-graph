@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddDraftStatusDbValue1645240822841 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     const draftedStatus = await queryRunner.query(
       `SELECT * FROM project_status WHERE "name" = 'drafted'`,
     );
@@ -15,5 +15,6 @@ export class AddDraftStatusDbValue1645240822841 implements MigrationInterface {
         `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  // tslint:disable-next-line:no-empty
+  async down(queryRunner: QueryRunner): Promise<void> {}
 }

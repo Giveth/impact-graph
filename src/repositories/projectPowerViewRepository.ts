@@ -1,10 +1,11 @@
-import { getConnection, Not, MoreThan } from 'typeorm';
+import { Not, MoreThan } from 'typeorm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { logger } from '../utils/logger';
 import { updatePowerSnapshotSyncedFlag } from './powerSnapshotRepository';
 import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
 import { FindOneOptions } from 'typeorm/find-options/FindOneOptions';
+import { AppDataSource } from '../orm';
 
 export const getProjectPowers = async (
   take: number = 50,
@@ -40,8 +41,8 @@ export const findProjectsPowers = async (
 
 export const findProjectPowerViewByProjectId = async (
   projectId: number,
-): Promise<ProjectPowerView | undefined> => {
-  return ProjectPowerView.findOne(projectId);
+): Promise<ProjectPowerView | null> => {
+  return ProjectPowerView.findOne({ where: { projectId } });
 };
 
 export const getProjectFuturePowers = async (
@@ -53,7 +54,7 @@ export const getProjectFuturePowers = async (
 
 export const getBottomRank = async (): Promise<number> => {
   try {
-    const powerRank = await getConnection().manager.query(`
+    const powerRank = await AppDataSource.getDataSource().query(`
         SELECT MAX("powerRank") FROM project_power_view
     `);
     return Number(powerRank[0].max);
@@ -64,7 +65,7 @@ export const getBottomRank = async (): Promise<number> => {
 };
 
 export const refreshProjectPowerView = async (): Promise<void> => {
-  return getConnection().manager.query(
+  return AppDataSource.getDataSource().query(
     `
       REFRESH MATERIALIZED VIEW project_power_view
     `,
@@ -77,7 +78,7 @@ export const refreshProjectFuturePowerView = async (
   if (updateSyncedFlag) {
     const numberNewSyncedSnapshots = await updatePowerSnapshotSyncedFlag();
     if (numberNewSyncedSnapshots > 0) {
-      await getConnection().manager.query(
+      await AppDataSource.getDataSource().query(
         `
       REFRESH MATERIALIZED VIEW last_snapshot_project_power_view
     `,
@@ -85,7 +86,7 @@ export const refreshProjectFuturePowerView = async (
     }
   }
 
-  return getConnection().manager.query(
+  return AppDataSource.getDataSource().query(
     `
       REFRESH MATERIALIZED VIEW project_future_power_view
     `,

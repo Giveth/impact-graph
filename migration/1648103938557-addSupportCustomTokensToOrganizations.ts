@@ -1,6 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { ORGANIZATION_LABELS } from '../src/entities/organization';
 
+// tslint:disable-next-line:class-name
 export class addSupportCustomTokensToOrganizations1648103938557
   implements MigrationInterface
 {

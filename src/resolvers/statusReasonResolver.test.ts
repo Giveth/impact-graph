@@ -22,7 +22,9 @@ function getStatusReasonsTestCases() {
 
   it('should return filtered result when sending sending statusId', async () => {
     const statusId = ProjStatus.pending;
-    const status = await ProjectStatus.findOne({ id: statusId });
+    const status = (await ProjectStatus.findOne({
+      where: { id: statusId },
+    })) as ProjectStatus;
     await ProjectStatusReason.create({
       status,
       description: 'test',

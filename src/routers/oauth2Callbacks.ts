@@ -75,14 +75,14 @@ oauth2CallbacksRouter.get(
             window.onload = () => {
             const fragment = new URLSearchParams(window.location.hash.slice(1));
             const [accessToken, state] = [fragment.get('access_token'), fragment.get('state')];
-        
+
             if (!accessToken) {
             return (document.getElementById('login').style.display = 'block');
             }
             console.log('accessToken', accessToken)
 
             window.open('/socialProfiles/callback/discord?state='+state +'&access_token='+accessToken, '_self')
-        
+
             };
         </script>
   `);

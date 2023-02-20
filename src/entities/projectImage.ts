@@ -19,6 +19,7 @@ export class ProjectImage extends BaseEntity {
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
   project: Project;
+
   @RelationId((projectImage: ProjectImage) => projectImage.project)
   @Column({ nullable: true })
   projectId: number;

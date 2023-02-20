@@ -8,7 +8,6 @@ import {
 import axios from 'axios';
 import { getPowerAmountRankQuery } from '../../test/graphqlQueries';
 import { assert } from 'chai';
-import { getConnection } from 'typeorm';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import {
@@ -27,12 +26,15 @@ import {
 } from '../repositories/powerSnapshotRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { PowerBoosting } from '../entities/powerBoosting';
+import { AppDataSource } from '../orm';
 
 describe('userProjectPowers test cases', projectPowersTestCases);
 
 function projectPowersTestCases() {
   beforeEach(async () => {
-    await getConnection().query('truncate power_snapshot cascade');
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     await PowerBoosting.clear();
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();

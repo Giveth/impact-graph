@@ -13,7 +13,7 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import {
   errorMessages,
   i18n,
@@ -27,11 +27,9 @@ import {
 } from '../repositories/powerBoostingRepository';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
-import { OrderField, Project, SortingField } from '../entities/project';
 import { logger } from '../utils/logger';
 import { getBottomRank } from '../repositories/projectPowerViewRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { findProjectById } from '../repositories/projectRepository';
 
 enum PowerBoostingOrderDirection {
   ASC = 'ASC',
@@ -112,7 +110,7 @@ export class PowerBoostingResolver {
   async setMultiplePowerBoosting(
     @Arg('projectIds', type => [Int]) projectIds: number[],
     @Arg('percentages', type => [Float]) percentages: number[],
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<PowerBoosting[]> {
     const userId = user?.userId;
     if (!user || !userId) {
@@ -139,7 +137,7 @@ export class PowerBoostingResolver {
   async setSinglePowerBoosting(
     @Arg('projectId', type => Int) projectId: number,
     @Arg('percentage', type => Float) percentage: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<PowerBoosting[]> {
     const userId = user?.userId;
     if (!user || !userId) {

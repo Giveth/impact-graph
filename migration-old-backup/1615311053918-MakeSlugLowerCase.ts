@@ -8,5 +8,6 @@ export class MakeSlugLowerCase1615311053918 implements MigrationInterface {
     );
   }
 
+  // tslint:disable-next-line:no-empty
   async down(queryRunner: QueryRunner): Promise<void> {}
 }

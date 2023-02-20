@@ -17,7 +17,10 @@ import {
   findDonationById,
   findStableCoinDonationsWithoutPrice,
 } from '../repositories/donationRepository';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import {
+  getChainvineAdapter,
+  getNotificationAdapter,
+} from '../adapters/adaptersFactory';
 import { calculateGivbackFactor } from './givbackService';
 import { getTokenPrices } from 'monoswap';
 import SentryLogger from '../sentryLogger';
@@ -103,7 +106,9 @@ export const updateDonationByTransakData = async (
   transakData: TransakOrder,
 ) => {
   const donation = await Donation.findOne({
-    transactionId: transakData.webhookData.id,
+    where: {
+      transactionId: transakData.webhookData.id,
+    },
   });
   if (!donation) throw new Error('Donation not found.');
   let donationProjectIsValid = true;
@@ -129,7 +134,9 @@ export const updateDonationByTransakData = async (
     // we should check the walletAddress is matched with what is in donation, ir prevents fraud
     donation.toWalletAddress = transakData.webhookData.walletAddress;
     const project = await Project.findOne({
-      walletAddress: transakData.webhookData.walletAddress,
+      where: {
+        walletAddress: transakData.webhookData.walletAddress,
+      },
     });
     if (project) {
       donation.projectId = project.id || 0;
@@ -312,13 +319,26 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await sendSegmentEventForDonation({
       donation,
     });
+
+    // send chainvine the referral as last step to not interrupt previous
+    if (donation.referrerWallet) {
+      await getChainvineAdapter().notifyChainVine({
+        fromWalletAddress: donation.fromWalletAddress,
+        amount: donation.amount,
+        transactionId: donation.transactionId,
+        tokenAddress: donation.tokenAddress,
+        valueUsd: donation.priceUsd, // the USD value of the token at the time of the conversion
+        donationId: donation.id, //
+      });
+    }
+
     logger.debug('donation and transaction', {
       transaction,
       donationId: donation.id,
     });
     return donation;
   } catch (e) {
-    logger.debug('syncDonationStatusWithBlockchainNetwork() error', {
+    logger.error('syncDonationStatusWithBlockchainNetwork() error', {
       error: e,
       donationId: donation.id,
       txHash: donation.transactionId,

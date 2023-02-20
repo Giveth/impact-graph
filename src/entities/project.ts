@@ -2,14 +2,13 @@ import { Field, Float, ID, ObjectType } from 'type-graphql';
 import {
   AfterInsert,
   AfterUpdate,
+  BeforeUpdate,
+  BeforeInsert,
   BaseEntity,
   BeforeRemove,
-  Brackets,
   Column,
   Entity,
   Index,
-  JoinColumn,
-  JoinTable,
   LessThan,
   ManyToMany,
   ManyToOne,
@@ -17,22 +16,17 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   RelationId,
+  JoinTable,
 } from 'typeorm';
 
 import { Donation } from './donation';
 import { Reaction } from './reaction';
-import { Category } from './category';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { Organization } from './organization';
 import { findUserById } from '../repositories/userRepository';
 import { SocialProfile } from './socialProfile';
@@ -41,6 +35,9 @@ import { ProjectAddress } from './projectAddress';
 import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { Category } from './category';
+import { getHtmlTextSummary } from '../utils/utils';
+import { Campaign } from './campaign';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -61,9 +58,18 @@ export enum SortingField {
   MostFunded = 'MostFunded',
   MostLiked = 'MostLiked',
   Newest = 'Newest',
+  RecentlyUpdated = 'RecentlyUpdated',
   Oldest = 'Oldest',
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',
+}
+
+export enum FilterField {
+  Verified = 'verified',
+  AcceptGiv = 'givingBlocksId',
+  AcceptFundOnGnosis = 'acceptFundOnGnosis',
+  GivingBlock = 'fromGivingBlock',
+  BoostedWithGivPower = 'boostedWithGivPower',
 }
 
 export enum OrderField {
@@ -94,7 +100,7 @@ export enum RevokeSteps {
 
 @Entity()
 @ObjectType()
-class Project extends BaseEntity {
+export class Project extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
@@ -123,6 +129,10 @@ class Project extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
+  descriptionSummary?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   traceCampaignId?: string;
 
   @Index({ unique: true, where: '"givingBlocksId" IS NOT NULL' })
@@ -145,10 +155,6 @@ class Project extends BaseEntity {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  organisationId?: number;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
   creationDate: Date;
 
   @Field({ nullable: true })
@@ -156,13 +162,12 @@ class Project extends BaseEntity {
   updatedAt: Date;
 
   @Field(type => Organization)
-  @ManyToOne(type => Organization, {
-    eager: true,
-  })
+  @ManyToOne(type => Organization)
   @JoinTable()
   organization: Organization;
 
   @RelationId((project: Project) => project.organization)
+  @Column({ nullable: true })
   organizationId: number;
 
   @Field({ nullable: true })
@@ -180,8 +185,6 @@ class Project extends BaseEntity {
   @Field(type => [Category], { nullable: true })
   @ManyToMany(type => Category, category => category.projects, {
     nullable: true,
-    eager: true,
-    cascade: true,
   })
   @JoinTable()
   categories: Category[];
@@ -226,11 +229,12 @@ class Project extends BaseEntity {
   @Column('jsonb', { nullable: true })
   contacts: ProjectContacts[];
 
-  @ManyToMany(type => User, user => user.projects, { eager: true })
-  @JoinTable()
+  @ManyToMany(type => User, user => user.projects)
   @Field(type => [User], { nullable: true })
+  @JoinTable()
   users: User[];
 
+  @Field(() => [Reaction], { nullable: true })
   @OneToMany(type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
 
@@ -246,12 +250,13 @@ class Project extends BaseEntity {
   status: ProjectStatus;
 
   @RelationId((project: Project) => project.status)
+  @Column({ nullable: true })
   statusId: number;
 
   @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(() => User, { eager: true })
-  adminUser?: User;
+  adminUser: User;
 
   @RelationId((project: Project) => project.adminUser)
   adminUserId: number;
@@ -330,7 +335,7 @@ class Project extends BaseEntity {
   adminBroBaseUrl: string;
 
   // User reaction to the project
-  @Field(type => Reaction, { nullable: true })
+  @Field({ nullable: true })
   reaction?: Reaction;
   /**
    * Custom Query Builders to chain together
@@ -367,10 +372,9 @@ class Project extends BaseEntity {
     }
 
     if (reasonId) {
-      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
-    }
-    if (reasonId) {
-      reason = await ProjectStatusReason.findOne({ id: reasonId, status });
+      reason = await ProjectStatusReason.findOne({
+        where: { id: reasonId, statusId: status.id },
+      });
     }
 
     await ProjectStatusHistory.create({
@@ -421,11 +425,24 @@ class Project extends BaseEntity {
   owner() {
     return this.users[0];
   }
+
+  @BeforeUpdate()
+  async updateProjectDescriptionSummary() {
+    await Project.update(
+      { id: this.id },
+      { descriptionSummary: getHtmlTextSummary(this.description) },
+    );
+  }
+
+  @BeforeInsert()
+  setProjectDescriptionSummary() {
+    this.descriptionSummary = getHtmlTextSummary(this.description);
+  }
 }
 
 @Entity()
 @ObjectType()
-class ProjectUpdate extends BaseEntity {
+export class ProjectUpdate extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
@@ -446,6 +463,10 @@ class ProjectUpdate extends BaseEntity {
   @Column()
   content: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  contentSummary?: string;
+
   @Field(type => Date)
   @Column()
   createdAt: Date;
@@ -461,6 +482,10 @@ class ProjectUpdate extends BaseEntity {
   // User reaction to the project update
   @Field(type => Reaction, { nullable: true })
   reaction?: Reaction;
+
+  // Project oneToOne as virtual attribute as relation was not set properly
+  @Field(type => Project, { nullable: true })
+  project?: Project;
 
   @Field()
   @Column('boolean', { default: false })
@@ -513,18 +538,29 @@ class ProjectUpdate extends BaseEntity {
   // does not call with createQueryBuilder
   @AfterInsert()
   async updateProjectStampOnCreation() {
-    await Project.update({ id: this.projectId }, { updatedAt: moment() });
+    await Project.update({ id: this.projectId }, { updatedAt: new Date() });
   }
 
   @AfterUpdate()
   async updateProjectStampOnUpdate() {
-    await Project.update({ id: this.projectId }, { updatedAt: moment() });
+    await Project.update({ id: this.projectId }, { updatedAt: new Date() });
   }
 
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
-    await Project.update({ id: this.projectId }, { updatedAt: moment() });
+    await Project.update({ id: this.projectId }, { updatedAt: new Date() });
+  }
+
+  @BeforeUpdate()
+  async updateProjectUpdateContentSummary() {
+    await ProjectUpdate.update(
+      { id: this.id },
+      { contentSummary: getHtmlTextSummary(this.content) },
+    );
+  }
+
+  @BeforeInsert()
+  setProjectUpdateContentSummary() {
+    this.contentSummary = getHtmlTextSummary(this.content);
   }
 }
-
-export { Project, Category, ProjectUpdate };

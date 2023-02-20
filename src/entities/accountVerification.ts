@@ -45,9 +45,11 @@ export class AccountVerification extends BaseEntity {
   @Field(type => User)
   @ManyToOne(type => User, { eager: true })
   user: User;
+
   @RelationId(
     (accountVerification: AccountVerification) => accountVerification.user,
   )
+  @Column({ nullable: true })
   userId: number;
 
   @CreateDateColumn()

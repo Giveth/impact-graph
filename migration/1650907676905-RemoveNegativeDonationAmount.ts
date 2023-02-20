@@ -5,7 +5,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class RemoveNegativeDonationAmount1650907676905
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     const donationTableExists = await queryRunner.hasTable('donation');
 
     if (donationTableExists) {
@@ -13,5 +13,5 @@ export class RemoveNegativeDonationAmount1650907676905
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(queryRunner: QueryRunner): Promise<void> {}
 }

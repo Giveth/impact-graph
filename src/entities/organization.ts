@@ -4,10 +4,9 @@ import {
   Column,
   Entity,
   BaseEntity,
-  Index,
   ManyToMany,
-  JoinTable,
   OneToMany,
+  JoinTable,
 } from 'typeorm';
 import { Project } from './project';
 import { Token } from './token';
@@ -41,10 +40,7 @@ export class Organization extends BaseEntity {
   projects?: Project[];
 
   @Field(type => [Token], { nullable: true })
-  @ManyToMany(type => Token, token => token.organizations, {
-    nullable: true,
-    cascade: true,
-  })
+  @ManyToMany(type => Token, token => token.organizations)
   @JoinTable()
   tokens: Token[];
 }

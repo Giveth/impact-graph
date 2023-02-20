@@ -9,6 +9,7 @@ export const createDonationMutation = `
     $transakId: String
     $tokenAddress: String
     $anonymous: Boolean
+    $referrerId: String
   ) {
     createDonation(
       transactionId: $transactionId
@@ -20,6 +21,7 @@ export const createDonationMutation = `
       transakId: $transakId
       tokenAddress: $tokenAddress
       anonymous: $anonymous
+      referrerId: $referrerId
     )
   }
 `;
@@ -46,6 +48,7 @@ export const createProjectQuery = `
         id
         title
         description
+        descriptionSummary
         admin
         image
         impactLocation
@@ -87,6 +90,7 @@ export const updateProjectQuery = `
       id
       title
       description
+      descriptionSummary
       image
       slug
       listed
@@ -104,7 +108,7 @@ export const updateProjectQuery = `
         isRecipient
         networkId
       }
-      adminUser{
+      adminUser {
         id
         name
         email
@@ -214,7 +218,7 @@ export const fetchDonationsByProjectIdQuery = `
 export const donationsFromWallets = `
   query (
     $fromWalletAddresses: [String!]!
-   
+
   ) {
     donationsFromWallets(
       fromWalletAddresses: $fromWalletAddresses
@@ -239,7 +243,7 @@ export const donationsFromWallets = `
 export const donationsToWallets = `
   query (
     $toWalletAddresses: [String!]!
-   
+
   ) {
     donationsToWallets(
       toWalletAddresses: $toWalletAddresses
@@ -296,6 +300,26 @@ export const fetchTotalDonationsPerCategoryPerDate = `
   }
 `;
 
+export const fetchRecentDonations = `
+  query (
+    $take: Int
+  ) {
+    recentDonations(
+      take: $take
+    ) {
+      id
+      valueUsd
+      createdAt
+      project {
+        slug
+        title
+      }
+      user {
+        walletAddress
+      }
+    }
+  }
+`;
 export const fetchTotalDonors = `
   query (
     $fromDate: String
@@ -424,6 +448,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $searchTerm: String
     $category: String
     $mainCategory: String
+    $campaignSlug: String
     $connectedWalletUserId: Int
   ) {
     allProjects(
@@ -433,15 +458,24 @@ export const fetchMultiFilterAllProjectsQuery = `
       filters: $filters
       searchTerm: $searchTerm
       category: $category
+      campaignSlug: $campaignSlug
       mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
     ) {
+    
+      campaign{
+        slug
+        title
+      }
+      
       projects {
         id
         title
         balance
         image
         slug
+        description
+        descriptionSummary
         creationDate
         updatedAt
         admin
@@ -495,95 +529,6 @@ export const fetchMultiFilterAllProjectsQuery = `
         totalReactions
         totalDonations
         totalTraceDonations
-      }
-      totalCount
-      categories {
-        name
-      }
-    }
-  }
-`;
-
-export const fetchAllProjectsQuery = `
-  query (
-    $take: Int
-    $skip: Int
-    $orderBy: OrderBy
-    $filterBy: FilterBy
-    $searchTerm: String
-    $category: String
-    $mainCategory: String
-    $connectedWalletUserId: Int
-  ) {
-    projects(
-      take: $take
-      skip: $skip
-      orderBy: $orderBy
-      filterBy: $filterBy
-      searchTerm: $searchTerm
-      category: $category
-      mainCategory: $mainCategory
-      connectedWalletUserId: $connectedWalletUserId
-    ) {
-      projects {
-        id
-        title
-        balance
-        image
-        slug
-        creationDate
-        updatedAt
-        admin
-        description
-        walletAddress
-        impactLocation
-        qualityScore
-        verified
-        traceCampaignId
-        listed
-        givingBlocksId
-        status {
-          id
-          symbol
-          name
-          description
-        }
-        categories {
-          name
-          mainCategory {
-            title
-            slug
-            banner
-            description
-          }
-        }
-        reaction {
-          id
-        }
-        adminUser {
-          id
-          email
-          firstName
-          walletAddress
-        }
-        organization {
-          name
-          label
-          supportCustomTokens
-        }
-        addresses {
-          address
-          isRecipient
-          networkId
-        }
-        totalReactions
-        totalDonations
-        totalTraceDonations
-        projectPower {
-          totalPower
-          powerRank
-          round
-        }
       }
       totalCount
       categories {
@@ -907,9 +852,9 @@ export const unlikeProjectQuery = `
 `;
 
 export const addProjectUpdateQuery = `
-        mutation addProjectUpdate($projectId: Float! $content: String! 
+        mutation addProjectUpdate($projectId: Float! $content: String!
                    $title: String!){
-       addProjectUpdate(content: $content projectId: $projectId 
+       addProjectUpdate(content: $content projectId: $projectId
                     title: $title) {
                     userId
                     projectId
@@ -934,17 +879,52 @@ export const unlikeProjectUpdateQuery = `
   }
 `;
 
+export const fetchLatestProjectUpdates = `
+  query (
+    $take: Int,
+    $skip: Int
+  ) {
+    projectUpdates(
+      take: $take,
+      skip: $skip
+    ) {
+      projectUpdates {
+        id
+        title
+        projectId
+        userId
+        content
+        isMain
+        totalReactions
+        createdAt
+        reaction {
+          id
+          userId
+          reaction
+          projectUpdateId
+        }
+        project {
+          id
+          slug
+          totalReactions
+        }
+      }
+      count
+    }
+  }
+`;
+
 export const fetchProjectUpdatesQuery = `
   query (
-    $projectId: Int!, 
-    $take: Int, 
+    $projectId: Int!,
+    $take: Int,
     $skip: Int,
     $connectedWalletUserId: Int,
     $orderBy: OrderBy
   ) {
     getProjectUpdates(
-      projectId: $projectId, 
-      take: $take, 
+      projectId: $projectId,
+      take: $take,
       skip: $skip,
       connectedWalletUserId: $connectedWalletUserId,
       orderBy: $orderBy
@@ -1106,8 +1086,8 @@ export const projectsByUserIdQuery = `
 
 export const projectByIdQuery = `
   query(
-      $id: Float!, 
-      $connectedWalletUserId: Int, 
+      $id: Float!,
+      $connectedWalletUserId: Int,
   ){
     projectById(
      id:$id,
@@ -1156,7 +1136,7 @@ export const projectByIdQuery = `
 `;
 export const getProjectsAcceptTokensQuery = `
   query(
-      $projectId: Float!, 
+      $projectId: Float!,
   ){
     getProjectAcceptTokens(
      projectId:$projectId){
@@ -1190,18 +1170,20 @@ export const walletAddressIsValid = `
 
 export const deleteProjectUpdateQuery = `
         mutation deleteProjectUpdate($updateId: Float!){
-       deleteProjectUpdate(updateId: $updateId 
-                    ) 
+       deleteProjectUpdate(updateId: $updateId
+                    )
          }`;
 
 export const editProjectUpdateQuery = `
         mutation editProjectUpdate($updateId: Float! $content: String!
                    $title: String!){
-       editProjectUpdate(content: $content updateId: $updateId 
+       editProjectUpdate(content: $content updateId: $updateId
                     title: $title) {
                     userId
                     projectId
                     title
+                    content
+                    contentSummary
                     }
          }`;
 
@@ -1251,7 +1233,7 @@ export const createProjectVerificationFormMutation = `
                     }
                     status
                     }
-                    
+
             }
         `;
 
@@ -1309,7 +1291,7 @@ export const getCurrentProjectVerificationFormQuery = `
                     }
                     status
                     }
-                    
+
             }
         `;
 
@@ -1485,20 +1467,20 @@ export const updateProjectVerificationFormMutation = `
                     status
                     lastStep
                     }
-                    
+
             }
         `;
 
 export const addNewSocialProfileMutation = `
         mutation addNewSocialProfile($projectVerificationId: Int!, $socialNetwork: String!){
            addNewSocialProfile(projectVerificationId:$projectVerificationId, socialNetwork:$socialNetwork)
-          } 
+          }
         `;
 
 export const removeSocialProfileMutation = `
         mutation removeSocialProfile( $socialProfileId: Int!){
            removeSocialProfile(socialProfileId:$socialProfileId)
-          } 
+          }
         `;
 
 export const getAllowedCountries = `
@@ -1522,6 +1504,60 @@ query {
             value
             isActive
         }
+    }
+}`;
+
+export const getCampaigns = `
+query {
+    campaigns{
+        id
+        title
+        description
+        type
+        relatedProjects {
+          id
+          slug
+        }
+        relatedProjectsCount
+        photo
+        video
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
+    }
+}`;
+
+export const fetchCampaignBySlug = `
+  query (
+    $slug: String
+  ) {
+    findCampaignBySlug(
+      slug: $slug
+    ){
+        id
+        title
+        type
+        description
+        relatedProjects {
+          id
+          slug  
+        }
+        relatedProjectsCount
+        photo
+        video
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
     }
 }`;
 
@@ -1592,7 +1628,7 @@ export const getPowerBoostingsQuery = `
               id
             }
             percentage
-      }      
+      }
     }
   }
 `;
@@ -1626,8 +1662,8 @@ export const getUserProjectPowerQuery = `
               lastName
               name
             }
-            
-      }      
+
+      }
     }
   }
 `;

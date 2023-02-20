@@ -1,12 +1,12 @@
 import { Reaction } from '../entities/reaction';
 import {
+  FilterField,
   OrderField,
   Project,
   ProjectUpdate,
   ProjStatus,
   SortingField,
 } from '../entities/project';
-import { InjectRepository } from 'typeorm-typedi-extensions';
 import { ProjectStatus } from '../entities/projectStatus';
 import {
   CreateProjectInput,
@@ -18,8 +18,7 @@ import { pinFile } from '../middleware/pinataUtils';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
 import { ProjectImage } from '../entities/projectImage';
-import { MyContext } from '../types/MyContext';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
+import { ApolloContext } from '../types/ApolloContext';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
@@ -75,6 +74,8 @@ import {
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
+  FilterProjectQueryInputParams,
+  filterProjectsQuery,
   findProjectById,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
@@ -93,6 +94,16 @@ import {
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
+import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
+
+const projectFiltersCacheDuration = Number(
+  process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
+);
+import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
+import { AppDataSource } from '../orm';
+import { creteSlugFromProject } from '../utils/utils';
+import { findCampaignBySlug } from '../repositories/campaignRepository';
+import { Campaign } from '../entities/campaign';
 
 @ObjectType()
 class AllProjects {
@@ -104,6 +115,9 @@ class AllProjects {
 
   @Field(type => [Category], { nullable: true })
   categories: Category[];
+
+  @Field(type => Campaign, { nullable: true })
+  campaign?: Campaign;
 }
 
 @ObjectType()
@@ -124,16 +138,16 @@ class ProjectAndAdmin {
   admin: User;
 }
 
-enum FilterField {
-  Verified = 'verified',
-  AcceptGiv = 'givingBlocksId',
-  AcceptFundOnGnosis = 'acceptFundOnGnosis',
-  Traceable = 'traceCampaignId',
-  GivingBlock = 'fromGivingBlock',
-  BoostedWithGivPower = 'boostedWithGivPower',
+@ObjectType()
+class ProjectUpdatesResponse {
+  @Field(type => [ProjectUpdate])
+  projectUpdates: ProjectUpdate[];
+
+  @Field(type => Int, { nullable: false })
+  count: number;
 }
 
-enum OrderDirection {
+export enum OrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
@@ -159,7 +173,7 @@ registerEnumType(OrderDirection, {
 });
 
 @InputType()
-class OrderBy {
+export class OrderBy {
   @Field(type => OrderField)
   field: OrderField;
 
@@ -168,7 +182,7 @@ class OrderBy {
 }
 
 @InputType()
-class FilterBy {
+export class FilterBy {
   @Field(type => FilterField, { nullable: true })
   field: FilterField;
 
@@ -222,6 +236,11 @@ class GetProjectsArgs {
   })
   filters: FilterField[];
 
+  @Field(type => String, {
+    nullable: true,
+  })
+  campaignSlug: string;
+
   @Field(type => SortingField, {
     nullable: true,
     defaultValue: SortingField.QualityScore,
@@ -243,12 +262,6 @@ class GetProjectArgs {
 }
 
 @ObjectType()
-class GetProjectUpdatesResult {
-  @Field(type => ProjectUpdate)
-  projectUpdate: ProjectUpdate;
-}
-
-@ObjectType()
 class ImageResponse {
   @Field(type => String)
   url: string;
@@ -264,7 +277,7 @@ class ImageResponse {
 export class ProjectResolver {
   static addCategoryQuery(
     query: SelectQueryBuilder<Project>,
-    category: string,
+    category?: string,
   ) {
     if (!category) return query;
 
@@ -278,7 +291,7 @@ export class ProjectResolver {
 
   static addMainCategoryQuery(
     query: SelectQueryBuilder<Project>,
-    mainCategory: string,
+    mainCategory?: string,
   ) {
     if (!mainCategory) return query;
 
@@ -295,7 +308,7 @@ export class ProjectResolver {
 
   static addSearchQuery(
     query: SelectQueryBuilder<Project>,
-    searchTerm: string,
+    searchTerm?: string,
   ) {
     if (!searchTerm) return query;
 
@@ -330,9 +343,22 @@ export class ProjectResolver {
     );
   }
 
+  static addReactionToProjectsUpdateQuery(
+    query: SelectQueryBuilder<ProjectUpdate>,
+    userId: number,
+  ) {
+    return query.leftJoinAndMapOne(
+      'projectUpdate.reaction',
+      Reaction,
+      'reaction',
+      'reaction.projectUpdateId = projectUpdate.id AND reaction.userId = :userId',
+      { userId },
+    );
+  }
+
   static similarProjectsBaseQuery(
     userId?: number,
-    currentProject?: Project,
+    currentProject?: Project | null,
   ): SelectQueryBuilder<Project> {
     const query = Project.createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
@@ -425,7 +451,7 @@ export class ProjectResolver {
     query: SelectQueryBuilder<Project>,
     take: number,
     skip: number,
-    ownerId?: string,
+    ownerId?: string | null,
   ): Promise<AllProjects> {
     query.andWhere('project.admin = :ownerId', { ownerId });
     const [projects, totalCount] = await query
@@ -476,9 +502,9 @@ export class ProjectResolver {
 
   static addFiltersQuery(
     query: SelectQueryBuilder<Project>,
-    filtersArray: FilterField[],
+    filtersArray: FilterField[] = [],
   ) {
-    if (filtersArray.length === 0) return query;
+    if (!filtersArray || filtersArray.length === 0) return query;
 
     query = query.andWhere(
       new Brackets(subQuery => {
@@ -492,9 +518,6 @@ export class ProjectResolver {
             return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
           }
 
-          if (filter === FilterField.Traceable) {
-            return subQuery.andWhere(`project.${filter} IS NOT NULL`);
-          }
           if (filter === FilterField.BoostedWithGivPower) {
             return subQuery.andWhere(`projectPower.totalPower > 0`);
           }
@@ -516,7 +539,7 @@ export class ProjectResolver {
     return query;
   }
 
-  private static addUserReaction<T>(
+  static addUserReaction<T extends ObjectLiteral>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
     authenticatedUser?: any,
@@ -535,7 +558,7 @@ export class ProjectResolver {
     return query;
   }
 
-  private static addProjectVerificationForm<T>(
+  private static addProjectVerificationForm<T extends ObjectLiteral>(
     query: SelectQueryBuilder<T>,
     connectedWalletUserId?: number,
     authenticatedUser?: any,
@@ -552,146 +575,23 @@ export class ProjectResolver {
   }
 
   constructor(
-    @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @InjectRepository(ProjectUpdate)
     private readonly projectUpdateRepository: Repository<ProjectUpdate>,
-    @InjectRepository(ProjectStatus)
     private readonly projectStatusRepository: Repository<ProjectStatus>,
-    @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(Donation)
+    private readonly userRepository: Repository<User>,
     private readonly donationRepository: Repository<Donation>,
-    @InjectRepository(ProjectImage)
     private readonly projectImageRepository: Repository<ProjectImage>,
-  ) {}
-
-  // Backward Compatible Projects Query with added pagination, frontend sorts and category search
-  @Query(returns => AllProjects)
-  async projects(
-    @Args()
-    {
-      take,
-      skip,
-      orderBy,
-      searchTerm,
-      category,
-      mainCategory,
-      filterBy,
-      admin,
-      connectedWalletUserId,
-    }: GetProjectsArgs,
-    @Ctx() { req: { user } }: MyContext,
-  ): Promise<AllProjects> {
-    const categories = await Category.find();
-    let query = this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.organization', 'organization')
-      // you can alias it as user, but it still is mapped as adminUser
-      // like defined in our project entity
-      .innerJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields) // aliased selection
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      )
-      .leftJoin('project.projectPower', 'projectPower')
-      .addSelect([
-        'projectPower.totalPower',
-        'projectPower.powerRank',
-        'projectPower.round',
-      ]);
-    // Filters
-    query = ProjectResolver.addCategoryQuery(query, category);
-    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
-    query = ProjectResolver.addSearchQuery(query, searchTerm);
-    query = ProjectResolver.addFilterQuery(
-      query,
-      filterBy?.field,
-      filterBy?.value,
-    );
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-
-    switch (orderBy.field) {
-      case OrderField.Traceable:
-        // const traceableDirection: {
-        //   [key: string]: 'NULLS FIRST' | 'NULLS LAST';
-        // } = {
-        //   ASC: 'NULLS FIRST',
-        //   DESC: 'NULLS LAST',
-        // };
-        //
-        // query.orderBy(
-        //   `project.${orderBy.field}`,
-        //   orderBy.direction,
-        //   traceableDirection[orderBy.direction],
-        // );
-
-        query.andWhere(
-          `project.${orderBy.field} IS${
-            orderBy.direction === OrderDirection.ASC ? '' : ' NOT'
-          } NULL`,
-        );
-        query.orderBy(
-          `project.${OrderField.CreationDate}`,
-          OrderDirection.DESC,
-        );
-        break;
-      case OrderField.AcceptGiv:
-        // const acceptGivDirection: {
-        //   [key: string]: 'NULLS FIRST' | 'NULLS LAST';
-        // } = {
-        //   ASC: 'NULLS LAST',
-        //   DESC: 'NULLS FIRST',
-        // };
-        //
-        // query.orderBy(
-        //   `project.${orderBy.field}`,
-        //   orderBy.direction,
-        //   acceptGivDirection[orderBy.direction],
-        // );
-        query.andWhere(
-          `project.${orderBy.field} IS${
-            orderBy.direction === OrderDirection.DESC ? '' : ' NOT'
-          } NULL`,
-        );
-        query.orderBy(
-          `project.${OrderField.CreationDate}`,
-          OrderDirection.DESC,
-        );
-        break;
-      case OrderField.Verified:
-        query.andWhere(`project.${orderBy.field} = true`);
-        query.orderBy(`project.${OrderField.CreationDate}`, orderBy.direction);
-        break;
-      case OrderField.GIVPower:
-        query
-          .orderBy('projectPower.totalPower', orderBy.direction, 'NULLS LAST')
-          .addOrderBy(
-            `project.${OrderField.CreationDate}`,
-            OrderDirection.DESC,
-          );
-        break;
-      default:
-        query.orderBy(`project.${orderBy.field}`, orderBy.direction);
-        break;
-    }
-
-    const [projects, totalCount] = await query
-      .take(take)
-      .skip(skip)
-      .getManyAndCount();
-    return { projects, totalCount, categories };
+  ) {
+    const ds = AppDataSource.getDataSource();
+    this.projectRepository = ds.getRepository(Project);
+    this.projectUpdateRepository = ds.getRepository(ProjectUpdate);
+    this.projectStatusRepository = ds.getRepository(ProjectStatus);
+    this.projectStatusRepository = ds.getRepository(ProjectStatus);
+    this.categoryRepository = ds.getRepository(Category);
+    this.userRepository = ds.getRepository(User);
+    this.donationRepository = ds.getRepository(Donation);
+    this.projectImageRepository = ds.getRepository(ProjectImage);
   }
 
   @Query(returns => AllProjects)
@@ -705,91 +605,73 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
-      admin,
       connectedWalletUserId,
+      campaignSlug,
     }: GetProjectsArgs,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
-    const categories = await Category.find();
-    let query = this.projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.status', 'status')
-      .leftJoinAndSelect('project.users', 'users')
-      .leftJoinAndSelect('project.addresses', 'addresses')
-      .leftJoinAndSelect('project.organization', 'organization')
-      // you can alias it as user but it still is mapped as adminUser
-      // like defined in our project entity
-      .innerJoin('project.adminUser', 'user')
-      .addSelect(publicSelectionFields) // aliased selection
-      .leftJoinAndSelect(
-        'project.categories',
-        'categories',
-        'categories.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
-      .leftJoin('project.projectPower', 'projectPower')
-      .addSelect([
-        'projectPower.totalPower',
-        'projectPower.powerRank',
-        'projectPower.round',
-      ])
-      .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
-      );
-
-    // Filters
-    query = ProjectResolver.addCategoryQuery(query, category);
-    query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
-    query = ProjectResolver.addSearchQuery(query, searchTerm);
-    query = ProjectResolver.addFiltersQuery(query, filters);
-    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-
-    switch (sortingBy) {
-      case SortingField.MostFunded:
-        query.orderBy('project.totalDonations', OrderDirection.DESC);
-        break;
-      case SortingField.MostLiked:
-        query.orderBy('project.totalReactions', OrderDirection.DESC);
-        break;
-      case SortingField.Newest:
-        query.orderBy('project.creationDate', OrderDirection.DESC);
-        break;
-      case SortingField.Oldest:
-        query.orderBy('project.creationDate', OrderDirection.ASC);
-        break;
-      case SortingField.QualityScore:
-        query.orderBy('project.qualityScore', OrderDirection.DESC);
-        break;
-      case SortingField.GIVPower:
-        query
-          .orderBy(`project.verified`, OrderDirection.DESC)
-          .addOrderBy(
-            'projectPower.totalPower',
-            OrderDirection.DESC,
-            'NULLS LAST',
-          );
-
-        break;
-      default:
-        query
-          .orderBy('projectPower.totalPower', OrderDirection.DESC)
-          .addOrderBy(`project.verified`, OrderDirection.DESC);
-        break;
+    let projects: Project[];
+    let totalCount: number;
+    const filterQueryParams: FilterProjectQueryInputParams = {
+      limit,
+      skip,
+      searchTerm,
+      category,
+      mainCategory,
+      filters,
+      sortingBy,
+    };
+    let campaign;
+    if (campaignSlug) {
+      campaign = await findCampaignBySlug(campaignSlug);
+      if (!campaign) {
+        throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
+      }
+      filterQueryParams.slugArray = campaign.relatedProjectsSlugs;
     }
 
-    const [projects, totalCount] = await query
-      .take(limit)
-      .skip(skip)
+    const projectsQuery = filterProjectsQuery(filterQueryParams);
+
+    const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
+      hasher =>
+        hasher.hashProjectFilters({
+          ...filterQueryParams,
+          suffix: 'pq',
+        }),
+    );
+
+    const categoriesResolver = Category.find({
+      cache: projectFiltersCacheDuration,
+    });
+
+    [projects, totalCount] = await projectsQuery
+      .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
       .getManyAndCount();
-    return { projects, totalCount, categories };
+
+    const userId = connectedWalletUserId || user?.userId;
+    if (projects.length > 0 && userId) {
+      const userReactions = await findUserReactionsByProjectIds(
+        userId,
+        projects.map(project => project.id),
+      );
+
+      if (userReactions.length > 0) {
+        projects = await projectsFiltersThreadPool.queue(merger =>
+          merger.mergeUserReactionsToProjects(projects, userReactions),
+        );
+      }
+    }
+
+    const categories = await categoriesResolver;
+
+    return { projects, totalCount, categories, campaign };
   }
 
   @Query(returns => TopProjects)
   async topProjects(
     @Args()
     { take, skip, orderBy, category, connectedWalletUserId }: GetProjectsArgs,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<TopProjects> {
     const { field, direction } = orderBy;
     const order = {};
@@ -825,7 +707,7 @@ export class ProjectResolver {
     @Arg('id') id: number,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
@@ -858,7 +740,7 @@ export class ProjectResolver {
     @Arg('slug') slug: string,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
     connectedWalletUserId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     const viewerUserId = connectedWalletUserId || user?.userId;
     let isOwnerOfProject = false;
@@ -920,7 +802,7 @@ export class ProjectResolver {
   async updateProject(
     @Arg('projectId') projectId: number,
     @Arg('newProjectData') newProjectData: UpdateProjectInput,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     if (!user)
       throw new Error(
@@ -960,8 +842,11 @@ export class ProjectResolver {
 
     const categoriesPromise = newProjectData.categories.map(async category => {
       const [c] = await this.categoryRepository.find({
-        name: category,
-        isActive: true,
+        where: {
+          name: category,
+
+          isActive: true,
+        },
       });
       if (!c) {
         throw new Error(
@@ -983,9 +868,7 @@ export class ProjectResolver {
     }
     project.categories = categories;
 
-    const heartCount = await Reaction.count({
-      projectId,
-    });
+    const heartCount = await Reaction.count({ where: { projectId } });
 
     const qualityScore = getQualityScore(
       project.description,
@@ -1002,7 +885,7 @@ export class ProjectResolver {
         projectId,
       );
     }
-    const slugBase = slugify(newProjectData.title);
+    const slugBase = creteSlugFromProject(newProjectData.title);
     const newSlug = await getAppropriateSlug(slugBase, projectId);
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
       // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
@@ -1017,6 +900,8 @@ export class ProjectResolver {
     project.listed = null;
 
     await project.save();
+    await project.reload();
+
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
       await removeRecipientAddressOfProject({ project });
@@ -1032,6 +917,7 @@ export class ProjectResolver {
         }),
       );
     }
+
     project.adminUser = adminUser;
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
@@ -1046,7 +932,7 @@ export class ProjectResolver {
   @Mutation(returns => ImageResponse)
   async uploadImage(
     @Arg('imageUpload') imageUpload: ImageUpload,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<ImageResponse> {
     const user = await getLoggedInUser(ctx);
     let url = '';
@@ -1113,7 +999,7 @@ export class ProjectResolver {
   @Mutation(returns => Project)
   async createProject(
     @Arg('project') projectInput: CreateProjectInput,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @PubSub() pubSub: PubSubEngine,
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx);
@@ -1134,8 +1020,10 @@ export class ProjectResolver {
       projectInput.categories
         ? projectInput.categories.map(async category => {
             const [c] = await this.categoryRepository.find({
-              name: category,
-              isActive: true,
+              where: {
+                name: category,
+                isActive: true,
+              },
             });
             if (!c) {
               throw new Error(
@@ -1161,29 +1049,56 @@ export class ProjectResolver {
       projectInput.addresses as RelatedAddressInputType[],
     );
     await validateProjectTitle(projectInput.title);
-    const slugBase = slugify(projectInput.title);
+    const slugBase = creteSlugFromProject(projectInput.title);
     const slug = await getAppropriateSlug(slugBase);
 
     const status = await this.projectStatusRepository.findOne({
-      id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
+      where: {
+        id: projectInput.isDraft ? ProjStatus.drafted : ProjStatus.active,
+      },
     });
 
     const organization = await Organization.findOne({
-      label: ORGANIZATION_LABELS.GIVETH,
+      where: {
+        label: ORGANIZATION_LABELS.GIVETH,
+      },
     });
     const now = new Date();
-    const project = this.projectRepository.create({
+    // const [project] = Project.create({
+    //   ...projectInput,
+    //
+    //   // categories: categories as Category[],
+    //   organization,
+    //   image,
+    //   creationDate: now,
+    //   updatedAt: now,
+    //   slug: slug.toLowerCase(),
+    //   slugHistory: [],
+    //   admin: ctx.req.user.userId,
+    //   users: [user],
+    //   // status,
+    //   qualityScore,
+    //   totalDonations: 0,
+    //   totalReactions: 0,
+    //   totalProjectUpdates: 1,
+    //   verified: false,
+    //   giveBacks: false,
+    //   // adminUser: user,
+    // });
+
+    const project = Project.create({
       ...projectInput,
-      categories,
-      organization,
+
+      categories: categories as Category[],
+      organization: organization as Organization,
       image,
       creationDate: now,
       updatedAt: now,
       slug: slug.toLowerCase(),
       slugHistory: [],
-      admin: ctx.req.user.userId,
+      admin: String(ctx.req.user.userId),
       users: [user],
-      status,
+      status: status as ProjectStatus,
       qualityScore,
       totalDonations: 0,
       totalReactions: 0,
@@ -1193,14 +1108,14 @@ export class ProjectResolver {
       adminUser: user,
     });
 
-    const newProject = await this.projectRepository.save(project);
-    const adminUser = (await findUserById(Number(newProject.admin))) as User;
-    newProject.adminUser = adminUser;
+    const newProject = await project.save();
+    // const adminUser = (await findUserById(Number(newProject.admin))) as User;
+    // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
       projectInput?.addresses.map(relatedAddress => {
         return {
           project,
-          user: adminUser,
+          user,
           address: relatedAddress.address.toLowerCase(),
           networkId: relatedAddress.networkId,
           isRecipient: true,
@@ -1239,7 +1154,7 @@ export class ProjectResolver {
     @Arg('projectId') projectId: number,
     @Arg('title') title: string,
     @Arg('content') content: string,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdate> {
     if (!user)
       throw new Error(
@@ -1293,20 +1208,20 @@ export class ProjectResolver {
     @Arg('updateId') updateId: number,
     @Arg('title') title: string,
     @Arg('content') content: string,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdate> {
     if (!user)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const update = await ProjectUpdate.findOne({ id: updateId });
+    const update = await ProjectUpdate.findOne({ where: { id: updateId } });
     if (!update)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.PROJECT_UPDATE_NOT_FOUND),
       );
 
-    const project = await Project.findOne({ id: update.projectId });
+    const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
@@ -1316,27 +1231,29 @@ export class ProjectResolver {
 
     update.title = title;
     update.content = content;
+    await update.save();
+    await update.reload();
 
-    return update.save();
+    return update;
   }
 
   @Mutation(returns => Boolean)
   async deleteProjectUpdate(
     @Arg('updateId') updateId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<Boolean> {
     if (!user)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const update = await ProjectUpdate.findOne({ id: updateId });
+    const update = await ProjectUpdate.findOne({ where: { id: updateId } });
     if (!update)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.PROJECT_UPDATE_NOT_FOUND),
       );
 
-    const project = await Project.findOne({ id: update.projectId });
+    const project = await Project.findOne({ where: { id: update.projectId } });
     if (!project)
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     if (project.admin !== String(user.userId))
@@ -1369,7 +1286,7 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdate[]> {
     const { field, direction } = orderBy;
     let query = this.projectUpdateRepository
@@ -1386,12 +1303,9 @@ export class ProjectResolver {
 
     const viewerUserId = connectedWalletUserId || user?.userId;
     if (viewerUserId) {
-      query = query.leftJoinAndMapOne(
-        'projectUpdate.reaction',
-        Reaction,
-        'reaction',
-        'reaction.projectUpdateId = projectUpdate.id AND reaction.userId = :viewerUserId',
-        { viewerUserId },
+      query = ProjectResolver.addReactionToProjectsUpdateQuery(
+        query,
+        viewerUserId,
       );
     }
     return query.getMany();
@@ -1508,7 +1422,7 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     const { field, direction } = orderBy;
     let query = this.projectRepository
@@ -1551,6 +1465,7 @@ export class ProjectResolver {
 
   @Query(returns => AllProjects, { nullable: true })
   async projectsBySlugs(
+    // TODO Write test cases
     @Arg('slugs', type => [String]) slugs: string[],
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,
@@ -1563,7 +1478,7 @@ export class ProjectResolver {
       },
     })
     orderBy: OrderBy,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     const { field, direction } = orderBy;
     let query = this.projectRepository
@@ -1597,7 +1512,7 @@ export class ProjectResolver {
     @Arg('slug', type => String, { nullable: false }) slug: string,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     try {
       const viewedProject = await this.projectRepository
@@ -1677,12 +1592,61 @@ export class ProjectResolver {
     }
   }
 
+  @Query(returns => ProjectUpdatesResponse, { nullable: true })
+  async projectUpdates(
+    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Ctx() { req: { user } }: ApolloContext,
+  ): Promise<ProjectUpdatesResponse> {
+    const latestProjectUpdates = await ProjectUpdate.query(`
+      SELECT pu.id, pu."projectId"
+      FROM project_update as pu
+      WHERE pu.id = (
+        SELECT puu.id
+        FROM project_update as puu
+        WHERE puu."isMain" = false AND pu."projectId" = puu."projectId"
+        ORDER BY puu."createdAt" DESC
+        LIMIT 1
+      )
+      ORDER BY pu."createdAt" DESC
+      LIMIT ${take}
+      OFFSET ${skip}
+    `);
+
+    // When using distinctOn with joins and orderBy, typeorm threw errors
+    // So separated into two queries
+    let query = ProjectUpdate.createQueryBuilder('projectUpdate')
+      .innerJoinAndMapOne(
+        'projectUpdate.project',
+        Project,
+        'project',
+        'project.id = projectUpdate.projectId AND projectUpdate.isMain = false',
+      )
+      .where('projectUpdate.id IN (:...ids)', {
+        ids: latestProjectUpdates.map(p => p.id),
+      })
+      .orderBy('projectUpdate.id', 'DESC');
+
+    if (user && user?.userId)
+      query = ProjectResolver.addReactionToProjectsUpdateQuery(
+        query,
+        user.userId,
+      );
+
+    const [projectUpdates, count] = await query.getManyAndCount();
+
+    return {
+      projectUpdates,
+      count,
+    };
+  }
+
   @Query(returns => AllProjects, { nullable: true })
   async likedProjectsByUserId(
     @Arg('userId', type => Int, { nullable: false }) userId: number,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ) {
     let query = this.projectRepository
       .createQueryBuilder('project')
@@ -1729,7 +1693,7 @@ export class ProjectResolver {
     }
 
     project.mayUpdateStatus(user);
-    const status = await ProjectStatus.findOne({ id: statusId });
+    const status = await ProjectStatus.findOne({ where: { id: statusId } });
     if (!status) {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.PROJECT_STATUS_NOT_FOUND),
@@ -1753,7 +1717,7 @@ export class ProjectResolver {
   @Mutation(returns => Boolean)
   async deactivateProject(
     @Arg('projectId') projectId: number,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @Arg('reasonId', { nullable: true }) reasonId?: number,
   ): Promise<Boolean> {
     try {
@@ -1782,7 +1746,7 @@ export class ProjectResolver {
   @Mutation(returns => Boolean)
   async activateProject(
     @Arg('projectId') projectId: number,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<Boolean> {
     try {
       const user = await getLoggedInUser(ctx);

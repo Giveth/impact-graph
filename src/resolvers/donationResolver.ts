@@ -1,27 +1,25 @@
 import {
-  Resolver,
-  Query,
   Arg,
-  Mutation,
-  Ctx,
-  ObjectType,
-  Field,
   Args,
   ArgsType,
+  Ctx,
+  Field,
   InputType,
-  registerEnumType,
   Int,
+  Mutation,
+  ObjectType,
+  Query,
+  registerEnumType,
+  Resolver,
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { InjectRepository } from 'typeorm-typedi-extensions';
-import { getTokenPrices, getOurTokenList } from 'monoswap';
+import { getOurTokenList } from 'monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
-import { MyContext } from '../types/MyContext';
+import { ApolloContext } from '../types/ApolloContext';
 import { Project, ProjStatus } from '../entities/project';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { Token } from '../entities/token';
-import { Repository, In, Brackets } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { publicSelectionFields, User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -31,12 +29,7 @@ import {
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
-  updateTotalDonationsOfProject,
 } from '../services/donationService';
-import {
-  updateUserTotalDonated,
-  updateUserTotalReceived,
-} from '../services/userService';
 import {
   createDonationQueryValidator,
   getDonationsQueryValidator,
@@ -46,24 +39,21 @@ import {
 } from '../utils/validators/graphqlQueryValidators';
 import Web3 from 'web3';
 import { logger } from '../utils/logger';
-import {
-  findUserById,
-  findUserByWalletAddress,
-} from '../repositories/userRepository';
+import { findUserById } from '../repositories/userRepository';
 import {
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
   donorsCountPerDate,
   donorsCountPerDateByMonthAndYear,
   findDonationById,
+  getRecentDonations,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { MainCategory } from '../entities/mainCategory';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
-import { calculateGivbackFactor } from '../services/givbackService';
+import { AppDataSource } from '../orm';
+import { getChainvineAdapter } from '../adapters/adaptersFactory';
 
 @ObjectType()
 class PaginateDonations {
@@ -180,10 +170,10 @@ class MainCategoryDonations {
 
 @Resolver(of => User)
 export class DonationResolver {
-  constructor(
-    @InjectRepository(Donation)
-    private readonly donationRepository: Repository<Donation>,
-  ) {}
+  constructor(private readonly donationRepository: Repository<Donation>) {
+    this.donationRepository =
+      AppDataSource.getDataSource().getRepository(Donation);
+  }
 
   @Query(returns => [Donation], { nullable: true })
   async donations(
@@ -284,6 +274,18 @@ export class DonationResolver {
     }
   }
 
+  /**
+   *
+   * @param take
+   * @return last donations' id, valueUd, createdAt, user.walletAddress and project.slug
+   */
+  @Query(returns => [Donation], { nullable: true })
+  async recentDonations(
+    @Arg('take', type => Int, { nullable: true }) take: number = 30,
+  ): Promise<Donation[]> {
+    return getRecentDonations(take);
+  }
+
   @Query(returns => ResourcePerDateRange, { nullable: true })
   async totalDonorsCountPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
@@ -313,7 +315,7 @@ export class DonationResolver {
   // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
   async donationsFromWallets(
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @Arg('fromWalletAddresses', type => [String])
     fromWalletAddresses: string[],
   ) {
@@ -332,7 +334,7 @@ export class DonationResolver {
   // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
   async donationsToWallets(
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @Arg('toWalletAddresses', type => [String]) toWalletAddresses: string[],
   ) {
     const toWalletAddressesArray: string[] = toWalletAddresses.map(o =>
@@ -350,7 +352,7 @@ export class DonationResolver {
 
   @Query(returns => PaginateDonations, { nullable: true })
   async donationsByProjectId(
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Arg('traceable', type => Boolean, { defaultValue: false })
@@ -367,7 +369,9 @@ export class DonationResolver {
     orderBy: SortBy,
   ) {
     const project = await Project.findOne({
-      id: projectId,
+      where: {
+        id: projectId,
+      },
     });
     if (!project) {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
@@ -450,14 +454,14 @@ export class DonationResolver {
 
   // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
-  async donationsByDonor(@Ctx() ctx: MyContext) {
+  async donationsByDonor(@Ctx() ctx: ApolloContext) {
     if (!ctx.req.user)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.DONATION_VIEWING_LOGIN_REQUIRED),
       );
     return this.donationRepository
       .createQueryBuilder('donation')
-      .where({ user: ctx.req.user.userId })
+      .where({ userId: ctx.req.user.userId })
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
@@ -467,7 +471,7 @@ export class DonationResolver {
   @Query(returns => UserDonations, { nullable: true })
   async donationsByUserId(
     @Args() { take, skip, orderBy, userId, status }: UserDonationsArgs,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ) {
     const loggedInUserId = ctx?.req?.user?.userId;
     const query = this.donationRepository
@@ -511,9 +515,11 @@ export class DonationResolver {
     @Arg('projectId') projectId: number,
     @Arg('nonce') nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
-    @Ctx() ctx: MyContext,
+    @Arg('referrerId', { nullable: true }) referrerId: string,
+    @Ctx() ctx: ApolloContext,
   ): Promise<Number> {
     try {
+      let referrerWallet;
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
       if (!donorUser) {
@@ -530,6 +536,7 @@ export class DonationResolver {
           projectId,
           nonce,
           transakId,
+          referrerId,
         },
         createDonationQueryValidator,
       );
@@ -554,8 +561,10 @@ export class DonationResolver {
         );
       }
       const tokenInDb = await Token.findOne({
-        networkId: transactionNetworkId,
-        symbol: token,
+        where: {
+          networkId: transactionNetworkId,
+          symbol: token,
+        },
       });
       const isCustomToken = !Boolean(tokenInDb);
       let isTokenEligibleForGivback = false;
@@ -590,6 +599,23 @@ export class DonationResolver {
       const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
       const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
 
+      if (referrerId) {
+        try {
+          const referrerWalletAddress =
+            await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
+          if (referrerWalletAddress !== fromAddress) {
+            referrerWallet = referrerWalletAddress;
+          } else {
+            logger.info(
+              'createDonation info',
+              `User ${fromAddress} tried to refer himself.`,
+            );
+          }
+        } catch (e) {
+          logger.error('get chainvine wallet address error', e);
+        }
+      }
+
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId?.toLowerCase() || transakId,
@@ -609,6 +635,11 @@ export class DonationResolver {
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: Boolean(anonymous),
       });
+
+      if (referrerWallet) {
+        donation.referrerWallet = referrerWallet;
+      }
+
       await donation.save();
       const baseTokens =
         priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
@@ -634,7 +665,7 @@ export class DonationResolver {
   async updateDonationStatus(
     @Arg('donationId') donationId: number,
     @Arg('status', { nullable: true }) status: string,
-    @Ctx() ctx: MyContext,
+    @Ctx() ctx: ApolloContext,
   ): Promise<Donation> {
     // We just update status of donation with tx status in blockchain network
     // but if user send failed status, and there were nothing in network we change it to failed

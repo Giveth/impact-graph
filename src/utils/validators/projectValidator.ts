@@ -9,6 +9,8 @@ import {
 import { logger } from '../logger';
 import { findRelatedAddressByWalletAddress } from '../../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
+import { findProjectById } from '../../repositories/projectRepository';
+import { titleWithoutSpecialCharacters } from '../utils';
 
 export function isWalletAddressValid(address) {
   return Boolean(
@@ -63,7 +65,7 @@ export const validateProjectTitleForEdit = async (
   title: string,
   projectId: number,
 ) => {
-  const project = await Project.findOne(projectId);
+  const project = await findProjectById(projectId);
   if (
     getSimilarTitleInProjectsRegex(project?.title as string).test(
       title.replace(titleReplacerRegex, ''),
@@ -76,11 +78,20 @@ export const validateProjectTitleForEdit = async (
 };
 
 export const getSimilarTitleInProjectsRegex = (title: string): RegExp => {
-  return new RegExp(`^\\s*${title.replace(titleReplacerRegex, '')}\\s*$`, 'i');
+  return new RegExp(
+    `^\\s*${titleWithoutSpecialCharacters(title).replace(
+      titleReplacerRegex,
+      '',
+    )}\\s*$`,
+    'i',
+  );
 };
 
 export const validateProjectTitle = async (title: string): Promise<boolean> => {
-  const isTitleValid = /^\w+$/.test(title.replace(/\s/g, ''));
+  const isTitleValid = /^[a-zA-Z0-9?!@#$%^&*+=._|/<">`'-]+$/.test(
+    // https://github.com/Giveth/giveth-dapps-v2/issues/1975#issuecomment-1383112084
+    title.replace(/\s/g, ''),
+  );
   if (!isTitleValid) {
     throw new Error(
       i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
@@ -136,7 +147,10 @@ function isSmartContract(provider) {
   };
 }
 
-export const canUserVisitProject = (project?: Project, userId?: string) => {
+export const canUserVisitProject = (
+  project?: Project | null,
+  userId?: string,
+) => {
   if (!project) {
     throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
   }

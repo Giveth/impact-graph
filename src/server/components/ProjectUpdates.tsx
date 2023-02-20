@@ -1,7 +1,6 @@
 import React from 'react';
 import { withTheme } from 'styled-components';
-import { Section, Label, Link } from '@admin-bro/design-system';
-import config from '../../config';
+import { Section, Label, Link } from '@adminjs/design-system';
 
 const ProjectUpdates = props => {
   const projectUpdates = props?.record?.params?.projectUpdates;

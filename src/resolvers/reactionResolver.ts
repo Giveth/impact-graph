@@ -1,6 +1,5 @@
 import {
   Arg,
-  Args,
   Ctx,
   Field,
   Int,
@@ -9,22 +8,15 @@ import {
   Query,
   Resolver,
 } from 'type-graphql';
-import { Reaction, REACTION_TYPE } from '../entities/reaction';
+import { Reaction } from '../entities/reaction';
 import { Context } from '../context';
 import { Project, ProjectUpdate, ProjStatus } from '../entities/project';
-import { MyContext } from '../types/MyContext';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { updateTotalReactionsOfAProject } from '../services/reactionsService';
-import { getConnection } from 'typeorm';
+import { ApolloContext } from '../types/ApolloContext';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { findProjectById } from '../repositories/projectRepository';
-import { findUserById } from '../repositories/userRepository';
-import { User } from '../entities/user';
+import { AppDataSource } from '../orm';
 
 @ObjectType()
 class ToggleResponse {
@@ -50,24 +42,23 @@ export class ReactionResolver {
   @Mutation(returns => Reaction)
   async likeProjectUpdate(
     @Arg('projectUpdateId', type => Int) projectUpdateId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
 
     await queryRunner.connect();
 
     await queryRunner.startTransaction();
 
-    const projectUpdate = await queryRunner.manager.findOne(
-      ProjectUpdate,
-      { id: projectUpdateId },
-      { select: ['projectId'] },
-    );
+    const projectUpdate = await queryRunner.manager.findOne(ProjectUpdate, {
+      where: { id: projectUpdateId },
+      select: ['projectId'],
+    });
 
     if (!projectUpdate)
       throw Error(
@@ -115,30 +106,31 @@ export class ReactionResolver {
   async unlikeProjectUpdate(
     @Arg('reactionId', type => Int) reactionId: number,
     @Ctx()
-    { req: { user } }: MyContext,
+    { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user || !user?.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
     await queryRunner.connect();
 
     await queryRunner.startTransaction();
 
     try {
       const reaction = await queryRunner.manager.findOne(Reaction, {
-        id: reactionId,
-        userId: user?.userId,
+        where: {
+          id: reactionId,
+          userId: user?.userId,
+        },
       });
       if (!reaction) return false;
 
-      const projectUpdate = await queryRunner.manager.findOne(
-        ProjectUpdate,
-        { id: reaction.projectUpdateId },
-        { select: ['projectId'] },
-      );
+      const projectUpdate = await queryRunner.manager.findOne(ProjectUpdate, {
+        where: { id: reaction.projectUpdateId },
+        select: ['projectId'],
+      });
 
       if (!projectUpdate) return false;
 
@@ -174,7 +166,7 @@ export class ReactionResolver {
   @Mutation(returns => Reaction)
   async likeProject(
     @Arg('projectId', type => Int) projectId: number,
-    @Ctx() { req: { user } }: MyContext,
+    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<Reaction> {
     if (!user || !user?.userId)
       throw new Error(
@@ -190,7 +182,7 @@ export class ReactionResolver {
       );
     }
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
 
     await queryRunner.connect();
 
@@ -244,22 +236,24 @@ export class ReactionResolver {
   async unlikeProject(
     @Arg('reactionId', type => Int) reactionId: number,
     @Ctx()
-    { req: { user } }: MyContext,
+    { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user || !user?.userId)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const queryRunner = getConnection().createQueryRunner();
+    const queryRunner = AppDataSource.getDataSource().createQueryRunner();
     await queryRunner.connect();
 
     await queryRunner.startTransaction();
 
     try {
       const reaction = await queryRunner.manager.findOne(Reaction, {
-        id: reactionId,
-        userId: user?.userId,
+        where: {
+          id: reactionId,
+          userId: user?.userId,
+        },
       });
       if (!reaction) return false;
 

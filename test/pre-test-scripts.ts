@@ -8,7 +8,6 @@ import {
   PROJECT_UPDATE_SEED_DATA,
 } from './testUtils';
 import { User } from '../src/entities/user';
-import { createdb } from 'pgtools';
 import { Category } from '../src/entities/category';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import { Project, ProjectUpdate } from '../src/entities/project';
@@ -21,45 +20,14 @@ import {
 } from '../src/entities/organization';
 import { NETWORK_IDS } from '../src/provider';
 import { MainCategory } from '../src/entities/mainCategory';
-import { getConnection } from 'typeorm';
 import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-UserProjectPowerView';
 import { ProjectPowerView1662915983385 } from '../migration/1662915983385-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
 import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-ProjectFuturePowerView';
 import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
 import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
-
-// This can also be a connection string
-// (in which case the database part is ignored and replaced with postgres)
-
-async function CreateDatabase() {
-  const config = {
-    user: process.env.TYPEORM_DATABASE_USER,
-    password: process.env.TYPEORM_DATABASE_PASSWORD,
-    port: process.env.TYPEORM_DATABASE_PORT,
-    host: process.env.TYPEORM_DATABASE_HOST,
-  };
-
-  // // tslint:disable-next-line:no-console
-  // console.log('Dropping DB');
-  // try {
-  //   await dropdb(config, process.env.TYPEORM_DATABASE_NAME);
-  //   // don't drop cron db, because it will be used by pg_cron extension
-  // } catch (e) {
-  //   // tslint:disable-next-line:no-console
-  //   console.log('drop db error', e);
-  // }
-  //
-  // tslint:disable-next-line:no-console
-  console.log('Create Fresh DB');
-  try {
-    await createdb(config, process.env.TYPEORM_DATABASE_NAME);
-  } catch (e) {
-    if (e?.name !== 'duplicate_database')
-      // tslint:disable-next-line:no-console
-      console.log('Create Fresh db error', e);
-  }
-}
+import { AppDataSource } from '../src/orm';
+import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
 
 async function seedDb() {
   await seedUsers();
@@ -89,7 +57,7 @@ async function seedTokens() {
     } else if (token.symbol === 'WETH') {
       (tokenData as any).order = 3;
     }
-    await Token.create(tokenData).save();
+    await Token.create(tokenData as Token).save();
   }
   for (const token of SEED_DATA.TOKENS.mainnet) {
     const tokenData = {
@@ -102,7 +70,7 @@ async function seedTokens() {
     } else if (token.symbol === 'ETH') {
       (tokenData as any).order = 2;
     }
-    await Token.create(tokenData).save();
+    await Token.create(tokenData as Token).save();
   }
   for (const token of SEED_DATA.TOKENS.ropsten) {
     const tokenData = {
@@ -115,7 +83,7 @@ async function seedTokens() {
     } else if (token.symbol === 'ETH') {
       (tokenData as any).order = 2;
     }
-    await Token.create(tokenData).save();
+    await Token.create(tokenData as Token).save();
   }
   for (const token of SEED_DATA.TOKENS.goerli) {
     const tokenData = {
@@ -128,7 +96,7 @@ async function seedTokens() {
     } else if (token.symbol === 'ETH') {
       (tokenData as any).order = 2;
     }
-    await Token.create(tokenData).save();
+    await Token.create(tokenData as Token).save();
   }
 }
 
@@ -141,24 +109,34 @@ async function seedOrganizations() {
 async function relateOrganizationsToTokens() {
   const tokens = await Token.createQueryBuilder('token').getMany();
   const giveth = (await Organization.findOne({
-    label: ORGANIZATION_LABELS.GIVETH,
+    where: {
+      label: ORGANIZATION_LABELS.GIVETH,
+    },
   })) as Organization;
   const trace = (await Organization.findOne({
-    label: ORGANIZATION_LABELS.TRACE,
+    where: {
+      label: ORGANIZATION_LABELS.TRACE,
+    },
   })) as Organization;
   const givingBlock = (await Organization.findOne({
-    label: ORGANIZATION_LABELS.GIVING_BLOCK,
+    where: {
+      label: ORGANIZATION_LABELS.GIVING_BLOCK,
+    },
   })) as Organization;
   const change = (await Organization.findOne({
-    label: ORGANIZATION_LABELS.CHANGE,
+    where: {
+      label: ORGANIZATION_LABELS.CHANGE,
+    },
   })) as Organization;
   giveth.tokens = tokens;
   await giveth.save();
   trace.tokens = tokens;
   await trace.save();
   const etherMainnetToken = (await Token.findOne({
-    symbol: 'ETH',
-    networkId: NETWORK_IDS.MAIN_NET,
+    where: {
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.MAIN_NET,
+    },
   })) as Token;
   givingBlock.tokens = [etherMainnetToken];
   await givingBlock?.save();
@@ -190,25 +168,27 @@ async function seedProjects() {
 
 async function seedProjectUpdates() {
   await ProjectUpdate.create(
-    PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE,
+    PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE as ProjectUpdate,
   ).save();
   await ProjectUpdate.create(
-    PROJECT_UPDATE_SEED_DATA.SECOND_PROJECT_UPDATE,
+    PROJECT_UPDATE_SEED_DATA.SECOND_PROJECT_UPDATE as ProjectUpdate,
   ).save();
   await ProjectUpdate.create(
-    PROJECT_UPDATE_SEED_DATA.THIRD_PROJECT_UPDATE,
+    PROJECT_UPDATE_SEED_DATA.THIRD_PROJECT_UPDATE as ProjectUpdate,
   ).save();
 }
 
 async function seedLikes() {
-  await Reaction.create(REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION).save();
+  await Reaction.create(
+    REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION as Reaction,
+  ).save();
   await Project.update(
     { id: SEED_DATA.FIRST_PROJECT.id },
     { totalReactions: 1, qualityScore: 10 },
   );
 
   await Reaction.create(
-    REACTION_SEED_DATA.FIRST_LIKED_PROJECT_UPDATE_REACTION,
+    REACTION_SEED_DATA.FIRST_LIKED_PROJECT_UPDATE_REACTION as Reaction,
   ).save();
   await ProjectUpdate.update(
     { id: SEED_DATA.FIRST_PROJECT.id },
@@ -250,10 +230,14 @@ async function seedCategories() {
       description: mainCategory,
     }).save();
   }
-  const foodMainCategory = await MainCategory.findOne({ title: 'food' });
-  const drinkMainCategory = await MainCategory.findOne({ title: 'drink' });
+  const foodMainCategory = await MainCategory.findOne({
+    where: { title: 'food' },
+  });
+  const drinkMainCategory = await MainCategory.findOne({
+    where: { title: 'drink' },
+  });
   const nonProfitMainCategory = await MainCategory.findOne({
-    title: 'nonProfit',
+    where: { title: 'nonProfit' },
   });
   for (const category of SEED_DATA.FOOD_SUB_CATEGORIES) {
     await Category.create({
@@ -283,18 +267,21 @@ async function seedCategories() {
 }
 async function seedStatuses() {
   for (const status of SEED_DATA.STATUSES) {
-    await ProjectStatus.create(status).save();
+    await ProjectStatus.create(status as ProjectStatus).save();
   }
 }
 async function seedStatusReasons() {
   for (const { description, statusId } of SEED_DATA.STATUS_REASONS) {
-    const status = await ProjectStatus.findOne({ id: statusId });
-    await ProjectStatusReason.create({ description, status }).save();
+    const status = await ProjectStatus.findOne({ where: { id: statusId } });
+    await ProjectStatusReason.create({
+      description,
+      status,
+    } as ProjectStatusReason).save();
   }
 }
 
 async function runMigrations() {
-  const queryRunner = getConnection().createQueryRunner();
+  const queryRunner = AppDataSource.getDataSource().createQueryRunner();
   await queryRunner.connect();
 
   try {
@@ -314,6 +301,7 @@ async function runMigrations() {
     await projectFuturePowerView.up(queryRunner);
     await takeSnapshotProcedure.up(queryRunner);
     await takeSnapshotsHistoryProcedure.up(queryRunner);
+    await new createOrganisatioTokenTable1646302349926().up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
@@ -323,7 +311,6 @@ async function runMigrations() {
 
 before(async () => {
   try {
-    await CreateDatabase();
     await bootstrap();
     await seedDb();
     await runMigrations();
