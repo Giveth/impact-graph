@@ -1210,6 +1210,9 @@ const getAdminBroInstance = async () => {
             organizationId: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
+            statusId: {
+              isVisible: { list: true, filter: true, show: true, edit: true },
+            },
             socials: {
               type: 'mixed',
               isVisible: {
@@ -1441,6 +1444,7 @@ const getAdminBroInstance = async () => {
                     Number(request.payload.id),
                   );
                   if (
+                    project &&
                     Number(request?.payload?.statusId) !== project?.status?.id
                   ) {
                     switch (Number(request?.payload?.statusId)) {

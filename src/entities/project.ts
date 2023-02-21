@@ -246,9 +246,8 @@ export class Project extends BaseEntity {
 
   @Index()
   @Field(type => ProjectStatus)
-  @ManyToOne(type => ProjectStatus, { eager: true })
+  @ManyToOne(type => ProjectStatus)
   status: ProjectStatus;
-
   @RelationId((project: Project) => project.status)
   @Column({ nullable: true })
   statusId: number;
