@@ -1108,7 +1108,7 @@ export class ProjectResolver {
       adminUser: user,
     });
 
-    const newProject = await project.save();
+    await project.save();
     // const adminUser = (await findUserById(Number(newProject.admin))) as User;
     // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
@@ -1122,13 +1122,13 @@ export class ProjectResolver {
         };
       }),
     );
-    newProject.addresses = await findProjectRecipientAddressByProjectId({
+    project.addresses = await findProjectRecipientAddressByProjectId({
       projectId: project.id,
     });
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,
-      projectId: newProject.id,
+      projectId: project.id,
       content: '',
       title: '',
       createdAt: new Date(),
@@ -1138,15 +1138,15 @@ export class ProjectResolver {
 
     if (projectInput.isDraft) {
       await getNotificationAdapter().projectSavedAsDraft({
-        project: newProject,
+        project,
       });
     } else {
       await getNotificationAdapter().projectPublished({
-        project: newProject,
+        project,
       });
     }
 
-    return newProject;
+    return project;
   }
 
   @Mutation(returns => ProjectUpdate)
