@@ -131,6 +131,7 @@ const headers = [
   'qualityScore',
   'verified',
   'listed',
+  'reviewStatus',
   'totalDonations',
   'totalProjectUpdates',
   'website',
@@ -326,15 +327,15 @@ const getAdminBroInstance = async () => {
                 'disperseTxHash, this is optional, just for disperse transactions',
             },
           },
-          Project: {
-            properties: {
-              listed: 'Listed',
-              'listed.true': 'Listed',
-              'listed.false': 'Unlisted',
-              'listed.null': 'Not Reviewed',
-              'listed.undefined': 'Not Reviewed',
-            },
-          },
+          // Project: {
+          //   properties: {
+          //     listed: 'Listed',
+          //     'listed.true': 'Listed',
+          //     'listed.false': 'Unlisted',
+          //     'listed.null': 'Not Reviewed',
+          //     'listed.undefined': 'Not Reviewed',
+          //   },
+          // },
         },
       },
       language: 'en',
@@ -1382,9 +1383,17 @@ const getAdminBroInstance = async () => {
               },
             },
             listed: {
-              isVisible: true,
-              components: {
-                filter: AdminBro.bundle('./components/FilterListedComponent'),
+              isVisible: false,
+              // components: {
+              //   filter: AdminBro.bundle('./components/FilterListedComponent'),
+              // },
+            },
+            reviewStatus: {
+              isVisible: {
+                show: true,
+                list: true,
+                edit: true,
+                filter: true,
               },
             },
             projectUpdates: {
@@ -2110,7 +2119,7 @@ interface AdminBroProjectsQuery {
   title?: string;
   slug?: string;
   verified?: string;
-  listed?: string;
+  // listed?: string;
   isImported?: string;
   reviewStatus: ReviewStatus;
 }
@@ -2143,11 +2152,11 @@ export const buildProjectsQuery = (
       isImported: queryStrings.isImported === 'true',
     });
 
-  if (queryStrings.listed)
-    query.andWhere('project.listed = :listed', {
-      listed: queryStrings.listed === 'true',
-    });
-
+  // if (queryStrings.listed)
+  //   query.andWhere('project.listed = :listed', {
+  //     listed: queryStrings.listed === 'true',
+  //   });
+  //
   if (queryStrings.reviewStatus)
     query.andWhere('project.reviewStatus = :reviewStatus', {
       reviewStatus: queryStrings.reviewStatus,
