@@ -1,5 +1,10 @@
 import { schedule } from 'node-cron';
-import { Project, ProjStatus, ProjectUpdate } from '../../entities/project';
+import {
+  Project,
+  ProjStatus,
+  ProjectUpdate,
+  ReviewStatus,
+} from '../../entities/project';
 import { Category, CATEGORY_NAMES } from '../../entities/category';
 import { sleep } from '../../utils/utils';
 import {
@@ -141,6 +146,7 @@ const createGivingProject = async (data: {
       totalReactions: 0,
       totalProjectUpdates: 0,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
       verified: true,
       giveBacks: true,
       isImported: true,

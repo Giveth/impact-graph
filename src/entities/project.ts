@@ -97,6 +97,11 @@ export enum RevokeSteps {
   UpForRevoking = 'upForRevoking', // exceeded last chance and revoked dates case
   Revoked = 'revoked',
 }
+export enum ReviewStatus {
+  NotReviewed = 'NotReviewed',
+  Listed = 'Listed',
+  NotListed = 'Not Listed',
+}
 
 @Entity()
 @ObjectType()
@@ -317,6 +322,14 @@ export class Project extends BaseEntity {
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
 
+  @Field(type => String)
+  @Column({
+    type: 'enum',
+    enum: ReviewStatus,
+    default: ReviewStatus.NotReviewed,
+  })
+  reviewStatus: ReviewStatus;
+
   @Field(type => String, { nullable: true })
   projectUrl?: string;
 
@@ -349,7 +362,9 @@ export class Project extends BaseEntity {
 
     return this.createQueryBuilder('project')
       .where({ updatedAt: LessThan(maxDaysForListing) })
-      .andWhere('project.listed IS NULL')
+      .andWhere('project.reviewStatus = :reviewStatus', {
+        reviewStatus: ReviewStatus.NotReviewed,
+      })
       .andWhere('project.statusId = :statusId', { statusId: ProjStatus.active })
       .getMany();
   }

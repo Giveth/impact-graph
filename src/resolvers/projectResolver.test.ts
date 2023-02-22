@@ -10,7 +10,6 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
-  sleep,
 } from '../../test/testUtils';
 import axios from 'axios';
 import {
@@ -45,6 +44,7 @@ import {
   Project,
   ProjectUpdate,
   ProjStatus,
+  ReviewStatus,
   SortingField,
 } from '../entities/project';
 import { Category } from '../entities/category';
@@ -1020,6 +1020,7 @@ function projectsByUserIdTestCases() {
       ...createProjectData(),
       admin: String(SEED_DATA.FIRST_USER.id),
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const result = await axios.post(graphqlUrl, {
       query: projectsByUserIdQuery,
@@ -1551,6 +1552,10 @@ function createProjectTestCases() {
 
     // When creating project, listed is null by default
     assert.equal(result.data.data.createProject.listed, null);
+    assert.equal(
+      result.data.data.createProject.reviewStatus,
+      ReviewStatus.NotReviewed,
+    );
 
     assert.equal(
       result.data.data.createProject.adminUser.id,
@@ -1670,6 +1675,10 @@ function createProjectTestCases() {
 
     // When creating project, listed is null by default
     assert.equal(result.data.data.createProject.listed, null);
+    assert.equal(
+      result.data.data.createProject.reviewStatus,
+      ReviewStatus.NotReviewed,
+    );
 
     assert.equal(
       result.data.data.createProject.admin,
@@ -2357,6 +2366,7 @@ function updateProjectTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
     const editProjectResult = await axios.post(
       graphqlUrl,
@@ -2376,12 +2386,17 @@ function updateProjectTestCases() {
       },
     );
     assert.equal(editProjectResult.data.data.updateProject.listed, null);
+    assert.equal(
+      editProjectResult.data.data.updateProject.reviewStatus,
+      ReviewStatus.NotReviewed,
+    );
   });
   it('Should update successfully listed (false) should becomes null', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const editProjectResult = await axios.post(
       graphqlUrl,
@@ -2401,6 +2416,10 @@ function updateProjectTestCases() {
       },
     );
     assert.equal(editProjectResult.data.data.updateProject.listed, null);
+    assert.equal(
+      editProjectResult.data.data.updateProject.reviewStatus,
+      ReviewStatus.NotReviewed,
+    );
   });
   it('Should update image successfully', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
@@ -2779,6 +2798,7 @@ function deactivateProjectTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
     const deactivateProjectResult = await axios.post(
       graphqlUrl,
@@ -2802,6 +2822,7 @@ function deactivateProjectTestCases() {
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isTrue(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
   });
 
   it('Should deactivate project successfully, wont affect listed(false)', async () => {
@@ -2811,6 +2832,7 @@ function deactivateProjectTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const deactivateProjectResult = await axios.post(
       graphqlUrl,
@@ -2834,6 +2856,7 @@ function deactivateProjectTestCases() {
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
     assert.isFalse(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.NotListed);
   });
 
   it('Should deactivate project successfully, wont affect verified(true)', async () => {
@@ -3100,6 +3123,7 @@ function activateProjectTestCases() {
       ...createProjectData(),
       statusId: ProjStatus.deactive,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
 
     const activateProjectResult = await axios.post(
@@ -3124,6 +3148,7 @@ function activateProjectTestCases() {
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isNull(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.NotReviewed);
   });
 
   it('Should activate project successfully,  should change listed from false to null', async () => {
@@ -3133,6 +3158,7 @@ function activateProjectTestCases() {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
       statusId: ProjStatus.deactive,
     });
     const activateProjectResult = await axios.post(
@@ -3157,6 +3183,7 @@ function activateProjectTestCases() {
     });
     assert.equal(updatedProject?.statusId, ProjStatus.active);
     assert.isNull(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.NotReviewed);
   });
 
   it('Should activate project successfully, wont affect verified(true)', async () => {
@@ -4502,7 +4529,8 @@ function similarProjectsBySlugTestCases() {
         ownerId: String(SEED_DATA.FIRST_USER.id),
       })
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       )
       .take(1)
       .skip(0)

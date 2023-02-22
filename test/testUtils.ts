@@ -4,7 +4,12 @@ import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
 import { Donation, DONATION_STATUS } from '../src/entities/donation';
-import { Project, ProjectUpdate, ProjStatus } from '../src/entities/project';
+import {
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+  ReviewStatus,
+} from '../src/entities/project';
 import { ProjectStatus } from '../src/entities/projectStatus';
 import {
   Organization,
@@ -114,6 +119,7 @@ export interface CreateProjectData {
   categories: string[];
   verified?: boolean;
   listed?: boolean;
+  reviewStatus: ReviewStatus;
   giveBacks?: boolean;
   creationDate: Date;
   updatedAt: Date;
@@ -244,6 +250,7 @@ export const createProjectData = (): CreateProjectData => {
     categories: ['food1'],
     verified: true,
     listed: true,
+    reviewStatus: ReviewStatus.Listed,
     giveBacks: false,
     creationDate: new Date(),
     updatedAt: new Date(),
