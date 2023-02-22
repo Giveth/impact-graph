@@ -883,9 +883,7 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             delete: {
-              isVisible: true,
-              isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+              isVisible: false,
             },
 
             new: {
@@ -952,7 +950,9 @@ const getAdminBroInstance = async () => {
               // component: false
             },
             delete: {
-              isVisible: false,
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
             },
             new: {
               isAccessible: ({ currentAdmin }) =>
@@ -2103,6 +2103,7 @@ const getAdminBroInstance = async () => {
     rootPath: adminBroRootPath,
   });
 };
+
 interface AdminBroProjectsQuery {
   statusId?: string;
   title?: string;
