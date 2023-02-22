@@ -883,7 +883,9 @@ const getAdminBroInstance = async () => {
               isVisible: false,
             },
             delete: {
-              isVisible: false,
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
             },
 
             new: {
