@@ -4,6 +4,7 @@ import {
   Project,
   ProjectUpdate,
   ProjStatus,
+  ReviewStatus,
   SortingField,
 } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
@@ -91,7 +92,10 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'projectPower.powerRank',
       'projectPower.round',
     ])
-    .where(`project.statusId = ${ProjStatus.active} AND project.listed = true`);
+    .where(
+      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+      { reviewStatus: ReviewStatus.Listed },
+    );
 
   // Filters
   query = ProjectResolver.addCategoryQuery(query, category);
@@ -313,6 +317,7 @@ export const makeProjectListed = async (id: number): Promise<void> => {
   await Project.createQueryBuilder('broadcast_notification')
     .update<Project>(Project, {
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     })
     .where(`id =${id}`)
     .updateEntity(true)

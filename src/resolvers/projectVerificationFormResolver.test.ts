@@ -28,7 +28,7 @@ import {
   ProjectVerificationForm,
   PersonalInfo,
 } from '../entities/projectVerificationForm';
-import { Project, ProjStatus } from '../entities/project';
+import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import {
   createProjectVerificationForm,
   findProjectVerificationFormById,
@@ -72,6 +72,7 @@ function createProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -112,6 +113,7 @@ function createProjectVerificationFormMutationTestCases() {
       admin: String(user1.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const accessToken = await generateTestAccessToken(user2.id);
     const result = await axios.post(
@@ -142,6 +144,7 @@ function createProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: true,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -188,6 +191,7 @@ function createProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const result = await axios.post(graphqlUrl, {
       query: createProjectVerificationFormMutation,
@@ -205,6 +209,7 @@ function createProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const accessToken = await generateTestAccessToken(user.id);
 
@@ -284,6 +289,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -340,6 +346,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -392,6 +399,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -448,6 +456,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -503,6 +512,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -562,6 +572,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -641,6 +652,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -700,6 +712,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -754,6 +767,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -807,6 +821,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -861,6 +876,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -914,6 +930,7 @@ function updateProjectVerificationFormMutationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -965,6 +982,7 @@ function getCurrentProjectVerificationFormTestCases() {
       admin: String(user.id),
       verified: true,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -1000,6 +1018,7 @@ function getCurrentProjectVerificationFormTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -1055,6 +1074,7 @@ function getCurrentProjectVerificationFormTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -1110,6 +1130,7 @@ function getCurrentProjectVerificationFormTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -1165,6 +1186,7 @@ function getCurrentProjectVerificationFormTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -1204,6 +1226,7 @@ function getCurrentProjectVerificationFormTestCases() {
       admin: String(user.id),
       verified: true,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -1228,6 +1251,7 @@ function getCurrentProjectVerificationFormTestCases() {
       admin: String(user1.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -1263,6 +1287,7 @@ function getCurrentProjectVerificationFormTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
@@ -1334,6 +1359,7 @@ function projectVerificationSendEmailConfirmationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -1390,6 +1416,7 @@ function projectVerificationSendEmailConfirmationTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -1438,6 +1465,7 @@ function projectVerificationConfirmEmailTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
@@ -1504,6 +1532,7 @@ function projectVerificationConfirmEmailTestCases() {
       admin: String(user.id),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const projectVerification = await ProjectVerificationForm.create({
       project,
