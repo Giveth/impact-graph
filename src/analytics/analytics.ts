@@ -17,7 +17,7 @@ export enum NOTIFICATIONS_EVENT_NAMES {
 
   // https://github.com/Giveth/impact-graph/issues/624#issuecomment-1240364389
   PROJECT_REJECTED = 'Project unverified',
-
+  PROJECT_NOT_REVIEWED = 'Project not reviewed',
   PROJECT_UNVERIFIED = 'Project unverified',
   VERIFICATION_FORM_REJECTED = 'Form rejected',
   PROJECT_UNVERIFIED_USERS_WHO_SUPPORT = 'Project unverified - Users who supported',

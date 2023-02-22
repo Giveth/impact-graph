@@ -1480,7 +1480,7 @@ const getAdminBroInstance = async () => {
                   }
                   if (
                     project?.reviewStatus === ReviewStatus.Listed &&
-                    reviewStatus !== ReviewStatus.Listed
+                    reviewStatus === ReviewStatus.NotListed
                   ) {
                     statusChanges.push(
                       NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
@@ -1492,6 +1492,16 @@ const getAdminBroInstance = async () => {
                   ) {
                     statusChanges.push(
                       NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                    );
+                  }
+                  if (
+                    project &&
+                    (project?.reviewStatus === ReviewStatus.Listed ||
+                      project?.reviewStatus === ReviewStatus.NotListed) &&
+                    reviewStatus === ReviewStatus.NotReviewed
+                  ) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
                     );
                   }
 
@@ -1560,6 +1570,33 @@ const getAdminBroInstance = async () => {
                       eventHandler.handler({ project });
                     }
                   });
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                    )
+                  ) {
+                    project.listed = true;
+                    await project.save();
+                  }
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
+                    )
+                  ) {
+                    project.listed = false;
+                    await project.save();
+                  }
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
+                    )
+                  ) {
+                    project.listed = null;
+                    await project.save();
+                  }
 
                   if (
                     statusChanges?.includes(
