@@ -2112,6 +2112,7 @@ interface AdminBroProjectsQuery {
   verified?: string;
   listed?: string;
   isImported?: string;
+  reviewStatus: ReviewStatus;
 }
 
 // add queries depending on which filters were selected
@@ -2145,6 +2146,11 @@ export const buildProjectsQuery = (
   if (queryStrings.listed)
     query.andWhere('project.listed = :listed', {
       listed: queryStrings.listed === 'true',
+    });
+
+  if (queryStrings.reviewStatus)
+    query.andWhere('project.reviewStatus = :reviewStatus', {
+      reviewStatus: queryStrings.reviewStatus,
     });
 
   if (queryStrings.statusId)
@@ -2770,6 +2776,7 @@ export const updateStatusOfProjects = async (
       if (status === ProjStatus.cancelled) {
         updateData.verified = false;
         updateData.listed = false;
+        updateData.reviewStatus = ReviewStatus.NotListed;
       }
       const projects = await Project.createQueryBuilder('project')
         .update<Project>(Project, updateData)

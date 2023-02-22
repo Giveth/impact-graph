@@ -374,7 +374,8 @@ export class ProjectResolver {
       .addSelect(publicSelectionFields) // aliased selection
       .where('project.id != :id', { id: currentProject?.id })
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       );
 
     // if loggedIn get his reactions
@@ -682,7 +683,8 @@ export class ProjectResolver {
     query = ProjectResolver.addCategoryQuery(query, category);
     query = query
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       )
       .orderBy(`project.${field}`, direction)
       .limit(skip)
@@ -1446,7 +1448,8 @@ export class ProjectResolver {
 
     if (userId !== user?.userId) {
       query = query.andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       );
     }
 
@@ -1490,7 +1493,8 @@ export class ProjectResolver {
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       )
       .andWhere('project.slug IN (:...slugs)', { slugs });
 
@@ -1664,7 +1668,8 @@ export class ProjectResolver {
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       );
 
     // if user viewing viewedUser liked projects has any liked

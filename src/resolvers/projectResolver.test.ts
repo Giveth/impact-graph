@@ -4529,7 +4529,8 @@ function similarProjectsBySlugTestCases() {
         ownerId: String(SEED_DATA.FIRST_USER.id),
       })
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       )
       .take(1)
       .skip(0)

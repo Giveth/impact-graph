@@ -362,7 +362,9 @@ export class Project extends BaseEntity {
 
     return this.createQueryBuilder('project')
       .where({ updatedAt: LessThan(maxDaysForListing) })
-      .andWhere('project.reviewStatus = :')
+      .andWhere('project.reviewStatus = :reviewStatus', {
+        reviewStatus: ReviewStatus.NotReviewed,
+      })
       .andWhere('project.statusId = :statusId', { statusId: ProjStatus.active })
       .getMany();
   }
