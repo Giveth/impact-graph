@@ -55,6 +55,7 @@ export const createProjectQuery = `
         slug
         walletAddress
         listed
+        reviewStatus
         verified
         organization {
           id
@@ -94,6 +95,7 @@ export const updateProjectQuery = `
       image
       slug
       listed
+      reviewStatus
       verified
       slugHistory
       creationDate
@@ -382,6 +384,7 @@ export const fetchAllDonationsQuery = `
         }
         project {
           listed
+          reviewStatus
           verified
           slug
           admin
@@ -486,6 +489,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         verified
         traceCampaignId
         listed
+        reviewStatus
         givingBlocksId
         status {
           id
@@ -560,6 +564,7 @@ export const fetchProjectsBySlugQuery = `
       verified
       traceCampaignId
       listed
+      reviewStatus
       givingBlocksId
       projectPower {
         totalPower
@@ -688,6 +693,7 @@ export const fetchSimilarProjectsBySlugQuery = `
         verified
         traceCampaignId
         listed
+        reviewStatus
         givingBlocksId
         status {
           id
@@ -747,6 +753,7 @@ export const fetchLikedProjectsQuery = `
         verified
         traceCampaignId
         listed
+        reviewStatus
         givingBlocksId
         status {
           id
@@ -961,6 +968,7 @@ export const projectsBySlugsQuery = `
           walletAddress
           impactLocation
           listed
+          reviewStatus
           givingBlocksId
           categories {
             name
@@ -1007,6 +1015,7 @@ export const projectsByUserIdQuery = `
           walletAddress
           impactLocation
           listed
+          reviewStatus
           givingBlocksId
           projectVerificationForm {
             id
@@ -1097,6 +1106,7 @@ export const projectByIdQuery = `
       verified
       title,
       listed,
+      reviewStatus
       description,
       walletAddress
       admin

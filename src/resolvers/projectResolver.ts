@@ -5,6 +5,7 @@ import {
   Project,
   ProjectUpdate,
   ProjStatus,
+  ReviewStatus,
   SortingField,
 } from '../entities/project';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -24,7 +25,6 @@ import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
 import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
-import slugify from 'slugify';
 import SentryLogger from '../sentryLogger';
 import {
   Arg,
@@ -95,15 +95,15 @@ import {
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
-
-const projectFiltersCacheDuration = Number(
-  process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
-);
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { AppDataSource } from '../orm';
 import { creteSlugFromProject } from '../utils/utils';
 import { findCampaignBySlug } from '../repositories/campaignRepository';
 import { Campaign } from '../entities/campaign';
+
+const projectFiltersCacheDuration = Number(
+  process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
+);
 
 @ObjectType()
 class AllProjects {
@@ -374,7 +374,8 @@ export class ProjectResolver {
       .addSelect(publicSelectionFields) // aliased selection
       .where('project.id != :id', { id: currentProject?.id })
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       );
 
     // if loggedIn get his reactions
@@ -682,7 +683,8 @@ export class ProjectResolver {
     query = ProjectResolver.addCategoryQuery(query, category);
     query = query
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       )
       .orderBy(`project.${field}`, direction)
       .limit(skip)
@@ -898,6 +900,7 @@ export class ProjectResolver {
     project.qualityScore = qualityScore;
     project.updatedAt = new Date();
     project.listed = null;
+    project.reviewStatus = ReviewStatus.NotReviewed;
 
     await project.save();
     await project.reload();
@@ -1108,7 +1111,7 @@ export class ProjectResolver {
       adminUser: user,
     });
 
-    const newProject = await project.save();
+    await project.save();
     // const adminUser = (await findUserById(Number(newProject.admin))) as User;
     // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
@@ -1122,13 +1125,13 @@ export class ProjectResolver {
         };
       }),
     );
-    newProject.addresses = await findProjectRecipientAddressByProjectId({
+    project.addresses = await findProjectRecipientAddressByProjectId({
       projectId: project.id,
     });
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,
-      projectId: newProject.id,
+      projectId: project.id,
       content: '',
       title: '',
       createdAt: new Date(),
@@ -1138,15 +1141,15 @@ export class ProjectResolver {
 
     if (projectInput.isDraft) {
       await getNotificationAdapter().projectSavedAsDraft({
-        project: newProject,
+        project,
       });
     } else {
       await getNotificationAdapter().projectPublished({
-        project: newProject,
+        project,
       });
     }
 
-    return newProject;
+    return project;
   }
 
   @Mutation(returns => ProjectUpdate)
@@ -1445,7 +1448,8 @@ export class ProjectResolver {
 
     if (userId !== user?.userId) {
       query = query.andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       );
     }
 
@@ -1489,7 +1493,8 @@ export class ProjectResolver {
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       )
       .andWhere('project.slug IN (:...slugs)', { slugs });
 
@@ -1663,7 +1668,8 @@ export class ProjectResolver {
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       );
 
     // if user viewing viewedUser liked projects has any liked
@@ -1757,6 +1763,8 @@ export class ProjectResolver {
       });
 
       project.listed = null;
+      project.reviewStatus = ReviewStatus.NotReviewed;
+
       await project.save();
 
       if (project.prevStatusId === ProjStatus.drafted) {
