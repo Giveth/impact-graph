@@ -12,9 +12,6 @@ export class SetProjectReviewStatus1677073819672 implements MigrationInterface {
 
           END IF;
       END$$;
-
-
-      ALTER TYPE PUBLIC.PROJECT_REVIEWSTATUS_ENUM OWNER TO POSTGRES;
     `);
     await queryRunner.query(`
         ALTER TABLE IF EXISTS project
