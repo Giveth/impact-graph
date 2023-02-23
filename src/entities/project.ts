@@ -98,7 +98,7 @@ export enum RevokeSteps {
   Revoked = 'revoked',
 }
 export enum ReviewStatus {
-  NotReviewed = 'NotReviewed',
+  NotReviewed = 'Not Reviewed',
   Listed = 'Listed',
   NotListed = 'Not Listed',
 }
