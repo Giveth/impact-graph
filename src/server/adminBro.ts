@@ -2094,6 +2094,14 @@ const getAdminBroInstance = async () => {
                 edit: true,
               },
             },
+            videoPreview: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
             relatedProjectsSlugs: {
               isVisible: {
                 show: true,

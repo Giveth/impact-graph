@@ -97,6 +97,11 @@ export class Campaign extends BaseEntity {
   // ipfs link
   video?: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  // ipfs link
+  videoPreview?: string;
+
   @Field(type => [Project], { nullable: true })
   relatedProjects: Project[];
 
