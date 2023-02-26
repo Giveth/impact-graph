@@ -93,7 +93,7 @@ export class Campaign extends BaseEntity {
   // ipfs link
   video?: string;
 
-  @Field(type => [Project])
+  @Field(type => [Project], { nullable: true })
   relatedProjects: Project[];
 
   @Field({ nullable: true })
