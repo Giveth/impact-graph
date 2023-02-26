@@ -2034,7 +2034,9 @@ const getAdminBroInstance = async () => {
         options: {
           actions: {
             delete: {
-              isVisible: false,
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
             },
             new: {
               isVisible: true,
@@ -2110,6 +2112,9 @@ const getAdminBroInstance = async () => {
               isVisible: true,
             },
             isFeatured: {
+              isVisible: true,
+            },
+            isNew: {
               isVisible: true,
             },
             filterFields: {
