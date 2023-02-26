@@ -63,9 +63,13 @@ export class Campaign extends BaseEntity {
   })
   type: CampaignType;
 
-  @Field()
+  @Field({ nullable: false })
   @Column({ default: true })
   isActive: boolean;
+
+  @Field({ nullable: true })
+  @Column({ default: false })
+  isNew: boolean;
 
   @Field()
   @Column({ default: false })
@@ -93,7 +97,12 @@ export class Campaign extends BaseEntity {
   // ipfs link
   video?: string;
 
-  @Field(type => [Project])
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  // ipfs link
+  videoPreview?: string;
+
+  @Field(type => [Project], { nullable: true })
   relatedProjects: Project[];
 
   @Field({ nullable: true })

@@ -1531,6 +1531,7 @@ query {
         relatedProjectsCount
         photo
         video
+        videoPreview
         slug
         isActive
         order
@@ -1560,6 +1561,7 @@ export const fetchCampaignBySlug = `
         relatedProjectsCount
         photo
         video
+        videoPreview
         slug
         isActive
         order
