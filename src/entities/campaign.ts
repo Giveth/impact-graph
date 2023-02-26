@@ -63,9 +63,13 @@ export class Campaign extends BaseEntity {
   })
   type: CampaignType;
 
-  @Field()
+  @Field({ nullable: false })
   @Column({ default: true })
   isActive: boolean;
+
+  @Field({ nullable: false })
+  @Column({ default: true })
+  isNew: boolean;
 
   @Field()
   @Column({ default: false })
