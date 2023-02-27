@@ -2,10 +2,12 @@
 
 import { User } from '../entities/user';
 import {
+  createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
+  saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
@@ -16,6 +18,7 @@ import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import { create } from 'domain';
+import { DONATION_STATUS } from '../entities/donation';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -203,6 +206,43 @@ function userByAddressTestCases() {
       SEED_DATA.FIRST_USER.walletAddress,
     );
     assert.isTrue(result.data.data.userByAddress.isSignedIn);
+  });
+  it('should just count verified donations in donationsCount field', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.VERIFIED }),
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.PENDING }),
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.PENDING }),
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.FAILED }),
+      user.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({ status: DONATION_STATUS.FAILED }),
+      user.id,
+      project.id,
+    );
+
+    const result = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: user.walletAddress,
+      },
+    });
+    assert.equal(result.data.data.userByAddress.donationsCount, 1);
   });
 }
 
