@@ -20,14 +20,16 @@ import {
   SEED_DATA,
   sleep,
 } from '../../test/testUtils';
-import { Project, ProjStatus, RevokeSteps } from '../entities/project';
+import {
+  Project,
+  ProjStatus,
+  ReviewStatus,
+  RevokeSteps,
+} from '../entities/project';
 import { User } from '../entities/user';
 import { assert } from 'chai';
 import { messages } from '../utils/messages';
-import {
-  HISTORY_DESCRIPTIONS,
-  ProjectStatusHistory,
-} from '../entities/projectStatusHistory';
+import { HISTORY_DESCRIPTIONS } from '../entities/projectStatusHistory';
 import { ProjectStatus } from '../entities/projectStatus';
 import { NETWORK_IDS } from '../provider';
 import {
@@ -48,17 +50,16 @@ import {
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
 } from '../entities/projectVerificationForm';
-import { verifyMultipleProjects } from '../repositories/projectRepository';
+import {
+  findProjectById,
+  verifyMultipleProjects,
+} from '../repositories/projectRepository';
 import { ProjectAddress } from '../entities/projectAddress';
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
 } from '../entities/broadcastNotification';
-import {
-  updateBroadcastNotificationStatus,
-  findBroadcastNotificationById,
-} from '../repositories/broadcastNotificationRepository';
+import { findBroadcastNotificationById } from '../repositories/broadcastNotificationRepository';
 import { findUserById } from '../repositories/userRepository';
-import { findProjectById } from '../repositories/projectRepository';
 import { findOneProjectStatusHistory } from '../repositories/projectSatusHistoryRepository';
 import { findTokenByTokenAddress } from '../repositories/tokenRepository';
 
@@ -388,6 +389,7 @@ function verifyMultipleProjectsTestCases() {
       verified: false,
       verificationStatus: 'revoked',
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -396,6 +398,7 @@ function verifyMultipleProjectsTestCases() {
       verified: true,
       verificationStatus: 'reminder',
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
 
     await verifyMultipleProjects({
@@ -428,6 +431,7 @@ function verifyMultipleProjectsTestCases() {
       verified: false,
       verificationStatus: 'revoked',
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -436,6 +440,7 @@ function verifyMultipleProjectsTestCases() {
       verified: true,
       verificationStatus: 'reminder',
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
 
     await verifyMultipleProjects({
@@ -685,6 +690,7 @@ function updateStatusOfProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
     const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     const result = await updateStatusOfProjects(
@@ -711,6 +717,7 @@ function updateStatusOfProjectsTestCases() {
     assert.equal(updatedProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedProject?.verified);
     assert.isNotTrue(updatedProject?.listed);
+    assert.notEqual(updatedProject?.reviewStatus, ReviewStatus.Listed);
   });
 
   it('should deList and unverified project, when changing status of multi projects to cancelled', async () => {
@@ -720,6 +727,7 @@ function updateStatusOfProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
     const secondProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -727,6 +735,7 @@ function updateStatusOfProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
     const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     const result = await updateStatusOfProjects(
@@ -753,12 +762,14 @@ function updateStatusOfProjectsTestCases() {
     assert.equal(updatedFirstProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedFirstProject?.verified);
     assert.isNotTrue(updatedFirstProject?.listed);
+    assert.notEqual(updatedFirstProject?.reviewStatus, ReviewStatus.Listed);
 
     const updatedSecondProject = await findProjectById(secondProject.id);
     assert.isOk(updatedSecondProject);
     assert.equal(updatedSecondProject?.statusId, ProjStatus.cancelled);
     assert.isNotTrue(updatedSecondProject?.verified);
     assert.isNotTrue(updatedSecondProject?.listed);
+    assert.notEqual(updatedSecondProject?.reviewStatus, ReviewStatus.Listed);
   });
 
   it('should create history item, when changing status of one project to cancelled', async () => {
@@ -814,6 +825,7 @@ function verifyProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
 
     const projectVerificationForm = await createProjectVerificationForm({
@@ -848,6 +860,7 @@ function verifyProjectsTestCases() {
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
     assert.equal(
       updatedVerificationForm!.status,
       PROJECT_VERIFICATION_STATUSES.DRAFT,
@@ -875,6 +888,7 @@ function verifyProjectsTestCases() {
       verified: false,
       verificationStatus: RevokeSteps.Revoked,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
 
     const projectVerificationForm = await createProjectVerificationForm({
@@ -908,6 +922,7 @@ function verifyProjectsTestCases() {
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
     assert.isTrue(project!.verificationStatus === RevokeSteps.Revoked);
     assert.isTrue(updatedProject!.verificationStatus === null);
     assert.equal(
@@ -928,6 +943,7 @@ function verifyProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
@@ -949,6 +965,7 @@ function verifyProjectsTestCases() {
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.NotListed);
   });
 
   it('should not change listed(true) status when unVerifying project', async () => {
@@ -958,6 +975,7 @@ function verifyProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
       verificationStatus: RevokeSteps.Revoked,
     });
     const projectVerificationForm = await createProjectVerificationForm({
@@ -991,6 +1009,7 @@ function verifyProjectsTestCases() {
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
     assert.isTrue(updatedProject!.verificationStatus === RevokeSteps.Revoked);
     assert.equal(
       updatedVerificationForm!.status,
@@ -1010,6 +1029,7 @@ function verifyProjectsTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     await verifyProjects(
@@ -1031,6 +1051,7 @@ function verifyProjectsTestCases() {
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.NotListed);
   });
 
   it('should create history when make project verified', async () => {
@@ -1122,6 +1143,7 @@ function exportProjectsWithFiltersToCsvTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const adminUser = await findUserById(SEED_DATA.ADMIN_USER.id);
     const result = await exportProjectsWithFiltersToCsv(
@@ -1160,6 +1182,7 @@ function listDelistTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const adminUser = await User.findOne({
       where: { id: SEED_DATA.ADMIN_USER.id },
@@ -1176,13 +1199,13 @@ function listDelistTestCases() {
           recordIds: String(project.id),
         },
       },
-      true,
+      ReviewStatus.Listed,
     );
 
     const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.listed);
-    assert.isTrue(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
   });
 
   it('should not change verified(false) status when listing project', async () => {
@@ -1192,6 +1215,7 @@ function listDelistTestCases() {
       slug: String(new Date().getTime()),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const adminUser = await User.findOne({
       where: { id: SEED_DATA.ADMIN_USER.id },
@@ -1208,13 +1232,14 @@ function listDelistTestCases() {
           recordIds: String(project.id),
         },
       },
-      true,
+      ReviewStatus.Listed,
     );
 
     const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isTrue(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
   });
 
   it('should not change verified(true) status when deListing project', async () => {
@@ -1224,6 +1249,7 @@ function listDelistTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
     const adminUser = await User.findOne({
       where: { id: SEED_DATA.ADMIN_USER.id },
@@ -1240,13 +1266,14 @@ function listDelistTestCases() {
           recordIds: String(project.id),
         },
       },
-      false,
+      ReviewStatus.NotListed,
     );
 
     const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.NotListed);
   });
 
   it('should not change verified(false) status when deListing project', async () => {
@@ -1256,6 +1283,7 @@ function listDelistTestCases() {
       slug: String(new Date().getTime()),
       verified: false,
       listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const adminUser = await User.findOne({
       where: { id: SEED_DATA.ADMIN_USER.id },
@@ -1272,13 +1300,14 @@ function listDelistTestCases() {
           recordIds: String(project.id),
         },
       },
-      false,
+      ReviewStatus.NotListed,
     );
 
     const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.verified);
     assert.isFalse(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.NotListed);
   });
 
   it('should create history when make project listed', async () => {
@@ -1287,7 +1316,8 @@ function listDelistTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: false,
-      listed: true,
+      listed: false,
+      reviewStatus: ReviewStatus.NotListed,
     });
     const adminUser = await User.findOne({
       where: { id: SEED_DATA.ADMIN_USER.id },
@@ -1304,12 +1334,13 @@ function listDelistTestCases() {
           recordIds: String(project.id),
         },
       },
-      true,
+      ReviewStatus.Listed,
     );
 
     const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isTrue(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
 
     // because we didn't put await before creating history item
     await sleep(50);
@@ -1328,6 +1359,7 @@ function listDelistTestCases() {
       slug: String(new Date().getTime()),
       verified: false,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     });
     const adminUser = await User.findOne({
       where: { id: SEED_DATA.ADMIN_USER.id },
@@ -1344,12 +1376,13 @@ function listDelistTestCases() {
           recordIds: String(project.id),
         },
       },
-      false,
+      ReviewStatus.NotListed,
     );
 
     const updatedProject = await Project.findOne({ where: { id: project.id } });
     assert.isOk(updatedProject);
     assert.isFalse(updatedProject?.listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.NotListed);
 
     // because we didn't put await before creating history item
     await sleep(10);

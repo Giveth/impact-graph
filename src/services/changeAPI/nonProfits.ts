@@ -2,7 +2,12 @@ import Axios, { AxiosResponse } from 'axios';
 import slugify from 'slugify';
 import config from '../../config';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
-import { Project, ProjectUpdate, ProjStatus } from '../../entities/project';
+import {
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+  ReviewStatus,
+} from '../../entities/project';
 import { ProjectStatus } from '../../entities/projectStatus';
 import {
   errorMessages,
@@ -126,6 +131,7 @@ export const createProjectFromChangeNonProfit = async (
       totalReactions: 0,
       totalProjectUpdates: 0,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
       verified: true,
       giveBacks: true,
       isImported: true,

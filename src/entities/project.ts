@@ -2,6 +2,8 @@ import { Field, Float, ID, ObjectType } from 'type-graphql';
 import {
   AfterInsert,
   AfterUpdate,
+  BeforeUpdate,
+  BeforeInsert,
   BaseEntity,
   BeforeRemove,
   Column,
@@ -34,6 +36,8 @@ import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { Category } from './category';
+import { getHtmlTextSummary } from '../utils/utils';
+import { Campaign } from './campaign';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -54,9 +58,18 @@ export enum SortingField {
   MostFunded = 'MostFunded',
   MostLiked = 'MostLiked',
   Newest = 'Newest',
+  RecentlyUpdated = 'RecentlyUpdated',
   Oldest = 'Oldest',
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',
+}
+
+export enum FilterField {
+  Verified = 'verified',
+  AcceptGiv = 'givingBlocksId',
+  AcceptFundOnGnosis = 'acceptFundOnGnosis',
+  GivingBlock = 'fromGivingBlock',
+  BoostedWithGivPower = 'boostedWithGivPower',
 }
 
 export enum OrderField {
@@ -83,6 +96,11 @@ export enum RevokeSteps {
   LastChance = 'lastChance',
   UpForRevoking = 'upForRevoking', // exceeded last chance and revoked dates case
   Revoked = 'revoked',
+}
+export enum ReviewStatus {
+  NotReviewed = 'Not Reviewed',
+  Listed = 'Listed',
+  NotListed = 'Not Listed',
 }
 
 @Entity()
@@ -113,6 +131,10 @@ export class Project extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   description?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  descriptionSummary?: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -229,9 +251,8 @@ export class Project extends BaseEntity {
 
   @Index()
   @Field(type => ProjectStatus)
-  @ManyToOne(type => ProjectStatus, { eager: true })
+  @ManyToOne(type => ProjectStatus)
   status: ProjectStatus;
-
   @RelationId((project: Project) => project.status)
   @Column({ nullable: true })
   statusId: number;
@@ -239,8 +260,9 @@ export class Project extends BaseEntity {
   @Index()
   @Field(type => User, { nullable: true })
   @ManyToOne(() => User, { eager: true })
-  adminUser?: User;
+  adminUser: User;
 
+  @Column({ nullable: true })
   @RelationId((project: Project) => project.adminUser)
   adminUserId: number;
 
@@ -300,6 +322,14 @@ export class Project extends BaseEntity {
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
 
+  @Field(type => String)
+  @Column({
+    type: 'enum',
+    enum: ReviewStatus,
+    default: ReviewStatus.NotReviewed,
+  })
+  reviewStatus: ReviewStatus;
+
   @Field(type => String, { nullable: true })
   projectUrl?: string;
 
@@ -332,7 +362,9 @@ export class Project extends BaseEntity {
 
     return this.createQueryBuilder('project')
       .where({ updatedAt: LessThan(maxDaysForListing) })
-      .andWhere('project.listed IS NULL')
+      .andWhere('project.reviewStatus = :reviewStatus', {
+        reviewStatus: ReviewStatus.NotReviewed,
+      })
       .andWhere('project.statusId = :statusId', { statusId: ProjStatus.active })
       .getMany();
   }
@@ -408,6 +440,19 @@ export class Project extends BaseEntity {
   owner() {
     return this.users[0];
   }
+
+  @BeforeUpdate()
+  async updateProjectDescriptionSummary() {
+    await Project.update(
+      { id: this.id },
+      { descriptionSummary: getHtmlTextSummary(this.description) },
+    );
+  }
+
+  @BeforeInsert()
+  setProjectDescriptionSummary() {
+    this.descriptionSummary = getHtmlTextSummary(this.description);
+  }
 }
 
 @Entity()
@@ -432,6 +477,10 @@ export class ProjectUpdate extends BaseEntity {
   @Field(type => String)
   @Column()
   content: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  contentSummary?: string;
 
   @Field(type => Date)
   @Column()
@@ -515,5 +564,18 @@ export class ProjectUpdate extends BaseEntity {
   @BeforeRemove()
   async updateProjectStampOnDeletion() {
     await Project.update({ id: this.projectId }, { updatedAt: new Date() });
+  }
+
+  @BeforeUpdate()
+  async updateProjectUpdateContentSummary() {
+    await ProjectUpdate.update(
+      { id: this.id },
+      { contentSummary: getHtmlTextSummary(this.content) },
+    );
+  }
+
+  @BeforeInsert()
+  setProjectUpdateContentSummary() {
+    this.contentSummary = getHtmlTextSummary(this.content);
   }
 }

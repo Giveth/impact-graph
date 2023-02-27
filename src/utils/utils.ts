@@ -1,9 +1,10 @@
 import { Country } from '../entities/Country';
-import { SortingField } from '../entities/project';
-import { FilterField } from '../resolvers/projectResolver';
+import { FilterField, SortingField } from '../entities/project';
+import { convert } from 'html-to-text';
 import slugify from 'slugify';
 
 import stringify from 'json-stable-stringify';
+import { SUMMARY_LENGTH } from '../constants/summary';
 // tslint:disable-next-line:no-var-requires
 const { createHash } = require('node:crypto');
 
@@ -383,4 +384,28 @@ export const ENVIRONMENTS = {
   STAGING: 'staging',
   DEVELOP: 'develop',
   LOCAL: 'local',
+};
+
+export const getHtmlTextSummary = (
+  html: string = '',
+  lengthLimit: number = SUMMARY_LENGTH,
+): string => {
+  const text = convert(html, {
+    selectors: [
+      { selector: 'a', options: { ignoreHref: true } },
+      { selector: 'img', format: 'skip' },
+    ],
+  })
+    .replace(/^\n+/, '') // Remove new lines from the beginning
+    .replace(/\n{2,}/g, '\n') // Replace multiple \n with single one
+    .replace(/\n$/, ''); // Remove new line from the end
+
+  switch (true) {
+    case text.length <= lengthLimit:
+      return text;
+    case lengthLimit < 3:
+      return '.'.repeat(Math.max(0, lengthLimit));
+    default:
+      return text.slice(0, lengthLimit - 3) + '...';
+  }
 };

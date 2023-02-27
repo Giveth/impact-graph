@@ -515,8 +515,8 @@ export class DonationResolver {
     @Arg('projectId') projectId: number,
     @Arg('nonce') nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
-    @Arg('referrerId', { nullable: true }) referrerId: string,
     @Ctx() ctx: ApolloContext,
+    @Arg('referrerId', { nullable: true }) referrerId?: string,
   ): Promise<Number> {
     try {
       let referrerWallet;

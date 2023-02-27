@@ -34,7 +34,7 @@ import {
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
 import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
-import { ProjStatus } from '../entities/project';
+import { ProjStatus, ReviewStatus } from '../entities/project';
 import { Token } from '../entities/token';
 import {
   insertSinglePowerBoosting,
@@ -1972,6 +1972,14 @@ function donationsByProjectIdTestCases() {
     assert.isTrue(anonymousDonations.length === 0);
   });
   it('should search by donation amount', async () => {
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      SEED_DATA.THIRD_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    donation.status = DONATION_STATUS.VERIFIED;
+    donation.amount = 100;
+    await donation.save();
     const result = await axios.post(
       graphqlUrl,
       {
@@ -2400,6 +2408,7 @@ function donationsByUserIdTestCases() {
       categories: ['food1'],
       verified: true,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
       giveBacks: false,
       creationDate: new Date(),
       updatedAt: new Date(),
@@ -2479,6 +2488,7 @@ function donationsByUserIdTestCases() {
       categories: ['food1'],
       verified: true,
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
       giveBacks: false,
       creationDate: new Date(),
       updatedAt: new Date(),

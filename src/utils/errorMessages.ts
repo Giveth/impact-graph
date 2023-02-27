@@ -21,6 +21,8 @@ export const setI18nLocaleForRequest = async (req, res, next) => {
 
 export const errorMessages = {
   FIAT_DONATION_ALREADY_EXISTS: 'Onramper donation already exists',
+  CAMPAIGN_NOT_FOUND: 'Campaign not found',
+  THERE_IS_NOT_ANY_FEATURED_CAMPAIGN: 'There is not any featured campaign',
   CHAINVINE_REFERRER_NOT_FOUND: 'Chainvine referrer not found',
   ONRAMPER_SIGNATURE_INVALID: 'Onramper signature invalid',
   ONRAMPER_SIGNATURE_MISSING: 'Onramper signature missing',

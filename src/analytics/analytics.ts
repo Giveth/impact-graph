@@ -11,12 +11,13 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_BADGE_REVOKE_LAST_WARNING = 'Project badge revoke last warning',
   PROJECT_BADGE_UP_FOR_REVOKING = 'Project badge up for revoking',
   PROJECT_BOOSTED = 'Project boosted',
+  PROJECT_BOOSTED_BY_PROJECT_OWNER = 'Project boosted by project owner',
   PROJECT_VERIFIED = 'Project verified',
   PROJECT_VERIFIED_USERS_WHO_SUPPORT = 'Project verified - Users who supported',
 
   // https://github.com/Giveth/impact-graph/issues/624#issuecomment-1240364389
   PROJECT_REJECTED = 'Project unverified',
-
+  PROJECT_NOT_REVIEWED = 'Project not reviewed',
   PROJECT_UNVERIFIED = 'Project unverified',
   VERIFICATION_FORM_REJECTED = 'Form rejected',
   PROJECT_UNVERIFIED_USERS_WHO_SUPPORT = 'Project unverified - Users who supported',

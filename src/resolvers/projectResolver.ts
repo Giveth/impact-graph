@@ -1,9 +1,11 @@
 import { Reaction } from '../entities/reaction';
 import {
+  FilterField,
   OrderField,
   Project,
   ProjectUpdate,
   ProjStatus,
+  ReviewStatus,
   SortingField,
 } from '../entities/project';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -23,7 +25,6 @@ import { publicSelectionFields, User } from '../entities/user';
 import { Context } from '../context';
 import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
-import slugify from 'slugify';
 import SentryLogger from '../sentryLogger';
 import {
   Arg,
@@ -41,7 +42,11 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   canUserVisitProject,
   validateProjectRelatedAddresses,
@@ -69,6 +74,7 @@ import {
 } from '../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from './types/ProjectVerificationUpdateInput';
 import {
+  FilterProjectQueryInputParams,
   filterProjectsQuery,
   findProjectById,
   totalProjectsPerDate,
@@ -89,13 +95,15 @@ import {
 } from '../repositories/projectPowerViewRepository';
 import { ResourcePerDateRange } from './donationResolver';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
+import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
+import { AppDataSource } from '../orm';
+import { creteSlugFromProject } from '../utils/utils';
+import { findCampaignBySlug } from '../repositories/campaignRepository';
+import { Campaign } from '../entities/campaign';
 
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
 );
-import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
-import { AppDataSource } from '../orm';
-import { creteSlugFromProject } from '../utils/utils';
 
 @ObjectType()
 class AllProjects {
@@ -107,6 +115,9 @@ class AllProjects {
 
   @Field(type => [Category], { nullable: true })
   categories: Category[];
+
+  @Field(type => Campaign, { nullable: true })
+  campaign?: Campaign;
 }
 
 @ObjectType()
@@ -134,15 +145,6 @@ class ProjectUpdatesResponse {
 
   @Field(type => Int, { nullable: false })
   count: number;
-}
-
-export enum FilterField {
-  Verified = 'verified',
-  AcceptGiv = 'givingBlocksId',
-  AcceptFundOnGnosis = 'acceptFundOnGnosis',
-  Traceable = 'traceCampaignId',
-  GivingBlock = 'fromGivingBlock',
-  BoostedWithGivPower = 'boostedWithGivPower',
 }
 
 export enum OrderDirection {
@@ -233,6 +235,11 @@ class GetProjectsArgs {
     defaultValue: [],
   })
   filters: FilterField[];
+
+  @Field(type => String, {
+    nullable: true,
+  })
+  campaignSlug: string;
 
   @Field(type => SortingField, {
     nullable: true,
@@ -367,7 +374,8 @@ export class ProjectResolver {
       .addSelect(publicSelectionFields) // aliased selection
       .where('project.id != :id', { id: currentProject?.id })
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       );
 
     // if loggedIn get his reactions
@@ -497,7 +505,7 @@ export class ProjectResolver {
     query: SelectQueryBuilder<Project>,
     filtersArray: FilterField[] = [],
   ) {
-    if (filtersArray.length === 0) return query;
+    if (!filtersArray || filtersArray.length === 0) return query;
 
     query = query.andWhere(
       new Brackets(subQuery => {
@@ -511,9 +519,6 @@ export class ProjectResolver {
             return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
           }
 
-          if (filter === FilterField.Traceable) {
-            return subQuery.andWhere(`project.${filter} IS NOT NULL`);
-          }
           if (filter === FilterField.BoostedWithGivPower) {
             return subQuery.andWhere(`projectPower.totalPower > 0`);
           }
@@ -602,12 +607,13 @@ export class ProjectResolver {
       filters,
       sortingBy,
       connectedWalletUserId,
+      campaignSlug,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
     let projects: Project[];
     let totalCount: number;
-    const projectsQuery = filterProjectsQuery(
+    const filterQueryParams: FilterProjectQueryInputParams = {
       limit,
       skip,
       searchTerm,
@@ -615,18 +621,22 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
-    );
+    };
+    let campaign;
+    if (campaignSlug) {
+      campaign = await findCampaignBySlug(campaignSlug);
+      if (!campaign) {
+        throw new Error(errorMessages.CAMPAIGN_NOT_FOUND);
+      }
+      filterQueryParams.slugArray = campaign.relatedProjectsSlugs;
+    }
+
+    const projectsQuery = filterProjectsQuery(filterQueryParams);
 
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
       hasher =>
         hasher.hashProjectFilters({
-          limit,
-          skip,
-          searchTerm,
-          category,
-          mainCategory,
-          filters,
-          sortingBy,
+          ...filterQueryParams,
           suffix: 'pq',
         }),
     );
@@ -640,20 +650,22 @@ export class ProjectResolver {
       .getManyAndCount();
 
     const userId = connectedWalletUserId || user?.userId;
-    const userReactions = await findUserReactionsByProjectIds(
-      userId,
-      projects.map(project => project.id),
-    );
-
-    if (userReactions.length > 0) {
-      projects = await projectsFiltersThreadPool.queue(merger =>
-        merger.mergeUserReactionsToProjects(projects, userReactions),
+    if (projects.length > 0 && userId) {
+      const userReactions = await findUserReactionsByProjectIds(
+        userId,
+        projects.map(project => project.id),
       );
+
+      if (userReactions.length > 0) {
+        projects = await projectsFiltersThreadPool.queue(merger =>
+          merger.mergeUserReactionsToProjects(projects, userReactions),
+        );
+      }
     }
 
     const categories = await categoriesResolver;
 
-    return { projects, totalCount, categories };
+    return { projects, totalCount, categories, campaign };
   }
 
   @Query(returns => TopProjects)
@@ -671,7 +683,8 @@ export class ProjectResolver {
     query = ProjectResolver.addCategoryQuery(query, category);
     query = query
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       )
       .orderBy(`project.${field}`, direction)
       .limit(skip)
@@ -887,8 +900,11 @@ export class ProjectResolver {
     project.qualityScore = qualityScore;
     project.updatedAt = new Date();
     project.listed = null;
+    project.reviewStatus = ReviewStatus.NotReviewed;
 
     await project.save();
+    await project.reload();
+
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
       await removeRecipientAddressOfProject({ project });
@@ -904,6 +920,7 @@ export class ProjectResolver {
         }),
       );
     }
+
     project.adminUser = adminUser;
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
@@ -1091,30 +1108,30 @@ export class ProjectResolver {
       totalProjectUpdates: 1,
       verified: false,
       giveBacks: false,
-      adminUserId: ctx.req.user.userId,
+      adminUser: user,
     });
 
-    const newProject = await project.save();
-    const adminUser = (await findUserById(Number(newProject.admin))) as User;
-    newProject.adminUser = adminUser;
+    await project.save();
+    // const adminUser = (await findUserById(Number(newProject.admin))) as User;
+    // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
       projectInput?.addresses.map(relatedAddress => {
         return {
           project,
-          user: adminUser,
+          user,
           address: relatedAddress.address.toLowerCase(),
           networkId: relatedAddress.networkId,
           isRecipient: true,
         };
       }),
     );
-    newProject.addresses = await findProjectRecipientAddressByProjectId({
+    project.addresses = await findProjectRecipientAddressByProjectId({
       projectId: project.id,
     });
 
     const update = await ProjectUpdate.create({
       userId: ctx.req.user.userId,
-      projectId: newProject.id,
+      projectId: project.id,
       content: '',
       title: '',
       createdAt: new Date(),
@@ -1124,15 +1141,15 @@ export class ProjectResolver {
 
     if (projectInput.isDraft) {
       await getNotificationAdapter().projectSavedAsDraft({
-        project: newProject,
+        project,
       });
     } else {
       await getNotificationAdapter().projectPublished({
-        project: newProject,
+        project,
       });
     }
 
-    return newProject;
+    return project;
   }
 
   @Mutation(returns => ProjectUpdate)
@@ -1217,8 +1234,10 @@ export class ProjectResolver {
 
     update.title = title;
     update.content = content;
+    await update.save();
+    await update.reload();
 
-    return update.save();
+    return update;
   }
 
   @Mutation(returns => Boolean)
@@ -1429,9 +1448,55 @@ export class ProjectResolver {
 
     if (userId !== user?.userId) {
       query = query.andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       );
     }
+
+    query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
+
+    const [projects, projectsCount] = await query
+      .orderBy(`project.${field}`, direction)
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+
+    return {
+      projects,
+      totalCount: projectsCount,
+    };
+  }
+
+  @Query(returns => AllProjects, { nullable: true })
+  async projectsBySlugs(
+    // TODO Write test cases
+    @Arg('slugs', type => [String]) slugs: string[],
+    @Arg('take', { defaultValue: 10 }) take: number,
+    @Arg('skip', { defaultValue: 0 }) skip: number,
+    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    connectedWalletUserId: number,
+    @Arg('orderBy', type => OrderBy, {
+      defaultValue: {
+        field: OrderField.CreationDate,
+        direction: OrderDirection.DESC,
+      },
+    })
+    orderBy: OrderBy,
+    @Ctx() { req: { user } }: ApolloContext,
+  ) {
+    const { field, direction } = orderBy;
+    let query = this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
+      .innerJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields)
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
+      )
+      .andWhere('project.slug IN (:...slugs)', { slugs });
 
     query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
@@ -1603,7 +1668,8 @@ export class ProjectResolver {
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields) // aliased selection
       .where(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       );
 
     // if user viewing viewedUser liked projects has any liked
@@ -1697,6 +1763,8 @@ export class ProjectResolver {
       });
 
       project.listed = null;
+      project.reviewStatus = ReviewStatus.NotReviewed;
+
       await project.save();
 
       if (project.prevStatusId === ProjStatus.drafted) {

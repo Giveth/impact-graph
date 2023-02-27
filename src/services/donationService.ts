@@ -327,7 +327,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
         amount: donation.amount,
         transactionId: donation.transactionId,
         tokenAddress: donation.tokenAddress,
-        valueUsd: donation.valueUsd, // the USD value of the token at the time of the conversion
+        valueUsd: donation.priceUsd, // the USD value of the token at the time of the conversion
         donationId: donation.id, //
       });
     }

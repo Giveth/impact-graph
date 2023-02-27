@@ -2,6 +2,7 @@ import {
   Project,
   ProjectUpdate,
   ProjStatus,
+  ReviewStatus,
   RevokeSteps,
 } from '../entities/project';
 import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
@@ -27,8 +28,8 @@ import {
   getGnosisSafeTransactions,
 } from '../services/transactionService';
 import {
-  projectExportSpreadsheet,
   addSheetWithRows,
+  projectExportSpreadsheet,
 } from '../services/googleSheets';
 import {
   createProjectFromChangeNonProfit,
@@ -38,42 +39,36 @@ import {
   NetworkTransactionInfo,
   TransactionDetailInput,
 } from '../types/TransactionInquiry';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
 import { IncomingMessage } from 'connect';
 import {
   HISTORY_DESCRIPTIONS,
   ProjectStatusHistory,
 } from '../entities/projectStatusHistory';
-import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import { Organization } from '../entities/organization';
 import { Token } from '../entities/token';
-import { NETWORKS_IDS_TO_NAME, NETWORK_IDS } from '../provider';
+import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../provider';
 import { ProjectAddress } from '../entities/projectAddress';
 import {
-  findAdminUserByEmail,
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
 import {
-  FormRelatedAddress,
-  ProjectVerificationForm,
   PROJECT_VERIFICATION_STATUSES,
+  ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
 import {
   findProjectVerificationFormById,
   getVerificationFormByProjectId,
   makeFormDraft,
   makeFormVerified,
-  updateProjectVerificationFormStatusOnly,
   verifyForm,
   verifyMultipleForms,
 } from '../repositories/projectVerificationRepository';
 import {
   findProjectById,
+  findProjectsByIdArray,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
@@ -106,6 +101,7 @@ import BroadcastNotification, {
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
+import { Campaign } from '../entities/campaign';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -121,12 +117,6 @@ const cookieParser = require('cookie-parser');
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminBroCookie = 'adminbro';
 
-const segmentProjectStatusEvents = {
-  activate: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
-  deactivate: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
-  cancelled: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
-};
-
 // headers defined by the verification team for exporting
 const headers = [
   'id',
@@ -141,6 +131,7 @@ const headers = [
   'qualityScore',
   'verified',
   'listed',
+  'reviewStatus',
   'totalDonations',
   'totalProjectUpdates',
   'website',
@@ -336,15 +327,15 @@ const getAdminBroInstance = async () => {
                 'disperseTxHash, this is optional, just for disperse transactions',
             },
           },
-          Project: {
-            properties: {
-              listed: 'Listed',
-              'listed.true': 'Listed',
-              'listed.false': 'Unlisted',
-              'listed.null': 'Not Reviewed',
-              'listed.undefined': 'Not Reviewed',
-            },
-          },
+          // Project: {
+          //   properties: {
+          //     listed: 'Listed',
+          //     'listed.true': 'Listed',
+          //     'listed.false': 'Unlisted',
+          //     'listed.null': 'Not Reviewed',
+          //     'listed.undefined': 'Not Reviewed',
+          //   },
+          // },
         },
       },
       language: 'en',
@@ -1214,6 +1205,9 @@ const getAdminBroInstance = async () => {
             organizationId: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
+            statusId: {
+              isVisible: { list: true, filter: true, show: true, edit: true },
+            },
             socials: {
               type: 'mixed',
               isVisible: {
@@ -1284,14 +1278,6 @@ const getAdminBroInstance = async () => {
             totalTraceDonations: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
-            traceCampaignId: {
-              isVisible: {
-                list: false,
-                filter: false,
-                show: true,
-                edit: false,
-              },
-            },
             admin: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
@@ -1328,6 +1314,9 @@ const getAdminBroInstance = async () => {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             givingBlocksId: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
+            traceCampaignId: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
             website: {
@@ -1375,6 +1364,9 @@ const getAdminBroInstance = async () => {
             impactLocation: {
               isVisible: { list: false, filter: false, show: true, edit: true },
             },
+            descriptionSummary: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
             slugHistory: {
               isVisible: false,
             },
@@ -1391,9 +1383,17 @@ const getAdminBroInstance = async () => {
               },
             },
             listed: {
-              isVisible: true,
-              components: {
-                filter: AdminBro.bundle('./components/FilterListedComponent'),
+              isVisible: false,
+              // components: {
+              //   filter: AdminBro.bundle('./components/FilterListedComponent'),
+              // },
+            },
+            reviewStatus: {
+              isVisible: {
+                show: true,
+                list: true,
+                edit: true,
+                filter: true,
               },
             },
             projectUpdates: {
@@ -1440,13 +1440,14 @@ const getAdminBroInstance = async () => {
                 response,
                 context: AdminBroContextInterface,
               ) => {
-                const { verified, listed } = request.payload;
+                const { verified, reviewStatus } = request.payload;
                 const statusChanges: string[] = [];
                 if (request?.payload?.id) {
                   const project = await findProjectById(
                     Number(request.payload.id),
                   );
                   if (
+                    project &&
                     Number(request?.payload?.statusId) !== project?.status?.id
                   ) {
                     switch (Number(request?.payload?.statusId)) {
@@ -1477,14 +1478,30 @@ const getAdminBroInstance = async () => {
                       NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
                     );
                   }
-                  if (project?.listed && !listed) {
+                  if (
+                    project?.reviewStatus === ReviewStatus.Listed &&
+                    reviewStatus === ReviewStatus.NotListed
+                  ) {
                     statusChanges.push(
                       NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
                     );
                   }
-                  if (!project?.listed && listed) {
+                  if (
+                    project?.reviewStatus !== ReviewStatus.Listed &&
+                    reviewStatus === ReviewStatus.Listed
+                  ) {
                     statusChanges.push(
                       NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                    );
+                  }
+                  if (
+                    project &&
+                    (project?.reviewStatus === ReviewStatus.Listed ||
+                      project?.reviewStatus === ReviewStatus.NotListed) &&
+                    reviewStatus === ReviewStatus.NotReviewed
+                  ) {
+                    statusChanges.push(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
                     );
                   }
 
@@ -1506,7 +1523,7 @@ const getAdminBroInstance = async () => {
                   // Not required for now
                   // Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
 
-                  // As we dont what fields has changed (listed, verified, ..), I just added new status and a description that project has been edited
+                  // As we don't want fields be changed (listed, verified, ..), I just added new status and a description that project has been edited
                   await Project.addProjectStatusHistoryRecord({
                     project,
                     status: project.status,
@@ -1549,10 +1566,37 @@ const getAdminBroInstance = async () => {
 
                   eventAndHandlers.forEach(eventHandler => {
                     if (statusChanges?.includes(eventHandler.event)) {
-                      // Dont put await before that intentionally to not block admin panel response with that
+                      // Don't put await before that intentionally to not block admin panel response with that
                       eventHandler.handler({ project });
                     }
                   });
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
+                    )
+                  ) {
+                    project.listed = true;
+                    await project.save();
+                  }
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
+                    )
+                  ) {
+                    project.listed = false;
+                    await project.save();
+                  }
+
+                  if (
+                    statusChanges?.includes(
+                      NOTIFICATIONS_EVENT_NAMES.PROJECT_NOT_REVIEWED,
+                    )
+                  ) {
+                    project.listed = null;
+                    await project.save();
+                  }
 
                   if (
                     statusChanges?.includes(
@@ -1582,7 +1626,7 @@ const getAdminBroInstance = async () => {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return listDelist(context, request, true);
+                return listDelist(context, request, ReviewStatus.Listed);
               },
               component: false,
             },
@@ -1590,7 +1634,7 @@ const getAdminBroInstance = async () => {
               actionType: 'bulk',
               isVisible: true,
               handler: async (request, response, context) => {
-                return listDelist(context, request, false);
+                return listDelist(context, request, ReviewStatus.NotListed);
               },
               component: false,
             },
@@ -1780,7 +1824,7 @@ const getAdminBroInstance = async () => {
                   );
                   request.payload = {
                     ...request.payload,
-                    // For making an backoffice user admin, we should just use changing it directly in DB
+                    // For making any backoffice user admin, we should just use changing it directly in DB
                     encryptedPassword: bc,
                     password: null,
                   };
@@ -1985,6 +2029,137 @@ const getAdminBroInstance = async () => {
           },
         },
       },
+      {
+        resource: Campaign,
+        options: {
+          actions: {
+            delete: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            new: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            edit: {
+              isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+            },
+            bulkDelete: {
+              isVisible: false,
+            },
+          },
+          properties: {
+            slug: {
+              isVisible: true,
+            },
+            title: {
+              isVisible: true,
+            },
+            type: {
+              isVisible: true,
+            },
+            description: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            hashtags: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            photo: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            video: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            videoPreview: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            relatedProjectsSlugs: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            landingLink: {
+              isVisible: true,
+            },
+            order: {
+              isVisible: true,
+            },
+            isActive: {
+              isVisible: true,
+            },
+            isFeatured: {
+              isVisible: true,
+            },
+            isNew: {
+              isVisible: true,
+            },
+            filterFields: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            sortingField: {
+              isVisible: {
+                show: true,
+                list: false,
+                new: false,
+                edit: true,
+              },
+            },
+            createdAt: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+            updatedAt: {
+              isVisible: {
+                show: true,
+                list: true,
+                new: false,
+                edit: false,
+              },
+            },
+          },
+        },
+      },
     ],
     rootPath: adminBroRootPath,
   });
@@ -1994,8 +2169,9 @@ interface AdminBroProjectsQuery {
   title?: string;
   slug?: string;
   verified?: string;
-  listed?: string;
+  // listed?: string;
   isImported?: string;
+  reviewStatus: ReviewStatus;
 }
 
 // add queries depending on which filters were selected
@@ -2026,9 +2202,14 @@ export const buildProjectsQuery = (
       isImported: queryStrings.isImported === 'true',
     });
 
-  if (queryStrings.listed)
-    query.andWhere('project.listed = :listed', {
-      listed: queryStrings.listed === 'true',
+  // if (queryStrings.listed)
+  //   query.andWhere('project.listed = :listed', {
+  //     listed: queryStrings.listed === 'true',
+  //   });
+  //
+  if (queryStrings.reviewStatus)
+    query.andWhere('project.reviewStatus = :reviewStatus', {
+      reviewStatus: queryStrings.reviewStatus,
     });
 
   if (queryStrings.statusId)
@@ -2185,6 +2366,7 @@ const sendProjectsToGoogleSheet = async (
       qualityScore: project.qualityScore,
       verified: Boolean(project.verified),
       listed: Boolean(project.listed),
+      reviewStatus: project.reviewStatus,
       totalDonations: project.totalDonations,
       totalProjectUpdates: project.totalProjectUpdates,
       website: project.website || '',
@@ -2204,28 +2386,57 @@ const sendProjectsToGoogleSheet = async (
 export const listDelist = async (
   context: AdminBroContextInterface,
   request,
-  list = true,
+  reviewStatus: ReviewStatus = ReviewStatus.Listed,
 ) => {
   const { records, currentAdmin } = context;
+  let listed;
+  switch (reviewStatus) {
+    case ReviewStatus.Listed:
+      listed = true;
+      break;
+    case ReviewStatus.NotListed:
+      listed = false;
+      break;
+    case ReviewStatus.NotReviewed:
+      listed = null;
+      break;
+    default:
+  }
   try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
     const projects = await Project.createQueryBuilder('project')
-      .update<Project>(Project, { listed: list })
+      .update<Project>(Project, { reviewStatus, listed })
       .where('project.id IN (:...ids)')
-      .setParameter('ids', request.query.recordIds.split(','))
+      .setParameter('ids', projectIds)
       .returning('*')
       .updateEntity(true)
       .execute();
     for (const project of projects.raw) {
+      if (
+        projectsBeforeUpdating.find(p => p.id === project.id)?.reviewStatus ===
+        reviewStatus
+      ) {
+        logger.info('listing/uListing project but no changes happened', {
+          projectId: project.id,
+          reviewStatus,
+        });
+        // if project.listed have not changed, so we should not execute rest of the codes
+        continue;
+      }
       await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
         userId: currentAdmin.id,
-        description: list
-          ? HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED
-          : HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
+        description:
+          reviewStatus === ReviewStatus.Listed
+            ? HISTORY_DESCRIPTIONS.CHANGED_TO_LISTED
+            : HISTORY_DESCRIPTIONS.CHANGED_TO_UNLISTED,
       });
       const projectWithAdmin = (await findProjectById(project.id)) as Project;
-      if (list) {
+      if (reviewStatus === ReviewStatus.Listed) {
         await getNotificationAdapter().projectListed({
           project: projectWithAdmin,
         });
@@ -2245,7 +2456,7 @@ export const listDelist = async (
       record.toJSON(context.currentAdmin);
     }),
     notice: {
-      message: `Project(s) successfully ${list ? 'listed' : 'unlisted'}`,
+      message: `Project(s) review status successfully changed to ${reviewStatus}`,
       type: 'success',
     },
   };
@@ -2506,6 +2717,10 @@ export const verifyProjects = async (
   // prioritize revokeBadge
   const verificationStatus = revokeBadge ? false : verified;
   try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
     const updateParams = { verified: verificationStatus };
 
     if (verificationStatus) {
@@ -2519,12 +2734,23 @@ export const verifyProjects = async (
     const projects = await Project.createQueryBuilder('project')
       .update<Project>(Project, updateParams)
       .where('project.id IN (:...ids)')
-      .setParameter('ids', request?.query?.recordIds?.split(','))
+      .setParameter('ids', projectIds)
       .returning('*')
       .updateEntity(true)
       .execute();
 
     for (const project of projects.raw) {
+      if (
+        projectsBeforeUpdating.find(p => p.id === project.id)?.verified ===
+        verificationStatus
+      ) {
+        logger.info('verifying/unVerifying project but no changes happened', {
+          projectId: project.id,
+          verificationStatus,
+        });
+        // if project.verified have not changed, so we should not execute rest of the codes
+        continue;
+      }
       await Project.addProjectStatusHistoryRecord({
         project,
         status: project.status,
@@ -2597,6 +2823,10 @@ export const updateStatusOfProjects = async (
 ) => {
   const { records, currentAdmin } = context;
   try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const projectsBeforeUpdating = await findProjectsByIdArray(projectIds);
     const projectStatus = await ProjectStatus.findOne({
       where: { id: status },
     });
@@ -2605,16 +2835,28 @@ export const updateStatusOfProjects = async (
       if (status === ProjStatus.cancelled) {
         updateData.verified = false;
         updateData.listed = false;
+        updateData.reviewStatus = ReviewStatus.NotListed;
       }
       const projects = await Project.createQueryBuilder('project')
         .update<Project>(Project, updateData)
         .where('project.id IN (:...ids)')
-        .setParameter('ids', request?.query?.recordIds?.split(','))
+        .setParameter('ids', projectIds)
         .returning('*')
         .updateEntity(true)
         .execute();
 
       for (const project of projects.raw) {
+        if (
+          projectsBeforeUpdating.find(p => p.id === project.id)?.statusId ===
+          projectStatus.id
+        ) {
+          logger.info('Changing project status but no changes happened', {
+            projectId: project.id,
+            projectStatus,
+          });
+          // if project.listed have not changed, so we should not execute rest of the codes
+          continue;
+        }
         await Project.addProjectStatusHistoryRecord({
           project,
           status: projectStatus,

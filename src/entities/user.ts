@@ -10,7 +10,7 @@ import {
   CreateDateColumn,
   JoinTable,
 } from 'typeorm';
-import { Project, ProjStatus } from './project';
+import { Project, ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
@@ -173,7 +173,8 @@ export class User extends BaseEntity {
       .innerJoinAndSelect('reaction.project', 'project')
       .where('reaction.userId = :id', { id: this.id })
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       )
       .getCount();
 
