@@ -56,6 +56,18 @@ export class FeaturedProject extends BaseEntity {
   @Column({ nullable: true })
   projectId: number;
 
+  @Index()
+  @Field(type => ProjectUpdate)
+  @OneToOne(type => ProjectUpdate)
+  @JoinColumn()
+  projectUpdate: ProjectUpdate;
+
+  @RelationId(
+    (featuredProject: FeaturedProject) => featuredProject.projectUpdate,
+  )
+  @Column({ nullable: true })
+  projectUpdateId: number;
+
   @Field(type => Int, { nullable: true })
   @Column({ type: 'integer', nullable: true })
   position: number;

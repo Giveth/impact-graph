@@ -96,6 +96,7 @@ const projectFiltersCacheDuration = Number(
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { AppDataSource } from '../orm';
 import { creteSlugFromProject } from '../utils/utils';
+import { FeaturedProject } from '../entities/featuredProject';
 
 @ObjectType()
 class AllProjects {
@@ -626,29 +627,17 @@ export class ProjectResolver {
   @Query(returns => ProjectUpdate)
   async featuredProjectUpdate(
     @Arg('projectId') projectId: number,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
-    connectedWalletUserId: number,
-    @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdate | null> {
-    let query = this.projectUpdateRepository
-      .createQueryBuilder('projectUpdate')
-      .where(
-        'projectUpdate.projectId = :projectId and projectUpdate.isMain = false',
-        {
-          projectId,
-        },
-      )
-      .orderBy(`projectUpdate.createdAt`, 'DESC')
-      .take(1);
+    const featuredProject = await FeaturedProject.createQueryBuilder(
+      'featuredProject',
+    )
+      .innerJoinAndSelect('featuredProject.projectUpdate', 'projectUpdate')
+      .where('featuredProject.projectId = :projectId', {
+        projectId,
+      })
+      .getOne();
 
-    const viewerUserId = connectedWalletUserId || user?.userId;
-    if (viewerUserId) {
-      query = ProjectResolver.addReactionToProjectsUpdateQuery(
-        query,
-        viewerUserId,
-      );
-    }
-    return query.getOne();
+    return featuredProject!.projectUpdate;
   }
 
   @Query(returns => AllProjects)

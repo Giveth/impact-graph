@@ -437,6 +437,27 @@ export const fetchDonationsByUserIdQuery = `
   }
 `;
 
+export const fetchFeaturedProjectUpdate = `
+  query (
+    $projectId: Int,
+  ) {
+    featuredProjectUpdate(
+      projectId: $projectId,
+    ) {
+      featuredProjectUpdate {
+        id
+        title
+        projectId
+        userId
+        content
+        isMain
+        totalReactions
+        createdAt
+      }
+    }
+  }
+`;
+
 export const fetchFeaturedProjectUpdates = `
   query (
     $limit: Int

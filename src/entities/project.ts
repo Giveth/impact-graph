@@ -511,6 +511,14 @@ export class ProjectUpdate extends BaseEntity {
   @Column('text', { nullable: true })
   managingFundDescription: string;
 
+  @Field(type => FeaturedProject, { nullable: true })
+  @OneToOne(
+    type => FeaturedProject,
+    featuredProject => featuredProject.projectUpdate,
+    { nullable: true },
+  )
+  featuredProject?: FeaturedProject;
+
   // does not call with createQueryBuilder
   @AfterInsert()
   async updateProjectStampOnCreation() {
