@@ -438,27 +438,21 @@ export const fetchDonationsByUserIdQuery = `
 `;
 
 export const fetchFeaturedProjectUpdate = `
-  query (
-    $projectId: Int,
-  ) {
-    featuredProjectUpdate(
-      projectId: $projectId,
-    ) {
-      featuredProjectUpdate {
-        id
-        title
-        projectId
-        userId
-        content
-        isMain
-        totalReactions
-        createdAt
-      }
+  query featuredProjectUpdate($projectId: Int!) {
+    featuredProjectUpdate(projectId: $projectId) {
+      id
+      title
+      projectId
+      userId
+      content
+      isMain
+      totalReactions
+      createdAt
     }
   }
 `;
 
-export const fetchFeaturedProjectUpdates = `
+export const fetchFeaturedProjects = `
   query (
     $limit: Int
     $skip: Int
@@ -519,6 +513,10 @@ export const fetchFeaturedProjectUpdates = `
         totalReactions
         totalDonations
         totalTraceDonations
+        featuredProject {
+          id
+          position
+        }
       }
       totalCount
     }

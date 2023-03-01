@@ -1,5 +1,6 @@
 // @ts-ignore-start
 import {
+  addFeaturedProjectUpdate,
   createDonation,
   createToken,
   exportProjectsWithFiltersToCsv,
@@ -17,10 +18,16 @@ import {
   generateRandomEtheriumAddress,
   generateRandomTxHash,
   saveProjectDirectlyToDb,
+  saveUserDirectlyToDb,
   SEED_DATA,
   sleep,
 } from '../../test/testUtils';
-import { Project, ProjStatus, RevokeSteps } from '../entities/project';
+import {
+  Project,
+  ProjectUpdate,
+  ProjStatus,
+  RevokeSteps,
+} from '../entities/project';
 import { User } from '../entities/user';
 import { assert } from 'chai';
 import { messages } from '../utils/messages';
@@ -61,6 +68,7 @@ import { findUserById } from '../repositories/userRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import { findOneProjectStatusHistory } from '../repositories/projectSatusHistoryRepository';
 import { findTokenByTokenAddress } from '../repositories/tokenRepository';
+import { FeaturedProject } from '../entities/featuredProject';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -87,6 +95,10 @@ describe(
 describe(
   'importThirdPartyProject() test cases',
   importThirdPartyProjectTestCases,
+);
+describe(
+  'addToFeaturedProjectUpdate() TestCases',
+  addToFeaturedProjectUpdateTestCases,
 );
 describe(
   'sendBroadcastNotification() test cases',
@@ -1149,6 +1161,117 @@ function exportProjectsWithFiltersToCsvTestCases() {
     // If we set GOOGLE_SPREADSHEETS_PRIVATE_KEY,GOOGLE_SPREADSHEETS_CLIENT_EMAIL,GOOGLE_PROJECT_EXPORTS_SPREADSHEET_ID
     // to .env.test we would not get this error anymore
     assert.equal(result?.notice.message, 'No key or keyFile set.');
+  });
+}
+
+function addToFeaturedProjectUpdateTestCases() {
+  it('should add a project and selected update to the featuredProject entity', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(
+      {
+        ...createProjectData(),
+        title: String(new Date().getTime()),
+        slug: String(new Date().getTime()),
+        verified: true,
+        listed: true,
+      },
+      user,
+    );
+
+    const projectUpdate = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project.id,
+      content: 'TestProjectUpdate1',
+      title: 'testEditProjectUpdate1',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+
+    await addFeaturedProjectUpdate(
+      {
+        currentAdmin: user as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(projectUpdate.id),
+        },
+      },
+    );
+
+    const featuredProjectUpdate = await FeaturedProject.createQueryBuilder(
+      'featuredProject',
+    )
+      .where(
+        'featuredProject.projectId = :projectId AND featuredProject.projectUpdateId = :projectUpdateId',
+        { projectId: project.id, projectUpdateId: projectUpdate.id },
+      )
+      .getOne();
+    assert.isOk(featuredProjectUpdate);
+    assert.equal(featuredProjectUpdate?.projectId, project.id);
+    assert.equal(featuredProjectUpdate?.projectUpdateId, projectUpdate.id);
+  });
+
+  it('should not add the same project twice to the featured project entity', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(
+      {
+        ...createProjectData(),
+        title: String(new Date().getTime()),
+        slug: String(new Date().getTime()),
+        verified: true,
+        listed: true,
+      },
+      user,
+    );
+
+    const projectUpdate = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project.id,
+      content: 'TestProjectUpdate1',
+      title: 'testEditProjectUpdate1',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+
+    await addFeaturedProjectUpdate(
+      {
+        currentAdmin: user as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(projectUpdate.id),
+        },
+      },
+    );
+
+    await addFeaturedProjectUpdate(
+      {
+        currentAdmin: user as User,
+        h: {},
+        resource: {},
+        records: [],
+      },
+      {
+        query: {
+          recordIds: String(projectUpdate.id),
+        },
+      },
+    );
+
+    const featuredProjectUpdates = await FeaturedProject.find({
+      where: { projectId: project.id, projectUpdateId: projectUpdate.id },
+    });
+
+    assert.isOk(featuredProjectUpdates);
+    assert.equal(featuredProjectUpdates.length, 1);
+    assert.equal(featuredProjectUpdates[0]?.projectId, project.id);
+    assert.equal(featuredProjectUpdates[0]?.projectUpdateId, projectUpdate.id);
   });
 }
 

@@ -598,7 +598,7 @@ export class ProjectResolver {
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<TopProjects> {
     const query = Project.createQueryBuilder('project')
-      .innerJoin('project.featuredProject', 'featuredProject')
+      .innerJoinAndSelect('project.featuredProject', 'featuredProject')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
@@ -606,7 +606,7 @@ export class ProjectResolver {
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
       .where('featuredProject.position IS NOT NULL')
-      .orderBy('featuredProject.position');
+      .orderBy('featuredProject.position', 'ASC');
 
     // if loggedIn get his reactions
     const viewerUserId = connectedWalletUserId || user?.userId;
@@ -626,8 +626,8 @@ export class ProjectResolver {
 
   @Query(returns => ProjectUpdate)
   async featuredProjectUpdate(
-    @Arg('projectId') projectId: number,
-  ): Promise<ProjectUpdate | null> {
+    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
+  ): Promise<ProjectUpdate> {
     const featuredProject = await FeaturedProject.createQueryBuilder(
       'featuredProject',
     )

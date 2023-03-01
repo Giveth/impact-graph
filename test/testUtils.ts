@@ -149,9 +149,11 @@ export const saveUserDirectlyToDb = async (
 
 export const saveFeaturedProjectDirectlyToDb = async (
   projectId: number,
+  projectUpdateId: number,
 ): Promise<FeaturedProject> => {
   return FeaturedProject.create({
     projectId,
+    projectUpdateId,
   }).save();
 };
 
