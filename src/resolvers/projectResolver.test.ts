@@ -2791,7 +2791,7 @@ function deactivateProjectTestCases() {
     assert.isNotOk(projectStatusHistory?.reasonId);
   });
 
-  it('Should deactivate project successfully, wont affect listed(true)', async () => {
+  it('Should deactivate project successfully, will affect listed to (false)', async () => {
     const firstUserAccessToken = await generateTestAccessToken(
       SEED_DATA.FIRST_USER.id,
     );
@@ -2821,8 +2821,8 @@ function deactivateProjectTestCases() {
       },
     });
     assert.equal(updatedProject?.statusId, ProjStatus.deactive);
-    assert.isTrue(updatedProject?.listed);
-    assert.equal(updatedProject?.reviewStatus, ReviewStatus.Listed);
+    assert.equal(updatedProject?.reviewStatus, ReviewStatus.NotListed);
+    assert.isFalse(updatedProject?.listed);
   });
 
   it('Should deactivate project successfully, wont affect listed(false)', async () => {

@@ -1708,6 +1708,12 @@ export class ProjectResolver {
     const prevStatus = project.status;
     project.status = status;
     project.prevStatusId = prevStatus.id;
+
+    if (statusId === ProjStatus.deactive) {
+      project.reviewStatus = ReviewStatus.NotListed;
+      project.listed = false;
+    }
+
     await project.save();
 
     await Project.addProjectStatusHistoryRecord({
