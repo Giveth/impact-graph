@@ -10,8 +10,8 @@ import {
   CreateDateColumn,
   JoinTable,
 } from 'typeorm';
-import { Project, ProjStatus } from './project';
-import { Donation } from './donation';
+import { Project, ProjStatus, ReviewStatus } from './project';
+import { Donation, DONATION_STATUS } from './donation';
 import { Reaction } from './reaction';
 import { AccountVerification } from './accountVerification';
 import { ProjectStatusHistory } from './projectStatusHistory';
@@ -158,11 +158,13 @@ export class User extends BaseEntity {
 
   @Field(type => Int, { nullable: true })
   async donationsCount() {
-    const donationsCount = await Donation.createQueryBuilder('donation')
+    const query = await Donation.createQueryBuilder('donation')
       .where(`donation."userId" = :id`, { id: this.id })
-      .getCount();
+      .andWhere(`status = :status`, {
+        status: DONATION_STATUS.VERIFIED,
+      });
 
-    return donationsCount;
+    return query.getCount();
   }
 
   @Field(type => Int, { nullable: true })
@@ -171,7 +173,8 @@ export class User extends BaseEntity {
       .innerJoinAndSelect('reaction.project', 'project')
       .where('reaction.userId = :id', { id: this.id })
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
       )
       .getCount();
 

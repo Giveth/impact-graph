@@ -3,6 +3,7 @@ import {
   findProjectBySlug,
   findProjectByWalletAddress,
   findProjectsByIdArray,
+  findProjectsBySlugArray,
   projectsWithoutUpdateAfterTimeFrame,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
@@ -34,6 +35,9 @@ import {
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
+import { SUMMARY_LENGTH } from '../constants/summary';
+import { getHtmlTextSummary } from '../utils/utils';
+import { generateRandomString } from '../utils/utils';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -49,6 +53,10 @@ describe(
   updateProjectWithVerificationFormTestCases,
 );
 describe('order by totalPower', orderByTotalPower);
+describe(
+  'update descriptionSummary test cases',
+  updateDescriptionSummaryTestCases,
+);
 
 function projectsWithoutUpdateAfterTimeFrameTestCases() {
   it('should return projects created a long time ago', async () => {
@@ -94,7 +102,13 @@ describe('verifyProject test cases', verifyProjectTestCases);
 describe('verifyMultipleProjects test cases', verifyMultipleProjectsTestCases);
 describe('findProjectById test cases', findProjectByIdTestCases);
 describe('findProjectsByIdArray test cases', findProjectsByIdArrayTestCases);
-describe('findProjectBySlug test cases', () => {
+describe('findProjectBySlug test cases', findProjectBySlugTestCases);
+describe(
+  'findProjectsBySlugArray test cases',
+  findProjectsBySlugArrayTestCases,
+);
+
+function findProjectBySlugTestCases() {
   it('Should find project by id', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const foundProject = await findProjectBySlug(project.slug as string);
@@ -106,7 +120,30 @@ describe('findProjectBySlug test cases', () => {
     const foundProject = await findProjectBySlug(new Date().toString());
     assert.isNull(foundProject);
   });
-});
+}
+
+function findProjectsBySlugArrayTestCases() {
+  it('Should find project multi projects by slug', async () => {
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    const project3 = await saveProjectDirectlyToDb(createProjectData());
+    const projects = await findProjectsBySlugArray([
+      project1.slug as string,
+      project2.slug as string,
+      project3.slug as string,
+      generateRandomString(),
+    ]);
+    assert.equal(projects.length, 3);
+    assert.isOk(projects.find(p => p.id === project1.id));
+    assert.isOk(projects.find(p => p.id === project2.id));
+    assert.isOk(projects.find(p => p.id === project3.id));
+  });
+
+  it('should not find any project when slug doesnt exist', async () => {
+    const projects = await findProjectsBySlugArray([generateRandomString()]);
+    assert.isEmpty(projects);
+  });
+}
 
 function findProjectByIdTestCases() {
   it('Should find project by id', async () => {
@@ -389,5 +426,52 @@ function orderByTotalPower() {
     assert.equal(projects[0]?.id, project3.id);
     assert.equal(projects[1]?.id, project2.id);
     assert.equal(projects[2]?.id, project1.id);
+  });
+}
+
+function updateDescriptionSummaryTestCases() {
+  const SHORT_DESCRIPTION = '<div>Short Description</div>';
+  const SHORT_DESCRIPTION_SUMMARY = 'Short Description';
+
+  it('should set description summary on creation', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      description: SHORT_DESCRIPTION,
+    });
+
+    assert.equal(project.descriptionSummary, SHORT_DESCRIPTION_SUMMARY);
+  });
+
+  it('should update description summary on update', async () => {
+    let project: Project | null = await saveProjectDirectlyToDb(
+      createProjectData(),
+    );
+
+    project.description = SHORT_DESCRIPTION;
+    await project.save();
+    project = await Project.findOne({ where: { id: project.id } });
+    assert.equal(project?.descriptionSummary, SHORT_DESCRIPTION_SUMMARY);
+  });
+
+  it('should set limited length description summary', async () => {
+    const longDescription = `
+    <div>
+      ${SHORT_DESCRIPTION.repeat(
+        Math.ceil(SUMMARY_LENGTH / SHORT_DESCRIPTION_SUMMARY.length) + 1,
+      )}
+    </div>
+    `;
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      description: longDescription,
+    });
+
+    assert.isOk(project.descriptionSummary);
+    assert.lengthOf(project.descriptionSummary as string, SUMMARY_LENGTH);
+    assert.equal(
+      project.descriptionSummary,
+      getHtmlTextSummary(longDescription),
+    );
   });
 }

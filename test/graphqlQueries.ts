@@ -48,12 +48,14 @@ export const createProjectQuery = `
         id
         title
         description
+        descriptionSummary
         admin
         image
         impactLocation
         slug
         walletAddress
         listed
+        reviewStatus
         verified
         organization {
           id
@@ -89,9 +91,11 @@ export const updateProjectQuery = `
       id
       title
       description
+      descriptionSummary
       image
       slug
       listed
+      reviewStatus
       verified
       slugHistory
       creationDate
@@ -106,7 +110,7 @@ export const updateProjectQuery = `
         isRecipient
         networkId
       }
-      adminUser{
+      adminUser {
         id
         name
         email
@@ -380,6 +384,7 @@ export const fetchAllDonationsQuery = `
         }
         project {
           listed
+          reviewStatus
           verified
           slug
           admin
@@ -532,6 +537,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $searchTerm: String
     $category: String
     $mainCategory: String
+    $campaignSlug: String
     $connectedWalletUserId: Int
   ) {
     allProjects(
@@ -541,15 +547,24 @@ export const fetchMultiFilterAllProjectsQuery = `
       filters: $filters
       searchTerm: $searchTerm
       category: $category
+      campaignSlug: $campaignSlug
       mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
     ) {
+    
+      campaign{
+        slug
+        title
+      }
+      
       projects {
         id
         title
         balance
         image
         slug
+        description
+        descriptionSummary
         creationDate
         updatedAt
         admin
@@ -560,6 +575,7 @@ export const fetchMultiFilterAllProjectsQuery = `
         verified
         traceCampaignId
         listed
+        reviewStatus
         givingBlocksId
         status {
           id
@@ -634,6 +650,7 @@ export const fetchProjectsBySlugQuery = `
       verified
       traceCampaignId
       listed
+      reviewStatus
       givingBlocksId
       projectPower {
         totalPower
@@ -762,6 +779,7 @@ export const fetchSimilarProjectsBySlugQuery = `
         verified
         traceCampaignId
         listed
+        reviewStatus
         givingBlocksId
         status {
           id
@@ -821,6 +839,7 @@ export const fetchLikedProjectsQuery = `
         verified
         traceCampaignId
         listed
+        reviewStatus
         givingBlocksId
         status {
           id
@@ -1035,6 +1054,7 @@ export const projectsBySlugsQuery = `
           walletAddress
           impactLocation
           listed
+          reviewStatus
           givingBlocksId
           categories {
             name
@@ -1081,6 +1101,7 @@ export const projectsByUserIdQuery = `
           walletAddress
           impactLocation
           listed
+          reviewStatus
           givingBlocksId
           projectVerificationForm {
             id
@@ -1171,6 +1192,7 @@ export const projectByIdQuery = `
       verified
       title,
       listed,
+      reviewStatus
       description,
       walletAddress
       admin
@@ -1256,6 +1278,8 @@ export const editProjectUpdateQuery = `
                     userId
                     projectId
                     title
+                    content
+                    contentSummary
                     }
          }`;
 
@@ -1576,6 +1600,62 @@ query {
             value
             isActive
         }
+    }
+}`;
+
+export const getCampaigns = `
+query {
+    campaigns{
+        id
+        title
+        description
+        type
+        relatedProjects {
+          id
+          slug
+        }
+        relatedProjectsCount
+        photo
+        video
+        videoPreview
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
+    }
+}`;
+
+export const fetchCampaignBySlug = `
+  query (
+    $slug: String
+  ) {
+    findCampaignBySlug(
+      slug: $slug
+    ){
+        id
+        title
+        type
+        description
+        relatedProjects {
+          id
+          slug  
+        }
+        relatedProjectsCount
+        photo
+        video
+        videoPreview
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
     }
 }`;
 

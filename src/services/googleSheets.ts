@@ -1,6 +1,7 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import config from '../config';
 import { logger } from '../utils/logger';
+import { ReviewStatus } from '../entities/project';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -40,6 +41,7 @@ export const addSheetWithRows = async (
     qualityScore: number;
     verified: boolean;
     listed: boolean;
+    reviewStatus: ReviewStatus;
     totalDonations: number;
     totalProjectUpdates: number;
     website: string;

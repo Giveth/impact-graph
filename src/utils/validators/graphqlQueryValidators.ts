@@ -97,7 +97,7 @@ export const createDonationQueryValidator = Joi.object({
   nonce: Joi.number().integer().min(0).required(),
   anonymous: Joi.boolean(),
   transakId: Joi.string(),
-  referrerId: Joi.string(),
+  referrerId: Joi.string().allow(null, ''),
 });
 
 export const updateDonationQueryValidator = Joi.object({

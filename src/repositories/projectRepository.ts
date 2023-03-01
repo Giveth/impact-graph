@@ -1,8 +1,10 @@
 import { UpdateResult } from 'typeorm';
 import {
+  FilterField,
   Project,
   ProjectUpdate,
   ProjStatus,
+  ReviewStatus,
   SortingField,
 } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
@@ -14,11 +16,7 @@ import {
 } from '../utils/errorMessages';
 import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import {
-  FilterField,
-  OrderDirection,
-  ProjectResolver,
-} from '../resolvers/projectResolver';
+import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -50,15 +48,28 @@ export const findProjectsByIdArray = (
 };
 
 // return query without execution
-export const filterProjectsQuery = (
-  limit: number,
-  skip: number,
-  searchTerm?: string,
-  category?: string,
-  mainCategory?: string,
-  filters?: FilterField[],
-  sortingBy?: SortingField,
-) => {
+export type FilterProjectQueryInputParams = {
+  limit: number;
+  skip: number;
+  searchTerm?: string;
+  category?: string;
+  mainCategory?: string;
+  filters?: FilterField[];
+  slugArray?: string[];
+  sortingBy?: SortingField;
+};
+export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
+  const {
+    limit,
+    skip,
+    searchTerm,
+    category,
+    mainCategory,
+    filters,
+    sortingBy,
+    slugArray,
+  } = params;
+
   let query = Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.users', 'users')
@@ -81,13 +92,23 @@ export const filterProjectsQuery = (
       'projectPower.powerRank',
       'projectPower.round',
     ])
-    .where(`project.statusId = ${ProjStatus.active} AND project.listed = true`);
+    .where(
+      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+      { reviewStatus: ReviewStatus.Listed },
+    );
 
   // Filters
   query = ProjectResolver.addCategoryQuery(query, category);
   query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
   query = ProjectResolver.addSearchQuery(query, searchTerm);
   query = ProjectResolver.addFiltersQuery(query, filters);
+  if (slugArray && slugArray.length > 0) {
+    // This is used for getting projects that manually has been set to campaigns
+    // TODO this doesnt query slug in project.slugHistory, but we should add it later
+    query.andWhere(`project.slug IN (:...slugs)`, {
+      slugs: slugArray,
+    });
+  }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
   switch (sortingBy) {
@@ -146,11 +167,20 @@ export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
 
 export const findProjectBySlug = (slug: string): Promise<Project | null> => {
   // check current slug and previous slugs
-  return Project.createQueryBuilder('project')
-    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-      slug,
-    })
-    .getOne();
+  return (
+    Project.createQueryBuilder('project')
+      .leftJoinAndSelect('project.status', 'status')
+      .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.organization', 'organization')
+      // you can alias it as user but it still is mapped as adminUser
+      // like defined in our project entity
+      .leftJoin('project.adminUser', 'user')
+      .addSelect(publicSelectionFields)
+      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+        slug,
+      })
+      .getOne()
+  );
 };
 
 export const verifyMultipleProjects = async (params: {
@@ -287,8 +317,26 @@ export const makeProjectListed = async (id: number): Promise<void> => {
   await Project.createQueryBuilder('broadcast_notification')
     .update<Project>(Project, {
       listed: true,
+      reviewStatus: ReviewStatus.Listed,
     })
     .where(`id =${id}`)
     .updateEntity(true)
     .execute();
+};
+
+export const findProjectsBySlugArray = async (
+  slugArray: string[],
+): Promise<Project[]> => {
+  // TODO should refactor it and convert it to single query
+  const projects: Project[] = [];
+  const result = await Promise.all(
+    slugArray.map(slug => findProjectBySlug(slug)),
+  );
+
+  result.forEach(project => {
+    if (project) {
+      projects.push(project);
+    }
+  });
+  return projects;
 };

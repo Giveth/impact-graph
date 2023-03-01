@@ -32,6 +32,7 @@ import { Project, ProjectUpdate } from './project';
 import { Reaction } from './reaction';
 import BroadcastNotification from './broadcastNotification';
 import { FeaturedProject } from './featuredProject';
+import { Campaign } from './campaign';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -75,5 +76,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     PowerBalanceSnapshotHistory,
     PowerBoostingSnapshotHistory,
     BroadcastNotification,
+
+    Campaign,
   ];
 };
