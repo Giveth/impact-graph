@@ -7,6 +7,7 @@ import {
   graphqlUrl,
   PROJECT_UPDATE_SEED_DATA,
   REACTION_SEED_DATA,
+  saveFeaturedProjectDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
@@ -19,6 +20,8 @@ import {
   deactivateProjectQuery,
   deleteProjectUpdateQuery,
   editProjectUpdateQuery,
+  fetchFeaturedProjects,
+  fetchFeaturedProjectUpdate,
   fetchLatestProjectUpdates,
   fetchLikedProjectsQuery,
   fetchMultiFilterAllProjectsQuery,
@@ -113,6 +116,9 @@ describe(
   'walletAddressIsPurpleListed Test Cases --->',
   walletAddressIsPurpleListedTestCases,
 );
+
+describe('featureProjectsTestCases --->', featureProjectsTestCases);
+describe('featureProjectUpdateTestCases --->', featuredProjectUpdateTestCases);
 
 describe('walletAddressIsValid test cases --->', walletAddressIsValidTestCases);
 // TODO We should implement test cases for below query/mutation
@@ -3774,6 +3780,112 @@ function getPurpleListTestCases() {
     assert.isFalse(
       result.data.data.getPurpleList.includes(walletAddress.toLowerCase()),
     );
+  });
+}
+
+function featuredProjectUpdateTestCases() {
+  it('should return a specific featured project update', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      listed: true,
+    });
+
+    const projectUpdate = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project.id,
+      content: 'TestProjectUpdate1',
+      title: 'testEditProjectUpdate1',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+
+    const featuredProject = await saveFeaturedProjectDirectlyToDb(
+      Number(project.id),
+      Number(projectUpdate.id),
+    );
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchFeaturedProjectUpdate,
+      variables: {
+        projectId: project.id,
+      },
+    });
+
+    assert.equal(
+      Number(result.data.data.featuredProjectUpdate.projectId),
+      project.id,
+    );
+    assert.equal(
+      Number(result.data.data.featuredProjectUpdate.id),
+      projectUpdate.id,
+    );
+  });
+}
+
+function featureProjectsTestCases() {
+  it('should return all projects that have been featured', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      listed: true,
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      listed: true,
+    });
+
+    const projectUpdate = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project.id,
+      content: 'TestProjectUpdate1',
+      title: 'testEditProjectUpdate1',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+
+    const projectUpdate2 = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project2.id,
+      content: 'TestProjectUpdate1',
+      title: 'testEditProjectUpdate1',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
+
+    const featuredProject = await saveFeaturedProjectDirectlyToDb(
+      Number(project.id),
+      Number(projectUpdate.id),
+    );
+
+    // MUST HAVE POSITION OR WILL NOT BE DISPLAYED
+    featuredProject.position = 1;
+    await featuredProject.save();
+
+    const featuredProject2 = await saveFeaturedProjectDirectlyToDb(
+      Number(project2.id),
+      Number(projectUpdate2.id),
+    );
+
+    // MUST HAVE POSITION OR WILL NOT BE DISPLAYED
+    featuredProject2.position = 2;
+    await featuredProject2.save();
+
+    const take = 10;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchFeaturedProjects,
+      variables: {
+        take,
+      },
+    });
+
+    const featuredProjects = result.data.data.featuredProjects.projects;
+    const totalCount = result.data.data.featuredProjects.totalCount;
+
+    assert.equal(totalCount, 2);
+    assert.isTrue(featuredProjects[0].featuredProject.position === 1);
+    assert.equal(Number(featuredProjects[0].id), project.id);
+    assert.equal(Number(featuredProjects[1].id), project2.id);
   });
 }
 
