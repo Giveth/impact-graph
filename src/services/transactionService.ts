@@ -16,7 +16,7 @@ import axios from 'axios';
 import { erc20ABI } from '../assets/erc20ABI';
 import { disperseABI } from '../assets/disperseABI';
 import {
-  getEtherscanOrBlockScoutUrl,
+  getBlockExplorerApiUrl,
   getNetworkNativeToken,
   getNetworkWeb3,
   NETWORK_IDS,
@@ -183,7 +183,7 @@ async function getListOfTransactionsByAddress(input: {
     'NODE RPC request count - getTransactionDetailForTokenTransfer  web3.eth.getTransaction fromAddress:',
     address,
   );
-  const result = await axios.get(getEtherscanOrBlockScoutUrl(networkId), {
+  const result = await axios.get(getBlockExplorerApiUrl(networkId), {
     params: {
       module: 'account',
       action: 'txlist',
