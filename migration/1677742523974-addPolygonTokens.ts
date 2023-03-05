@@ -7,11 +7,6 @@ import { NETWORK_IDS } from '../src/provider';
 // tslint:disable-next-line:class-name
 export class addGoerliTokens1677742523974 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
-    const environment = config.get('ENVIRONMENT') as string;
-    if (environment === 'production') {
-      // We dont add polygon tokens in production ENV
-      return;
-    }
     await queryRunner.manager.save(
       Token,
       seedTokens
@@ -31,28 +26,11 @@ export class addGoerliTokens1677742523974 implements MigrationInterface {
     )[0];
 
     for (const token of tokens) {
+      // Add all Polygon tokens to Giveth organization
       await queryRunner.query(`INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
-        (${token.id}, ${givethOrganization.id}),
+        (${token.id}, ${givethOrganization.id})
       ;`);
     }
-
-    const changeOrganization = (
-      await queryRunner.query(`SELECT * FROM organization
-        WHERE label = 'change'`)
-    )[0];
-
-    const polygonNativeToken = (
-      await queryRunner.query(`
-            SELECT * FROM token
-            WHERE symbol='MATIC' and "networkId"=${NETWORK_IDS.POLYGON}
-        `)
-    )[0];
-
-    await queryRunner.query(
-      `INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
-          (${polygonNativeToken.id}, ${changeOrganization.id})
-        ;`,
-    );
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {}
