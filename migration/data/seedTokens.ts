@@ -1,3 +1,5 @@
+import { NETWORK_IDS } from '../../src/provider';
+
 interface ITokenData {
   name: string;
   symbol: string;
@@ -1029,6 +1031,15 @@ const seedTokens: ITokenData[] = [
     name: 'GIV test',
     decimals: 18,
     networkId: 5,
+  },
+
+  // POLYGON tokens
+  {
+    name: 'POLYGON native token',
+    symbol: 'MATIC',
+    address: '0x52459834ca561cb55411699e9c2143683bcf865f',
+    decimals: 18,
+    networkId: NETWORK_IDS.POLYGON,
   },
 ];
 

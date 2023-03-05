@@ -14,6 +14,7 @@ export const NETWORK_IDS = {
   ROPSTEN: 3,
   GOERLI: 5,
   XDAI: 100,
+  POLYGON: 137,
   BSC: 56,
 };
 
@@ -23,6 +24,7 @@ export const NETWORKS_IDS_TO_NAME = {
   5: 'GOERLI',
   100: 'GNOSIS',
   56: 'BSC',
+  137: 'POLYGON',
 };
 
 const NETWORK_NAMES = {
@@ -31,6 +33,7 @@ const NETWORK_NAMES = {
   MAINNET: 'mainnet',
   ROPSTEN: 'ropsten',
   GOERLI: 'goerli',
+  POLYGON: 'polygon-mainnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -39,6 +42,7 @@ const NETWORK_NATIVE_TOKENS = {
   MAINNET: 'ETH',
   ROPSTEN: 'ETH',
   GOERLI: 'ETH',
+  POLYGON: 'MATIC',
 };
 
 const networkNativeTokensList = [
@@ -67,6 +71,11 @@ const networkNativeTokensList = [
     networkId: NETWORK_IDS.GOERLI,
     nativeToken: NETWORK_NATIVE_TOKENS.GOERLI,
   },
+  {
+    networkName: NETWORK_NAMES.POLYGON,
+    networkId: NETWORK_IDS.POLYGON,
+    nativeToken: NETWORK_NATIVE_TOKENS.POLYGON,
+  },
 ];
 const NETWORK_ID_MAP = {
   1: NETWORK_NAMES.MAINNET,
@@ -92,6 +101,8 @@ const ropstenNodeUrl = `https://${NETWORK_NAMES.ROPSTEN}.infura.io/v3/${INFURA_A
 const ropstenWeb3 = new Web3(ropstenNodeUrl);
 const goerliNodeUrl = `https://${NETWORK_NAMES.GOERLI}.infura.io/v3/${INFURA_API_KEY}`;
 const goerliWeb3 = new Web3(goerliNodeUrl);
+const polygonNodeUrl = `https://${NETWORK_NAMES.POLYGON}.infura.io/v3/${INFURA_API_KEY}`;
+const polygonWeb3 = new Web3(polygonNodeUrl);
 const xdaiWeb3NodeUrl = config.get('XDAI_NODE_HTTP_URL') as string;
 const xdaiWeb3 = new Web3(xdaiWeb3NodeUrl);
 
@@ -99,11 +110,12 @@ export const getNetworkWeb3 = (networkId: number): Web3 => {
   switch (networkId) {
     case NETWORK_IDS.MAIN_NET:
       return mainnetWeb3;
-
     case NETWORK_IDS.ROPSTEN:
       return ropstenWeb3;
     case NETWORK_IDS.GOERLI:
       return goerliWeb3;
+    case NETWORK_IDS.POLYGON:
+      return polygonWeb3;
     case NETWORK_IDS.XDAI:
       return xdaiWeb3;
     default:
@@ -143,6 +155,10 @@ export function getEtherscanOrBlockScoutUrl(networkId: number): string {
     case NETWORK_IDS.GOERLI:
       return `${config.get('ETHERSCAN_GOERLI_API_URL')}?apikey=${config.get(
         'ETHERSCAN_API_KEY',
+      )}`;
+    case NETWORK_IDS.POLYGON:
+      return `${config.get('POLYGON_SCAN_API_URL')}?apikey=${config.get(
+        'POLYGON_SCAN_API_KEY',
       )}`;
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
