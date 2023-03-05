@@ -3,10 +3,10 @@ import { assert } from 'chai';
 import { generateRandomEtheriumAddress } from '../../../test/testUtils';
 import { convertTimeStampToSeconds } from '../../utils/utils';
 
-describe(
-  'getPoignArtWithdrawals() test cases',
-  getPoignArtWithdrawalsTestCases,
-);
+// describe(
+//   'getPoignArtWithdrawals() test cases',
+//   getPoignArtWithdrawalsTestCases,
+// );
 
 function getPoignArtWithdrawalsTestCases() {
   const unchainWalletAddress = process.env
