@@ -140,10 +140,12 @@ export function getProvider(networkId: number) {
   return new ethers.providers.InfuraProvider(network, INFURA_API_KEY);
 }
 
-export function getEtherscanOrBlockScoutUrl(networkId: number): string {
+export function getBlockExplorerApiUrl(networkId: number): string {
   switch (networkId) {
     case NETWORK_IDS.XDAI:
-      return config.get('BLOCKSCOUT_API_URL') as string;
+      return `${config.get('GNOSISSCAN_API_URL')}?apikey=${config.get(
+        'GNOSISSCAN_API_KEY',
+      )}`;
     case NETWORK_IDS.MAIN_NET:
       return `${config.get('ETHERSCAN_MAINNET_API_URL')}?apikey=${config.get(
         'ETHERSCAN_API_KEY',
