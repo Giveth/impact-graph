@@ -41,7 +41,7 @@ import { Project, ProjectUpdate } from './project';
 
 @Entity()
 @ObjectType()
-export class FeaturedProject extends BaseEntity {
+export class FeaturedUpdate extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
@@ -52,7 +52,7 @@ export class FeaturedProject extends BaseEntity {
   @JoinColumn()
   project: Project;
 
-  @RelationId((featuredProject: FeaturedProject) => featuredProject.project)
+  @RelationId((featuredUpdate: FeaturedUpdate) => featuredUpdate.project)
   @Column({ nullable: true })
   projectId: number;
 
@@ -62,9 +62,7 @@ export class FeaturedProject extends BaseEntity {
   @JoinColumn()
   projectUpdate: ProjectUpdate;
 
-  @RelationId(
-    (featuredProject: FeaturedProject) => featuredProject.projectUpdate,
-  )
+  @RelationId((featuredUpdate: FeaturedUpdate) => featuredUpdate.projectUpdate)
   @Column({ nullable: true })
   projectUpdateId: number;
 

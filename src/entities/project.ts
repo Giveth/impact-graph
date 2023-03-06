@@ -36,7 +36,7 @@ import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { Category } from './category';
-import { FeaturedProject } from './featuredProject';
+import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { Campaign } from './campaign';
 
@@ -282,13 +282,11 @@ export class Project extends BaseEntity {
   )
   projectVerificationForm?: ProjectVerificationForm;
 
-  @Field(type => FeaturedProject, { nullable: true })
-  @OneToOne(
-    type => FeaturedProject,
-    featuredProject => featuredProject.project,
-    { nullable: true },
-  )
-  featuredProject?: FeaturedProject;
+  @Field(type => FeaturedUpdate, { nullable: true })
+  @OneToOne(type => FeaturedUpdate, featuredUpdate => featuredUpdate.project, {
+    nullable: true,
+  })
+  featuredUpdate?: FeaturedUpdate;
 
   @Field(type => ProjectPowerView, { nullable: true })
   @OneToOne(
@@ -559,13 +557,13 @@ export class ProjectUpdate extends BaseEntity {
   @Column('text', { nullable: true })
   managingFundDescription: string;
 
-  @Field(type => FeaturedProject, { nullable: true })
+  @Field(type => FeaturedUpdate, { nullable: true })
   @OneToOne(
-    type => FeaturedProject,
-    featuredProject => featuredProject.projectUpdate,
+    type => FeaturedUpdate,
+    featuredUpdate => featuredUpdate.projectUpdate,
     { nullable: true },
   )
-  featuredProject?: FeaturedProject;
+  featuredUpdate?: FeaturedUpdate;
 
   // does not call with createQueryBuilder
   @AfterInsert()

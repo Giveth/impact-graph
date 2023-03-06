@@ -26,7 +26,7 @@ import {
 } from '../src/entities/projectVerificationForm';
 import { MainCategory } from '../src/entities/mainCategory';
 import { Category, CATEGORY_NAMES } from '../src/entities/category';
-import { FeaturedProject } from '../src/entities/featuredProject';
+import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -156,8 +156,8 @@ export const saveUserDirectlyToDb = async (
 export const saveFeaturedProjectDirectlyToDb = async (
   projectId: number,
   projectUpdateId: number,
-): Promise<FeaturedProject> => {
-  return FeaturedProject.create({
+): Promise<FeaturedUpdate> => {
+  return FeaturedUpdate.create({
     projectId,
     projectUpdateId,
   }).save();
