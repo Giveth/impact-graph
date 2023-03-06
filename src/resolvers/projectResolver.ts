@@ -104,7 +104,7 @@ import { Campaign } from '../entities/campaign';
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
 );
-import { FeaturedProject } from '../entities/featuredProject';
+import { FeaturedUpdate } from '../entities/featuredUpdate';
 
 @ObjectType()
 class AllProjects {
@@ -603,15 +603,15 @@ export class ProjectResolver {
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<TopProjects> {
     const query = Project.createQueryBuilder('project')
-      .innerJoinAndSelect('project.featuredProject', 'featuredProject')
+      .innerJoinAndSelect('project.featuredUpdate', 'featuredUpdate')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
-      .where('featuredProject.position IS NOT NULL')
-      .orderBy('featuredProject.position', 'ASC');
+      .where('featuredUpdate.position IS NOT NULL')
+      .orderBy('featuredUpdate.position', 'ASC');
 
     // if loggedIn get his reactions
     const viewerUserId = connectedWalletUserId || user?.userId;
@@ -633,7 +633,7 @@ export class ProjectResolver {
   async featuredProjectUpdate(
     @Arg('projectId', type => Int, { nullable: false }) projectId: number,
   ): Promise<ProjectUpdate> {
-    const featuredProject = await FeaturedProject.createQueryBuilder(
+    const featuredProject = await FeaturedUpdate.createQueryBuilder(
       'featuredProject',
     )
       .innerJoinAndSelect('featuredProject.projectUpdate', 'projectUpdate')

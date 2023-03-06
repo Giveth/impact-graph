@@ -65,7 +65,7 @@ import { findBroadcastNotificationById } from '../repositories/broadcastNotifica
 import { findUserById } from '../repositories/userRepository';
 import { findOneProjectStatusHistory } from '../repositories/projectSatusHistoryRepository';
 import { findTokenByTokenAddress } from '../repositories/tokenRepository';
-import { FeaturedProject } from '../entities/featuredProject';
+import { FeaturedUpdate } from '../entities/featuredUpdate';
 
 describe(
   'updateStatusOfProjects() test cases',
@@ -1219,11 +1219,11 @@ function addToFeaturedProjectUpdateTestCases() {
       },
     );
 
-    const featuredProjectUpdate = await FeaturedProject.createQueryBuilder(
-      'featuredProject',
+    const featuredProjectUpdate = await FeaturedUpdate.createQueryBuilder(
+      'featuredUpdate',
     )
       .where(
-        'featuredProject.projectId = :projectId AND featuredProject.projectUpdateId = :projectUpdateId',
+        'featuredUpdate.projectId = :projectId AND featuredUpdate.projectUpdateId = :projectUpdateId',
         { projectId: project.id, projectUpdateId: projectUpdate.id },
       )
       .getOne();
@@ -1282,7 +1282,7 @@ function addToFeaturedProjectUpdateTestCases() {
       },
     );
 
-    const featuredProjectUpdates = await FeaturedProject.find({
+    const featuredProjectUpdates = await FeaturedUpdate.find({
       where: { projectId: project.id, projectUpdateId: projectUpdate.id },
     });
 
