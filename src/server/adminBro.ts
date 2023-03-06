@@ -734,6 +734,15 @@ const getAdminBroInstance = async () => {
             powerRound: {
               isVisible: false,
             },
+            referrerWallet: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
             verifyErrorMessage: {
               isVisible: {
                 list: false,
