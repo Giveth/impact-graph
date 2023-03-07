@@ -47,11 +47,9 @@ export const validateProjectRelatedAddresses = async (
   relatedAddresses: RelatedAddressInputType[],
   projectId?: number,
 ): Promise<void> => {
-  if (relatedAddresses.length !== 1 && relatedAddresses.length !== 2) {
+  if (relatedAddresses.length === 0) {
     throw new Error(
-      i18n.__(
-        translationErrorMessagesKeys.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
-      ),
+      i18n.__(translationErrorMessagesKeys.RECIPIENT_ADDRESSES_CANT_BE_EMPTY),
     );
   }
   for (const relateAddress of relatedAddresses) {
