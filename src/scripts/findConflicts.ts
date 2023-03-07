@@ -12,7 +12,7 @@
 //   userId, projectId, createdAt, valueUsd, valuEth, priceEth, priceUsd, status)
 
 import axios from 'axios';
-import { getEtherscanOrBlockScoutUrl, NETWORK_IDS } from '../provider';
+import { getBlockExplorerApiUrl, NETWORK_IDS } from '../provider';
 import { Container } from 'typedi';
 import * as TypeORM from 'typeorm';
 import { getEntities } from '../entities/entities';
@@ -274,7 +274,7 @@ async function getListOfERC20TokenTransfers(input: {
     const { address, page, offset, networkId } = input;
     // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-erc20-token-transfer-events-by-address
     // https://blockscout.com/xdai/mainnet/api-docs#account
-    const result = await axios.get(getEtherscanOrBlockScoutUrl(networkId), {
+    const result = await axios.get(getBlockExplorerApiUrl(networkId), {
       params: {
         module: 'account',
         action: 'tokentx',

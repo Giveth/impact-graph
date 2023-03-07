@@ -26,6 +26,7 @@ import {
 } from '../src/entities/projectVerificationForm';
 import { MainCategory } from '../src/entities/mainCategory';
 import { Category, CATEGORY_NAMES } from '../src/entities/category';
+import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -149,6 +150,16 @@ export const saveUserDirectlyToDb = async (
     walletAddress,
     firstName: `testUser-${walletAddress}`,
     email: `testEmail-${walletAddress}@giveth.io`,
+  }).save();
+};
+
+export const saveFeaturedProjectDirectlyToDb = async (
+  projectId: number,
+  projectUpdateId: number,
+): Promise<FeaturedUpdate> => {
+  return FeaturedUpdate.create({
+    projectId,
+    projectUpdateId,
   }).save();
 };
 

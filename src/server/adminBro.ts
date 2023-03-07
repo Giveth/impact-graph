@@ -101,6 +101,7 @@ import BroadcastNotification, {
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
+import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { Campaign } from '../entities/campaign';
 
 // use redis for session data instead of in-memory storage
@@ -733,6 +734,15 @@ const getAdminBroInstance = async () => {
             powerRound: {
               isVisible: false,
             },
+            referrerWallet: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
             verifyErrorMessage: {
               isVisible: {
                 list: false,
@@ -959,6 +969,42 @@ const getAdminBroInstance = async () => {
         },
       },
       {
+        resource: FeaturedUpdate,
+        options: {
+          properties: {
+            id: {
+              isVisible: { show: true, edit: false, new: false, list: true },
+            },
+            projectId: {
+              isVisible: { show: true, edit: true, new: true, list: true },
+            },
+            updatedAt: {
+              isVisible: { show: true, edit: false, new: false, list: true },
+            },
+            createdAt: {
+              isVisible: { show: true, edit: false, new: false, list: true },
+            },
+          },
+          actions: {
+            bulkDelete: {
+              isVisible: true,
+            },
+            show: {
+              isVisible: true,
+            },
+            edit: {
+              isVisible: true,
+            },
+            delete: {
+              isVisible: true,
+            },
+            new: {
+              isVisible: true,
+            },
+          },
+        },
+      },
+      {
         resource: ThirdPartyProjectImport,
         options: {
           properties: {
@@ -1180,6 +1226,14 @@ const getAdminBroInstance = async () => {
             },
             edit: {
               isVisible: false,
+            },
+            addFeaturedProjectUpdate: {
+              actionType: 'bulk',
+              isVisible: true,
+              handler: async (request, response, context) => {
+                return addFeaturedProjectUpdate(context, request);
+              },
+              component: false,
             },
           },
         },
@@ -2384,6 +2438,63 @@ const sendProjectsToGoogleSheet = async (
   });
 
   await addSheetWithRows(spreadsheet, headers, projectRows);
+};
+
+export const addFeaturedProjectUpdate = async (
+  context: AdminBroContextInterface,
+  request,
+) => {
+  const { records } = context;
+  try {
+    const updateIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(id => Number(id));
+    const projectUpdates = await ProjectUpdate.createQueryBuilder(
+      'projectUpdate',
+    )
+      .innerJoinAndMapOne(
+        'projectUpdate.project',
+        Project,
+        'project',
+        'project.id = projectUpdate.projectId AND projectUpdate.isMain = false',
+      )
+      .where('projectUpdate.id IN (:...updateIds)', { updateIds })
+      .andWhere('projectUpdate.isMain = false')
+      .andWhere(
+        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+      )
+      .getMany();
+
+    for (const update of projectUpdates) {
+      const featured = await FeaturedUpdate.createQueryBuilder('featuredUpdate')
+        .where('featuredUpdate.projectId = :projectId', {
+          projectId: update!.project!.id,
+        })
+        .getOne();
+
+      if (featured) continue; // ignore if already project featured
+
+      const featuredProject = FeaturedUpdate.create({
+        projectUpdateId: update.id,
+        projectId: update.project!.id,
+      });
+
+      await featuredProject.save();
+    }
+  } catch (error) {
+    logger.error('addFeaturedProjectUpdate error', error);
+    throw error;
+  }
+  return {
+    redirectUrl: '/admin/resources/ProjectUpdate',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message: `ProjectUpdates(s) successfully added to the featured Project list`,
+      type: 'success',
+    },
+  };
 };
 
 export const listDelist = async (
