@@ -1037,7 +1037,7 @@ const seedTokens: ITokenData[] = [
   {
     name: 'POLYGON native token',
     symbol: 'MATIC',
-    address: '0x52459834ca561cb55411699e9c2143683bcf865f',
+    address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
     networkId: NETWORK_IDS.POLYGON,
   },
