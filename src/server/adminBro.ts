@@ -101,7 +101,7 @@ import BroadcastNotification, {
 import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
 import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
-import { FeaturedProject } from '../entities/featuredProject';
+import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { Campaign } from '../entities/campaign';
 
 // use redis for session data instead of in-memory storage
@@ -734,6 +734,15 @@ const getAdminBroInstance = async () => {
             powerRound: {
               isVisible: false,
             },
+            referrerWallet: {
+              isVisible: {
+                list: false,
+                filter: false,
+                show: true,
+                edit: false,
+                new: false,
+              },
+            },
             verifyErrorMessage: {
               isVisible: {
                 list: false,
@@ -959,7 +968,7 @@ const getAdminBroInstance = async () => {
         },
       },
       {
-        resource: FeaturedProject,
+        resource: FeaturedUpdate,
         options: {
           properties: {
             id: {
@@ -2455,17 +2464,15 @@ export const addFeaturedProjectUpdate = async (
       .getMany();
 
     for (const update of projectUpdates) {
-      const featured = await FeaturedProject.createQueryBuilder(
-        'featuredProject',
-      )
-        .where('featuredProject.projectId = :projectId', {
+      const featured = await FeaturedUpdate.createQueryBuilder('featuredUpdate')
+        .where('featuredUpdate.projectId = :projectId', {
           projectId: update!.project!.id,
         })
         .getOne();
 
       if (featured) continue; // ignore if already project featured
 
-      const featuredProject = FeaturedProject.create({
+      const featuredProject = FeaturedUpdate.create({
         projectUpdateId: update.id,
         projectId: update.project!.id,
       });

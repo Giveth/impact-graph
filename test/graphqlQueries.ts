@@ -518,7 +518,7 @@ export const fetchFeaturedProjects = `
         totalReactions
         totalDonations
         totalTraceDonations
-        featuredProject {
+        featuredUpdate {
           id
           position
         }
