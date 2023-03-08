@@ -322,6 +322,17 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
 
     // send chainvine the referral as last step to not interrupt previous
     if (donation.referrerWallet) {
+      logger.info(
+        'sending chainvine params: ',
+        JSON.stringify({
+          fromWalletAddress: donation.fromWalletAddress,
+          amount: donation.amount,
+          transactionId: donation.transactionId,
+          tokenAddress: donation.tokenAddress,
+          valueUsd: donation.priceUsd,
+          donationId: donation.id,
+        }),
+      );
       await getChainvineAdapter().notifyChainVine({
         fromWalletAddress: donation.fromWalletAddress,
         amount: donation.amount,

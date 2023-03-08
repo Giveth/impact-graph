@@ -3877,7 +3877,7 @@ function featureProjectsTestCases() {
     const totalCount = result.data.data.featuredProjects.totalCount;
 
     assert.equal(totalCount, 2);
-    assert.isTrue(featuredProjects[0].featuredProject.position === 1);
+    assert.isTrue(featuredProjects[0].featuredUpdate.position === 1);
     assert.equal(Number(featuredProjects[0].id), project.id);
     assert.equal(Number(featuredProjects[1].id), project2.id);
   });
