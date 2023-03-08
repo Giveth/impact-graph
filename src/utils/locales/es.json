@@ -121,6 +121,8 @@
   "AUTHENTICATION_REQUIRED": "Autenticacion requerida.",
   "SOMETHING_WENT_WRONG": "Algo salió mal.",
   "PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN": "El proyecto no admite este token",
+  "RECIPIENT_ADDRESSES_CANT_BE_EMPTY":
+  "Las direcciones de los destinatarios no pueden estar vacías",
   "THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT":
     "No hay una dirección de destinatario para este proyecto o id de red",
   "AMOUNT_IS_INVALID": "El monto no es válido",

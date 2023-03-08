@@ -4,7 +4,7 @@ interface ITokenData {
   name: string;
   symbol: string;
   address: string;
-  mainnetAddress ?: string;
+  mainnetAddress?: string;
   decimals: number;
   networkId: number;
 }
