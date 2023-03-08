@@ -610,8 +610,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.projectPower', 'projectPower')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
-      .where('featuredUpdate.position IS NOT NULL')
-      .orderBy('featuredUpdate.position', 'ASC');
+      .orderBy('featuredUpdate.position', 'ASC', 'NULLS LAST');
 
     // if loggedIn get his reactions
     const viewerUserId = connectedWalletUserId || user?.userId;
