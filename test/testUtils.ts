@@ -1535,6 +1535,7 @@ export interface CreateDonationData {
   amount: number;
   createdAt: any;
   valueUsd?: number;
+  valueEth?: number;
   nonce?: number;
   // userId?: number;
   projectId?: number;
@@ -1563,7 +1564,7 @@ export const saveDonationDirectlyToDb = async (
   donationData: CreateDonationData,
   userId?: number,
   projectId?: number,
-) => {
+): Promise<Donation> => {
   return Donation.create({
     ...donationData,
     userId,

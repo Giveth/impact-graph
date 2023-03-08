@@ -22,7 +22,7 @@ import {
   getNotificationAdapter,
 } from '../adapters/adaptersFactory';
 import { calculateGivbackFactor } from './givbackService';
-import { getTokenPrices } from 'monoswap';
+import { getTokenPrices } from '@giveth/monoswap';
 import SentryLogger from '../sentryLogger';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 
