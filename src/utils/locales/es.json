@@ -8,7 +8,7 @@
     "ChangeAPI título de API o EIN no encontrado o no válido",
   "INVALID_SOCIAL_NETWORK": "Red social inválida",
   "IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT":
-    "Debe tener una o dos direcciones de destinatarios de billetera",
+    "Las direcciones de los destinatarios no pueden estar vacías",
   "NOT_IMPLEMENTED": "No se ha implementado",
   "SHOULD_SEND_AT_LEAST_ONE_OF_PROJECT_ID_AND_USER_ID":
     "Debería enviar al menos un ID de usuario o ID de proyecto",
@@ -121,6 +121,8 @@
   "AUTHENTICATION_REQUIRED": "Autenticacion requerida.",
   "SOMETHING_WENT_WRONG": "Algo salió mal.",
   "PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN": "El proyecto no admite este token",
+  "RECIPIENT_ADDRESSES_CANT_BE_EMPTY":
+  "Las direcciones de los destinatarios no pueden estar vacías",
   "THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT":
     "No hay una dirección de destinatario para este proyecto o id de red",
   "AMOUNT_IS_INVALID": "El monto no es válido",

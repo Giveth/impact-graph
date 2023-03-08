@@ -1344,7 +1344,7 @@ function createProjectTestCases() {
       'Sample Project Creation',
     );
   });
-  it('Should get error, when sending more thant two recipient address', async () => {
+  it('Should not get error, when sending more thant two recipient address', async () => {
     const sampleProject: CreateProjectInput = {
       title: String(new Date().getTime()),
       categories: [
@@ -1384,10 +1384,7 @@ function createProjectTestCases() {
       },
     );
 
-    assert.equal(
-      result.data.errors[0].message,
-      errorMessages.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
-    );
+    assert.isOk(result.data.data.createProject);
   });
   it('Should get error, when walletAddress of project is repetitive', async () => {
     const sampleProject: CreateProjectInput = {
@@ -2095,7 +2092,7 @@ function updateProjectTestCases() {
     );
     assert.isOk(editProjectResult.data.data.updateProject);
   });
-  it('Should throw error when sending three address', async () => {
+  it('Should not throw error when sending three address', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
@@ -2134,10 +2131,7 @@ function updateProjectTestCases() {
         },
       },
     );
-    assert.equal(
-      editProjectResult.data.errors[0].message,
-      errorMessages.IT_SHOULD_HAVE_ONE_OR_TWO_ADDRESSES_FOR_RECIPIENT,
-    );
+    assert.isOk(editProjectResult.data.data.updateProject);
   });
   it('Should get error when sent title is repetitive', async () => {
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
