@@ -14,7 +14,7 @@ import {
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { getOurTokenList } from 'monoswap';
+import { getOurTokenList } from '@giveth/monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { ApolloContext } from '../types/ApolloContext';
 import { Project, ProjStatus } from '../entities/project';
@@ -54,6 +54,7 @@ import { MainCategory } from '../entities/mainCategory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
+import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 
 @ObjectType()
 class PaginateDonations {
@@ -641,8 +642,15 @@ export class DonationResolver {
       }
 
       await donation.save();
-      const baseTokens =
-        priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
+      let baseTokens: string[];
+      switch (priceChainId) {
+        case CHAIN_ID.XDAI:
+          baseTokens = ['WXDAI', 'WETH'];
+          break;
+        default:
+          baseTokens = ['USDT', 'ETH'];
+          break;
+      }
 
       await updateDonationPricesAndValues(
         donation,

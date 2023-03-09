@@ -1,10 +1,11 @@
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import {
   isTokenAcceptableForProject,
   updateOldStableCoinDonationsPrice,
   sendSegmentEventForDonation,
   syncDonationStatusWithBlockchainNetwork,
   updateTotalDonationsOfProject,
+  updateDonationPricesAndValues,
 } from './donationService';
 import { NETWORK_IDS } from '../provider';
 import {
@@ -23,6 +24,7 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { errorMessages } from '../utils/errorMessages';
 import { findDonationById } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
+import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -584,5 +586,43 @@ function fillOldStableCoinDonationsPriceTestCases() {
     const updatedDonation = await findDonationById(donation.id);
     assert.equal(updatedDonation?.valueUsd, updatedDonation?.amount);
     assert.equal(updatedDonation?.priceUsd, 1);
+  });
+
+  it('should fill price for Matic donation on the Polygon network', async () => {
+    const token = 'MATIC';
+    const amount = 100;
+    let donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        currency: token,
+        valueUsd: undefined,
+        valueEth: undefined,
+        amount,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const project = (await Project.findOne({
+      where: { id: SEED_DATA.FIRST_PROJECT.id },
+    })) as Project;
+
+    await updateDonationPricesAndValues(
+      donation,
+      project,
+      token,
+      ['USDT', 'MATIC'],
+      CHAIN_ID.POLYGON,
+      amount,
+    );
+
+    donation = (await findDonationById(donation.id))!;
+
+    expect(donation.valueUsd).to.gt(0);
+    assert.equal(
+      donation.valueEth,
+      amount,
+      'valueEth should be equal to amount',
+    );
   });
 }
