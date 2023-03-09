@@ -41,8 +41,10 @@ import Web3 from 'web3';
 import { logger } from '../utils/logger';
 import { findUserById } from '../repositories/userRepository';
 import {
+  donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
+  donationsTotalNumberPerDateRangeByMonth,
   donorsCountPerDate,
   donorsCountPerDateByMonthAndYear,
   findDonationById,
@@ -263,6 +265,31 @@ export class DonationResolver {
       const total = await donationsTotalAmountPerDateRange(fromDate, toDate);
       const totalPerMonthAndYear =
         await donationsTotalAmountPerDateRangeByMonth(fromDate, toDate);
+
+      return {
+        total,
+        totalPerMonthAndYear,
+      };
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
+  @Query(returns => ResourcePerDateRange, { nullable: true })
+  async totalDonationsNumberPerDate(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ): Promise<ResourcePerDateRange> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await donationsNumberPerDateRange(fromDate, toDate);
+      const totalPerMonthAndYear =
+        await donationsTotalNumberPerDateRangeByMonth(fromDate, toDate);
 
       return {
         total,

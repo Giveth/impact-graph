@@ -358,6 +358,24 @@ export const fetchTotalDonationsUsdAmount = `
   }
 `;
 
+export const fetchTotalDonationsNumberPerDateRange = `
+  query (
+    $fromDate: String
+    $toDate: String
+  ) {
+    totalDonationsNumberPerDate (
+      fromDate: $fromDate
+      toDate: $toDate
+    ) {
+      total
+      totalPerMonthAndYear {
+        total
+        date
+      }
+    }
+  }
+`;
+
 export const fetchAllDonationsQuery = `
   query (
     $fromDate: String

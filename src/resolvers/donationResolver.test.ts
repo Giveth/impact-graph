@@ -30,6 +30,7 @@ import {
   fetchTotalDonors,
   fetchTotalDonationsPerCategoryPerDate,
   fetchRecentDonations,
+  fetchTotalDonationsNumberPerDateRange,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -100,6 +101,31 @@ function totalDonationsPerCategoryPerDateTestCases() {
     );
   });
 }
+
+// fetchTotalDonationsNumberPerDateRange
+
+// function totalDonationsNumberPerDateTestCases() {
+//   it('should return donations count per category per time range', async () => {
+//     const donationsResponse = await axios.post(graphqlUrl, {
+//       query: fetchTotalDonationsNumberPerDateRange,
+//     });
+//     const foodDonationsTotalUsd = await Donation.createQueryBuilder('donation')
+//       .select('COALESCE(COUNT(donation."valueUsd")) AS count')
+//       .where(`donation.status = 'verified'`)
+//       .getRawMany();
+
+//     assert.isOk(donationsResponse);
+
+//     const foodDonationsResponseTotal =
+//       donationsResponse.data.data.totalDonationsPerCategory.find(
+//         d => d.title === 'food',
+//       );
+//     assert.equal(
+//       foodDonationsResponseTotal.totalUsd,
+//       foodDonationsTotalUsd[0].sum,
+//     );
+//   });
+// }
 
 function donorsCountPerDateTestCases() {
   it('should return not return data if the date is not yyyy-mm-dd', async () => {
