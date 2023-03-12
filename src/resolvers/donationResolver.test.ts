@@ -30,6 +30,7 @@ import {
   fetchTotalDonors,
   fetchTotalDonationsPerCategoryPerDate,
   fetchRecentDonations,
+  fetchTotalDonationsNumberPerDateRange,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -68,6 +69,10 @@ describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
 describe('totalDonationsUsdAmount() test cases', donationsUsdAmountTestCases);
 describe('totalDonorsCountPerDate() test cases', donorsCountPerDateTestCases);
 describe(
+  'totalDonationsNumberPerDate() test cases',
+  totalDonationsNumberPerDateTestCases,
+);
+describe(
   'totalDonationsPerCategoryPerDate() test cases',
   totalDonationsPerCategoryPerDateTestCases,
 );
@@ -97,6 +102,21 @@ function totalDonationsPerCategoryPerDateTestCases() {
     assert.equal(
       foodDonationsResponseTotal.totalUsd,
       foodDonationsTotalUsd[0].sum,
+    );
+  });
+}
+
+function totalDonationsNumberPerDateTestCases() {
+  it('should return donations count per time range', async () => {
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsNumberPerDateRange,
+    });
+    assert.isNumber(
+      donationsResponse.data.data.totalDonationsNumberPerDate.total,
+    );
+    assert.isTrue(
+      donationsResponse.data.data.totalDonationsNumberPerDate
+        .totalPerMonthAndYear.length > 0,
     );
   });
 }
