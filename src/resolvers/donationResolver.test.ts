@@ -69,6 +69,10 @@ describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
 describe('totalDonationsUsdAmount() test cases', donationsUsdAmountTestCases);
 describe('totalDonorsCountPerDate() test cases', donorsCountPerDateTestCases);
 describe(
+  'totalDonationsNumberPerDate() test cases',
+  totalDonationsNumberPerDateTestCases,
+);
+describe(
   'totalDonationsPerCategoryPerDate() test cases',
   totalDonationsPerCategoryPerDateTestCases,
 );
@@ -102,30 +106,20 @@ function totalDonationsPerCategoryPerDateTestCases() {
   });
 }
 
-// fetchTotalDonationsNumberPerDateRange
-
-// function totalDonationsNumberPerDateTestCases() {
-//   it('should return donations count per category per time range', async () => {
-//     const donationsResponse = await axios.post(graphqlUrl, {
-//       query: fetchTotalDonationsNumberPerDateRange,
-//     });
-//     const foodDonationsTotalUsd = await Donation.createQueryBuilder('donation')
-//       .select('COALESCE(COUNT(donation."valueUsd")) AS count')
-//       .where(`donation.status = 'verified'`)
-//       .getRawMany();
-
-//     assert.isOk(donationsResponse);
-
-//     const foodDonationsResponseTotal =
-//       donationsResponse.data.data.totalDonationsPerCategory.find(
-//         d => d.title === 'food',
-//       );
-//     assert.equal(
-//       foodDonationsResponseTotal.totalUsd,
-//       foodDonationsTotalUsd[0].sum,
-//     );
-//   });
-// }
+function totalDonationsNumberPerDateTestCases() {
+  it('should return donations count per time range', async () => {
+    const donationsResponse = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsNumberPerDateRange,
+    });
+    assert.isNumber(
+      donationsResponse.data.data.totalDonationsNumberPerDate.total,
+    );
+    assert.isTrue(
+      donationsResponse.data.data.totalDonationsNumberPerDate
+        .totalPerMonthAndYear.length > 0,
+    );
+  });
+}
 
 function donorsCountPerDateTestCases() {
   it('should return not return data if the date is not yyyy-mm-dd', async () => {
