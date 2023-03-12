@@ -159,7 +159,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           eventName:
             NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_USERS_WHO_SUPPORT,
           user,
-          trackId: `project-verified-${project.id}-${user.walletAddress}-${now}`,
+          trackId: `project-verified-${
+            project.id
+          }-${user.walletAddress.toLowerCase()}-${now}`,
         },
       })),
     );
@@ -174,7 +176,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-verified-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-verified-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -227,7 +231,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           eventName:
             NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_SUPPORT,
           user: u,
-          trackId: `project-unverified-${project.id}-${u.walletAddress}-${now}}`,
+          trackId: `project-unverified-${
+            project.id
+          }-${u.walletAddress.toLowerCase()}-${now}}`,
         },
       })),
     );
@@ -242,7 +248,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-badge-revoked-${project.id}-${user.walletAddress}-${now}`,
+      trackId: `project-badge-revoked-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -263,7 +271,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-badge-revoke-reminder-${project.id}-${user.walletAddress}-${now}`,
+      trackId: `project-badge-revoke-reminder-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -283,7 +293,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-badge-revoke-warning-${project.id}-${user.walletAddress}-${now}`,
+      trackId: `project-badge-revoke-warning-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -304,7 +316,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-badge-revoke-last-warning-${project.id}-${user.walletAddress}-${now}`,
+      trackId: `project-badge-revoke-last-warning-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -324,7 +338,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-badge-up-for-revoking-${project.id}-${user.walletAddress}-${now}`,
+      trackId: `project-badge-up-for-revoking-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -341,7 +357,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           eventName:
             NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_SUPPORT,
           user: u,
-          trackId: `project-unverified-${project.id}-${u.walletAddress}-${now}`,
+          trackId: `project-unverified-${
+            project.id
+          }-${u.walletAddress?.toLowerCase()}-${now}`,
         },
       })),
     );
@@ -356,7 +374,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-unverified-${project.id}-${user.walletAddress}-${now}`,
+      trackId: `project-unverified-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -376,7 +396,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `verification-form-rejected-${project.id}-${user.walletAddress}-${now}`,
+      trackId: `verification-form-rejected-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -419,7 +441,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           eventName:
             NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED_USERS_WHO_SUPPORT,
           user,
-          trackId: `project-cancelled-${project.id}-${user.walletAddress}-${now}`,
+          trackId: `project-cancelled-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
         },
       })),
     );
@@ -436,7 +460,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-cancelled-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-cancelled-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -455,7 +481,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           eventName:
             NOTIFICATIONS_EVENT_NAMES.PROJECT_ADD_AN_UPDATE_USERS_WHO_SUPPORT,
           user,
-          trackId: `project-update-added-${project.id}-${user.walletAddress}-${now}`,
+          trackId: `project-update-added-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
         },
       })),
     );
@@ -475,7 +503,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           update,
         },
       },
-      trackId: `project-update-added-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-update-added-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -490,7 +520,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
           eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED_SUPPORTED,
           user,
-          trackId: `project-unlisted-${project.id}-${user.walletAddress}-${now}`,
+          trackId: `project-unlisted-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
         },
       })),
     );
@@ -508,7 +540,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-unlisted-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-unlisted-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -536,7 +570,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-deactivated-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-deactivated-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
 
     const supporters = await findUsersWhoSupportProject(project.id);
@@ -548,7 +584,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
             NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED_USERS_WHO_SUPPORT,
           user,
           metadata,
-          trackId: `project-deactivated-${project.id}-${user.walletAddress}-${now}`,
+          trackId: `project-deactivated-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
         },
       })),
     );
@@ -566,7 +604,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
           eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED_SUPPORTED,
           user,
-          trackId: `project-listed-${project.id}-${user.walletAddress}-${now}`,
+          trackId: `project-listed-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
         },
       })),
     );
@@ -583,7 +623,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-listed-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-listed-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -604,7 +646,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-edited-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-edited-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
   async projectGotDraftByAdmin(params: { project: Project }): Promise<void> {
@@ -623,7 +667,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-got-draft-by-admin-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-got-draft-by-admin-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -644,7 +690,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-published-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-published-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -660,7 +708,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           eventName:
             NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED_USERS_WHO_SUPPORT,
           user,
-          trackId: `project-reactivated-${project.id}-${user.walletAddress}-${now}`,
+          trackId: `project-reactivated-${
+            project.id
+          }-${user.walletAddress.toLowerCase()}-${now}`,
         },
       })),
     );
@@ -677,7 +727,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-reactivated-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-reactivated-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -698,7 +750,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
-      trackId: `project-saved-as-draft-${project.id}-${projectOwner.walletAddress}-${now}`,
+      trackId: `project-saved-as-draft-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
