@@ -57,15 +57,8 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       numberOfSendNotificationsConcurrentJob,
       async (job, done) => {
         logger.debug('processing send notification job', job.data);
-        const { project, metadata, eventName, user, trackId } = job.data;
         try {
-          await sendProjectRelatedNotification({
-            project,
-            eventName,
-            metadata,
-            user,
-            trackId,
-          });
+          await sendProjectRelatedNotification(job.data);
         } catch (e) {
           logger.error('processSendingNotifications >> error', e);
         } finally {
@@ -95,7 +88,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }): Promise<void> {
     const { project, donation } = params;
     const user = project.adminUser as User;
-    return sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
       sendEmail: true,
@@ -108,6 +101,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           user,
         }),
       },
+      trackId:
+        'donation-received-' +
+        donation.transactionNetworkId +
+        '-' +
+        donation.transactionId,
     });
   }
 
@@ -117,7 +115,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     donor: User;
   }): Promise<void> {
     const { project, donor, donation } = params;
-    return sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.MADE_DONATION,
       user: {
@@ -140,22 +138,34 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           fromWalletAddress: donation.fromWalletAddress.toLowerCase(),
         },
       },
+      trackId:
+        'donation-sent-' +
+        donation.transactionNetworkId +
+        '-' +
+        donation.transactionId,
     });
   }
 
   async projectVerified(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project.adminUser as User;
+    const now = new Date();
 
     const supporters = await findUsersWhoSupportProject(project.id);
-    supporters.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_USERS_WHO_SUPPORT,
-        user,
-      }),
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(user => ({
+        data: {
+          project,
+          eventName:
+            NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED_USERS_WHO_SUPPORT,
+          user,
+          trackId: `project-verified-${
+            project.id
+          }-${user.walletAddress.toLowerCase()}-${now}`,
+        },
+      })),
     );
-    return sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
       sendEmail: true,
@@ -166,6 +176,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-verified-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -210,15 +223,21 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     const { project } = params;
     const user = project.adminUser as User;
     const supporters = await findUsersWhoSupportProject(project.id);
-    supporters.map(u =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName:
-          NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_SUPPORT,
-        user: u,
-      }),
+    const now = new Date();
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(u => ({
+        data: {
+          project,
+          eventName:
+            NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_SUPPORT,
+          user: u,
+          trackId: `project-unverified-${
+            project.id
+          }-${u.walletAddress.toLowerCase()}-${now}}`,
+        },
+      })),
     );
-    return sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED,
       sendEmail: true,
@@ -229,6 +248,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-badge-revoked-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -237,7 +259,8 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }): Promise<void> {
     const { project } = params;
     const user = project.adminUser as User;
-    return sendProjectRelatedNotification({
+    const now = new Date();
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_REMINDER,
       sendEmail: true,
@@ -248,13 +271,18 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-badge-revoke-reminder-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
   async projectBadgeRevokeWarning(params: { project: Project }): Promise<void> {
     const { project } = params;
     const user = project.adminUser as User;
-    return sendProjectRelatedNotification({
+    const now = new Date();
+
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_WARNING,
       sendEmail: true,
@@ -265,6 +293,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-badge-revoke-warning-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -273,7 +304,8 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }): Promise<void> {
     const { project } = params;
     const user = project.adminUser as User;
-    return sendProjectRelatedNotification({
+    const now = Date.now();
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_LAST_WARNING,
       sendEmail: true,
@@ -284,13 +316,18 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-badge-revoke-last-warning-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
   async projectBadgeUpForRevoking(params: { project: Project }): Promise<void> {
     const { project } = params;
     const user = project.adminUser as User;
-    return sendProjectRelatedNotification({
+    const now = Date.now();
+
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_UP_FOR_REVOKING,
       sendEmail: true,
@@ -301,23 +338,32 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-badge-up-for-revoking-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
   async projectUnVerified(params: { project: Project }): Promise<void> {
     const { project } = params;
     const user = project.adminUser as User;
+    const now = Date.now();
 
     const supporters = await findUsersWhoSupportProject(project.id);
-    supporters.map(u =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName:
-          NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_SUPPORT,
-        user: u,
-      }),
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(u => ({
+        data: {
+          project,
+          eventName:
+            NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED_USERS_WHO_SUPPORT,
+          user: u,
+          trackId: `project-unverified-${
+            project.id
+          }-${u.walletAddress?.toLowerCase()}-${now}`,
+        },
+      })),
     );
-    return sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
       sendEmail: true,
@@ -328,13 +374,18 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-unverified-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
   async verificationFormRejected(params: { project: Project }): Promise<void> {
     const { project } = params;
     const user = project.adminUser as User;
-    return sendProjectRelatedNotification({
+    const now = Date.now();
+
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_REJECTED,
       sendEmail: true,
@@ -345,6 +396,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `verification-form-rejected-${
+        project.id
+      }-${user.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -353,7 +407,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     userId: number;
   }): Promise<void> {
     const { project } = params;
-    return sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_RECEIVED_HEART,
 
@@ -377,19 +431,25 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async projectCancelled(params: { project: Project }): Promise<void> {
     const { project } = params;
+    const now = Date.now();
 
     const supporters = await findUsersWhoSupportProject(project.id);
-    supporters.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName:
-          NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED_USERS_WHO_SUPPORT,
-        user,
-      }),
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(user => ({
+        data: {
+          project,
+          eventName:
+            NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED_USERS_WHO_SUPPORT,
+          user,
+          trackId: `project-cancelled-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
+        },
+      })),
     );
 
     const projectOwner = project?.adminUser as User;
-    await sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
       sendEmail: true,
@@ -400,6 +460,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-cancelled-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -408,19 +471,25 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     update: string;
   }): Promise<void> {
     const { project, update } = params;
+    const now = Date.now();
 
     const supporters = await findUsersWhoSupportProject(project.id);
-    supporters.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName:
-          NOTIFICATIONS_EVENT_NAMES.PROJECT_ADD_AN_UPDATE_USERS_WHO_SUPPORT,
-        user,
-      }),
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(user => ({
+        data: {
+          project,
+          eventName:
+            NOTIFICATIONS_EVENT_NAMES.PROJECT_ADD_AN_UPDATE_USERS_WHO_SUPPORT,
+          user,
+          trackId: `project-update-added-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
+        },
+      })),
     );
 
     const projectOwner = project?.adminUser as User;
-    await sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATE_ADDED_OWNER,
       sendEmail: true,
@@ -434,23 +503,32 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           update,
         },
       },
+      trackId: `project-update-added-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
   async projectDeListed(params: { project: Project }): Promise<void> {
     const { project } = params;
+    const now = Date.now();
 
     const supporters = await findUsersWhoSupportProject(project.id);
-    supporters.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED_SUPPORTED,
-        user,
-      }),
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(user => ({
+        data: {
+          project,
+          eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED_SUPPORTED,
+          user,
+          trackId: `project-unlisted-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
+        },
+      })),
     );
 
     const projectOwner = project?.adminUser as User;
-    await sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
 
@@ -462,6 +540,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-unlisted-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
@@ -473,19 +554,10 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     const metadata = {
       reason,
     };
-    const supporters = await findUsersWhoSupportProject(project.id);
-    supporters.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName:
-          NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED_USERS_WHO_SUPPORT,
-        user,
-        metadata,
-      }),
-    );
+    const now = Date.now();
 
     const projectOwner = project?.adminUser as User;
-    await sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
       metadata,
@@ -498,23 +570,48 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-deactivated-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
+
+    const supporters = await findUsersWhoSupportProject(project.id);
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(user => ({
+        data: {
+          project,
+          eventName:
+            NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED_USERS_WHO_SUPPORT,
+          user,
+          metadata,
+          trackId: `project-deactivated-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
+        },
+      })),
+    );
   }
 
   async projectListed(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;
+    const now = Date.now();
 
     const supporters = await findUsersWhoSupportProject(project.id);
-    supporters.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED_SUPPORTED,
-        user,
-      }),
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(user => ({
+        data: {
+          project,
+          eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED_SUPPORTED,
+          user,
+          trackId: `project-listed-${
+            project.id
+          }-${user.walletAddress?.toLowerCase()}-${now}`,
+        },
+      })),
     );
 
-    await sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
 
@@ -526,14 +623,18 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-listed-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
   async projectEdited(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;
+    const now = Date.now();
 
-    await sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED,
 
@@ -545,13 +646,17 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-edited-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
   async projectGotDraftByAdmin(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;
+    const now = Date.now();
 
-    await sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN,
       sendEmail: true,
@@ -562,13 +667,18 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-got-draft-by-admin-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
-  projectPublished(params: { project: Project }): Promise<void> {
+  async projectPublished(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;
-    return sendProjectRelatedNotification({
+    const now = Date.now();
+
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED,
 
@@ -580,23 +690,32 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-published-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
   async projectReactivated(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;
+    const now = Date.now();
     const supporters = await findUsersWhoSupportProject(project.id);
-    supporters.map(user =>
-      sendProjectRelatedNotificationsQueue.add({
-        project,
-        eventName:
-          NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED_USERS_WHO_SUPPORT,
-        user,
-      }),
+    await sendProjectRelatedNotificationsQueue.addBulk(
+      supporters.map(user => ({
+        data: {
+          project,
+          eventName:
+            NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED_USERS_WHO_SUPPORT,
+          user,
+          trackId: `project-reactivated-${
+            project.id
+          }-${user.walletAddress.toLowerCase()}-${now}`,
+        },
+      })),
     );
 
-    return sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
 
@@ -608,14 +727,18 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-reactivated-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
-  projectSavedAsDraft(params: { project: Project }): Promise<void> {
+  async projectSavedAsDraft(params: { project: Project }): Promise<void> {
     const { project } = params;
     const projectOwner = project?.adminUser as User;
+    const now = Date.now();
 
-    return sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
 
@@ -627,18 +750,22 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `project-saved-as-draft-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
     });
   }
 
-  donationGetPriceFailed(params: {
+  async donationGetPriceFailed(params: {
     project: Project;
     donationInfo: { txLink: string; reason: string };
   }): Promise<void> {
     const { project, donationInfo } = params;
     const { txLink, reason } = donationInfo;
     const projectOwner = project?.adminUser as User;
+    const now = Date.now();
 
-    return sendProjectRelatedNotification({
+    await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_GET_PRICE_FAILED,
       metadata: {
@@ -653,6 +780,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           project,
         }),
       },
+      trackId: `donation-get-price-failed-${project.id}-${donationInfo.txLink}-${now}`,
     });
   }
 
@@ -828,6 +956,8 @@ interface ProjectRelatedNotificationsQueue {
     email?: string;
   };
   segment?: SegmentData;
+  sendEmail?: boolean;
+  trackId?: string;
 }
 interface BroadcastNotificationsQueue {
   notifications: SendBatchNotificationItem[];
@@ -853,18 +983,6 @@ interface SegmentData {
   payload: any;
   analyticsUserId?: string;
   anonymousId?: string;
-}
-
-interface ProjectRelatedNotificationsQueue {
-  project: Project;
-  eventName: NOTIFICATIONS_EVENT_NAMES;
-  metadata?: any;
-  user?: {
-    walletAddress: string;
-    email?: string;
-  };
-  segment?: SegmentData;
-  trackId?: string;
 }
 
 const sendProjectRelatedNotificationsQueue =
