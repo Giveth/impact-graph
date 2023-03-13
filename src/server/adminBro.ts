@@ -2459,7 +2459,11 @@ export const addFeaturedProjectUpdate = async (
       .where('projectUpdate.id IN (:...updateIds)', { updateIds })
       .andWhere('projectUpdate.isMain = false')
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = :projectStatus AND project.reviewStatus = :reviewStatus`,
+        {
+          projectStatus: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       )
       .getMany();
 

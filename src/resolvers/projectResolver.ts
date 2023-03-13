@@ -603,6 +603,10 @@ export class ProjectResolver {
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<TopProjects> {
     const query = Project.createQueryBuilder('project')
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
+      )
       .innerJoinAndSelect('project.featuredUpdate', 'featuredUpdate')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
