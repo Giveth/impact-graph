@@ -3891,6 +3891,10 @@ function projectUpdatesTestCases() {
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
     });
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      statusId: ProjStatus.deactive,
+    });
     const user = await User.findOne({
       where: {
         id: SEED_DATA.FIRST_USER.id,
@@ -3921,8 +3925,16 @@ function projectUpdatesTestCases() {
       createdAt: new Date(),
       isMain: false,
     }).save();
+    const projectUpdate4 = await ProjectUpdate.create({
+      userId: user!.id,
+      projectId: project3.id,
+      content: 'TestProjectUpdateExcluded',
+      title: 'testEditProjectUpdateExcluded',
+      createdAt: new Date(),
+      isMain: false,
+    }).save();
 
-    const take = 3; // there are other previously created updates
+    const take = 4; // there are other previously created updates
     const result = await axios.post(graphqlUrl, {
       query: fetchLatestProjectUpdates,
       variables: {
@@ -3938,7 +3950,8 @@ function projectUpdatesTestCases() {
       assert.isTrue(
         pu.id === projectUpdate1.id ||
           pu.id === projectUpdate3.id ||
-          pu.id !== projectUpdate2.id,
+          pu.id !== projectUpdate2.id ||
+          pu.id !== projectUpdate4.id,
       );
     }
     // Assert ordered (which matches order of creation) and project data present
