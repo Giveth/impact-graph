@@ -1674,7 +1674,7 @@ export class ProjectResolver {
         'projectUpdate.project',
         Project,
         'project',
-        'project.id = projectUpdate.projectId AND projectUpdate.isMain = false',
+        `project.id = projectUpdate.projectId AND projectUpdate.isMain = false AND project.statusId = ${ProjStatus.active} AND project.reviewStatus = '${ReviewStatus.Listed}'`,
       )
       .where('projectUpdate.id IN (:...ids)', {
         ids: latestProjectUpdates.map(p => p.id),
