@@ -52,7 +52,7 @@ function validateProjectTitleTestCases() {
 }
 
 function isWalletAddressSmartContractTestCases() {
-  it('should return true for smart contract address in xdai', async () => {
+  it('should return true for smart contract address in mainnet', async () => {
     // DAI address https://etherscan.io/token/0x6b175474e89094c44da98b954eedeac495271d0f
     const walletAddress = '0x6b175474e89094c44da98b954eedeac495271d0f';
     const isSmartContract = await isWalletAddressSmartContract(walletAddress);
@@ -61,6 +61,12 @@ function isWalletAddressSmartContractTestCases() {
   it('should return true for smart contract address in xdai', async () => {
     // GIV address https://blockscout.com/xdai/mainnet/token/0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75/token-transfers
     const walletAddress = '0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75';
+    const isSmartContract = await isWalletAddressSmartContract(walletAddress);
+    assert.isTrue(isSmartContract);
+  });
+  it('should return true for smart contract address in polygon', async () => {
+    // GIV address https://polygonscan.com/address/0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270
+    const walletAddress = '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270';
     const isSmartContract = await isWalletAddressSmartContract(walletAddress);
     assert.isTrue(isSmartContract);
   });

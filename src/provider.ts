@@ -118,8 +118,8 @@ export function getProvider(networkId: number) {
     );
   }
   const connectionInfo = ethers.providers.InfuraProvider.getUrl(
-    network,
-    INFURA_API_KEY,
+    ethers.providers.getNetwork(networkId),
+    { projectId: INFURA_API_KEY },
   );
   connectionInfo.headers = {
     ...connectionInfo.headers,
