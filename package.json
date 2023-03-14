@@ -76,8 +76,7 @@
     "type-graphql": "2.0.0-beta.1",
     "typedi": "0.8.0",
     "typeorm": "0.3.11",
-    "typescript": "^4.9.4",
-    "web3": "1.7.5"
+    "typescript": "^4.9.4"
   },
   "lint-staged": {
     "*.ts": [

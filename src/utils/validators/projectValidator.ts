@@ -1,20 +1,16 @@
 import { getProvider, NETWORK_IDS } from '../../provider';
 import { Project, ProjStatus } from '../../entities/project';
-import Web3 from 'web3';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../errorMessages';
 import { logger } from '../logger';
 import { findRelatedAddressByWalletAddress } from '../../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
 import { findProjectById } from '../../repositories/projectRepository';
 import { titleWithoutSpecialCharacters } from '../utils';
+import { ethers } from 'ethers';
 
 export function isWalletAddressValid(address) {
   return Boolean(
-    address && address.length === 42 && Web3.utils.isAddress(address),
+    address && address.length === 42 && ethers.utils.isAddress(address),
   );
 }
 
