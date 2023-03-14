@@ -92,6 +92,7 @@ import { AppDataSource } from '../orm';
 import { redis } from '../redis';
 import { Campaign, CampaignType } from '../entities/campaign';
 import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
+import { FeaturedUpdate } from '../entities/featuredUpdate';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -3782,6 +3783,7 @@ function featuredProjectUpdateTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
+      reviewStatus: ReviewStatus.Listed,
       listed: true,
     });
 
@@ -3818,52 +3820,48 @@ function featuredProjectUpdateTestCases() {
 }
 
 function featureProjectsTestCases() {
-  it('should return all projects that have been featured', async () => {
+  before(async () => {
+    await FeaturedUpdate.clear();
+  });
+  it('should return all active projects that have been featured', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      listed: true,
+    const settings: [ReviewStatus, ProjStatus][] = [
+      [ReviewStatus.Listed, ProjStatus.active],
+      [ReviewStatus.Listed, ProjStatus.active],
+      [ReviewStatus.NotListed, ProjStatus.active], // Not listed
+      [ReviewStatus.NotReviewed, ProjStatus.active], // Not listed
+      [ReviewStatus.Listed, ProjStatus.deactive], // Not active
+    ];
+    const projectsPromises = settings.map(([reviewStatus, projectStatus]) => {
+      return saveProjectDirectlyToDb({
+        ...createProjectData(),
+        reviewStatus,
+        statusId: projectStatus,
+      });
     });
-    const project2 = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      listed: true,
+    const projects = await Promise.all(projectsPromises);
+    const projetUpdatePromises = projects.map(project => {
+      return ProjectUpdate.create({
+        userId: user!.id,
+        projectId: project.id,
+        content: 'TestProjectUpdate',
+        title: 'testEditProjectUpdate',
+        createdAt: new Date(),
+        isMain: false,
+      }).save();
     });
-
-    const projectUpdate = await ProjectUpdate.create({
-      userId: user!.id,
-      projectId: project.id,
-      content: 'TestProjectUpdate1',
-      title: 'testEditProjectUpdate1',
-      createdAt: new Date(),
-      isMain: false,
-    }).save();
-
-    const projectUpdate2 = await ProjectUpdate.create({
-      userId: user!.id,
-      projectId: project2.id,
-      content: 'TestProjectUpdate1',
-      title: 'testEditProjectUpdate1',
-      createdAt: new Date(),
-      isMain: false,
-    }).save();
-
-    const featuredProject = await saveFeaturedProjectDirectlyToDb(
-      Number(project.id),
-      Number(projectUpdate.id),
-    );
-
-    // MUST HAVE POSITION OR WILL NOT BE DISPLAYED
-    featuredProject.position = 1;
-    await featuredProject.save();
-
-    const featuredProject2 = await saveFeaturedProjectDirectlyToDb(
-      Number(project2.id),
-      Number(projectUpdate2.id),
-    );
-
-    // MUST HAVE POSITION OR WILL NOT BE DISPLAYED
-    featuredProject2.position = 2;
-    await featuredProject2.save();
+    const projectUpdates = await Promise.all(projetUpdatePromises);
+    for (let i = 0; i < projects.length; i++) {
+      const project = projects[i];
+      const projectUpdate = projectUpdates[i];
+      const featuredProject = await saveFeaturedProjectDirectlyToDb(
+        Number(project.id),
+        Number(projectUpdate.id),
+      );
+      // MUST HAVE POSITION OR WILL NOT BE DISPLAYED
+      featuredProject.position = i + 1;
+      await featuredProject.save();
+    }
 
     const take = 10;
     const result = await axios.post(graphqlUrl, {
@@ -3878,8 +3876,8 @@ function featureProjectsTestCases() {
 
     assert.equal(totalCount, 2);
     assert.isTrue(featuredProjects[0].featuredUpdate.position === 1);
-    assert.equal(Number(featuredProjects[0].id), project.id);
-    assert.equal(Number(featuredProjects[1].id), project2.id);
+    assert.equal(Number(featuredProjects[0].id), projects[0].id); // Listed and Active
+    assert.equal(Number(featuredProjects[1].id), projects[1].id); // Listed and Active
   });
 }
 
