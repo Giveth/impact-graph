@@ -43,7 +43,7 @@ export const getPoignArtWithdrawals = async (inputData: {
         query: graphqlQuery,
       },
     );
-    const withdrawals = result.data.data.withdrawals.map(withdrawal => {
+    const withdrawals = result.data?.data?.withdrawals?.map(withdrawal => {
       return {
         amount: Number(withdrawal.amount) / 10 ** 18,
         txHash: withdrawal.transaction.id,

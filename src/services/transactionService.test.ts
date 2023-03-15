@@ -448,6 +448,26 @@ function getTransactionDetailTestCases() {
   //     '0xd65478445fa41679fc5fd2a171f56a71a2f006a2246d4b408be97a251e330da7',
   //   );
   // });
+
+  it('should return transaction detail for normal transfer on polygon', async () => {
+    // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
+
+    const amount = 30_900;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8',
+      symbol: 'MATIC',
+      networkId: NETWORK_IDS.POLYGON,
+      fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
+      toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
+      amount,
+      timestamp: 1677400082,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'MATIC');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return transaction detail for normal transfer on xdai', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c734
     const amount = 0.001;

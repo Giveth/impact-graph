@@ -85,6 +85,7 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
+
   for (const token of SEED_DATA.TOKENS.goerli) {
     const tokenData = {
       ...token,
@@ -94,6 +95,21 @@ async function seedTokens() {
     if (token.symbol === 'GIV') {
       (tokenData as any).order = 1;
     } else if (token.symbol === 'ETH') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+
+  for (const token of SEED_DATA.TOKENS.polygon) {
+    const tokenData = {
+      ...token,
+      networkId: 5,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'MATIC') {
       (tokenData as any).order = 2;
     }
     await Token.create(tokenData as Token).save();

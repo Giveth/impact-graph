@@ -1,7 +1,7 @@
-import { getNetworkWeb3, NETWORK_IDS } from '../provider';
-import Web3 from 'web3';
+import { getProvider, NETWORK_IDS } from '../provider';
 import moment from 'moment';
 import { logger } from '../utils/logger';
+import { ethers } from 'ethers';
 
 interface WrappedBlock {
   number: number;
@@ -16,7 +16,7 @@ interface Block {
 
 // Copied mostly from https://github.com/monosux/ethereum-block-by-date/blob/a71dd26f6a6ffe26b3c2202d6666d52e00a63435/src/ethereum-block-by-date.js
 class BlockByDate {
-  web3: Web3;
+  provider: ethers.providers.Provider;
   checkedBlocks: {};
   savedBlocks: {};
   requests: number;
@@ -24,8 +24,8 @@ class BlockByDate {
   firstBlock: WrappedBlock;
   blockTime: number | string;
 
-  constructor(web3) {
-    this.web3 = web3.eth !== undefined ? web3 : { eth: web3 };
+  constructor(provider) {
+    this.provider = provider;
     this.checkedBlocks = {};
     this.savedBlocks = {};
     this.requests = 0;
@@ -136,11 +136,11 @@ class BlockByDate {
   async getBlockWrapper(block) {
     if (this.savedBlocks[block]) return this.savedBlocks[block];
     logger.debug(
-      'NODE RPC request count - getBlockWrapper  web3.eth.getBlock:',
+      'NODE RPC request count - getBlockWrapper  provider.getBlock:',
       block,
     );
     // tslint:disable-next-line:variable-name
-    const { number, timestamp } = await this.web3.eth.getBlock(block);
+    const { number, timestamp } = await this.provider.getBlock(block);
     this.savedBlocks[number] = {
       timestamp,
       number,
@@ -153,7 +153,7 @@ class BlockByDate {
 export const getBlockByTime = async (timeSecond: number): Promise<number> => {
   // Create the object again because using the same object caused returns null after a while!
   // It won't affect the performance, because each block will be seeked will be out of cached blocked
-  const blockByDate = new BlockByDate(getNetworkWeb3(NETWORK_IDS.XDAI));
+  const blockByDate = new BlockByDate(getProvider(NETWORK_IDS.XDAI));
   const block = await blockByDate.getDate(timeSecond * 1000);
   return block.block;
 };

@@ -1,6 +1,6 @@
 import { getBlockByTime } from './blockByDateService';
 import { assert } from 'chai';
-import { getNetworkWeb3, NETWORK_IDS } from '../provider';
+import { getProvider, NETWORK_IDS } from '../provider';
 import { sleep } from '../utils/utils';
 
 describe('block by date tests', () => {
@@ -19,8 +19,8 @@ describe('block by date tests', () => {
   });
 
   it('should return closest block to a random time', async () => {
-    const web3 = getNetworkWeb3(NETWORK_IDS.XDAI);
-    const firstBlock = await web3.eth.getBlock(1);
+    const provider = getProvider(NETWORK_IDS.XDAI);
+    const firstBlock = await provider.getBlock(1);
     const now = Math.floor(Date.now() / 1000);
     // A random time between 1970-01-01 and two minutes ago
 
@@ -30,17 +30,17 @@ describe('block by date tests', () => {
     const blockNumber = await getBlockByTime(time);
 
     const [previousBlock, nextBlock] = await Promise.all([
-      web3.eth.getBlock(blockNumber - 1),
-      web3.eth.getBlock(blockNumber + 1),
+      provider.getBlock(blockNumber - 1),
+      provider.getBlock(blockNumber + 1),
     ]);
     assert.isBelow(time, +nextBlock.timestamp);
     assert.isAbove(time, +previousBlock.timestamp);
   });
 
   it('should return correct balance after delay', async () => {
-    const web3 = getNetworkWeb3(NETWORK_IDS.XDAI);
+    const provider = getProvider(NETWORK_IDS.XDAI);
     let [block, blockNumber] = await Promise.all([
-      web3.eth.getBlock('latest'),
+      provider.getBlock('latest'),
       getBlockByTime(Date.now() / 1000),
     ]);
 
@@ -48,7 +48,7 @@ describe('block by date tests', () => {
 
     await sleep(20000); // about 3 blocks
     [block, blockNumber] = await Promise.all([
-      web3.eth.getBlock('latest'),
+      provider.getBlock('latest'),
       getBlockByTime(Date.now() / 1000),
     ]);
     assert.isAtLeast(blockNumber, block.number - 1);

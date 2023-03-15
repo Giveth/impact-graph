@@ -67,6 +67,7 @@ import { Token } from '../entities/token';
 import { findUserById } from '../repositories/userRepository';
 import {
   addBulkNewProjectAddress,
+  addNewProjectAddress,
   findProjectRecipientAddressByProjectId,
   getPurpleListAddresses,
   isWalletAddressInPurpleList,
@@ -603,6 +604,10 @@ export class ProjectResolver {
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<TopProjects> {
     const query = Project.createQueryBuilder('project')
+      .where(
+        `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+        { reviewStatus: ReviewStatus.Listed },
+      )
       .innerJoinAndSelect('project.featuredUpdate', 'featuredUpdate')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
@@ -610,8 +615,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.projectPower', 'projectPower')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields)
-      .where('featuredUpdate.position IS NOT NULL')
-      .orderBy('featuredUpdate.position', 'ASC');
+      .orderBy('featuredUpdate.position', 'ASC', 'NULLS LAST');
 
     // if loggedIn get his reactions
     const viewerUserId = connectedWalletUserId || user?.userId;
@@ -978,6 +982,48 @@ export class ProjectResolver {
 
     // Edit emails
     await getNotificationAdapter().projectEdited({ project });
+
+    return project;
+  }
+
+  @Mutation(returns => Project)
+  async addRecipientAddressToProject(
+    @Arg('projectId') projectId: number,
+    @Arg('networkId') networkId: number,
+    @Arg('address') address: string,
+    @Ctx() { req: { user } }: ApolloContext,
+  ) {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+
+    const project = await findProjectById(projectId);
+
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+
+    if (project.admin !== String(user.userId)) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
+    }
+
+    await validateProjectWalletAddress(address, projectId);
+
+    const adminUser = (await findUserById(Number(project.admin))) as User;
+    await addNewProjectAddress({
+      project,
+      user: adminUser,
+      address,
+      networkId,
+      isRecipient: true,
+    });
+
+    project.adminUser = adminUser;
+    project.addresses = await findProjectRecipientAddressByProjectId({
+      projectId,
+    });
 
     return project;
   }
@@ -1675,7 +1721,7 @@ export class ProjectResolver {
         'projectUpdate.project',
         Project,
         'project',
-        'project.id = projectUpdate.projectId AND projectUpdate.isMain = false',
+        `project.id = projectUpdate.projectId AND projectUpdate.isMain = false AND project.statusId = ${ProjStatus.active} AND project.reviewStatus = '${ReviewStatus.Listed}'`,
       )
       .where('projectUpdate.id IN (:...ids)', {
         ids: latestProjectUpdates.map(p => p.id),

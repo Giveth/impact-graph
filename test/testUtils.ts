@@ -1251,6 +1251,14 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
+    polygon: [
+      {
+        name: 'POLYGON native token',
+        symbol: 'MATIC',
+        address: '0x52459834ca561cb55411699e9c2143683bcf865f',
+        decimals: 18,
+      },
+    ],
     goerli: [
       {
         name: 'Ethereum native token',
@@ -1527,6 +1535,7 @@ export interface CreateDonationData {
   amount: number;
   createdAt: any;
   valueUsd?: number;
+  valueEth?: number;
   nonce?: number;
   // userId?: number;
   projectId?: number;
@@ -1555,7 +1564,7 @@ export const saveDonationDirectlyToDb = async (
   donationData: CreateDonationData,
   userId?: number,
   projectId?: number,
-) => {
+): Promise<Donation> => {
   return Donation.create({
     ...donationData,
     userId,

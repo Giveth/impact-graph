@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.10.4",
+  "version": "1.10.5",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -10,6 +10,7 @@
     "@apollo/server": "4.3.1",
     "@apollo/server-plugin-landing-page-graphql-playground": "4.0.0",
     "@chainvine/sdk": "1.0.19",
+    "@giveth/monoswap": "^1.0.4",
     "@sentry/node": "6.16.1",
     "@sentry/tracing": "^6.2.0",
     "@types/bcryptjs": "^2.4.2",
@@ -40,7 +41,7 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "eth-sig-util": "^3.0.1",
-    "ethers": "^5.5.4",
+    "ethers": "^5.7.2",
     "express": "^4.17.1",
     "express-formidable": "^1.2.0",
     "express-rate-limit": "^5.5.1",
@@ -62,7 +63,6 @@
     "jsonwebtoken": "^9.0.0",
     "marked": "^4.2.5",
     "moment": "^2.29.4",
-    "monoswap": "0.3.16",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.5.0",
     "patch-package": "^6.5.1",
@@ -76,8 +76,7 @@
     "type-graphql": "2.0.0-beta.1",
     "typedi": "0.8.0",
     "typeorm": "0.3.11",
-    "typescript": "^4.9.4",
-    "web3": "1.7.5"
+    "typescript": "^4.9.4"
   },
   "lint-staged": {
     "*.ts": [

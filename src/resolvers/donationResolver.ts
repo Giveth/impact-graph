@@ -14,7 +14,7 @@ import {
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { getOurTokenList } from 'monoswap';
+import { getOurTokenList } from '@giveth/monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { ApolloContext } from '../types/ApolloContext';
 import { Project, ProjStatus } from '../entities/project';
@@ -37,12 +37,13 @@ import {
   updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
-import Web3 from 'web3';
 import { logger } from '../utils/logger';
 import { findUserById } from '../repositories/userRepository';
 import {
+  donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
+  donationsTotalNumberPerDateRangeByMonth,
   donorsCountPerDate,
   donorsCountPerDateByMonthAndYear,
   findDonationById,
@@ -54,6 +55,8 @@ import { MainCategory } from '../entities/mainCategory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
+import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
+import { ethers } from 'ethers';
 
 @ObjectType()
 class PaginateDonations {
@@ -274,6 +277,31 @@ export class DonationResolver {
     }
   }
 
+  @Query(returns => ResourcePerDateRange, { nullable: true })
+  async totalDonationsNumberPerDate(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate', { nullable: true }) fromDate?: string,
+    @Arg('toDate', { nullable: true }) toDate?: string,
+  ): Promise<ResourcePerDateRange> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await donationsNumberPerDateRange(fromDate, toDate);
+      const totalPerMonthAndYear =
+        await donationsTotalNumberPerDateRangeByMonth(fromDate, toDate);
+
+      return {
+        total,
+        totalPerMonthAndYear,
+      };
+    } catch (e) {
+      logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
   /**
    *
    * @param take
@@ -412,7 +440,7 @@ export class DonationResolver {
 
           // WalletAddresses are translanted to huge integers
           // this breaks postgresql query integer limit
-          if (!Web3.utils.isAddress(searchTerm)) {
+          if (!ethers.utils.isAddress(searchTerm)) {
             const amount = Number(searchTerm);
 
             qb.orWhere('donation.amount = :number', {
@@ -641,8 +669,15 @@ export class DonationResolver {
       }
 
       await donation.save();
-      const baseTokens =
-        priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
+      let baseTokens: string[];
+      switch (priceChainId) {
+        case CHAIN_ID.XDAI:
+          baseTokens = ['WXDAI', 'WETH'];
+          break;
+        default:
+          baseTokens = ['USDT', 'ETH'];
+          break;
+      }
 
       await updateDonationPricesAndValues(
         donation,

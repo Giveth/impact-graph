@@ -1,10 +1,11 @@
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import {
   isTokenAcceptableForProject,
   updateOldStableCoinDonationsPrice,
   sendSegmentEventForDonation,
   syncDonationStatusWithBlockchainNetwork,
   updateTotalDonationsOfProject,
+  updateDonationPricesAndValues,
 } from './donationService';
 import { NETWORK_IDS } from '../provider';
 import {
@@ -23,6 +24,7 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { errorMessages } from '../utils/errorMessages';
 import { findDonationById } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
+import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -74,6 +76,51 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       toAddress: '0x2d2b642c7407ebce201ed80711124fffd1777331',
       currency: 'ETH',
       timestamp: 1661114988,
+    };
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 100,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+      donationId: donation.id,
+    });
+    assert.isOk(updateDonation);
+    assert.equal(updateDonation.id, donation.id);
+    assert.isTrue(updateDonation.segmentNotified);
+    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+  });
+
+  it('should verify a Polygon donation', async () => {
+    // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
+
+    const amount = 30_900;
+
+    const transactionInfo = {
+      txHash:
+        '0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8',
+      currency: 'MATIC',
+      networkId: NETWORK_IDS.POLYGON,
+      fromAddress: '0x9ead03f7136fc6b4bdb0780b00a1c14ae5a8b6d0',
+      toAddress: '0x4632e0bcf15db3f4663fea1a6dbf666e563598cd',
+      amount,
+      timestamp: 1677400082,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -539,5 +586,43 @@ function fillOldStableCoinDonationsPriceTestCases() {
     const updatedDonation = await findDonationById(donation.id);
     assert.equal(updatedDonation?.valueUsd, updatedDonation?.amount);
     assert.equal(updatedDonation?.priceUsd, 1);
+  });
+
+  it('should fill price for Matic donation on the Polygon network', async () => {
+    const token = 'MATIC';
+    const amount = 100;
+    let donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        currency: token,
+        valueUsd: undefined,
+        valueEth: undefined,
+        amount,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const project = (await Project.findOne({
+      where: { id: SEED_DATA.FIRST_PROJECT.id },
+    })) as Project;
+
+    await updateDonationPricesAndValues(
+      donation,
+      project,
+      token,
+      ['USDT', 'MATIC'],
+      CHAIN_ID.POLYGON,
+      amount,
+    );
+
+    donation = (await findDonationById(donation.id))!;
+
+    expect(donation.valueUsd).to.gt(0);
+    assert.equal(
+      donation.valueEth,
+      amount,
+      'valueEth should be equal to amount',
+    );
   });
 }

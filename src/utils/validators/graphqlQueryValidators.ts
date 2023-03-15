@@ -159,6 +159,7 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,
+        NETWORK_IDS.POLYGON,
         NETWORK_IDS.XDAI,
       ),
     }),

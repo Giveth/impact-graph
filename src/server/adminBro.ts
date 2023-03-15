@@ -910,6 +910,7 @@ const getAdminBroInstance = async () => {
                 { value: NETWORK_IDS.MAIN_NET, label: 'MAINNET' },
                 { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
                 { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
+                { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
                 { value: NETWORK_IDS.XDAI, label: 'XDAI' },
                 { value: NETWORK_IDS.BSC, label: 'BSC' },
               ],
@@ -2461,7 +2462,11 @@ export const addFeaturedProjectUpdate = async (
       .where('projectUpdate.id IN (:...updateIds)', { updateIds })
       .andWhere('projectUpdate.isMain = false')
       .andWhere(
-        `project.statusId = ${ProjStatus.active} AND project.listed = true`,
+        `project.statusId = :projectStatus AND project.reviewStatus = :reviewStatus`,
+        {
+          projectStatus: ProjStatus.active,
+          reviewStatus: ReviewStatus.Listed,
+        },
       )
       .getMany();
 

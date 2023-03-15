@@ -1,11 +1,6 @@
 import config from './config';
 import { ethers } from 'ethers';
-import Web3 from 'web3';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from './utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from './utils/errorMessages';
 
 const INFURA_API_KEY = config.get('INFURA_API_KEY');
 
@@ -14,6 +9,7 @@ export const NETWORK_IDS = {
   ROPSTEN: 3,
   GOERLI: 5,
   XDAI: 100,
+  POLYGON: 137,
   BSC: 56,
 };
 
@@ -23,6 +19,7 @@ export const NETWORKS_IDS_TO_NAME = {
   5: 'GOERLI',
   100: 'GNOSIS',
   56: 'BSC',
+  137: 'POLYGON',
 };
 
 const NETWORK_NAMES = {
@@ -31,6 +28,7 @@ const NETWORK_NAMES = {
   MAINNET: 'mainnet',
   ROPSTEN: 'ropsten',
   GOERLI: 'goerli',
+  POLYGON: 'polygon-mainnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -39,6 +37,7 @@ const NETWORK_NATIVE_TOKENS = {
   MAINNET: 'ETH',
   ROPSTEN: 'ETH',
   GOERLI: 'ETH',
+  POLYGON: 'MATIC',
 };
 
 const networkNativeTokensList = [
@@ -67,6 +66,11 @@ const networkNativeTokensList = [
     networkId: NETWORK_IDS.GOERLI,
     nativeToken: NETWORK_NATIVE_TOKENS.GOERLI,
   },
+  {
+    networkName: NETWORK_NAMES.POLYGON,
+    networkId: NETWORK_IDS.POLYGON,
+    nativeToken: NETWORK_NATIVE_TOKENS.POLYGON,
+  },
 ];
 const NETWORK_ID_MAP = {
   1: NETWORK_NAMES.MAINNET,
@@ -86,46 +90,42 @@ export function getNetworkNativeToken(networkId: number): string {
   return networkInfo.nativeToken;
 }
 
-const mainnetNodeUrl = `https://${NETWORK_NAMES.MAINNET}.infura.io/v3/${INFURA_API_KEY}`;
-const mainnetWeb3 = new Web3(mainnetNodeUrl);
-const ropstenNodeUrl = `https://${NETWORK_NAMES.ROPSTEN}.infura.io/v3/${INFURA_API_KEY}`;
-const ropstenWeb3 = new Web3(ropstenNodeUrl);
-const goerliNodeUrl = `https://${NETWORK_NAMES.GOERLI}.infura.io/v3/${INFURA_API_KEY}`;
-const goerliWeb3 = new Web3(goerliNodeUrl);
-const xdaiWeb3NodeUrl = config.get('XDAI_NODE_HTTP_URL') as string;
-const xdaiWeb3 = new Web3(xdaiWeb3NodeUrl);
-
-export const getNetworkWeb3 = (networkId: number): Web3 => {
-  switch (networkId) {
-    case NETWORK_IDS.MAIN_NET:
-      return mainnetWeb3;
-
-    case NETWORK_IDS.ROPSTEN:
-      return ropstenWeb3;
-    case NETWORK_IDS.GOERLI:
-      return goerliWeb3;
-    case NETWORK_IDS.XDAI:
-      return xdaiWeb3;
-    default:
-      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
-  }
+export const getOriginHeader = () => {
+  const SERVICE_NAME = process.env.SERVICE_NAME;
+  return 'impact-graph-' + SERVICE_NAME || 'unnamed';
 };
 
 export function getProvider(networkId: number) {
   const network = NETWORK_ID_MAP[networkId];
   if (network === NETWORK_NAMES.XDAI) {
-    return new ethers.providers.JsonRpcProvider(
-      config.get('XDAI_NODE_HTTP_URL') as string,
-    );
+    return new ethers.providers.JsonRpcProvider({
+      url: config.get('XDAI_NODE_HTTP_URL') as string,
+      headers: {
+        Origin: getOriginHeader(),
+      },
+    });
   }
   // 'https://bsc-dataseed.binance.org/'
   if (network === NETWORK_NAMES.BSC) {
     return new ethers.providers.JsonRpcProvider(
-      config.get('BSC_NODE_HTTP_URL') as string,
+      {
+        url: config.get('BSC_NODE_HTTP_URL') as string,
+        headers: {
+          Origin: getOriginHeader(),
+        },
+      },
       { name: NETWORK_NAMES.BSC, chainId: NETWORK_IDS.BSC },
     );
   }
-  return new ethers.providers.InfuraProvider(network, INFURA_API_KEY);
+  const connectionInfo = ethers.providers.InfuraProvider.getUrl(
+    ethers.providers.getNetwork(networkId),
+    { projectId: INFURA_API_KEY },
+  );
+  connectionInfo.headers = {
+    ...connectionInfo.headers,
+    Origin: getOriginHeader(),
+  };
+  return new ethers.providers.JsonRpcProvider(connectionInfo);
 }
 
 export function getBlockExplorerApiUrl(networkId: number): string {
@@ -145,6 +145,10 @@ export function getBlockExplorerApiUrl(networkId: number): string {
     case NETWORK_IDS.GOERLI:
       return `${config.get('ETHERSCAN_GOERLI_API_URL')}?apikey=${config.get(
         'ETHERSCAN_API_KEY',
+      )}`;
+    case NETWORK_IDS.POLYGON:
+      return `${config.get('POLYGON_SCAN_API_URL')}?apikey=${config.get(
+        'POLYGON_SCAN_API_KEY',
       )}`;
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
