@@ -18,7 +18,7 @@ import { disperseABI } from '../assets/disperseABI';
 import {
   getBlockExplorerApiUrl,
   getNetworkNativeToken,
-  getNetworkWeb3,
+  getProvider,
   NETWORK_IDS,
 } from '../provider';
 import { logger } from '../utils/logger';
@@ -34,12 +34,12 @@ export async function getTransactionInfoFromNetwork(
 ): Promise<NetworkTransactionInfo> {
   const { networkId, nonce } = input;
 
-  const web3 = getNetworkWeb3(networkId);
+  const provider = getProvider(networkId);
   logger.debug(
-    'NODE RPC request count - getTransactionInfoFromNetwork  web3.eth.getTransactionCount txHash:',
+    'NODE RPC request count - getTransactionInfoFromNetwork  provider.getTransactionCount txHash:',
     input.txHash,
   );
-  const userTransactionsCount = await web3.eth.getTransactionCount(
+  const userTransactionsCount = await provider.getTransactionCount(
     input.fromAddress,
   );
   if (typeof nonce === 'number' && userTransactionsCount <= nonce) {
@@ -180,7 +180,7 @@ async function getListOfTransactionsByAddress(input: {
   // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
   // https://blockscout.com/xdai/mainnet/api-docs#account
   logger.debug(
-    'NODE RPC request count - getTransactionDetailForTokenTransfer  web3.eth.getTransaction fromAddress:',
+    'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransaction fromAddress:',
     address,
   );
   const result = await axios.get(getBlockExplorerApiUrl(networkId), {
@@ -215,22 +215,18 @@ async function getTransactionDetailForNormalTransfer(
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId } = input;
   logger.debug(
-    'NODE RPC request count - getTransactionDetailForNormalTransfer  web3.eth.getTransaction txHash:',
+    'NODE RPC request count - getTransactionDetailForNormalTransfer  provider.getTransaction txHash:',
     input.txHash,
   );
-  const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
-    txHash,
-  );
+  const transaction = await getProvider(networkId).getTransaction(txHash);
   if (!transaction) {
     return null;
   }
   logger.debug(
-    'NODE RPC request count - getTransactionDetailForNormalTransfer  web3.eth.getTransactionReceipt txHash:',
+    'NODE RPC request count - getTransactionDetailForNormalTransfer  provider.getTransactionReceipt txHash:',
     input.txHash,
   );
-  const receipt = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
-    txHash,
-  );
+  const receipt = await getProvider(networkId).getTransactionReceipt(txHash);
   if (!receipt) {
     // Transaction is not mined yet
     // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
@@ -244,10 +240,10 @@ async function getTransactionDetailForNormalTransfer(
     );
   }
   logger.debug(
-    'NODE RPC request count - getTransactionDetailForNormalTransfer  web3.eth.getBlock txHash:',
+    'NODE RPC request count - getTransactionDetailForNormalTransfer  provider.getBlock txHash:',
     input.txHash,
   );
-  const block = await getNetworkWeb3(networkId).eth.getBlock(
+  const block = await getProvider(networkId).getBlock(
     transaction.blockNumber as number,
   );
 
@@ -256,7 +252,7 @@ async function getTransactionDetailForNormalTransfer(
     timestamp: block.timestamp as number,
     to: transaction.to as string,
     hash: txHash,
-    amount: normalizeAmount(transaction.value, 18),
+    amount: ethers.utils.formatEther(transaction.value),
     currency: symbol,
   };
 }
@@ -266,17 +262,17 @@ async function getTransactionDetailForTokenTransfer(
 ): Promise<NetworkTransactionInfo | null> {
   const { txHash, symbol, networkId } = input;
   const token = await findTokenByNetworkAndSymbol(networkId, symbol);
-  const web3 = getNetworkWeb3(networkId);
+  const provider = getProvider(networkId);
   logger.debug(
-    'NODE RPC request count - getTransactionDetailForTokenTransfer  web3.eth.getTransaction txHash:',
+    'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransaction txHash:',
     input.txHash,
   );
-  const transaction = await web3.eth.getTransaction(txHash);
+  const transaction = await provider.getTransaction(txHash);
   logger.debug(
-    'NODE RPC request count - getTransactionDetailForTokenTransfer  web3.eth.getTransactionReceipt txHash:',
+    'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransactionReceipt txHash:',
     input.txHash,
   );
-  const receipt = await web3.eth.getTransactionReceipt(txHash);
+  const receipt = await provider.getTransactionReceipt(txHash);
   logger.debug('getTransactionDetailForTokenTransfer', {
     receipt,
     transaction,
@@ -310,15 +306,15 @@ async function getTransactionDetailForTokenTransfer(
     );
   }
 
-  const transactionData = abiDecoder.decodeMethod(transaction.input);
+  const transactionData = abiDecoder.decodeMethod(transaction.data);
   const transactionToAddress = transactionData.params.find(
     item => item.name === '_to',
   ).value;
   logger.debug(
-    'NODE RPC request count - getTransactionDetailForTokenTransfer  web3.eth.getBlock txHash:',
+    'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getBlock txHash:',
     input.txHash,
   );
-  const block = await getNetworkWeb3(networkId).eth.getBlock(
+  const block = await getProvider(networkId).getBlock(
     transaction.blockNumber as number,
   );
   return {
@@ -384,14 +380,12 @@ export const getDisperseTransactions = async (
   txHash: string,
   networkId: number,
 ): Promise<NetworkTransactionInfo[]> => {
-  const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
-    txHash,
-  );
-  const block = await getNetworkWeb3(networkId).eth.getBlock(
+  const transaction = await getProvider(networkId).getTransaction(txHash);
+  const block = await getProvider(networkId).getBlock(
     transaction.blockNumber as number,
   );
   abiDecoder.addABI(disperseABI);
-  const transactionData = abiDecoder.decodeMethod(transaction.input);
+  const transactionData = abiDecoder.decodeMethod(transaction.data);
   const transactions: NetworkTransactionInfo[] = [];
 
   let token;
@@ -435,17 +429,13 @@ export const getCsvAirdropTransactions = async (
   txHash: string,
   networkId: number,
 ): Promise<NetworkTransactionInfo[]> => {
-  const transaction = await getNetworkWeb3(networkId).eth.getTransaction(
-    txHash,
-  );
+  const transaction = await getProvider(networkId).getTransaction(txHash);
   // You can hash Transfer(address,address,uint256) with https://emn178.github.io/online-tools/keccak_256.html
   // would return ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
   const transferTopic =
     '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
-  const receipts = await getNetworkWeb3(networkId).eth.getTransactionReceipt(
-    txHash,
-  );
+  const receipts = await getProvider(networkId).getTransactionReceipt(txHash);
   const transferLogs: any[] = [];
   for (const receiptLog of receipts.logs) {
     if (receiptLog.topics[0] !== transferTopic) {
@@ -478,7 +468,7 @@ export const getCsvAirdropTransactions = async (
     };
   });
   const transfers = await Promise.all(transfersPromises);
-  const block = await getNetworkWeb3(networkId).eth.getBlock(
+  const block = await getProvider(networkId).getBlock(
     transaction.blockNumber as number,
   );
   return transfers.map(transfer => {

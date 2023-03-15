@@ -1,20 +1,16 @@
 import { getProvider, NETWORK_IDS } from '../../provider';
 import { Project, ProjStatus } from '../../entities/project';
-import Web3 from 'web3';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../errorMessages';
 import { logger } from '../logger';
 import { findRelatedAddressByWalletAddress } from '../../repositories/projectAddressRepository';
 import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
 import { findProjectById } from '../../repositories/projectRepository';
 import { titleWithoutSpecialCharacters } from '../utils';
+import { ethers } from 'ethers';
 
 export function isWalletAddressValid(address) {
   return Boolean(
-    address && address.length === 42 && Web3.utils.isAddress(address),
+    address && address.length === 42 && ethers.utils.isAddress(address),
   );
 }
 
@@ -124,25 +120,25 @@ export const validateProjectTitle = async (title: string): Promise<boolean> => {
 export const isWalletAddressSmartContract = async (
   address: string,
 ): Promise<boolean> => {
-  const mainnetProvider = getProvider(NETWORK_IDS.MAIN_NET);
-  const xdaiProvider = getProvider(NETWORK_IDS.XDAI);
-  const isSmartContractMainnet = isSmartContract(mainnetProvider);
-  const isSmartContractXDai = isSmartContract(xdaiProvider);
-  const isContractPromises: any = [];
-  isContractPromises.push(isSmartContractMainnet(address));
-  isContractPromises.push(isSmartContractXDai(address));
+  const networkIds = [
+    NETWORK_IDS.MAIN_NET,
+    NETWORK_IDS.XDAI,
+    NETWORK_IDS.POLYGON,
+  ];
 
-  return Promise.all(isContractPromises).then(promises => {
-    const [isSmartContractOnMainnet, isSmartContractOnXDai] = promises;
-    return Boolean(isSmartContractOnMainnet || isSmartContractOnXDai);
-  });
+  const _isSmartContracts = await Promise.all(
+    networkIds.map(async networkId => {
+      const provider = getProvider(networkId);
+      return await isSmartContract(provider, address);
+    }),
+  );
+
+  return _isSmartContracts.some(_isSmartContract => Boolean(_isSmartContract));
 };
 
-function isSmartContract(provider) {
-  return async projectWalletAddress => {
-    const code = await provider.getCode(projectWalletAddress);
-    return code !== '0x';
-  };
+async function isSmartContract(provider, projectWalletAddress) {
+  const code = await provider.getCode(projectWalletAddress);
+  return code !== '0x';
 }
 
 export const canUserVisitProject = (

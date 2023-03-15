@@ -37,7 +37,6 @@ import {
   updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
-import Web3 from 'web3';
 import { logger } from '../utils/logger';
 import { findUserById } from '../repositories/userRepository';
 import {
@@ -57,6 +56,7 @@ import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
+import { ethers } from 'ethers';
 
 @ObjectType()
 class PaginateDonations {
@@ -440,7 +440,7 @@ export class DonationResolver {
 
           // WalletAddresses are translanted to huge integers
           // this breaks postgresql query integer limit
-          if (!Web3.utils.isAddress(searchTerm)) {
+          if (!ethers.utils.isAddress(searchTerm)) {
             const amount = Number(searchTerm);
 
             qb.orWhere('donation.amount = :number', {
