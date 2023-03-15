@@ -125,6 +125,47 @@ export const updateProjectQuery = `
   }
  `;
 
+export const addRecipientAddressToProjectQuery = `
+  mutation ($projectId: Float!, $networkId: Float!, $address: String!) {
+    addRecipientAddressToProject(projectId: $projectId, networkId: $networkId, address: $address) {
+      id
+      title
+      description
+      descriptionSummary
+      image
+      slug
+      listed
+      reviewStatus
+      verified
+      slugHistory
+      creationDate
+      updatedAt
+      admin
+      walletAddress
+      impactLocation
+      categories {
+        name
+      }
+      addresses {
+        address
+        isRecipient
+        networkId
+      }
+      adminUser {
+        id
+        name
+        email
+        walletAddress
+      }
+     addresses {
+      address
+      isRecipient
+      networkId
+    }
+    }
+  }
+ `;
+
 export const deactivateProjectQuery = `
   mutation ($projectId: Float!, $reasonId: Float) {
     deactivateProject(projectId: $projectId, reasonId: $reasonId)

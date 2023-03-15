@@ -67,6 +67,7 @@ import { Token } from '../entities/token';
 import { findUserById } from '../repositories/userRepository';
 import {
   addBulkNewProjectAddress,
+  addNewProjectAddress,
   findProjectRecipientAddressByProjectId,
   getPurpleListAddresses,
   isWalletAddressInPurpleList,
@@ -977,6 +978,48 @@ export class ProjectResolver {
 
     // Edit emails
     await getNotificationAdapter().projectEdited({ project });
+
+    return project;
+  }
+
+  @Mutation(returns => Project)
+  async addRecipientAddressToProject(
+    @Arg('projectId') projectId: number,
+    @Arg('networkId') networkId: number,
+    @Arg('address') address: string,
+    @Ctx() { req: { user } }: ApolloContext,
+  ) {
+    if (!user)
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
+      );
+
+    const project = await findProjectById(projectId);
+
+    if (!project)
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+
+    if (project.admin !== String(user.userId)) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
+      );
+    }
+
+    await validateProjectWalletAddress(address, projectId);
+
+    const adminUser = (await findUserById(Number(project.admin))) as User;
+    await addNewProjectAddress({
+      project,
+      user: adminUser,
+      address,
+      networkId,
+      isRecipient: true,
+    });
+
+    project.adminUser = adminUser;
+    project.addresses = await findProjectRecipientAddressByProjectId({
+      projectId,
+    });
 
     return project;
   }

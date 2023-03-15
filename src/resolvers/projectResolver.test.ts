@@ -16,6 +16,7 @@ import axios from 'axios';
 import {
   activateProjectQuery,
   addProjectUpdateQuery,
+  addRecipientAddressToProjectQuery,
   createProjectQuery,
   deactivateProjectQuery,
   deleteProjectUpdateQuery,
@@ -95,6 +96,10 @@ import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
+describe(
+  'addRecipientAddressToProject test cases --->',
+  addRecipientAddressToProjectTestCases,
+);
 
 // search and filters
 describe('all projects test cases --->', allProjectsTestCases);
@@ -2600,6 +2605,295 @@ function updateProjectTestCases() {
     assert.equal(editProjectResult.data.data.updateProject.slug, newTitle);
     assert.isTrue(
       editProjectResult.data.data.updateProject.slugHistory.includes(title),
+    );
+  });
+}
+
+function addRecipientAddressToProjectTestCases() {
+  it('addRecipientAddressToProject should return <<Access denied>>, calling without token', async () => {
+    const result = await axios.post(graphqlUrl, {
+      query: addRecipientAddressToProjectQuery,
+      variables: {
+        projectId: 1,
+        networkId: NETWORK_IDS.POLYGON,
+        address: generateRandomEtheriumAddress(),
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.AUTHENTICATION_REQUIRED,
+    );
+  });
+  it('Should get error when updating someone else project', async () => {
+    const secondUserAccessToken = await generateTestAccessToken(
+      SEED_DATA.SECOND_USER.id,
+    );
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: Number(SEED_DATA.FIRST_PROJECT.id),
+          networkId: NETWORK_IDS.POLYGON,
+          address: generateRandomEtheriumAddress(),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${secondUserAccessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      response.data.errors[0].message,
+      errorMessages.YOU_ARE_NOT_THE_OWNER_OF_PROJECT,
+    );
+  });
+  it('Should get error when project not found', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          // A number that we can be sure there is not a project with this id
+          projectId: 1_000_000,
+          networkId: NETWORK_IDS.POLYGON,
+          address: generateRandomEtheriumAddress(),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      response.data.errors[0].message,
+      errorMessages.PROJECT_NOT_FOUND,
+    );
+  });
+  it('Should get error when sent walletAddress is repetitive', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: Number(SEED_DATA.FIRST_PROJECT.id),
+          networkId: NETWORK_IDS.POLYGON,
+          address: SEED_DATA.SECOND_PROJECT.walletAddress,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      response.data.errors[0].message,
+      `Eth address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
+    );
+  });
+  it('Should update project when sent walletAddress is smartContractAddress', async () => {
+    await ProjectAddress.createQueryBuilder()
+      .delete()
+      .from(ProjectAddress)
+      .where('address = :address', {
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      })
+      .execute();
+    await Project.createQueryBuilder()
+      .delete()
+      .from(Project)
+      .where('walletAddress = :address', {
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      })
+      .execute();
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+    });
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.POLYGON,
+          address: generateRandomEtheriumAddress(),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(response.data.data.addRecipientAddressToProject);
+
+    const walletaddressOfUpdateProject =
+      await ProjectAddress.createQueryBuilder()
+        .where('"projectId" = :projectId', {
+          projectId: Number(response.data.data.addRecipientAddressToProject.id),
+        })
+        .getMany();
+    assert.isOk(
+      walletaddressOfUpdateProject[1]?.address,
+      SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
+    );
+  });
+  it('Should add address successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const newWalletAddress = generateRandomEtheriumAddress();
+
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.POLYGON,
+          address: newWalletAddress,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    // assert.equal(JSON.stringify(response.data, null, 4), 'hi');
+    assert.isOk(response.data.data.addRecipientAddressToProject);
+    assert.isOk(
+      response.data.data.addRecipientAddressToProject.addresses.find(
+        projectAddress => projectAddress.address === newWalletAddress,
+      ),
+    );
+  });
+
+  it('Should update successfully listed (true) should not change', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      listed: true,
+      reviewStatus: ReviewStatus.Listed,
+    });
+    const newWalletAddress = generateRandomEtheriumAddress();
+
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.POLYGON,
+          address: newWalletAddress,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    // assert.equal(JSON.stringify(response.data, null, 4), 'hi');
+    assert.isOk(response.data.data.addRecipientAddressToProject);
+    assert.isOk(
+      response.data.data.addRecipientAddressToProject.addresses.find(
+        projectAddress => projectAddress.address === newWalletAddress,
+      ),
+    );
+
+    assert.equal(response.data.data.addRecipientAddressToProject.listed, true);
+    assert.equal(
+      response.data.data.addRecipientAddressToProject.reviewStatus,
+      ReviewStatus.Listed,
+    );
+  });
+  it('Should update successfully listed (false) should should not change', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+      listed: false,
+      reviewStatus: ReviewStatus.NotListed,
+    });
+    const newWalletAddress = generateRandomEtheriumAddress();
+
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.POLYGON,
+          address: newWalletAddress,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    // assert.equal(JSON.stringify(response.data, null, 4), 'hi');
+    assert.isOk(response.data.data.addRecipientAddressToProject);
+    assert.isOk(
+      response.data.data.addRecipientAddressToProject.addresses.find(
+        projectAddress => projectAddress.address === newWalletAddress,
+      ),
+    );
+    assert.equal(response.data.data.addRecipientAddressToProject.listed, false);
+    assert.equal(
+      response.data.data.addRecipientAddressToProject.reviewStatus,
+      ReviewStatus.NotListed,
+    );
+  });
+
+  it('Should not change updatedAt when updating project', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const newWalletAddress = generateRandomEtheriumAddress();
+
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.POLYGON,
+          address: newWalletAddress,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    // assert.equal(JSON.stringify(response.data, null, 4), 'hi');
+    assert.isOk(response.data.data.addRecipientAddressToProject);
+    assert.equal(
+      response.data.data.addRecipientAddressToProject.updatedAt,
+      project.updatedAt.toISOString(),
     );
   });
 }
