@@ -611,7 +611,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
       donation,
       project,
       token,
-      ['USDT', 'MATIC'], // For matic USDC returns more favorable values
+      ['USDC', 'MATIC'], // For matic USDC returns more favorable values
       CHAIN_ID.POLYGON,
       amount,
     );
