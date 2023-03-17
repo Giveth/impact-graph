@@ -611,7 +611,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
       donation,
       project,
       token,
-      ['USDT', 'MATIC'],
+      ['USDC', 'MATIC'],
       CHAIN_ID.POLYGON,
       amount,
     );

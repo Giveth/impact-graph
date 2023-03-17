@@ -674,6 +674,9 @@ export class DonationResolver {
         case CHAIN_ID.XDAI:
           baseTokens = ['WXDAI', 'WETH'];
           break;
+        case CHAIN_ID.POLYGON:
+          baseTokens = ['USDC', 'MATIC'];
+          break;
         default:
           baseTokens = ['USDT', 'ETH'];
           break;
