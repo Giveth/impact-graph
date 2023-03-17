@@ -53,6 +53,9 @@ export class Token extends BaseEntity {
   @Column({ nullable: false, default: false })
   isGivbackEligible: boolean;
 
-  @ManyToMany(type => Organization, organization => organization.tokens)
+  @ManyToMany(type => Organization, organization => organization.tokens, {
+    // make it true to show organizations in token page of adminjs panel
+    eager: true,
+  })
   organizations: Organization[];
 }
