@@ -2971,8 +2971,8 @@ export const updateStatusOfProjects = async (
     });
     if (projectStatus) {
       const updateData: any = { status: projectStatus };
-      if (status === ProjStatus.cancelled) {
-        updateData.verified = false;
+      if (status === ProjStatus.cancelled || status === ProjStatus.deactive) {
+        if (status === ProjStatus.cancelled) updateData.verified = false;
         updateData.listed = false;
         updateData.reviewStatus = ReviewStatus.NotListed;
       }
