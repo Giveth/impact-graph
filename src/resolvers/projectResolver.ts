@@ -1805,7 +1805,7 @@ export class ProjectResolver {
     project.status = status;
     project.prevStatusId = prevStatus.id;
 
-    if (statusId === ProjStatus.deactive) {
+    if (statusId === ProjStatus.deactive || statusId === ProjStatus.cancelled) {
       project.reviewStatus = ReviewStatus.NotListed;
       project.listed = false;
     }
