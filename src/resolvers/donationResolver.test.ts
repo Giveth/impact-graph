@@ -534,6 +534,7 @@ function createDonationTestCases() {
     });
     assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.equal(donation?.referrerWallet, user2.walletAddress);
+    assert.isNotEmpty(donation?.referralStartTimestamp);
   });
   it('should create GIV donation for giveth project on xdai successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());

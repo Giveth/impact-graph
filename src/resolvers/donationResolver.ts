@@ -642,7 +642,7 @@ export class DonationResolver {
             referrerWallet = referrerWalletAddress;
 
             referralStartTimestamp =
-              await getChainvineAdapter().getWalletAddressFromReferer(
+              await getChainvineAdapter().getReferralStartTimestamp(
                 referrerWallet,
               );
 
