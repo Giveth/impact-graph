@@ -1259,6 +1259,14 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
+    optimistic: [
+      {
+        name: 'OPTIMISTIC native token',
+        symbol: 'OP',
+        address: '0x4200000000000000000000000000000000000042',
+        decimals: 18,
+      },
+    ],
     goerli: [
       {
         name: 'Ethereum native token',

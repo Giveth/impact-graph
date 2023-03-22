@@ -911,6 +911,7 @@ const getAdminBroInstance = async () => {
                 { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
                 { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
                 { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
+                { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
                 { value: NETWORK_IDS.XDAI, label: 'XDAI' },
                 { value: NETWORK_IDS.BSC, label: 'BSC' },
               ],
