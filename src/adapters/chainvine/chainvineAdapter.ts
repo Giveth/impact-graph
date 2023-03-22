@@ -8,14 +8,6 @@ import { Response } from 'express';
 import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 
-export const CHAINVINE_NEW_DONOR_REFERRAL_COMPLETION_DAYS = Number(
-  process.env.CHAINVINE_NEW_DONOR_REFERRAL_DAYS || 2,
-);
-
-export const CHAINVINE_OLD_DONOR_REFERRAL_COMPLETION_DAYS = Number(
-  process.env.CHAINVINE_OLD_DONOR_REFERRAL_DAYS || 1,
-);
-
 export interface ChainvineRetrieveWalletResponse extends Response {
   wallet_address?: string;
   user_id?: string;

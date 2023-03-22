@@ -58,10 +58,6 @@ import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
 import moment from 'moment';
-import {
-  CHAINVINE_NEW_DONOR_REFERRAL_COMPLETION_DAYS,
-  CHAINVINE_OLD_DONOR_REFERRAL_COMPLETION_DAYS,
-} from '../adapters/chainvine/chainvineAdapter';
 
 @ObjectType()
 class PaginateDonations {
@@ -634,7 +630,7 @@ export class DonationResolver {
       const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
       const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
 
-      if (project.verified && referrerId) {
+      if (referrerId) {
         try {
           const referrerWalletAddress =
             await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
@@ -650,15 +646,14 @@ export class DonationResolver {
             // If either is first time donor or not, and time frame valid
             if (
               (firstTimeDonor &&
-                moment(referralStartTimestamp)
-                  .add(CHAINVINE_NEW_DONOR_REFERRAL_COMPLETION_DAYS, 'days')
-                  .toDate() < moment().toDate()) ||
-              moment(referralStartTimestamp)
-                .add(CHAINVINE_OLD_DONOR_REFERRAL_COMPLETION_DAYS, 'days')
-                .toDate() < moment().toDate()
+                moment(referralStartTimestamp).add(1, 'days').toDate() <
+                  moment().toDate()) ||
+              moment(referralStartTimestamp).add(1, 'days').toDate() <
+                moment().toDate()
             ) {
               isReferrerGivbackElegible = true;
             }
+            if (!project.verified) isReferrerGivbackElegible = false;
           } else {
             logger.info(
               'createDonation info',
