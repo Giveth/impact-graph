@@ -10,7 +10,7 @@
     "@apollo/server": "4.3.1",
     "@apollo/server-plugin-landing-page-graphql-playground": "4.0.0",
     "@chainvine/sdk": "1.0.19",
-    "@giveth/monoswap": "1.2.0",
+    "@giveth/monoswap": "1.1.2",
     "@sentry/node": "6.16.1",
     "@sentry/tracing": "^6.2.0",
     "@types/bcryptjs": "^2.4.2",
