@@ -553,6 +553,7 @@ export class DonationResolver {
   ): Promise<Number> {
     try {
       let referrerWallet;
+      let referralStartTimestamp;
       let isReferrerGivbackElegible = false;
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
@@ -640,7 +641,7 @@ export class DonationResolver {
           if (referrerWalletAddress && referrerWalletAddress !== fromAddress) {
             referrerWallet = referrerWalletAddress;
 
-            const referralStartTimestamp =
+            referralStartTimestamp =
               await getChainvineAdapter().getWalletAddressFromReferer(
                 referrerWallet,
               );
@@ -690,9 +691,9 @@ export class DonationResolver {
         isReferrerGivbackElegible,
       });
 
-      if (referrerWallet) {
-        donation.referrerWallet = referrerWallet;
-      }
+      if (referrerWallet) donation.referrerWallet = referrerWallet;
+      if (referralStartTimestamp)
+        donation.referralStartTimestamp = referralStartTimestamp;
 
       await donation.save();
       let baseTokens: string[];

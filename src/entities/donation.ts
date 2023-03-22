@@ -180,6 +180,10 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true })
   referrerWallet?: string;
 
+  @Field(type => Date, { nullable: true })
+  @Column({ nullable: true })
+  referralStartTimestamp?: Date;
+
   @Field(type => Boolean, { nullable: false })
   @Column({ nullable: false, default: false })
   isReferrerGivbackElegible: boolean;
