@@ -38,7 +38,7 @@ import {
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { logger } from '../utils/logger';
-import { findUserById } from '../repositories/userRepository';
+import { findUserById, isFirstTimeDonor } from '../repositories/userRepository';
 import {
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
@@ -57,6 +57,7 @@ import { AppDataSource } from '../orm';
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
+import moment from 'moment';
 
 @ObjectType()
 class PaginateDonations {
@@ -548,6 +549,7 @@ export class DonationResolver {
   ): Promise<Number> {
     try {
       let referrerWallet;
+      let isReferrerGivbackElegible = false;
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
       if (!donorUser) {
@@ -627,12 +629,31 @@ export class DonationResolver {
       const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
       const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
 
-      if (referrerId) {
+      if (project.verified && referrerId) {
         try {
           const referrerWalletAddress =
             await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
-          if (referrerWalletAddress !== fromAddress) {
+          if (referrerWalletAddress && referrerWalletAddress !== fromAddress) {
             referrerWallet = referrerWalletAddress;
+
+            const referralStartTimestamp =
+              await getChainvineAdapter().getWalletAddressFromReferer(
+                referrerWallet,
+              );
+
+            const firstTimeDonor = await isFirstTimeDonor(donorUser.id);
+            if (
+              firstTimeDonor &&
+              moment(referralStartTimestamp).add(2, 'days').toDate() <
+                moment().toDate()
+            ) {
+              isReferrerGivbackElegible = true;
+            } else if (
+              moment(referralStartTimestamp).add(2, 'days').toDate() <
+              moment().toDate()
+            ) {
+              isReferrerGivbackElegible = true;
+            }
           } else {
             logger.info(
               'createDonation info',
@@ -662,6 +683,7 @@ export class DonationResolver {
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: Boolean(anonymous),
+        isReferrerGivbackElegible,
       });
 
       if (referrerWallet) {
