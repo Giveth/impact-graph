@@ -41,7 +41,7 @@ const NETWORK_NATIVE_TOKENS = {
   ROPSTEN: 'ETH',
   GOERLI: 'ETH',
   POLYGON: 'MATIC',
-  OPTIMISTIC: 'OP',
+  OPTIMISTIC: 'ETH',
 };
 
 const networkNativeTokensList = [
