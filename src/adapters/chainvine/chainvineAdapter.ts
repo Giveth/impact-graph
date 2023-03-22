@@ -7,6 +7,7 @@ import { ChainvineClient } from '@chainvine/sdk/lib';
 import { Response } from 'express';
 import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
+import { titleWithoutSpecialCharacters } from '../../utils/utils';
 
 export interface ChainvineRetrieveWalletResponse extends Response {
   wallet_address?: string;
@@ -44,6 +45,23 @@ export class ChainvineAdapter implements ChainvineAdapterInterface {
       });
     } catch (e) {
       logger.error('notifyChainVine error ', { params, error: e });
+      throw e;
+    }
+  }
+
+  async getReferralStartTimestamp(
+    walletAddress: string,
+  ): Promise<string | void> {
+    try {
+      const referrerStartResponse =
+        await this.ChainvineSDK.getIncentiveClicksForWalletAddress(
+          walletAddress,
+        );
+
+      if (referrerStartResponse.length === 0) return;
+      return referrerStartResponse[0].date_created;
+    } catch (e) {
+      logger.error('getChainvineReferralStartTimestamp error ', { error: e });
       throw e;
     }
   }

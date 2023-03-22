@@ -9,4 +9,5 @@ export interface NotifyChainVineInputType {
 export interface ChainvineAdapterInterface {
   getWalletAddressFromReferer(referrerId: string): Promise<string>;
   notifyChainVine(params: NotifyChainVineInputType): Promise<void>;
+  getReferralStartTimestamp(walletAddress: string): Promise<string | void>;
 }
