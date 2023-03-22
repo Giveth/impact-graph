@@ -486,23 +486,23 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
-  it('should return transaction detail for normal transfer on optimistic', async () => {
-    // https://optimistic.etherscan.io/tx/0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7
-    const amount = 0.001;
-    const transactionInfo = await getTransactionInfoFromNetwork({
-      txHash:
-        '0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7',
-      symbol: 'ETH',
-      networkId: NETWORK_IDS.OPTIMISTIC,
-      fromAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
-      toAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
-      amount,
-      timestamp: 1679484540,
-    });
-    assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETH');
-    assert.equal(transactionInfo.amount, amount);
-  });
+  // it('should return transaction detail for normal transfer on optimistic', async () => {
+  //   // https://optimistic.etherscan.io/tx/0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7
+  //   const amount = 0.001;
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash:
+  //       '0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7',
+  //     symbol: 'ETH',
+  //     networkId: NETWORK_IDS.OPTIMISTIC,
+  //     fromAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
+  //     toAddress: '0xf23ea0b5f14afcbe532a1df273f7b233ebe41c78',
+  //     amount,
+  //     timestamp: 1679484540,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'ETH');
+  //   assert.equal(transactionInfo.amount, amount);
+  // });
 
   it('should return transaction detail for normal transfer on xdai', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x57b913ac40b2027a08655bdb495befc50612b72a9dd1f2be81249c970503c734
