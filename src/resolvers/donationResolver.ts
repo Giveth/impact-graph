@@ -58,10 +58,8 @@ import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
 import moment from 'moment';
-import {
-  getRoundDatesByNumber,
-  getRoundNumberByDate,
-} from '../utils/powerBoostingUtils';
+import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
+import { getChainvineReferralInfoForDonation } from '../services/chianvineReferralService';
 
 @ObjectType()
 class PaginateDonations {
@@ -552,9 +550,6 @@ export class DonationResolver {
     @Arg('referrerId', { nullable: true }) referrerId?: string,
   ): Promise<Number> {
     try {
-      let referrerWallet;
-      let referralStartTimestamp;
-      let isReferrerGivbackElegible = false;
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
       if (!donorUser) {
@@ -633,47 +628,6 @@ export class DonationResolver {
       }
       const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
       const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
-
-      if (referrerId) {
-        try {
-          const referrerWalletAddress =
-            await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
-          if (referrerWalletAddress && referrerWalletAddress !== fromAddress) {
-            referrerWallet = referrerWalletAddress;
-
-            referralStartTimestamp =
-              await getChainvineAdapter().getReferralStartTimestamp(
-                referrerWallet,
-              );
-
-            const referralRound = getRoundNumberByDate(
-              new Date(referralStartTimestamp),
-            );
-            const nextRound = getRoundDatesByNumber(referralRound.round + 1);
-
-            const firstTimeDonor = await isFirstTimeDonor(donorUser.id);
-            // If either is first time donor or not, and time frame valid
-            if (
-              (firstTimeDonor &&
-                moment().toDate() < moment(nextRound.toTimestamp).toDate()) ||
-              (!firstTimeDonor &&
-                moment().toDate() <
-                  moment(referralStartTimestamp).add(1, 'days').toDate())
-            ) {
-              isReferrerGivbackElegible = true;
-            }
-            if (!project.verified) isReferrerGivbackElegible = false;
-          } else {
-            logger.info(
-              'createDonation info',
-              `User ${fromAddress} tried to refer himself.`,
-            );
-          }
-        } catch (e) {
-          logger.error('get chainvine wallet address error', e);
-        }
-      }
-
       const donation = await Donation.create({
         amount: Number(amount),
         transactionId: transactionId?.toLowerCase() || transakId,
@@ -692,14 +646,28 @@ export class DonationResolver {
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: Boolean(anonymous),
-        isReferrerGivbackElegible,
       });
-
-      if (referrerWallet) donation.referrerWallet = referrerWallet;
-      if (referralStartTimestamp)
-        donation.referralStartTimestamp = referralStartTimestamp;
-
+      if (referrerId) {
+        // Fill referrer data if referrerId is valid
+        try {
+          const {
+            referralStartTimestamp,
+            isReferrerGivbackEligible,
+            referrerWalletAddress,
+          } = await getChainvineReferralInfoForDonation({
+            referrerId,
+            fromAddress,
+            donorUserId: donorUser.id,
+          });
+          donation.isReferrerGivbackEligible = isReferrerGivbackEligible;
+          donation.referrerWallet = referrerWalletAddress;
+          donation.referralStartTimestamp = referralStartTimestamp;
+        } catch (e) {
+          logger.error('get chainvine wallet address error', e);
+        }
+      }
       await donation.save();
+
       let baseTokens: string[];
       switch (priceChainId) {
         case CHAIN_ID.XDAI:

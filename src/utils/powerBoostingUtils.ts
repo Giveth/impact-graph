@@ -27,20 +27,3 @@ export const getRoundNumberByDate = (
     toTimestamp,
   };
 };
-
-export const getRoundDatesByNumber = (
-  round: number,
-): {
-  round: number;
-  fromTimestamp: number;
-  toTimestamp: number;
-} => {
-  const fromTimestamp =
-    (round - 1) * givbackRoundLength + firstGivbackRoundTimeStamp;
-  const toTimestamp = round * givbackRoundLength + firstGivbackRoundTimeStamp;
-  return {
-    round,
-    fromTimestamp,
-    toTimestamp,
-  };
-};
