@@ -186,7 +186,7 @@ export class Donation extends BaseEntity {
 
   @Field(type => Boolean, { nullable: false })
   @Column({ nullable: false, default: false })
-  isReferrerGivbackElegible: boolean;
+  isReferrerGivbackEligible: boolean;
 
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
