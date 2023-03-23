@@ -114,6 +114,17 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
+  for (const token of SEED_DATA.TOKENS.optimistic) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'OP') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
 }
 
 async function seedOrganizations() {

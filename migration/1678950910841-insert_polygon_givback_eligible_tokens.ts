@@ -24,7 +24,7 @@ const polygonTokens = [
   {
     symbol: 'ATOM',
     name: 'Cosmos',
-    address: 'ATOM',
+    address: '0xac51C4c48Dc3116487eD4BC16542e27B5694Da1b',
     isGivbackEligible: true,
     networkId: NETWORK_IDS.POLYGON,
     decimals: 18,
@@ -46,7 +46,6 @@ const polygonTokens = [
     isGivbackEligible: true,
     networkId: NETWORK_IDS.POLYGON,
     decimals: 18,
-    mainnetAddress: '0x5870700f1272a1AdbB87C3140bD770880a95e55D',
   },
   {
     symbol: 'DAI',
