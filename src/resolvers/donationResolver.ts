@@ -58,6 +58,10 @@ import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
 import moment from 'moment';
+import {
+  getRoundDatesByNumber,
+  getRoundNumberByDate,
+} from '../utils/powerBoostingUtils';
 
 @ObjectType()
 class PaginateDonations {
@@ -642,14 +646,19 @@ export class DonationResolver {
                 referrerWallet,
               );
 
+            const referralRound = getRoundNumberByDate(
+              new Date(referralStartTimestamp),
+            );
+            const nextRound = getRoundDatesByNumber(referralRound.round);
+
             const firstTimeDonor = await isFirstTimeDonor(donorUser.id);
             // If either is first time donor or not, and time frame valid
             if (
               (firstTimeDonor &&
-                moment(referralStartTimestamp).add(1, 'days').toDate() <
-                  moment().toDate()) ||
-              moment(referralStartTimestamp).add(1, 'days').toDate() <
-                moment().toDate()
+                moment().toDate() < moment(nextRound.toTimestamp).toDate()) ||
+              (!firstTimeDonor &&
+                moment().toDate() <
+                  moment(referralStartTimestamp).add(1, 'days').toDate())
             ) {
               isReferrerGivbackElegible = true;
             }
