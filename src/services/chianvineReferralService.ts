@@ -44,7 +44,7 @@ export const getChainvineReferralInfoForDonation = async (params: {
     if (!referrerWalletAddress) {
       throw new Error(`Invalid referrerId`);
     }
-    if (referrerWalletAddress !== fromAddress) {
+    if (referrerWalletAddress === fromAddress) {
       throw new Error(`User ${fromAddress} tried to refer himself.`);
     }
 
