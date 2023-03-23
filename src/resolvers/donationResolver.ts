@@ -649,7 +649,7 @@ export class DonationResolver {
             const referralRound = getRoundNumberByDate(
               new Date(referralStartTimestamp),
             );
-            const nextRound = getRoundDatesByNumber(referralRound.round);
+            const nextRound = getRoundDatesByNumber(referralRound.round + 1);
 
             const firstTimeDonor = await isFirstTimeDonor(donorUser.id);
             // If either is first time donor or not, and time frame valid
