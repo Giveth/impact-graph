@@ -10,6 +10,7 @@ export const NETWORK_IDS = {
   GOERLI: 5,
   XDAI: 100,
   POLYGON: 137,
+  OPTIMISTIC: 10,
   BSC: 56,
 };
 
@@ -20,6 +21,7 @@ export const NETWORKS_IDS_TO_NAME = {
   100: 'GNOSIS',
   56: 'BSC',
   137: 'POLYGON',
+  10: 'OPTIMISTIC',
 };
 
 const NETWORK_NAMES = {
@@ -29,6 +31,7 @@ const NETWORK_NAMES = {
   ROPSTEN: 'ropsten',
   GOERLI: 'goerli',
   POLYGON: 'polygon-mainnet',
+  OPTIMISTIC: 'optimistic-mainnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -38,6 +41,7 @@ const NETWORK_NATIVE_TOKENS = {
   ROPSTEN: 'ETH',
   GOERLI: 'ETH',
   POLYGON: 'MATIC',
+  OPTIMISTIC: 'ETH',
 };
 
 const networkNativeTokensList = [
@@ -70,6 +74,11 @@ const networkNativeTokensList = [
     networkName: NETWORK_NAMES.POLYGON,
     networkId: NETWORK_IDS.POLYGON,
     nativeToken: NETWORK_NATIVE_TOKENS.POLYGON,
+  },
+  {
+    networkName: NETWORK_NAMES.OPTIMISTIC,
+    networkId: NETWORK_IDS.OPTIMISTIC,
+    nativeToken: NETWORK_NATIVE_TOKENS.OPTIMISTIC,
   },
 ];
 const NETWORK_ID_MAP = {
@@ -150,6 +159,10 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       return `${config.get('POLYGON_SCAN_API_URL')}?apikey=${config.get(
         'POLYGON_SCAN_API_KEY',
       )}`;
+    // case NETWORK_IDS.OPTIMISTIC:
+    //   return `${config.get('OPTIMISTIC_SCAN_API_URL')}?apikey=${config.get(
+    //     'OPTIMISTIC_SCAN_API_KEY',
+    //   )}`;
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }

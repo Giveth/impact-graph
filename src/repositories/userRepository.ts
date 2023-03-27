@@ -13,6 +13,14 @@ export const findAdminUserByEmail = async (
     .getOne();
 };
 
+export const isFirstTimeDonor = async (userId: number): Promise<boolean> => {
+  return Boolean(
+    await Donation.createQueryBuilder('donation')
+      .where('donation.userId = :userId', { userId })
+      .getOne(),
+  );
+};
+
 export const findUserByWalletAddress = async (
   walletAddress: string,
   includeSensitiveFields = true,
