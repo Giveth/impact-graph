@@ -159,10 +159,10 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       return `${config.get('POLYGON_SCAN_API_URL')}?apikey=${config.get(
         'POLYGON_SCAN_API_KEY',
       )}`;
-    case NETWORK_IDS.OPTIMISTIC:
-      return `${config.get('OPTIMISTIC_SCAN_API_URL')}?apikey=${config.get(
-        'OPTIMISTIC_SCAN_API_KEY',
-      )}`;
+    // case NETWORK_IDS.OPTIMISTIC:
+    //   return `${config.get('OPTIMISTIC_SCAN_API_URL')}?apikey=${config.get(
+    //     'OPTIMISTIC_SCAN_API_KEY',
+    //   )}`;
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
