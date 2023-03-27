@@ -5,6 +5,9 @@ export const redisConfig: RedisOptions = {
   port: Number(process.env.REDIS_PORT) || 6379,
   host: process.env.REDIS_HOST || 'localhost',
 };
+if (process.env.REDIS_USERNAME) {
+  redisConfig.username = process.env.REDIS_USERNAME;
+}
 if (process.env.REDIS_PASSWORD) {
   redisConfig.password = process.env.REDIS_PASSWORD;
 }
