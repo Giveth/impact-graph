@@ -36,6 +36,7 @@ export enum UserRole {
   RESTRICTED = 'restricted',
   OPERATOR = 'operator',
   VERIFICATION_FORM_REVIEWER = 'reviewer',
+  CAMPAIGN_MANAGER = 'campaignManager',
 }
 
 @ObjectType()

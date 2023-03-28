@@ -2119,12 +2119,16 @@ const getAdminBroInstance = async () => {
             new: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                currentAdmin &&
+                (currentAdmin.role === UserRole.ADMIN ||
+                  currentAdmin.role === UserRole.CAMPAIGN_MANAGER),
             },
             edit: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                currentAdmin &&
+                (currentAdmin.role === UserRole.ADMIN ||
+                  currentAdmin.role === UserRole.CAMPAIGN_MANAGER),
             },
             bulkDelete: {
               isVisible: false,
