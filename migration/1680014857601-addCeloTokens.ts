@@ -32,10 +32,16 @@ export class addCeloTokens1680014857601 implements MigrationInterface {
         WHERE label='giveth'`)
     )[0];
 
+    const traceOrganization = (
+      await queryRunner.query(`SELECT * FROM organization
+        WHERE label='trace'`)
+    )[0];
+
     for (const token of tokens) {
       // Add all Polygon tokens to Giveth organization
       await queryRunner.query(`INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
-        (${token.id}, ${givethOrganization.id})
+        (${token.id}, ${givethOrganization.id}),
+        (${token.id}, ${traceOrganization.id})
       ;`);
     }
   }
