@@ -856,9 +856,12 @@ const getAdminBroInstance = async () => {
             },
             transactionNetworkId: {
               availableValues: [
-                { value: 1, label: 'Mainnet' },
-                { value: 100, label: 'Xdai' },
-                { value: 5, label: 'Goerli' },
+                { value: NETWORK_IDS.MAIN_NET, label: 'Mainnet' },
+                { value: NETWORK_IDS.XDAI, label: 'Xdai' },
+                { value: NETWORK_IDS.GOERLI, label: 'Goerli' },
+                { value: NETWORK_IDS.POLYGON, label: 'Polygon' },
+                { value: NETWORK_IDS.CELO, label: 'Celo' },
+                { value: NETWORK_IDS.CELO_ALFAJORES, label: 'Alfajores' },
               ],
               isVisible: true,
             },
@@ -911,6 +914,11 @@ const getAdminBroInstance = async () => {
                 { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
                 { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
                 { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
+                { value: NETWORK_IDS.CELO, label: 'CELO' },
+                {
+                  value: NETWORK_IDS.CELO_ALFAJORES,
+                  label: 'ALFAJORES (Test CELO)',
+                },
                 { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
                 { value: NETWORK_IDS.XDAI, label: 'XDAI' },
                 { value: NETWORK_IDS.BSC, label: 'BSC' },

@@ -54,6 +54,11 @@ jobs:
           XDAI_NODE_HTTP_URL: ${{ secrets.XDAI_NODE_HTTP_URL }}
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
           ETHEREUM_NODE_ID: ${{ secrets.INFURA_API_KEY }}
+          INFURA_ID: ${{ secrets.INFURA_ID }}
+          POLYGON_SCAN_API_KEY: ${{ secrets.POLYGON_SCAN_API_KEY }}
+          OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
+          CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
+          CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
 
   publish:
     if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/staging'

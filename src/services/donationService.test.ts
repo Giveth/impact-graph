@@ -151,6 +151,51 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.isTrue(updateDonation.segmentNotified);
     assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
   });
+
+  it('should verify a Celo donation', async () => {
+    // https://celoscan.io/tx/0xa2a282cf6a7dec8b166aa52ac3d00fcd15a370d414615e29a168cfbb592e3637
+
+    const amount = 0.999;
+
+    const transactionInfo = {
+      txHash:
+        '0xa2a282cf6a7dec8b166aa52ac3d00fcd15a370d414615e29a168cfbb592e3637',
+      currency: 'CELO',
+      networkId: NETWORK_IDS.CELO,
+      fromAddress: '0xf6436829cf96ea0f8bc49d300c536fcc4f84c4ed',
+      toAddress: '0x95b75068b8bc97716a458bedcf4df1cace802c12',
+      amount,
+      timestamp: 1680072295,
+    };
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 100,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+      donationId: donation.id,
+    });
+    assert.isOk(updateDonation);
+    assert.equal(updateDonation.id, donation.id);
+    assert.isTrue(updateDonation.segmentNotified);
+    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+  });
   // it('should verify a Optimistic donation', async () => {
   //   // https://optimistic.etherscan.io/tx/0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7
   //
@@ -657,6 +702,82 @@ function fillOldStableCoinDonationsPriceTestCases() {
       token,
       ['USDC', 'MATIC'], // For matic USDC returns more favorable values
       CHAIN_ID.POLYGON,
+      amount,
+    );
+
+    donation = (await findDonationById(donation.id))!;
+
+    expect(donation.valueUsd).to.gt(0);
+    assert.equal(
+      donation.valueEth,
+      amount,
+      'valueEth should be equal to amount',
+    );
+  });
+
+  it('should fill price for Celo donation on the CELO network', async () => {
+    const token = 'CELO';
+    const amount = 100;
+    let donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        currency: token,
+        valueUsd: undefined,
+        valueEth: undefined,
+        amount,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const project = (await Project.findOne({
+      where: { id: SEED_DATA.FIRST_PROJECT.id },
+    })) as Project;
+
+    await updateDonationPricesAndValues(
+      donation,
+      project,
+      token,
+      ['cUSD', 'CELO'], // For matic USDC returns more favorable values
+      CHAIN_ID.CELO,
+      amount,
+    );
+
+    donation = (await findDonationById(donation.id))!;
+
+    expect(donation.valueUsd).to.gt(0);
+    assert.equal(
+      donation.valueEth,
+      amount,
+      'valueEth should be equal to amount',
+    );
+  });
+
+  it('should fill price for Celo donation on the CELO Alfajores network', async () => {
+    const token = 'CELO';
+    const amount = 100;
+    let donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        currency: token,
+        valueUsd: undefined,
+        valueEth: undefined,
+        amount,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const project = (await Project.findOne({
+      where: { id: SEED_DATA.FIRST_PROJECT.id },
+    })) as Project;
+
+    await updateDonationPricesAndValues(
+      donation,
+      project,
+      token,
+      ['cUSD', 'CELO'], // For matic USDC returns more favorable values
+      CHAIN_ID.ALFAJORES,
       amount,
     );
 

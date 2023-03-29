@@ -5,12 +5,19 @@ import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 
 // tslint:disable-next-line:class-name
-export class addPolygonTokens1677742523974 implements MigrationInterface {
+export class addCeloTokens1680014857601 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
+    const environment = config.get('ENVIRONMENT') as string;
+
+    const networkId =
+      environment === 'production'
+        ? NETWORK_IDS.CELO
+        : NETWORK_IDS.CELO_ALFAJORES;
+
     await queryRunner.manager.save(
       Token,
       seedTokens
-        .filter(token => token.networkId === NETWORK_IDS.POLYGON)
+        .filter(token => token.networkId === networkId)
         .map(t => {
           t.address = t.address?.toLowerCase();
           return t;
@@ -18,7 +25,7 @@ export class addPolygonTokens1677742523974 implements MigrationInterface {
     );
     const tokens = await queryRunner.query(`
             SELECT * FROM token
-            WHERE "networkId" = ${NETWORK_IDS.POLYGON}
+            WHERE "networkId" = ${networkId}
             `);
     const givethOrganization = (
       await queryRunner.query(`SELECT * FROM organization
