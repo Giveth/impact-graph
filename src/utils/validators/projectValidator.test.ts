@@ -70,6 +70,18 @@ function isWalletAddressSmartContractTestCases() {
     const isSmartContract = await isWalletAddressSmartContract(walletAddress);
     assert.isTrue(isSmartContract);
   });
+  it('should return true for smart contract address in celo', async () => {
+    // GIV address https://polygonscan.com/address/0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270
+    const walletAddress = '0x67316300f17f063085Ca8bCa4bd3f7a5a3C66275';
+    const isSmartContract = await isWalletAddressSmartContract(walletAddress);
+    assert.isTrue(isSmartContract);
+  });
+  it('should return true for smart contract address in celo alfajores', async () => {
+    // GIV address https://polygonscan.com/address/0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270
+    const walletAddress = '0x17bc3304F94c85618c46d0888aA937148007bD3C';
+    const isSmartContract = await isWalletAddressSmartContract(walletAddress);
+    assert.isTrue(isSmartContract);
+  });
 }
 
 function validateProjectWalletAddressTestCases() {

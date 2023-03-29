@@ -2783,6 +2783,40 @@ function addRecipientAddressToProjectTestCases() {
     );
   });
 
+  it('Should add CELO address successfully', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const newWalletAddress = generateRandomEtheriumAddress();
+
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.CELO,
+          address: newWalletAddress,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    // assert.equal(JSON.stringify(response.data, null, 4), 'hi');
+    assert.isOk(response.data.data.addRecipientAddressToProject);
+    assert.isOk(
+      response.data.data.addRecipientAddressToProject.addresses.find(
+        projectAddress => projectAddress.address === newWalletAddress,
+      ),
+    );
+  });
+
   it('Should update successfully listed (true) should not change', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
