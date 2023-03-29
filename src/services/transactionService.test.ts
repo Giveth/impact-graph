@@ -468,6 +468,44 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
+  it('should return transaction detail for normal transfer on CELO', async () => {
+    // https://celoscan.io/tx/0xa2a282cf6a7dec8b166aa52ac3d00fcd15a370d414615e29a168cfbb592e3637
+
+    const amount = 0.999;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xa2a282cf6a7dec8b166aa52ac3d00fcd15a370d414615e29a168cfbb592e3637',
+      symbol: 'CELO',
+      networkId: NETWORK_IDS.CELO,
+      fromAddress: '0xf6436829cf96ea0f8bc49d300c536fcc4f84c4ed',
+      toAddress: '0x95b75068b8bc97716a458bedcf4df1cace802c12',
+      amount,
+      timestamp: 1680072295,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'CELO');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on CELO Alfajores', async () => {
+    // https://alfajores.celoscan.io/tx/0x6d983cd5223ca37ffce727b5222dfc382c2856b604b5848c91564bdfe132c376
+
+    const amount = 0.05;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x6d983cd5223ca37ffce727b5222dfc382c2856b604b5848c91564bdfe132c376',
+      symbol: 'CELO',
+      networkId: NETWORK_IDS.CELO_ALFAJORES,
+      fromAddress: '0x54b6ce742fbc89632d5bf94828b7caba6f8e3d65',
+      toAddress: '0xffcf8fdee72ac11b5c542428b35eef5769c409f0',
+      amount,
+      timestamp: 1680081702,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'CELO');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   // it('should return transaction detail for OP token transfer on optimistic', async () => {
   //   // https://optimistic.etherscan.io/tx/0xf11be189d967831bb8a76656882eeeac944a799bd222acbd556f2156fdc02db4
   //   const amount = 0.453549908802477308;
