@@ -16,15 +16,6 @@ export class addCeloTokensToTraceOrganisation1680094671040
         ? NETWORK_IDS.CELO
         : NETWORK_IDS.CELO_ALFAJORES;
 
-    await queryRunner.manager.save(
-      Token,
-      seedTokens
-        .filter(token => token.networkId === networkId)
-        .map(t => {
-          t.address = t.address?.toLowerCase();
-          return t;
-        }),
-    );
     const tokens = await queryRunner.query(`
             SELECT * FROM token
             WHERE "networkId" = ${NETWORK_IDS.CELO} or "networkId" = ${NETWORK_IDS.CELO_ALFAJORES}
