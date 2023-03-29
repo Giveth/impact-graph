@@ -1060,7 +1060,7 @@ const seedTokens: ITokenData[] = [
     name: 'Celo Native',
     address: '0x471EcE3750Da237f93B8E339c536989b8978a438',
     decimals: 18,
-    // We usually set isGivbackEligible tru for native tokens
+    // We usually set isGivbackEligible true for native tokens
     isGivbackEligible: true,
     networkId: NETWORK_IDS.CELO,
   },
