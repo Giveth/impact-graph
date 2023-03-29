@@ -5,7 +5,7 @@ import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 
 // tslint:disable-next-line:class-name
-export class addGoerliTokens1677742523974 implements MigrationInterface {
+export class addPolygonTokens1677742523974 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.manager.save(
       Token,
