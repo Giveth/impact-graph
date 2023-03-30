@@ -1058,7 +1058,8 @@ const seedTokens: ITokenData[] = [
   {
     symbol: 'CELO',
     name: 'Celo Native',
-    address: '0x471EcE3750Da237f93B8E339c536989b8978a438',
+    address: '0x0000000000000000000000000000000000000000',
+    // address: '0x471EcE3750Da237f93B8E339c536989b8978a438',
     decimals: 18,
     // We usually set isGivbackEligible true for native tokens
     isGivbackEligible: true,
@@ -1089,7 +1090,8 @@ const seedTokens: ITokenData[] = [
   {
     symbol: 'CELO',
     name: 'Celo Native',
-    address: '0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9',
+    address: '0x0000000000000000000000000000000000000000',
+    // address: '0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9',
     decimals: 18,
     networkId: NETWORK_IDS.CELO_ALFAJORES,
   },
