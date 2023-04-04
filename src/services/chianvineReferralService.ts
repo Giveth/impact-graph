@@ -49,9 +49,7 @@ export const getChainvineReferralInfoForDonation = async (params: {
     }
 
     referralStartTimestamp =
-      await getChainvineAdapter().getReferralStartTimestamp(
-        referrerWalletAddress,
-      );
+      await getChainvineAdapter().getReferralStartTimestamp(fromAddress);
 
     const referralStartTimeRound = getRoundNumberByDate(
       new Date(referralStartTimestamp),
