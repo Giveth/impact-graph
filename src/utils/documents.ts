@@ -1,4 +1,5 @@
 import HTMLToPDF from 'html-pdf-node';
+import { pinFileDataBase64 } from '../middleware/pinataUtils';
 
 // tslint:disable-next-line:no-var-requires
 const Handlebars = require('handlebars');
@@ -30,4 +31,26 @@ export async function generatePDFDocument(
   // fs.writeFileSync("test.pdf", buf)
 
   return buf.toString('base64');
+}
+
+export async function changeBase64ToIpfsImageInHTML(
+  html: string,
+): Promise<string> {
+  while (true) {
+    // Find image with base64
+    const regex = /<img\ssrc="(data:image\/[^;]+;base64,[^"]+)"/g;
+    const match = regex.exec(html);
+
+    if (!match) break;
+
+    const base64 = match[1];
+    const pinResponse = await pinFileDataBase64(base64, undefined, 'base64');
+    const url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.data.IpfsHash}`;
+
+    const startIndex = match.index + '<img src="'.length;
+    const endIndex = startIndex + base64.length;
+    // Replace base64 with ipfs url
+    html = html.slice(0, startIndex) + url + html.slice(endIndex);
+  }
+  return html;
 }
