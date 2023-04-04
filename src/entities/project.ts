@@ -112,7 +112,7 @@ export class Project extends BaseEntity {
   readonly id: number;
 
   @Field()
-  @Column()
+  @Column({ length: 500 })
   title: string;
 
   @Index()
@@ -130,7 +130,7 @@ export class Project extends BaseEntity {
   admin?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 40000 })
   description?: string;
 
   @Field({ nullable: true })
@@ -470,7 +470,7 @@ export class ProjectUpdate extends BaseEntity {
   readonly id: number;
 
   @Field(type => String)
-  @Column()
+  @Column({ length: 500 })
   title: string;
 
   @Field(type => ID)
@@ -482,11 +482,11 @@ export class ProjectUpdate extends BaseEntity {
   userId: number;
 
   @Field(type => String)
-  @Column()
+  @Column({ length: 30000 })
   content: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 30000 })
   contentSummary?: string;
 
   @Field(type => Date)
