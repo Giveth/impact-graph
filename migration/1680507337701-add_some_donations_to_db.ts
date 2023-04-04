@@ -323,7 +323,7 @@ export class addSomeDonationsToDb1680507337701 implements MigrationInterface {
     }
     await queryRunner.query(`
                 INSERT INTO public.user ( "walletAddress", role,"loginType", name) 
-                VALUES('${fromWalletAddress}', 'restricted','wallet', 'test');
+                VALUES('${fromWalletAddress}', 'restricted','wallet', 'A Gnosis safe wallet');
               `);
     const user = (
       await queryRunner.query(`SELECT * FROM public.user
