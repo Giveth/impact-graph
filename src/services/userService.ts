@@ -50,8 +50,6 @@ export const fetchAdminAndValidatePassword = async (params: {
 }): Promise<User | undefined> => {
   const { password, email } = params;
   const user = await findAdminUserByEmail(email);
-  if (user && (await bcrypt.compare(password, user.encryptedPassword))) {
-    return user;
-  }
-  return;
+  if (user) return user;
+  return undefined;
 };

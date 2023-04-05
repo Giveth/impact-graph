@@ -1114,7 +1114,7 @@ const getAdminBroInstance = async () => {
             },
             totalReactions: {
               isVisible: {
-                list: true,
+                list: false,
                 filter: true,
                 show: true,
                 edit: false,
@@ -1138,7 +1138,7 @@ const getAdminBroInstance = async () => {
             },
             isNonProfitOrganization: {
               isVisible: {
-                list: true,
+                list: false,
                 filter: false,
                 show: true,
                 edit: false,
@@ -1244,6 +1244,12 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+            },
+            list: {
+              isVisible: true,
+              before: async request => {
+                return request;
+              },
             },
             new: {
               isVisible: false,
