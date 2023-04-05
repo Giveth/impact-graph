@@ -321,7 +321,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     });
 
     // send chainvine the referral as last step to not interrupt previous
-    if (donation.referrerWallet) {
+    if (donation.referrerWallet && donation.isReferrerGivbackEligible) {
       logger.info(
         'sending chainvine params: ',
         JSON.stringify({

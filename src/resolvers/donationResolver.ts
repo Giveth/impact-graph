@@ -658,6 +658,7 @@ export class DonationResolver {
             referrerId,
             fromAddress,
             donorUserId: donorUser.id,
+            projectVerified: project.verified,
           });
           donation.isReferrerGivbackEligible = isReferrerGivbackEligible;
           donation.referrerWallet = referrerWalletAddress;
