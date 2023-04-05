@@ -1629,6 +1629,10 @@ const getAdminBroInstance = async () => {
                     );
                   }
 
+                  if (request?.payload?.admin !== project?.admin) {
+                    request.payload.adminChanged = true;
+                  }
+
                   // We put these status changes in payload, so in after hook we would know to send notification for users
                   request.payload.statusChanges = statusChanges.join(',');
                 }
@@ -1644,6 +1648,10 @@ const getAdminBroInstance = async () => {
                   where: { id: request?.record?.id },
                 });
                 if (project) {
+                  if (request?.record?.params?.adminChanged) {
+                    project.adminUserId = Number(project.admin);
+                    await project.save();
+                  }
                   // Not required for now
                   // Project.notifySegment(project, SegmentEvents.PROJECT_EDITED);
 
