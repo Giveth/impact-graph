@@ -473,6 +473,14 @@ export class ProjectUpdate extends BaseEntity {
   @Column({ length: 500 })
   title: string;
 
+  // Virtual attribute for projectUpdate
+  @Field(type => String, { nullable: true })
+  projectTitle?: string;
+
+  // Virtual attribute for projectUpdate
+  @Field(type => String, { nullable: true })
+  projectSlug?: string;
+
   @Field(type => ID)
   @Column()
   projectId: number;

@@ -220,6 +220,24 @@ export const adminBroQueryCache = async (req, res, next) => {
   next();
 };
 
+// Fill in virtual attributes for project title and slug
+export const setProjectsTitleAndSlug: After<ActionResponse> = async request => {
+  if (Number(request?.records?.length) > 0) {
+    const records = request?.records?.map(async update => {
+      const project = await Project.findOne({
+        where: { id: update.params.projectId },
+      });
+
+      update.params.projectTitle = project?.title;
+      update.params.projectSlug = project?.slug;
+      return update;
+    });
+
+    request.records = await Promise.all(records);
+  }
+  return request;
+};
+
 export const setSocialProfiles: After<ActionResponse> = async (
   response,
   request,
@@ -1080,6 +1098,22 @@ const getAdminBroInstance = async () => {
                 edit: false,
               },
             },
+            projectTitle: {
+              isVisible: {
+                list: true,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
+            projectSlug: {
+              isVisible: {
+                list: true,
+                filter: false,
+                show: true,
+                edit: false,
+              },
+            },
             title: {
               isVisible: {
                 list: true,
@@ -1114,7 +1148,7 @@ const getAdminBroInstance = async () => {
             },
             totalReactions: {
               isVisible: {
-                list: true,
+                list: false,
                 filter: true,
                 show: true,
                 edit: false,
@@ -1138,7 +1172,7 @@ const getAdminBroInstance = async () => {
             },
             isNonProfitOrganization: {
               isVisible: {
-                list: true,
+                list: false,
                 filter: false,
                 show: true,
                 edit: false,
@@ -1244,6 +1278,10 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+            },
+            list: {
+              isVisible: true,
+              after: setProjectsTitleAndSlug,
             },
             new: {
               isVisible: false,
