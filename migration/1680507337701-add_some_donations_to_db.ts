@@ -7,7 +7,7 @@ import moment from 'moment';
 // For seeing donations detail you can see this message ( if you have access to channel)
 // https://discord.com/channels/679428761438912522/928813033600475207/1089868809302724618
 
-const fromWalletAddress = '0xc32075659cc65122babcf6cab15169050939cfff';
+const fromWalletAddress = '0x839395e20bbb182fa440d08f850e6c7a8f6f0780';
 const transactions: Partial<Donation>[] = [
   // This is 6 donations in xDAI and GIV: https://gnosisscan.io/tx/0x7c56dce8d49799d11de5f2c8b9637564c9b12fe6638de9226ff6bd698beed8d9/
   {
@@ -316,15 +316,15 @@ export class addSomeDonationsToDb1680507337701 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
 
-    if (environment !== 'local') {
+    if (environment !== 'production') {
       // tslint:disable-next-line:no-console
       console.log('We want to create these donations in production DB');
       return;
     }
-    await queryRunner.query(`
-                INSERT INTO public.user ( "walletAddress", role,"loginType", name) 
-                VALUES('${fromWalletAddress}', 'restricted','wallet', 'A Gnosis safe wallet');
-              `);
+    // await queryRunner.query(`
+    //             INSERT INTO public.user ( "walletAddress", role,"loginType", name)
+    //             VALUES('${fromWalletAddress}', 'restricted','wallet', 'A Gnosis safe wallet');
+    //           `);
     const user = (
       await queryRunner.query(`SELECT * FROM public.user
         WHERE "walletAddress"='${fromWalletAddress}'`)
