@@ -9,13 +9,16 @@ const isDonationEligibleForReferralReward = (params: {
   currentRound: number;
   referralStartTimeRound: number;
   referralStartTimestamp: number;
+  projectVerified: boolean;
 }) => {
   const {
     firstTimeDonor,
     currentRound,
     referralStartTimeRound,
     referralStartTimestamp,
+    projectVerified,
   } = params;
+  if (!projectVerified) return false;
 
   // https://github.com/Giveth/impact-graph/issues/904#issuecomment-1468308288
   if (firstTimeDonor) {
@@ -31,12 +34,13 @@ export const getChainvineReferralInfoForDonation = async (params: {
   referrerId: string;
   fromAddress: string;
   donorUserId: number;
+  projectVerified: boolean;
 }): Promise<{
   referrerWalletAddress: string;
   referralStartTimestamp: Date;
   isReferrerGivbackEligible: boolean;
 }> => {
-  const { referrerId, fromAddress, donorUserId } = params;
+  const { referrerId, fromAddress, donorUserId, projectVerified } = params;
   let referralStartTimestamp;
   try {
     const referrerWalletAddress =
@@ -64,6 +68,7 @@ export const getChainvineReferralInfoForDonation = async (params: {
       currentRound: currentRound.round,
       firstTimeDonor,
       referralStartTimestamp,
+      projectVerified,
     });
     return {
       isReferrerGivbackEligible,
