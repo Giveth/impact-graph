@@ -60,23 +60,23 @@ export class User extends BaseEntity {
   accountVerifications?: AccountVerification[];
 
   @Field(type => String, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 200 })
   email?: string;
 
   @Field(type => String, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 200 })
   firstName?: string;
 
   @Field(type => String, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 200 })
   lastName?: string;
 
   @Field(type => String, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 200 })
   name?: string;
 
   @Field(type => String, { nullable: true })
-  @Column({ unique: true })
+  @Column({ unique: true, length: 100 })
   walletAddress?: string;
 
   @Column({ nullable: true })
@@ -90,11 +90,11 @@ export class User extends BaseEntity {
   avatar?: string;
 
   @Field(type => String, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 200 })
   url?: string;
 
   @Field(type => String, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 200 })
   location?: string;
 
   @Column()
