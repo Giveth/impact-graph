@@ -76,7 +76,7 @@ export class User extends BaseEntity {
   name?: string;
 
   @Field(type => String, { nullable: true })
-  @Column({ unique: true, length: 100 })
+  @Column({ nullable: true, unique: true, length: 100 })
   walletAddress?: string;
 
   @Column({ nullable: true })
