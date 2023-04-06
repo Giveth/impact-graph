@@ -111,7 +111,7 @@ export class Project extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field({ nullable: true })
+  @Field()
   @Column({
     nullable: true, // Need to be added, since it throws error `contains null value` when db is not empty
     length: 500,
@@ -472,7 +472,7 @@ export class ProjectUpdate extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field(type => String, { nullable: true })
+  @Field(type => String)
   @Column({
     nullable: true, // Need to be added, since it throws error `contains null value` when db is not empty
     length: 500,
@@ -495,7 +495,7 @@ export class ProjectUpdate extends BaseEntity {
   @Column()
   userId: number;
 
-  @Field(type => String, { nullable: true })
+  @Field(type => String)
   @Column({
     nullable: true, // Need to be added, since it throws error `contains null value` when db is not empty
     length: 30000,
