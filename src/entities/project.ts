@@ -112,10 +112,7 @@ export class Project extends BaseEntity {
   readonly id: number;
 
   @Field()
-  @Column({
-    nullable: true, // Need to be added, since it throws error `contains null value` when db is not empty
-    length: 500,
-  })
+  @Column({ length: 500 })
   title: string;
 
   @Index()
@@ -473,10 +470,7 @@ export class ProjectUpdate extends BaseEntity {
   readonly id: number;
 
   @Field(type => String)
-  @Column({
-    nullable: true, // Need to be added, since it throws error `contains null value` when db is not empty
-    length: 500,
-  })
+  @Column({ length: 500 })
   title: string;
 
   // Virtual attribute for projectUpdate
@@ -496,10 +490,7 @@ export class ProjectUpdate extends BaseEntity {
   userId: number;
 
   @Field(type => String)
-  @Column({
-    nullable: true, // Need to be added, since it throws error `contains null value` when db is not empty
-    length: 30000,
-  })
+  @Column({ length: 30000 })
   content: string;
 
   @Field({ nullable: true })
