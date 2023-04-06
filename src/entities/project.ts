@@ -111,11 +111,8 @@ export class Project extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field({ nullable: true })
-  @Column({
-    nullable: true, // Need to be added, since it throws error `contains null value` when db is not empty
-    length: 500,
-  })
+  @Field()
+  @Column()
   title: string;
 
   @Index()
@@ -133,7 +130,7 @@ export class Project extends BaseEntity {
   admin?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true, length: 40000 })
+  @Column({ nullable: true })
   description?: string;
 
   @Field({ nullable: true })
@@ -472,11 +469,8 @@ export class ProjectUpdate extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field(type => String, { nullable: true })
-  @Column({
-    nullable: true, // Need to be added, since it throws error `contains null value` when db is not empty
-    length: 500,
-  })
+  @Field(type => String)
+  @Column()
   title: string;
 
   // Virtual attribute for projectUpdate
@@ -495,15 +489,12 @@ export class ProjectUpdate extends BaseEntity {
   @Column()
   userId: number;
 
-  @Field(type => String, { nullable: true })
-  @Column({
-    nullable: true, // Need to be added, since it throws error `contains null value` when db is not empty
-    length: 30000,
-  })
+  @Field(type => String)
+  @Column()
   content: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true, length: 30000 })
+  @Column({ nullable: true })
   contentSummary?: string;
 
   @Field(type => Date)
