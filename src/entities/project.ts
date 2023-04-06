@@ -112,7 +112,7 @@ export class Project extends BaseEntity {
   readonly id: number;
 
   @Field()
-  @Column({ length: 500 })
+  @Column()
   title: string;
 
   @Index()
@@ -130,7 +130,7 @@ export class Project extends BaseEntity {
   admin?: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true, length: 40000 })
+  @Column({ nullable: true })
   description?: string;
 
   @Field({ nullable: true })
@@ -470,7 +470,7 @@ export class ProjectUpdate extends BaseEntity {
   readonly id: number;
 
   @Field(type => String)
-  @Column({ length: 500 })
+  @Column()
   title: string;
 
   // Virtual attribute for projectUpdate
@@ -490,11 +490,11 @@ export class ProjectUpdate extends BaseEntity {
   userId: number;
 
   @Field(type => String)
-  @Column({ length: 30000 })
+  @Column()
   content: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true, length: 30000 })
+  @Column({ nullable: true })
   contentSummary?: string;
 
   @Field(type => Date)
