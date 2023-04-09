@@ -47,4 +47,21 @@ export class ChainvineAdapter implements ChainvineAdapterInterface {
       throw e;
     }
   }
+
+  async getReferralStartTimestamp(
+    walletAddress: string,
+  ): Promise<string | void> {
+    try {
+      const referrerStartResponse =
+        await this.ChainvineSDK.getIncentiveClicksForWalletAddress(
+          walletAddress,
+        );
+
+      if (referrerStartResponse.length === 0) return;
+      return referrerStartResponse[0].date_created;
+    } catch (e) {
+      logger.error('getChainvineReferralStartTimestamp error ', { error: e });
+      throw e;
+    }
+  }
 }

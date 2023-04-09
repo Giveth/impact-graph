@@ -534,6 +534,7 @@ function createDonationTestCases() {
     });
     assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.equal(donation?.referrerWallet, user2.walletAddress);
+    assert.isOk(donation?.referralStartTimestamp);
   });
   it('should create GIV donation for giveth project on xdai successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -1656,7 +1657,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 56]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 56]',
     );
   });
   it('should throw exception when currency is not valid when currency contain characters', async () => {

@@ -911,6 +911,7 @@ const getAdminBroInstance = async () => {
                 { value: NETWORK_IDS.ROPSTEN, label: 'ROPSTEN' },
                 { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
                 { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
+                { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
                 { value: NETWORK_IDS.XDAI, label: 'XDAI' },
                 { value: NETWORK_IDS.BSC, label: 'BSC' },
               ],
@@ -949,6 +950,26 @@ const getAdminBroInstance = async () => {
             },
             // Organization is not editable, hooks are not working correctly
             edit: {
+              before: async (request: AdminBroRequestInterface) => {
+                Object.keys(request?.payload).forEach(key => {
+                  // because we made eager:true for token.organizations, if admin doesnt select organization
+                  // the front will send something like
+                  /**
+                   *
+                     'organizations.0.id': '1',
+                     'organizations.0.name': 'Giveth',
+                     'organizations.0.label': 'giveth',
+                     'organizations.0.website': 'https://giveth.io',
+                     'organizations.0.supportCustomTokens': 'true',
+                   */
+                  // in payload, and it make update query fail, so I delete all keys that starts with organizations.
+                  if (key.includes('organizations.')) {
+                    delete request?.payload[key];
+                  }
+                });
+
+                return request;
+              },
               after: linkOrganizations,
               isAccessible: ({ currentAdmin }) =>
                 currentAdmin && currentAdmin.role === UserRole.ADMIN,
@@ -2951,7 +2972,7 @@ export const updateStatusOfProjects = async (
     });
     if (projectStatus) {
       const updateData: any = { status: projectStatus };
-      if (status === ProjStatus.cancelled) {
+      if (status === ProjStatus.cancelled || status === ProjStatus.deactive) {
         updateData.verified = false;
         updateData.listed = false;
         updateData.reviewStatus = ReviewStatus.NotListed;
@@ -3037,7 +3058,6 @@ export const linkOrganizations = async (request: AdminBroRequestInterface) => {
         DELETE FROM organization_tokens_token
         WHERE "tokenId" = ${token!.id}
       `);
-
       const organizationsInDb = await Organization.createQueryBuilder(
         'organization',
       )
@@ -3045,7 +3065,6 @@ export const linkOrganizations = async (request: AdminBroRequestInterface) => {
           labels: organizations.split(','),
         })
         .getMany();
-
       token!.organizations = organizationsInDb;
     }
 

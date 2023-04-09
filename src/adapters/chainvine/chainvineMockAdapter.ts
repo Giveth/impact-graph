@@ -17,4 +17,8 @@ export class ChainvineMockAdapter implements ChainvineAdapterInterface {
   notifyChainVine(params: NotifyChainVineInputType): Promise<void> {
     return Promise.resolve(undefined);
   }
+
+  getReferralStartTimestamp(walletAddress: string): Promise<string> {
+    return Promise.resolve(new Date().toISOString());
+  }
 }

@@ -1043,6 +1043,15 @@ const seedTokens: ITokenData[] = [
     mainnetAddress: '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0',
     networkId: NETWORK_IDS.POLYGON,
   },
+
+  // OPTIMISTIC tokens
+  {
+    name: 'OPTIMISTIC native token',
+    symbol: 'OP',
+    address: '0x4200000000000000000000000000000000000042',
+    decimals: 18,
+    networkId: NETWORK_IDS.OPTIMISTIC,
+  },
 ];
 
 export default seedTokens;
