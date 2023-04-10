@@ -37,7 +37,7 @@ export enum SortField {
 @Entity()
 @ObjectType()
 // https://typeorm.io/#/decorator-reference/unique
-@Unique(['transactionId', 'toWalletAddress'])
+@Unique(['transactionId', 'toWalletAddress', 'currency'])
 export class Donation extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
