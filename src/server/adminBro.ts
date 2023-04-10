@@ -103,6 +103,26 @@ import { findTokenByTokenId } from '../repositories/tokenRepository';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { Campaign } from '../entities/campaign';
+import {
+  canAccessBroadcastNotificationAction,
+  canAccessCampaignAction,
+  canAccessCategoryAction,
+  canAccessDonationAction,
+  canAccessFeaturedUpdateAction,
+  canAccessMainCategoryAction,
+  canAccessOrganizationAction,
+  canAccessProjectAction,
+  canAccessProjectAddressAction,
+  canAccessProjectStatusAction,
+  canAccessProjectStatusHistoryAction,
+  canAccessProjectStatusReasonAction,
+  canAccessProjectUpdateAction,
+  canAccessProjectVerificationFormAction,
+  canAccessThirdPartyProjectImportAction,
+  canAccessTokenAction,
+  canAccessUserAction,
+  ResourceActions,
+} from './adminBroPermissions';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -609,29 +629,54 @@ const getAdminBroInstance = async () => {
           actions: {
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
             edit: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin &&
-                (currentAdmin.role === UserRole.ADMIN ||
-                  currentAdmin.role === UserRole.VERIFICATION_FORM_REVIEWER ||
-                  currentAdmin.role === UserRole.OPERATOR),
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
               isVisible: true,
               after: setCommentEmailAndTimeStamps,
             },
             show: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.SHOW,
+                ),
               after: setSocialProfiles,
             },
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
             verifyProject: {
               actionType: 'record',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.VERIFY_PROJECT,
+                ),
               handler: async (request, response, context) => {
                 return verifySingleVerificationForm(context, request, true);
               },
@@ -640,6 +685,11 @@ const getAdminBroInstance = async () => {
             makeEditableByUser: {
               actionType: 'record',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.MAKE_EDITABLE_BY_USER,
+                ),
               handler: async (request, response, context) => {
                 return makeEditableByUser(context, request);
               },
@@ -648,6 +698,11 @@ const getAdminBroInstance = async () => {
             rejectProject: {
               actionType: 'record',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.REJECT_PROJECT,
+                ),
               handler: async (request, response, context) => {
                 return verifySingleVerificationForm(context, request, false);
               },
@@ -656,6 +711,11 @@ const getAdminBroInstance = async () => {
             verifyProjects: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.VERIFY_PROJECTS,
+                ),
               handler: async (request, response, context) => {
                 return verifyVerificationForms(context, request, true);
               },
@@ -664,6 +724,11 @@ const getAdminBroInstance = async () => {
             rejectProjects: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectVerificationFormAction(
+                  { currentAdmin },
+                  ResourceActions.REJECT_PROJECTS,
+                ),
               handler: async (request, response, context) => {
                 return verifyVerificationForms(context, request, false);
               },
@@ -883,19 +948,30 @@ const getAdminBroInstance = async () => {
           actions: {
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessDonationAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
             edit: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessDonationAction({ currentAdmin }, ResourceActions.EDIT),
             },
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessDonationAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
 
             new: {
               handler: createDonation,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
-              // component: true,
+                canAccessDonationAction({ currentAdmin }, ResourceActions.NEW),
             },
           },
         },
@@ -947,6 +1023,11 @@ const getAdminBroInstance = async () => {
           actions: {
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessTokenAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
             // Organization is not editable, hooks are not working correctly
             edit: {
@@ -972,18 +1053,18 @@ const getAdminBroInstance = async () => {
               },
               after: linkOrganizations,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessTokenAction({ currentAdmin }, ResourceActions.EDIT),
               isVisible: true,
               // component: false
             },
             delete: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessTokenAction({ currentAdmin }, ResourceActions.DELETE),
             },
             new: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessTokenAction({ currentAdmin }, ResourceActions.NEW),
               handler: createToken,
               // component: false
             },
@@ -1010,18 +1091,43 @@ const getAdminBroInstance = async () => {
           actions: {
             bulkDelete: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessFeaturedUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
             show: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessFeaturedUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.SHOW,
+                ),
             },
             edit: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessFeaturedUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             delete: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessFeaturedUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessFeaturedUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
           },
         },
@@ -1047,15 +1153,35 @@ const getAdminBroInstance = async () => {
           actions: {
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessThirdPartyProjectImportAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
             edit: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessThirdPartyProjectImportAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessThirdPartyProjectImportAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               handler: importThirdPartyProject,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessThirdPartyProjectImportAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
           },
         },
@@ -1236,22 +1362,52 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
             show: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.SHOW,
+                ),
             },
             edit: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             addFeaturedProjectUpdate: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectUpdateAction(
+                  { currentAdmin },
+                  ResourceActions.ADD_FEATURED_PROJECT_UPDATE,
+                ),
               handler: async (request, response, context) => {
                 return addFeaturedProjectUpdate(context, request);
               },
@@ -1499,20 +1655,34 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction({ currentAdmin }, ResourceActions.NEW),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
             show: {
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction({ currentAdmin }, ResourceActions.SHOW),
               after: setSocialProfiles,
             },
             edit: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessProjectAction({ currentAdmin }, ResourceActions.EDIT),
               before: async (
                 request: AdminBroRequestInterface,
                 response,
@@ -1697,12 +1867,22 @@ const getAdminBroInstance = async () => {
             exportFilterToCsv: {
               actionType: 'resource',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.EXPORT_FILTER_TO_CSV,
+                ),
               handler: exportProjectsWithFiltersToCsv,
               component: false,
             },
             listProject: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.LIST_PROJECT,
+                ),
               handler: async (request, response, context) => {
                 return listDelist(context, request, ReviewStatus.Listed);
               },
@@ -1711,6 +1891,11 @@ const getAdminBroInstance = async () => {
             unlistProject: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.UNLIST_PROJECT,
+                ),
               handler: async (request, response, context) => {
                 return listDelist(context, request, ReviewStatus.NotListed);
               },
@@ -1719,6 +1904,11 @@ const getAdminBroInstance = async () => {
             verifyProject: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.VERIFY_PROJECT,
+                ),
               handler: async (request, response, context) => {
                 return verifyProjects(context, request, true);
               },
@@ -1727,6 +1917,11 @@ const getAdminBroInstance = async () => {
             rejectProject: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.REJECT_PROJECT,
+                ),
               handler: async (request, response, context) => {
                 return verifyProjects(context, request, false);
               },
@@ -1736,6 +1931,11 @@ const getAdminBroInstance = async () => {
             revokeBadge: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.REVOKE_BADGE,
+                ),
               handler: async (request, response, context) => {
                 return verifyProjects(context, request, false, true);
               },
@@ -1744,6 +1944,11 @@ const getAdminBroInstance = async () => {
             activateProject: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.ACTIVATE_PROJECT,
+                ),
               handler: async (request, response, context) => {
                 return updateStatusOfProjects(
                   context,
@@ -1756,6 +1961,11 @@ const getAdminBroInstance = async () => {
             deactivateProject: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.DEACTIVATE_PROJECT,
+                ),
               handler: async (request, response, context) => {
                 return updateStatusOfProjects(
                   context,
@@ -1768,6 +1978,11 @@ const getAdminBroInstance = async () => {
             cancelProject: {
               actionType: 'bulk',
               isVisible: true,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectAction(
+                  { currentAdmin },
+                  ResourceActions.CANCEL_PROJECT,
+                ),
               handler: async (request, response, context) => {
                 return updateStatusOfProjects(
                   context,
@@ -1786,16 +2001,34 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectStatusAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectStatusAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
             edit: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessProjectStatusAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectStatusAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
           },
         },
@@ -1806,19 +2039,31 @@ const getAdminBroInstance = async () => {
           actions: {
             new: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessProjectAddressAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
             edit: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessProjectAddressAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             delete: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessProjectAddressAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             bulkDelete: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessProjectAddressAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
           },
         },
@@ -1829,17 +2074,33 @@ const getAdminBroInstance = async () => {
           actions: {
             new: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessProjectStatusReasonAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
             edit: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessProjectStatusReasonAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectStatusReasonAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectStatusReasonAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
           },
         },
@@ -1850,15 +2111,35 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectStatusHistoryAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             edit: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectStatusHistoryAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             new: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectStatusHistoryAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessProjectStatusHistoryAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
           },
         },
@@ -1887,13 +2168,20 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessUserAction({ currentAdmin }, ResourceActions.DELETE),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessUserAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
             new: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessUserAction({ currentAdmin }, ResourceActions.NEW),
               before: async request => {
                 if (request.payload.password) {
                   const bc = await bcrypt.hash(
@@ -1912,7 +2200,7 @@ const getAdminBroInstance = async () => {
             },
             edit: {
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessUserAction({ currentAdmin }, ResourceActions.EDIT),
               before: async request => {
                 logger.debug({ request: request.payload });
                 if (request.payload.password) {
@@ -1938,15 +2226,35 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessOrganizationAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessOrganizationAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
             edit: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessOrganizationAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessOrganizationAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
           },
         },
@@ -1957,19 +2265,29 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessCategoryAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessCategoryAction({ currentAdmin }, ResourceActions.NEW),
             },
             edit: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessCategoryAction({ currentAdmin }, ResourceActions.EDIT),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessCategoryAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
           },
           properties: {
@@ -2003,19 +2321,35 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessMainCategoryAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessMainCategoryAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
             },
             edit: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessMainCategoryAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessMainCategoryAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
           },
           properties: {
@@ -2049,11 +2383,19 @@ const getAdminBroInstance = async () => {
           actions: {
             delete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessBroadcastNotificationAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessBroadcastNotificationAction(
+                  { currentAdmin },
+                  ResourceActions.NEW,
+                ),
               before: async (
                 request: AdminBroRequestInterface,
                 context: AdminBroContextInterface,
@@ -2068,9 +2410,19 @@ const getAdminBroInstance = async () => {
             },
             edit: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessBroadcastNotificationAction(
+                  { currentAdmin },
+                  ResourceActions.EDIT,
+                ),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessBroadcastNotificationAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
           },
           properties: {
@@ -2114,24 +2466,28 @@ const getAdminBroInstance = async () => {
             delete: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin && currentAdmin.role === UserRole.ADMIN,
+                canAccessCampaignAction(
+                  { currentAdmin },
+                  ResourceActions.DELETE,
+                ),
             },
             new: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin &&
-                (currentAdmin.role === UserRole.ADMIN ||
-                  currentAdmin.role === UserRole.CAMPAIGN_MANAGER),
+                canAccessCampaignAction({ currentAdmin }, ResourceActions.NEW),
             },
             edit: {
               isVisible: true,
               isAccessible: ({ currentAdmin }) =>
-                currentAdmin &&
-                (currentAdmin.role === UserRole.ADMIN ||
-                  currentAdmin.role === UserRole.CAMPAIGN_MANAGER),
+                canAccessCampaignAction({ currentAdmin }, ResourceActions.EDIT),
             },
             bulkDelete: {
               isVisible: false,
+              isAccessible: ({ currentAdmin }) =>
+                canAccessCampaignAction(
+                  { currentAdmin },
+                  ResourceActions.BULK_DELETE,
+                ),
             },
           },
           properties: {
