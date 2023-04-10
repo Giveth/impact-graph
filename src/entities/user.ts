@@ -32,8 +32,10 @@ export const publicSelectionFields = [
 ];
 
 export enum UserRole {
-  ADMIN = 'admin',
+  // Normal users, not admin
   RESTRICTED = 'restricted',
+
+  ADMIN = 'admin',
   OPERATOR = 'operator',
   VERIFICATION_FORM_REVIEWER = 'reviewer',
   CAMPAIGN_MANAGER = 'campaignManager',

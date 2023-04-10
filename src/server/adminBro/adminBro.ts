@@ -4,60 +4,60 @@ import {
   ProjStatus,
   ReviewStatus,
   RevokeSteps,
-} from '../entities/project';
-import { ThirdPartyProjectImport } from '../entities/thirdPartyProjectImport';
-import { ProjectStatus } from '../entities/projectStatus';
+} from '../../entities/project';
+import { ThirdPartyProjectImport } from '../../entities/thirdPartyProjectImport';
+import { ProjectStatus } from '../../entities/projectStatus';
 import AdminBro from 'adminjs';
-import { User, UserRole } from '../entities/user';
+import { User, UserRole } from '../../entities/user';
 import AdminBroExpress from '@adminjs/express';
-import config from '../config';
-import { redis } from '../redis';
+import config from '../../config';
+import { redis } from '../../redis';
 import { Database, Resource } from '@adminjs/typeorm';
 import { SelectQueryBuilder } from 'typeorm';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
-import { logger } from '../utils/logger';
-import { messages } from '../utils/messages';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
+import { logger } from '../../utils/logger';
+import { messages } from '../../utils/messages';
 import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
-} from '../entities/donation';
+} from '../../entities/donation';
 import {
   findTransactionByHash,
   getCsvAirdropTransactions,
   getGnosisSafeTransactions,
-} from '../services/transactionService';
+} from '../../services/transactionService';
 import {
   addSheetWithRows,
   projectExportSpreadsheet,
-} from '../services/googleSheets';
+} from '../../services/googleSheets';
 import {
   createProjectFromChangeNonProfit,
   getChangeNonProfitByNameOrIEN,
-} from '../services/changeAPI/nonProfits';
+} from '../../services/changeAPI/nonProfits';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,
-} from '../types/TransactionInquiry';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { ProjectStatusReason } from '../entities/projectStatusReason';
+} from '../../types/TransactionInquiry';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+import { ProjectStatusReason } from '../../entities/projectStatusReason';
 import { IncomingMessage } from 'connect';
 import {
   HISTORY_DESCRIPTIONS,
   ProjectStatusHistory,
-} from '../entities/projectStatusHistory';
-import { Organization } from '../entities/organization';
-import { Token } from '../entities/token';
-import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../provider';
-import { ProjectAddress } from '../entities/projectAddress';
+} from '../../entities/projectStatusHistory';
+import { Organization } from '../../entities/organization';
+import { Token } from '../../entities/token';
+import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../../provider';
+import { ProjectAddress } from '../../entities/projectAddress';
 import {
   findUserById,
   findUserByWalletAddress,
-} from '../repositories/userRepository';
+} from '../../repositories/userRepository';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
-} from '../entities/projectVerificationForm';
+} from '../../entities/projectVerificationForm';
 import {
   findProjectVerificationFormById,
   getVerificationFormByProjectId,
@@ -65,44 +65,44 @@ import {
   makeFormVerified,
   verifyForm,
   verifyMultipleForms,
-} from '../repositories/projectVerificationRepository';
+} from '../../repositories/projectVerificationRepository';
 import {
   findProjectById,
   findProjectsByIdArray,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
-} from '../repositories/projectRepository';
+} from '../../repositories/projectRepository';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
-import { findSocialProfilesByProjectId } from '../repositories/socialProfileRepository';
-import { updateTotalDonationsOfProject } from '../services/donationService';
+import { findSocialProfilesByProjectId } from '../../repositories/socialProfileRepository';
+import { updateTotalDonationsOfProject } from '../../services/donationService';
 import {
   fetchAdminAndValidatePassword,
   updateUserTotalDonated,
-} from '../services/userService';
-import { MainCategory } from '../entities/mainCategory';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { findProjectUpdatesByProjectId } from '../repositories/projectUpdateRepository';
-import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
+} from '../../services/userService';
+import { MainCategory } from '../../entities/mainCategory';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { findProjectUpdatesByProjectId } from '../../repositories/projectUpdateRepository';
+import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
 import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
-} from '../repositories/projectPowerViewRepository';
-import { changeUserBoostingsAfterProjectCancelled } from '../services/powerBoostingService';
+} from '../../repositories/projectPowerViewRepository';
+import { changeUserBoostingsAfterProjectCancelled } from '../../services/powerBoostingService';
 import {
   ActionResponse,
   After,
 } from 'adminjs/src/backend/actions/action.interface';
-import { Category } from '../entities/category';
+import { Category } from '../../entities/category';
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
-} from '../entities/broadcastNotification';
+} from '../../entities/broadcastNotification';
 
-import { updateBroadcastNotificationStatus } from '../repositories/broadcastNotificationRepository';
-import { findTokenByTokenId } from '../repositories/tokenRepository';
-import { calculateGivbackFactor } from '../services/givbackService';
-import { FeaturedUpdate } from '../entities/featuredUpdate';
-import { Campaign } from '../entities/campaign';
+import { updateBroadcastNotificationStatus } from '../../repositories/broadcastNotificationRepository';
+import { findTokenByTokenId } from '../../repositories/tokenRepository';
+import { calculateGivbackFactor } from '../../services/givbackService';
+import { FeaturedUpdate } from '../../entities/featuredUpdate';
+import { Campaign } from '../../entities/campaign';
 import {
   canAccessBroadcastNotificationAction,
   canAccessCampaignAction,

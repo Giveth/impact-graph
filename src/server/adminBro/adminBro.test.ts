@@ -21,51 +21,51 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
   sleep,
-} from '../../test/testUtils';
+} from '../../../test/testUtils';
 import {
   Project,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
   RevokeSteps,
-} from '../entities/project';
-import { User } from '../entities/user';
+} from '../../entities/project';
+import { User } from '../../entities/user';
 import { assert } from 'chai';
-import { messages } from '../utils/messages';
-import { HISTORY_DESCRIPTIONS } from '../entities/projectStatusHistory';
-import { ProjectStatus } from '../entities/projectStatus';
-import { NETWORK_IDS } from '../provider';
+import { messages } from '../../utils/messages';
+import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
+import { ProjectStatus } from '../../entities/projectStatus';
+import { NETWORK_IDS } from '../../provider';
 import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
-} from '../entities/donation';
-import * as ChangeAPI from '../services/changeAPI/nonProfits';
+} from '../../entities/donation';
+import * as ChangeAPI from '../../services/changeAPI/nonProfits';
 import sinon from 'sinon';
-import { errorMessages } from '../utils/errorMessages';
-import { Token } from '../entities/token';
-import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
+import { errorMessages } from '../../utils/errorMessages';
+import { Token } from '../../entities/token';
+import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
 import {
   createProjectVerificationForm,
   getVerificationFormByProjectId,
-} from '../repositories/projectVerificationRepository';
+} from '../../repositories/projectVerificationRepository';
 import {
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
-} from '../entities/projectVerificationForm';
+} from '../../entities/projectVerificationForm';
 import {
   findProjectById,
   verifyMultipleProjects,
-} from '../repositories/projectRepository';
-import { ProjectAddress } from '../entities/projectAddress';
+} from '../../repositories/projectRepository';
+import { ProjectAddress } from '../../entities/projectAddress';
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
-} from '../entities/broadcastNotification';
-import { findBroadcastNotificationById } from '../repositories/broadcastNotificationRepository';
-import { findUserById } from '../repositories/userRepository';
-import { findOneProjectStatusHistory } from '../repositories/projectSatusHistoryRepository';
-import { findTokenByTokenAddress } from '../repositories/tokenRepository';
-import { FeaturedUpdate } from '../entities/featuredUpdate';
+} from '../../entities/broadcastNotification';
+import { findBroadcastNotificationById } from '../../repositories/broadcastNotificationRepository';
+import { findUserById } from '../../repositories/userRepository';
+import { findOneProjectStatusHistory } from '../../repositories/projectSatusHistoryRepository';
+import { findTokenByTokenAddress } from '../../repositories/tokenRepository';
+import { FeaturedUpdate } from '../../entities/featuredUpdate';
 
 describe(
   'updateStatusOfProjects() test cases',
