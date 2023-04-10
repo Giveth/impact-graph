@@ -1,8 +1,8 @@
-import { Project, ProjectUpdate } from '../../../entities/project';
+import { Project, ProjectUpdate } from '../../entities/project';
 import {
   canAccessProjectUpdateAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from './adminBroPermissions';
 import { addFeaturedProjectUpdate } from './projectsTab';
 import { ActionResponse, After } from 'adminjs';
 

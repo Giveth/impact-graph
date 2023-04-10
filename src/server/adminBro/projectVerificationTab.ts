@@ -1,38 +1,35 @@
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
-} from '../../../entities/projectVerificationForm';
+} from '../../entities/projectVerificationForm';
 import AdminBro from 'adminjs';
 import {
   canAccessProjectVerificationFormAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from './adminBroPermissions';
 
 import {
   AdminBroContextInterface,
   AdminBroRequestInterface,
-} from '../adminBro-types';
+} from './adminBro-types';
 import {
   findProjectVerificationFormById,
   makeFormDraft,
   verifyForm,
   verifyMultipleForms,
-} from '../../../repositories/projectVerificationRepository';
-import {
-  i18n,
-  translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../../analytics/analytics';
+} from '../../repositories/projectVerificationRepository';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 import {
   findProjectById,
   updateProjectWithVerificationForm,
   verifyMultipleProjects,
   verifyProject,
-} from '../../../repositories/projectRepository';
-import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
-import { logger } from '../../../utils/logger';
+} from '../../repositories/projectRepository';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { logger } from '../../utils/logger';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
-import { Project } from '../../../entities/project';
+import { Project } from '../../entities/project';
 import {
   ActionResponse,
   After,
