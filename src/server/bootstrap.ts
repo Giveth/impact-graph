@@ -26,7 +26,7 @@ import {
   adminBroQueryCache,
   adminBroRootPath,
   getAdminBroRouter,
-} from './adminBro';
+} from './adminBro/adminBro';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
