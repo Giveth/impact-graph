@@ -1,23 +1,23 @@
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
-} from '../../../entities/broadcastNotification';
+} from '../../entities/broadcastNotification';
 import {
   canAccessBroadcastNotificationAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from './adminBroPermissions';
 import AdminBro from 'adminjs';
 import {
   AdminBroContextInterface,
   AdminBroRequestInterface,
-} from '../adminBro-types';
+} from './adminBro-types';
 import {
   ActionResponse,
   After,
 } from 'adminjs/src/backend/actions/action.interface';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
-import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
-import { updateBroadcastNotificationStatus } from '../../../repositories/broadcastNotificationRepository';
-import { logger } from '../../../utils/logger';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { updateBroadcastNotificationStatus } from '../../repositories/broadcastNotificationRepository';
+import { logger } from '../../utils/logger';
 
 export const sendBroadcastNotification = async (
   response,

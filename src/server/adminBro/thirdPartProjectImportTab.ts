@@ -1,18 +1,15 @@
-import { ThirdPartyProjectImport } from '../../../entities/thirdPartyProjectImport';
+import { ThirdPartyProjectImport } from '../../entities/thirdPartyProjectImport';
 import {
   canAccessThirdPartyProjectImportAction,
   ResourceActions,
-} from '../adminBroPermissions';
-import { AdminBroRequestInterface } from '../adminBro-types';
-import { logger } from '../../../utils/logger';
+} from './adminBroPermissions';
+import { AdminBroRequestInterface } from './adminBro-types';
+import { logger } from '../../utils/logger';
 import {
   createProjectFromChangeNonProfit,
   getChangeNonProfitByNameOrIEN,
-} from '../../../services/changeAPI/nonProfits';
-import {
-  i18n,
-  translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
+} from '../../services/changeAPI/nonProfits';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 
 export const importThirdPartyProject = async (
   request: AdminBroRequestInterface,

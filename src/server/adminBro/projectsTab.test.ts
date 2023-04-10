@@ -5,32 +5,32 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
   sleep,
-} from '../../../../test/testUtils';
+} from '../../../test/testUtils';
 import {
   Project,
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
   RevokeSteps,
-} from '../../../entities/project';
-import { User } from '../../../entities/user';
+} from '../../entities/project';
+import { User } from '../../entities/user';
 import { assert } from 'chai';
-import { findOneProjectStatusHistory } from '../../../repositories/projectSatusHistoryRepository';
-import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory';
+import { findOneProjectStatusHistory } from '../../repositories/projectSatusHistoryRepository';
+import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
 import {
   createProjectVerificationForm,
   getVerificationFormByProjectId,
-} from '../../../repositories/projectVerificationRepository';
+} from '../../repositories/projectVerificationRepository';
 import {
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
-} from '../../../entities/projectVerificationForm';
-import { findUserById } from '../../../repositories/userRepository';
+} from '../../entities/projectVerificationForm';
+import { findUserById } from '../../repositories/userRepository';
 import {
   findProjectById,
   verifyMultipleProjects,
-} from '../../../repositories/projectRepository';
-import { FeaturedUpdate } from '../../../entities/featuredUpdate';
+} from '../../repositories/projectRepository';
+import { FeaturedUpdate } from '../../entities/featuredUpdate';
 import {
   addFeaturedProjectUpdate,
   exportProjectsWithFiltersToCsv,
@@ -38,8 +38,8 @@ import {
   updateStatusOfProjects,
   verifyProjects,
 } from './projectsTab';
-import { messages } from '../../../utils/messages';
-import { ProjectStatus } from '../../../entities/projectStatus';
+import { messages } from '../../utils/messages';
+import { ProjectStatus } from '../../entities/projectStatus';
 
 describe(
   'verifyMultipleProjects() test cases',

@@ -4,54 +4,51 @@ import {
   ProjStatus,
   ReviewStatus,
   RevokeSteps,
-} from '../../../entities/project';
+} from '../../entities/project';
 import AdminBro from 'adminjs';
-import {
-  canAccessProjectAction,
-  ResourceActions,
-} from '../adminBroPermissions';
+import { canAccessProjectAction, ResourceActions } from './adminBroPermissions';
 import {
   findProjectById,
   findProjectsByIdArray,
-} from '../../../repositories/projectRepository';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../../analytics/analytics';
-import { HISTORY_DESCRIPTIONS } from '../../../entities/projectStatusHistory';
-import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
-import { changeUserBoostingsAfterProjectCancelled } from '../../../services/powerBoostingService';
-import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository';
+} from '../../repositories/projectRepository';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
+import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { changeUserBoostingsAfterProjectCancelled } from '../../services/powerBoostingService';
+import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
 import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
-} from '../../../repositories/projectPowerViewRepository';
-import { redis } from '../../../redis';
+} from '../../repositories/projectPowerViewRepository';
+import { redis } from '../../redis';
 import { SelectQueryBuilder } from 'typeorm';
-import { logger } from '../../../utils/logger';
+import { logger } from '../../utils/logger';
 import {
   ActionResponse,
   After,
 } from 'adminjs/src/backend/actions/action.interface';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
-import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
-import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
+import { findSocialProfilesByProjectId } from '../../repositories/socialProfileRepository';
+import { findProjectUpdatesByProjectId } from '../../repositories/projectUpdateRepository';
 import {
   AdminBroContextInterface,
   AdminBroProjectsQuery,
   AdminBroRequestInterface,
   headers,
-} from '../adminBro-types';
-import { ProjectStatus } from '../../../entities/projectStatus';
-import { messages } from '../../../utils/messages';
+} from './adminBro-types';
+import { ProjectStatus } from '../../entities/projectStatus';
+import { messages } from '../../utils/messages';
 import {
   addSheetWithRows,
   projectExportSpreadsheet,
-} from '../../../services/googleSheets';
-import { NETWORKS_IDS_TO_NAME } from '../../../provider';
+} from '../../services/googleSheets';
+import { NETWORKS_IDS_TO_NAME } from '../../provider';
 import {
   getVerificationFormByProjectId,
   makeFormDraft,
   makeFormVerified,
-} from '../../../repositories/projectVerificationRepository';
-import { FeaturedUpdate } from '../../../entities/featuredUpdate';
+} from '../../repositories/projectVerificationRepository';
+import { FeaturedUpdate } from '../../entities/featuredUpdate';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
