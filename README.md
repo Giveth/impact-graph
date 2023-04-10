@@ -118,7 +118,11 @@ Now you can login in admin dashboard with your user's `email` and the `password`
 
 We wrote a migration file to create an admin user in local DB to can test it easily,
 so after executing migrations and run application you can navigate to http://localhost:4000/admin and login
-with this data `username`: **test-admin@giveth.io**, `password`: **admin**
+with this data
+* admin role: *`username`: **test-admin@giveth.io**, `password`: **admin**
+* campaignManager role: *`username`: **campaignManager@giveth.io**, `password`: **admin**
+* reviewer role: *`username`: **reviewer@giveth.io**, `password`: **admin**
+* operator role: *`username`: **operator@giveth.io**, `password`: **admin**
 
 **PS**:
 A simple script for create encryptedPassword
