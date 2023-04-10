@@ -59,7 +59,5 @@
     "experimentalDecorators": true /* Enables experimental support for ES7 decorators. */,
     "emitDecoratorMetadata": true /* Enables experimental support for emitting type metadata for decorators. */
   },
-  "exclude": ["./build", "node_modules",
-    "src/server/adminBro/tabs/components"
-  ]
+  "exclude": ["./build", "node_modules"]
 }
