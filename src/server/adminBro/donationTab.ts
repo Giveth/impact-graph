@@ -28,7 +28,7 @@ import { calculateGivbackFactor } from '../../services/givbackService';
 import { findUserByWalletAddress } from '../../repositories/userRepository';
 import { updateTotalDonationsOfProject } from '../../services/donationService';
 import { updateUserTotalDonated } from '../../services/userService';
-import { NETWORK_IDS } from '../../../provider';
+import { NETWORK_IDS } from '../../provider';
 
 export const createDonation = async (
   request: AdminBroRequestInterface,
