@@ -166,6 +166,14 @@ const projectPermissions = {
   [UserRole.OPERATOR]: {
     show: true,
     exportFilterToCsv: true,
+    listProject: true,
+    unlistProject: true,
+    verifyProject: true,
+    rejectProject: true,
+    revokeBadge: true,
+    activateProject: true,
+    deactivateProject: true,
+    cancelProject: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
     show: true,
