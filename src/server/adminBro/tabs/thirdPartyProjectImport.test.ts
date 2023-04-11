@@ -1,14 +1,14 @@
-import { findUserById } from '../../repositories/userRepository';
+import { findUserById } from '../../../repositories/userRepository';
 import {
   generateRandomEtheriumAddress,
   SEED_DATA,
-} from '../../../test/testUtils';
-import * as ChangeAPI from '../../services/changeAPI/nonProfits';
-import { errorMessages } from '../../utils/errorMessages';
-import { User } from '../../entities/user';
-import { Project } from '../../entities/project';
+} from '../../../../test/testUtils';
+import * as ChangeAPI from '../../../services/changeAPI/nonProfits';
+import { errorMessages } from '../../../utils/errorMessages';
+import { User } from '../../../entities/user';
+import { Project } from '../../../entities/project';
 import { assert } from 'chai';
-import { ProjectAddress } from '../../entities/projectAddress';
+import { ProjectAddress } from '../../../entities/projectAddress';
 import { importThirdPartyProject } from './thirdPartProjectImportTab';
 import sinon from 'sinon';
 

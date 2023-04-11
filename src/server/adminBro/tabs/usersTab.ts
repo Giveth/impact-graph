@@ -1,6 +1,6 @@
-import { User } from '../../entities/user';
-import { canAccessUserAction, ResourceActions } from './adminBroPermissions';
-import { logger } from '../../utils/logger';
+import { User } from '../../../entities/user';
+import { canAccessUserAction, ResourceActions } from '../adminBroPermissions';
+import { logger } from '../../../utils/logger';
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
 

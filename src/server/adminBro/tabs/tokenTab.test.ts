@@ -1,8 +1,11 @@
-import { generateRandomTxHash } from '../../../test/testUtils';
+import { generateRandomTxHash } from '../../../../test/testUtils';
 import { assert } from 'chai';
-import { findTokenByTokenAddress } from '../../repositories/tokenRepository';
-import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
-import { Token } from '../../entities/token';
+import { findTokenByTokenAddress } from '../../../repositories/tokenRepository';
+import {
+  Organization,
+  ORGANIZATION_LABELS,
+} from '../../../entities/organization';
+import { Token } from '../../../entities/token';
 import {
   createToken,
   generateOrganizationList,

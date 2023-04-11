@@ -1,32 +1,32 @@
-import { Category } from '../../entities/category';
+import { MainCategory } from '../../../entities/mainCategory';
 import {
-  canAccessCategoryAction,
+  canAccessMainCategoryAction,
   ResourceActions,
-} from './adminBroPermissions';
+} from '../adminBroPermissions';
 
-export const categoryTab = {
-  resource: Category,
+export const mainCategoryTab = {
+  resource: MainCategory,
   options: {
     actions: {
       delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>
-          canAccessCategoryAction({ currentAdmin }, ResourceActions.DELETE),
+          canAccessMainCategoryAction({ currentAdmin }, ResourceActions.DELETE),
       },
       new: {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessCategoryAction({ currentAdmin }, ResourceActions.NEW),
+          canAccessMainCategoryAction({ currentAdmin }, ResourceActions.NEW),
       },
       edit: {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessCategoryAction({ currentAdmin }, ResourceActions.EDIT),
+          canAccessMainCategoryAction({ currentAdmin }, ResourceActions.EDIT),
       },
       bulkDelete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>
-          canAccessCategoryAction(
+          canAccessMainCategoryAction(
             { currentAdmin },
             ResourceActions.BULK_DELETE,
           ),
@@ -42,16 +42,16 @@ export const categoryTab = {
           new: false,
         },
       },
-      name: {
+      banner: {
         isVisible: true,
       },
-      isActive: {
+      slug: {
         isVisible: true,
       },
-      value: {
+      title: {
         isVisible: true,
       },
-      mainCategory: {
+      description: {
         isVisible: true,
       },
     },
