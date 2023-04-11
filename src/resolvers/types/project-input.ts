@@ -1,4 +1,3 @@
-import { MaxLength } from 'class-validator';
 import { Field, InputType } from 'type-graphql';
 import { RelatedAddressInputType } from './ProjectVerificationUpdateInput';
 
@@ -10,6 +9,8 @@ import {
   PROJECT_DESCRIPTION_MAX_LENGTH,
   PROJECT_TITLE_MAX_LENGTH,
 } from '../../constants/validators';
+import { errorMessages } from '../../utils/errorMessages';
+import { MaxLength } from 'class-validator';
 
 @InputType()
 export class ImageUpload {
@@ -31,7 +32,9 @@ class ProjectInput {
   admin?: string;
 
   @Field({ nullable: true })
-  @MaxLength(PROJECT_DESCRIPTION_MAX_LENGTH)
+  @MaxLength(PROJECT_DESCRIPTION_MAX_LENGTH, {
+    message: errorMessages.PROJECT_DESCRIPTION_LENGTH_SIZE_EXCEEDED, // It's not propagated to the client!
+  })
   description?: string;
 
   @Field(type => [String], { nullable: true, defaultValue: [] })

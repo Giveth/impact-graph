@@ -94,6 +94,15 @@ import { redis } from '../redis';
 import { Campaign, CampaignType } from '../entities/campaign';
 import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
 import { FeaturedUpdate } from '../entities/featuredUpdate';
+import {
+  PROJECT_DESCRIPTION_MAX_LENGTH,
+  PROJECT_TITLE_MAX_LENGTH,
+} from '../constants/validators';
+import { ArgumentValidationError } from 'type-graphql';
+
+const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
+  { property: '' },
+]).message;
 
 describe('createProject test cases --->', createProjectTestCases);
 describe('updateProject test cases --->', updateProjectTestCases);
@@ -1516,6 +1525,70 @@ function createProjectTestCases() {
       errorMessages.PROJECT_WITH_THIS_TITLE_EXISTS,
     );
   });
+
+  it('Should get error on too long description and title', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: 'title ' + new Date().getTime(),
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
+      // Too long description
+      description: 'a'.repeat(PROJECT_DESCRIPTION_MAX_LENGTH + 1),
+      image:
+        'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    let result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      ARGUMENT_VALIDATION_ERROR_MESSAGE,
+    );
+
+    // too long title
+    sampleProject.title = 'a'.repeat(PROJECT_TITLE_MAX_LENGTH + 1);
+    sampleProject.description = 'description';
+    result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      ARGUMENT_VALIDATION_ERROR_MESSAGE,
+    );
+  });
+
   it('Should create successfully', async () => {
     const sampleProject: CreateProjectInput = {
       title: 'title ' + new Date().getTime(),
@@ -1896,6 +1969,77 @@ function updateProjectTestCases() {
     assert.isOk(
       walletaddressOfUpdateProject!.address,
       SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
+    );
+  });
+  it('Should get error on too long description and title', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const newWalletAddress = generateRandomEtheriumAddress();
+
+    const newProjectData = {
+      addresses: [
+        {
+          address: newWalletAddress,
+          networkId: NETWORK_IDS.XDAI,
+        },
+        {
+          address: newWalletAddress,
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
+      ],
+      title: `test title update addresses`,
+      // Too long description
+      description: 'a'.repeat(PROJECT_DESCRIPTION_MAX_LENGTH + 1),
+    };
+
+    let editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      editProjectResult.data.errors[0].message,
+      ARGUMENT_VALIDATION_ERROR_MESSAGE,
+    );
+
+    // Too long title
+    newProjectData.description = 'description';
+    newProjectData.title = 'a'.repeat(PROJECT_TITLE_MAX_LENGTH + 1);
+
+    editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      editProjectResult.data.errors[0].message,
+      ARGUMENT_VALIDATION_ERROR_MESSAGE,
     );
   });
   it('Should update addresses successfully', async () => {

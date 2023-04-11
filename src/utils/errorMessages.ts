@@ -174,6 +174,8 @@ export const errorMessages = {
   TEXT_IS_REQUIRED: '"text" is required',
   YOU_SHOULD_FILL_EITHER_BOTH_LINK_AND_LINK_TITLE_OR_NONE:
     'You should fille both link and linkTitle or dont fill none of them',
+  PROJECT_DESCRIPTION_LENGTH_SIZE_EXCEEDED:
+    'Project description length size exceeded',
 };
 
 export const translationErrorMessagesKeys = {
