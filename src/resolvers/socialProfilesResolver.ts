@@ -57,12 +57,12 @@ export class SocialProfilesResolver {
       );
     }
 
+    const socialNetworkAdapter = getSocialNetworkAdapter(socialNetwork);
     const trackId = await setOauth2SocialProfileInRedis({
       socialNetwork,
       projectVerificationFormId: projectVerificationId,
       userId: user.userId,
     });
-    const socialNetworkAdapter = getSocialNetworkAdapter(socialNetwork);
     return socialNetworkAdapter.getAuthUrl({
       trackId,
     });
