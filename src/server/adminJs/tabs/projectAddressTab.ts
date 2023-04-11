@@ -2,7 +2,7 @@ import { ProjectAddress } from '../../../entities/projectAddress';
 import {
   canAccessProjectAddressAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from '../adminJsPermissions';
 
 export const projectAddressTab = {
   resource: ProjectAddress,

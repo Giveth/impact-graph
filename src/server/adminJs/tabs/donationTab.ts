@@ -6,11 +6,11 @@ import {
 import {
   canAccessDonationAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from '../adminJsPermissions';
 import {
-  AdminBroContextInterface,
-  AdminBroRequestInterface,
-} from '../adminBro-types';
+  AdminJsContextInterface,
+  AdminJsRequestInterface,
+} from '../adminJs-types';
 import { messages } from '../../../utils/messages';
 import { logger } from '../../../utils/logger';
 import {
@@ -34,9 +34,9 @@ import { updateUserTotalDonated } from '../../../services/userService';
 import { NETWORK_IDS } from '../../../provider';
 
 export const createDonation = async (
-  request: AdminBroRequestInterface,
+  request: AdminJsRequestInterface,
   response,
-  context: AdminBroContextInterface,
+  context: AdminJsContextInterface,
 ) => {
   let message = messages.DONATION_CREATED_SUCCESSFULLY;
 

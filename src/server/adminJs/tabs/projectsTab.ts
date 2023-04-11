@@ -5,11 +5,8 @@ import {
   ReviewStatus,
   RevokeSteps,
 } from '../../../entities/project';
-import AdminBro from 'adminjs';
-import {
-  canAccessProjectAction,
-  ResourceActions,
-} from '../adminBroPermissions';
+import adminJs from 'adminjs';
+import { canAccessProjectAction, ResourceActions } from '../adminJsPermissions';
 import {
   findProjectById,
   findProjectsByIdArray,
@@ -34,11 +31,11 @@ import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interfac
 import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
 import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
 import {
-  AdminBroContextInterface,
-  AdminBroProjectsQuery,
-  AdminBroRequestInterface,
+  AdminJsContextInterface,
+  AdminJsProjectsQuery,
+  AdminJsRequestInterface,
   headers,
-} from '../adminBro-types';
+} from '../adminJs-types';
 import { ProjectStatus } from '../../../entities/projectStatus';
 import { messages } from '../../../utils/messages';
 import {
@@ -55,7 +52,7 @@ import { FeaturedUpdate } from '../../../entities/featuredUpdate';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
-  queryStrings: AdminBroProjectsQuery,
+  queryStrings: AdminJsProjectsQuery,
 ): SelectQueryBuilder<Project> => {
   const query = Project.createQueryBuilder('project')
     .leftJoinAndSelect('project.addresses', 'addresses')
@@ -120,7 +117,7 @@ export const buildProjectsQuery = (
 };
 
 export const addFeaturedProjectUpdate = async (
-  context: AdminBroContextInterface,
+  context: AdminJsContextInterface,
   request,
 ) => {
   const { records } = context;
@@ -181,8 +178,8 @@ export const addFeaturedProjectUpdate = async (
 };
 
 export const verifyProjects = async (
-  context: AdminBroContextInterface,
-  request: AdminBroRequestInterface,
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
   verified: boolean = true,
   revokeBadge: boolean = false,
 ) => {
@@ -290,8 +287,8 @@ export const verifyProjects = async (
 };
 
 export const updateStatusOfProjects = async (
-  context: AdminBroContextInterface,
-  request: AdminBroRequestInterface,
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
   status,
 ) => {
   const { records, currentAdmin } = context;
@@ -386,7 +383,7 @@ export const setSocialProfiles: After<ActionResponse> = async (
   const socials = await findSocialProfilesByProjectId({ projectId });
   const projectUpdates = await findProjectUpdatesByProjectId(projectId);
   const project = await findProjectById(projectId);
-  const adminBroBaseUrl = process.env.SERVER_URL;
+  const adminJsBaseUrl = process.env.SERVER_URL;
   response.record = {
     ...record,
     params: {
@@ -396,7 +393,7 @@ export const setSocialProfiles: After<ActionResponse> = async (
       }`,
       socials,
       projectUpdates,
-      adminBroBaseUrl,
+      adminJsBaseUrl,
     },
   };
   return response;
@@ -442,7 +439,7 @@ const sendProjectsToGoogleSheet = async (
 };
 
 export const listDelist = async (
-  context: AdminBroContextInterface,
+  context: AdminJsContextInterface,
   request,
   reviewStatus: ReviewStatus = ReviewStatus.Listed,
 ) => {
@@ -521,14 +518,14 @@ export const listDelist = async (
 };
 
 export const exportProjectsWithFiltersToCsv = async (
-  _request: AdminBroRequestInterface,
+  _request: AdminJsRequestInterface,
   _response,
-  context: AdminBroContextInterface,
+  context: AdminJsContextInterface,
 ) => {
   try {
     const { records } = context;
     const rawQueryStrings = await redis.get(
-      `adminbro_${context.currentAdmin.id}_qs`,
+      `adminjs_${context.currentAdmin.id}_qs`,
     );
     const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
     const projectsQuery = buildProjectsQuery(queryStrings);
@@ -591,7 +588,7 @@ export const projectsTab = {
           new: false,
         },
         components: {
-          show: AdminBro.bundle('./components/VerificationFormSocials'),
+          show: adminJs.bundle('./components/VerificationFormSocials'),
         },
       },
       adminUserId: {
@@ -674,7 +671,7 @@ export const projectsTab = {
           edit: false,
         },
         components: {
-          show: AdminBro.bundle('./components/ClickableLink'),
+          show: adminJs.bundle('./components/ClickableLink'),
         },
       },
       organisationId: {
@@ -752,13 +749,13 @@ export const projectsTab = {
           new: false,
         },
         components: {
-          show: AdminBro.bundle('./components/ListProjectAddresses'),
+          show: adminJs.bundle('./components/ListProjectAddresses'),
         },
       },
       listed: {
         isVisible: false,
         // components: {
-        //   filter: AdminBro.bundle('./components/FilterListedComponent'),
+        //   filter: adminJs.bundle('./components/FilterListedComponent'),
         // },
       },
       reviewStatus: {
@@ -778,10 +775,10 @@ export const projectsTab = {
           edit: false,
         },
         components: {
-          show: AdminBro.bundle('./components/ProjectUpdates'),
+          show: adminJs.bundle('./components/ProjectUpdates'),
         },
       },
-      adminBroBaseUrl: {
+      adminJsBaseUrl: {
         type: 'string',
         isVisible: {
           list: false,
@@ -817,9 +814,9 @@ export const projectsTab = {
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectAction({ currentAdmin }, ResourceActions.EDIT),
         before: async (
-          request: AdminBroRequestInterface,
+          request: AdminJsRequestInterface,
           response,
-          context: AdminBroContextInterface,
+          context: AdminJsContextInterface,
         ) => {
           const { verified, reviewStatus } = request.payload;
           const statusChanges: string[] = [];
@@ -885,9 +882,9 @@ export const projectsTab = {
           return request;
         },
         after: async (
-          request: AdminBroRequestInterface,
+          request: AdminJsRequestInterface,
           response,
-          context: AdminBroContextInterface,
+          context: AdminJsContextInterface,
         ) => {
           const { currentAdmin } = context;
           const project = await Project.findOne({

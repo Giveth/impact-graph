@@ -1,8 +1,8 @@
 import { Token } from '../../../entities/token';
 import { NETWORK_IDS } from '../../../provider';
-import AdminBro from 'adminjs';
-import { canAccessTokenAction, ResourceActions } from '../adminBroPermissions';
-import { AdminBroRequestInterface } from '../adminBro-types';
+import adminJs from 'adminjs';
+import { canAccessTokenAction, ResourceActions } from '../adminJsPermissions';
+import { AdminJsRequestInterface } from '../adminJs-types';
 import { Organization } from '../../../entities/organization';
 import { logger } from '../../../utils/logger';
 import { findTokenByTokenId } from '../../../repositories/tokenRepository';
@@ -75,7 +75,7 @@ export const generateOrganizationList = async () => {
   );
 };
 
-export const linkOrganizations = async (request: AdminBroRequestInterface) => {
+export const linkOrganizations = async (request: AdminJsRequestInterface) => {
   // edit action calls this method more than once, returning from those extra calls
   // default handler updates the other params, we only care about orgs
   if (!request.record.params.organizations) return request;
@@ -113,7 +113,7 @@ export const linkOrganizations = async (request: AdminBroRequestInterface) => {
 };
 
 export const createToken = async (
-  request: AdminBroRequestInterface,
+  request: AdminJsRequestInterface,
   response,
 ) => {
   let message = `Token created successfully`;
@@ -211,8 +211,8 @@ export const generateTokenTab = async () => {
             list: true,
           },
           components: {
-            show: AdminBro.bundle('./components/ListOrganizationsNames'),
-            list: AdminBro.bundle('./components/ListOrganizationsNames'),
+            show: adminJs.bundle('./components/ListOrganizationsNames'),
+            list: adminJs.bundle('./components/ListOrganizationsNames'),
           },
           availableValues: await generateOrganizationList(),
         },
@@ -225,7 +225,7 @@ export const generateTokenTab = async () => {
         },
         // Organization is not editable, hooks are not working correctly
         edit: {
-          before: async (request: AdminBroRequestInterface) => {
+          before: async (request: AdminJsRequestInterface) => {
             Object.keys(request?.payload).forEach(key => {
               // because we made eager:true for token.organizations, if admin doesnt select organization
               // the front will send something like

@@ -2,8 +2,8 @@ import { ThirdPartyProjectImport } from '../../../entities/thirdPartyProjectImpo
 import {
   canAccessThirdPartyProjectImportAction,
   ResourceActions,
-} from '../adminBroPermissions';
-import { AdminBroRequestInterface } from '../adminBro-types';
+} from '../adminJsPermissions';
+import { AdminJsRequestInterface } from '../adminJs-types';
 import { logger } from '../../../utils/logger';
 import {
   createProjectFromChangeNonProfit,
@@ -15,7 +15,7 @@ import {
 } from '../../../utils/errorMessages';
 
 export const importThirdPartyProject = async (
-  request: AdminBroRequestInterface,
+  request: AdminJsRequestInterface,
   response,
   context,
 ) => {

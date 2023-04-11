@@ -1,6 +1,6 @@
-import AdminBro from 'adminjs';
+import adminJs from 'adminjs';
 import { User } from '../../entities/user';
-import AdminBroExpress from '@adminjs/express';
+import adminJsExpress from '@adminjs/express';
 import config from '../../config';
 import { redis } from '../../redis';
 import { Database, Resource } from '@adminjs/typeorm';
@@ -37,13 +37,13 @@ const cookie = require('cookie');
 // tslint:disable-next-line:no-var-requires
 const cookieParser = require('cookie-parser');
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
-const adminBroCookie = 'adminbro';
+const adminJsCookie = 'adminjs';
 
-AdminBro.registerAdapter({ Database, Resource });
+adminJs.registerAdapter({ Database, Resource });
 
-export const getAdminBroRouter = async () => {
-  return AdminBroExpress.buildAuthenticatedRouter(
-    await getAdminBroInstance(),
+export const getadminJsRouter = async () => {
+  return adminJsExpress.buildAuthenticatedRouter(
+    await getadminJsInstance(),
     {
       authenticate: async (email, password): Promise<User | boolean> => {
         const admin = await fetchAdminAndValidatePassword({ email, password });
@@ -70,12 +70,12 @@ export const getAdminBroRouter = async () => {
 };
 
 // Express Middleware to save query of a search
-export const adminBroQueryCache = async (req, res, next) => {
+export const adminJsQueryCache = async (req, res, next) => {
   if (
     req.url.startsWith('/admin/api/resources/Project/actions/list') &&
-    req.headers.cookie.includes('adminbro')
+    req.headers.cookie.includes('adminjs')
   ) {
-    const admin = await getCurrentAdminBroSession(req);
+    const admin = await getCurrentadminJsSession(req);
     if (!admin) return next(); // skip saving queries
 
     const queryStrings = {};
@@ -88,7 +88,7 @@ export const adminBroQueryCache = async (req, res, next) => {
     }
     // save query string for later use with an expiration
     await redis.set(
-      `adminbro_${admin.id}_qs`,
+      `adminjs_${admin.id}_qs`,
       JSON.stringify(queryStrings),
       'ex',
       1800,
@@ -98,12 +98,12 @@ export const adminBroQueryCache = async (req, res, next) => {
 };
 
 // Get CurrentSession for external express middlewares
-export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
+export const getCurrentadminJsSession = async (request: IncomingMessage) => {
   const cookieHeader = request.headers.cookie;
   const parsedCookies = cookie.parse(cookieHeader);
   const sessionStore = new RedisStore({ client: redis });
   const unsignedCookie = cookieParser.signedCookie(
-    parsedCookies[adminBroCookie],
+    parsedCookies[adminJsCookie],
     secret,
   );
 
@@ -129,8 +129,8 @@ export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
   return dbUser;
 };
 
-const getAdminBroInstance = async () => {
-  return new AdminBro({
+const getadminJsInstance = async () => {
+  return new adminJs({
     branding: {
       logo: 'https://i.imgur.com/cGKo1Tk.png',
       favicon:
@@ -181,8 +181,8 @@ const getAdminBroInstance = async () => {
       broadcastNotificationTab,
       campaignsTab,
     ],
-    rootPath: adminBroRootPath,
+    rootPath: adminJsRootPath,
   });
 };
 
-export const adminBroRootPath = '/admin';
+export const adminJsRootPath = '/admin';

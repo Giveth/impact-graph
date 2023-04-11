@@ -2,7 +2,7 @@ import { Organization } from '../../../entities/organization';
 import {
   canAccessOrganizationAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from '../adminJsPermissions';
 
 export const organizationsTab = {
   resource: Organization,

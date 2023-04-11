@@ -23,10 +23,10 @@ import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkPro
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 import {
-  adminBroQueryCache,
-  adminBroRootPath,
-  getAdminBroRouter,
-} from './adminBro/adminBro';
+  adminJsQueryCache,
+  adminJsRootPath,
+  getadminJsRouter,
+} from './adminJs/adminJs';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
@@ -329,8 +329,8 @@ export async function bootstrap() {
     );
 
     // Admin Bruh!
-    app.use(adminBroQueryCache);
-    app.use(adminBroRootPath, await getAdminBroRouter());
+    app.use(adminJsQueryCache);
+    app.use(adminJsRootPath, await getadminJsRouter());
 
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();
