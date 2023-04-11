@@ -30,6 +30,3 @@ src/scripts/*.json
 
 .adminbro
 .adminjs
-./src/adminjs
-./src/server/adminjs
-./src/server/adminBro/adminjs
