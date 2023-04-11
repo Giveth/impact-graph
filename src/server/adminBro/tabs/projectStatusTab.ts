@@ -1,8 +1,8 @@
-import { ProjectStatus } from '../../entities/projectStatus';
+import { ProjectStatus } from '../../../entities/projectStatus';
 import {
   canAccessProjectStatusAction,
   ResourceActions,
-} from './adminBroPermissions';
+} from '../adminBroPermissions';
 
 export const projectStatusTab = {
   resource: ProjectStatus,

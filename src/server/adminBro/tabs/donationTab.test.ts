@@ -2,15 +2,15 @@ import {
   createProjectData,
   saveProjectDirectlyToDb,
   SEED_DATA,
-} from '../../../test/testUtils';
-import { findUserById } from '../../repositories/userRepository';
-import { NETWORK_IDS } from '../../provider';
-import { User } from '../../entities/user';
+} from '../../../../test/testUtils';
+import { findUserById } from '../../../repositories/userRepository';
+import { NETWORK_IDS } from '../../../provider';
+import { User } from '../../../entities/user';
 import {
   Donation,
   DONATION_STATUS,
   DONATION_TYPES,
-} from '../../entities/donation';
+} from '../../../entities/donation';
 import { assert } from 'chai';
 import { createDonation } from './donationTab';
 

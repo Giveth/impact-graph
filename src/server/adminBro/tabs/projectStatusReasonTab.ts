@@ -1,41 +1,39 @@
-import { ProjectStatusHistory } from '../../entities/projectStatusHistory';
+import { ProjectStatusReason } from '../../../entities/projectStatusReason';
 import {
-  canAccessProjectStatusHistoryAction,
+  canAccessProjectStatusReasonAction,
   ResourceActions,
-} from './adminBroPermissions';
+} from '../adminBroPermissions';
 
-export const projectStatusHistoryTab = {
-  resource: ProjectStatusHistory,
+export const projectStatusReasonTab = {
+  resource: ProjectStatusReason,
   options: {
     actions: {
-      delete: {
-        isVisible: false,
+      new: {
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusHistoryAction(
+          canAccessProjectStatusReasonAction(
             { currentAdmin },
-            ResourceActions.DELETE,
+            ResourceActions.NEW,
           ),
       },
       edit: {
-        isVisible: false,
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusHistoryAction(
+          canAccessProjectStatusReasonAction(
             { currentAdmin },
             ResourceActions.EDIT,
           ),
       },
-      new: {
+      delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusHistoryAction(
+          canAccessProjectStatusReasonAction(
             { currentAdmin },
-            ResourceActions.NEW,
+            ResourceActions.DELETE,
           ),
       },
       bulkDelete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>
-          canAccessProjectStatusHistoryAction(
+          canAccessProjectStatusReasonAction(
             { currentAdmin },
             ResourceActions.BULK_DELETE,
           ),
