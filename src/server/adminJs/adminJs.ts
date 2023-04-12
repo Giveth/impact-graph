@@ -1,4 +1,4 @@
-import adminJs from 'adminjs';
+import adminJs, { AdminJSOptions } from 'adminjs';
 import { User } from '../../entities/user';
 import adminJsExpress from '@adminjs/express';
 import config from '../../config';
@@ -129,7 +129,72 @@ export const getCurrentadminJsSession = async (request: IncomingMessage) => {
   return dbUser;
 };
 
+type AdminJsResources = AdminJSOptions['resources'];
+
+const getResources = async (): Promise<AdminJsResources> => {
+  const resources: AdminJsResources = [
+    projectVerificationTab,
+    donationTab,
+    await generateTokenTab(),
+    featuredUpdateTab,
+    thirdPartProjectImportTab,
+    projectUpdateTab,
+    projectStatusTab,
+    projectAddressTab,
+    projectStatusReasonTab,
+    projectStatusHistoryTab,
+    usersTab,
+    organizationsTab,
+    projectsTab,
+    categoryTab,
+    mainCategoryTab,
+    broadcastNotificationTab,
+    campaignsTab,
+  ];
+
+  const loggingHook = async (response, request, context) => {
+    const { action, currentAdmin, resource } = context;
+    const { method, params } = request;
+
+    const log = {
+      currentAdmin,
+      resource: resource.name(),
+      action: action.name,
+      method,
+      response: context.record,
+      params,
+    };
+
+    logger.info('AdminJs Log', JSON.stringify(log, null, 2));
+
+    return response;
+  };
+  // Add logging hook to all resources
+  resources.forEach(resource => {
+    const options = resource.options || {};
+    const actions = options.actions || {};
+    const targetActionNames = ['new', 'edit', 'delete', 'bulkDelete'];
+
+    targetActionNames.forEach(actionName => {
+      const action = actions[actionName] || {};
+      if (!action.after) {
+        action.after = loggingHook;
+      } else if (Array.isArray(action.after)) {
+        action.after.push(loggingHook);
+      } else {
+        action.after = [action.after, loggingHook];
+      }
+      actions[actionName] = action;
+    });
+    options.actions = actions;
+    resource.options = options;
+  });
+
+  return resources;
+};
+
 const getadminJsInstance = async () => {
+  const resources = await getResources();
   return new adminJs({
     branding: {
       logo: 'https://i.imgur.com/cGKo1Tk.png',
@@ -138,6 +203,7 @@ const getadminJsInstance = async () => {
       companyName: 'Giveth',
       // softwareBrothers: false,
     },
+    resources,
     locale: {
       translations: {
         resources: {
@@ -162,25 +228,6 @@ const getadminJsInstance = async () => {
       },
       language: 'en',
     },
-    resources: [
-      projectVerificationTab,
-      donationTab,
-      await generateTokenTab(),
-      featuredUpdateTab,
-      thirdPartProjectImportTab,
-      projectUpdateTab,
-      projectStatusTab,
-      projectAddressTab,
-      projectStatusReasonTab,
-      projectStatusHistoryTab,
-      usersTab,
-      organizationsTab,
-      projectsTab,
-      categoryTab,
-      mainCategoryTab,
-      broadcastNotificationTab,
-      campaignsTab,
-    ],
     rootPath: adminJsRootPath,
   });
 };

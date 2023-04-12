@@ -22,6 +22,7 @@ export const importThirdPartyProject = async (
   const { currentAdmin } = context;
   let message = `Project successfully imported`;
   let type = 'success';
+  let record;
 
   try {
     logger.debug('import third party project', request.payload);
@@ -48,6 +49,7 @@ export const importThirdPartyProject = async (
       thirdPartyAPI,
     });
     await importHistoryRecord.save();
+    record = importHistoryRecord;
   } catch (e) {
     message = e?.message || e;
     type = 'danger';
@@ -62,6 +64,10 @@ export const importThirdPartyProject = async (
       type,
     },
   });
+
+  return {
+    record,
+  };
 };
 
 export const thirdPartProjectImportTab = {

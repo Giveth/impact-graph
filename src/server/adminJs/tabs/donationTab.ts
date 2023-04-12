@@ -39,6 +39,7 @@ export const createDonation = async (
   context: AdminJsContextInterface,
 ) => {
   let message = messages.DONATION_CREATED_SUCCESSFULLY;
+  const donations: Donation[] = [];
 
   let type = 'success';
   try {
@@ -143,6 +144,7 @@ export const createDonation = async (
       if (donor) {
         await updateUserTotalDonated(donor.id);
       }
+      donations.push(donation);
 
       logger.debug('Donation has been created successfully', donation.id);
     }
@@ -160,6 +162,10 @@ export const createDonation = async (
       type,
     },
   });
+
+  return {
+    record: donations,
+  };
 };
 
 export const donationTab = {

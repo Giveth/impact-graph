@@ -118,6 +118,7 @@ export const createToken = async (
 ) => {
   let message = `Token created successfully`;
   let type = 'success';
+  let newToken;
   const {
     address,
     decimals,
@@ -129,7 +130,7 @@ export const createToken = async (
     organizations,
   } = request.payload;
   try {
-    const newToken = Token.create({
+    newToken = Token.create({
       name,
       symbol,
       address: address?.toLowerCase(),
@@ -165,6 +166,9 @@ export const createToken = async (
       type,
     },
   });
+  return {
+    record: newToken,
+  };
 };
 
 export const generateTokenTab = async () => {
