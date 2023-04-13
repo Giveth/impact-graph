@@ -41,7 +41,7 @@ const adminJsCookie = 'adminjs';
 
 adminJs.registerAdapter({ Database, Resource });
 
-export const getadminJsRouter = async () => {
+export const getAdminJsRouter = async () => {
   return adminJsExpress.buildAuthenticatedRouter(
     await getadminJsInstance(),
     {
@@ -75,7 +75,7 @@ export const adminJsQueryCache = async (req, res, next) => {
     req.url.startsWith('/admin/api/resources/Project/actions/list') &&
     req.headers.cookie.includes('adminjs')
   ) {
-    const admin = await getCurrentadminJsSession(req);
+    const admin = await getCurrentAdminJsSession(req);
     if (!admin) return next(); // skip saving queries
 
     const queryStrings = {};
@@ -98,7 +98,7 @@ export const adminJsQueryCache = async (req, res, next) => {
 };
 
 // Get CurrentSession for external express middlewares
-export const getCurrentadminJsSession = async (request: IncomingMessage) => {
+export const getCurrentAdminJsSession = async (request: IncomingMessage) => {
   const cookieHeader = request.headers.cookie;
   const parsedCookies = cookie.parse(cookieHeader);
   const sessionStore = new RedisStore({ client: redis });

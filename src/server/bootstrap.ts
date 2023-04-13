@@ -25,7 +25,7 @@ import { webhookHandler } from '../services/transak/webhookHandler';
 import {
   adminJsQueryCache,
   adminJsRootPath,
-  getadminJsRouter,
+  getAdminJsRouter,
 } from './adminJs/adminJs';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
@@ -244,7 +244,7 @@ export async function bootstrap() {
           return true;
         }
         if (req.url.startsWith('/admin')) {
-          // Bypass Admin bro panel request
+          // Bypass AdminJS panel request
           return true;
         }
         return false;
@@ -330,7 +330,7 @@ export async function bootstrap() {
 
     // Admin Bruh!
     app.use(adminJsQueryCache);
-    app.use(adminJsRootPath, await getadminJsRouter());
+    app.use(adminJsRootPath, await getAdminJsRouter());
 
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();

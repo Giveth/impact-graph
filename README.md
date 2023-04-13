@@ -114,7 +114,7 @@ There are many strategies available for authentication
 If you want to see examples you can read test cases or see [Graphql queries](./test/graphqlQueries.ts)
 
 ### Admin panel
-We use [Admin Bro](https://github.com/SoftwareBrothers/adminjs) for Admin dashboard
+We use [AdminJS](https://github.com/SoftwareBrothers/adminjs) for Admin dashboard
 You should navigate to `/admin` for browsing admin panel.
 in your local database you can hash a desired password with `BCRYPT_SALT` that is in your `config/development.env` with
 [bcrypt](https://github.com/kelektiv/node.bcrypt.js) then you set that value in `encryptedPassword` of your user in DB and

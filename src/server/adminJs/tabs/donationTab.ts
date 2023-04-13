@@ -97,7 +97,7 @@ export const createDonation = async (
 
       if (!project) {
         logger.error(
-          'Creating donation by admin bro, csv airdrop error ' +
+          'Creating donation by adminJs, csv airdrop error ' +
             i18n.__(
               translationErrorMessagesKeys.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
             ),

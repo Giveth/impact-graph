@@ -19,7 +19,7 @@ export class ThirdPartyProjectImport extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  // change logic in admin bro based on string
+  // change logic in adminJs based on string
   @Field({ nullable: true })
   @Column({ nullable: true })
   thirdPartyAPI: string;
