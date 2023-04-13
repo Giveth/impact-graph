@@ -25,6 +25,7 @@ import { featuredUpdateTab } from './tabs/featuredUpdateTab';
 import { generateTokenTab } from './tabs/tokenTab';
 import { donationTab } from './tabs/donationTab';
 import { projectVerificationTab } from './tabs/projectVerificationTab';
+import { ResourceActions } from './adminJsPermissions';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -173,7 +174,9 @@ const getResources = async (): Promise<AdminJsResources> => {
   resources.forEach(resource => {
     const options = resource.options || {};
     const actions = options.actions || {};
-    const targetActionNames = ['new', 'edit', 'delete', 'bulkDelete'];
+    const targetActionNames = Object.values(ResourceActions).filter(
+      action => action !== 'show',
+    );
 
     targetActionNames.forEach(actionName => {
       const action = actions[actionName] || {};
