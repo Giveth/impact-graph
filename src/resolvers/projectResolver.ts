@@ -106,6 +106,7 @@ const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
 );
 import { FeaturedUpdate } from '../entities/featuredUpdate';
+import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 
 @ObjectType()
 class AllProjects {
@@ -1260,6 +1261,14 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
+    if (content?.length > PROJECT_UPDATE_CONTENT_MAX_LENGTH) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED,
+        ),
+      );
+    }
+
     const owner = await findUserById(user.userId);
 
     if (!owner)
@@ -1313,6 +1322,14 @@ export class ProjectResolver {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
+
+    if (content?.length > PROJECT_UPDATE_CONTENT_MAX_LENGTH) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED,
+        ),
+      );
+    }
 
     const update = await ProjectUpdate.findOne({ where: { id: updateId } });
     if (!update)
