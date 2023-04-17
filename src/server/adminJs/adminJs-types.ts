@@ -1,7 +1,7 @@
 import { User } from '../../entities/user';
 import { ReviewStatus } from '../../entities/project';
 
-export interface AdminBroContextInterface {
+export interface AdminJsContextInterface {
   h: any;
   resource: any;
   records: any[];
@@ -9,7 +9,7 @@ export interface AdminBroContextInterface {
   payload?: any;
 }
 
-export interface AdminBroRequestInterface {
+export interface AdminJsRequestInterface {
   payload?: any;
   record?: any;
   query?: {
@@ -20,7 +20,7 @@ export interface AdminBroRequestInterface {
   };
 }
 
-export interface AdminBroProjectsQuery {
+export interface AdminJsProjectsQuery {
   statusId?: string;
   title?: string;
   slug?: string;

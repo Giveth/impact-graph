@@ -2,7 +2,7 @@ import { ProjectStatusReason } from '../../../entities/projectStatusReason';
 import {
   canAccessProjectStatusReasonAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from '../adminJsPermissions';
 
 export const projectStatusReasonTab = {
   resource: ProjectStatusReason,

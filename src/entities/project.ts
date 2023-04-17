@@ -352,7 +352,7 @@ export class Project extends BaseEntity {
   projectUpdates?: ProjectUpdate[];
 
   @Field(type => String, { nullable: true })
-  adminBroBaseUrl: string;
+  adminJsBaseUrl: string;
 
   // User reaction to the project
   @Field({ nullable: true })

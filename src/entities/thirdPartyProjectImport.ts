@@ -10,7 +10,7 @@ import {
 import { Project } from './project';
 import { User } from './user';
 
-// only purpose of this entity is to serve as a custom page in adminbro
+// only purpose of this entity is to serve as a custom page in AdminJs
 @Entity()
 @ObjectType()
 export class ThirdPartyProjectImport extends BaseEntity {
@@ -19,7 +19,7 @@ export class ThirdPartyProjectImport extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  // change logic in admin bro based on string
+  // change logic in adminJs based on string
   @Field({ nullable: true })
   @Column({ nullable: true })
   thirdPartyAPI: string;

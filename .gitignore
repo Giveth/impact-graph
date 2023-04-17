@@ -32,4 +32,4 @@ src/scripts/*.json
 .adminjs
 ./src/adminjs
 ./src/server/adminjs
-./src/server/adminBro/adminjs
+./src/server/adminJs/adminjs
