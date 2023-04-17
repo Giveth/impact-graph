@@ -2,7 +2,6 @@ import config from './config';
 import { ethers } from 'ethers';
 import { i18n, translationErrorMessagesKeys } from './utils/errorMessages';
 
-const INFURA_API_KEY = config.get('INFURA_API_KEY');
 const INFURA_ID = config.get('INFURA_ID');
 
 export const NETWORK_IDS = {
