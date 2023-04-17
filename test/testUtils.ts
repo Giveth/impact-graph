@@ -1262,6 +1262,12 @@ export const SEED_DATA = {
     optimistic: [
       {
         name: 'OPTIMISTIC native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+      {
+        name: 'OPTIMISTIC OP token',
         symbol: 'OP',
         address: '0x4200000000000000000000000000000000000042',
         decimals: 18,
