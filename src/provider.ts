@@ -146,7 +146,7 @@ export function getProvider(networkId: number) {
       // Use infura
       const connectionInfo = ethers.providers.InfuraProvider.getUrl(
         ethers.providers.getNetwork(networkId),
-        { projectId: INFURA_API_KEY },
+        { projectId: INFURA_ID },
       );
       connectionInfo.headers = {
         ...connectionInfo.headers,
@@ -199,10 +199,10 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('CELO_ALFAJORES_SCAN_API_URL');
       apiKey = config.get('CELO_ALFAJORES_SCAN_API_KEY');
       break;
-    // case NETWORK_IDS.OPTIMISTIC:
-    //   return `${config.get('OPTIMISTIC_SCAN_API_URL')}?apikey=${config.get(
-    //     'OPTIMISTIC_SCAN_API_KEY',
-    //   )}`;
+    case NETWORK_IDS.OPTIMISTIC:
+      apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
+      apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
+      break;
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
