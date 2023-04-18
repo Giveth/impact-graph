@@ -525,7 +525,7 @@ export const exportProjectsWithFiltersToCsv = async (
   try {
     const { records } = context;
     const rawQueryStrings = await redis.get(
-      `adminjs_${context.currentAdmin.id}_qs`,
+      `adminbro:${context.currentAdmin.id}:Project`,
     );
     const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
     const projectsQuery = buildProjectsQuery(queryStrings);
