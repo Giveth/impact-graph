@@ -4,12 +4,12 @@ import BroadcastNotification, {
 import {
   canAccessBroadcastNotificationAction,
   ResourceActions,
-} from '../adminBroPermissions';
-import AdminBro from 'adminjs';
+} from '../adminJsPermissions';
+import adminJs from 'adminjs';
 import {
-  AdminBroContextInterface,
-  AdminBroRequestInterface,
-} from '../adminBro-types';
+  AdminJsContextInterface,
+  AdminJsRequestInterface,
+} from '../adminJs-types';
 import {
   ActionResponse,
   After,
@@ -65,8 +65,8 @@ export const broadcastNotificationTab = {
             ResourceActions.NEW,
           ),
         before: async (
-          request: AdminBroRequestInterface,
-          context: AdminBroContextInterface,
+          request: AdminJsRequestInterface,
+          context: AdminJsContextInterface,
         ) => {
           if (request?.payload?.html) {
             const { currentAdmin } = context;
@@ -105,7 +105,7 @@ export const broadcastNotificationTab = {
           edit: true,
         },
         components: {
-          edit: AdminBro.bundle('./components/MDtoHTML'),
+          edit: adminJs.bundle('./components/MDtoHTML'),
         },
       },
       status: {

@@ -2,7 +2,7 @@ import { Campaign } from '../../../entities/campaign';
 import {
   canAccessCampaignAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from '../adminJsPermissions';
 
 export const campaignsTab = {
   resource: Campaign,

@@ -1,6 +1,6 @@
-import AdminBro from 'adminjs';
+import adminJs, { AdminJSOptions } from 'adminjs';
 import { User } from '../../entities/user';
-import AdminBroExpress from '@adminjs/express';
+import adminJsExpress from '@adminjs/express';
 import config from '../../config';
 import { redis } from '../../redis';
 import { Database, Resource } from '@adminjs/typeorm';
@@ -25,6 +25,7 @@ import { featuredUpdateTab } from './tabs/featuredUpdateTab';
 import { generateTokenTab } from './tabs/tokenTab';
 import { donationTab } from './tabs/donationTab';
 import { projectVerificationTab } from './tabs/projectVerificationTab';
+import { ResourceActions } from './adminJsPermissions';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -37,13 +38,13 @@ const cookie = require('cookie');
 // tslint:disable-next-line:no-var-requires
 const cookieParser = require('cookie-parser');
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
-const adminBroCookie = 'adminbro';
+const adminJsCookie = 'adminjs';
 
-AdminBro.registerAdapter({ Database, Resource });
+adminJs.registerAdapter({ Database, Resource });
 
-export const getAdminBroRouter = async () => {
-  return AdminBroExpress.buildAuthenticatedRouter(
-    await getAdminBroInstance(),
+export const getAdminJsRouter = async () => {
+  return adminJsExpress.buildAuthenticatedRouter(
+    await getadminJsInstance(),
     {
       authenticate: async (email, password): Promise<User | boolean> => {
         const admin = await fetchAdminAndValidatePassword({ email, password });
@@ -70,12 +71,12 @@ export const getAdminBroRouter = async () => {
 };
 
 // Express Middleware to save query of a search
-export const adminBroQueryCache = async (req, res, next) => {
+export const adminJsQueryCache = async (req, res, next) => {
   if (
     req.url.startsWith('/admin/api/resources/Project/actions/list') &&
-    req.headers.cookie.includes('adminbro')
+    req.headers.cookie.includes('adminjs')
   ) {
-    const admin = await getCurrentAdminBroSession(req);
+    const admin = await getCurrentAdminJsSession(req);
     if (!admin) return next(); // skip saving queries
 
     const queryStrings = {};
@@ -88,7 +89,7 @@ export const adminBroQueryCache = async (req, res, next) => {
     }
     // save query string for later use with an expiration
     await redis.set(
-      `adminbro_${admin.id}_qs`,
+      `adminjs_${admin.id}_qs`,
       JSON.stringify(queryStrings),
       'ex',
       1800,
@@ -98,12 +99,12 @@ export const adminBroQueryCache = async (req, res, next) => {
 };
 
 // Get CurrentSession for external express middlewares
-export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
+export const getCurrentAdminJsSession = async (request: IncomingMessage) => {
   const cookieHeader = request.headers.cookie;
   const parsedCookies = cookie.parse(cookieHeader);
   const sessionStore = new RedisStore({ client: redis });
   const unsignedCookie = cookieParser.signedCookie(
-    parsedCookies[adminBroCookie],
+    parsedCookies[adminJsCookie],
     secret,
   );
 
@@ -129,8 +130,75 @@ export const getCurrentAdminBroSession = async (request: IncomingMessage) => {
   return dbUser;
 };
 
-const getAdminBroInstance = async () => {
-  return new AdminBro({
+type AdminJsResources = AdminJSOptions['resources'];
+
+const getResources = async (): Promise<AdminJsResources> => {
+  const resources: AdminJsResources = [
+    projectVerificationTab,
+    donationTab,
+    await generateTokenTab(),
+    featuredUpdateTab,
+    thirdPartProjectImportTab,
+    projectUpdateTab,
+    projectStatusTab,
+    projectAddressTab,
+    projectStatusReasonTab,
+    projectStatusHistoryTab,
+    usersTab,
+    organizationsTab,
+    projectsTab,
+    categoryTab,
+    mainCategoryTab,
+    broadcastNotificationTab,
+    campaignsTab,
+  ];
+
+  const loggingHook = async (response, request, context) => {
+    const { action, currentAdmin, resource } = context;
+    const { method, params } = request;
+
+    const log = {
+      currentAdmin,
+      resource: resource.name(),
+      action: action.name,
+      method,
+      response: context.record,
+      params,
+    };
+
+    logger.info('AdminJs Log', JSON.stringify(log, null, 2));
+
+    return response;
+  };
+  // Add logging hook to all resources
+  resources.forEach(resource => {
+    const options = resource.options || {};
+    const actions = options.actions || {};
+    const targetActionNames = Object.values(ResourceActions).filter(
+      action => action !== 'show',
+    );
+
+    targetActionNames.forEach(actionName => {
+      const action = actions[actionName] || {};
+      if (!action.after) {
+        action.after = loggingHook;
+      } else if (Array.isArray(action.after)) {
+        action.after.push(loggingHook);
+      } else {
+        action.after = [action.after, loggingHook];
+      }
+      actions[actionName] = action;
+    });
+    options.actions = actions;
+    resource.options = options;
+  });
+
+  return resources;
+};
+
+const getadminJsInstance = async () => {
+  const resources = await getResources();
+  return new adminJs({
     branding: {
       logo: 'https://i.imgur.com/cGKo1Tk.png',
       favicon:
@@ -138,6 +206,7 @@ const getAdminBroInstance = async () => {
       companyName: 'Giveth',
       // softwareBrothers: false,
     },
+    resources,
     locale: {
       translations: {
         resources: {
@@ -162,27 +231,8 @@ const getAdminBroInstance = async () => {
       },
       language: 'en',
     },
-    resources: [
-      projectVerificationTab,
-      donationTab,
-      await generateTokenTab(),
-      featuredUpdateTab,
-      thirdPartProjectImportTab,
-      projectUpdateTab,
-      projectStatusTab,
-      projectAddressTab,
-      projectStatusReasonTab,
-      projectStatusHistoryTab,
-      usersTab,
-      organizationsTab,
-      projectsTab,
-      categoryTab,
-      mainCategoryTab,
-      broadcastNotificationTab,
-      campaignsTab,
-    ],
-    rootPath: adminBroRootPath,
+    rootPath: adminJsRootPath,
   });
 };
 
-export const adminBroRootPath = '/admin';
+export const adminJsRootPath = '/admin';

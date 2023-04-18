@@ -4,7 +4,7 @@ import { Section, Label, Link } from '@adminjs/design-system';
 
 const ProjectUpdates = props => {
   const projectUpdates = props?.record?.params?.projectUpdates;
-  const adminBroBaseUrl = props?.record?.params?.adminBroBaseUrl;
+  const adminJsBaseUrl = props?.record?.params?.adminJsBaseUrl;
 
   return (
     <div>
@@ -12,8 +12,8 @@ const ProjectUpdates = props => {
       <Section>
         {projectUpdates?.map(projectUpdate => {
           const { id, title, userId, content, createdAt } = projectUpdate;
-          const userLink = `${adminBroBaseUrl}/admin/resources/User/records/${userId}/show`;
-          const updateLink = `${adminBroBaseUrl}/admin/resources/ProjectUpdate/records/${id}/show`;
+          const userLink = `${adminJsBaseUrl}/admin/resources/User/records/${userId}/show`;
+          const updateLink = `${adminJsBaseUrl}/admin/resources/ProjectUpdate/records/${id}/show`;
           return (
             <div key={id}>
               <br />
@@ -27,13 +27,13 @@ const ProjectUpdates = props => {
                 {content || ''}
               </Section>
               <Section>
-                <Label>Adminbro User Link</Label>
+                <Label>AdminJS User Link</Label>
                 <Link href={userLink || ''} target="_blank">
                   {userLink}
                 </Link>
               </Section>
               <Section>
-                <Label>Project Update Adminbro Edit Link</Label>
+                <Label>Project Update AdminJS Edit Link</Label>
                 <Link href={updateLink || ''} target="_blank">
                   {updateLink}
                 </Link>

@@ -114,6 +114,34 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
+  for (const token of SEED_DATA.TOKENS.celo) {
+    const tokenData = {
+      ...token,
+      networkId: 42220,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'CELO') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.celo_alfajores) {
+    const tokenData = {
+      ...token,
+      networkId: 44787,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'CELO') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
   for (const token of SEED_DATA.TOKENS.optimistic) {
     const tokenData = {
       ...token,

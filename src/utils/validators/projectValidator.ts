@@ -124,6 +124,8 @@ export const isWalletAddressSmartContract = async (
     NETWORK_IDS.MAIN_NET,
     NETWORK_IDS.XDAI,
     NETWORK_IDS.POLYGON,
+    NETWORK_IDS.CELO,
+    NETWORK_IDS.CELO_ALFAJORES,
   ];
 
   const _isSmartContracts = await Promise.all(

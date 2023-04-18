@@ -60,6 +60,6 @@
     "emitDecoratorMetadata": true /* Enables experimental support for emitting type metadata for decorators. */
   },
   "exclude": ["./build", "node_modules",
-    "src/server/adminBro/tabs/components"
+    "src/server/adminJs/tabs/components"
   ]
 }

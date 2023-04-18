@@ -2,7 +2,7 @@ import { FeaturedUpdate } from '../../../entities/featuredUpdate';
 import {
   canAccessFeaturedUpdateAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from '../adminJsPermissions';
 
 export const featuredUpdateTab = {
   resource: FeaturedUpdate,

@@ -1,9 +1,27 @@
-import { ProjectUpdate } from '../../../entities/project';
+import { Project, ProjectUpdate } from '../../../entities/project';
 import {
   canAccessProjectUpdateAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from '../adminJsPermissions';
 import { addFeaturedProjectUpdate } from './projectsTab';
+import { ActionResponse, After } from 'adminjs';
+
+export const setProjectsTitleAndSlug: After<ActionResponse> = async request => {
+  if (Number(request?.records?.length) > 0) {
+    const records = request?.records?.map(async update => {
+      const project = await Project.findOne({
+        where: { id: update.params.projectId },
+      });
+
+      update.params.projectTitle = project?.title;
+      update.params.projectSlug = project?.slug;
+      return update;
+    });
+
+    request.records = await Promise.all(records);
+  }
+  return request;
+};
 
 export const projectUpdateTab = {
   resource: ProjectUpdate,
@@ -13,6 +31,22 @@ export const projectUpdateTab = {
         isVisible: {
           list: true,
           filter: true,
+          show: true,
+          edit: false,
+        },
+      },
+      projectTitle: {
+        isVisible: {
+          list: true,
+          filter: false,
+          show: true,
+          edit: false,
+        },
+      },
+      projectSlug: {
+        isVisible: {
+          list: true,
+          filter: false,
           show: true,
           edit: false,
         },
@@ -51,7 +85,7 @@ export const projectUpdateTab = {
       },
       totalReactions: {
         isVisible: {
-          list: true,
+          list: false,
           filter: true,
           show: true,
           edit: false,
@@ -75,7 +109,7 @@ export const projectUpdateTab = {
       },
       isNonProfitOrganization: {
         isVisible: {
-          list: true,
+          list: false,
           filter: false,
           show: true,
           edit: false,
@@ -209,6 +243,10 @@ export const projectUpdateTab = {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectUpdateAction({ currentAdmin }, ResourceActions.EDIT),
+      },
+      list: {
+        isVisible: true,
+        after: setProjectsTitleAndSlug,
       },
       addFeaturedProjectUpdate: {
         actionType: 'bulk',

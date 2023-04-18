@@ -352,7 +352,7 @@ export class Project extends BaseEntity {
   projectUpdates?: ProjectUpdate[];
 
   @Field(type => String, { nullable: true })
-  adminBroBaseUrl: string;
+  adminJsBaseUrl: string;
 
   // User reaction to the project
   @Field({ nullable: true })
@@ -472,6 +472,14 @@ export class ProjectUpdate extends BaseEntity {
   @Field(type => String)
   @Column()
   title: string;
+
+  // Virtual attribute for projectUpdate
+  @Field(type => String, { nullable: true })
+  projectTitle?: string;
+
+  // Virtual attribute for projectUpdate
+  @Field(type => String, { nullable: true })
+  projectSlug?: string;
 
   @Field(type => ID)
   @Column()

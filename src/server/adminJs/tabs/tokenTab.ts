@@ -1,8 +1,8 @@
 import { Token } from '../../../entities/token';
 import { NETWORK_IDS } from '../../../provider';
-import AdminBro from 'adminjs';
-import { canAccessTokenAction, ResourceActions } from '../adminBroPermissions';
-import { AdminBroRequestInterface } from '../adminBro-types';
+import adminJs from 'adminjs';
+import { canAccessTokenAction, ResourceActions } from '../adminJsPermissions';
+import { AdminJsRequestInterface } from '../adminJs-types';
 import { Organization } from '../../../entities/organization';
 import { logger } from '../../../utils/logger';
 import { findTokenByTokenId } from '../../../repositories/tokenRepository';
@@ -75,7 +75,7 @@ export const generateOrganizationList = async () => {
   );
 };
 
-export const linkOrganizations = async (request: AdminBroRequestInterface) => {
+export const linkOrganizations = async (request: AdminJsRequestInterface) => {
   // edit action calls this method more than once, returning from those extra calls
   // default handler updates the other params, we only care about orgs
   if (!request.record.params.organizations) return request;
@@ -113,11 +113,12 @@ export const linkOrganizations = async (request: AdminBroRequestInterface) => {
 };
 
 export const createToken = async (
-  request: AdminBroRequestInterface,
+  request: AdminJsRequestInterface,
   response,
 ) => {
   let message = `Token created successfully`;
   let type = 'success';
+  let newToken;
   const {
     address,
     decimals,
@@ -129,7 +130,7 @@ export const createToken = async (
     organizations,
   } = request.payload;
   try {
-    const newToken = Token.create({
+    newToken = Token.create({
       name,
       symbol,
       address: address?.toLowerCase(),
@@ -165,6 +166,9 @@ export const createToken = async (
       type,
     },
   });
+  return {
+    record: newToken,
+  };
 };
 
 export const generateTokenTab = async () => {
@@ -180,6 +184,11 @@ export const generateTokenTab = async () => {
             { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
             { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
             { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
+            { value: NETWORK_IDS.CELO, label: 'CELO' },
+            {
+              value: NETWORK_IDS.CELO_ALFAJORES,
+              label: 'ALFAJORES (Test CELO)',
+            },
             { value: NETWORK_IDS.XDAI, label: 'XDAI' },
             { value: NETWORK_IDS.BSC, label: 'BSC' },
           ],
@@ -206,8 +215,8 @@ export const generateTokenTab = async () => {
             list: true,
           },
           components: {
-            show: AdminBro.bundle('./components/ListOrganizationsNames'),
-            list: AdminBro.bundle('./components/ListOrganizationsNames'),
+            show: adminJs.bundle('./components/ListOrganizationsNames'),
+            list: adminJs.bundle('./components/ListOrganizationsNames'),
           },
           availableValues: await generateOrganizationList(),
         },
@@ -220,7 +229,7 @@ export const generateTokenTab = async () => {
         },
         // Organization is not editable, hooks are not working correctly
         edit: {
-          before: async (request: AdminBroRequestInterface) => {
+          before: async (request: AdminJsRequestInterface) => {
             Object.keys(request?.payload).forEach(key => {
               // because we made eager:true for token.organizations, if admin doesnt select organization
               // the front will send something like

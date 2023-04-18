@@ -23,10 +23,10 @@ import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkPro
 import { webhookHandler } from '../services/transak/webhookHandler';
 
 import {
-  adminBroQueryCache,
-  adminBroRootPath,
-  getAdminBroRouter,
-} from './adminBro/adminBro';
+  adminJsQueryCache,
+  adminJsRootPath,
+  getAdminJsRouter,
+} from './adminJs/adminJs';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
@@ -244,7 +244,7 @@ export async function bootstrap() {
           return true;
         }
         if (req.url.startsWith('/admin')) {
-          // Bypass Admin bro panel request
+          // Bypass AdminJS panel request
           return true;
         }
         return false;
@@ -329,8 +329,8 @@ export async function bootstrap() {
     );
 
     // Admin Bruh!
-    app.use(adminBroQueryCache);
-    app.use(adminBroRootPath, await getAdminBroRouter());
+    app.use(adminJsQueryCache);
+    app.use(adminJsRootPath, await getAdminJsRouter());
 
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();

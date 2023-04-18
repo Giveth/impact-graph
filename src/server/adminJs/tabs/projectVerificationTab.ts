@@ -2,16 +2,16 @@ import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
 } from '../../../entities/projectVerificationForm';
-import AdminBro from 'adminjs';
+import adminJs from 'adminjs';
 import {
   canAccessProjectVerificationFormAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from '../adminJsPermissions';
 
 import {
-  AdminBroContextInterface,
-  AdminBroRequestInterface,
-} from '../adminBro-types';
+  AdminJsContextInterface,
+  AdminJsRequestInterface,
+} from '../adminJs-types';
 import {
   findProjectVerificationFormById,
   makeFormDraft,
@@ -68,8 +68,8 @@ export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
 };
 
 export const verifySingleVerificationForm = async (
-  context: AdminBroContextInterface,
-  request: AdminBroRequestInterface,
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
   verified: boolean,
 ) => {
   const { records, currentAdmin } = context;
@@ -161,8 +161,8 @@ export const verifySingleVerificationForm = async (
 };
 
 export const makeEditableByUser = async (
-  context: AdminBroContextInterface,
-  request: AdminBroRequestInterface,
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
 ) => {
   const { records, currentAdmin } = context;
   let responseMessage = '';
@@ -219,8 +219,8 @@ export const makeEditableByUser = async (
 };
 
 export const verifyVerificationForms = async (
-  context: AdminBroContextInterface,
-  request: AdminBroRequestInterface,
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
   verified: boolean,
 ) => {
   const { records, currentAdmin } = context;
@@ -395,7 +395,7 @@ export const projectVerificationTab = {
           new: false,
         },
         components: {
-          show: AdminBro.bundle('./components/VerificationFormSocials'),
+          show: adminJs.bundle('./components/VerificationFormSocials'),
         },
       },
       personalInfo: {
@@ -421,7 +421,7 @@ export const projectVerificationTab = {
           new: false,
         },
         components: {
-          show: AdminBro.bundle('./components/VerificationFormProjectRegistry'),
+          show: adminJs.bundle('./components/VerificationFormProjectRegistry'),
         },
       },
       'projectRegistry.isNonProfitOrganization': { type: 'boolean' },
@@ -453,7 +453,7 @@ export const projectVerificationTab = {
           new: false,
         },
         components: {
-          show: AdminBro.bundle('./components/VerificationFormMilestones'),
+          show: adminJs.bundle('./components/VerificationFormMilestones'),
         },
       },
       managingFunds: {

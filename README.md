@@ -1,5 +1,10 @@
 # Impact Graph
-
+---
+### Build status
+- Develop - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/CI-CD.yml/badge.svg?branch=develop)](https://github.com/Giveth/impact-graph/actions/workflows/CI-CD.yml)
+- Staging - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/CI-CD.yml/badge.svg?branch=staging)](https://github.com/Giveth/impact-graph/actions/workflows/CI-CD.yml)
+- Production - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/CI-CD.yml/badge.svg?branch=master)](https://github.com/Giveth/impact-graph/actions/workflows/CI-CD.yml)
+---
 ImpactQL is a GraphQL server, that enables rapid development of serverless impact project applications. It does this by taking care of the persistance of impact project data.
 
 [Installation](#installation)
@@ -109,7 +114,7 @@ There are many strategies available for authentication
 If you want to see examples you can read test cases or see [Graphql queries](./test/graphqlQueries.ts)
 
 ### Admin panel
-We use [Admin Bro](https://github.com/SoftwareBrothers/adminjs) for Admin dashboard
+We use [AdminJS](https://github.com/SoftwareBrothers/adminjs) for Admin dashboard
 You should navigate to `/admin` for browsing admin panel.
 in your local database you can hash a desired password with `BCRYPT_SALT` that is in your `config/development.env` with
 [bcrypt](https://github.com/kelektiv/node.bcrypt.js) then you set that value in `encryptedPassword` of your user in DB and

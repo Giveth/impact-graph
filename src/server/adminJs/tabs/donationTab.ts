@@ -6,11 +6,11 @@ import {
 import {
   canAccessDonationAction,
   ResourceActions,
-} from '../adminBroPermissions';
+} from '../adminJsPermissions';
 import {
-  AdminBroContextInterface,
-  AdminBroRequestInterface,
-} from '../adminBro-types';
+  AdminJsContextInterface,
+  AdminJsRequestInterface,
+} from '../adminJs-types';
 import { messages } from '../../../utils/messages';
 import { logger } from '../../../utils/logger';
 import {
@@ -31,13 +31,15 @@ import { calculateGivbackFactor } from '../../../services/givbackService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
 import { updateTotalDonationsOfProject } from '../../../services/donationService';
 import { updateUserTotalDonated } from '../../../services/userService';
+import { NETWORK_IDS } from '../../../provider';
 
 export const createDonation = async (
-  request: AdminBroRequestInterface,
+  request: AdminJsRequestInterface,
   response,
-  context: AdminBroContextInterface,
+  context: AdminJsContextInterface,
 ) => {
   let message = messages.DONATION_CREATED_SUCCESSFULLY;
+  const donations: Donation[] = [];
 
   let type = 'success';
   try {
@@ -95,7 +97,7 @@ export const createDonation = async (
 
       if (!project) {
         logger.error(
-          'Creating donation by admin bro, csv airdrop error ' +
+          'Creating donation by adminJs, csv airdrop error ' +
             i18n.__(
               translationErrorMessagesKeys.TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS,
             ),
@@ -142,6 +144,7 @@ export const createDonation = async (
       if (donor) {
         await updateUserTotalDonated(donor.id);
       }
+      donations.push(donation);
 
       logger.debug('Donation has been created successfully', donation.id);
     }
@@ -159,6 +162,10 @@ export const createDonation = async (
       type,
     },
   });
+
+  return {
+    record: donations,
+  };
 };
 
 export const donationTab = {
@@ -345,9 +352,12 @@ export const donationTab = {
       },
       transactionNetworkId: {
         availableValues: [
-          { value: 1, label: 'Mainnet' },
-          { value: 100, label: 'Xdai' },
-          { value: 5, label: 'Goerli' },
+          { value: NETWORK_IDS.MAIN_NET, label: 'Mainnet' },
+          { value: NETWORK_IDS.XDAI, label: 'Xdai' },
+          { value: NETWORK_IDS.GOERLI, label: 'Goerli' },
+          { value: NETWORK_IDS.POLYGON, label: 'Polygon' },
+          { value: NETWORK_IDS.CELO, label: 'Celo' },
+          { value: NETWORK_IDS.CELO_ALFAJORES, label: 'Alfajores' },
         ],
         isVisible: true,
       },

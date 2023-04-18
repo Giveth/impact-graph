@@ -677,6 +677,10 @@ export class DonationResolver {
         case CHAIN_ID.POLYGON:
           baseTokens = ['USDC', 'MATIC'];
           break;
+        case CHAIN_ID.CELO:
+        case CHAIN_ID.ALFAJORES:
+          baseTokens = ['cUSD', 'CELO'];
+          break;
         default:
           baseTokens = ['USDT', 'ETH'];
           break;
