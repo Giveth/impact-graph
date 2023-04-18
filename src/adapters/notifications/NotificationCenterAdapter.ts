@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
+  ProjectsHaveNewRankingInputParams,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
@@ -828,6 +829,23 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       }
       sendBroadcastNotificationsQueue.add(queueData);
     }
+  }
+
+  async projectsHaveNewRank(params: ProjectsHaveNewRankingInputParams) {
+    const queueData: SendBatchNotificationBody = { notifications: [] };
+    //
+    //   queueData.notifications.push({
+    //     eventName: NOTIFICATIONS_EVENT_NAMES.RAW_HTML_BROADCAST,
+    //     sendEmail: false,
+    //     sendSegment: false,
+    //     metadata: {
+    //       html,
+    //     },
+    //     userWalletAddress: user.walletAddress as string,
+    //     trackId,
+    //   });
+    // }
+    // sendBroadcastNotificationsQueue.add(queueData);
   }
 }
 
