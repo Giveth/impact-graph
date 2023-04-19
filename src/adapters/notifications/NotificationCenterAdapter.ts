@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
-  ProjectsHaveNewRankingInputParams,
+  ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
@@ -18,9 +18,6 @@ import config from '../../config';
 import { findProjectById } from '../../repositories/projectRepository';
 import {
   findAllUsers,
-  findUsersWhoDonatedToProjectExcludeWhoLiked,
-  findUsersWhoBoostedProject,
-  findUsersWhoLikedProjectExcludeProjectOwner,
   findUsersWhoSupportProject,
 } from '../../repositories/userRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
@@ -831,21 +828,31 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
-  async projectsHaveNewRank(params: ProjectsHaveNewRankingInputParams) {
-    const queueData: SendBatchNotificationBody = { notifications: [] };
-    //
-    //   queueData.notifications.push({
-    //     eventName: NOTIFICATIONS_EVENT_NAMES.RAW_HTML_BROADCAST,
-    //     sendEmail: false,
-    //     sendSegment: false,
-    //     metadata: {
-    //       html,
-    //     },
-    //     userWalletAddress: user.walletAddress as string,
-    //     trackId,
-    //   });
-    // }
-    // sendBroadcastNotificationsQueue.add(queueData);
+  async projectsHaveNewRank(params: ProjectsHaveNewRankingInputParam[]) {
+    for (const param of params) {
+      const project = await findProjectById(param.projectId);
+      if (!project) {
+        continue;
+      }
+      const projectOwner = project.adminUser;
+      await sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName:
+          param.newRank < param.oldRank
+            ? NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_NEW_LOWER_RANK
+            : NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_NEW_HIGHER_RANK,
+
+        sendEmail: true,
+        segment: {
+          analyticsUserId: projectOwner.segmentUserId(),
+          anonymousId: projectOwner.segmentUserId(),
+          payload: getSegmentProjectAttributes({
+            project,
+          }),
+        },
+        trackId: `project-has-new-rank-${param.round}-${param.projectId}`,
+      });
+    }
   }
 }
 

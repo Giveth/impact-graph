@@ -14,7 +14,9 @@ import { refreshUserProjectPowerView } from '../../repositories/userProjectPower
 import {
   copyProjectRanksToPreviousRoundRankTable,
   deleteAllPreviousRoundRanks,
+  projectsThatTheirRanksHaveChanged,
 } from '../../repositories/previousRoundRankRepository';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 
 const cronJobTime =
   (config.get('UPDATE_POWER_ROUND_CRONJOB_EXPRESSION') as string) ||
@@ -40,7 +42,11 @@ export const runUpdatePowerRoundCronJob = () => {
       refreshUserProjectPowerView(),
     ]);
     if (powerRound !== currentRound?.round) {
-      //
+      const projectThatTheirRankChanged =
+        await projectsThatTheirRanksHaveChanged();
+      await getNotificationAdapter().projectsHaveNewRank(
+        projectThatTheirRankChanged,
+      );
     }
   });
 };

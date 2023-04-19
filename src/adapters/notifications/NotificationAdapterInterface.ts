@@ -8,13 +8,11 @@ export interface BroadCastNotificationInputParams {
   html: string;
 }
 
-export interface ProjectsHaveNewRankingInputParams {
-  items: {
-    projectId: number;
-    newRank: number;
-    oldRank: number;
-    adminUserId: number;
-  }[];
+export interface ProjectsHaveNewRankingInputParam {
+  projectId: number;
+  newRank: number;
+  oldRank: number;
+  round: number;
 }
 
 export interface NotificationAdapterInterface {
@@ -72,5 +70,7 @@ export interface NotificationAdapterInterface {
   broadcastNotification(
     params: BroadCastNotificationInputParams,
   ): Promise<void>;
-  projectsHaveNewRank(params: ProjectsHaveNewRankingInputParams): Promise<void>;
+  projectsHaveNewRank(
+    params: ProjectsHaveNewRankingInputParam[],
+  ): Promise<void>;
 }

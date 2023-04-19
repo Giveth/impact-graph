@@ -1,7 +1,7 @@
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
-  ProjectsHaveNewRankingInputParams,
+  ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
@@ -221,7 +221,7 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
   }
 
   projectsHaveNewRank(
-    params: ProjectsHaveNewRankingInputParams,
+    params: ProjectsHaveNewRankingInputParam[],
   ): Promise<void> {
     logger.info('MockNotificationAdapter projectHasNewRank', {
       params,
