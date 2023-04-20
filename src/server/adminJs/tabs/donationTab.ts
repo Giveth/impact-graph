@@ -24,7 +24,10 @@ import {
   getCsvAirdropTransactions,
   getGnosisSafeTransactions,
 } from '../../../services/transactionService';
-import { i18n, translationErrorMessagesKeys } from '../../../utils/errorMessages';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../../utils/errorMessages';
 import { Project } from '../../../entities/project';
 import { calculateGivbackFactor } from '../../../services/givbackService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
