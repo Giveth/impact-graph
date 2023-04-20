@@ -10,6 +10,8 @@ import {
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
+  AdminJsDonationsQuery,
+  donationHeaders,
 } from '../adminJs-types';
 import { messages } from '../../../utils/messages';
 import { logger } from '../../../utils/logger';
@@ -22,16 +24,19 @@ import {
   getCsvAirdropTransactions,
   getGnosisSafeTransactions,
 } from '../../../services/transactionService';
-import {
-  i18n,
-  translationErrorMessagesKeys,
-} from '../../../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../../../utils/errorMessages';
 import { Project } from '../../../entities/project';
 import { calculateGivbackFactor } from '../../../services/givbackService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
 import { updateTotalDonationsOfProject } from '../../../services/donationService';
 import { updateUserTotalDonated } from '../../../services/userService';
-import { NETWORK_IDS } from '../../../provider';
+import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../../../provider';
+import { redis } from '../../../redis';
+import {
+  initExportSpreadsheet,
+  addDonationsSheetToSpreadsheet,
+} from '../../../services/googleSheets';
+import { SelectQueryBuilder } from 'typeorm';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -168,6 +173,156 @@ export const createDonation = async (
   };
 };
 
+// add queries depending on which filters were selected
+export const buildDonationsQuery = (
+  queryStrings: AdminJsDonationsQuery,
+): SelectQueryBuilder<Donation> => {
+  const query = Donation.createQueryBuilder('donation')
+    .leftJoinAndSelect('donation.user', 'user')
+    .leftJoinAndSelect('donation.project', 'project')
+    .where('donation.amount > 0')
+    .addOrderBy('donation.createdAt', 'DESC');
+
+  if (queryStrings.projectId)
+    query.andWhere('donation.projectId = :projectId', {
+      projectId: queryStrings.projectId,
+    });
+
+  if (queryStrings.userId)
+    query.andWhere('donation.userId = :userId', {
+      userId: queryStrings.userId,
+    });
+
+  if (queryStrings.currency)
+    query.andWhere('donation.currency = :currency', {
+      currency: queryStrings.currency,
+    });
+
+  if (queryStrings.status)
+    query.andWhere('donation.status = :status', {
+      status: queryStrings.status,
+    });
+
+  if (queryStrings.transactionNetworkId)
+    query.andWhere('donation.transactionNetworkId = :transactionNetworkId', {
+      transactionNetworkId: Number(queryStrings.transactionNetworkId),
+    });
+
+  if (queryStrings.fromWalletAddress)
+    query.andWhere('donation.fromWalletAddress = :fromWalletAddress', {
+      fromWalletAddress: queryStrings.fromWalletAddress,
+    });
+
+  if (queryStrings.toWalletAddress)
+    query.andWhere('donation.toWalletAddress = :toWalletAddress', {
+      toWalletAddress: queryStrings.toWalletAddress,
+    });
+
+  if (queryStrings.contactEmail)
+    query.andWhere('donation.contactEmail = :contactEmail', {
+      contactEmail: queryStrings.contactEmail,
+    });
+
+  if (queryStrings.referrerWallet)
+    query.andWhere('donation.referrerWallet = :referrerWallet', {
+      referrerWallet: queryStrings.referrerWallet,
+    });
+
+  if (queryStrings.isProjectVerified)
+    query.andWhere('donation.isProjectVerified = :isProjectVerified', {
+      isProjectVerified: queryStrings.isProjectVerified === 'true',
+    });
+
+  if (queryStrings['createdAt~~from'])
+    query.andWhere('donation."createdAt" >= :createdFrom', {
+      createdAt: queryStrings['createdAt~~from'],
+    });
+
+  if (queryStrings['createdAt~~to'])
+    query.andWhere('donation."createdAt" <= :createdTo', {
+      createdAt: queryStrings['createdAt~~to'],
+    });
+
+  return query;
+};
+
+export const exportDonationsWithFiltersToCsv = async (
+  _request: AdminJsRequestInterface,
+  _response,
+  context: AdminJsContextInterface,
+) => {
+  try {
+    const { records } = context;
+    const rawQueryStrings = await redis.get(
+      `adminbro:${context.currentAdmin.id}:Donation`,
+    );
+    const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
+    const projectsQuery = buildDonationsQuery(queryStrings);
+    const projects = await projectsQuery.getMany();
+
+    await sendDonationsToGoogleSheet(projects);
+
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      records,
+      notice: {
+        message: `Donation(s) successfully exported`,
+        type: 'success',
+      },
+    };
+  } catch (e) {
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      record: {},
+      notice: {
+        message: e.message,
+        type: 'danger',
+      },
+    };
+  }
+};
+
+const sendDonationsToGoogleSheet = async (
+  donations: Donation[],
+): Promise<void> => {
+  const spreadsheet = await initExportSpreadsheet();
+
+  // parse data and set headers
+  const donationRows = donations.map((donation: Donation) => {
+    return {
+      id: donation.id,
+      transactionId: donation.transactionId,
+      transactionNetworkId: donation.transactionNetworkId,
+      isProjectVerified: Boolean(donation.isProjectVerified),
+      status: donation.status,
+      toWalletAddress: donation.toWalletAddress,
+      fromWalletAddress: donation.fromWalletAddress,
+      tokenAddress: donation.tokenAddress || '',
+      currency: donation.currency,
+      anonymous: Boolean(donation.anonymous),
+      amount: donation.amount,
+      isFiat: Boolean(donation.isFiat),
+      isCustomToken: Boolean(donation.isCustomToken),
+      valueEth: donation.valueEth,
+      valueUsd: donation.valueUsd,
+      priceEth: donation.priceEth,
+      priceUsd: donation.priceUsd,
+      projectId: donation?.project?.id || '',
+      userId: donation?.user?.id || '',
+      contactEmail: donation?.contactEmail || '',
+      createdAt: donation?.createdAt.toISOString(),
+      referrerWallet: donation?.referrerWallet || '',
+      isTokenEligibleForGivback: Boolean(donation?.isTokenEligibleForGivback),
+    };
+  });
+
+  await addDonationsSheetToSpreadsheet(
+    spreadsheet,
+    donationHeaders,
+    donationRows,
+  );
+};
+
 export const donationTab = {
   resource: Donation,
   options: {
@@ -202,7 +357,7 @@ export const donationTab = {
       onramperTransactionStatus: {
         isVisible: {
           list: false,
-          filter: true,
+          filter: false,
           show: true,
           edit: false,
           new: false,
@@ -212,7 +367,7 @@ export const donationTab = {
       onramperId: {
         isVisible: {
           list: false,
-          filter: true,
+          filter: false,
           show: true,
           edit: false,
           new: false,
@@ -233,7 +388,7 @@ export const donationTab = {
       referrerWallet: {
         isVisible: {
           list: false,
-          filter: false,
+          filter: true,
           show: true,
           edit: false,
           new: false,
@@ -242,7 +397,7 @@ export const donationTab = {
       verifyErrorMessage: {
         isVisible: {
           list: false,
-          filter: true,
+          filter: false,
           show: true,
           edit: false,
           new: false,
@@ -263,8 +418,8 @@ export const donationTab = {
       transakStatus: {
         isVisible: {
           list: false,
-          filter: true,
-          show: true,
+          filter: false,
+          show: false,
           edit: false,
           new: false,
         },
@@ -273,7 +428,13 @@ export const donationTab = {
         isVisible: false,
       },
       anonymous: {
-        isVisible: false,
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
       },
       userId: {
         isVisible: {
@@ -307,8 +468,8 @@ export const donationTab = {
       },
       amount: {
         isVisible: {
-          list: true,
-          filter: true,
+          list: false,
+          filter: false,
           show: true,
           edit: false,
           new: false,
@@ -322,8 +483,8 @@ export const donationTab = {
       },
       valueUsd: {
         isVisible: {
-          list: true,
-          filter: true,
+          list: false,
+          filter: false,
           show: true,
           edit: false,
           new: false,
@@ -348,7 +509,13 @@ export const donationTab = {
         },
       },
       currency: {
-        isVisible: true,
+        isVisible: {
+          list: true,
+          filter: true,
+          show: true,
+          edit: false,
+          new: false,
+        },
       },
       transactionNetworkId: {
         availableValues: [
@@ -359,7 +526,13 @@ export const donationTab = {
           { value: NETWORK_IDS.CELO, label: 'Celo' },
           { value: NETWORK_IDS.CELO_ALFAJORES, label: 'Alfajores' },
         ],
-        isVisible: true,
+        isVisible: {
+          list: true,
+          filter: true,
+          show: true,
+          edit: false,
+          new: false,
+        },
       },
       txType: {
         availableValues: [
@@ -368,6 +541,7 @@ export const donationTab = {
           { value: 'gnosisSafe', label: 'Using gnosis safe multi sig' },
         ],
         isVisible: {
+          filter: false,
           list: false,
           show: false,
           new: true,
@@ -375,7 +549,13 @@ export const donationTab = {
         },
       },
       priceUsd: {
-        isVisible: true,
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
         type: 'number',
       },
     },
@@ -403,6 +583,17 @@ export const donationTab = {
         handler: createDonation,
         isAccessible: ({ currentAdmin }) =>
           canAccessDonationAction({ currentAdmin }, ResourceActions.NEW),
+      },
+      exportFilterToCsv: {
+        actionType: 'resource',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessDonationAction(
+            { currentAdmin },
+            ResourceActions.EXPORT_FILTER_TO_CSV,
+          ),
+        handler: exportDonationsWithFiltersToCsv,
+        component: false,
       },
     },
   },

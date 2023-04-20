@@ -187,6 +187,9 @@ export const projectUpdateTab = {
           edit: false,
         },
       },
+      contentSummary: {
+        isVisible: false,
+      },
       mission: {
         isVisible: {
           list: false,

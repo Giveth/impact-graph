@@ -6,7 +6,57 @@ import { ReviewStatus } from '../entities/project';
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
-export const projectExportSpreadsheet = async (): Promise<
+interface ProjectExport {
+  id: number;
+  title: string;
+  slug?: string | null;
+  admin?: string | null;
+  creationDate: Date;
+  updatedAt: Date;
+  impactLocation?: string | null;
+  walletAddress?: string | null;
+  statusId: number;
+  qualityScore: number;
+  verified: boolean;
+  listed: boolean;
+  reviewStatus: ReviewStatus;
+  totalDonations: number;
+  totalProjectUpdates: number;
+  website: string;
+  email: string;
+  firstWalletAddress: string;
+  firstWalletAddressNetwork: string;
+  secondWalletAddress: string;
+  secondWalletAddressNetwork: string;
+}
+
+interface DonationExport {
+  id: number;
+  transactionId: string;
+  transactionNetworkId: number;
+  isProjectVerified: boolean;
+  status: string;
+  toWalletAddress: string;
+  fromWalletAddress: string;
+  tokenAddress: string;
+  currency: string;
+  anonymous: boolean;
+  amount: number;
+  isFiat: boolean;
+  isCustomToken: boolean;
+  valueEth: number;
+  valueUsd: number;
+  priceEth: number;
+  priceUsd: number;
+  projectId: string | number;
+  userId: string | number;
+  contactEmail: string;
+  createdAt: string;
+  referrerWallet: string | null;
+  isTokenEligibleForGivback: boolean;
+}
+
+export const initExportSpreadsheet = async (): Promise<
   typeof GoogleSpreadsheet
 > => {
   // Initialize the sheet - document ID is the long id in the sheets URL
@@ -25,43 +75,40 @@ export const projectExportSpreadsheet = async (): Promise<
   return spreadSheet;
 };
 
-export const addSheetWithRows = async (
+export const addDonationsSheetToSpreadsheet = async (
   spreadSheet: GoogleSpreadsheet,
   headers: string[],
-  rows: {
-    id: number;
-    title: string;
-    slug?: string | null;
-    admin?: string | null;
-    creationDate: Date;
-    updatedAt: Date;
-    impactLocation?: string | null;
-    walletAddress?: string | null;
-    statusId: number;
-    qualityScore: number;
-    verified: boolean;
-    listed: boolean;
-    reviewStatus: ReviewStatus;
-    totalDonations: number;
-    totalProjectUpdates: number;
-    website: string;
-    email: string;
-    firstWalletAddress: string;
-    firstWalletAddressNetwork: string;
-    secondWalletAddress: string;
-    secondWalletAddressNetwork: string;
-  }[],
+  rows: DonationExport[],
 ): Promise<void> => {
   try {
     const currentDate = moment().toDate();
 
     const sheet = await spreadSheet.addSheet({
       headerValues: headers,
-      title: `export ${currentDate.toDateString()} ${currentDate.getTime()}`,
+      title: `Donations ${currentDate.toDateString()} ${currentDate.getTime()}`,
     });
     await sheet.addRows(rows);
   } catch (e) {
-    logger.error('addSheetWithRows error', e);
+    logger.error('addDonationsSheetToSpreadsheet error', e);
+    throw e;
+  }
+};
+
+export const addProjectsSheetToSpreadsheet = async (
+  spreadSheet: GoogleSpreadsheet,
+  headers: string[],
+  rows: ProjectExport[],
+): Promise<void> => {
+  try {
+    const currentDate = moment().toDate();
+
+    const sheet = await spreadSheet.addSheet({
+      headerValues: headers,
+      title: `Projects ${currentDate.toDateString()} ${currentDate.getTime()}`,
+    });
+    await sheet.addRows(rows);
+  } catch (e) {
+    logger.error('addProjectsSheetToSpreadsheet error', e);
     throw e;
   }
 };
