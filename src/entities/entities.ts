@@ -33,6 +33,7 @@ import { Reaction } from './reaction';
 import BroadcastNotification from './broadcastNotification';
 import { FeaturedUpdate } from './featuredUpdate';
 import { Campaign } from './campaign';
+import { PreviousRoundRank } from './previousRoundRank';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -78,5 +79,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     BroadcastNotification,
 
     Campaign,
+
+    PreviousRoundRank,
   ];
 };

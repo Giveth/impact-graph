@@ -16,7 +16,7 @@ import { User } from './user';
 
 @Entity()
 @ObjectType()
-@Unique(['roundNumber', 'project'])
+@Unique(['round', 'project'])
 export class PreviousRoundRank extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -34,11 +34,11 @@ export class PreviousRoundRank extends BaseEntity {
   projectId: number;
 
   @Field()
-  @Column('number')
+  @Column()
   round: number;
 
   @Field()
-  @Column('number')
+  @Column()
   rank: number;
 
   @UpdateDateColumn()

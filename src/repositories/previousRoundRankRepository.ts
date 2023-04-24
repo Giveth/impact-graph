@@ -11,6 +11,7 @@ export const deleteAllPreviousRoundRanks = async () => {
 };
 
 export const copyProjectRanksToPreviousRoundRankTable = async () => {
+  await deleteAllPreviousRoundRanks();
   return PreviousRoundRank.query(
     `
            INSERT INTO previous_round_rank ("projectId", round, rank)
@@ -28,8 +29,8 @@ export const projectsThatTheirRanksHaveChanged = async (): Promise<
         SELECT
           project_power_view."projectId",
           project_power_view.round,
-          project_power_view."powerRank" as newRank,
-          previous_round_rank.rank as oldRank
+          project_power_view."powerRank" as "newRank",
+          previous_round_rank.rank as "oldRank"
         FROM project_power_view
         INNER JOIN previous_round_rank ON previous_round_rank."projectId" = project_power_view."projectId"
         WHERE project_power_view."powerRank" != previous_round_rank.rank

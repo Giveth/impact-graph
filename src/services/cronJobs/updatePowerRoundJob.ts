@@ -32,9 +32,8 @@ export const runUpdatePowerRoundCronJob = () => {
     const powerRound = getRoundNumberByDate(new Date()).round - 1;
     logger.debug('runUpdatePowerRoundCronJob', { powerRound, currentRound });
     if (powerRound !== currentRound?.round) {
-      await setPowerRound(powerRound);
-      await deleteAllPreviousRoundRanks();
       await copyProjectRanksToPreviousRoundRankTable();
+      await setPowerRound(powerRound);
     }
     await Promise.all([
       refreshProjectPowerView(),
