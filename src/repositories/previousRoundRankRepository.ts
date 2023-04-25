@@ -26,14 +26,16 @@ export const projectsThatTheirRanksHaveChanged = async (): Promise<
 > => {
   return PowerSnapshot.query(
     `
-        SELECT
+      SELECT
           project_power_view."projectId",
           project_power_view.round,
           project_power_view."powerRank" as "newRank",
           previous_round_rank.rank as "oldRank"
-        FROM project_power_view
-        INNER JOIN previous_round_rank ON previous_round_rank."projectId" = project_power_view."projectId"
-        WHERE project_power_view."powerRank" != previous_round_rank.rank
+      FROM project_power_view
+      INNER JOIN previous_round_rank ON previous_round_rank."projectId" = project_power_view."projectId"
+      INNER JOIN project ON project_power_view."projectId" = project.id
+      WHERE project_power_view."powerRank" != previous_round_rank.rank
+      AND project.verified = true;
       `,
   );
 };

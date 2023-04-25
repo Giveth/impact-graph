@@ -166,6 +166,9 @@ function projectsThatTheirRanksHaveChangedTestCases() {
       const projectPreviousRank = await PreviousRoundRank.findOne({
         where: { projectId: item.projectId },
       });
+      const project = await findProjectById(item.projectId);
+
+      assert.equal(project?.verified, true);
       assert.notEqual(
         Number(projectPowerView?.powerRank),
         Number(projectPreviousRank?.rank),
