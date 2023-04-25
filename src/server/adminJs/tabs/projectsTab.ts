@@ -34,13 +34,13 @@ import {
   AdminJsContextInterface,
   AdminJsProjectsQuery,
   AdminJsRequestInterface,
-  headers,
+  projectHeaders,
 } from '../adminJs-types';
 import { ProjectStatus } from '../../../entities/projectStatus';
 import { messages } from '../../../utils/messages';
 import {
-  addSheetWithRows,
-  projectExportSpreadsheet,
+  addProjectsSheetToSpreadsheet,
+  initExportSpreadsheet,
 } from '../../../services/googleSheets';
 import { NETWORKS_IDS_TO_NAME } from '../../../provider';
 import {
@@ -402,7 +402,7 @@ export const setSocialProfiles: After<ActionResponse> = async (
 const sendProjectsToGoogleSheet = async (
   projects: Project[],
 ): Promise<void> => {
-  const spreadsheet = await projectExportSpreadsheet();
+  const spreadsheet = await initExportSpreadsheet();
 
   // parse data and set headers
   const projectRows = projects.map((project: Project) => {
@@ -435,7 +435,7 @@ const sendProjectsToGoogleSheet = async (
     };
   });
 
-  await addSheetWithRows(spreadsheet, headers, projectRows);
+  await addProjectsSheetToSpreadsheet(spreadsheet, projectHeaders, projectRows);
 };
 
 export const listDelist = async (
@@ -525,7 +525,7 @@ export const exportProjectsWithFiltersToCsv = async (
   try {
     const { records } = context;
     const rawQueryStrings = await redis.get(
-      `adminjs_${context.currentAdmin.id}_qs`,
+      `adminbro:${context.currentAdmin.id}:Project`,
     );
     const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
     const projectsQuery = buildProjectsQuery(queryStrings);

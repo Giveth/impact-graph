@@ -273,12 +273,15 @@ const donationPermissions = {
     new: true,
     show: true,
     edit: true,
+    exportFilterToCsv: true,
   },
   [UserRole.OPERATOR]: {
     show: true,
+    exportFilterToCsv: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
     show: true,
+    exportFilterToCsv: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
     show: true,
