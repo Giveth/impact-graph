@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
+  ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
@@ -17,9 +18,6 @@ import config from '../../config';
 import { findProjectById } from '../../repositories/projectRepository';
 import {
   findAllUsers,
-  findUsersWhoDonatedToProjectExcludeWhoLiked,
-  findUsersWhoBoostedProject,
-  findUsersWhoLikedProjectExcludeProjectOwner,
   findUsersWhoSupportProject,
 } from '../../repositories/userRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
@@ -827,6 +825,33 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         });
       }
       sendBroadcastNotificationsQueue.add(queueData);
+    }
+  }
+
+  async projectsHaveNewRank(params: ProjectsHaveNewRankingInputParam[]) {
+    for (const param of params) {
+      const project = await findProjectById(param.projectId);
+      if (!project) {
+        continue;
+      }
+      const projectOwner = project.adminUser;
+      await sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName:
+          param.newRank < param.oldRank
+            ? NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_NEW_LOWER_RANK
+            : NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_NEW_HIGHER_RANK,
+
+        sendEmail: true,
+        segment: {
+          analyticsUserId: projectOwner.segmentUserId(),
+          anonymousId: projectOwner.segmentUserId(),
+          payload: getSegmentProjectAttributes({
+            project,
+          }),
+        },
+        trackId: `project-has-new-rank-${param.round}-${param.projectId}`,
+      });
     }
   }
 }

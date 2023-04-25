@@ -39,4 +39,6 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN = 'Verification form got draft by admin',
   RAW_HTML_BROADCAST = 'Raw HTML Broadcast',
   PROJECT_ADD_AN_UPDATE_USERS_WHO_SUPPORT = 'Project update added - Users who supported',
+  PROJECT_HAS_NEW_LOWER_RANK = 'Project has new lower rank',
+  PROJECT_HAS_NEW_HIGHER_RANK = 'Project has new higher rank',
 }
