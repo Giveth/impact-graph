@@ -30,8 +30,15 @@ export const runUpdatePowerRoundCronJob = () => {
   schedule(cronJobTime, async () => {
     const currentRound = await getPowerRound();
     const powerRound = getRoundNumberByDate(new Date()).round - 1;
-    logger.debug('runUpdatePowerRoundCronJob', { powerRound, currentRound });
+    logger.debug('runUpdatePowerRoundCronJob', {
+      powerRound,
+      currentRound,
+      'powerRound !== currentRound?.round': powerRound !== currentRound?.round,
+    });
     if (powerRound !== currentRound?.round) {
+      logger.debug(
+        'runUpdatePowerRoundCronJob copy rounds to previousRoundRank',
+      );
       await copyProjectRanksToPreviousRoundRankTable();
       await setPowerRound(powerRound);
     }
@@ -43,6 +50,10 @@ export const runUpdatePowerRoundCronJob = () => {
     if (powerRound !== currentRound?.round) {
       const projectThatTheirRankChanged =
         await projectsThatTheirRanksHaveChanged();
+      logger.debug(
+        'runUpdatePowerRoundCronJob projectThatTheirRankChanged',
+        projectThatTheirRankChanged,
+      );
       await getNotificationAdapter().projectsHaveNewRank(
         projectThatTheirRankChanged,
       );
