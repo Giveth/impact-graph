@@ -884,10 +884,10 @@ const getSegmentDonationAttributes = (params: {
 const getSegmentProjectAttributes = (params: { project: Project }) => {
   const { project } = params;
   return {
-    email: project?.adminUser?.email,
+    email: project?.adminUser?.email || '',
     title: project.title,
-    lastName: project?.adminUser?.lastName,
-    firstName: project?.adminUser?.firstName,
+    lastName: project?.adminUser?.lastName || '',
+    firstName: project?.adminUser?.firstName || '',
     OwnerId: project?.adminUser?.id,
     slug: project.slug,
   };
