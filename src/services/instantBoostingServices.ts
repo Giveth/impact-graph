@@ -7,6 +7,7 @@ import {
 } from '../repositories/instantBoostingRepository';
 import { logger } from '../utils/logger';
 import { getBoosterUsersByWalletAddresses } from '../repositories/powerBoostingRepository';
+import { IGivPowerSubgraphAdapter } from '../adapters/givpowerSubgraph/IGivPowerSubgraphAdapter';
 
 export const updateInstantBoosting = async (): Promise<void> => {
   logger.debug('updateInstantBoosting() has been called');
@@ -14,13 +15,19 @@ export const updateInstantBoosting = async (): Promise<void> => {
   // TODO: refresh power boosting instant view!
 };
 
-export const updateInstancePowerBalances = async (): Promise<void> => {
-  await fetchUpdatedInstantPowerBalances();
-  await fillMissingInstantPowerBalances();
+// Allow passing a custom subgraph adapter for testing purposes
+export const updateInstancePowerBalances = async (
+  customGivPowerSubgraphAdapter?: IGivPowerSubgraphAdapter,
+): Promise<void> => {
+  const givPowerSubgraphAdapter =
+    customGivPowerSubgraphAdapter || getGivPowerSubgraphAdapter();
+  await fetchUpdatedInstantPowerBalances(givPowerSubgraphAdapter);
+  await fillMissingInstantPowerBalances(givPowerSubgraphAdapter);
 };
 
-export const fetchUpdatedInstantPowerBalances = async (): Promise<void> => {
-  const givPowerSubgraphAdapter = getGivPowerSubgraphAdapter();
+export const fetchUpdatedInstantPowerBalances = async (
+  givPowerSubgraphAdapter: IGivPowerSubgraphAdapter,
+): Promise<void> => {
   // Let's save it now to sync all balances till this point
   const [latestSubgraphIndexBlock, latestSyncedBlock] = await Promise.all([
     givPowerSubgraphAdapter.getLatestIndexedBlockInfo(),
@@ -28,7 +35,7 @@ export const fetchUpdatedInstantPowerBalances = async (): Promise<void> => {
   ]);
 
   // Fetch balances have been updated since last sync
-  const counter = 0;
+  let counter = 0;
   while (true) {
     const balances =
       await givPowerSubgraphAdapter.getUserPowerBalanceUpdatedAfterTimestamp({
@@ -51,6 +58,7 @@ export const fetchUpdatedInstantPowerBalances = async (): Promise<void> => {
       };
     });
     await saveOrUpdateInstantPowerBalances(instances);
+    counter += Object.keys(balances).length;
   }
 
   // Set synced block number to latest indexed block number
@@ -60,7 +68,9 @@ export const fetchUpdatedInstantPowerBalances = async (): Promise<void> => {
 /**
  * Fetches users boosted without instant power balance
  */
-export const fillMissingInstantPowerBalances = async (): Promise<void> => {
+export const fillMissingInstantPowerBalances = async (
+  givPowerSubgraphAdapter: IGivPowerSubgraphAdapter,
+): Promise<void> => {
   const latestSyncedBlock = await getLatestSyncedBlock();
   if (!latestSyncedBlock.timestamp) {
     logger.error(
@@ -82,7 +92,6 @@ export const fillMissingInstantPowerBalances = async (): Promise<void> => {
   // and get their balances from subgraph
   // and save them in db
   const chunkSize = 50;
-  const givPowerSubgraphAdapter = getGivPowerSubgraphAdapter();
 
   for (let i = 0; i < allUsersWithoutBalance.length; i += chunkSize) {
     const chunk = allUsersWithoutBalance.slice(i, i + chunkSize);

@@ -1,12 +1,18 @@
 import {
   BlockInfo,
-  GivPowerSubgraphInterface,
+  IGivPowerSubgraphAdapter,
   UnipoolBalance,
-} from './givPowerSubgraphInterface';
+} from './IGivPowerSubgraphAdapter';
 import BigNumber from 'bignumber.js';
 import axios from 'axios';
 
 const _toBN = (n: string | number) => new BigNumber(n);
+export const formatGivPowerBalance = (balance: string | number): number =>
+  Number(
+    _toBN(balance)
+      .div(10 ** 18)
+      .toFixed(2),
+  );
 
 const getPowerBalanceInBlockQuery = (params: {
   addresses: Set<string>;
@@ -67,7 +73,7 @@ const getPowerBalancesUpdatedAfterTimestampQuery = (params: {
   }`;
 };
 
-export class GivPowerSubgraphAdapter implements GivPowerSubgraphInterface {
+export class GivPowerSubgraphAdapter implements IGivPowerSubgraphAdapter {
   async getUserPowerBalanceAtBlockNumber(params: {
     walletAddresses: string[];
     blockNumber: number;
@@ -88,11 +94,7 @@ export class GivPowerSubgraphAdapter implements GivPowerSubgraphInterface {
     unipoolBalances.forEach(unipoolBalance => {
       const walletAddress = unipoolBalance.user.id;
       result[walletAddress] = {
-        balance: Number(
-          _toBN(unipoolBalance.balance)
-            .div(10 ** 18)
-            .toFixed(2),
-        ),
+        balance: formatGivPowerBalance(unipoolBalance.balance),
         updatedAt: unipoolBalance.updatedAt,
       };
     });
@@ -116,22 +118,19 @@ export class GivPowerSubgraphAdapter implements GivPowerSubgraphInterface {
     const givPowerSubgraphUrl = process.env.GIV_POWER_SUBGRAPH_URL as string;
     const unipoolContractId = process.env
       .GIV_POWER_UNIPOOL_CONTRACT_ID as string;
+    const query = getPowerBalancesUpdatedAfterTimestampQuery({
+      ...params,
+      unipoolContractId,
+    });
     const response = await axios.post(givPowerSubgraphUrl, {
-      query: getPowerBalancesUpdatedAfterTimestampQuery({
-        ...params,
-        unipoolContractId,
-      }),
+      query,
     });
     const unipoolBalances = response.data.data.unipoolBalances;
     const result: { [address: string]: UnipoolBalance } = {};
     unipoolBalances.forEach(unipoolBalance => {
       const walletAddress = unipoolBalance.user.id;
       result[walletAddress] = {
-        balance: Number(
-          _toBN(unipoolBalance.balance)
-            .div(10 ** 18)
-            .toFixed(2),
-        ),
+        balance: formatGivPowerBalance(unipoolBalance.balance),
         updatedAt: unipoolBalance.updatedAt,
       };
     });

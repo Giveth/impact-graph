@@ -8,7 +8,7 @@ export interface UnipoolBalance {
   updatedAt: number;
 }
 
-export interface GivPowerSubgraphInterface {
+export interface IGivPowerSubgraphAdapter {
   getUserPowerBalanceAtBlockNumber(params: {
     walletAddresses: string[];
     blockNumber: number;

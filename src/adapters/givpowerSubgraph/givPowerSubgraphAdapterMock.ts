@@ -1,11 +1,11 @@
 import {
-  GivPowerSubgraphInterface,
+  IGivPowerSubgraphAdapter,
   BlockInfo,
   UnipoolBalance,
-} from './givPowerSubgraphInterface';
+} from './IGivPowerSubgraphAdapter';
 import { sleep } from '../../utils/utils';
 
-export class GivPowerSubgraphMock implements GivPowerSubgraphInterface {
+export class GivPowerSubgraphAdapterMock implements IGivPowerSubgraphAdapter {
   nextCallResult: any = null;
   async getUserPowerBalanceAtBlockNumber(params: {
     walletAddresses: string[];

@@ -410,12 +410,14 @@ export const getPowerBoostingSnapshotRound = (
 };
 
 export const getBoosterUsersByWalletAddresses = async (
-  addresses: string[],
+  addressesLowercase: string[],
 ): Promise<Pick<User, 'id' | 'walletAddress'>[]> => {
-  if (addresses.length === 0) return [];
+  if (addressesLowercase.length === 0) return [];
   // Return users has boosted projects and their wallet addresses are in addresses array
   return await User.createQueryBuilder('user')
-    .where('LOWER(user.walletAddress) IN (:...addresses)')
+    .where('LOWER(user.walletAddress) IN (:...addresses)', {
+      addresses: addressesLowercase,
+    })
     .andWhereExists(
       PowerBoosting.createQueryBuilder('pb').where('pb.userId = user.id'),
     )

@@ -1,6 +1,7 @@
-import { GivPowerSubgraphAdapter } from './givPowerSubgraphAdapter';
+import { formatGivPowerBalance } from './givPowerSubgraphAdapter';
 import { assert } from 'chai';
 import { generateRandomEtheriumAddress } from '../../../test/testUtils';
+import { givPowerSubgraphAdapter } from '../adaptersFactory';
 
 describe(
   'getUserPowerBalanceInBlockNumber() test cases',
@@ -8,7 +9,11 @@ describe(
 );
 describe('getLatestIndexedBlock test cases', getLatestIndexedBlockTestCases);
 
-const givPowerSubgraphAdapter = new GivPowerSubgraphAdapter();
+describe(
+  'getUserPowerBalanceUpdatedAfterTimestamp test cases',
+  getUserPowerBalanceUpdatedAfterTimestampTestCases,
+);
+
 function getUserPowerBalanceInBlockNumberTestCases() {
   it('should return correct info for block 24124422', async () => {
     const firstAddress = '0x00d18ca9782be1caef611017c2fbc1a39779a57c';
@@ -46,5 +51,54 @@ function getLatestIndexedBlockTestCases() {
     assert.isOk(block);
     assert.isAbove(block.number, 0);
     assert.isAbove(block.timestamp, 0);
+  });
+}
+
+async function getUserPowerBalanceUpdatedAfterTimestampTestCases() {
+  it('should return correct info for from timestamp 1680020855 at block 27723732', async () => {
+    const expectedBalances = [
+      {
+        user: {
+          id: '0x8f48094a12c8f99d616ae8f3305d5ec73cbaa6b6',
+        },
+        balance: '53814827464908927720392',
+        updatedAt: '1681744235',
+      },
+      {
+        user: {
+          id: '0xc46c67bb7e84490d7ebdd0b8ecdaca68cf3823f4',
+        },
+        balance: '1332998538238235687437229',
+        updatedAt: '1680021855',
+      },
+      {
+        user: {
+          id: '0xcd192b61a8dd586a97592555c1f5709e032f2505',
+        },
+        balance: '90459674185703962293876',
+        updatedAt: '1681744235',
+      },
+    ];
+    const queryBlockNumber = 27723732;
+    const lastSyncedTimestamp = 1680020855;
+
+    const balances =
+      await givPowerSubgraphAdapter.getUserPowerBalanceUpdatedAfterTimestamp({
+        blockNumber: queryBlockNumber,
+        timestamp: lastSyncedTimestamp,
+        take: 100,
+        skip: 0,
+      });
+
+    assert.equal(Object.keys(balances).length, expectedBalances.length);
+    for (const expectedBalance of expectedBalances) {
+      const balance = balances[expectedBalance.user.id];
+      assert.isOk(balance);
+      assert.equal(
+        balance.balance,
+        formatGivPowerBalance(expectedBalance.balance),
+      );
+      assert.equal(balance.updatedAt, +expectedBalance.updatedAt);
+    }
   });
 }

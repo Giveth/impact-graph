@@ -2,7 +2,7 @@ import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
 import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
-import { BlockInfo } from '../adapters/givpowerSubgraph/givPowerSubgraphInterface';
+import { BlockInfo } from '../adapters/givpowerSubgraph/IGivPowerSubgraphAdapter';
 
 // export const getLastInstantPowerUpdatedAt = async (): Promise<Number> => {
 //   const result = await InstantPowerBalance.createQueryBuilder('balance')
