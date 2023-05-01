@@ -34,6 +34,8 @@ import BroadcastNotification from './broadcastNotification';
 import { FeaturedUpdate } from './featuredUpdate';
 import { Campaign } from './campaign';
 import { PreviousRoundRank } from './previousRoundRank';
+import { InstantPowerBalance } from './instantPowerBalance';
+import { InstantPowerFetchState } from './instantPowerFetchState';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -81,5 +83,8 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     Campaign,
 
     PreviousRoundRank,
+
+    InstantPowerBalance,
+    InstantPowerFetchState,
   ];
 };

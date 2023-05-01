@@ -1,18 +1,54 @@
-import { GivPowerSubgraphInterface } from './givPowerSubgraphInterface';
+import {
+  GivPowerSubgraphInterface,
+  BlockInfo,
+  UnipoolBalance,
+} from './givPowerSubgraphInterface';
 import { sleep } from '../../utils/utils';
 
 export class GivPowerSubgraphMock implements GivPowerSubgraphInterface {
-  async getUserPowerBalanceInBlockNumber(params: {
+  nextCallResult: any = null;
+  async getUserPowerBalanceAtBlockNumber(params: {
     walletAddresses: string[];
     blockNumber: number;
-  }): Promise<{ [p: string]: number }> {
-    const result = {};
+  }): Promise<{ [p: string]: UnipoolBalance }> {
+    if (this.nextCallResult) {
+      const customResult = this.nextCallResult;
+      this.nextCallResult = null;
+      return Promise.resolve(customResult);
+    }
+    const result: { [address: string]: UnipoolBalance } = {};
     params.walletAddresses.forEach(walletAddress => {
-      result[walletAddress] = Math.floor(Math.random() * 1000);
+      result[walletAddress] = {
+        balance: Math.floor(Math.random() * 1000),
+        updatedAt: Math.floor(Math.random() * 1000),
+      };
     });
 
     // To simulate real adapter condition
     await sleep(10);
     return Promise.resolve(result);
+  }
+
+  getLatestIndexedBlockInfo(): Promise<BlockInfo> {
+    if (this.nextCallResult) {
+      const customResult = this.nextCallResult;
+      this.nextCallResult = null;
+      return Promise.resolve(customResult);
+    }
+    return Promise.resolve({ timestamp: 1000, number: 1000 });
+  }
+
+  getUserPowerBalanceUpdatedAfterTimestamp(params: {
+    timestamp: number;
+    blockNumber: number;
+    take: number;
+    skip: number;
+  }): Promise<{ [p: string]: UnipoolBalance }> {
+    if (this.nextCallResult) {
+      const customResult = this.nextCallResult;
+      this.nextCallResult = null;
+      return Promise.resolve(customResult);
+    }
+    return Promise.resolve({});
   }
 }

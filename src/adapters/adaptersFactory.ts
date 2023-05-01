@@ -56,7 +56,7 @@ export const getNotificationAdapter = (): NotificationAdapterInterface => {
 };
 
 const givPowerSubgraphAdapter = new GivPowerSubgraphAdapter();
-const givPowerMockAdapter = new GivPowerSubgraphMock();
+export const givPowerMockAdapter = new GivPowerSubgraphMock();
 
 export const getGivPowerSubgraphAdapter = () => {
   switch (process.env.GIV_POWER_SUBGRAPH_ADAPTER) {
