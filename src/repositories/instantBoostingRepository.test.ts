@@ -1,8 +1,10 @@
 import { assert } from 'chai';
 import {
+  getLatestSyncedBlock,
   // getLastInstantPowerUpdatedAt,
   getUsersBoostedWithoutInstanceBalance,
   saveOrUpdateInstantPowerBalances,
+  setLatestSyncedBlock,
 } from './instantBoostingRepository';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import {
@@ -13,6 +15,7 @@ import {
 } from '../../test/testUtils';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { insertSinglePowerBoosting } from './powerBoostingRepository';
+import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
 
 // describe(
 //   'getLastInstantPowerUpdatedAt test cases',
@@ -22,11 +25,14 @@ describe(
   'saveOrUpdateInstantPowerBalances test cases',
   saveOrUpdateInstantPowerBalancesTestCases,
 );
-describe.only(
+describe(
   'getUsersBoostedWithoutInstanceBalance test cases',
   getUsersBoostedWithoutInstanceBalanceTestCases,
 );
-
+describe(
+  'instance boosting latest synced block test cases',
+  latestSyncedBlockTestCases,
+);
 // function getLastInstantPowerUpdatedAtTestCases() {
 // beforeEach(async () => {
 //   await InstantPowerBalance.clear();
@@ -166,5 +172,34 @@ function getUsersBoostedWithoutInstanceBalanceTestCases() {
     assert.deepEqual(result, [
       { id: user2.id, walletAddress: user2.walletAddress },
     ]);
+  });
+}
+
+function latestSyncedBlockTestCases() {
+  beforeEach(async () => {
+    await InstantPowerFetchState.clear();
+  });
+  it('should return 0 for empty table', async () => {
+    const result = await getLatestSyncedBlock();
+    assert.equal(result.number, 0);
+    assert.equal(result.timestamp, 0);
+  });
+
+  it('should return correct latest synced block', async () => {
+    await setLatestSyncedBlock({
+      number: 100,
+      timestamp: 1000,
+    });
+    const result = await getLatestSyncedBlock();
+    assert.equal(result.number, 100);
+    assert.equal(result.timestamp, 1000);
+
+    await setLatestSyncedBlock({
+      number: 200,
+      timestamp: 2000,
+    });
+    const result2 = await getLatestSyncedBlock();
+    assert.equal(result2.number, 200);
+    assert.equal(result2.timestamp, 2000);
   });
 }

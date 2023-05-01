@@ -14,7 +14,7 @@ export const updateInstantBoosting = async (): Promise<void> => {
   // TODO: refresh power boosting instant view!
 };
 
-const updateInstancePowerBalances = async (): Promise<void> => {
+export const updateInstancePowerBalances = async (): Promise<void> => {
   await fetchUpdatedInstantPowerBalances();
   await fillMissingInstantPowerBalances();
 };
