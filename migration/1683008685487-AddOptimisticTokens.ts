@@ -38,24 +38,6 @@ export class AddOptimisticTokens1683008685487 implements MigrationInterface {
             (${token.id}, ${traceOrganization.id})
           ;`);
     }
-
-    const changeOrganization = (
-      await queryRunner.query(`SELECT * FROM organization
-            WHERE label = 'change'`)
-    )[0];
-
-    const goerliNativeToken = (
-      await queryRunner.query(`
-              SELECT * FROM token
-              WHERE symbol='ETH' and "networkId"=${NETWORK_IDS.OPTIMISTIC}
-          `)
-    )[0];
-
-    await queryRunner.query(
-      `INSERT INTO organization_tokens_token ("tokenId","organizationId") VALUES
-            (${goerliNativeToken.id}, ${changeOrganization.id})
-          ;`,
-    );
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
