@@ -1061,13 +1061,6 @@ const seedTokens: ITokenData[] = [
     networkId: NETWORK_IDS.OPTIMISTIC,
   },
   {
-    name: 'Rai Reflex Index',
-    symbol: 'RAI',
-    address: '0x7fb688ccf682d58f86d7e38e03f9d22e7705448b',
-    decimals: 18,
-    networkId: NETWORK_IDS.OPTIMISTIC,
-  },
-  {
     name: 'Optimism',
     symbol: 'OP',
     address: '0x4200000000000000000000000000000000000042',
