@@ -1061,13 +1061,6 @@ const seedTokens: ITokenData[] = [
     networkId: NETWORK_IDS.OPTIMISTIC,
   },
   {
-    name: 'Optimism',
-    symbol: 'OP',
-    address: '0x4200000000000000000000000000000000000042',
-    decimals: 18,
-    networkId: NETWORK_IDS.OPTIMISTIC,
-  },
-  {
     name: 'Chainlink',
     symbol: 'LINK',
     address: '0x350a791bfc2c21f9ed5d10980dad2e2638ffa7f6',
