@@ -18,14 +18,6 @@ import { givPowerSubgraphAdapter } from '../adapters/adaptersFactory';
 import axios from 'axios';
 import { formatGivPowerBalance } from '../adapters/givpowerSubgraph/givPowerSubgraphAdapter';
 
-describe('fetchUpdatedInstantPowerBalances test cases', () => {
-  // TODO: Write test cases
-});
-
-describe('fillMissingInstantPowerBalances test cases', () => {
-  // TODO: Write test cases
-});
-
 describe(
   'updateInstancePowerBalances test cases',
   updateInstancePowerBalancesTestCase,

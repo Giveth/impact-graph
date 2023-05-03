@@ -25,7 +25,11 @@ export const updateInstancePowerBalances = async (
   await fillMissingInstantPowerBalances(givPowerSubgraphAdapter);
 };
 
-export const fetchUpdatedInstantPowerBalances = async (
+/**
+ * @param givPowerSubgraphAdapter subgraph adapter
+ * Fetches power balances for users whose balance has been updated since last sync
+ */
+const fetchUpdatedInstantPowerBalances = async (
   givPowerSubgraphAdapter: IGivPowerSubgraphAdapter,
 ): Promise<void> => {
   // Let's save it now to sync all balances till this point
@@ -66,9 +70,10 @@ export const fetchUpdatedInstantPowerBalances = async (
 };
 
 /**
- * Fetches users boosted without instant power balance
+ * @param givPowerSubgraphAdapter subgraph adapter
+ * Fetches power balances of users who has boosted but their balances are not in db
  */
-export const fillMissingInstantPowerBalances = async (
+const fillMissingInstantPowerBalances = async (
   givPowerSubgraphAdapter: IGivPowerSubgraphAdapter,
 ): Promise<void> => {
   const latestSyncedBlock = await getLatestSyncedBlock();
