@@ -162,7 +162,7 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.POLYGON,
         NETWORK_IDS.CELO,
         NETWORK_IDS.CELO_ALFAJORES,
-        // NETWORK_IDS.OPTIMISTIC,
+        NETWORK_IDS.OPTIMISTIC,
         NETWORK_IDS.XDAI,
       ),
     }),
