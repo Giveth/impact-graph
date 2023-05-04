@@ -683,6 +683,9 @@ function allProjectsTestCases() {
   });
 
   it('should return projects, sort by project power DESC', async () => {
+    await AppDataSource.getDataSource().query(
+      'truncate power_snapshot cascade',
+    );
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
