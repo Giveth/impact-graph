@@ -686,6 +686,10 @@ function allProjectsTestCases() {
     await AppDataSource.getDataSource().query(
       'truncate power_snapshot cascade',
     );
+    await PowerBoosting.clear();
+    await PowerBalanceSnapshot.clear();
+    await PowerBoostingSnapshot.clear();
+
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
