@@ -4,6 +4,7 @@ import {
   saveOrUpdateInstantPowerBalances,
   getLatestSyncedBlock,
   setLatestSyncedBlock,
+  refreshProjectInstantPowerView,
 } from '../repositories/instantBoostingRepository';
 import { logger } from '../utils/logger';
 import { getBoosterUsersByWalletAddresses } from '../repositories/powerBoostingRepository';
@@ -12,7 +13,7 @@ import { IGivPowerSubgraphAdapter } from '../adapters/givpowerSubgraph/IGivPower
 export const updateInstantBoosting = async (): Promise<void> => {
   logger.debug('updateInstantBoosting() has been called');
   await updateInstancePowerBalances();
-  // TODO: refresh power boosting instant view!
+  await refreshProjectInstantPowerView();
 };
 
 // Allow passing a custom subgraph adapter for testing purposes

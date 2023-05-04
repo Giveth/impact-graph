@@ -81,3 +81,11 @@ export const getLatestSyncedBlock = async (): Promise<BlockInfo> => {
     timestamp: state?.latestBlockTimestamp || 0,
   };
 };
+
+export const refreshProjectInstantPowerView = async (): Promise<void> => {
+  return AppDataSource.getDataSource().query(
+    `
+      REFRESH MATERIALIZED VIEW project_instant_power_view
+    `,
+  );
+};

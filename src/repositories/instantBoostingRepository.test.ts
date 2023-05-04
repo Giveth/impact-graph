@@ -3,6 +3,7 @@ import {
   getLatestSyncedBlock,
   // getLastInstantPowerUpdatedAt,
   getUsersBoostedWithoutInstanceBalance,
+  refreshProjectInstantPowerView,
   saveOrUpdateInstantPowerBalances,
   setLatestSyncedBlock,
 } from './instantBoostingRepository';
@@ -16,6 +17,7 @@ import {
 import { PowerBoosting } from '../entities/powerBoosting';
 import { insertSinglePowerBoosting } from './powerBoostingRepository';
 import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 
 // describe(
 //   'getLastInstantPowerUpdatedAt test cases',
@@ -32,6 +34,10 @@ describe(
 describe(
   'instance boosting latest synced block test cases',
   latestSyncedBlockTestCases,
+);
+describe(
+  'projectInstantPowerView test cases',
+  projectInstantPowerViewTestCases,
 );
 // function getLastInstantPowerUpdatedAtTestCases() {
 // beforeEach(async () => {
@@ -201,5 +207,69 @@ function latestSyncedBlockTestCases() {
     const result2 = await getLatestSyncedBlock();
     assert.equal(result2.number, 200);
     assert.equal(result2.timestamp, 2000);
+  });
+}
+
+function projectInstantPowerViewTestCases() {
+  beforeEach(async () => {
+    await InstantPowerBalance.clear();
+    await PowerBoosting.clear();
+  });
+
+  it('should return correct order and values of projects instant power', async () => {
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveUserDirectlyToDb(generateRandomEtheriumAddress()); // User3
+
+    await insertSinglePowerBoosting({
+      user: user1,
+      project: project1,
+      percentage: 100,
+    });
+    await insertSinglePowerBoosting({
+      user: user2,
+      project: project2,
+      percentage: 100,
+    });
+
+    await saveOrUpdateInstantPowerBalances([
+      {
+        userId: user1.id,
+        chainUpdatedAt: 1000,
+        balance: 1000,
+      },
+      {
+        userId: user2.id,
+        chainUpdatedAt: 2000,
+        balance: 2000,
+      },
+    ]);
+
+    await refreshProjectInstantPowerView();
+    const result = await ProjectInstantPowerView.find({
+      order: { totalPower: 'DESC' },
+      select: ['projectId', 'totalPower', 'powerRank'],
+    });
+
+    assert.isAtLeast(result.length, 3);
+    assert.include(result[0], {
+      projectId: project2.id,
+      totalPower: 2000,
+      powerRank: '1',
+    });
+    assert.include(result[1], {
+      projectId: project1.id,
+      totalPower: 1000,
+      powerRank: '2',
+    });
+
+    // The rest of projects must have 0 power and rank 3
+    assert.include(result[2], {
+      totalPower: 0,
+      powerRank: '3',
+    });
   });
 }

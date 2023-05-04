@@ -28,6 +28,7 @@ import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration
 import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
 import { AppDataSource } from '../src/orm';
 import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
+import { CreateProjectInstantPowerView1683191367803 } from '../migration/1683191367803-CreateProjectInstantPowerView';
 
 async function seedDb() {
   await seedUsers();
@@ -349,6 +350,8 @@ async function runMigrations() {
       new TakePowerBoostingSnapshotProcedure1663594895751();
     const takeSnapshotsHistoryProcedure =
       new createGivPowerHistoricTablesProcedure1670429143091();
+    const createProjectInstantPowerView1683191367803 =
+      new CreateProjectInstantPowerView1683191367803();
 
     await userProjectPowerView.up(queryRunner);
     await projectPowerView.up(queryRunner);
@@ -357,6 +360,7 @@ async function runMigrations() {
     await takeSnapshotProcedure.up(queryRunner);
     await takeSnapshotsHistoryProcedure.up(queryRunner);
     await new createOrganisatioTokenTable1646302349926().up(queryRunner);
+    await createProjectInstantPowerView1683191367803.up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
