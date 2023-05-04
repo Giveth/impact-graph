@@ -10,6 +10,7 @@ export class AppDataSource {
   static async initialize() {
     if (!AppDataSource.datasource) {
       const dropSchema = config.get('DROP_DATABASE') === 'true';
+      const synchronize = (config.get('ENVIRONMENT') as string) === 'test';
       const entities = getEntities();
       AppDataSource.datasource = new DataSource({
         schema: 'public',
@@ -20,7 +21,7 @@ export class AppDataSource {
         port: config.get('TYPEORM_DATABASE_PORT') as number,
         host: config.get('TYPEORM_DATABASE_HOST') as string,
         entities,
-        synchronize: true,
+        synchronize,
         dropSchema,
         logger: 'advanced-console',
         logging: ['error'],
