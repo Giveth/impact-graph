@@ -585,10 +585,7 @@ function allProjectsTestCases() {
     );
   });
 
-  it('should return projects, sort by project power DESC', async () => {
-    await AppDataSource.getDataSource().query(
-      'truncate power_snapshot cascade',
-    );
+  it('should return projects, sort by project instant power DESC', async () => {
     await PowerBoosting.clear();
     await InstantPowerBalance.clear();
 
@@ -685,7 +682,7 @@ function allProjectsTestCases() {
     }
   });
 
-  it('should return projects, sort by project instant power DESC', async () => {
+  it('should return projects, sort by project power DESC', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
