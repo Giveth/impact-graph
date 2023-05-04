@@ -97,7 +97,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       { reviewStatus: ReviewStatus.Listed },
     );
 
-  if (sortingBy === SortingField.InstantBoosting) {
+  if (!sortingBy || sortingBy === SortingField.InstantBoosting) {
     query = query
       .leftJoin('project.projectInstantPower', 'projectInstantPower')
       .addSelect([
@@ -159,7 +159,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       break;
     default:
       query
-        .orderBy('instantBoosting.totalPower', OrderDirection.DESC)
+        .orderBy('projectInstantPower.totalPower', OrderDirection.DESC)
         .addOrderBy(`project.verified`, OrderDirection.DESC);
       break;
   }
