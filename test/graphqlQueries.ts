@@ -675,6 +675,10 @@ export const fetchMultiFilterAllProjectsQuery = `
           powerRank
           round
         }
+        projectInstantPower {
+          totalPower
+          powerRank
+        }
         totalReactions
         totalDonations
         totalTraceDonations

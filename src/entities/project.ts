@@ -63,6 +63,7 @@ export enum SortingField {
   Oldest = 'Oldest',
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',
+  InstantBoosting = 'InstantBoosting',
 }
 
 export enum FilterField {
@@ -89,6 +90,7 @@ export enum OrderField {
   TraceDonations = 'totalTraceDonations',
   AcceptGiv = 'givingBlocksId',
   GIVPower = 'givPower',
+  InstantBoosting = 'instantBoosting',
 }
 
 export enum RevokeSteps {

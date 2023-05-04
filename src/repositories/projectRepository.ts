@@ -97,6 +97,15 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       { reviewStatus: ReviewStatus.Listed },
     );
 
+  if (sortingBy === SortingField.InstantBoosting) {
+    query = query
+      .leftJoin('project.projectInstantPower', 'projectInstantPower')
+      .addSelect([
+        'projectInstantPower.totalPower',
+        'projectInstantPower.powerRank',
+      ]);
+  }
+
   // Filters
   query = ProjectResolver.addCategoryQuery(query, category);
   query = ProjectResolver.addMainCategoryQuery(query, mainCategory);
@@ -138,11 +147,19 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           OrderDirection.DESC,
           'NULLS LAST',
         );
-
+      break;
+    case SortingField.InstantBoosting:
+      query
+        .orderBy(`project.verified`, OrderDirection.DESC)
+        .addOrderBy(
+          'projectInstantPower.totalPower',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        );
       break;
     default:
       query
-        .orderBy('projectPower.totalPower', OrderDirection.DESC)
+        .orderBy('instantBoosting.totalPower', OrderDirection.DESC)
         .addOrderBy(`project.verified`, OrderDirection.DESC);
       break;
   }

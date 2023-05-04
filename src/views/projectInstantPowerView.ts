@@ -37,6 +37,6 @@ export class ProjectInstantPowerView extends BaseEntity {
   project: Project;
 
   @ViewColumn()
-  @Field(type => BigInt)
+  @Field()
   powerRank: string;
 }
