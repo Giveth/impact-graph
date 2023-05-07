@@ -46,10 +46,6 @@ export class CreateInstantBoostingTables1683189393828
       )
 
       TABLESPACE pg_default;
-
-      ALTER TABLE IF EXISTS public.instant_power_fetch_state
-          OWNER to postgres;
-    
     `);
   }
 
