@@ -1,6 +1,6 @@
 import { PowerBoosting } from '../entities/powerBoosting';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
-import { updateInstancePowerBalances } from './instantBoostingServices';
+import { updateInstantPowerBalances } from './instantBoostingServices';
 import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
 import { expect } from 'chai';
 import {
@@ -62,11 +62,11 @@ function updateInstancePowerBalancesTestCase() {
   });
 
   it('should not throw error on intact data', async () => {
-    await updateInstancePowerBalances();
+    await updateInstantPowerBalances();
   });
 
   it('should update latest synced block', async () => {
-    await updateInstancePowerBalances();
+    await updateInstantPowerBalances();
     const latestSyncedBlock = await getLatestSyncedBlock();
     expect(latestSyncedBlock.number).to.be.greaterThan(0);
     expect(latestSyncedBlock.timestamp).to.be.greaterThan(0);
@@ -84,7 +84,7 @@ function updateInstancePowerBalancesTestCase() {
       percentage: 2,
     });
 
-    await updateInstancePowerBalances();
+    await updateInstantPowerBalances();
 
     // Only the first user should have an instant power balance
     const instantBalances = await InstantPowerBalance.find();
@@ -123,7 +123,7 @@ function updateInstancePowerBalancesTestCase() {
       },
     ]);
 
-    await updateInstancePowerBalances(givPowerSubgraphAdapter);
+    await updateInstantPowerBalances(givPowerSubgraphAdapter);
 
     const instantBalances = await InstantPowerBalance.find();
     expect(instantBalances.length).to.equal(1);
@@ -180,7 +180,7 @@ function updateInstancePowerBalancesTestCase() {
       ]),
     ]);
 
-    await updateInstancePowerBalances(givPowerSubgraphAdapter);
+    await updateInstantPowerBalances(givPowerSubgraphAdapter);
 
     const instantBalances = await InstantPowerBalance.find();
     expect(instantBalances.length).to.equal(2);

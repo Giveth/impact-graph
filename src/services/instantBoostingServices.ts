@@ -1,10 +1,10 @@
 import { getGivPowerSubgraphAdapter } from '../adapters/adaptersFactory';
 import {
-  getUsersBoostedWithoutInstanceBalance,
-  saveOrUpdateInstantPowerBalances,
   getLatestSyncedBlock,
-  setLatestSyncedBlock,
+  getUsersBoostedWithoutInstanceBalance,
   refreshProjectInstantPowerView,
+  saveOrUpdateInstantPowerBalances,
+  setLatestSyncedBlock,
 } from '../repositories/instantBoostingRepository';
 import { logger } from '../utils/logger';
 import { getBoosterUsersByWalletAddresses } from '../repositories/powerBoostingRepository';
@@ -12,14 +12,15 @@ import { IGivPowerSubgraphAdapter } from '../adapters/givpowerSubgraph/IGivPower
 
 export const updateInstantBoosting = async (): Promise<void> => {
   logger.debug('updateInstantBoosting() has been called');
-  await updateInstancePowerBalances();
+  await updateInstantPowerBalances();
   await refreshProjectInstantPowerView();
 };
 
 // Allow passing a custom subgraph adapter for testing purposes
-export const updateInstancePowerBalances = async (
+export const updateInstantPowerBalances = async (
   customGivPowerSubgraphAdapter?: IGivPowerSubgraphAdapter,
 ): Promise<void> => {
+  logger.inf('Update instant power balances...');
   const givPowerSubgraphAdapter =
     customGivPowerSubgraphAdapter || getGivPowerSubgraphAdapter();
   await fetchUpdatedInstantPowerBalances(givPowerSubgraphAdapter);
@@ -33,11 +34,15 @@ export const updateInstancePowerBalances = async (
 const fetchUpdatedInstantPowerBalances = async (
   givPowerSubgraphAdapter: IGivPowerSubgraphAdapter,
 ): Promise<void> => {
+  logger.info('1. Fetch updated instant powers');
   // Let's save it now to sync all balances till this point
   const [latestSubgraphIndexBlock, latestSyncedBlock] = await Promise.all([
     givPowerSubgraphAdapter.getLatestIndexedBlockInfo(),
     getLatestSyncedBlock(),
   ]);
+
+  logger.debug(`Latest subgraph indexed block: ${latestSubgraphIndexBlock}`);
+  logger.debug(`Latest synced block: ${latestSyncedBlock}`);
 
   // Fetch balances have been updated since last sync
   let counter = 0;
@@ -56,9 +61,13 @@ const fetchUpdatedInstantPowerBalances = async (
     );
     const instances = boosterUsers.map(user => {
       const walletAddress = user.walletAddress!.toLowerCase();
+      const { balance, updatedAt } = balances[walletAddress];
+      logger.info(
+        `Update user ${user.id} - ${walletAddress} instant power balance to ${balance} - updateAt ${updatedAt}`,
+      );
       return {
-        balance: balances[walletAddress].balance,
-        chainUpdatedAt: balances[walletAddress].updatedAt,
+        balance,
+        chainUpdatedAt: updatedAt,
         userId: user.id,
       };
     });
@@ -107,9 +116,13 @@ const fillMissingInstantPowerBalances = async (
         walletAddresses: chunk.map(user => user!.walletAddress.toLowerCase()),
       });
     const instances = chunk.map(item => {
+      const { balance, updatedAt } = balances[item.walletAddress];
+      logger.info(
+        `Update user ${item.id} - ${item.walletAddress} instant power balance to ${balance} - updateAt ${updatedAt}`,
+      );
       return {
-        balance: balances[item.walletAddress].balance,
-        chainUpdatedAt: balances[item.walletAddress].updatedAt,
+        balance,
+        chainUpdatedAt: updatedAt,
         userId: item.id,
       };
     });
