@@ -9,7 +9,7 @@ export class CreateInstantBoostingTables1683189393828
       `
               CREATE TABLE IF NOT EXISTS public.instant_power_balance
               (
-                  id integer NOT NULL DEFAULT nextval('instant_power_balance_id_seq'::regclass),
+                  id SERIAL NOT NULL,
                   "userId" integer NOT NULL,
                   balance double precision NOT NULL,
                   "chainUpdatedAt" integer NOT NULL,
