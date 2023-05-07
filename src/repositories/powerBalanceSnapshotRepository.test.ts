@@ -4,7 +4,6 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { PowerSnapshot } from '../entities/powerSnapshot';
-import { assert } from 'chai';
 import { createPowerSnapshotBalances } from './powerBalanceSnapshotRepository';
 
 describe(

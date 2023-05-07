@@ -13,9 +13,10 @@ import { NotificationAdapterInterface } from './notifications/NotificationAdapte
 import { NotificationCenterAdapter } from './notifications/NotificationCenterAdapter';
 import { MockNotificationAdapter } from './notifications/MockNotificationAdapter';
 import { GivPowerSubgraphAdapter } from './givpowerSubgraph/givPowerSubgraphAdapter';
-import { GivPowerSubgraphMock } from './givpowerSubgraph/givPowerSubgraphMock';
+import { GivPowerSubgraphAdapterMock } from './givpowerSubgraph/givPowerSubgraphAdapterMock';
 import { ChainvineAdapter } from './chainvine/chainvineAdapter';
 import { ChainvineMockAdapter } from './chainvine/chainvineMockAdapter';
+import { IGivPowerSubgraphAdapter } from './givpowerSubgraph/IGivPowerSubgraphAdapter';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -55,15 +56,15 @@ export const getNotificationAdapter = (): NotificationAdapterInterface => {
   }
 };
 
-const givPowerSubgraphAdapter = new GivPowerSubgraphAdapter();
-const givPowerMockAdapter = new GivPowerSubgraphMock();
+export const givPowerSubgraphAdapter = new GivPowerSubgraphAdapter();
+export const givPowerSubgraphAdapterMock = new GivPowerSubgraphAdapterMock();
 
-export const getGivPowerSubgraphAdapter = () => {
+export const getGivPowerSubgraphAdapter = (): IGivPowerSubgraphAdapter => {
   switch (process.env.GIV_POWER_SUBGRAPH_ADAPTER) {
     case 'givPower':
       return givPowerSubgraphAdapter;
     case 'mock':
-      return givPowerMockAdapter;
+      return givPowerSubgraphAdapterMock;
     default:
       throw new Error(
         i18n.__(translationErrorMessagesKeys.SPECIFY_GIV_POWER_ADAPTER),

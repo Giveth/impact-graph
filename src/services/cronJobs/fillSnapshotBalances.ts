@@ -99,7 +99,7 @@ export function processFillPowerSnapshotJobs() {
       const { blockNumber, data } = job.data;
       try {
         const balances =
-          await getGivPowerSubgraphAdapter().getUserPowerBalanceInBlockNumber({
+          await getGivPowerSubgraphAdapter().getUserPowerBalanceAtBlockNumber({
             blockNumber,
             walletAddresses: data.map(user =>
               user?.walletAddress?.toLowerCase(),
@@ -109,7 +109,7 @@ export function processFillPowerSnapshotJobs() {
         await createPowerSnapshotBalances(
           data.map(item => {
             return {
-              balance: balances[item.walletAddress],
+              balance: balances[item.walletAddress.toLowerCase()].balance,
               powerSnapshotId: item.powerSnapshotId,
               userId: item.userId,
             };

@@ -34,6 +34,9 @@ import BroadcastNotification from './broadcastNotification';
 import { FeaturedUpdate } from './featuredUpdate';
 import { Campaign } from './campaign';
 import { PreviousRoundRank } from './previousRoundRank';
+import { InstantPowerBalance } from './instantPowerBalance';
+import { InstantPowerFetchState } from './instantPowerFetchState';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -71,6 +74,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectPowerView,
     ProjectFuturePowerView,
     LastSnapshotProjectPowerView,
+    ProjectInstantPowerView,
 
     // historic snapshots
     PowerSnapshotHistory,
@@ -81,5 +85,8 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     Campaign,
 
     PreviousRoundRank,
+
+    InstantPowerBalance,
+    InstantPowerFetchState,
   ];
 };
