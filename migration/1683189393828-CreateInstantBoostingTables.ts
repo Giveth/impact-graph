@@ -18,8 +18,6 @@ export class CreateInstantBoostingTables1683189393828
 
                   TABLESPACE pg_default;
 
-              ALTER TABLE IF EXISTS public.instant_power_balance
-                  OWNER to postgres;
               -- Index: IDX_6899519607df56ca15f416185c
 
               CREATE UNIQUE INDEX IF NOT EXISTS "IDX_6899519607df56ca15f416185c"
