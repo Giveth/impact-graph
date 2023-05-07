@@ -4,13 +4,6 @@ import { AppDataSource } from '../orm';
 import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
 import { BlockInfo } from '../adapters/givpowerSubgraph/IGivPowerSubgraphAdapter';
 
-// export const getLastInstantPowerUpdatedAt = async (): Promise<Number> => {
-//   const result = await InstantPowerBalance.createQueryBuilder('balance')
-//     .select('MAX(balance.chainUpdatedAt)', 'max')
-//     .getRawOne();
-//   return result?.max || 0;
-// };
-//
 export const saveOrUpdateInstantPowerBalances = async (
   instances: Partial<InstantPowerBalance>[],
 ): Promise<void> => {
