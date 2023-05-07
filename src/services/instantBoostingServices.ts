@@ -20,7 +20,7 @@ export const updateInstantBoosting = async (): Promise<void> => {
 export const updateInstantPowerBalances = async (
   customGivPowerSubgraphAdapter?: IGivPowerSubgraphAdapter,
 ): Promise<void> => {
-  logger.inf('Update instant power balances...');
+  logger.info('Update instant power balances...');
   const givPowerSubgraphAdapter =
     customGivPowerSubgraphAdapter || getGivPowerSubgraphAdapter();
   await fetchUpdatedInstantPowerBalances(givPowerSubgraphAdapter);
