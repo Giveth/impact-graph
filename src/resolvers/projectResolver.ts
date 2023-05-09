@@ -107,6 +107,7 @@ const projectFiltersCacheDuration = Number(
 );
 import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
+import { calculateGivbackFactor } from '../services/givbackService';
 
 @ObjectType()
 class AllProjects {
@@ -844,6 +845,9 @@ export class ProjectResolver {
     });
 
     const project = await query.getOne();
+    if (!project) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
     canUserVisitProject(project, String(user?.userId));
     const verificationForm =
       project?.projectVerificationForm ||
@@ -851,8 +855,9 @@ export class ProjectResolver {
     if (verificationForm) {
       (project as Project).verificationFormStatus = verificationForm?.status;
     }
+    const { givbackFactor } = await calculateGivbackFactor(project.id);
 
-    return project;
+    return { ...project, givbackFactor };
   }
 
   @Mutation(returns => Project)
