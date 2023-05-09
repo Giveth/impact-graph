@@ -108,6 +108,7 @@ const projectFiltersCacheDuration = Number(
 import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
+import { ProjectBySlugResponse } from './types/projectResolver';
 
 @ObjectType()
 class AllProjects {
@@ -792,8 +793,7 @@ export class ProjectResolver {
     return project;
   }
 
-  // Move this to it's own resolver later
-  @Query(returns => Project)
+  @Query(returns => ProjectBySlugResponse)
   async projectBySlug(
     @Arg('slug') slug: string,
     @Arg('connectedWalletUserId', type => Int, { nullable: true })
