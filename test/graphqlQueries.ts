@@ -715,6 +715,7 @@ export const fetchProjectsBySlugQuery = `
       listed
       reviewStatus
       givingBlocksId
+      givbackFactor
       projectPower {
         totalPower
         powerRank
