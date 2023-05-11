@@ -1660,7 +1660,7 @@ export function generateRandomTxHash(): string {
   return `0x${generateHexNumber(64)}`;
 }
 
-function generateHexNumber(len) {
+export function generateHexNumber(len): string {
   const hex = '0123456789abcdef';
   let output = '';
   /* eslint-disable no-plusplus */
