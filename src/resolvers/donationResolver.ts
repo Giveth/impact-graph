@@ -54,12 +54,9 @@ import { findProjectRecipientAddressByNetworkId } from '../repositories/projectA
 import { MainCategory } from '../entities/mainCategory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
-import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
-import moment from 'moment';
-import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
-import { getChainvineReferralInfoForDonation } from '../services/chianvineReferralService';
+import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
 
 @ObjectType()
 class PaginateDonations {

@@ -44,7 +44,7 @@ export const getChainvineReferralInfoForDonation = async (params: {
   let referralStartTimestamp;
   try {
     const referrerWalletAddress =
-      await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
+      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
     if (!referrerWalletAddress) {
       throw new Error(`Invalid referrerId`);
     }
@@ -52,8 +52,8 @@ export const getChainvineReferralInfoForDonation = async (params: {
       throw new Error(`User ${fromAddress} tried to refer himself.`);
     }
 
-    referralStartTimestamp =
-      await getChainvineAdapter().getReferralStartTimestamp(fromAddress);
+    referralStartTimestamp = new Date(); // CHANGE THIS
+    // await getChainvineAdapter().getReferralStartTimestamp(fromAddress);
 
     const referralStartTimeRound = getRoundNumberByDate(
       new Date(referralStartTimestamp),

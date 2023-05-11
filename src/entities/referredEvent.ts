@@ -1,0 +1,50 @@
+import { Field, ID, ObjectType } from 'type-graphql';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BaseEntity,
+  RelationId,
+  ManyToOne,
+  Index,
+  OneToOne,
+  UpdateDateColumn,
+  CreateDateColumn,
+} from 'typeorm';
+import { Project, ProjectUpdate } from './project';
+import { User } from './user';
+
+@Entity()
+@ObjectType()
+export class ReferredEvent extends BaseEntity {
+  @Field(type => ID)
+  @PrimaryGeneratedColumn()
+  readonly id: number;
+
+  @Field(type => Date, { nullable: true })
+  @Column({ nullable: true })
+  startTime?: Date;
+
+  @Field(type => Boolean, { nullable: false })
+  @Column({ nullable: false, default: false })
+  isDonorLinkedToReferrer: boolean;
+
+  @Field(type => Boolean, { nullable: false })
+  @Column({ nullable: false, default: false })
+  isDonorClickEventSent: boolean;
+
+  @Field(type => User, { nullable: true })
+  @OneToOne(type => User, { nullable: true })
+  user: User;
+
+  @Index()
+  @Field(type => ID, { nullable: true })
+  @RelationId((referredEvent: ReferredEvent) => referredEvent.user)
+  userId: number;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @CreateDateColumn()
+  createdAt: Date;
+}

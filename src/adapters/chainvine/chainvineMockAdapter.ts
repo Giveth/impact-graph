@@ -1,12 +1,13 @@
 import {
   ChainvineAdapterInterface,
+  LinkDonorToChainvineReferrerType,
   NotifyChainVineInputType,
 } from './chainvineAdapterInterface';
 import { generateRandomEtheriumAddress } from '../../../test/testUtils';
 
 export class ChainvineMockAdapter implements ChainvineAdapterInterface {
   private cachedReferralIds = {};
-  getWalletAddressFromReferer(referrerId: string): Promise<string> {
+  getWalletAddressFromReferrer(referrerId: string): Promise<string> {
     // Our mock adapter will always return same wallet address for same referrerId
     if (!this.cachedReferralIds[referrerId]) {
       this.cachedReferralIds[referrerId] = generateRandomEtheriumAddress();
@@ -18,7 +19,15 @@ export class ChainvineMockAdapter implements ChainvineAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  getReferralStartTimestamp(walletAddress: string): Promise<string> {
-    return Promise.resolve(new Date().toISOString());
+  registerClickEvent(referrerId: string): Promise<void> {
+    return Promise.resolve(undefined);
+  }
+
+  linkDonorToReferrer(params: LinkDonorToChainvineReferrerType): Promise<void> {
+    return Promise.resolve(undefined);
+  }
+
+  generateChainvineId(walletAddress: string): Promise<string | void> {
+    return Promise.resolve(undefined);
   }
 }

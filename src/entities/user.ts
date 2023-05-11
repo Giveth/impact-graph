@@ -9,6 +9,9 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   JoinTable,
+  OneToOne,
+  JoinColumn,
+  RelationId,
 } from 'typeorm';
 import { Project, ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';
@@ -18,6 +21,7 @@ import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectVerificationForm } from './projectVerificationForm';
 import { PowerBoosting } from './powerBoosting';
 import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
+import { ReferredEvent } from './referredEvent';
 
 export const publicSelectionFields = [
   'user.id',
@@ -108,6 +112,29 @@ export class User extends BaseEntity {
 
   @Column('bool', { default: false })
   confirmed: boolean;
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  chainvineId?: string;
+
+  @Field(type => Boolean, { nullable: true })
+  @Column('bool', { default: false })
+  wasReferred: boolean;
+
+  @Field(type => Boolean, { nullable: true })
+  @Column('bool', { default: false })
+  isReferrer: boolean;
+
+  @Field(() => ReferredEvent, { nullable: true })
+  @OneToOne(() => ReferredEvent, referredEvent => referredEvent.user, {
+    cascade: true,
+  })
+  @JoinColumn()
+  referredEvent?: ReferredEvent;
+
+  @Field({ nullable: true })
+  @RelationId((user: User) => user.referredEvent)
+  referredEventId: number;
 
   @Field(type => [Project])
   @ManyToMany(type => Project, project => project.users)

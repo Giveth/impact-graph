@@ -454,7 +454,7 @@ function createDonationTestCases() {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const referrerId = generateRandomString();
     const referrerWalletAddress =
-      await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
+      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
     const user = await User.create({
       walletAddress: referrerWalletAddress,
       loginType: 'wallet',
@@ -498,7 +498,7 @@ function createDonationTestCases() {
     }).save();
     const referrerId = generateRandomString();
     const referrerWalletAddress =
-      await getChainvineAdapter().getWalletAddressFromReferer(referrerId);
+      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
 
     const user2 = await User.create({
       walletAddress: referrerWalletAddress,

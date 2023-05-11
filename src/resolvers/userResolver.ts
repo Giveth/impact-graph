@@ -153,36 +153,4 @@ export class UserResolver {
 
     return true;
   }
-
-  // @FieldResolver()
-  // organisationUsers (@Root() user: User) {
-  //   return this.organisationUserRepository.find({
-  //     cache: 1000,
-  //     where: { authorId: user.id }
-  //   })
-  // }
-
-  // @FieldResolver()
-  // async organisations (@Root() user: User) {
-  //   const orgs = await this.userRepository.find({
-  //     relations: ['organisations']
-  //   })
-  //   logger.debug(`orgs : ${JSON.stringify(orgs, null, 2)}`)
-
-  //   process.exit()
-  // }
-
-  // @FieldResolver()
-  // async organisations (@Root() user: User) {
-  //   const organisationUsers = await this.organisationUserRepository.find({
-  //     cache: 1000,
-  //     where: { userId: user.id }
-  //   })
-
-  //   const organisationUserIds = organisationUsers.map(o => o.id)
-  //   return await this.organisationRepository.find({
-  //     cache: 1000,
-  //     where: { organisationUserId: In(organisationUserIds) }
-  //   })
-  // }
 }
