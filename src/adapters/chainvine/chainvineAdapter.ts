@@ -1,5 +1,6 @@
 import {
   ChainvineAdapterInterface,
+  LinkDonorToChainvineReferrerType,
   NotifyChainVineInputType,
 } from './chainvineAdapterInterface';
 
@@ -22,7 +23,7 @@ export class ChainvineAdapter implements ChainvineAdapterInterface {
       testMode: process.env.CHAINVINE_API_ENABLE_TEST_MODE === 'true', // optional, defaults to false. When set to true, the SDK will use the test API endpoint
     });
   }
-  async getWalletAddressFromReferer(referrerId: string): Promise<string> {
+  async getWalletAddressFromReferrer(referrerId: string): Promise<string> {
     const response = (await this.ChainvineSDK.getWalletAddressForUser(
       referrerId,
     )) as ChainvineRetrieveWalletResponse;
@@ -48,19 +49,39 @@ export class ChainvineAdapter implements ChainvineAdapterInterface {
     }
   }
 
-  async getReferralStartTimestamp(
-    walletAddress: string,
-  ): Promise<string | void> {
+  async registerClickEvent(referrerId: string): Promise<void> {
     try {
-      const referrerStartResponse =
-        await this.ChainvineSDK.getIncentiveClicksForWalletAddress(
-          walletAddress,
-        );
-
-      if (referrerStartResponse.length === 0) return;
-      return referrerStartResponse[0].date_created;
+      await this.ChainvineSDK.recordClick(referrerId);
     } catch (e) {
-      logger.error('getChainvineReferralStartTimestamp error ', { error: e });
+      logger.error('registerClickEvent() error ', { error: e });
+      throw e;
+    }
+  }
+
+  async linkDonorToReferrer(
+    params: LinkDonorToChainvineReferrerType,
+  ): Promise<void> {
+    try {
+      await this.ChainvineSDK.linkReferrer({
+        referrer_id: params.referrerId,
+        wallet_address: params.walletAddress,
+      });
+    } catch (e) {
+      logger.error('linkDonorToReferrer() error ', { error: e });
+      throw e;
+    }
+  }
+
+  async generateChainvineId(walletAddress: string): Promise<string | void> {
+    try {
+      const chainvineResult = await this.ChainvineSDK.getReferralUrl(
+        walletAddress,
+      );
+      // https://app.chainvine.xyz/giveth?referrer_id=xxxxxxxxxxxxxxxxxxxxxxxxx
+      const referralUrl = chainvineResult?.url;
+      return referralUrl?.split('referrer_id=')[1];
+    } catch (e) {
+      logger.error('generateChainvineId() error ', { error: e });
       throw e;
     }
   }

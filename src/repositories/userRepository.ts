@@ -13,6 +13,17 @@ export const findAdminUserByEmail = async (
     .getOne();
 };
 
+export const setUserAsReferrer = async (
+  referrerWalletAddress: string,
+): Promise<User | void> => {
+  const referrer = await findUserByWalletAddress(referrerWalletAddress);
+
+  if (!referrer) return;
+
+  referrer.isReferrer = true;
+  return await referrer.save();
+};
+
 export const isFirstTimeDonor = async (userId: number): Promise<boolean> => {
   return Boolean(
     await Donation.createQueryBuilder('donation')

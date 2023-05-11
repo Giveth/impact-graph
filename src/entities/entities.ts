@@ -33,11 +33,13 @@ import { Reaction } from './reaction';
 import BroadcastNotification from './broadcastNotification';
 import { FeaturedUpdate } from './featuredUpdate';
 import { Campaign } from './campaign';
+import { ReferredEvent } from './referredEvent';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
     Organization,
     User,
+    ReferredEvent,
     Project,
 
     BankAccount,
