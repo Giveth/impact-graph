@@ -828,20 +828,32 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
-  async projectsHaveNewRank(params: ProjectsHaveNewRankingInputParam[]) {
-    for (const param of params) {
+  async projectsHaveNewRank(params: ProjectsHaveNewRankingInputParam) {
+    for (const param of params.projectRanks) {
       const project = await findProjectById(param.projectId);
       if (!project) {
         continue;
       }
       const projectOwner = project.adminUser;
+      let eventName;
+
+      // https://github.com/Giveth/impact-graph/issues/774#issuecomment-1542337083
+      if (
+        param.oldRank === params.oldBottomRank &&
+        param.newRank === params.newBottomRank
+      ) {
+        // We dont send any notification in this case, because project has no givPower so rank change doesnt matter
+        continue;
+      } else if (param.oldRank === params.oldBottomRank) {
+        eventName = NOTIFICATIONS_EVENT_NAMES.YOUR_PROJECT_GOT_A_RANK;
+      } else if (param.newRank < param.oldRank) {
+        eventName = NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_RISEN_IN_THE_RANK;
+      } else if (param.newRank > param.oldRank) {
+        eventName = NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_A_NEW_RANK;
+      }
       await sendProjectRelatedNotificationsQueue.add({
         project,
-        eventName:
-          param.newRank < param.oldRank
-            ? NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_NEW_LOWER_RANK
-            : NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_NEW_HIGHER_RANK,
-
+        eventName,
         sendEmail: true,
         segment: {
           analyticsUserId: projectOwner.segmentUserId(),

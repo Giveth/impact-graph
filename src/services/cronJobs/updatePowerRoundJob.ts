@@ -9,6 +9,7 @@ import { getRoundNumberByDate } from '../../utils/powerBoostingUtils';
 import {
   refreshProjectPowerView,
   refreshProjectFuturePowerView,
+  getBottomRank,
 } from '../../repositories/projectPowerViewRepository';
 import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
 import {
@@ -35,12 +36,14 @@ export const runUpdatePowerRoundCronJob = () => {
       currentRound,
       'powerRound !== currentRound?.round': powerRound !== currentRound?.round,
     });
+    let oldBottomRank;
     if (powerRound !== currentRound?.round) {
       logger.debug(
         'runUpdatePowerRoundCronJob copy rounds to previousRoundRank',
       );
       await copyProjectRanksToPreviousRoundRankTable();
       await setPowerRound(powerRound);
+      oldBottomRank = await getBottomRank();
     }
     await Promise.all([
       refreshProjectPowerView(),
@@ -54,9 +57,12 @@ export const runUpdatePowerRoundCronJob = () => {
         'runUpdatePowerRoundCronJob projectThatTheirRankChanged',
         projectThatTheirRankChanged,
       );
-      await getNotificationAdapter().projectsHaveNewRank(
-        projectThatTheirRankChanged,
-      );
+      const newBottomRank = await getBottomRank();
+      await getNotificationAdapter().projectsHaveNewRank({
+        oldBottomRank,
+        newBottomRank,
+        projectRanks: projectThatTheirRankChanged,
+      });
     }
   });
 };

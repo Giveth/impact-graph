@@ -220,9 +220,7 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  projectsHaveNewRank(
-    params: ProjectsHaveNewRankingInputParam[],
-  ): Promise<void> {
+  projectsHaveNewRank(params: ProjectsHaveNewRankingInputParam): Promise<void> {
     logger.info('MockNotificationAdapter projectHasNewRank', {
       params,
     });

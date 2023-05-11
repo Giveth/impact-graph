@@ -22,7 +22,12 @@ export const copyProjectRanksToPreviousRoundRankTable = async () => {
 };
 
 export const projectsThatTheirRanksHaveChanged = async (): Promise<
-  ProjectsHaveNewRankingInputParam[]
+  {
+    projectId: number;
+    newRank: number;
+    oldRank: number;
+    round: number;
+  }[]
 > => {
   return PowerSnapshot.query(
     `
