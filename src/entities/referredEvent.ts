@@ -37,7 +37,6 @@ export class ReferredEvent extends BaseEntity {
   @OneToOne(type => User, { nullable: true })
   user: User;
 
-  @Index()
   @Field(type => ID, { nullable: true })
   @RelationId((referredEvent: ReferredEvent) => referredEvent.user)
   userId: number;
