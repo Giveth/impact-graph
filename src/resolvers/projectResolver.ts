@@ -489,14 +489,39 @@ export class ProjectResolver {
       return query.andWhere(`project.${filter} ${isRequested} NULL`);
     }
 
-    if (filter === 'acceptFundOnGnosis' && filterValue) {
+    if (
+      (filter === FilterField.AcceptFundOnGnosis ||
+        filter === FilterField.AcceptFundOnCelo ||
+        filter === FilterField.AcceptFundOnPolygon ||
+        filter === FilterField.AcceptFundOnOptimism) &&
+      filterValue
+    ) {
+      const networkIds: number[] = [];
+
+      if (filter === 'acceptFundOnGnosis') {
+        networkIds.push(NETWORK_IDS.XDAI);
+      }
+
+      if (filter === 'acceptFundOnCelo') {
+        networkIds.push(NETWORK_IDS.CELO);
+      }
+
+      if (filter === 'acceptFundOnPolygon') {
+        networkIds.push(NETWORK_IDS.POLYGON);
+      }
+
+      if (filter === 'acceptFundOnOptimism') {
+        networkIds.push(NETWORK_IDS.OPTIMISTIC);
+      }
       return query.andWhere(
         new Brackets(subQuery => {
           subQuery.where(
             `EXISTS (
               SELECT *
               FROM project_address
-              WHERE "isRecipient" = true AND "networkId" = ${NETWORK_IDS.XDAI} AND "projectId" = project.id
+              WHERE "isRecipient" = true AND "networkId" IN (${networkIds.join(
+                ', ',
+              )}) AND "projectId" = project.id
             )`,
           );
         }),
@@ -527,12 +552,37 @@ export class ProjectResolver {
           if (filter === FilterField.BoostedWithGivPower) {
             return subQuery.andWhere(`projectPower.totalPower > 0`);
           }
-          if (filter === FilterField.AcceptFundOnGnosis && filter) {
+          if (
+            (filter === FilterField.AcceptFundOnGnosis ||
+              filter === FilterField.AcceptFundOnCelo ||
+              filter === FilterField.AcceptFundOnPolygon ||
+              filter === FilterField.AcceptFundOnOptimism) &&
+            filter
+          ) {
+            const networkIds: number[] = [];
+            if (filter === FilterField.AcceptFundOnGnosis) {
+              networkIds.push(NETWORK_IDS.XDAI);
+            }
+
+            if (filter === FilterField.AcceptFundOnCelo) {
+              networkIds.push(NETWORK_IDS.CELO);
+            }
+
+            if (filter === FilterField.AcceptFundOnPolygon) {
+              networkIds.push(NETWORK_IDS.POLYGON);
+            }
+
+            if (filter === FilterField.AcceptFundOnOptimism) {
+              networkIds.push(NETWORK_IDS.OPTIMISTIC);
+            }
+
             return subQuery.andWhere(
               `EXISTS (
                         SELECT *
                         FROM project_address
-                        WHERE "isRecipient" = true AND "networkId" = ${NETWORK_IDS.XDAI} AND "projectId" = project.id
+                        WHERE "isRecipient" = true AND "networkId" IN (${networkIds.join(
+                          ', ',
+                        )}) AND "projectId" = project.id
                       )`,
             );
           }

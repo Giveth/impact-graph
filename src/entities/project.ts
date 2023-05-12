@@ -70,6 +70,9 @@ export enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
   AcceptFundOnGnosis = 'acceptFundOnGnosis',
+  AcceptFundOnPolygon = 'acceptFundOnPolygon',
+  AcceptFundOnCelo = 'acceptFundOnCelo',
+  AcceptFundOnOptimism = 'acceptFundOnOptimism',
   GivingBlock = 'fromGivingBlock',
   BoostedWithGivPower = 'boostedWithGivPower',
 }
