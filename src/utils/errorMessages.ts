@@ -176,9 +176,13 @@ export const errorMessages = {
     'You should fille both link and linkTitle or dont fill none of them',
   PROJECT_DESCRIPTION_LENGTH_SIZE_EXCEEDED:
     'Project description length size exceeded',
+  CHAINVINE_REGISTRATION_ERROR: 'Chainvine ID failed to be generated',
+  CHAINVINE_CLICK_EVENT_ERROR: 'Unable to register click event or link donor',
 };
 
 export const translationErrorMessagesKeys = {
+  CHAINVINE_CLICK_EVENT_ERROR: 'CHAINVINE_CLICK_EVENT_ERROR',
+  CHAINVINE_REGISTRATION_ERROR: 'CHAINVINE_REGISTRATION_ERROR',
   FIAT_DONATION_ALREADY_EXISTS: 'FIAT_DONATION_ALREADY_EXISTS',
   ONRAMPER_SIGNATURE_INVALID: 'ONRAMPER_SIGNATURE_INVALID',
   ONRAMPER_SIGNATURE_MISSING: 'ONRAMPER_SIGNATURE_MISSING',

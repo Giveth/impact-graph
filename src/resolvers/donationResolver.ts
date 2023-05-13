@@ -38,7 +38,11 @@ import {
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { logger } from '../utils/logger';
-import { findUserById, isFirstTimeDonor } from '../repositories/userRepository';
+import {
+  findUserById,
+  isFirstTimeDonor,
+  setUserAsReferrer,
+} from '../repositories/userRepository';
 import {
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
@@ -660,6 +664,8 @@ export class DonationResolver {
           donation.isReferrerGivbackEligible = isReferrerGivbackEligible;
           donation.referrerWallet = referrerWalletAddress;
           donation.referralStartTimestamp = referralStartTimestamp;
+
+          await setUserAsReferrer(referrerWalletAddress);
         } catch (e) {
           logger.error('get chainvine wallet address error', e);
         }

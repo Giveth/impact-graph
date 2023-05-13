@@ -3,6 +3,7 @@ import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 import { isFirstTimeDonor } from '../repositories/userRepository';
 import moment from 'moment';
 import { logger } from '../utils/logger';
+import { findReferredEventByUserId } from '../repositories/referredEventRepository';
 
 const isDonationEligibleForReferralReward = (params: {
   firstTimeDonor: boolean;
@@ -52,12 +53,10 @@ export const getChainvineReferralInfoForDonation = async (params: {
       throw new Error(`User ${fromAddress} tried to refer himself.`);
     }
 
-    referralStartTimestamp = new Date(); // CHANGE THIS
-    // await getChainvineAdapter().getReferralStartTimestamp(fromAddress);
+    const donorUserReferredEvent = await findReferredEventByUserId(donorUserId);
+    referralStartTimestamp = donorUserReferredEvent!.startTime;
 
-    const referralStartTimeRound = getRoundNumberByDate(
-      new Date(referralStartTimestamp),
-    );
+    const referralStartTimeRound = getRoundNumberByDate(referralStartTimestamp);
     const currentRound = getRoundNumberByDate(new Date());
 
     const firstTimeDonor = await isFirstTimeDonor(donorUserId);
