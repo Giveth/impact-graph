@@ -39,6 +39,7 @@ import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { Category } from './category';
 import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
+import { QfRound } from './qfRound';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -199,6 +200,13 @@ export class Project extends BaseEntity {
   })
   @JoinTable()
   categories: Category[];
+
+  @Field(type => [QfRound], { nullable: true })
+  @ManyToMany(type => QfRound, qfRound => qfRound.projects, {
+    nullable: true,
+  })
+  @JoinTable()
+  qfRounds: QfRound[];
 
   @Field(type => Float, { nullable: true })
   @Column('float', { nullable: true })
