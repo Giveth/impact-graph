@@ -892,6 +892,42 @@ function allProjectsTestCases() {
       ),
     );
   });
+
+  it('should return projects, filter by accept donation on celo', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const celoAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.CELO,
+    })) as ProjectAddress;
+    celoAddress.isRecipient = true;
+    await celoAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnCelo'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.CELO,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+
   it('should return projects, filter by accept donation on celo, not return when it doesnt have celo address', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -926,18 +962,54 @@ function allProjectsTestCases() {
       ),
     );
   });
+
+  it('should return projects, filter by accept donation on polygon', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const polygonAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.POLYGON,
+    })) as ProjectAddress;
+    polygonAddress.isRecipient = true;
+    await polygonAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnPolygon'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.POLYGON,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+
   it('should return projects, filter by accept donation on polygon, not return when it doesnt have polygon address', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
-    const celoAddress = (await findProjectRecipientAddressByNetworkId({
+    const polygonAddress = (await findProjectRecipientAddressByNetworkId({
       projectId: savedProject.id,
       networkId: NETWORK_IDS.POLYGON,
     })) as ProjectAddress;
-    celoAddress.isRecipient = false;
-    await celoAddress.save();
+    polygonAddress.isRecipient = false;
+    await polygonAddress.save();
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -960,18 +1032,53 @@ function allProjectsTestCases() {
       ),
     );
   });
+
+  it('should return projects, filter by accept donation on optimism', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+    })) as ProjectAddress;
+    optimismAddress.isRecipient = true;
+    await optimismAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnOptimism'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.OPTIMISTIC,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
   it('should return projects, filter by accept donation on optimism, not return when it doesnt have optimism address', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
-    const celoAddress = (await findProjectRecipientAddressByNetworkId({
+    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
       projectId: savedProject.id,
       networkId: NETWORK_IDS.OPTIMISTIC,
     })) as ProjectAddress;
-    celoAddress.isRecipient = false;
-    await celoAddress.save();
+    optimismAddress.isRecipient = false;
+    await optimismAddress.save();
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
