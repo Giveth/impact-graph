@@ -18,6 +18,7 @@ import {
   projectsThatTheirRanksHaveChanged,
 } from '../../repositories/previousRoundRankRepository';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { sleep } from '../../utils/utils';
 
 const cronJobTime =
   (config.get('UPDATE_POWER_ROUND_CRONJOB_EXPRESSION') as string) ||
@@ -51,6 +52,8 @@ export const runUpdatePowerRoundCronJob = () => {
       refreshUserProjectPowerView(),
     ]);
     if (powerRound !== currentRound?.round) {
+      // Refreshing views need time to refresh tables, so I wait for 1 minute and after that check project rank changes
+      await sleep(60_000);
       const projectThatTheirRankChanged =
         await projectsThatTheirRanksHaveChanged();
       logger.debug(
