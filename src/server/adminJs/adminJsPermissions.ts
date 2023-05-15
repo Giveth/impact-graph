@@ -94,6 +94,25 @@ const campaignPermissions = {
   // Add more roles here as needed
 };
 
+const qfRoundPermissions = {
+  [UserRole.ADMIN]: {
+    delete: true,
+    new: true,
+    show: true,
+    edit: true,
+  },
+  [UserRole.OPERATOR]: {
+    show: true,
+  },
+  [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    show: true,
+  },
+  [UserRole.CAMPAIGN_MANAGER]: {
+    show: true,
+  },
+  // Add more roles here as needed
+};
+
 const projectStatusReasonPermissions = {
   [UserRole.ADMIN]: {
     new: true,
@@ -436,6 +455,14 @@ export const canAccessUserAction = ({ currentAdmin }, action: string) => {
     currentAdmin,
     action,
     resourcePermissions: userPermissions,
+  });
+};
+
+export const canAccessQfRoundAction = ({ currentAdmin }, action: string) => {
+  return hasAccessToResource({
+    currentAdmin,
+    action,
+    resourcePermissions: qfRoundPermissions,
   });
 };
 

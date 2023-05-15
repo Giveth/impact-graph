@@ -37,6 +37,7 @@ import { PreviousRoundRank } from './previousRoundRank';
 import { InstantPowerBalance } from './instantPowerBalance';
 import { InstantPowerFetchState } from './instantPowerFetchState';
 import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
+import { QfRound } from './qfRound';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -88,5 +89,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
 
     InstantPowerBalance,
     InstantPowerFetchState,
+
+    QfRound,
   ];
 };
