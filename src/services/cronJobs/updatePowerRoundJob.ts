@@ -53,14 +53,22 @@ export const runUpdatePowerRoundCronJob = () => {
     ]);
     if (powerRound !== currentRound?.round) {
       // Refreshing views need time to refresh tables, so I wait for 1 minute and after that check project rank changes
-      await sleep(60_000);
+      await sleep(120_000);
       const projectThatTheirRankChanged =
         await projectsThatTheirRanksHaveChanged();
-      logger.debug(
-        'runUpdatePowerRoundCronJob projectThatTheirRankChanged',
-        projectThatTheirRankChanged,
-      );
       const newBottomRank = await getBottomRank();
+      logger.debug('runUpdatePowerRoundCronJob projectThatTheirRankChanged', {
+        oldBottomRank,
+        newBottomRank,
+        projectThatTheirRankChanged: JSON.stringify(
+          projectThatTheirRankChanged.filter(
+            item =>
+              item.oldRank !== oldBottomRank || item.newRank !== newBottomRank,
+          ),
+          null,
+          2,
+        ),
+      });
       await getNotificationAdapter().projectsHaveNewRank({
         oldBottomRank,
         newBottomRank,
