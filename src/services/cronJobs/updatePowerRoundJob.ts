@@ -60,13 +60,9 @@ export const runUpdatePowerRoundCronJob = () => {
       logger.debug('runUpdatePowerRoundCronJob projectThatTheirRankChanged', {
         oldBottomRank,
         newBottomRank,
-        projectThatTheirRankChanged: JSON.stringify(
-          projectThatTheirRankChanged.filter(
-            item =>
-              item.oldRank !== oldBottomRank || item.newRank !== newBottomRank,
-          ),
-          null,
-          2,
+        projectThatTheirRankChanged: projectThatTheirRankChanged.filter(
+          item =>
+            item.oldRank !== oldBottomRank || item.newRank !== newBottomRank,
         ),
       });
       await getNotificationAdapter().projectsHaveNewRank({

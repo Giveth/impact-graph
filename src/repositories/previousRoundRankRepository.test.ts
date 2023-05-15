@@ -169,12 +169,9 @@ function projectsThatTheirRanksHaveChangedTestCases() {
       const project = await findProjectById(item.projectId);
 
       assert.equal(project?.verified, true);
-      assert.notEqual(
-        Number(projectPowerView?.powerRank),
-        Number(projectPreviousRank?.rank),
-      );
-      assert.equal(Number(item.newRank), Number(projectPowerView?.powerRank));
-      assert.equal(Number(item.oldRank), Number(projectPreviousRank?.rank));
+      assert.notEqual(projectPowerView?.powerRank, projectPreviousRank?.rank);
+      assert.equal(item.newRank, projectPowerView?.powerRank);
+      assert.equal(item.oldRank, projectPreviousRank?.rank);
     }
   });
 }

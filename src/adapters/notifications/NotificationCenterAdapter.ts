@@ -851,6 +851,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       } else if (param.newRank > param.oldRank) {
         eventName = NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_A_NEW_RANK;
       }
+      logger.info('send rank changed notification ', {
+        eventName,
+        slug: project.slug,
+        newRank: param.newRank,
+        oldRank: param.oldRank,
+        oldBottomRank: params.oldBottomRank,
+        newBottomRank: params.newBottomRank,
+      });
       await sendProjectRelatedNotificationsQueue.add({
         project,
         eventName,
