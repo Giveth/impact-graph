@@ -3,7 +3,10 @@ import {
   LinkDonorToChainvineReferrerType,
   NotifyChainVineInputType,
 } from './chainvineAdapterInterface';
-import { generateRandomEtheriumAddress } from '../../../test/testUtils';
+import {
+  generateRandomEtheriumAddress,
+  generateHexNumber,
+} from '../../../test/testUtils';
 
 export const cachedReferralIds = {};
 
@@ -28,7 +31,7 @@ export class ChainvineMockAdapter implements ChainvineAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  generateChainvineId(walletAddress: string): Promise<string | void> {
-    return Promise.resolve(undefined);
+  async generateChainvineId(walletAddress: string): Promise<string | void> {
+    return generateHexNumber(10);
   }
 }

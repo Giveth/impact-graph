@@ -28,6 +28,11 @@ export class AddReferredTableRelation1683764388981
             isNullable: true,
           },
           {
+            name: 'referrerId',
+            type: 'text',
+            isNullable: true,
+          },
+          {
             name: 'isDonorLinkedToReferrer',
             type: 'boolean',
             default: false,

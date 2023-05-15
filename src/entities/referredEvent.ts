@@ -26,6 +26,10 @@ export class ReferredEvent extends BaseEntity {
   @Column({ nullable: true })
   startTime?: Date;
 
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  referrerId?: string;
+
   @Field(type => Boolean, { nullable: false })
   @Column({ nullable: false, default: false })
   isDonorLinkedToReferrer: boolean;

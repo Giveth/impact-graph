@@ -82,19 +82,19 @@ export class ChainvineResolver {
         await referredEvent.save();
       }
 
-      if (referredEvent.isDonorLinkedToReferrer) {
+      if (!referredEvent.isDonorLinkedToReferrer) {
         await getChainvineAdapter().linkDonorToReferrer({
           walletAddress: dbUser.walletAddress,
           referrerId,
         });
 
+        referredEvent.referrerId = referrerId;
         referredEvent.isDonorLinkedToReferrer = true;
         await referredEvent.save();
       }
 
       dbUser.wasReferred = true;
-      await dbUser.save();
-      return dbUser;
+      return await dbUser.save();
     } catch (e) {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.CHAINVINE_CLICK_EVENT_ERROR),
