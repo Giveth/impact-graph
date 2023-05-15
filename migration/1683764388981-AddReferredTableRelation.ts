@@ -58,15 +58,6 @@ export class AddReferredTableRelation1683764388981
       }),
     );
 
-    await queryRunner.addColumn(
-      'referred_event',
-      new TableColumn({
-        name: 'userId',
-        type: 'integer',
-        isNullable: true,
-      }),
-    );
-
     await queryRunner.createForeignKey(
       'referred_event',
       new TableForeignKey({

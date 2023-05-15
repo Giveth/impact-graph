@@ -53,6 +53,7 @@ import { AppDataSource } from '../orm';
 import { generateRandomString } from '../utils/utils';
 import { ChainvineMockAdapter } from '../adapters/chainvine/chainvineMockAdapter';
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
+import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -491,20 +492,26 @@ function createDonationTestCases() {
   });
   it('should create a donation for giveth project on xdai successfully with referralId', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
+    const referrerId = generateRandomString();
+    const referrerWalletAddress =
+      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
+
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
-    const referrerId = generateRandomString();
-    const referrerWalletAddress =
-      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
 
     const user2 = await User.create({
       walletAddress: referrerWalletAddress,
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
+
+    const referredEvent = await firstOrCreateReferredEventByUserId(user.id);
+    referredEvent.startTime = new Date();
+    await referredEvent.save();
+
     const accessToken = await generateTestAccessToken(user.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,

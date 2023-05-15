@@ -12,15 +12,15 @@ export const firstOrCreateReferredEventByUserId = async (
 export const findReferredEventByUserId = async (
   userId: number,
 ): Promise<ReferredEvent | null> => {
-  return await ReferredEvent.createQueryBuilder('referredEvent')
-    .where(`referredEvent.userId = :userId`, { userId })
+  return await ReferredEvent.createQueryBuilder('event')
+    .where('event.userId = :userId', { userId })
     .getOne();
 };
 
 export const createReferredEventByUserId = async (
   userId: number,
 ): Promise<ReferredEvent> => {
-  return ReferredEvent.create({
+  return await ReferredEvent.create({
     userId,
   }).save();
 };

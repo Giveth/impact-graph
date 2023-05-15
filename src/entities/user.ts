@@ -129,12 +129,7 @@ export class User extends BaseEntity {
   @OneToOne(() => ReferredEvent, referredEvent => referredEvent.user, {
     cascade: true,
   })
-  @JoinColumn()
   referredEvent?: ReferredEvent;
-
-  @Field({ nullable: true })
-  @RelationId((user: User) => user.referredEvent)
-  referredEventId: number;
 
   @Field(type => [Project])
   @ManyToMany(type => Project, project => project.users)
