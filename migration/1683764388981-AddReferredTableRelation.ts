@@ -21,9 +21,10 @@ export class AddReferredTableRelation1683764388981
           columns: [
             {
               name: 'id',
-              type: 'serial',
+              type: 'int',
               isPrimary: true,
               isGenerated: true,
+              generationStrategy: 'increment',
             },
             {
               name: 'startTime',
