@@ -41,6 +41,7 @@ export class ChainvineResolver {
         dbUser.walletAddress,
       );
 
+      dbUser.isReferrer = true;
       dbUser.chainvineId = chainvineId!;
       await dbUser.save();
 
