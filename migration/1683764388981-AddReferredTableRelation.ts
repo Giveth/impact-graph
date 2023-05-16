@@ -10,9 +10,11 @@ import {
 export class AddReferredTableRelation1683764388981
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     // Create referred_event table
-    const referredEventTableExists = await queryRunner.hasTable('referred_event');
+    const referredEventTableExists = await queryRunner.hasTable(
+      'referred_event',
+    );
 
     if (!referredEventTableExists) {
       await queryRunner.createTable(
@@ -134,7 +136,7 @@ export class AddReferredTableRelation1683764388981
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropForeignKey('user', 'FK_user_referred_event');
     await queryRunner.dropForeignKey(
       'referred_event',
