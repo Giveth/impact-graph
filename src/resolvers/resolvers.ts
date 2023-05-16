@@ -15,6 +15,7 @@ import { UserProjectPowerResolver } from './userProjectPowerResolver';
 import { GivPowerTestingResolver } from './givPowerTestingResolver';
 import { ProjectPowerResolver } from './projectPowerResolver';
 import { CampaignResolver } from './campaignResolver';
+import { QfRoundResolver } from './qfRoundResolver';
 
 export const getResolvers = (): Function[] => {
   return [
@@ -37,5 +38,6 @@ export const getResolvers = (): Function[] => {
     GivPowerTestingResolver,
 
     CampaignResolver,
+    QfRoundResolver,
   ];
 };

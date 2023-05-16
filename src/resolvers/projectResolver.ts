@@ -257,6 +257,9 @@ class GetProjectsArgs {
 
   @Field(type => Int, { nullable: true })
   connectedWalletUserId?: number;
+
+  @Field(type => Int, { nullable: true })
+  qfRoundId?: number;
 }
 
 @Service()
@@ -715,6 +718,7 @@ export class ProjectResolver {
       sortingBy,
       connectedWalletUserId,
       campaignSlug,
+      qfRoundId,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
@@ -728,6 +732,7 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
+      qfRoundId,
     };
     let campaign;
     if (campaignSlug) {

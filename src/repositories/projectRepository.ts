@@ -57,6 +57,7 @@ export type FilterProjectQueryInputParams = {
   filters?: FilterField[];
   slugArray?: string[];
   sortingBy?: SortingField;
+  qfRoundId?: number;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -68,6 +69,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     filters,
     sortingBy,
     slugArray,
+    qfRoundId,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -96,7 +98,14 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
-
+  if (qfRoundId) {
+    query.innerJoinAndSelect(
+      'project.qfRounds',
+      'qfRounds',
+      'qfRounds.id = :qfRoundId',
+      { qfRoundId },
+    );
+  }
   if (!sortingBy || sortingBy === SortingField.InstantBoosting) {
     query = query
       .leftJoin('project.projectInstantPower', 'projectInstantPower')
