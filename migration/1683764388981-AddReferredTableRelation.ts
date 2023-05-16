@@ -12,121 +12,125 @@ export class AddReferredTableRelation1683764388981
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create referred_event table
-    await queryRunner.createTable(
-      new Table({
-        name: 'referred_event',
-        columns: [
-          {
-            name: 'id',
-            type: 'serial',
-            isPrimary: true,
-            isGenerated: true,
-          },
-          {
-            name: 'startTime',
-            type: 'timestamp',
-            isNullable: true,
-          },
-          {
-            name: 'referrerId',
-            type: 'text',
-            isNullable: true,
-          },
-          {
-            name: 'isDonorLinkedToReferrer',
-            type: 'boolean',
-            default: false,
-            isNullable: false,
-          },
-          {
-            name: 'isDonorClickEventSent',
-            type: 'boolean',
-            default: false,
-            isNullable: false,
-          },
-          {
-            name: 'userId',
-            type: 'integer',
-            isNullable: true,
-          },
-          {
-            name: 'updatedAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          },
-          {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          },
-        ],
-      }),
-    );
+    const referredEventTableExists = await queryRunner.hasTable('referred_event');
 
-    await queryRunner.createForeignKey(
-      'referred_event',
-      new TableForeignKey({
-        columnNames: ['userId'],
-        referencedTableName: 'user',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
-    );
+    if (!referredEventTableExists) {
+      await queryRunner.createTable(
+        new Table({
+          name: 'referred_event',
+          columns: [
+            {
+              name: 'id',
+              type: 'serial',
+              isPrimary: true,
+              isGenerated: true,
+            },
+            {
+              name: 'startTime',
+              type: 'timestamp',
+              isNullable: true,
+            },
+            {
+              name: 'referrerId',
+              type: 'text',
+              isNullable: true,
+            },
+            {
+              name: 'isDonorLinkedToReferrer',
+              type: 'boolean',
+              default: false,
+              isNullable: false,
+            },
+            {
+              name: 'isDonorClickEventSent',
+              type: 'boolean',
+              default: false,
+              isNullable: false,
+            },
+            {
+              name: 'userId',
+              type: 'integer',
+              isNullable: true,
+            },
+            {
+              name: 'updatedAt',
+              type: 'timestamp',
+              default: 'CURRENT_TIMESTAMP',
+            },
+            {
+              name: 'createdAt',
+              type: 'timestamp',
+              default: 'CURRENT_TIMESTAMP',
+            },
+          ],
+        }),
+      );
 
-    await queryRunner.addColumn(
-      'user',
-      new TableColumn({
-        name: 'chainvineId',
-        type: 'varchar',
-        isNullable: true,
-      }),
-    );
+      await queryRunner.createForeignKey(
+        'referred_event',
+        new TableForeignKey({
+          columnNames: ['userId'],
+          referencedTableName: 'user',
+          referencedColumnNames: ['id'],
+          onDelete: 'SET NULL',
+        }),
+      );
 
-    await queryRunner.addColumn(
-      'user',
-      new TableColumn({
-        name: 'wasReferred',
-        type: 'boolean',
-        default: false,
-        isNullable: true,
-      }),
-    );
+      await queryRunner.addColumn(
+        'user',
+        new TableColumn({
+          name: 'chainvineId',
+          type: 'varchar',
+          isNullable: true,
+        }),
+      );
 
-    await queryRunner.addColumn(
-      'user',
-      new TableColumn({
-        name: 'isReferrer',
-        type: 'boolean',
-        default: false,
-        isNullable: true,
-      }),
-    );
+      await queryRunner.addColumn(
+        'user',
+        new TableColumn({
+          name: 'wasReferred',
+          type: 'boolean',
+          default: false,
+          isNullable: true,
+        }),
+      );
 
-    await queryRunner.addColumn(
-      'user',
-      new TableColumn({
-        name: 'referredEventId',
-        type: 'integer',
-        isNullable: true,
-      }),
-    );
+      await queryRunner.addColumn(
+        'user',
+        new TableColumn({
+          name: 'isReferrer',
+          type: 'boolean',
+          default: false,
+          isNullable: true,
+        }),
+      );
 
-    await queryRunner.createUniqueConstraint(
-      'user',
-      new TableUnique({
-        name: 'UQ_9632c6f029358ee3f8cfc3607f3',
-        columnNames: ['referredEventId'],
-      }),
-    );
+      await queryRunner.addColumn(
+        'user',
+        new TableColumn({
+          name: 'referredEventId',
+          type: 'integer',
+          isNullable: true,
+        }),
+      );
 
-    await queryRunner.createForeignKey(
-      'user',
-      new TableForeignKey({
-        columnNames: ['referredEventId'],
-        referencedTableName: 'referred_event',
-        referencedColumnNames: ['id'],
-      }),
-    );
+      await queryRunner.createUniqueConstraint(
+        'user',
+        new TableUnique({
+          name: 'UQ_9632c6f029358ee3f8cfc3607f3',
+          columnNames: ['referredEventId'],
+        }),
+      );
+
+      await queryRunner.createForeignKey(
+        'user',
+        new TableForeignKey({
+          columnNames: ['referredEventId'],
+          referencedTableName: 'referred_event',
+          referencedColumnNames: ['id'],
+        }),
+      );
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
