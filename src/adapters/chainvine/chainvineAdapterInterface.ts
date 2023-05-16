@@ -6,8 +6,16 @@ export interface NotifyChainVineInputType {
   valueUsd?: number;
   donationId?: number;
 }
+
+export interface LinkDonorToChainvineReferrerType {
+  referrerId: string;
+  walletAddress: string;
+}
+
 export interface ChainvineAdapterInterface {
-  getWalletAddressFromReferer(referrerId: string): Promise<string>;
+  getWalletAddressFromReferrer(referrerId: string): Promise<string>;
   notifyChainVine(params: NotifyChainVineInputType): Promise<void>;
-  getReferralStartTimestamp(walletAddress: string): Promise<string | void>;
+  registerClickEvent(referrerId: string): Promise<void>;
+  linkDonorToReferrer(params: LinkDonorToChainvineReferrerType): Promise<void>;
+  generateChainvineId(walletAddress: string): Promise<string | void>;
 }
