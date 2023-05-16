@@ -166,6 +166,32 @@ export const addRecipientAddressToProjectQuery = `
   }
  `;
 
+export const registerOnChainvineQuery = `
+  mutation {
+    registerOnChainvine {
+      id
+      firstName
+      email
+      walletAddress
+      chainvineId
+    }
+  }
+`;
+
+export const registerClickOnChainvineQuery = `
+  mutation ($referrerId: String!) {
+    registerClickEvent(referrerId: $referrerId) {
+      id
+      firstName
+      email
+      walletAddress
+      chainvineId
+      isReferrer
+      wasReferred
+    }
+  }
+`;
+
 export const deactivateProjectQuery = `
   mutation ($projectId: Float!, $reasonId: Float) {
     deactivateProject(projectId: $projectId, reasonId: $reasonId)
