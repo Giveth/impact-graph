@@ -179,8 +179,8 @@ export const registerOnChainvineQuery = `
 `;
 
 export const registerClickOnChainvineQuery = `
-  mutation ($referrerId: String!) {
-    registerClickEvent(referrerId: $referrerId) {
+  mutation ($referrerId: String!, $walletAddress: String!) {
+    registerClickEvent(referrerId: $referrerId, walletAddress: $walletAddress) {
       id
       firstName
       email
