@@ -49,20 +49,13 @@ function registerClickOnChainvineTestCases() {
     await referrerUser.save();
 
     const accessToken = await generateTestAccessToken(user.id);
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: registerClickOnChainvineQuery,
-        variables: {
-          referrerId: referrerUser.chainvineId,
-        },
+    const result = await axios.post(graphqlUrl, {
+      query: registerClickOnChainvineQuery,
+      variables: {
+        referrerId: referrerUser.chainvineId,
+        walletAddress: user.walletAddress,
       },
-      {
-        headers: {
-          authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
+    });
     const updatedUser = result.data.data.registerClickEvent;
     assert.isTrue(updatedUser.wasReferred);
     assert.isFalse(updatedUser.isReferrer);

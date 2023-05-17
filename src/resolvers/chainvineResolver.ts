@@ -15,7 +15,10 @@ import {
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
 import { User } from '../entities/user';
-import { findUserById } from '../repositories/userRepository';
+import {
+  findUserById,
+  findUserByWalletAddress,
+} from '../repositories/userRepository';
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
 
@@ -56,15 +59,14 @@ export class ChainvineResolver {
   @Mutation(returns => User, { nullable: true })
   async registerClickEvent(
     @Arg('referrerId', { nullable: false }) referrerId: string,
-    @Ctx() { req: { user } }: ApolloContext,
+    @Arg('walletAddress', { nullable: false }) walletAddress: string,
   ): Promise<User | void> {
-    if (!user)
+    if (!walletAddress)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    const userId = user?.userId;
-    const dbUser = await findUserById(userId);
+    const dbUser = await findUserByWalletAddress(walletAddress);
     if (!dbUser || !dbUser.walletAddress) {
       throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
     }
