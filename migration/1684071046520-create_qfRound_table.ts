@@ -17,15 +17,15 @@ export class createQfRoundTable1684071046520 implements MigrationInterface {
         `);
 
     await queryRunner.query(`
-            CREATE TABLE "project_qf_round" (
+            CREATE TABLE "project_qf_rounds_qf_round" (
                 "projectId" integer NOT NULL,
                 "qfRoundId" integer NOT NULL,
-                CONSTRAINT "PK_project_qf_round" PRIMARY KEY ("projectId", "qfRoundId")
+                CONSTRAINT "PK_project_qf_rounds_qf_round" PRIMARY KEY ("projectId", "qfRoundId")
             );
         `);
 
     await queryRunner.query(`
-            ALTER TABLE "project_qf_round" 
+            ALTER TABLE "project_qf_rounds_qf_round" 
             ADD CONSTRAINT "FK_projectId" 
             FOREIGN KEY ("projectId") 
             REFERENCES "project"("id") 
@@ -33,7 +33,7 @@ export class createQfRoundTable1684071046520 implements MigrationInterface {
         `);
 
     await queryRunner.query(`
-            ALTER TABLE "project_qf_round" 
+            ALTER TABLE "project_qf_rounds_qf_round" 
             ADD CONSTRAINT "FK_qfRoundId" 
             FOREIGN KEY ("qfRoundId") 
             REFERENCES "qf_round"("id") 
@@ -43,7 +43,7 @@ export class createQfRoundTable1684071046520 implements MigrationInterface {
 
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DROP TABLE "project_qf_round";
+            DROP TABLE "project_qf_rounds_qf_round";
         `);
 
     await queryRunner.query(`

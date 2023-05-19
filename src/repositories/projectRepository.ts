@@ -77,6 +77,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     .leftJoinAndSelect('project.users', 'users')
     .leftJoinAndSelect('project.addresses', 'addresses')
     .leftJoinAndSelect('project.organization', 'organization')
+    .leftJoinAndSelect('project.qfRounds', 'qfRounds')
     // you can alias it as user but it still is mapped as adminUser
     // like defined in our project entity
     .innerJoin('project.adminUser', 'user')

@@ -62,6 +62,7 @@ import {
   addNewProjectAddress,
   findAllRelatedAddressByWalletAddress,
   findProjectRecipientAddressByNetworkId,
+  removeRecipientAddressOfProject,
 } from '../repositories/projectAddressRepository';
 import {
   PROJECT_VERIFICATION_STATUSES,
@@ -102,6 +103,7 @@ import { ArgumentValidationError } from 'type-graphql';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
 import { updateInstantBoosting } from '../services/instantBoostingServices';
+import { QfRound } from '../entities/qfRound';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -1228,6 +1230,70 @@ function allProjectsTestCases() {
     );
 
     await campaign.remove();
+  });
+
+  it('should return projects, filter by ActiveQfRound', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: true,
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit: 50,
+        skip: 0,
+        filters: ['ActiveQfRound'],
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 1);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
+  it('should return empty list when qfRound is not active, filter by ActiveQfRound', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: true,
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: false,
+      name: 'test2',
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit: 50,
+        skip: 0,
+        filters: ['ActiveQfRound'],
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 0);
+    qfRound.isActive = false;
+    await qfRound.save();
   });
 }
 

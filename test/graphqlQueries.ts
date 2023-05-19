@@ -679,6 +679,11 @@ export const fetchMultiFilterAllProjectsQuery = `
           totalPower
           powerRank
         }
+        qfRounds {
+          name
+          isActive
+          id
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -687,6 +692,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       categories {
         name
       }
+    
     }
   }
 `;

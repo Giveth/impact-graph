@@ -558,9 +558,9 @@ export class ProjectResolver {
             return subQuery.andWhere(
               `EXISTS (
                         SELECT 1
-                        FROM project_qf_round
-                        INNER JOIN qf_round on qf_round.id = project_qf_round.qfRoundId
-                        WHERE project_qf_round.projectId = project.id AND qf_round.isActive = true
+                        FROM project_qf_rounds_qf_round
+                        INNER JOIN qf_round on qf_round.id = project_qf_rounds_qf_round."qfRoundId"
+                        WHERE project_qf_rounds_qf_round."projectId" = project.id AND qf_round."isActive" = true
                 )`,
             );
           }
