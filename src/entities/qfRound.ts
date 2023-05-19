@@ -21,7 +21,7 @@ export class QfRound extends BaseEntity {
   id: number;
 
   @Field()
-  @Column('text', { unique: true, nullable: true })
+  @Column('text', { nullable: true })
   name: string;
 
   @ManyToMany(type => Project, project => project.qfRounds)
@@ -43,8 +43,10 @@ export class QfRound extends BaseEntity {
   endDate: Date;
 
   @UpdateDateColumn()
+  @Column({ nullable: true })
   updatedAt: Date;
 
   @CreateDateColumn()
+  @Column({ nullable: true })
   createdAt: Date;
 }

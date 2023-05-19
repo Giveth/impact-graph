@@ -76,6 +76,7 @@ export enum FilterField {
   AcceptFundOnOptimism = 'acceptFundOnOptimism',
   GivingBlock = 'fromGivingBlock',
   BoostedWithGivPower = 'boostedWithGivPower',
+  ActiveQfRound = 'ActiveQfRound',
 }
 
 export enum OrderField {

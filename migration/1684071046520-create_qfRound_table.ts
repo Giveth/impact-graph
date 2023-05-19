@@ -5,12 +5,12 @@ export class createQfRoundTable1684071046520 implements MigrationInterface {
     await queryRunner.query(`
             CREATE TABLE "qf_round" (
                 "id" SERIAL NOT NULL,
-                "name" text UNIQUE,
+                "name" text,
                 "isActive" boolean NOT NULL DEFAULT true,
                 "allocatedFund" integer NOT NULL,
                 "beginDate" timestamp without time zone NOT NULL,
                 "endDate" timestamp without time zone NOT NULL,
-                "updatedAt" timestamp without time zone NOT NULL,
+                "updatedAt" timestamp without time zone NOT NULL DEFAULT now(),
                 "createdAt" timestamp without time zone NOT NULL DEFAULT now(),
                 CONSTRAINT "PK_qfRoundId" PRIMARY KEY ("id")
             );

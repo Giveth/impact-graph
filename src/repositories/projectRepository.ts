@@ -101,8 +101,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   if (qfRoundId) {
     query.innerJoinAndSelect(
       'project.qfRounds',
-      'qfRounds',
-      'qfRounds.id = :qfRoundId',
+      'qf_rounds',
+      'qf_rounds.id = :qfRoundId',
       { qfRoundId },
     );
   }

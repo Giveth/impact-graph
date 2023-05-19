@@ -24,6 +24,14 @@ export const qfRoundTab = {
       allocatedFund: {
         isVisible: true,
       },
+      projects: {
+        isVisible: {
+          list: true,
+          edit: false,
+          filter: false,
+          show: true,
+        },
+      },
       createdAt: {
         type: 'string',
         isVisible: {

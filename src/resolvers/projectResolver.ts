@@ -539,7 +539,6 @@ export class ProjectResolver {
     filtersArray: FilterField[] = [],
   ) {
     if (!filtersArray || filtersArray.length === 0) return query;
-
     query = query.andWhere(
       new Brackets(subQuery => {
         filtersArray.forEach(filter => {
@@ -555,6 +554,17 @@ export class ProjectResolver {
           if (filter === FilterField.BoostedWithGivPower) {
             return subQuery.andWhere(`projectPower.totalPower > 0`);
           }
+          if (filter === FilterField.ActiveQfRound) {
+            return subQuery.andWhere(
+              `EXISTS (
+                        SELECT 1
+                        FROM project_qf_round
+                        INNER JOIN qf_round on qf_round.id = project_qf_round.qfRoundId
+                        WHERE project_qf_round.projectId = project.id AND qf_round.isActive = true
+                )`,
+            );
+          }
+
           if (
             (filter === FilterField.AcceptFundOnGnosis ||
               filter === FilterField.AcceptFundOnCelo ||
