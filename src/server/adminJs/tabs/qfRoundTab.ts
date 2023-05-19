@@ -1,9 +1,9 @@
-import { QfRound } from '../../../../entities/qfRound';
+import { QfRound } from '../../../entities/qfRound';
 import {
   canAccessQfRoundAction,
   canAccessUserAction,
   ResourceActions,
-} from '../../adminJsPermissions';
+} from '../adminJsPermissions';
 
 export const qfRoundTab = {
   resource: QfRound,

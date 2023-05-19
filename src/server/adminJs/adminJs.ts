@@ -26,7 +26,7 @@ import { generateTokenTab } from './tabs/tokenTab';
 import { donationTab } from './tabs/donationTab';
 import { projectVerificationTab } from './tabs/projectVerificationTab';
 import { ResourceActions } from './adminJsPermissions';
-import { qfRoundTab } from './tabs/components/qfRoundTab';
+import { qfRoundTab } from './tabs/qfRoundTab';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires

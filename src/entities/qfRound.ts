@@ -43,10 +43,8 @@ export class QfRound extends BaseEntity {
   endDate: Date;
 
   @UpdateDateColumn()
-  @Column({ nullable: true })
   updatedAt: Date;
 
   @CreateDateColumn()
-  @Column({ nullable: true })
   createdAt: Date;
 }
