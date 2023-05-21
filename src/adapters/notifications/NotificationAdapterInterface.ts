@@ -8,6 +8,17 @@ export interface BroadCastNotificationInputParams {
   html: string;
 }
 
+export interface ProjectsHaveNewRankingInputParam {
+  projectRanks: {
+    projectId: number;
+    newRank: number;
+    oldRank: number;
+    round: number;
+  }[];
+  oldBottomRank: number;
+  newBottomRank: number;
+}
+
 export interface NotificationAdapterInterface {
   donationReceived(params: {
     donation: Donation;
@@ -63,4 +74,5 @@ export interface NotificationAdapterInterface {
   broadcastNotification(
     params: BroadCastNotificationInputParams,
   ): Promise<void>;
+  projectsHaveNewRank(params: ProjectsHaveNewRankingInputParam): Promise<void>;
 }

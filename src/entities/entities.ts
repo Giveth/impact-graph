@@ -33,6 +33,10 @@ import { Reaction } from './reaction';
 import BroadcastNotification from './broadcastNotification';
 import { FeaturedUpdate } from './featuredUpdate';
 import { Campaign } from './campaign';
+import { PreviousRoundRank } from './previousRoundRank';
+import { InstantPowerBalance } from './instantPowerBalance';
+import { InstantPowerFetchState } from './instantPowerFetchState';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { ReferredEvent } from './referredEvent';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
@@ -72,6 +76,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectPowerView,
     ProjectFuturePowerView,
     LastSnapshotProjectPowerView,
+    ProjectInstantPowerView,
 
     // historic snapshots
     PowerSnapshotHistory,
@@ -80,5 +85,10 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     BroadcastNotification,
 
     Campaign,
+
+    PreviousRoundRank,
+
+    InstantPowerBalance,
+    InstantPowerFetchState,
   ];
 };

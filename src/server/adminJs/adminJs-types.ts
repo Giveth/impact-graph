@@ -30,8 +30,22 @@ export interface AdminJsProjectsQuery {
   reviewStatus: ReviewStatus;
 }
 
+export interface AdminJsDonationsQuery {
+  projectId?: string;
+  contactEmail?: string;
+  referrerWallet?: string;
+  userId?: string;
+  fromWalletAddress?: string;
+  toWalletAddress?: string;
+  status?: string;
+  createdAt?: string;
+  currency?: string;
+  transactionNetworkId?: string;
+  isProjectVerified?: string;
+}
+
 // headers defined by the verification team for exporting
-export const headers = [
+export const projectHeaders = [
   'id',
   'title',
   'slug',
@@ -53,4 +67,30 @@ export const headers = [
   'firstWalletAddressNetwork',
   'secondWalletAddress',
   'secondWalletAddressNetwork',
+];
+
+export const donationHeaders = [
+  'id',
+  'transactionId',
+  'transactionNetworkId',
+  'isProjectVerified',
+  'status',
+  'toWalletAddress',
+  'fromWalletAddress',
+  'tokenAddress',
+  'currency',
+  'anonymous',
+  'amount',
+  'isFiat',
+  'isCustomToken',
+  'valueEth',
+  'valueUsd',
+  'priceEth',
+  'priceUsd',
+  'projectId',
+  'userId',
+  'contactEmail',
+  'createdAt',
+  'referrerWallet',
+  'isTokenEligibleForGivback',
 ];

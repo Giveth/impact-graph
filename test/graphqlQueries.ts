@@ -701,6 +701,10 @@ export const fetchMultiFilterAllProjectsQuery = `
           powerRank
           round
         }
+        projectInstantPower {
+          totalPower
+          powerRank
+        }
         totalReactions
         totalDonations
         totalTraceDonations
@@ -737,6 +741,7 @@ export const fetchProjectsBySlugQuery = `
       listed
       reviewStatus
       givingBlocksId
+      givbackFactor
       projectPower {
         totalPower
         powerRank

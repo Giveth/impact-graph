@@ -39,4 +39,9 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN = 'Verification form got draft by admin',
   RAW_HTML_BROADCAST = 'Raw HTML Broadcast',
   PROJECT_ADD_AN_UPDATE_USERS_WHO_SUPPORT = 'Project update added - Users who supported',
+
+  // https://github.com/Giveth/impact-graph/issues/774#issuecomment-1542337083
+  PROJECT_HAS_RISEN_IN_THE_RANK = 'Your Project has risen in the rank',
+  PROJECT_HAS_A_NEW_RANK = 'Your project has a new rank',
+  YOUR_PROJECT_GOT_A_RANK = 'Your project got a rank',
 }

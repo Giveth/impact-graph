@@ -35,10 +35,10 @@ import { ProjectAddress } from './projectAddress';
 import { ProjectContacts } from './projectVerificationForm';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
+import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { Category } from './category';
 import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
-import { Campaign } from './campaign';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -63,12 +63,16 @@ export enum SortingField {
   Oldest = 'Oldest',
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',
+  InstantBoosting = 'InstantBoosting',
 }
 
 export enum FilterField {
   Verified = 'verified',
   AcceptGiv = 'givingBlocksId',
   AcceptFundOnGnosis = 'acceptFundOnGnosis',
+  AcceptFundOnPolygon = 'acceptFundOnPolygon',
+  AcceptFundOnCelo = 'acceptFundOnCelo',
+  AcceptFundOnOptimism = 'acceptFundOnOptimism',
   GivingBlock = 'fromGivingBlock',
   BoostedWithGivPower = 'boostedWithGivPower',
 }
@@ -89,6 +93,7 @@ export enum OrderField {
   TraceDonations = 'totalTraceDonations',
   AcceptGiv = 'givingBlocksId',
   GIVPower = 'givPower',
+  InstantBoosting = 'instantBoosting',
 }
 
 export enum RevokeSteps {
@@ -301,6 +306,13 @@ export class Project extends BaseEntity {
     projectFuturePowerView => projectFuturePowerView.project,
   )
   projectFuturePower?: ProjectFuturePowerView;
+
+  @Field(type => ProjectInstantPowerView, { nullable: true })
+  @OneToOne(
+    type => ProjectInstantPowerView,
+    projectInstantPowerView => projectInstantPowerView.project,
+  )
+  projectInstantPower?: ProjectInstantPowerView;
 
   @Field(type => String, { nullable: true })
   verificationFormStatus?: string;

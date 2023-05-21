@@ -64,6 +64,8 @@ import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
+import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
+import { getChainvineAdapter } from '../adapters/adaptersFactory';
 
 Resource.validate = validate;
 
@@ -363,6 +365,9 @@ export async function bootstrap() {
       (config.get('UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
     ) {
       runUpdatePowerRoundCronJob();
+    }
+    if ((config.get('ENABLE_INSTANT_BOOSTING_UPDATE') as string) === 'true') {
+      runInstantBoostingUpdateCronJob();
     }
   } catch (err) {
     logger.error(err);

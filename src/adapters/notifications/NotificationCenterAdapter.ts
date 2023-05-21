@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
+  ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
@@ -17,9 +18,6 @@ import config from '../../config';
 import { findProjectById } from '../../repositories/projectRepository';
 import {
   findAllUsers,
-  findUsersWhoDonatedToProjectExcludeWhoLiked,
-  findUsersWhoBoostedProject,
-  findUsersWhoLikedProjectExcludeProjectOwner,
   findUsersWhoSupportProject,
 } from '../../repositories/userRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
@@ -829,6 +827,53 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       sendBroadcastNotificationsQueue.add(queueData);
     }
   }
+
+  async projectsHaveNewRank(params: ProjectsHaveNewRankingInputParam) {
+    for (const param of params.projectRanks) {
+      const project = await findProjectById(param.projectId);
+      if (!project) {
+        continue;
+      }
+      const projectOwner = project.adminUser;
+      let eventName;
+
+      // https://github.com/Giveth/impact-graph/issues/774#issuecomment-1542337083
+      if (
+        param.oldRank === params.oldBottomRank &&
+        param.newRank === params.newBottomRank
+      ) {
+        // We dont send any notification in this case, because project has no givPower so rank change doesnt matter
+        continue;
+      } else if (param.oldRank === params.oldBottomRank) {
+        eventName = NOTIFICATIONS_EVENT_NAMES.YOUR_PROJECT_GOT_A_RANK;
+      } else if (param.newRank < param.oldRank) {
+        eventName = NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_RISEN_IN_THE_RANK;
+      } else if (param.newRank > param.oldRank) {
+        eventName = NOTIFICATIONS_EVENT_NAMES.PROJECT_HAS_A_NEW_RANK;
+      }
+      logger.info('send rank changed notification ', {
+        eventName,
+        slug: project.slug,
+        newRank: param.newRank,
+        oldRank: param.oldRank,
+        oldBottomRank: params.oldBottomRank,
+        newBottomRank: params.newBottomRank,
+      });
+      await sendProjectRelatedNotificationsQueue.add({
+        project,
+        eventName,
+        sendEmail: true,
+        segment: {
+          analyticsUserId: projectOwner.segmentUserId(),
+          anonymousId: projectOwner.segmentUserId(),
+          payload: getSegmentProjectAttributes({
+            project,
+          }),
+        },
+        trackId: `project-has-new-rank-${param.round}-${param.projectId}`,
+      });
+    }
+  }
 }
 
 const getSegmentDonationAttributes = (params: {
@@ -859,10 +904,10 @@ const getSegmentDonationAttributes = (params: {
 const getSegmentProjectAttributes = (params: { project: Project }) => {
   const { project } = params;
   return {
-    email: project?.adminUser?.email,
+    email: project?.adminUser?.email || '',
     title: project.title,
-    lastName: project?.adminUser?.lastName,
-    firstName: project?.adminUser?.firstName,
+    lastName: project?.adminUser?.lastName || '',
+    firstName: project?.adminUser?.firstName || '',
     OwnerId: project?.adminUser?.id,
     slug: project.slug,
   };

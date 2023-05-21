@@ -73,24 +73,29 @@ export const getAdminJsRouter = async () => {
 // Express Middleware to save query of a search
 export const adminJsQueryCache = async (req, res, next) => {
   if (
-    req.url.startsWith('/admin/api/resources/Project/actions/list') &&
-    req.headers.cookie.includes('adminjs')
+    req.url.startsWith('/admin/api/resources/') &&
+    req.headers.cookie.includes('adminbro')
   ) {
     const admin = await getCurrentAdminJsSession(req);
     if (!admin) return next(); // skip saving queries
 
+    const matches = req.url.match(/\/admin\/api\/resources\/(.+?)(\/|$)/);
+    if (!matches) return next(); // invalid URL
+
+    const resourceName = matches[1];
     const queryStrings = {};
-    // get URL query strings
+
+    // Extract filter names and values from URL query string parameters
     for (const key of Object.keys(req.query)) {
       const [_, filter] = key.split('.');
       if (!filter) continue;
 
       queryStrings[filter] = req.query[key];
     }
-    // save query string for later use with an expiration
-    await redis.set(
-      `adminjs_${admin.id}_qs`,
-      JSON.stringify(queryStrings),
+    // Save query strings to Redis hash with an expiration
+    await redis.hset(
+      `adminbro:${admin.id}:${resourceName}`,
+      queryStrings,
       'ex',
       1800,
     );
