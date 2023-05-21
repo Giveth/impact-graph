@@ -11,9 +11,6 @@ import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
 import { updateTotalDonationsOfProject } from '../src/services/donationService';
 
-// For seeing donations detail you can see this message ( if you have access to channel)
-// https://discord.com/channels/679428761438912522/928813033600475207/1089868809302724618
-
 const fromWalletAddress = '0x809c9f8dd8ca93a41c3adca4972fa234c28f7714';
 const txHash =
   '0x639f0170a9d56a3ea007be67afac8d5afa945421c517dca4c6d54e7941a2e827';
