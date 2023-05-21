@@ -38,6 +38,7 @@ import { PreviousRoundRank } from './previousRoundRank';
 import { InstantPowerBalance } from './instantPowerBalance';
 import { InstantPowerFetchState } from './instantPowerFetchState';
 import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
+import { ReferredEvent } from './referredEvent';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
