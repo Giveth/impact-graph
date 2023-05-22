@@ -556,12 +556,16 @@ export class ProjectResolver {
             (filter === FilterField.AcceptFundOnGnosis ||
               filter === FilterField.AcceptFundOnCelo ||
               filter === FilterField.AcceptFundOnPolygon ||
+              filter === FilterField.AcceptFundOnMainnet ||
               filter === FilterField.AcceptFundOnOptimism) &&
             filter
           ) {
             const networkIds: number[] = [];
             if (filter === FilterField.AcceptFundOnGnosis) {
               networkIds.push(NETWORK_IDS.XDAI);
+            }
+            if (filter === FilterField.AcceptFundOnMainnet) {
+              networkIds.push(NETWORK_IDS.MAIN_NET);
             }
 
             if (filter === FilterField.AcceptFundOnCelo) {
