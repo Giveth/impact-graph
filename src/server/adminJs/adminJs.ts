@@ -205,7 +205,7 @@ const getResources = async (): Promise<AdminJsResources> => {
 
 const getadminJsInstance = async () => {
   const resources = await getResources();
-  return new adminJs({
+  const adminJsInstance = new adminJs({
     branding: {
       logo: 'https://i.imgur.com/cGKo1Tk.png',
       favicon:
@@ -240,6 +240,7 @@ const getadminJsInstance = async () => {
     },
     rootPath: adminJsRootPath,
   });
+  return adminJsInstance;
 };
 
 export const adminJsRootPath = '/admin';

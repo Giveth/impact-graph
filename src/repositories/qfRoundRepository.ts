@@ -28,7 +28,7 @@ export const relateManyProjectsToQfRound = async (params: {
     query = `
       INSERT INTO project_qf_rounds_qf_round ("projectId", "qfRoundId") 
       VALUES ${values}
-      ON CONFLICT (projectId, qfRoundId) DO NOTHING;`;
+      ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;`;
   } else {
     const projectIds = params.projectIds.join(',');
     query = `

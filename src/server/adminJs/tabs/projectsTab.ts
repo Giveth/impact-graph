@@ -416,7 +416,7 @@ export const addProjectToQfRound = async (
   };
 };
 
-export const setSocialProfiles: After<ActionResponse> = async (
+export const fillSocialProfileAndQfRounds: After<ActionResponse> = async (
   response,
   request,
   context,
@@ -437,6 +437,7 @@ export const setSocialProfiles: After<ActionResponse> = async (
         project!.slug
       }`,
       socials,
+      qfRounds: project?.qfRounds,
       projectUpdates,
       adminJsBaseUrl,
     },
@@ -823,6 +824,18 @@ export const projectsTab = {
           show: adminJs.bundle('./components/ProjectUpdates'),
         },
       },
+      qfRounds: {
+        type: 'mixed',
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+        },
+        components: {
+          show: adminJs.bundle('./components/QfRoundsInProject'),
+        },
+      },
       adminJsBaseUrl: {
         type: 'string',
         isVisible: {
@@ -853,7 +866,7 @@ export const projectsTab = {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectAction({ currentAdmin }, ResourceActions.SHOW),
-        after: setSocialProfiles,
+        after: fillSocialProfileAndQfRounds,
       },
       edit: {
         isAccessible: ({ currentAdmin }) =>
