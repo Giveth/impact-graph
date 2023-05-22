@@ -6,7 +6,11 @@ import {
   RevokeSteps,
 } from '../../../entities/project';
 import adminJs from 'adminjs';
-import { canAccessProjectAction, ResourceActions } from '../adminJsPermissions';
+import {
+  canAccessProjectAction,
+  canAccessQfRoundAction,
+  ResourceActions,
+} from '../adminJsPermissions';
 import {
   findProjectById,
   findProjectsByIdArray,
@@ -49,6 +53,11 @@ import {
   makeFormVerified,
 } from '../../../repositories/projectVerificationRepository';
 import { FeaturedUpdate } from '../../../entities/featuredUpdate';
+import {
+  findActiveQfRound,
+  findAllQfRounds,
+  relateManyProjectsToQfRound,
+} from '../../../repositories/qfRoundRepository';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -366,6 +375,42 @@ export const updateStatusOfProjects = async (
     }),
     notice: {
       message: messages.PROJECT_STATUS_UPDATED_SUCCESSFULLY,
+      type: 'success',
+    },
+  };
+};
+
+export const addProjectToQfRound = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+  add: boolean = true,
+) => {
+  const { records, currentAdmin } = context;
+  let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
+  try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const activeQfRound = await findActiveQfRound();
+    if (activeQfRound) {
+      await relateManyProjectsToQfRound({
+        projectIds,
+        qfRoundId: activeQfRound.id,
+        add,
+      });
+    } else {
+      message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
+    }
+  } catch (error) {
+    throw error;
+  }
+  return {
+    redirectUrl: '/admin/resources/Project',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message,
       type: 'success',
     },
   };
@@ -1013,7 +1058,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      unlistProject: {
+      unlist: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1026,7 +1071,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      verifyProject: {
+      verify: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1039,7 +1084,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      rejectProject: {
+      reject: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1066,7 +1111,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      activateProject: {
+      activate: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1079,7 +1124,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      deactivateProject: {
+      deactivate: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1092,7 +1137,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      cancelProject: {
+      cancel: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1102,6 +1147,33 @@ export const projectsTab = {
           ),
         handler: async (request, response, context) => {
           return updateStatusOfProjects(context, request, ProjStatus.cancelled);
+        },
+        component: false,
+      },
+
+      addToQfRound: {
+        actionType: 'bulk',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.ADD_PROJECT_TO_QF_ROUND,
+          ),
+        handler: async (request, response, context) => {
+          return addProjectToQfRound(context, request, true);
+        },
+        component: false,
+      },
+      removeFromQfRound: {
+        actionType: 'bulk',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.ADD_PROJECT_TO_QF_ROUND,
+          ),
+        handler: async (request, response, context) => {
+          return addProjectToQfRound(context, request, false);
         },
         component: false,
       },

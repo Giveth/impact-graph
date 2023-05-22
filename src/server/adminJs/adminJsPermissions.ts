@@ -20,6 +20,8 @@ export enum ResourceActions {
   MAKE_EDITABLE_BY_USER = 'makeEditableByUser',
   VERIFY_PROJECTS = 'verifyProjects',
   REJECT_PROJECTS = 'rejectProjects',
+  ADD_PROJECT_TO_QF_ROUND = 'addToQfRound',
+  REMOVE_PROJECT_FROM_QF_ROUND = 'removeFromQfRound',
 }
 
 // All permissions listed per resource, per role and action
@@ -100,6 +102,8 @@ const qfRoundPermissions = {
     new: true,
     show: true,
     edit: true,
+    addToQfRound: true,
+    removeFromQfRound: true,
   },
   [UserRole.OPERATOR]: {
     show: true,
@@ -109,6 +113,8 @@ const qfRoundPermissions = {
   },
   [UserRole.CAMPAIGN_MANAGER]: {
     show: true,
+    addToQfRound: true,
+    removeFromQfRound: true,
   },
   // Add more roles here as needed
 };
