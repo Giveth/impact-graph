@@ -742,6 +742,11 @@ export const fetchProjectsBySlugQuery = `
        }
       }
       verificationFormStatus
+      qfRounds {
+        id
+        name
+        isActive
+      }
       projectVerificationForm {
         status
         id
