@@ -1231,6 +1231,50 @@ function allProjectsTestCases() {
 
     await campaign.remove();
   });
+  it('should return projects, filter by qfRoundId', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'test filter by qfRoundId',
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project1.qfRounds = [qfRound];
+    await project1.save();
+    project2.qfRounds = [qfRound];
+    await project2.save();
+    project3.qfRounds = [qfRound];
+    await project3.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 3);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.equal(project.qfRounds[0].id, qfRound.id);
+    });
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
 
   it('should return projects, filter by ActiveQfRound', async () => {
     const project = await saveProjectDirectlyToDb({
@@ -1258,7 +1302,6 @@ function allProjectsTestCases() {
         filters: ['ActiveQfRound'],
       },
     });
-
     assert.equal(result.data.data.allProjects.projects.length, 1);
     qfRound.isActive = false;
     await qfRound.save();
