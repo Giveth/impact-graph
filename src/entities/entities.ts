@@ -38,11 +38,13 @@ import { InstantPowerBalance } from './instantPowerBalance';
 import { InstantPowerFetchState } from './instantPowerFetchState';
 import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { QfRound } from './qfRound';
+import { ReferredEvent } from './referredEvent';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
     Organization,
     User,
+    ReferredEvent,
     Project,
 
     BankAccount,

@@ -29,7 +29,7 @@ export const projectsThatTheirRanksHaveChanged = async (): Promise<
     round: number;
   }[]
 > => {
-  return PowerSnapshot.query(
+  const result = await PowerSnapshot.query(
     `
       SELECT
           project_power_view."projectId",
@@ -43,4 +43,12 @@ export const projectsThatTheirRanksHaveChanged = async (): Promise<
       AND project.verified = true;
       `,
   );
+  return result.map(item => {
+    return {
+      projectId: Number(item.projectId),
+      newRank: Number(item.newRank),
+      oldRank: Number(item.oldRank),
+      round: Number(item.round),
+    };
+  });
 };

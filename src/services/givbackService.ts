@@ -27,7 +27,7 @@ export const calculateGivbackFactor = async (
     : minGivFactor;
 
   return {
-    givbackFactor,
+    givbackFactor: givbackFactor || 0,
     projectRank: projectPowerView?.powerRank,
     bottomRankInRound: bottomRank,
     powerRound: powerRound?.round as number,

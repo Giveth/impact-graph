@@ -965,6 +965,76 @@ function allProjectsTestCases() {
     );
   });
 
+  it('should return projects, filter by accept donation on mainnet', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const mainnetAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.MAIN_NET,
+    })) as ProjectAddress;
+    mainnetAddress.isRecipient = true;
+    await mainnetAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnMainnet'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.MAIN_NET,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+
+  it('should return projects, filter by accept donation on mainnet, not return when it doesnt have mainnet address', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const mainnetAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.MAIN_NET,
+    })) as ProjectAddress;
+    mainnetAddress.isRecipient = false;
+    await mainnetAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnMainnet'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.MAIN_NET,
+        ),
+      );
+    });
+    assert.isNotOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+
   it('should return projects, filter by accept donation on polygon', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
