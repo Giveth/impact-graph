@@ -16,6 +16,7 @@ import { createNewAccountVerification } from '../repositories/accountVerificatio
 import { UserByAddressResponse } from './types/userResolver';
 import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 import { AppDataSource } from '../orm';
+import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 
 @Resolver(of => User)
 export class UserResolver {
@@ -42,6 +43,17 @@ export class UserResolver {
       isSignedIn: Boolean(user),
       ...foundUser,
     };
+  }
+
+  @Query(returns => Number, { nullable: true })
+  async getUserScore(
+    @Arg('address', type => String) address: string,
+    @Ctx() { req: { user } }: ApolloContext,
+  ) {
+    const passportScore = await getGitcoinAdapter().getWalletAddressScore(
+      address,
+    );
+    return passportScore?.score;
   }
 
   @Mutation(returns => Boolean)
