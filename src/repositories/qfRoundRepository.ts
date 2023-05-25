@@ -1,5 +1,4 @@
 import { QfRound } from '../entities/qfRound';
-import { ProjectAddress } from '../entities/projectAddress';
 import { AppDataSource } from '../orm';
 
 export const findAllQfRounds = async (): Promise<QfRound[]> => {
@@ -44,16 +43,27 @@ export const relateManyProjectsToQfRound = async (params: {
 export const getProjectDonationsSqrtRootSum = async (
   projectId: number,
   qfRoundId: number,
-) => {
-  const result = await AppDataSource.getDataSource().query(
-    `
-    select coalesce(sum("donationSqrtRoot"), 0) as "sqrtRootSum" from
-        (select sqrt(coalesce("valueUsd", 0)) as "donationSqrtRoot", "projectId" from donation
-            where "projectId" = $1 and "qfRoundId" = $2) as "donations"
---     group by "projectId"
-  `,
-    [projectId, qfRoundId],
-  );
-
-  return result[0].sqrtRootSum;
+): Promise<{ sqrtRootSum: number; count: number }> => {
+  const result = await AppDataSource.getDataSource()
+    .createQueryBuilder()
+    .select('coalesce(sum("donationSqrtRoot"), 0)', 'sqrtRootSum')
+    .addSelect('count(*)', 'count')
+    .from(subQuery => {
+      return subQuery
+        .select(
+          'sqrt(coalesce("valueUsd", 0)) as "donationSqrtRoot", "projectId"',
+        )
+        .from('donation', 'donation')
+        .where('"projectId" = :projectId and "qfRoundId" = :qfRoundId', {
+          projectId,
+          qfRoundId,
+        });
+    }, 'donations')
+    .groupBy()
+    .cache(`pr-dn-sqrt-sum-${projectId}-${qfRoundId}`, 60000)
+    .getRawOne();
+  return {
+    sqrtRootSum: result.sqrtRootSum ? parseFloat(result.sqrtRootSum) : 0,
+    count: result.count ? parseInt(result.count, 10) : 0,
+  };
 };

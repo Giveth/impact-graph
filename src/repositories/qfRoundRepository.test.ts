@@ -33,11 +33,12 @@ function getProjectDonationsSqrRootSumTests() {
   });
 
   it('should return 0 when no donations', async () => {
-    const donationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
+    const { sqrtRootSum, count } = await getProjectDonationsSqrtRootSum(
       project.id,
       qfRound.id,
     );
-    expect(donationsSqrtRootSum).to.equal(0);
+    expect(sqrtRootSum).to.equal(0);
+    expect(count).to.equal(0);
   });
 
   it('should return correct value on single donation', async () => {
@@ -47,11 +48,12 @@ function getProjectDonationsSqrRootSumTests() {
       project.id,
     );
 
-    const donationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
+    const { sqrtRootSum, count } = await getProjectDonationsSqrtRootSum(
       project.id,
       qfRound.id,
     );
-    expect(donationsSqrtRootSum).to.equal(10);
+    expect(sqrtRootSum).to.equal(10);
+    expect(count).to.equal(1);
   });
 
   it('should return correct value on multiple donations', async () => {
@@ -66,13 +68,14 @@ function getProjectDonationsSqrRootSumTests() {
       }),
     );
 
-    const donationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
+    const { sqrtRootSum, count } = await getProjectDonationsSqrtRootSum(
       project.id,
       qfRound.id,
     );
     // sqrtRootSum = sqrt(4) + sqrt(25) + sqrt(100) + sqrt(1024) = 2 + 5 + 10 + 32 = 49
     const expectedSum = 49;
 
-    expect(donationsSqrtRootSum).to.equal(expectedSum);
+    expect(sqrtRootSum).to.equal(expectedSum);
+    expect(count).to.equal(4);
   });
 }
