@@ -58,11 +58,17 @@ function getProjectDonationsSqrRootSumTests() {
 
   it('should return correct value on multiple donations', async () => {
     const valuesUsd = [4, 25, 100, 1024];
+    const userIds = [
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.THIRD_USER.id,
+      SEED_DATA.PROJECT_OWNER_USER.id,
+    ];
     const donations = await Promise.all(
-      valuesUsd.map(valueUsd => {
+      valuesUsd.map((valueUsd, index) => {
         return saveDonationDirectlyToDb(
           { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
-          SEED_DATA.FIRST_USER.id,
+          userIds[index],
           project.id,
         );
       }),

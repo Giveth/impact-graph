@@ -48,16 +48,20 @@ export const getProjectDonationsSqrtRootSum = async (
     .createQueryBuilder()
     .select('coalesce(sum("donationSqrtRoot"), 0)', 'sqrtRootSum')
     .addSelect('count(*)', 'count')
-    .from(subQuery => {
-      return subQuery
-        .select(
-          'sqrt(coalesce("valueUsd", 0)) as "donationSqrtRoot", "projectId"',
-        )
-        .from('donation', 'donation')
-        .where('"projectId" = :projectId and "qfRoundId" = :qfRoundId', {
-          projectId,
-          qfRoundId,
-        });
+    .from(subQuery1 => {
+      return subQuery1
+        .select('sqrt("valueUsd")', 'donationSqrtRoot')
+        .from(donationGroupByUserSubQuery => {
+          return donationGroupByUserSubQuery
+            .select('sum(coalesce("valueUsd", 0))', 'valueUsd')
+            .addSelect('donation.userId', 'userId')
+            .from('donation', 'donation')
+            .where('"projectId" = :projectId and "qfRoundId" = :qfRoundId', {
+              projectId,
+              qfRoundId,
+            })
+            .groupBy('donation.userId');
+        }, 'donationsGroupByUser');
     }, 'donations')
     .groupBy()
     .cache(`pr-dn-sqrt-sum-${projectId}-${qfRoundId}`, 60000)
@@ -67,3 +71,7 @@ export const getProjectDonationsSqrtRootSum = async (
     count: result.count ? parseInt(result.count, 10) : 0,
   };
 };
+//
+// export const getQfRoundTotalProjectsDonationsSum = async (
+//   qfRoundId: number,
+// ) => {};
