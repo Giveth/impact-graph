@@ -84,4 +84,36 @@ function getProjectDonationsSqrRootSumTests() {
     expect(sqrtRootSum).to.equal(expectedSum);
     expect(count).to.equal(4);
   });
+
+  it('should return correct value on multiple donations with same user', async () => {
+    const usersDonations: [number, number[]][] = [
+      [SEED_DATA.FIRST_USER.id, [1, 3]], // 4
+      [SEED_DATA.SECOND_USER.id, [2, 23]], // 25
+      [SEED_DATA.THIRD_USER.id, [3, 97]], // 100
+    ];
+
+    await Promise.all(
+      usersDonations.map(([userId, valuesUsd]) => {
+        return Promise.all(
+          valuesUsd.map(valueUsd => {
+            return saveDonationDirectlyToDb(
+              { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
+              userId,
+              project.id,
+            );
+          }),
+        );
+      }),
+    );
+
+    const { sqrtRootSum, count } = await getProjectDonationsSqrtRootSum(
+      project.id,
+      qfRound.id,
+    );
+    // sqrtRootSum = sqrt(4) + sqrt(25) + sqrt(100) = 2 + 5 + 10 = 17
+    const expectedSum = 17;
+
+    expect(sqrtRootSum).to.equal(expectedSum);
+    expect(count).to.equal(3);
+  });
 }
