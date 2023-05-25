@@ -42,6 +42,11 @@ function getProjectDonationsSqrRootSumTests() {
     await project.save();
   });
 
+  afterEach(async () => {
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
   it('should return 0 when no donations', async () => {
     const { sqrtRootSum, count } = await getProjectDonationsSqrtRootSum(
       project.id,
@@ -151,6 +156,11 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
 
     await firstProject.save();
     await secondProject.save();
+  });
+
+  afterEach(async () => {
+    qfRound.isActive = false;
+    await qfRound.save();
   });
 
   it('should return 0 when no donations', async () => {
