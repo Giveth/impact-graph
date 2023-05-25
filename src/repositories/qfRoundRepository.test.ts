@@ -1,9 +1,10 @@
 import {
   createDonationData,
   createProjectData,
+  generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
-  SEED_DATA,
+  saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { QfRound } from '../entities/qfRound';
 import { expect } from 'chai';
@@ -25,6 +26,7 @@ describe(
 function getProjectDonationsSqrRootSumTests() {
   let qfRound: QfRound;
   let project: Project;
+
   beforeEach(async () => {
     await QfRound.update({}, { isActive: false });
     qfRound = QfRound.create({
@@ -50,9 +52,10 @@ function getProjectDonationsSqrRootSumTests() {
   });
 
   it('should return correct value on single donation', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const donation = await saveDonationDirectlyToDb(
       { ...createDonationData(), valueUsd: 100, qfRoundId: qfRound.id },
-      SEED_DATA.FIRST_USER.id,
+      user.id,
       project.id,
     );
 
@@ -66,17 +69,14 @@ function getProjectDonationsSqrRootSumTests() {
 
   it('should return correct value on multiple donations', async () => {
     const valuesUsd = [4, 25, 100, 1024];
-    const userIds = [
-      SEED_DATA.FIRST_USER.id,
-      SEED_DATA.SECOND_USER.id,
-      SEED_DATA.THIRD_USER.id,
-      SEED_DATA.PROJECT_OWNER_USER.id,
-    ];
-    const donations = await Promise.all(
-      valuesUsd.map((valueUsd, index) => {
+    await Promise.all(
+      valuesUsd.map(async (valueUsd, index) => {
+        const user = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
         return saveDonationDirectlyToDb(
           { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
-          userIds[index],
+          user.id,
           project.id,
         );
       }),
@@ -94,19 +94,22 @@ function getProjectDonationsSqrRootSumTests() {
   });
 
   it('should return correct value on multiple donations with same user', async () => {
-    const usersDonations: [number, number[]][] = [
-      [SEED_DATA.FIRST_USER.id, [1, 3]], // 4
-      [SEED_DATA.SECOND_USER.id, [2, 23]], // 25
-      [SEED_DATA.THIRD_USER.id, [3, 97]], // 100
+    const usersDonations: number[][] = [
+      [1, 3], // 4
+      [2, 23], // 25
+      [3, 97], // 100
     ];
 
     await Promise.all(
-      usersDonations.map(([userId, valuesUsd]) => {
+      usersDonations.map(async valuesUsd => {
+        const user = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
         return Promise.all(
           valuesUsd.map(valueUsd => {
             return saveDonationDirectlyToDb(
               { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
-              userId,
+              user.id,
               project.id,
             );
           }),
@@ -158,19 +161,22 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
   });
 
   it('should return correct value for single project', async () => {
-    const usersDonations: [number, number[]][] = [
-      [SEED_DATA.FIRST_USER.id, [1, 3]], // 4
-      [SEED_DATA.SECOND_USER.id, [2, 23]], // 25
-      [SEED_DATA.THIRD_USER.id, [3, 97]], // 100
+    const usersDonations: number[][] = [
+      [1, 3], // 4
+      [2, 23], // 25
+      [3, 97], // 100
     ];
 
     await Promise.all(
-      usersDonations.map(([userId, valuesUsd]) => {
+      usersDonations.map(async valuesUsd => {
+        const user = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
         return Promise.all(
           valuesUsd.map(valueUsd => {
             return saveDonationDirectlyToDb(
               { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
-              userId,
+              user.id,
               firstProject.id,
             );
           }),
@@ -185,13 +191,16 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
   });
 
   it('should return correct value for multiple projects', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const usersDonations: [number, number, number[]][] = [
-      [SEED_DATA.FIRST_USER.id, firstProject.id, [1, 3]], // 4
-      [SEED_DATA.FIRST_USER.id, secondProject.id, [4, 4 * 3]], // 16
-      [SEED_DATA.SECOND_USER.id, firstProject.id, [2, 23]], // 25
-      [SEED_DATA.SECOND_USER.id, secondProject.id, [4 * 2, 4 * 23]], // 25 * 4
-      [SEED_DATA.THIRD_USER.id, firstProject.id, [3, 97]], // 100
-      [SEED_DATA.THIRD_USER.id, secondProject.id, [3 * 4, 97 * 4]], // 100 * 4
+      [user1.id, firstProject.id, [1, 3]], // 4
+      [user1.id, secondProject.id, [4, 4 * 3]], // 16
+      [user2.id, firstProject.id, [2, 23]], // 25
+      [user2.id, secondProject.id, [4 * 2, 4 * 23]], // 25 * 4
+      [user3.id, firstProject.id, [3, 97]], // 100
+      [user3.id, secondProject.id, [3 * 4, 97 * 4]], // 100 * 4
     ];
 
     await Promise.all(
