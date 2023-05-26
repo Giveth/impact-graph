@@ -37,9 +37,7 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
     } catch (e) {
       logger.error('getWalletAddressScore error', e);
       throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE,
-        ),
+        i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
       );
     }
   }
@@ -58,9 +56,7 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
     } catch (e) {
       logger.error('getListOfScores error', e);
       throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE,
-        ),
+        i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
       );
     }
   }
@@ -79,9 +75,7 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
     } catch (e) {
       logger.error('getSigningMessageAndNonce error', e);
       throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE,
-        ),
+        i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
       );
     }
   }
@@ -107,9 +101,7 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
     } catch (e) {
       logger.error('submitPassport error', e);
       throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE,
-        ),
+        i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
       );
     }
   }
@@ -128,9 +120,7 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
     } catch (e) {
       logger.error('getPassportStamps error', e);
       throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.ERROR_IN_GETTING_ACCESS_TOKEN_BY_AUTHORIZATION_CODE,
-        ),
+        i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
       );
     }
   }
