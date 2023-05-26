@@ -16,7 +16,7 @@ export interface SubmittedPassportResponse {
   status: string;
   last_score_timestamp: string;
   evidence: any | undefined;
-  error: any | undefined;
+  error: string | undefined;
 }
 
 export interface SubmittedPassportsResponse {
