@@ -92,7 +92,7 @@ const gitcoinAdapter = new GitcoinAdapter();
 const mockGitcoinAdapter = new GitcoinMockAdapter();
 
 export const getGitcoinAdapter = () => {
-  switch (process.env.GITCOINT_ADAPTER) {
+  switch (process.env.GITCOIN_ADAPTER) {
     case 'gitcoin':
       return gitcoinAdapter;
     case 'mock':

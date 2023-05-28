@@ -1,3 +1,4 @@
+import { generateRandomEtheriumAddress } from '../../../test/testUtils';
 import {
   GitcoinAdapterInterface,
   SigningMessageAndNonceResponse,
@@ -7,17 +8,29 @@ import {
   GetPassportStampsResponse,
 } from './gitcoinAdapterInterface';
 
+export const cachedReferralAddresses = {};
+
 export class GitcoinMockAdapter implements GitcoinAdapterInterface {
   async getWalletAddressScore(
     address: string,
   ): Promise<SubmittedPassportResponse> {
+    if (cachedReferralAddresses[address]) {
+      return Promise.resolve({
+        address,
+        score: '10',
+        status: 'ok',
+        last_score_timestamp: 'string',
+        evidence: undefined,
+        error: undefined,
+      });
+    }
     return Promise.resolve({
-      address: 'string',
-      score: 'string',
-      status: 'string',
+      address,
+      score: undefined,
+      status: 'Error',
       last_score_timestamp: 'string',
       evidence: undefined,
-      error: undefined,
+      error: 'Invalid address',
     });
   }
   async getListOfScores(): Promise<SubmittedPassportsResponse> {
@@ -41,9 +54,13 @@ export class GitcoinMockAdapter implements GitcoinAdapterInterface {
       nonce: 'string',
     });
   }
+  // Use this method to register in the cache the address for testing
   async submitPassport(
     params: SubmitPassportInput,
   ): Promise<SubmittedPassportResponse> {
+    if (!cachedReferralAddresses[params.address]) {
+      cachedReferralAddresses[params.address] = params.address;
+    }
     return Promise.resolve({
       address: 'string',
       score: 'string',
@@ -54,15 +71,26 @@ export class GitcoinMockAdapter implements GitcoinAdapterInterface {
     });
   }
   async getPassportStamps(address: string): Promise<GetPassportStampsResponse> {
+    if (cachedReferralAddresses[address]) {
+      return Promise.resolve({
+        next: 'string',
+        prev: 'string',
+        items: [
+          {
+            version: '1',
+            credential: 'any',
+          },
+          {
+            version: '1',
+            credential: 'any',
+          },
+        ],
+      });
+    }
     return Promise.resolve({
-      next: 'string',
-      prev: 'string',
-      items: [
-        {
-          version: 'string',
-          credential: 'any',
-        },
-      ],
+      next: null,
+      prev: null,
+      items: [],
     });
   }
 }

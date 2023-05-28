@@ -12,11 +12,11 @@ export interface SubmitPassportInput {
 
 export interface SubmittedPassportResponse {
   address: string;
-  score: string | undefined;
+  score: string | undefined | null;
   status: string;
   last_score_timestamp: string;
-  evidence: any | undefined;
-  error: string | undefined;
+  evidence: any | undefined | null;
+  error: string | undefined | null;
 }
 
 export interface SubmittedPassportsResponse {
@@ -30,8 +30,8 @@ interface StampInterface {
 }
 
 export interface GetPassportStampsResponse {
-  next: string;
-  prev: string;
+  next: string | null | undefined;
+  prev: string | null | undefined;
   items: StampInterface[];
 }
 
