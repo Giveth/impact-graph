@@ -33,6 +33,17 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
           },
         },
       );
+
+      if (
+        result.data.error !== undefined ||
+        result.data.error !== null ||
+        result.data.error !== ''
+      ) {
+        logger.error('getWalletAddressScore error', result.data.error);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
+        );
+      }
       return result.data;
     } catch (e) {
       logger.error('getWalletAddressScore error', e);
@@ -97,6 +108,16 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
           },
         },
       );
+      if (
+        result.data.error !== undefined ||
+        result.data.error !== null ||
+        result.data.error !== ''
+      ) {
+        logger.error('submitPassport error', result.data.error);
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
+        );
+      }
       return result.data;
     } catch (e) {
       logger.error('submitPassport error', e);

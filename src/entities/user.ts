@@ -101,8 +101,12 @@ export class User extends BaseEntity {
   url?: string;
 
   @Field(type => Number, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   passportScore?: number;
+
+  @Field(type => Number, { nullable: true })
+  @Column({ nullable: true, default: null })
+  passportStamps?: number;
 
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })

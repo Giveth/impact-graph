@@ -16,8 +16,8 @@ export class GitcoinMockAdapter implements GitcoinAdapterInterface {
       score: 'string',
       status: 'string',
       last_score_timestamp: 'string',
-      evidence: null,
-      error: null,
+      evidence: undefined,
+      error: undefined,
     });
   }
   async getListOfScores(): Promise<SubmittedPassportsResponse> {
@@ -28,8 +28,8 @@ export class GitcoinMockAdapter implements GitcoinAdapterInterface {
           score: 'string',
           status: 'string',
           last_score_timestamp: 'string',
-          evidence: null,
-          error: null,
+          evidence: undefined,
+          error: undefined,
         },
       ],
       count: 1,
@@ -49,8 +49,8 @@ export class GitcoinMockAdapter implements GitcoinAdapterInterface {
       score: 'string',
       status: 'string',
       last_score_timestamp: 'string',
-      evidence: null,
-      error: null,
+      evidence: undefined,
+      error: undefined,
     });
   }
   async getPassportStamps(address: string): Promise<GetPassportStampsResponse> {

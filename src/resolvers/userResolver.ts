@@ -17,6 +17,7 @@ import { UserByAddressResponse } from './types/userResolver';
 import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 import { AppDataSource } from '../orm';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+import { logger } from '../utils/logger';
 
 @Resolver(of => User)
 export class UserResolver {
@@ -45,15 +46,37 @@ export class UserResolver {
     };
   }
 
-  @Query(returns => Number, { nullable: true })
-  async getUserScore(
+  @Query(returns => User, { nullable: true })
+  async refreshUserScores(
     @Arg('address', type => String) address: string,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
-    const passportScore = await getGitcoinAdapter().getWalletAddressScore(
+    const includeSensitiveFields =
+      user?.walletAddress?.toLowerCase() === address.toLowerCase();
+    const foundUser = await findUserByWalletAddress(
       address,
+      includeSensitiveFields,
     );
-    return passportScore?.score;
+
+    if (!foundUser) return;
+
+    try {
+      const passportScore = await getGitcoinAdapter().getWalletAddressScore(
+        address,
+      );
+      const passportStamps = await getGitcoinAdapter().getPassportStamps(
+        address,
+      );
+
+      if (passportScore) foundUser.passportScore = Number(passportScore.score);
+      if (passportStamps)
+        foundUser.passportStamps = passportStamps.items.length;
+      await foundUser!.save();
+    } catch (e) {
+      logger.error(`refreshUserScores Error with address ${address}: `, e);
+    }
+
+    return foundUser;
   }
 
   @Mutation(returns => Boolean)
