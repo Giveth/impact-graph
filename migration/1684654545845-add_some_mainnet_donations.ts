@@ -10,6 +10,7 @@ import {
 import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
 import { updateTotalDonationsOfProject } from '../src/services/donationService';
+import { calculateGivbackFactor } from '../src/services/givbackService';
 
 const fromWalletAddress = '0x809c9f8dd8ca93a41c3adca4972fa234c28f7714';
 const txHash =
@@ -240,17 +241,21 @@ export class addSomeMainnetDonations1684654545845
     )[0];
 
     for (const tx of transactions) {
-      // Set false for isTokenEligibleForGivback, isProjectVerified because Griff mentioned we dont want to pay givback for them
+      // Set true for isTokenEligibleForGivback, isProjectVerified because Ashley mentioned we want to pay givback for them
       try {
         const createdAt = moment(tx.createdAt).format('YYYY-MM-DD HH:mm:ss');
-        await queryRunner.query(`
-           INSERT INTO donation ("toWalletAddress", "projectId", "fromWalletAddress", "userId", amount, currency, "transactionId", "transactionNetworkId", anonymous, "valueUsd", status, "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt")
-           VALUES ('${tx.toWalletAddress}', ${tx.projectId}, '${tx.fromWalletAddress}', ${user.id}, ${tx.amount}, '${tx.currency}', '${tx.transactionId}', ${tx.transactionNetworkId}, false, ${tx.valueUsd}, 'verified', true, false, false, '${createdAt}');
-                `);
-        await updateUserTotalDonated(user.id);
         const project = (await findProjectById(
           tx.projectId as number,
         )) as Project;
+        const { givbackFactor, projectRank, powerRound, bottomRankInRound } =
+          await calculateGivbackFactor(tx.projectId as number);
+        await queryRunner.query(`
+           INSERT INTO donation ("toWalletAddress", "projectId", "fromWalletAddress", "userId", amount, currency, "transactionId", "transactionNetworkId", anonymous, "valueUsd", status,
+            "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt", "givbackFactor", "powerRound", "projectRank", "bottomRankInRound")
+           VALUES ('${tx.toWalletAddress}', ${tx.projectId}, '${tx.fromWalletAddress}', ${user.id}, ${tx.amount}, '${tx.currency}', '${tx.transactionId}', ${tx.transactionNetworkId}, false, ${tx.valueUsd}, 'verified', 
+             true, true, true, '${createdAt}', ${givbackFactor}, ${powerRound}, ${projectRank}, ${bottomRankInRound});
+                `);
+        await updateUserTotalDonated(user.id);
         await updateUserTotalReceived(project.adminUser?.id);
         await updateTotalDonationsOfProject(tx.projectId as number);
       } catch (e) {
