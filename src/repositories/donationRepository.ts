@@ -293,3 +293,39 @@ export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
     select: ['id'],
   });
 };
+
+export async function countUniqueDonorsForActiveQfRound(
+  projectId: number,
+): Promise<number> {
+  const result = await Donation.query(
+    `
+    SELECT COUNT(DISTINCT "userId") 
+    FROM donation 
+    JOIN qf_round ON donation."qfRoundId" = qf_round.id 
+    WHERE qf_round."isActive" = true
+    AND donation."status" = 'verified'
+    AND donation."projectId" = $1;
+  `,
+    [projectId],
+  );
+  return result[0].count;
+}
+
+export async function sumDonationValueUsdForActiveQfRound(
+  projectId: number,
+): Promise<number> {
+  const result = await Donation.query(
+    `
+    SELECT SUM("valueUsd") 
+    FROM donation 
+    JOIN qf_round ON donation."qfRoundId" = qf_round.id 
+    WHERE qf_round."isActive" = true
+    AND donation."status" = 'verified'
+    AND donation."projectId" = $1;
+  `,
+    [projectId],
+  );
+
+  // result[0].sum could be null
+  return result[0].sum || 0;
+}

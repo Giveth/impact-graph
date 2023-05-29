@@ -1609,6 +1609,7 @@ export interface CreateDonationData {
   projectId?: number;
   status?: string;
   verified?: string;
+  qfRoundId?: number;
 }
 
 export interface CategoryData {

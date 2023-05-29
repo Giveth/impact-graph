@@ -44,6 +44,7 @@ import {
   setUserAsReferrer,
 } from '../repositories/userRepository';
 import {
+  countUniqueDonorsForActiveQfRound,
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
@@ -52,6 +53,7 @@ import {
   donorsCountPerDateByMonthAndYear,
   findDonationById,
   getRecentDonations,
+  sumDonationValueUsdForActiveQfRound,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -158,6 +160,18 @@ class UserDonations {
 
   @Field(type => Int)
   totalCount: number;
+}
+
+@ObjectType()
+class QfDonationInfoByProjectId {
+  @Field(type => Int)
+  donorsCount: number;
+
+  @Field(type => Int)
+  raisedAmount: number;
+
+  @Field(type => Int)
+  estimatedMatching: number;
 }
 
 @ObjectType()
@@ -533,6 +547,26 @@ export class DonationResolver {
     return {
       donations,
       totalCount,
+    };
+  }
+
+  @Query(returns => QfDonationInfoByProjectId, { nullable: true })
+  async qfDonationInfoByProjectId(
+    @Arg('projectId') projectId: number,
+    @Ctx() ctx: ApolloContext,
+  ) {
+    // TODO need integration test
+
+    // TODO should calculate it
+    const estimatedMatching = 2300;
+
+    const raisedAmount = await sumDonationValueUsdForActiveQfRound(projectId);
+    const donorsCount = await countUniqueDonorsForActiveQfRound(projectId);
+
+    return {
+      raisedAmount,
+      donorsCount,
+      estimatedMatching,
     };
   }
 
