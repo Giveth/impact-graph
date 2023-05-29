@@ -1,4 +1,5 @@
 {
+  "GITCOIN_ERROR_FETCHING_DATA": "Unable to fetch gitcoin data",
   "CHAINVINE_CLICK_EVENT_ERROR": "Unable to register click event or link donor",
   "CHAINVINE_REGISTRATION_ERROR": "Chainvine ID failed to be generated for the user",
   "FIAT_DONATION_ALREADY_EXISTS": "Fiat donation already exists",

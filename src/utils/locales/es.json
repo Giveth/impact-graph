@@ -1,4 +1,5 @@
 {
+  "GITCOIN_ERROR_FETCHING_DATA": "Error al solicitar la información de gitcoin",
   "CHAINVINE_CLICK_EVENT_ERROR": "No fue posible registrar el click-event",
   "CHAINVINE_REGISTRATION_ERROR": "Chainvine ID no pudo ser generado para el usuario",
   "FIAT_DONATION_ALREADY_EXISTS": "La donación Fiat ya existe",

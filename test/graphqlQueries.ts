@@ -1029,6 +1029,28 @@ export const userByAddress = `
   }
 `;
 
+export const refreshUserScores = `
+  query ($address: String!) {
+    refreshUserScores(address: $address) {
+      id
+      firstName
+      lastName
+      name
+      email
+      avatar
+      walletAddress
+      url
+      location
+      boostedProjectsCount
+      likedProjectsCount
+      donationsCount
+      projectsCount
+      passportScore
+      passportStamps
+    }
+  }
+`;
+
 export const uploadImageToIpfsQuery = `
   mutation ($fileUpload: FileUploadInputType!) {
     upload(fileUpload: $fileUpload)

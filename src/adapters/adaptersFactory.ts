@@ -17,6 +17,8 @@ import { GivPowerSubgraphAdapterMock } from './givpowerSubgraph/givPowerSubgraph
 import { ChainvineAdapter } from './chainvine/chainvineAdapter';
 import { ChainvineMockAdapter } from './chainvine/chainvineMockAdapter';
 import { IGivPowerSubgraphAdapter } from './givpowerSubgraph/IGivPowerSubgraphAdapter';
+import { GitcoinAdapter } from './gitcoin/gitcoinAdapter';
+import { GitcoinMockAdapter } from './gitcoin/gitcoinMockAdapter';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -83,5 +85,19 @@ export const getChainvineAdapter = () => {
       return mockChainvineAdapter;
     default:
       return mockChainvineAdapter;
+  }
+};
+
+const gitcoinAdapter = new GitcoinAdapter();
+const mockGitcoinAdapter = new GitcoinMockAdapter();
+
+export const getGitcoinAdapter = () => {
+  switch (process.env.GITCOIN_ADAPTER) {
+    case 'gitcoin':
+      return gitcoinAdapter;
+    case 'mock':
+      return mockGitcoinAdapter;
+    default:
+      return mockGitcoinAdapter;
   }
 };
