@@ -11,6 +11,7 @@ import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
 import { updateTotalDonationsOfProject } from '../src/services/donationService';
 import { calculateGivbackFactor } from '../src/services/givbackService';
+import { AppDataSource } from '../src/orm';
 
 const fromWalletAddress = '0x6bed0ce7be8dc307b69cfdc100f87db51bc3823a';
 const txHash =
@@ -239,29 +240,24 @@ export class addSomeMainnetDonations1684654545845
       await queryRunner.query(`SELECT * FROM public.user
         WHERE "walletAddress"='${fromWalletAddress}'`)
     )[0];
-
+    await AppDataSource.initialize();
     for (const tx of transactions) {
       // Set true for isTokenEligibleForGivback, isProjectVerified because Ashley mentioned we want to pay givback for them
-      try {
-        const createdAt = moment(tx.createdAt).format('YYYY-MM-DD HH:mm:ss');
-        const project = (await findProjectById(
-          tx.projectId as number,
-        )) as Project;
-        const { givbackFactor, projectRank, powerRound, bottomRankInRound } =
-          await calculateGivbackFactor(tx.projectId as number);
-        await queryRunner.query(`
+      const createdAt = moment(tx.createdAt).format('YYYY-MM-DD HH:mm:ss');
+      const project = (await findProjectById(
+        tx.projectId as number,
+      )) as Project;
+      const { givbackFactor, projectRank, powerRound, bottomRankInRound } =
+        await calculateGivbackFactor(tx.projectId as number);
+      await queryRunner.query(`
            INSERT INTO donation ("toWalletAddress", "projectId", "fromWalletAddress", "userId", amount, currency, "transactionId", "transactionNetworkId", anonymous, "valueUsd", status,
             "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt", "givbackFactor", "powerRound", "projectRank", "bottomRankInRound")
            VALUES ('${tx.toWalletAddress}', ${tx.projectId}, '${tx.fromWalletAddress}', ${user.id}, ${tx.amount}, '${tx.currency}', '${tx.transactionId}', ${tx.transactionNetworkId}, false, ${tx.valueUsd}, 'verified', 
              true, true, true, '${createdAt}', ${givbackFactor}, ${powerRound}, ${projectRank}, ${bottomRankInRound});
                 `);
-        await updateUserTotalDonated(user.id);
-        await updateUserTotalReceived(project.adminUser?.id);
-        await updateTotalDonationsOfProject(tx.projectId as number);
-      } catch (e) {
-        // tslint:disable-next-line:no-console
-        console.log('Couldnt create donation error: ', e.message);
-      }
+      await updateUserTotalDonated(user.id);
+      await updateUserTotalReceived(project.adminUser?.id);
+      await updateTotalDonationsOfProject(tx.projectId as number);
     }
   }
 
