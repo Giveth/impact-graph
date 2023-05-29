@@ -552,7 +552,7 @@ export class DonationResolver {
 
   @Query(returns => QfDonationInfoByProjectId, { nullable: true })
   async qfDonationInfoByProjectId(
-    @Arg('projectId') projectId: number,
+    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
     @Ctx() ctx: ApolloContext,
   ) {
     // TODO need integration test

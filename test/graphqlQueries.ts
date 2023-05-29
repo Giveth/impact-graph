@@ -389,6 +389,16 @@ export const fetchRecentDonations = `
     }
   }
 `;
+export const qfDonationInfoByProjectId = `
+  query qfDonationInfoByProjectId($projectId: Int!) {
+    qfDonationInfoByProjectId(projectId: $projectId) {
+      raisedAmount
+      donorsCount
+      estimatedMatching
+    }
+  }
+`;
+
 export const fetchTotalDonors = `
   query (
     $fromDate: String
@@ -1355,6 +1365,7 @@ export const projectByIdQuery = `
     }
   }
 `;
+
 export const getProjectsAcceptTokensQuery = `
   query(
       $projectId: Float!,
