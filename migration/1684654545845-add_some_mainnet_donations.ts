@@ -12,7 +12,7 @@ import { Project } from '../src/entities/project';
 import { updateTotalDonationsOfProject } from '../src/services/donationService';
 import { calculateGivbackFactor } from '../src/services/givbackService';
 
-const fromWalletAddress = '0x809c9f8dd8ca93a41c3adca4972fa234c28f7714';
+const fromWalletAddress = '0x6bed0ce7be8dc307b69cfdc100f87db51bc3823a';
 const txHash =
   '0x639f0170a9d56a3ea007be67afac8d5afa945421c517dca4c6d54e7941a2e827';
 const txTimeStamp = new Date(1684435355000);
