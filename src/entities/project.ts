@@ -439,12 +439,12 @@ export class Project extends BaseEntity {
    * Custom Query Builders to chain together
    */
 
-  @Field(type => Int, { nullable: true })
+  @Field(type => Float, { nullable: true })
   async sumDonationValueUsdForActiveQfRound() {
     return sumDonationValueUsdForActiveQfRound(this.id);
   }
 
-  @Field(type => Int, { nullable: true })
+  @Field(type => Float, { nullable: true })
   async sumDonationValueUsd() {
     return sumDonationValueUsd(this.id);
   }

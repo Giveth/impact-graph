@@ -4,6 +4,7 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Float,
   InputType,
   Int,
   Mutation,
@@ -166,19 +167,19 @@ class UserDonations {
 
 @ObjectType()
 class QfDonationInfoByProjectId {
-  @Field(type => Int)
+  @Field(type => Int, { nullable: true })
   donorsCount: number;
 
-  @Field(type => Int)
+  @Field(type => Float, { nullable: true })
   raisedAmountInQfRound: number;
 
-  @Field(type => Int)
+  @Field(type => Int, { nullable: true })
   donorsCountInQfRound: number;
 
-  @Field(type => Int)
+  @Field(type => Float, { nullable: true })
   raisedAmount: number;
 
-  @Field(type => Int)
+  @Field(type => Float, { nullable: true })
   estimatedMatching: number;
 }
 
