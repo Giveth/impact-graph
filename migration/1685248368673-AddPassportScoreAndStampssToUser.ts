@@ -18,7 +18,6 @@ export class AddPassportScoreAndStampssToUser1685248368673
       new TableColumn({
         name: 'passportScore',
         type: 'integer',
-        default: false,
         isNullable: true,
       }),
     );
