@@ -12,12 +12,14 @@ import {
 import { User, UserRole } from '../entities/user';
 import { assert } from 'chai';
 import {
+  countUniqueDonors,
   countUniqueDonorsForActiveQfRound,
   createDonation,
   findDonationById,
   findDonationsByTransactionId,
   findStableCoinDonationsWithoutPrice,
   getPendingDonationsIds,
+  sumDonationValueUsd,
   sumDonationValueUsdForActiveQfRound,
 } from './donationRepository';
 import { updateOldStableCoinDonationsPrice } from '../services/donationService';
@@ -50,6 +52,8 @@ describe(
   'sumDonationValueUsdForActiveQfRound() test cases',
   sumDonationValueUsdForActiveQfRoundTestCases,
 );
+describe('countUniqueDonors() test cases', countUniqueDonorsTestCases);
+describe('sumDonationValueUsd() test cases', sumDonationValueUsdTestCases);
 
 function findDonationsByTransactionIdTestCases() {
   it('should return donation with txHash ', async () => {
@@ -447,6 +451,102 @@ function countUniqueDonorsForActiveQfRoundTestCases() {
   });
 }
 
+function countUniqueDonorsTestCases() {
+  it('should return zero when project has no donation', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const donorCount = await countUniqueDonors(project.id);
+
+    assert.equal(donorCount, 0);
+  });
+
+  it('should not count unverified donations', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    // not verified
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'pending',
+      },
+      donor.id,
+      project.id,
+    );
+
+    const donorCount = await countUniqueDonors(project.id);
+
+    assert.equal(donorCount, 0);
+  });
+  it('should return correctly when there is one  donation', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+      },
+      donor.id,
+      project.id,
+    );
+
+    const donorCount = await countUniqueDonors(project.id);
+    assert.equal(donorCount, 1);
+  });
+  it('should return correctly when there is some donations', async () => {
+    // 3 donations with 2 different donor
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+      },
+      donor1.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+      },
+      donor1.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+      },
+      donor2.id,
+      project.id,
+    );
+
+    const donorCount = await countUniqueDonors(project.id);
+
+    assert.equal(donorCount, 2);
+  });
+}
+
 function sumDonationValueUsdForActiveQfRoundTestCases() {
   it('should return zero when project has no qfRound donation', async () => {
     const project = await saveProjectDirectlyToDb({
@@ -619,5 +719,103 @@ function sumDonationValueUsdForActiveQfRoundTestCases() {
 
     qfRound.isActive = false;
     await qfRound.save();
+  });
+}
+
+function sumDonationValueUsdTestCases() {
+  it('should return zero when project has no  donation', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const donationSum = await sumDonationValueUsd(project.id);
+    assert.equal(donationSum, 0);
+  });
+
+  it('should not count unverified donations', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const valueUsd1 = 100;
+    const valueUsd2 = 50;
+    // not verified
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'pending',
+        valueUsd: valueUsd1,
+      },
+      donor.id,
+      project.id,
+    );
+
+    // not qfRound
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd2,
+      },
+      donor.id,
+      project.id,
+    );
+
+    const donationSum = await sumDonationValueUsd(project.id);
+
+    assert.equal(donationSum, valueUsd2);
+  });
+
+  it('should return correctly when there is some verified donation', async () => {
+    // 3 donations with 2 different donor
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const valueUsd1 = 100;
+    const valueUsd2 = 200;
+    const valueUsd3 = 300;
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd1,
+      },
+      donor1.id,
+      project.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd2,
+      },
+      donor1.id,
+      project.id,
+    );
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: valueUsd3,
+      },
+      donor2.id,
+      project.id,
+    );
+
+    const donationSum = await sumDonationValueUsd(project.id);
+
+    assert.equal(donationSum, valueUsd1 + valueUsd2 + valueUsd3);
   });
 }

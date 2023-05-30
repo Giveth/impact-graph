@@ -44,6 +44,7 @@ import {
   setUserAsReferrer,
 } from '../repositories/userRepository';
 import {
+  countUniqueDonors,
   countUniqueDonorsForActiveQfRound,
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
@@ -53,6 +54,7 @@ import {
   donorsCountPerDateByMonthAndYear,
   findDonationById,
   getRecentDonations,
+  sumDonationValueUsd,
   sumDonationValueUsdForActiveQfRound,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
@@ -166,6 +168,12 @@ class UserDonations {
 class QfDonationInfoByProjectId {
   @Field(type => Int)
   donorsCount: number;
+
+  @Field(type => Int)
+  raisedAmountInQfRound: number;
+
+  @Field(type => Int)
+  donorsCountInQfRound: number;
 
   @Field(type => Int)
   raisedAmount: number;
@@ -560,10 +568,18 @@ export class DonationResolver {
     // TODO should calculate it
     const estimatedMatching = 2300;
 
-    const raisedAmount = await sumDonationValueUsdForActiveQfRound(projectId);
-    const donorsCount = await countUniqueDonorsForActiveQfRound(projectId);
+    const raisedAmountInQfRound = await sumDonationValueUsdForActiveQfRound(
+      projectId,
+    );
+    const donorsCountInQfRound = await countUniqueDonorsForActiveQfRound(
+      projectId,
+    );
+    const raisedAmount = await sumDonationValueUsd(projectId);
+    const donorsCount = await countUniqueDonors(projectId);
 
     return {
+      raisedAmountInQfRound,
+      donorsCountInQfRound,
       raisedAmount,
       donorsCount,
       estimatedMatching,

@@ -395,6 +395,8 @@ export const qfDonationInfoByProjectId = `
       raisedAmount
       donorsCount
       estimatedMatching
+      donorsCountInQfRound,
+      raisedAmountInQfRound
     }
   }
 `;
@@ -725,6 +727,11 @@ export const fetchMultiFilterAllProjectsQuery = `
         totalReactions
         totalDonations
         totalTraceDonations
+        sumDonationValueUsdForActiveQfRound
+        sumDonationValueUsd
+        countUniqueDonorsForActiveQfRound
+        countUniqueDonors
+        estimatedMatching
       }
       totalCount
       categories {

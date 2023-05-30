@@ -40,6 +40,13 @@ import { Category } from './category';
 import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
+import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
+import {
+  countUniqueDonors,
+  countUniqueDonorsForActiveQfRound,
+  sumDonationValueUsd,
+  sumDonationValueUsdForActiveQfRound,
+} from '../repositories/donationRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -379,9 +386,6 @@ export class Project extends BaseEntity {
   // User reaction to the project
   @Field({ nullable: true })
   reaction?: Reaction;
-  /**
-   * Custom Query Builders to chain together
-   */
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: Number) {
@@ -430,6 +434,35 @@ export class Project extends BaseEntity {
       description,
       createdAt: new Date(),
     }).save();
+  }
+  /**
+   * Custom Query Builders to chain together
+   */
+
+  @Field(type => Int, { nullable: true })
+  async sumDonationValueUsdForActiveQfRound() {
+    return sumDonationValueUsdForActiveQfRound(this.id);
+  }
+
+  @Field(type => Int, { nullable: true })
+  async sumDonationValueUsd() {
+    return sumDonationValueUsd(this.id);
+  }
+
+  @Field(type => Int, { nullable: true })
+  async countUniqueDonorsForActiveQfRound() {
+    return countUniqueDonorsForActiveQfRound(this.id);
+  }
+
+  @Field(type => Int, { nullable: true })
+  async countUniqueDonors() {
+    return countUniqueDonors(this.id);
+  }
+
+  @Field(type => Int, { nullable: true })
+  async estimatedMatching() {
+    // TODO should fill it with real data
+    return 3200;
   }
 
   // Status 7 is deleted status

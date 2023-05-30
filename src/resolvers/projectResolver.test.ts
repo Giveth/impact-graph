@@ -295,6 +295,11 @@ function allProjectsTestCases() {
         project.descriptionSummary,
         getHtmlTextSummary(project.description),
       );
+      assert.exists(project.estimatedMatching);
+      assert.exists(project.sumDonationValueUsd);
+      assert.exists(project.sumDonationValueUsdForActiveQfRound);
+      assert.exists(project.countUniqueDonorsForActiveQfRound);
+      assert.exists(project.countUniqueDonors);
     });
   });
 
