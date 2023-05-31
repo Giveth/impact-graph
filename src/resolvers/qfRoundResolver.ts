@@ -39,7 +39,7 @@ export class QfRoundResolver {
     @Arg('projectId') projectId: number,
   ): Promise<ExpectedMatchingResponse | null> {
     const activeQfRound = await findActiveQfRound();
-    if (activeQfRound === null) {
+    if (!activeQfRound) {
       return null;
     }
 
