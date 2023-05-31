@@ -4,6 +4,12 @@ import {
   getQfRoundTotalProjectsDonationsSum,
 } from '../repositories/qfRoundRepository';
 
+// // Setup a divisor based on available match
+// let divisor = match / summed;
+// // Multiply matched values with divisor to get match amount in range of available funds
+// for (let i = 0; i < newData.length; i++) {
+//   newData[i].match *= divisor;
+// }
 export const calculateEstimateMatchingForProjectById = async (
   projectId: number,
 ): Promise<number | null> => {
