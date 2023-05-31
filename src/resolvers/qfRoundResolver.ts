@@ -8,6 +8,8 @@ import { AppDataSource } from '../orm';
 import {
   findActiveQfRound,
   findAllQfRounds,
+  getProjectDonationsSqrtRootSum,
+  getQfRoundTotalProjectsDonationsSumExcludingProjectById,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 
@@ -30,13 +32,34 @@ export class QfRoundResolver {
     return findAllQfRounds();
   }
 
-  // @Query(() => ExpectedMatchingResponse, { nullable: true })
-  // async expectedMatching(
-  //   @Arg('projectId') projectId: string,
-  // ): Promise<ExpectedMatchingResponse | null> {
-  //   const activeQfRound = await findActiveQfRound();
-  //   if (activeQfRound === null) {
-  //     return null;
-  //   }
-  // }
+  // This will be the formula data separated by parts so frontend
+  // can calculate the estimated matchin added per new donation
+  @Query(() => ExpectedMatchingResponse, { nullable: true })
+  async expectedMatching(
+    @Arg('projectId') projectId: number,
+  ): Promise<ExpectedMatchingResponse | null> {
+    const activeQfRound = await findActiveQfRound();
+    if (!activeQfRound) {
+      return null;
+    }
+
+    const projectDonationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
+      projectId,
+      activeQfRound.id,
+    );
+
+    const otherProjectsSum =
+      await getQfRoundTotalProjectsDonationsSumExcludingProjectById(
+        projectId,
+        activeQfRound.id,
+      );
+
+    const matchingPool = activeQfRound.allocatedFund;
+
+    return {
+      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
+      otherProjectsSum: otherProjectsSum.sum,
+      matchingPool,
+    };
+  }
 }
