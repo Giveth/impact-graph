@@ -10,7 +10,7 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import { User, UserRole } from '../entities/user';
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import {
   countUniqueDonors,
   countUniqueDonorsForActiveQfRound,
@@ -28,6 +28,9 @@ import moment from 'moment';
 import { QfRound } from '../entities/qfRound';
 import axios from 'axios';
 import { fetchMultiFilterAllProjectsQuery } from '../../test/graphqlQueries';
+import { Project } from '../entities/project';
+import { getQfRoundTotalProjectsDonationsSum } from './qfRoundRepository';
+import { calculateEstimateMatchingForProjectById } from '../services/qfRoundService';
 
 describe('createDonation test cases', createDonationTestCases);
 
@@ -54,6 +57,126 @@ describe(
 );
 describe('countUniqueDonors() test cases', countUniqueDonorsTestCases);
 describe('sumDonationValueUsd() test cases', sumDonationValueUsdTestCases);
+describe('estimatedMatching() test cases', estimatedMatchingTestCases);
+
+function estimatedMatchingTestCases() {
+  let qfRound: QfRound;
+  let firstProject: Project;
+  let secondProject: Project;
+  beforeEach(async () => {
+    await QfRound.update({}, { isActive: false });
+    qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: new Date(),
+    });
+    await qfRound.save();
+    firstProject = await saveProjectDirectlyToDb(createProjectData());
+    secondProject = await saveProjectDirectlyToDb(createProjectData());
+
+    firstProject.qfRounds = [qfRound];
+    secondProject.qfRounds = [qfRound];
+
+    await firstProject.save();
+    await secondProject.save();
+  });
+
+  afterEach(async () => {
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
+  it('should return the correct matching distribution for two projects', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const usersDonations: [number, number, number[]][] = [
+      [user1.id, firstProject.id, [1, 3]], // 4
+      [user1.id, secondProject.id, [4, 4 * 3]], // 16
+      [user2.id, firstProject.id, [2, 23]], // 25
+      [user2.id, secondProject.id, [4 * 2, 4 * 23]], // 25 * 4
+      [user3.id, firstProject.id, [3, 97]], // 100
+      [user3.id, secondProject.id, [3 * 4, 97 * 4]], // 100 * 4
+    ];
+
+    await Promise.all(
+      usersDonations.map(([userId, projectId, valuesUsd]) => {
+        return Promise.all(
+          valuesUsd.map(valueUsd => {
+            return saveDonationDirectlyToDb(
+              { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
+              userId,
+              projectId,
+            );
+          }),
+        );
+      }),
+    );
+
+    const firstProjectMatch = await calculateEstimateMatchingForProjectById(
+      firstProject.id,
+    );
+    const secondProjectMatch = await calculateEstimateMatchingForProjectById(
+      secondProject.id,
+    );
+
+    // the sum of the matchs of each project according to its donations should equal the
+    // allocated funds of the round.
+    // Both have same amount of donations, so in this case bigger donations generate more matching
+    assert.equal(
+      firstProjectMatch! + secondProjectMatch!,
+      qfRound.allocatedFund,
+    );
+    assert.isTrue(secondProjectMatch! > firstProjectMatch!);
+  });
+
+  it('should return the higher matching for a project with more donations', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    // REMOVED from second project 2 donations
+    const usersDonations: [number, number, number[]][] = [
+      [user1.id, firstProject.id, [1, 3]], // 4
+      [user1.id, secondProject.id, [4, 4 * 3]], // 16
+      [user2.id, firstProject.id, [2, 23]], // 25
+      [user2.id, secondProject.id, [4 * 2, 4 * 23]], // 25 * 4
+      [user3.id, firstProject.id, [3, 97]], // 100
+    ];
+
+    await Promise.all(
+      usersDonations.map(([userId, projectId, valuesUsd]) => {
+        return Promise.all(
+          valuesUsd.map(valueUsd => {
+            return saveDonationDirectlyToDb(
+              { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
+              userId,
+              projectId,
+            );
+          }),
+        );
+      }),
+    );
+
+    const firstProjectMatch = await calculateEstimateMatchingForProjectById(
+      firstProject.id,
+    );
+    const secondProjectMatch = await calculateEstimateMatchingForProjectById(
+      secondProject.id,
+    );
+
+    // the sum of the matchs of each project according to its donations should equal the
+    // allocated funds of the round.
+    // AS the first project has more support by having 2 more donations
+    // The matching will be higher even if the donations are smaller in amount
+    assert.equal(
+      firstProjectMatch! + secondProjectMatch!,
+      qfRound.allocatedFund,
+    );
+    assert.isTrue(secondProjectMatch! < firstProjectMatch!);
+  });
+}
 
 function findDonationsByTransactionIdTestCases() {
   it('should return donation with txHash ', async () => {

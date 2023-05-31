@@ -47,6 +47,7 @@ import {
   sumDonationValueUsd,
   sumDonationValueUsdForActiveQfRound,
 } from '../repositories/donationRepository';
+import { calculateEstimateMatchingForProjectById } from '../services/qfRoundService';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -461,8 +462,7 @@ export class Project extends BaseEntity {
 
   @Field(type => Int, { nullable: true })
   async estimatedMatching() {
-    // TODO should fill it with real data
-    return 3200;
+    return calculateEstimateMatchingForProjectById(this.id);
   }
 
   // Status 7 is deleted status
