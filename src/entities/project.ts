@@ -460,7 +460,7 @@ export class Project extends BaseEntity {
     return countUniqueDonors(this.id);
   }
 
-  @Field(type => Int, { nullable: true })
+  @Field(type => Float, { nullable: true })
   async estimatedMatching() {
     return calculateEstimateMatchingForProjectById(this.id);
   }
