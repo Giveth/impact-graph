@@ -31,5 +31,6 @@ export const calculateEstimateMatchingForProjectById = async (
 
   const estimatedMatch = projectMatch.sqrtRootSum * divisor;
 
-  return estimatedMatch;
+  // Dont want to send NaN
+  return estimatedMatch || 0;
 };
