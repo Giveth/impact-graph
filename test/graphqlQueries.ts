@@ -737,7 +737,20 @@ export const fetchMultiFilterAllProjectsQuery = `
       categories {
         name
       }
-    
+    }
+  }
+`;
+
+export const expectedMatchingFormulaQuery = `
+  query (
+    projectId: Int!
+  ) {
+    expectedMatching(
+      projectId: $projectId
+    ) {
+      projectDonationsSqrtRootSum
+      otherProjectsSum
+      matchingPool
     }
   }
 `;
