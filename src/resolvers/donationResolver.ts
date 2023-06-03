@@ -66,6 +66,7 @@ import { AppDataSource } from '../orm';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
 import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
+import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
 
 @ObjectType()
 class PaginateDonations {
@@ -720,6 +721,12 @@ export class DonationResolver {
         } catch (e) {
           logger.error('get chainvine wallet address error', e);
         }
+      }
+      const activeQfRoundForProject = await relatedActiveQfRoundForProject(
+        projectId,
+      );
+      if (activeQfRoundForProject) {
+        donation.qfRound = activeQfRoundForProject;
       }
       await donation.save();
 
