@@ -56,6 +56,7 @@ import { ChainvineMockAdapter } from '../adapters/chainvine/chainvineMockAdapter
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
 import { QfRound } from '../entities/qfRound';
+import { findProjectById } from '../repositories/projectRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -548,7 +549,7 @@ function createDonationTestCases() {
     assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.equal(donation?.referrerWallet, user2.walletAddress);
     assert.isOk(donation?.referralStartTimestamp);
-    assert.isNotOk(donation?.qfRoundId);
+    assert.isNotOk(donation?.qfRound);
   });
   it('should create a donation in an active qfRound', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -608,7 +609,8 @@ function createDonationTestCases() {
         id: saveDonationResponse.data.data.createDonation,
       },
     });
-    assert.equal(donation?.qfRoundId as number, qfRound.id);
+
+    assert.equal(donation?.qfRound?.id as number, qfRound.id);
     qfRound.isActive = false;
     await qfRound.save();
   });
