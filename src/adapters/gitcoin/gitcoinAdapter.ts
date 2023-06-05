@@ -26,7 +26,9 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
   ): Promise<SubmittedPassportResponse> {
     try {
       const result = await axios.get(
-        `${GITCOIN_API_BASE_URL}/registry/score/${this.ScorerID}/${address}`,
+        `${GITCOIN_API_BASE_URL}/registry/score/${
+          this.ScorerID
+        }/${address.toLowerCase()}`,
         {
           headers: {
             'X-API-KEY': this.GitcoinApiKey,
@@ -34,11 +36,7 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
         },
       );
 
-      if (
-        result.data.error !== undefined ||
-        result.data.error !== null ||
-        result.data.error !== ''
-      ) {
+      if (result.data.error !== null) {
         logger.error('getWalletAddressScore error', result.data.error);
         throw new Error(
           i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
@@ -108,11 +106,7 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
           },
         },
       );
-      if (
-        result.data.error !== undefined ||
-        result.data.error !== null ||
-        result.data.error !== ''
-      ) {
+      if (result.data.error !== null) {
         logger.error('submitPassport error', result.data.error);
         throw new Error(
           i18n.__(translationErrorMessagesKeys.GITCOIN_ERROR_FETCHING_DATA),
@@ -130,7 +124,7 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
   async getPassportStamps(address: string): Promise<GetPassportStampsResponse> {
     try {
       const result = await axios.get(
-        `${GITCOIN_API_BASE_URL}/registry/stamps/${address}`,
+        `${GITCOIN_API_BASE_URL}/registry/stamps/${address.toLowerCase()}`,
         {
           headers: {
             'X-API-KEY': this.GitcoinApiKey,

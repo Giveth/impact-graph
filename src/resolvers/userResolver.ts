@@ -68,7 +68,8 @@ export class UserResolver {
         address,
       );
 
-      if (passportScore) foundUser.passportScore = Number(passportScore.score);
+      if (passportScore)
+        foundUser.passportScore = Number(passportScore.score) || 0;
       if (passportStamps)
         foundUser.passportStamps = passportStamps.items.length;
       await foundUser!.save();
