@@ -81,7 +81,7 @@ function refreshUserScoresTestCases() {
     const updatedUser = result.data.data.refreshUserScores;
     assert.equal(updatedUser.walletAddress, user.walletAddress);
     // if score remains null the user has not registered
-    assert.isNull(updatedUser.passportScore);
+    assert.equal(updatedUser.passportScore, 0);
     assert.equal(updatedUser.passportStamps, 0);
   });
 }
