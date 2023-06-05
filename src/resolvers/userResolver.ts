@@ -68,8 +68,11 @@ export class UserResolver {
         address,
       );
 
-      if (passportScore)
-        foundUser.passportScore = Number(passportScore.score) || 0;
+      if (passportScore) {
+        const score = Number(passportScore.score);
+        foundUser.passportScore = isNaN(score) ? 0 : score;
+      }
+
       if (passportStamps)
         foundUser.passportStamps = passportStamps.items.length;
       await foundUser!.save();
