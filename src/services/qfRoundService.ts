@@ -3,6 +3,8 @@ import {
   getProjectDonationsSqrtRootSumToThePowerOfTwo,
   getQfRoundTotalProjectsDonationsSum,
 } from '../repositories/qfRoundRepository';
+import { findProjectById } from '../repositories/projectRepository';
+import { QfRound } from '../entities/qfRound';
 
 // // Setup a divisor based on available match
 // let divisor = match / summed;
@@ -33,4 +35,22 @@ export const calculateEstimateMatchingForProjectById = async (
 
   // Dont want to send NaN
   return estimatedMatch || 0;
+};
+
+export const relatedActiveQfRoundForProject = async (
+  projectId: number,
+): Promise<QfRound | null> => {
+  const project = await findProjectById(projectId);
+  if (!project || !project?.listed || !project?.verified) {
+    return null;
+  }
+  const now = new Date();
+  const qfRound = project?.qfRounds.find(
+    qr => qr.isActive && qr.beginDate <= now && now <= qr.endDate,
+  );
+
+  if (!qfRound) {
+    return null;
+  }
+  return qfRound;
 };

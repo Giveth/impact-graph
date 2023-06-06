@@ -462,7 +462,8 @@ export class Project extends BaseEntity {
 
   @Field(type => Float, { nullable: true })
   async estimatedMatching() {
-    return calculateEstimateMatchingForProjectById(this.id);
+    // TODO should move it to materialized view
+    // return calculateEstimateMatchingForProjectById(this.id);
   }
 
   // Status 7 is deleted status
