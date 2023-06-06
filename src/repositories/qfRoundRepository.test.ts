@@ -48,12 +48,10 @@ function getProjectDonationsSqrRootSumTests() {
   });
 
   it('should return 0 when no donations', async () => {
-    const { sqrtRootSum, count } = await getProjectDonationsSqrtRootSum(
-      project.id,
-      qfRound.id,
-    );
+    const { sqrtRootSum, uniqueDonationCount } =
+      await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
     expect(sqrtRootSum).to.equal(0);
-    expect(count).to.equal(0);
+    expect(uniqueDonationCount).to.equal(0);
   });
 
   it('should return correct value on single donation', async () => {
@@ -64,12 +62,10 @@ function getProjectDonationsSqrRootSumTests() {
       project.id,
     );
 
-    const { sqrtRootSum, count } = await getProjectDonationsSqrtRootSum(
-      project.id,
-      qfRound.id,
-    );
+    const { sqrtRootSum, uniqueDonationCount } =
+      await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
     expect(sqrtRootSum).to.equal(10);
-    expect(count).to.equal(1);
+    expect(uniqueDonationCount).to.equal(1);
   });
 
   it('should return correct value on multiple donations', async () => {
@@ -87,15 +83,13 @@ function getProjectDonationsSqrRootSumTests() {
       }),
     );
 
-    const { sqrtRootSum, count } = await getProjectDonationsSqrtRootSum(
-      project.id,
-      qfRound.id,
-    );
+    const { sqrtRootSum, uniqueDonationCount } =
+      await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
     // sqrtRootSum = sqrt(4) + sqrt(25) + sqrt(100) + sqrt(1024) = 2 + 5 + 10 + 32 = 49
     const expectedSum = 49;
 
     expect(sqrtRootSum).to.equal(expectedSum);
-    expect(count).to.equal(4);
+    expect(uniqueDonationCount).to.equal(4);
   });
 
   it('should return correct value on multiple donations with same user', async () => {
@@ -122,15 +116,13 @@ function getProjectDonationsSqrRootSumTests() {
       }),
     );
 
-    const { sqrtRootSum, count } = await getProjectDonationsSqrtRootSum(
-      project.id,
-      qfRound.id,
-    );
+    const { sqrtRootSum, uniqueDonationCount } =
+      await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
     // sqrtRootSum = sqrt(4) + sqrt(25) + sqrt(100) = 2 + 5 + 10 = 17
     const expectedSum = 17;
 
     expect(sqrtRootSum).to.equal(expectedSum);
-    expect(count).to.equal(3);
+    expect(uniqueDonationCount).to.equal(3);
   });
 }
 
