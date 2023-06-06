@@ -49,6 +49,7 @@ import {
   makeFormVerified,
 } from '../../../repositories/projectVerificationRepository';
 import { FeaturedUpdate } from '../../../entities/featuredUpdate';
+import { User } from '../../../entities/user';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -892,7 +893,10 @@ export const projectsTab = {
           });
           if (project) {
             if (request?.record?.params?.adminChanged) {
-              project.adminUserId = Number(project.admin);
+              const adminUser = await User.findOne({
+                where: { id: Number(project.admin) },
+              });
+              project.adminUser = adminUser!;
               await project.save();
             }
             // Not required for now
