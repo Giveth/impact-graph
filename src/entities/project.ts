@@ -40,12 +40,11 @@ import { Category } from './category';
 import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
-import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
 import {
   countUniqueDonors,
-  countUniqueDonorsForActiveQfRound,
+  countUniqueDonorsForRound,
   sumDonationValueUsd,
-  sumDonationValueUsdForActiveQfRound,
+  sumDonationValueUsdForQfRound,
 } from '../repositories/donationRepository';
 import { calculateEstimateMatchingForProjectById } from '../services/qfRoundService';
 
@@ -442,7 +441,13 @@ export class Project extends BaseEntity {
 
   @Field(type => Float, { nullable: true })
   async sumDonationValueUsdForActiveQfRound() {
-    return sumDonationValueUsdForActiveQfRound(this.id);
+    const activeQfRound = this.getActiveQfRound();
+    return activeQfRound
+      ? await sumDonationValueUsdForQfRound({
+          projectId: this.id,
+          qfRoundId: activeQfRound.id,
+        })
+      : 0;
   }
 
   @Field(type => Float, { nullable: true })
@@ -452,7 +457,13 @@ export class Project extends BaseEntity {
 
   @Field(type => Int, { nullable: true })
   async countUniqueDonorsForActiveQfRound() {
-    return countUniqueDonorsForActiveQfRound(this.id);
+    const activeQfRound = this.getActiveQfRound();
+    return activeQfRound
+      ? await countUniqueDonorsForRound({
+          projectId: this.id,
+          qfRoundId: activeQfRound.id,
+        })
+      : 0;
   }
 
   @Field(type => Int, { nullable: true })
@@ -463,6 +474,10 @@ export class Project extends BaseEntity {
   @Field(type => Float, { nullable: true })
   async estimatedMatching() {
     return calculateEstimateMatchingForProjectById(this.id);
+  }
+
+  getActiveQfRound(): QfRound | undefined {
+    return this.qfRounds.find(r => r.isActive === true);
   }
 
   // Status 7 is deleted status

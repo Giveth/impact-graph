@@ -46,7 +46,7 @@ import {
 } from '../repositories/userRepository';
 import {
   countUniqueDonors,
-  countUniqueDonorsForActiveQfRound,
+  countUniqueDonorsForRound,
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
@@ -56,7 +56,7 @@ import {
   findDonationById,
   getRecentDonations,
   sumDonationValueUsd,
-  sumDonationValueUsdForActiveQfRound,
+  sumDonationValueUsdForQfRound,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -568,13 +568,21 @@ export class DonationResolver {
 
     // TODO should calculate it
     const estimatedMatching = 2300;
+    const project = await findProjectById(projectId);
+    const activeQfRound = project?.qfRounds.find(r => r.isActive === true);
 
-    const raisedAmountInQfRound = await sumDonationValueUsdForActiveQfRound(
-      projectId,
-    );
-    const donorsCountInQfRound = await countUniqueDonorsForActiveQfRound(
-      projectId,
-    );
+    const raisedAmountInQfRound = activeQfRound
+      ? await sumDonationValueUsdForQfRound({
+          projectId,
+          qfRoundId: activeQfRound.id,
+        })
+      : 0;
+    const donorsCountInQfRound = activeQfRound
+      ? await countUniqueDonorsForRound({
+          projectId,
+          qfRoundId: activeQfRound.id,
+        })
+      : 0;
     const raisedAmount = await sumDonationValueUsd(projectId);
     const donorsCount = await countUniqueDonors(projectId);
 

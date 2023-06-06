@@ -10,6 +10,7 @@ export class createQfRoundTable1684071046520 implements MigrationInterface {
                 "allocatedFund" integer NOT NULL,
                 "beginDate" timestamp without time zone NOT NULL,
                 "endDate" timestamp without time zone NOT NULL,
+                "minimumPassportScore" real NOT NULL DEFAULT 0,
                 "updatedAt" timestamp without time zone NOT NULL DEFAULT now(),
                 "createdAt" timestamp without time zone NOT NULL DEFAULT now(),
                 CONSTRAINT "PK_qfRoundId" PRIMARY KEY ("id")

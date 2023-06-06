@@ -1,8 +1,7 @@
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
 import config from '../config';
-
-const isTestEnv = (config.get('ENVIRONMENT') as string) === 'test';
+import { isTestEnv } from '../utils/utils';
 
 export const findAllQfRounds = async (): Promise<QfRound[]> => {
   return QfRound.createQueryBuilder('qf_round')
@@ -43,33 +42,24 @@ export const relateManyProjectsToQfRound = async (params: {
   return QfRound.query(query);
 };
 
-export const getProjectDonationsSqrtRootSum = async (
+export async function getProjectDonationsSqrtRootSum(
   projectId: number,
   qfRoundId: number,
-): Promise<{ sqrtRootSum: number; count: number }> => {
-  const result = await AppDataSource.getDataSource()
-    .createQueryBuilder()
-    .select('sum(sqrt("valueUsd"))', 'sqrtRootSum')
-    .addSelect('count(*)', 'count')
-    .from(donationGroupByUserSubQuery => {
-      return donationGroupByUserSubQuery
-        .select('sum(coalesce("valueUsd", 0))', 'valueUsd')
-        .addSelect('donation.userId', 'userId')
-        .from('donation', 'donation')
-        .where('"projectId" = :projectId and "qfRoundId" = :qfRoundId', {
-          projectId,
-          qfRoundId,
-        })
-        .groupBy('donation.userId');
-    }, 'donationsGroupByUser')
-    .groupBy()
-    .cache(`pr-dn-sqrt-sum-${projectId}-${qfRoundId}`, 60000)
-    .getRawOne();
+): Promise<{ sqrtRootSum: number; uniqueDonationCount: number }> {
+  const result = await AppDataSource.getDataSource().query(
+    `
+      SELECT "sqrtRootSum", "uniqueDonationCount"
+      FROM project_estimated_matching_view
+      WHERE "projectId" = $1 AND "qfRoundId" = $2;
+    `,
+    [projectId, qfRoundId],
+  );
+
   return {
-    sqrtRootSum: result?.sqrtRootSum || 0,
-    count: result?.count ? parseInt(result.count, 10) : 0,
+    sqrtRootSum: result[0] ? result[0].sqrtRootSum : 0,
+    uniqueDonationCount: result[0] ? result[0].uniqueDonationCount : 0,
   };
-};
+}
 
 export const getProjectDonationsSqrtRootSumToThePowerOfTwo = async (
   projectId: number,
