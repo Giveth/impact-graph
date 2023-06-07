@@ -179,7 +179,8 @@ const getResources = async (): Promise<AdminJsResources> => {
   resources.forEach(resource => {
     const options = resource.options || {};
     const actions = options.actions || {};
-    const targetActionNames = Object.values(ResourceActions).filter(
+    const resourceActionList = Object.keys(actions);
+    const targetActionNames = Object.values(resourceActionList).filter(
       action => action !== 'show',
     );
 
