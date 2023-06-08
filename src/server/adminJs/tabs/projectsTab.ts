@@ -85,8 +85,8 @@ export const buildProjectsQuery = (
   //   });
   //
   if (queryStrings.reviewStatus)
-    query.andWhere('project.reviewStatus = :reviewStatus', {
-      reviewStatus: queryStrings.reviewStatus,
+    query.andWhere('project.reviewStatus ILIKE :reviewStatus', {
+      reviewStatus: `%${queryStrings.reviewStatus}%`,
     });
 
   if (queryStrings.statusId)
