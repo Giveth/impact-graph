@@ -166,24 +166,6 @@ class UserDonations {
 }
 
 @ObjectType()
-class QfDonationInfoByProjectId {
-  @Field(type => Int, { nullable: true })
-  donorsCount: number;
-
-  @Field(type => Float, { nullable: true })
-  raisedAmountInQfRound: number;
-
-  @Field(type => Int, { nullable: true })
-  donorsCountInQfRound: number;
-
-  @Field(type => Float, { nullable: true })
-  raisedAmount: number;
-
-  @Field(type => Float, { nullable: true })
-  estimatedMatching: number;
-}
-
-@ObjectType()
 class MainCategoryDonations {
   @Field(type => Int)
   id: number;
@@ -556,42 +538,6 @@ export class DonationResolver {
     return {
       donations,
       totalCount,
-    };
-  }
-
-  @Query(returns => QfDonationInfoByProjectId, { nullable: true })
-  async qfDonationInfoByProjectId(
-    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
-    @Ctx() ctx: ApolloContext,
-  ) {
-    // TODO need integration test
-
-    // TODO should calculate it
-    const estimatedMatching = 2300;
-    const project = await findProjectById(projectId);
-    const activeQfRound = project?.qfRounds.find(r => r.isActive === true);
-
-    const raisedAmountInQfRound = activeQfRound
-      ? await sumDonationValueUsdForQfRound({
-          projectId,
-          qfRoundId: activeQfRound.id,
-        })
-      : 0;
-    const donorsCountInQfRound = activeQfRound
-      ? await countUniqueDonorsForRound({
-          projectId,
-          qfRoundId: activeQfRound.id,
-        })
-      : 0;
-    const raisedAmount = await sumDonationValueUsd(projectId);
-    const donorsCount = await countUniqueDonors(projectId);
-
-    return {
-      raisedAmountInQfRound,
-      donorsCountInQfRound,
-      raisedAmount,
-      donorsCount,
-      estimatedMatching,
     };
   }
 

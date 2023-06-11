@@ -31,7 +31,6 @@ import {
   fetchTotalDonationsPerCategoryPerDate,
   fetchRecentDonations,
   fetchTotalDonationsNumberPerDateRange,
-  qfDonationInfoByProjectId,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -79,10 +78,6 @@ describe(
   totalDonationsPerCategoryPerDateTestCases,
 );
 describe('resetDonations() test cases', recentDonationsTestCases);
-describe(
-  'qfDonationInfoByProjectIdTestCases() test cases',
-  qfDonationInfoByProjectIdTestCases,
-);
 
 // // describe('tokens() test cases', tokensTestCases);
 
@@ -3460,32 +3455,5 @@ async function recentDonationsTestCases() {
     assert.lengthOf(recentDonations, 2);
     assert.equal(recentDonations[0].id, donation3.id);
     assert.equal(recentDonations[1].id, donation2.id);
-  });
-}
-async function qfDonationInfoByProjectIdTestCases() {
-  // Clear all other donations
-  beforeEach(async () => {
-    await Donation.clear();
-  });
-
-  it('should return correctly when there is no donations for project', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: qfDonationInfoByProjectId,
-        variables: {
-          projectId: project.id,
-        },
-      },
-      {},
-    );
-
-    assert.isOk(result);
-
-    const { raisedAmount, donorsCount, estimatedMatching } =
-      result.data.data.qfDonationInfoByProjectId;
-    assert.equal(raisedAmount, 0);
-    assert.equal(donorsCount, 0);
   });
 }

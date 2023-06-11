@@ -128,6 +128,9 @@ function estimatedMatchingTestCases() {
       }),
     );
 
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
+
     const firstProjectMatch = await calculateEstimateMatchingForProjectById({
       projectId: firstProject.id,
       qfRoundId: qfRound.id,
@@ -184,6 +187,9 @@ function estimatedMatchingTestCases() {
         );
       }),
     );
+
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
 
     const firstProjectMatch = await calculateEstimateMatchingForProjectById({
       projectId: firstProject.id,

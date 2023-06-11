@@ -9,6 +9,7 @@ import {
 } from '../../test/testUtils';
 import { Project } from '../entities/project';
 import { QfRound } from '../entities/qfRound';
+import moment from 'moment';
 
 describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);
 
@@ -22,8 +23,9 @@ function fetchEstimatedMatchingTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      minimumPassportScore: 8,
       beginDate: new Date(),
-      endDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound.save();
     firstProject = await saveProjectDirectlyToDb(createProjectData());

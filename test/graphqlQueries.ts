@@ -389,21 +389,6 @@ export const fetchRecentDonations = `
     }
   }
 `;
-export const qfDonationInfoByProjectId = `
-  query qfDonationInfoByProjectId($projectId: Int!) {
-    qfDonationInfoByProjectId(projectId: $projectId) {
-      raisedAmount
-      donorsCount
-      estimatedMatching{
-         projectDonationsSqrtRootSum
-        allProjectsSum
-        matchingPool
-      }
-      donorsCountInQfRound,
-      raisedAmountInQfRound
-    }
-  }
-`;
 
 export const fetchTotalDonors = `
   query (

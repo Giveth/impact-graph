@@ -137,6 +137,7 @@
     "test:donationResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/donationResolver.test.ts",
     "test:projectResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/projectResolver.test.ts",
     "test:chainvineResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/chainvineResolver.test.ts",
+    "test:qfRoundResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/qfRoundResolver.test.ts",
     "test:projectVerificationResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/projectVerificationFormResolver.test.ts",
     "test:givPowerSubgraphAdapter": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/adapters/givpowerSubgraph/givPowerSubgraphAdapter.test.ts",
     "test:projectRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/projectRepository.test.ts",
