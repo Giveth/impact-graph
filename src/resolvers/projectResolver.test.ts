@@ -1326,6 +1326,7 @@ function allProjectsTestCases() {
     const qfRound = await QfRound.create({
       isActive: true,
       name: 'test filter by qfRoundId',
+      minimumPassportScore: 10,
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: new Date(),
@@ -1364,6 +1365,7 @@ function allProjectsTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
     }).save();
@@ -1395,6 +1397,7 @@ function allProjectsTestCases() {
       isActive: false,
       name: 'test2',
       allocatedFund: 100,
+      minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
     }).save();

@@ -13,6 +13,11 @@ import {
   getQfRoundTotalProjectsDonationsSum,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
+import moment from 'moment';
+import {
+  refreshProjectDonationSummaryView,
+  refreshProjectEstimatedMatchingView,
+} from '../services/projectViewsService';
 
 describe(
   'getProjectDonationsSqrtRootSum test cases',
@@ -33,8 +38,9 @@ function getProjectDonationsSqrRootSumTests() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      minimumPassportScore: 8,
       beginDate: new Date(),
-      endDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound.save();
     project = await saveProjectDirectlyToDb(createProjectData());
@@ -48,24 +54,33 @@ function getProjectDonationsSqrRootSumTests() {
   });
 
   it('should return 0 when no donations', async () => {
-    const { sqrtRootSum, uniqueDonationCount } =
+    const { sqrtRootSum, uniqueDonorsCount } =
       await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
     expect(sqrtRootSum).to.equal(0);
-    expect(uniqueDonationCount).to.equal(0);
+    expect(uniqueDonorsCount).to.equal(0);
   });
 
   it('should return correct value on single donation', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const donation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), valueUsd: 100, qfRoundId: qfRound.id },
+    user.passportScore = 10;
+    await user.save();
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: 100,
+        qfRoundId: qfRound.id,
+      },
       user.id,
       project.id,
     );
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
 
-    const { sqrtRootSum, uniqueDonationCount } =
+    const { sqrtRootSum, uniqueDonorsCount } =
       await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
     expect(sqrtRootSum).to.equal(10);
-    expect(uniqueDonationCount).to.equal(1);
+    expect(uniqueDonorsCount).to.equal(1);
   });
 
   it('should return correct value on multiple donations', async () => {
@@ -75,21 +90,30 @@ function getProjectDonationsSqrRootSumTests() {
         const user = await saveUserDirectlyToDb(
           generateRandomEtheriumAddress(),
         );
+        user.passportScore = 10;
+        await user.save();
         return saveDonationDirectlyToDb(
-          { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
+          {
+            ...createDonationData(),
+            valueUsd,
+            qfRoundId: qfRound.id,
+            status: 'verified',
+          },
           user.id,
           project.id,
         );
       }),
     );
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
 
-    const { sqrtRootSum, uniqueDonationCount } =
+    const { sqrtRootSum, uniqueDonorsCount } =
       await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
     // sqrtRootSum = sqrt(4) + sqrt(25) + sqrt(100) + sqrt(1024) = 2 + 5 + 10 + 32 = 49
     const expectedSum = 49;
 
     expect(sqrtRootSum).to.equal(expectedSum);
-    expect(uniqueDonationCount).to.equal(4);
+    expect(uniqueDonorsCount).to.equal(4);
   });
 
   it('should return correct value on multiple donations with same user', async () => {
@@ -104,10 +128,18 @@ function getProjectDonationsSqrRootSumTests() {
         const user = await saveUserDirectlyToDb(
           generateRandomEtheriumAddress(),
         );
+        user.passportScore = 10;
+        await user.save();
+
         return Promise.all(
           valuesUsd.map(valueUsd => {
             return saveDonationDirectlyToDb(
-              { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
+              {
+                ...createDonationData(),
+                valueUsd,
+                qfRoundId: qfRound.id,
+                status: 'verified',
+              },
               user.id,
               project.id,
             );
@@ -116,13 +148,16 @@ function getProjectDonationsSqrRootSumTests() {
       }),
     );
 
-    const { sqrtRootSum, uniqueDonationCount } =
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
+
+    const { sqrtRootSum, uniqueDonorsCount } =
       await getProjectDonationsSqrtRootSum(project.id, qfRound.id);
     // sqrtRootSum = sqrt(4) + sqrt(25) + sqrt(100) = 2 + 5 + 10 = 17
     const expectedSum = 17;
 
     expect(sqrtRootSum).to.equal(expectedSum);
-    expect(uniqueDonationCount).to.equal(3);
+    expect(uniqueDonorsCount).to.equal(3);
   });
 }
 
@@ -136,6 +171,7 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
     });

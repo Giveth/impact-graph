@@ -45,10 +45,10 @@ export const relateManyProjectsToQfRound = async (params: {
 export async function getProjectDonationsSqrtRootSum(
   projectId: number,
   qfRoundId: number,
-): Promise<{ sqrtRootSum: number; uniqueDonationCount: number }> {
+): Promise<{ sqrtRootSum: number; uniqueDonorsCount: number }> {
   const result = await AppDataSource.getDataSource().query(
     `
-      SELECT "sqrtRootSum", "uniqueDonationCount"
+      SELECT "sqrtRootSum", "uniqueDonorsCount"
       FROM project_estimated_matching_view
       WHERE "projectId" = $1 AND "qfRoundId" = $2;
     `,
@@ -57,88 +57,10 @@ export async function getProjectDonationsSqrtRootSum(
 
   return {
     sqrtRootSum: result[0] ? result[0].sqrtRootSum : 0,
-    uniqueDonationCount: result[0] ? result[0].uniqueDonationCount : 0,
+    uniqueDonorsCount: result[0] ? Number(result[0].uniqueDonorsCount) : 0,
   };
 }
 
-export const getProjectDonationsSqrtRootSumToThePowerOfTwo = async (
-  projectId: number,
-  qfRoundId: number,
-): Promise<{ sqrtRootSum: number; count: number }> => {
-  const result = await AppDataSource.getDataSource()
-    .createQueryBuilder()
-    .select('power(sum(sqrt("valueUsd")),2)', 'sqrtRootSum')
-    .addSelect('count(*)', 'count')
-    .from(donationGroupByUserSubQuery => {
-      return donationGroupByUserSubQuery
-        .select('sum(coalesce("valueUsd", 0))', 'valueUsd')
-        .addSelect('donation.userId', 'userId')
-        .from('donation', 'donation')
-        .where('"projectId" = :projectId and "qfRoundId" = :qfRoundId', {
-          projectId,
-          qfRoundId,
-        })
-        .groupBy('donation.userId');
-    }, 'donationsGroupByUser')
-    .groupBy()
-    .cache(`pr-dn-sqrt-sum-pw2-${projectId}-${qfRoundId}`, 60000)
-    .getRawOne();
-  return {
-    sqrtRootSum: result?.sqrtRootSum || 0,
-    count: result?.count ? parseInt(result.count, 10) : 0,
-  };
-};
-
-export const getQfRoundTotalProjectsDonationsSumExcludingProjectById = async (
-  projectId: number,
-  qfRoundId: number,
-): Promise<{
-  sum: number;
-  contributorsCount;
-}> => {
-  let query = AppDataSource.getDataSource()
-    .createQueryBuilder()
-    .select('sum("sqrtRootSumSquared")', 'sqrtRootSumSquaredSum')
-    .addSelect('sum("donorsCount")', 'contributorsCount')
-    .from(subQuery => {
-      return subQuery
-        .select('power(sum(sqrt("valueUsd")), 2)', 'sqrtRootSumSquared')
-        .addSelect('count("userId")', 'donorsCount')
-        .from(donationGroupByUserSubQuery => {
-          return donationGroupByUserSubQuery
-            .select('sum(coalesce("valueUsd", 0))', 'valueUsd')
-            .addSelect('donation.userId', 'userId')
-            .addSelect('donation.projectId', 'projectId')
-            .from('donation', 'donation')
-            .where('"qfRoundId" = :qfRoundId', {
-              qfRoundId,
-            })
-            .andWhere('donation.projectId != :projectId', {
-              projectId,
-            })
-            .groupBy('donation.userId')
-            .addGroupBy('donation.projectId');
-        }, 'donationsGroupByUser')
-        .groupBy('"projectId"');
-    }, 'resultGroupByProject')
-    .groupBy();
-
-  // if it's not test env, cache the query for 5 minutes (300_000 ms)
-  if (!isTestEnv) {
-    query = query.cache(`pr-dn-sqrt-sum-ex-pr-${qfRoundId}`, 300_000);
-  }
-
-  const result = await query.getRawOne();
-
-  return {
-    sum: result?.sqrtRootSumSquaredSum || 0,
-    contributorsCount: result?.contributorsCount
-      ? parseInt(result.contributorsCount, 10)
-      : 0,
-  };
-};
-
-//
 export const getQfRoundTotalProjectsDonationsSum = async (
   qfRoundId: number,
 ): Promise<{

@@ -394,7 +394,11 @@ export const qfDonationInfoByProjectId = `
     qfDonationInfoByProjectId(projectId: $projectId) {
       raisedAmount
       donorsCount
-      estimatedMatching
+      estimatedMatching{
+         projectDonationsSqrtRootSum
+        allProjectsSum
+        matchingPool
+      }
       donorsCountInQfRound,
       raisedAmountInQfRound
     }
@@ -731,7 +735,11 @@ export const fetchMultiFilterAllProjectsQuery = `
         sumDonationValueUsd
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
-        estimatedMatching
+        estimatedMatching{
+           projectDonationsSqrtRootSum
+        allProjectsSum
+        matchingPool
+        }
       }
       totalCount
       categories {

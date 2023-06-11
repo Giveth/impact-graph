@@ -2,14 +2,11 @@ import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
 import { Repository } from 'typeorm';
 
 import { User } from '../entities/user';
-import { Category } from '../entities/category';
-import { MainCategory } from '../entities/mainCategory';
-import { AppDataSource } from '../orm';
 import {
   findActiveQfRound,
   findAllQfRounds,
   getProjectDonationsSqrtRootSum,
-  getQfRoundTotalProjectsDonationsSumExcludingProjectById,
+  getQfRoundTotalProjectsDonationsSum,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
 
@@ -19,7 +16,7 @@ export class ExpectedMatchingResponse {
   projectDonationsSqrtRootSum: number;
 
   @Field()
-  otherProjectsSum: number;
+  allProjectsSum: number;
 
   @Field()
   matchingPool: number;
@@ -48,17 +45,15 @@ export class QfRoundResolver {
       activeQfRound.id,
     );
 
-    const otherProjectsSum =
-      await getQfRoundTotalProjectsDonationsSumExcludingProjectById(
-        projectId,
-        activeQfRound.id,
-      );
+    const allProjectsSum = await getQfRoundTotalProjectsDonationsSum(
+      activeQfRound.id,
+    );
 
     const matchingPool = activeQfRound.allocatedFund;
 
     return {
       projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
-      otherProjectsSum: otherProjectsSum.sum,
+      allProjectsSum: allProjectsSum.sum,
       matchingPool,
     };
   }
