@@ -72,7 +72,7 @@ function estimatedMatchingTestCases() {
       allocatedFund: 100,
       minimumPassportScore: 8,
       beginDate: new Date(),
-      endDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound.save();
     firstProject = await saveProjectDirectlyToDb(createProjectData());
