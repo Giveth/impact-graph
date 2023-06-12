@@ -28,7 +28,6 @@ export class ProjectEstimatedMatchingView1685958638251
         INNER JOIN "qf_round" ON "qf_round"."id" = "donation"."qfRoundId"
       WHERE
         "donation"."status" = 'verified'
-        AND "user"."passportScore" >= "qf_round"."minimumPassportScore"
         AND "donation"."createdAt" BETWEEN "qf_round"."beginDate" AND "qf_round"."endDate"
       GROUP BY
         "donation"."projectId",
