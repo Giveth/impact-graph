@@ -551,6 +551,7 @@ function createDonationTestCases() {
     const qfRound = await QfRound.create({
       isActive: true,
       name: new Date().toString(),
+      minimumPassportScore: 8,
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
