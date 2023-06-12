@@ -490,6 +490,7 @@ export class Project extends BaseEntity {
   async estimatedMatching(): Promise<EstimatedMatching | null> {
     const activeQfRound = this.getActiveQfRound();
     if (!activeQfRound) {
+      // TODO should move it to materialized view
       return null;
     }
     const projectDonationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
