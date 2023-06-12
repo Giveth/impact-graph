@@ -6,6 +6,7 @@ import { Brackets, LessThan, MoreThan } from 'typeorm';
 import moment from 'moment';
 import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
 import { AppDataSource } from '../orm';
+import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
 
 export const createDonation = async (data: {
   amount: number;
@@ -301,16 +302,8 @@ export async function countUniqueDonorsForRound(params: {
   qfRoundId: number;
 }): Promise<number> {
   const { projectId, qfRoundId } = params;
-  const result = await AppDataSource.getDataSource().query(
-    `
-    SELECT "uniqueDonorsCount" 
-    FROM project_estimated_matching_view 
-    WHERE "projectId" = $1 AND "qfRoundId" = $2;
-    `,
-    [projectId, qfRoundId],
-  );
-
-  return result[0]?.uniqueDonorsCount || 0;
+  return (await getProjectDonationsSqrtRootSum(projectId, qfRoundId))
+    .uniqueDonorsCount;
 }
 
 export async function sumDonationValueUsdForQfRound(params: {

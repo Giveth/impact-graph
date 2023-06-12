@@ -170,6 +170,7 @@
     "test:givpower": "NODE_ENV=test mocha -b -t 30000 ./test/pre-test-scripts.ts ./src/repositories/powerBoostingRepository.test.ts  ./src/repositories/userPowerRepository.test.ts ./src/repositories/powerRoundRepository.test.ts ./src/repositories/userProjectPowerViewRepository.test.ts ./src/repositories/projectPowerViewRepository.test.ts ./src/resolvers/powerBoostingResolver.test.ts ./src/resolvers/userProjectPowerResolver.test.ts  ./src/adapters/givpowerSubgraph/givPowerSubgraphAdapter.test.ts ./src/repositories/projectRepository.test.ts ./src/resolvers/projectResolver.test.ts ./src/repositories/dbCronRepository.test.ts",
     "test:apiGive": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/routers/apiGivRoutes.test.ts",
     "test:adminJs": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/server/adminJs/**/*.test.ts ",
+    "test:donationTab": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/server/adminJs/tabs/donationTab.test.ts ",
     "test:poignArt": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/poignArt/api.test.ts",
     "test:bootstrap": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/server/bootstrap.test.ts",
     "test:utils": "NODE_ENV=test mocha ./src/utils/utils.test.ts",
