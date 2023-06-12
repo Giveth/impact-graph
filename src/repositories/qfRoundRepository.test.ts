@@ -171,9 +171,9 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
-      minimumPassportScore: 10,
+      minimumPassportScore: 8,
       beginDate: new Date(),
-      endDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
     });
     await qfRound.save();
     firstProject = await saveProjectDirectlyToDb(createProjectData());
@@ -210,10 +210,17 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
         const user = await saveUserDirectlyToDb(
           generateRandomEtheriumAddress(),
         );
+        user.passportScore = 10;
+        await user.save();
         return Promise.all(
           valuesUsd.map(valueUsd => {
             return saveDonationDirectlyToDb(
-              { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
+              {
+                ...createDonationData(),
+                valueUsd,
+                qfRoundId: qfRound.id,
+                status: 'verified',
+              },
               user.id,
               firstProject.id,
             );
@@ -221,6 +228,9 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
         );
       }),
     );
+
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
 
     const { sum, contributorsCount } =
       await getQfRoundTotalProjectsDonationsSum(qfRound.id);
@@ -230,8 +240,14 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
 
   it('should return correct value for multiple projects', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user1.passportScore = 10;
+    await user1.save();
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user2.passportScore = 10;
+    await user2.save();
     const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user3.passportScore = 10;
+    await user3.save();
     const usersDonations: [number, number, number[]][] = [
       [user1.id, firstProject.id, [1, 3]], // 4
       [user1.id, secondProject.id, [4, 4 * 3]], // 16
@@ -246,7 +262,12 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
         return Promise.all(
           valuesUsd.map(valueUsd => {
             return saveDonationDirectlyToDb(
-              { ...createDonationData(), valueUsd, qfRoundId: qfRound.id },
+              {
+                ...createDonationData(),
+                valueUsd,
+                qfRoundId: qfRound.id,
+                status: 'verified',
+              },
               userId,
               projectId,
             );
@@ -254,6 +275,9 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
         );
       }),
     );
+
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
 
     const { sum, contributorsCount } =
       await getQfRoundTotalProjectsDonationsSum(qfRound.id);

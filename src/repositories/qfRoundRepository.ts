@@ -65,6 +65,31 @@ export const getQfRoundTotalProjectsDonationsSum = async (
   qfRoundId: number,
 ): Promise<{
   sum: number;
+  contributorsCount: number;
+}> => {
+  const query = `
+    SELECT
+      SUM("sqrtRootSumSquared") as "sum",
+      SUM("donorsCount") as "contributorsCount"
+    FROM project_estimated_matching_view
+    WHERE "qfRoundId" = $1;
+  `;
+
+  const result = await AppDataSource.getDataSource().query(query, [qfRoundId]);
+
+  const sum = result[0]?.sum || 0;
+  const contributorsCount = parseInt(result[0]?.contributorsCount, 10) || 0;
+
+  return {
+    sum,
+    contributorsCount,
+  };
+};
+
+export const getQfRoundTotalProjectsDonationsSum2 = async (
+  qfRoundId: number,
+): Promise<{
+  sum: number;
   contributorsCount;
 }> => {
   let query = AppDataSource.getDataSource()

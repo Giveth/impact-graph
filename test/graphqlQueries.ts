@@ -722,8 +722,8 @@ export const fetchMultiFilterAllProjectsQuery = `
         countUniqueDonors
         estimatedMatching{
            projectDonationsSqrtRootSum
-        allProjectsSum
-        matchingPool
+           allProjectsSum
+           matchingPool
         }
       }
       totalCount

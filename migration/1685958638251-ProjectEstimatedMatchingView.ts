@@ -13,12 +13,15 @@ export class ProjectEstimatedMatchingView1685958638251
       donations_by_user."qfRoundId",
       SUM(donations_by_user."valueUsd") as "sumValueUsd",
       COUNT(*) as "uniqueDonorsCount",
-      SUM(SQRT(donations_by_user."valueUsd")) as "sqrtRootSum"
+      SUM(SQRT(donations_by_user."valueUsd")) as "sqrtRootSum",
+      POWER(SUM(SQRT(donations_by_user."valueUsd")), 2) as "sqrtRootSumSquared",
+      COUNT(donations_by_user."userId") as "donorsCount"
     FROM (
       SELECT
         "donation"."projectId",
         "donation"."qfRoundId",
-        SUM("donation"."valueUsd") as "valueUsd"
+        SUM("donation"."valueUsd") as "valueUsd",
+        "donation"."userId"
       FROM
         "donation"
         INNER JOIN "user" ON "user"."id" = "donation"."userId"
