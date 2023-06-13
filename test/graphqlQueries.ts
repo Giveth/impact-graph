@@ -389,17 +389,6 @@ export const fetchRecentDonations = `
     }
   }
 `;
-export const qfDonationInfoByProjectId = `
-  query qfDonationInfoByProjectId($projectId: Int!) {
-    qfDonationInfoByProjectId(projectId: $projectId) {
-      raisedAmount
-      donorsCount
-      estimatedMatching
-      donorsCountInQfRound,
-      raisedAmountInQfRound
-    }
-  }
-`;
 
 export const fetchTotalDonors = `
   query (
@@ -731,7 +720,11 @@ export const fetchMultiFilterAllProjectsQuery = `
         sumDonationValueUsd
         countUniqueDonorsForActiveQfRound
         countUniqueDonors
-        estimatedMatching
+        estimatedMatching{
+           projectDonationsSqrtRootSum
+           allProjectsSum
+           matchingPool
+        }
       }
       totalCount
       categories {

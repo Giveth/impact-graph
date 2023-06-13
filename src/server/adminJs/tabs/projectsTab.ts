@@ -55,9 +55,9 @@ import {
 import { FeaturedUpdate } from '../../../entities/featuredUpdate';
 import {
   findActiveQfRound,
-  findAllQfRounds,
   relateManyProjectsToQfRound,
 } from '../../../repositories/qfRoundRepository';
+import { User } from '../../../entities/user';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -93,8 +93,8 @@ export const buildProjectsQuery = (
   //   });
   //
   if (queryStrings.reviewStatus)
-    query.andWhere('project.reviewStatus = :reviewStatus', {
-      reviewStatus: queryStrings.reviewStatus,
+    query.andWhere('project.reviewStatus ILIKE :reviewStatus', {
+      reviewStatus: `%${queryStrings.reviewStatus}%`,
     });
 
   if (queryStrings.statusId)
@@ -950,7 +950,10 @@ export const projectsTab = {
           });
           if (project) {
             if (request?.record?.params?.adminChanged) {
-              project.adminUserId = Number(project.admin);
+              const adminUser = await User.findOne({
+                where: { id: Number(project.admin) },
+              });
+              project.adminUser = adminUser!;
               await project.save();
             }
             // Not required for now

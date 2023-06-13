@@ -34,6 +34,9 @@ export class QfRound extends BaseEntity {
   @Column()
   allocatedFund: number;
 
+  @Column()
+  minimumPassportScore: number;
+
   @Field(type => Date)
   @Column()
   beginDate: Date;
