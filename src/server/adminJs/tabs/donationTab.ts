@@ -197,13 +197,13 @@ export const buildDonationsQuery = (
     });
 
   if (queryStrings.currency)
-    query.andWhere('donation.currency = :currency', {
-      currency: queryStrings.currency,
+    query.andWhere('donation.currency ILIKE :currency', {
+      currency: `%${queryStrings.currency}%`,
     });
 
   if (queryStrings.status)
-    query.andWhere('donation.status = :status', {
-      status: queryStrings.status,
+    query.andWhere('donation.status ILIKE :status', {
+      status: `%${queryStrings.status}%`,
     });
 
   if (queryStrings.transactionNetworkId)
@@ -212,23 +212,23 @@ export const buildDonationsQuery = (
     });
 
   if (queryStrings.fromWalletAddress)
-    query.andWhere('donation.fromWalletAddress = :fromWalletAddress', {
-      fromWalletAddress: queryStrings.fromWalletAddress,
+    query.andWhere('donation.fromWalletAddress ILIKE :fromWalletAddress', {
+      fromWalletAddress: `%${queryStrings.fromWalletAddress}%`,
     });
 
   if (queryStrings.toWalletAddress)
-    query.andWhere('donation.toWalletAddress = :toWalletAddress', {
-      toWalletAddress: queryStrings.toWalletAddress,
+    query.andWhere('donation.toWalletAddress ILIKE :toWalletAddress', {
+      toWalletAddress: `%${queryStrings.toWalletAddress}%`,
     });
 
   if (queryStrings.contactEmail)
-    query.andWhere('donation.contactEmail = :contactEmail', {
-      contactEmail: queryStrings.contactEmail,
+    query.andWhere('donation.contactEmail ILIKE :contactEmail', {
+      contactEmail: `%${queryStrings.contactEmail}%`,
     });
 
   if (queryStrings.referrerWallet)
     query.andWhere('donation.referrerWallet = :referrerWallet', {
-      referrerWallet: queryStrings.referrerWallet,
+      referrerWallet: `%${queryStrings.referrerWallet}%`,
     });
 
   if (queryStrings.isProjectVerified)
