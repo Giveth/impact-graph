@@ -1,9 +1,21 @@
 import { QfRound } from '../../../entities/qfRound';
+import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
 import {
-  canAccessQfRoundAction,
-  canAccessUserAction,
-  ResourceActions,
-} from '../adminJsPermissions';
+  ActionResponse,
+  After,
+} from 'adminjs/src/backend/actions/action.interface';
+import {
+  refreshProjectDonationSummaryView,
+  refreshProjectEstimatedMatchingView,
+} from '../../../services/projectViewsService';
+
+export const refreshMaterializedViews = async (
+  response,
+): Promise<After<ActionResponse>> => {
+  await refreshProjectEstimatedMatchingView();
+  await refreshProjectDonationSummaryView();
+  return response;
+};
 
 export const qfRoundTab = {
   resource: QfRound,
@@ -54,18 +66,12 @@ export const qfRoundTab = {
         },
       },
     },
-    // TODO should call below expression after any changes on qfRounds
-    // if (!isTestEnv) {
-    //       // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
-    //       // relation "project_estimated_matching_view" does not exist
-    //       await refreshProjectEstimatedMatchingView();
-    //       await refreshProjectDonationSummaryView();
-    //     }
     actions: {
       delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.DELETE),
+        after: refreshMaterializedViews,
       },
       bulkDelete: {
         isVisible: false,
@@ -73,10 +79,12 @@ export const qfRoundTab = {
       new: {
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.NEW),
+        after: refreshMaterializedViews,
       },
       edit: {
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
+        after: refreshMaterializedViews,
       },
     },
   },
