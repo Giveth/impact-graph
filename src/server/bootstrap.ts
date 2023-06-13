@@ -71,6 +71,7 @@ import {
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
 import { isTestEnv } from '../utils/utils';
+import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 
 Resource.validate = validate;
 
@@ -381,6 +382,7 @@ export async function bootstrap() {
     if ((config.get('ENABLE_INSTANT_BOOSTING_UPDATE') as string) === 'true') {
       runInstantBoostingUpdateCronJob();
     }
+    await runCheckActiveStatusOfQfRounds();
   } catch (err) {
     logger.error(err);
   }
