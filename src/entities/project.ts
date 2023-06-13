@@ -40,15 +40,16 @@ import { Category } from './category';
 import { FeaturedUpdate } from './featuredUpdate';
 import { getHtmlTextSummary } from '../utils/utils';
 import { QfRound } from './qfRound';
-import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
 import {
   countUniqueDonors,
-  countUniqueDonorsForActiveQfRound,
+  countUniqueDonorsForRound,
   sumDonationValueUsd,
-  sumDonationValueUsdForActiveQfRound,
+  sumDonationValueUsdForQfRound,
 } from '../repositories/donationRepository';
-import { calculateEstimateMatchingForProjectById } from '../services/qfRoundService';
-
+import {
+  getProjectDonationsSqrtRootSum,
+  getQfRoundTotalProjectsDonationsSum,
+} from '../repositories/qfRoundRepository';
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
@@ -118,6 +119,18 @@ export enum ReviewStatus {
   NotReviewed = 'Not Reviewed',
   Listed = 'Listed',
   NotListed = 'Not Listed',
+}
+
+@ObjectType()
+class EstimatedMatching {
+  @Field(type => Float)
+  projectDonationsSqrtRootSum: number;
+
+  @Field(type => Float)
+  allProjectsSum: number;
+
+  @Field(type => Float)
+  matchingPool: number;
 }
 
 @Entity()
@@ -442,7 +455,13 @@ export class Project extends BaseEntity {
 
   @Field(type => Float, { nullable: true })
   async sumDonationValueUsdForActiveQfRound() {
-    return sumDonationValueUsdForActiveQfRound(this.id);
+    const activeQfRound = this.getActiveQfRound();
+    return activeQfRound
+      ? await sumDonationValueUsdForQfRound({
+          projectId: this.id,
+          qfRoundId: activeQfRound.id,
+        })
+      : 0;
   }
 
   @Field(type => Float, { nullable: true })
@@ -452,7 +471,13 @@ export class Project extends BaseEntity {
 
   @Field(type => Int, { nullable: true })
   async countUniqueDonorsForActiveQfRound() {
-    return countUniqueDonorsForActiveQfRound(this.id);
+    const activeQfRound = this.getActiveQfRound();
+    return activeQfRound
+      ? await countUniqueDonorsForRound({
+          projectId: this.id,
+          qfRoundId: activeQfRound.id,
+        })
+      : 0;
   }
 
   @Field(type => Int, { nullable: true })
@@ -460,9 +485,34 @@ export class Project extends BaseEntity {
     return countUniqueDonors(this.id);
   }
 
-  @Field(type => Float, { nullable: true })
-  async estimatedMatching() {
-    return calculateEstimateMatchingForProjectById(this.id);
+  // In your main class
+  @Field(type => EstimatedMatching, { nullable: true })
+  async estimatedMatching(): Promise<EstimatedMatching | null> {
+    const activeQfRound = this.getActiveQfRound();
+    if (!activeQfRound) {
+      // TODO should move it to materialized view
+      return null;
+    }
+    const projectDonationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
+      this.id,
+      activeQfRound.id,
+    );
+
+    const allProjectsSum = await getQfRoundTotalProjectsDonationsSum(
+      activeQfRound.id,
+    );
+
+    const matchingPool = activeQfRound.allocatedFund;
+
+    return {
+      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
+      allProjectsSum: allProjectsSum.sum,
+      matchingPool,
+    };
+  }
+
+  getActiveQfRound(): QfRound | undefined {
+    return this.qfRounds.find(r => r.isActive === true);
   }
 
   // Status 7 is deleted status

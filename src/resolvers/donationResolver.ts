@@ -46,7 +46,7 @@ import {
 } from '../repositories/userRepository';
 import {
   countUniqueDonors,
-  countUniqueDonorsForActiveQfRound,
+  countUniqueDonorsForRound,
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
@@ -56,7 +56,7 @@ import {
   findDonationById,
   getRecentDonations,
   sumDonationValueUsd,
-  sumDonationValueUsdForActiveQfRound,
+  sumDonationValueUsdForQfRound,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -66,6 +66,7 @@ import { AppDataSource } from '../orm';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
 import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
+import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
 
 @ObjectType()
 class PaginateDonations {
@@ -163,24 +164,6 @@ class UserDonations {
 
   @Field(type => Int)
   totalCount: number;
-}
-
-@ObjectType()
-class QfDonationInfoByProjectId {
-  @Field(type => Int, { nullable: true })
-  donorsCount: number;
-
-  @Field(type => Float, { nullable: true })
-  raisedAmountInQfRound: number;
-
-  @Field(type => Int, { nullable: true })
-  donorsCountInQfRound: number;
-
-  @Field(type => Float, { nullable: true })
-  raisedAmount: number;
-
-  @Field(type => Float, { nullable: true })
-  estimatedMatching: number;
 }
 
 @ObjectType()
@@ -559,34 +542,6 @@ export class DonationResolver {
     };
   }
 
-  @Query(returns => QfDonationInfoByProjectId, { nullable: true })
-  async qfDonationInfoByProjectId(
-    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
-    @Ctx() ctx: ApolloContext,
-  ) {
-    // TODO need integration test
-
-    // TODO should calculate it
-    const estimatedMatching = 2300;
-
-    const raisedAmountInQfRound = await sumDonationValueUsdForActiveQfRound(
-      projectId,
-    );
-    const donorsCountInQfRound = await countUniqueDonorsForActiveQfRound(
-      projectId,
-    );
-    const raisedAmount = await sumDonationValueUsd(projectId);
-    const donorsCount = await countUniqueDonors(projectId);
-
-    return {
-      raisedAmountInQfRound,
-      donorsCountInQfRound,
-      raisedAmount,
-      donorsCount,
-      estimatedMatching,
-    };
-  }
-
   @Mutation(returns => Number)
   async createDonation(
     @Arg('amount') amount: number,
@@ -720,6 +675,12 @@ export class DonationResolver {
         } catch (e) {
           logger.error('get chainvine wallet address error', e);
         }
+      }
+      const activeQfRoundForProject = await relatedActiveQfRoundForProject(
+        projectId,
+      );
+      if (activeQfRoundForProject) {
+        donation.qfRound = activeQfRoundForProject;
       }
       await donation.save();
 
