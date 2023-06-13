@@ -4,6 +4,9 @@ import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { Reaction } from '../entities/reaction';
 import { Brackets, LessThan, MoreThan } from 'typeorm';
 import moment from 'moment';
+import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
+import { AppDataSource } from '../orm';
+import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
 
 export const createDonation = async (data: {
   amount: number;
@@ -294,66 +297,54 @@ export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
   });
 };
 
-export async function countUniqueDonorsForActiveQfRound(
-  projectId: number,
-): Promise<number> {
-  const result = await Donation.query(
+export async function countUniqueDonorsForRound(params: {
+  projectId: number;
+  qfRoundId: number;
+}): Promise<number> {
+  const { projectId, qfRoundId } = params;
+  return (await getProjectDonationsSqrtRootSum(projectId, qfRoundId))
+    .uniqueDonorsCount;
+}
+
+export async function sumDonationValueUsdForQfRound(params: {
+  projectId: number;
+  qfRoundId: number;
+}): Promise<number> {
+  const { projectId, qfRoundId } = params;
+  const result = await AppDataSource.getDataSource().query(
     `
-    SELECT COUNT(DISTINCT "userId") 
-    FROM donation 
-    JOIN qf_round ON donation."qfRoundId" = qf_round.id 
-    WHERE qf_round."isActive" = true
-    AND donation."status" = 'verified'
-    AND donation."projectId" = $1;
-  `,
-    [projectId],
+      SELECT "sumValueUsd"
+      FROM project_estimated_matching_view
+      WHERE "projectId" = $1 AND "qfRoundId" = $2;
+    `,
+    [projectId, qfRoundId],
   );
-  return result[0].count;
+
+  return result[0] ? result[0].sumValueUsd : 0;
 }
 
 export async function countUniqueDonors(projectId: number): Promise<number> {
-  const result = await Donation.query(
+  const result = await AppDataSource.getDataSource().query(
     `
-    SELECT COUNT(DISTINCT "userId") 
-    FROM donation 
-    WHERE donation."status" = 'verified'
-    AND donation."projectId" = $1;
-  `,
-    [projectId],
-  );
-  return result[0].count;
-}
-
-export async function sumDonationValueUsdForActiveQfRound(
-  projectId: number,
-): Promise<number> {
-  const result = await Donation.query(
-    `
-    SELECT SUM("valueUsd") 
-    FROM donation 
-    JOIN qf_round ON donation."qfRoundId" = qf_round.id 
-    WHERE qf_round."isActive" = true
-    AND donation."status" = 'verified'
-    AND donation."projectId" = $1;
+    SELECT "uniqueDonorsCount"
+    FROM project_donation_summary_view
+    WHERE "projectId" = $1;
   `,
     [projectId],
   );
 
-  // result[0].sum could be null
-  return result[0].sum || 0;
+  return result[0]?.uniqueDonorsCount || 0;
 }
 
 export async function sumDonationValueUsd(projectId: number): Promise<number> {
-  const result = await Donation.query(
+  const result = await AppDataSource.getDataSource().query(
     `
-    SELECT SUM("valueUsd") 
-    FROM donation 
-    WHERE donation."status" = 'verified'
-    AND donation."projectId" = $1;
+    SELECT "sumVerifiedDonations"
+    FROM project_donation_summary_view
+    WHERE "projectId" = $1;
   `,
     [projectId],
   );
 
-  // result[0].sum could be null
-  return result[0].sum || 0;
+  return result[0]?.sumVerifiedDonations || 0;
 }

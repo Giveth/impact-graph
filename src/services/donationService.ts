@@ -25,6 +25,10 @@ import { calculateGivbackFactor } from './givbackService';
 import { getTokenPrices } from '@giveth/monoswap';
 import SentryLogger from '../sentryLogger';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
+import {
+  refreshProjectDonationSummaryView,
+  refreshProjectEstimatedMatchingView,
+} from './projectViewsService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -156,6 +160,8 @@ export const updateDonationByTransakData = async (
   }
   await donation.save();
   await updateTotalDonationsOfProject(donation.projectId);
+  await refreshProjectEstimatedMatchingView();
+  await refreshProjectDonationSummaryView();
 };
 
 export const updateTotalDonationsOfProject = async (projectId: number) => {

@@ -24,6 +24,9 @@ export const qfRoundTab = {
       allocatedFund: {
         isVisible: true,
       },
+      minimumPassportScore: {
+        isVisible: true,
+      },
       projects: {
         isVisible: {
           list: true,
@@ -51,6 +54,13 @@ export const qfRoundTab = {
         },
       },
     },
+    // TODO should call below expression after any changes on qfRounds
+    // if (!isTestEnv) {
+    //       // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
+    //       // relation "project_estimated_matching_view" does not exist
+    //       await refreshProjectEstimatedMatchingView();
+    //       await refreshProjectDonationSummaryView();
+    //     }
     actions: {
       delete: {
         isVisible: false,
