@@ -512,7 +512,7 @@ export class Project extends BaseEntity {
   }
 
   getActiveQfRound(): QfRound | undefined {
-    return this.qfRounds.find(r => r.isActive === true);
+    return this.qfRounds?.find(r => r.isActive === true);
   }
 
   // Status 7 is deleted status
