@@ -380,7 +380,7 @@ export const updateStatusOfProjects = async (
   };
 };
 
-export const addProjectToQfRound = async (
+export const addProjectsToQfRound = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
   add: boolean = true,
@@ -409,6 +409,37 @@ export const addProjectToQfRound = async (
     records: records.map(record => {
       record.toJSON(context.currentAdmin);
     }),
+    notice: {
+      message,
+      type: 'success',
+    },
+  };
+};
+
+export const addSingleProjectToQfRound = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+  add: boolean = true,
+) => {
+  const { record, currentAdmin } = context;
+  let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
+  try {
+    const projectId = Number(request?.params?.recordId);
+    const activeQfRound = await findActiveQfRound();
+    if (activeQfRound) {
+      await relateManyProjectsToQfRound({
+        projectIds: [projectId],
+        qfRoundId: activeQfRound.id,
+        add,
+      });
+    } else {
+      message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
+    }
+  } catch (error) {
+    throw error;
+  }
+  return {
+    record: record.toJSON(currentAdmin),
     notice: {
       message,
       type: 'success',
@@ -1167,6 +1198,38 @@ export const projectsTab = {
         component: false,
       },
 
+      addProjectToQfRound: {
+        // https://docs.adminjs.co/basics/action#record-type-actions
+        actionType: 'record',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.ADD_PROJECT_TO_QF_ROUND,
+          ),
+        guard: 'Do you want to add this project to current active qf round?',
+        handler: async (request, response, context) => {
+          return addSingleProjectToQfRound(context, request, true);
+        },
+        component: false,
+      },
+      removeProjectFromQfRound: {
+        // https://docs.adminjs.co/basics/action#record-type-actions
+        actionType: 'record',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.ADD_PROJECT_TO_QF_ROUND,
+          ),
+        guard:
+          'Do you want to remove this project from current active qf round?',
+        handler: async (request, response, context) => {
+          return addSingleProjectToQfRound(context, request, false);
+        },
+        component: false,
+      },
+
       addToQfRound: {
         actionType: 'bulk',
         isVisible: true,
@@ -1176,7 +1239,7 @@ export const projectsTab = {
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),
         handler: async (request, response, context) => {
-          return addProjectToQfRound(context, request, true);
+          return addProjectsToQfRound(context, request, true);
         },
         component: false,
       },
@@ -1189,7 +1252,7 @@ export const projectsTab = {
             ResourceActions.ADD_PROJECT_TO_QF_ROUND,
           ),
         handler: async (request, response, context) => {
-          return addProjectToQfRound(context, request, false);
+          return addProjectsToQfRound(context, request, false);
         },
         component: false,
       },
