@@ -31,9 +31,11 @@ export class QfRound extends BaseEntity {
   @Column({ default: true })
   isActive: boolean;
 
+  @Field(type => Number)
   @Column()
   allocatedFund: number;
 
+  @Field(type => Number)
   @Column()
   minimumPassportScore: number;
 
