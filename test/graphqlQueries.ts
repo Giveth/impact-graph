@@ -246,6 +246,7 @@ export const fetchDonationsByProjectIdQuery = `
     $take: Int
     $skip: Int
     $traceable: Boolean
+    $qfRoundId: Int
     $projectId: Int!
     $searchTerm: String
     $status: String
@@ -255,6 +256,7 @@ export const fetchDonationsByProjectIdQuery = `
       take: $take
       skip: $skip
       traceable: $traceable
+      qfRoundId: $qfRoundId
       projectId: $projectId
       searchTerm: $searchTerm
       status: $status
@@ -270,6 +272,9 @@ export const fetchDonationsByProjectIdQuery = `
         anonymous
         valueUsd
         amount
+        qfRound {
+          id
+        }
         status
         user {
           id
