@@ -2033,6 +2033,9 @@ function donationsByProjectIdTestCases() {
     qfRound2donations.forEach(donation => {
       assert.equal(Number(donation.qfRound.id), qfRound2.id);
     });
+
+    qfRound2.isActive = false;
+    await qfRound2.save();
   });
 
   it('should sort by the createdAt DESC', async () => {
