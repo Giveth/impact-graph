@@ -1910,6 +1910,134 @@ function donationsFromWalletsTestCases() {
 }
 
 function donationsByProjectIdTestCases() {
+  it('should return filtered by qfRound donations when specified', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const referrerId = generateRandomString();
+    const referrerWalletAddress =
+      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
+
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const user2 = await User.create({
+      walletAddress: referrerWalletAddress,
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const donation1 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound.id,
+      }),
+      user.id,
+      project.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound.id,
+      }),
+      user.id,
+      project.id,
+    );
+    qfRound.isActive = false;
+    await qfRound.save();
+
+    // second QF round
+    const qfRound2 = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+    }).save();
+    project.qfRounds = [qfRound2];
+    await project.save();
+
+    const donation3 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound2.id,
+      }),
+      user.id,
+      project.id,
+    );
+
+    const donation4 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound2.id,
+      }),
+      user.id,
+      project.id,
+    );
+
+    const resultForRound1 = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          qfRoundId: qfRound.id,
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'DESC',
+          },
+        },
+      },
+      {},
+    );
+
+    const qfRound1donations =
+      resultForRound1.data.data.donationsByProjectId.donations;
+    assert.equal(qfRound1donations.length, 2);
+    qfRound1donations.forEach(donation => {
+      assert.equal(Number(donation.qfRound.id), qfRound.id);
+    });
+
+    const resultForRound2 = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          qfRoundId: qfRound2.id,
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'DESC',
+          },
+        },
+      },
+      {},
+    );
+
+    const qfRound2donations =
+      resultForRound2.data.data.donationsByProjectId.donations;
+    assert.equal(qfRound2donations.length, 2);
+    qfRound2donations.forEach(donation => {
+      assert.equal(Number(donation.qfRound.id), qfRound2.id);
+    });
+
+    qfRound2.isActive = false;
+    await qfRound2.save();
+  });
+
   it('should sort by the createdAt DESC', async () => {
     const result = await axios.post(
       graphqlUrl,

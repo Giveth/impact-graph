@@ -281,6 +281,7 @@ export const createDonationData = (params?: {
   createdAt?: Date;
   valueUsd?: number;
   anonymous?: boolean;
+  qfRoundId?: number;
 }): CreateDonationData => {
   return {
     transactionId: generateRandomTxHash(),
@@ -294,6 +295,7 @@ export const createDonationData = (params?: {
     valueUsd: params?.valueUsd || 15,
     createdAt: params?.createdAt || moment().toDate(),
     segmentNotified: true,
+    qfRoundId: params?.qfRoundId || undefined,
   };
 };
 

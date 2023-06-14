@@ -149,7 +149,7 @@ export class Donation extends BaseEntity {
   projectId: number;
 
   @Index()
-  @Field(type => QfRound)
+  @Field(type => QfRound, { nullable: true })
   @ManyToOne(type => QfRound, { eager: true })
   qfRound: QfRound;
 
