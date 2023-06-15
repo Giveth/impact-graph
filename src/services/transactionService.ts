@@ -91,7 +91,7 @@ export async function getTransactionInfoFromNetwork(
 
 export async function findTransactionByHash(input: TransactionDetailInput) {
   const nativeToken = getNetworkNativeToken(input.networkId);
-  if (nativeToken === input.symbol) {
+  if (nativeToken.toLowerCase() === input.symbol.toLowerCase()) {
     return getTransactionDetailForNormalTransfer(input);
   } else {
     return getTransactionDetailForTokenTransfer(input);
