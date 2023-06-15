@@ -178,9 +178,11 @@ export const errorMessages = {
     'Project description length size exceeded',
   CHAINVINE_REGISTRATION_ERROR: 'Chainvine ID failed to be generated',
   CHAINVINE_CLICK_EVENT_ERROR: 'Unable to register click event or link donor',
+  GITCOIN_ERROR_FETCHING_DATA: 'Unable to fetch gitcoin data, check logs',
 };
 
 export const translationErrorMessagesKeys = {
+  GITCOIN_ERROR_FETCHING_DATA: 'GITCOIN_ERROR_FETCHING_DATA',
   CHAINVINE_CLICK_EVENT_ERROR: 'CHAINVINE_CLICK_EVENT_ERROR',
   CHAINVINE_REGISTRATION_ERROR: 'CHAINVINE_REGISTRATION_ERROR',
   FIAT_DONATION_ALREADY_EXISTS: 'FIAT_DONATION_ALREADY_EXISTS',

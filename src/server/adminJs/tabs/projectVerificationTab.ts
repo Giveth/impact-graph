@@ -37,7 +37,7 @@ import {
   ActionResponse,
   After,
 } from 'adminjs/src/backend/actions/action.interface';
-import { setSocialProfiles } from './projectsTab';
+import { fillSocialProfileAndQfRounds } from './projectsTab';
 
 export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
   response,
@@ -571,7 +571,7 @@ export const projectVerificationTab = {
             { currentAdmin },
             ResourceActions.SHOW,
           ),
-        after: setSocialProfiles,
+        after: fillSocialProfileAndQfRounds,
       },
       delete: {
         isVisible: false,

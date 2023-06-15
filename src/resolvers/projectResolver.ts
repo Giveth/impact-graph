@@ -257,6 +257,9 @@ class GetProjectsArgs {
 
   @Field(type => Int, { nullable: true })
   connectedWalletUserId?: number;
+
+  @Field(type => Int, { nullable: true })
+  qfRoundId?: number;
 }
 
 @Service()
@@ -536,7 +539,6 @@ export class ProjectResolver {
     filtersArray: FilterField[] = [],
   ) {
     if (!filtersArray || filtersArray.length === 0) return query;
-
     query = query.andWhere(
       new Brackets(subQuery => {
         filtersArray.forEach(filter => {
@@ -552,6 +554,17 @@ export class ProjectResolver {
           if (filter === FilterField.BoostedWithGivPower) {
             return subQuery.andWhere(`projectPower.totalPower > 0`);
           }
+          if (filter === FilterField.ActiveQfRound) {
+            return subQuery.andWhere(
+              `EXISTS (
+                        SELECT 1
+                        FROM project_qf_rounds_qf_round
+                        INNER JOIN qf_round on qf_round.id = project_qf_rounds_qf_round."qfRoundId"
+                        WHERE project_qf_rounds_qf_round."projectId" = project.id AND qf_round."isActive" = true
+                )`,
+            );
+          }
+
           if (
             (filter === FilterField.AcceptFundOnGnosis ||
               filter === FilterField.AcceptFundOnCelo ||
@@ -719,6 +732,7 @@ export class ProjectResolver {
       sortingBy,
       connectedWalletUserId,
       campaignSlug,
+      qfRoundId,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
@@ -732,6 +746,7 @@ export class ProjectResolver {
       mainCategory,
       filters,
       sortingBy,
+      qfRoundId,
     };
     let campaign;
     if (campaignSlug) {
@@ -879,6 +894,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection

@@ -4,6 +4,7 @@ import {
   ArgsType,
   Ctx,
   Field,
+  Float,
   InputType,
   Int,
   Mutation,
@@ -44,6 +45,8 @@ import {
   setUserAsReferrer,
 } from '../repositories/userRepository';
 import {
+  countUniqueDonors,
+  countUniqueDonorsForRound,
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
@@ -52,6 +55,8 @@ import {
   donorsCountPerDateByMonthAndYear,
   findDonationById,
   getRecentDonations,
+  sumDonationValueUsd,
+  sumDonationValueUsdForQfRound,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -61,6 +66,7 @@ import { AppDataSource } from '../orm';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
 import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
+import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
 
 @ObjectType()
 class PaginateDonations {
@@ -389,6 +395,8 @@ export class DonationResolver {
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Arg('traceable', type => Boolean, { defaultValue: false })
     traceable: boolean,
+    @Arg('qfRoundId', type => Int, { defaultValue: null, nullable: true })
+    qfRoundId: number,
     @Arg('projectId', type => Int, { nullable: false }) projectId: number,
     @Arg('status', type => String, { nullable: true }) status: string,
     @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
@@ -412,6 +420,7 @@ export class DonationResolver {
     const query = this.donationRepository
       .createQueryBuilder('donation')
       .leftJoin('donation.user', 'user')
+      .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .addSelect(publicSelectionFields)
       .where(`donation.projectId = ${projectId}`)
       .orderBy(
@@ -423,6 +432,12 @@ export class DonationResolver {
     if (status) {
       query.andWhere(`donation.status = :status`, {
         status,
+      });
+    }
+
+    if (qfRoundId) {
+      query.andWhere('qfRound.id = :qfRoundId', {
+        qfRoundId,
       });
     }
 
@@ -669,6 +684,12 @@ export class DonationResolver {
         } catch (e) {
           logger.error('get chainvine wallet address error', e);
         }
+      }
+      const activeQfRoundForProject = await relatedActiveQfRoundForProject(
+        projectId,
+      );
+      if (activeQfRoundForProject) {
+        donation.qfRound = activeQfRoundForProject;
       }
       await donation.save();
 

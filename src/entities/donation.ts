@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';
+import { QfRound } from './qfRound';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -146,6 +147,15 @@ export class Donation extends BaseEntity {
   @RelationId((donation: Donation) => donation.project)
   @Column({ nullable: true })
   projectId: number;
+
+  @Index()
+  @Field(type => QfRound, { nullable: true })
+  @ManyToOne(type => QfRound, { eager: true })
+  qfRound: QfRound;
+
+  @RelationId((donation: Donation) => donation.project)
+  @Column({ nullable: true })
+  qfRoundId: number;
 
   @Index()
   @Field(type => User, { nullable: true })

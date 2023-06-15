@@ -1,12 +1,14 @@
 import { assert } from 'chai';
 import 'mocha';
 import {
+  createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   graphqlUrl,
   PROJECT_UPDATE_SEED_DATA,
   REACTION_SEED_DATA,
+  saveDonationDirectlyToDb,
   saveFeaturedProjectDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -62,6 +64,7 @@ import {
   addNewProjectAddress,
   findAllRelatedAddressByWalletAddress,
   findProjectRecipientAddressByNetworkId,
+  removeRecipientAddressOfProject,
 } from '../repositories/projectAddressRepository';
 import {
   PROJECT_VERIFICATION_STATUSES,
@@ -102,6 +105,12 @@ import { ArgumentValidationError } from 'type-graphql';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
 import { updateInstantBoosting } from '../services/instantBoostingServices';
+import { QfRound } from '../entities/qfRound';
+import { calculateEstimatedMatchingWithParams } from '../utils/qfUtils';
+import {
+  refreshProjectDonationSummaryView,
+  refreshProjectEstimatedMatchingView,
+} from '../services/projectViewsService';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -293,6 +302,11 @@ function allProjectsTestCases() {
         project.descriptionSummary,
         getHtmlTextSummary(project.description),
       );
+      assert.isNull(project.estimatedMatching);
+      assert.exists(project.sumDonationValueUsd);
+      assert.exists(project.sumDonationValueUsdForActiveQfRound);
+      assert.exists(project.countUniqueDonorsForActiveQfRound);
+      assert.exists(project.countUniqueDonors);
     });
   });
 
@@ -1298,6 +1312,222 @@ function allProjectsTestCases() {
     );
 
     await campaign.remove();
+  });
+  it('should return projects, filter by qfRoundId', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'test filter by qfRoundId',
+      minimumPassportScore: 10,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project1.qfRounds = [qfRound];
+    await project1.save();
+    project2.qfRounds = [qfRound];
+    await project2.save();
+    project3.qfRounds = [qfRound];
+    await project3.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 3);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.equal(project.qfRounds[0].id, qfRound.id);
+    });
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return projects, filter by qfRoundId, calculate estimated matching', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      allocatedFund: 1000,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+    project1.qfRounds = [qfRound];
+    await project1.save();
+    project2.qfRounds = [qfRound];
+    await project2.save();
+
+    const donor1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    donor1.passportScore = 13;
+    await donor1.save();
+
+    const donor2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    donor2.passportScore = 13;
+    await donor2.save();
+
+    // We should have result similar to https://wtfisqf.com/?grant=2,2&grant=4&grant=&grant=&match=1000
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        qfRoundId: qfRound.id,
+        valueUsd: 2,
+      },
+      donor1.id,
+      project1.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        qfRoundId: qfRound.id,
+        valueUsd: 2,
+      },
+      donor2.id,
+      project1.id,
+    );
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        qfRoundId: qfRound.id,
+        valueUsd: 4,
+      },
+      donor1.id,
+      project2.id,
+    );
+
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 2);
+    const firstProject = result.data.data.allProjects.projects.find(
+      p => Number(p.id) === project1.id,
+    );
+    const secondProject = result.data.data.allProjects.projects.find(
+      p => Number(p.id) === project2.id,
+    );
+
+    const project1EstimatedMatching =
+      await calculateEstimatedMatchingWithParams({
+        matchingPool: firstProject.estimatedMatching.matchingPool,
+        projectDonationsSqrtRootSum:
+          firstProject.estimatedMatching.projectDonationsSqrtRootSum,
+        allProjectsSum: firstProject.estimatedMatching.allProjectsSum,
+      });
+
+    const project2EstimatedMatching =
+      await calculateEstimatedMatchingWithParams({
+        matchingPool: secondProject.estimatedMatching.matchingPool,
+        projectDonationsSqrtRootSum:
+          secondProject.estimatedMatching.projectDonationsSqrtRootSum,
+        allProjectsSum: secondProject.estimatedMatching.allProjectsSum,
+      });
+
+    assert.equal(Math.floor(project1EstimatedMatching), 666);
+    assert.equal(Math.floor(project2EstimatedMatching), 333);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
+  it('should return projects, filter by ActiveQfRound', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: true,
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 10,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit: 50,
+        skip: 0,
+        filters: ['ActiveQfRound'],
+      },
+    });
+    assert.equal(result.data.data.allProjects.projects.length, 1);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
+  it('should return empty list when qfRound is not active, filter by ActiveQfRound', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: true,
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: false,
+      name: 'test2',
+      allocatedFund: 100,
+      minimumPassportScore: 10,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit: 50,
+        skip: 0,
+        filters: ['ActiveQfRound'],
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 0);
+    qfRound.isActive = false;
+    await qfRound.save();
   });
 }
 

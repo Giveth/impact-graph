@@ -26,6 +26,7 @@ import { generateTokenTab } from './tabs/tokenTab';
 import { donationTab } from './tabs/donationTab';
 import { projectVerificationTab } from './tabs/projectVerificationTab';
 import { ResourceActions } from './adminJsPermissions';
+import { qfRoundTab } from './tabs/qfRoundTab';
 
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
@@ -156,6 +157,7 @@ const getResources = async (): Promise<AdminJsResources> => {
     mainCategoryTab,
     broadcastNotificationTab,
     campaignsTab,
+    qfRoundTab,
   ];
 
   const loggingHook = async (response, request, context) => {
@@ -204,7 +206,7 @@ const getResources = async (): Promise<AdminJsResources> => {
 
 const getadminJsInstance = async () => {
   const resources = await getResources();
-  return new adminJs({
+  const adminJsInstance = new adminJs({
     branding: {
       logo: 'https://i.imgur.com/cGKo1Tk.png',
       favicon:
@@ -239,6 +241,7 @@ const getadminJsInstance = async () => {
     },
     rootPath: adminJsRootPath,
   });
+  return adminJsInstance;
 };
 
 export const adminJsRootPath = '/admin';

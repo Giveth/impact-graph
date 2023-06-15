@@ -20,6 +20,8 @@ export enum ResourceActions {
   MAKE_EDITABLE_BY_USER = 'makeEditableByUser',
   VERIFY_PROJECTS = 'verifyProjects',
   REJECT_PROJECTS = 'rejectProjects',
+  ADD_PROJECT_TO_QF_ROUND = 'addToQfRound',
+  REMOVE_PROJECT_FROM_QF_ROUND = 'removeFromQfRound',
 }
 
 // All permissions listed per resource, per role and action
@@ -90,6 +92,29 @@ const campaignPermissions = {
     new: true,
     show: true,
     edit: true,
+  },
+  // Add more roles here as needed
+};
+
+const qfRoundPermissions = {
+  [UserRole.ADMIN]: {
+    delete: true,
+    new: true,
+    show: true,
+    edit: true,
+    addToQfRound: true,
+    removeFromQfRound: true,
+  },
+  [UserRole.OPERATOR]: {
+    show: true,
+  },
+  [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    show: true,
+  },
+  [UserRole.CAMPAIGN_MANAGER]: {
+    show: true,
+    addToQfRound: true,
+    removeFromQfRound: true,
   },
   // Add more roles here as needed
 };
@@ -436,6 +461,14 @@ export const canAccessUserAction = ({ currentAdmin }, action: string) => {
     currentAdmin,
     action,
     resourcePermissions: userPermissions,
+  });
+};
+
+export const canAccessQfRoundAction = ({ currentAdmin }, action: string) => {
+  return hasAccessToResource({
+    currentAdmin,
+    action,
+    resourcePermissions: qfRoundPermissions,
   });
 };
 
