@@ -17,5 +17,5 @@ export interface ChainvineAdapterInterface {
   notifyChainVine(params: NotifyChainVineInputType): Promise<void>;
   registerClickEvent(referrerId: string): Promise<void>;
   linkDonorToReferrer(params: LinkDonorToChainvineReferrerType): Promise<void>;
-  generateChainvineId(walletAddress: string): Promise<string | void>;
+  generateChainvineId(walletAddress: string): Promise<string | void | null>;
 }

@@ -72,14 +72,17 @@ export class ChainvineAdapter implements ChainvineAdapterInterface {
     }
   }
 
-  async generateChainvineId(walletAddress: string): Promise<string | void> {
+  async generateChainvineId(
+    walletAddress: string,
+  ): Promise<string | void | null> {
     try {
       const chainvineResult = await this.ChainvineSDK.getReferralUrl(
         walletAddress,
       );
       // https://app.chainvine.xyz/giveth?referrer_id=xxxxxxxxxxxxxxxxxxxxxxxxx
-      const referralUrl = chainvineResult?.url;
-      return referralUrl?.split('referrer_id=')[1];
+      const referralUrl = new URL(chainvineResult?.url);
+      const referredId = referralUrl.searchParams.get('referrer_id');
+      return referredId;
     } catch (e) {
       logger.error('generateChainvineId() error ', { error: e });
       throw e;
