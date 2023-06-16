@@ -31,7 +31,9 @@ export class ChainvineMockAdapter implements ChainvineAdapterInterface {
     return Promise.resolve(undefined);
   }
 
-  async generateChainvineId(walletAddress: string): Promise<string | void> {
+  async generateChainvineId(
+    walletAddress: string,
+  ): Promise<string | void | null> {
     return generateHexNumber(10);
   }
 }
