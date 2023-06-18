@@ -90,8 +90,17 @@ function refreshUserScoresTestCases() {
     assert.isTrue(updatedUser.passportScore > 0);
     assert.isTrue(updatedUser.passportStamps > 0);
 
-    const userFromDb = await findUserById(user.id);
-    assert.equal(userFromDb!.passportScore, updatedUser.passportScore);
+    const fetchUserResponse = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: userData.walletAddress,
+      },
+    });
+
+    assert.equal(
+      fetchUserResponse.data.data.userByAddress.passportScore,
+      updatedUser.passportScore,
+    );
   });
   it('should not refresh user scores if not registered to gitcoin', async () => {
     const userData = {

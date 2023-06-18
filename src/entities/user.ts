@@ -33,6 +33,8 @@ export const publicSelectionFields = [
   'user.avatar',
   'user.totalDonated',
   'user.totalReceived',
+  'user.passportScore',
+  'user.passportStamps',
 ];
 
 export enum UserRole {

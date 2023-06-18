@@ -1053,6 +1053,8 @@ export const userByAddress = `
       likedProjectsCount
       donationsCount
       projectsCount
+      passportScore
+      passportStamps
     }
   }
 `;
