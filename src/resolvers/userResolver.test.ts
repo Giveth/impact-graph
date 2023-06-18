@@ -24,6 +24,7 @@ import { insertSinglePowerBoosting } from '../repositories/powerBoostingReposito
 import { create } from 'domain';
 import { DONATION_STATUS } from '../entities/donation';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+import { findUserById } from '../repositories/userRepository';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -59,6 +60,38 @@ function refreshUserScoresTestCases() {
     assert.equal(updatedUser.walletAddress, user.walletAddress);
     assert.isTrue(updatedUser.passportScore > 0);
     assert.isTrue(updatedUser.passportStamps > 0);
+  });
+  it('should persist passportScore in user ', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const user = await User.create(userData).save();
+    await getGitcoinAdapter().submitPassport({
+      address: userData.walletAddress,
+      scorer: '200',
+      signature: 'any',
+      nonce: 'any',
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: refreshUserScores,
+      variables: {
+        address: userData.walletAddress,
+      },
+    });
+
+    const updatedUser = result.data.data.refreshUserScores;
+    assert.equal(updatedUser.walletAddress, user.walletAddress);
+    assert.isTrue(updatedUser.passportScore > 0);
+    assert.isTrue(updatedUser.passportStamps > 0);
+
+    const userFromDb = await findUserById(user.id);
+    assert.equal(userFromDb!.passportScore, updatedUser.passportScore);
   });
   it('should not refresh user scores if not registered to gitcoin', async () => {
     const userData = {
