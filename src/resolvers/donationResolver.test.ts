@@ -3004,6 +3004,55 @@ function donationsByUserIdTestCases() {
       );
     });
   });
+  it('should join with qfRound', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    const donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        qfRoundId: qfRound.id,
+      },
+      donor.id,
+      project.id,
+    );
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByUserIdQuery,
+        variables: {
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'DESC',
+          },
+          userId: donor.id,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByUserId.donations;
+    assert.equal(donations[0].id, donation.id);
+    assert.equal(donations[0].qfRound.id, qfRound.id);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
 }
 
 function donationsByDonorTestCases() {

@@ -526,6 +526,11 @@ export const fetchDonationsByUserIdQuery = `
         project {
           id
         }
+       qfRound {
+          id
+          name
+          isActive
+        }
         createdAt
       }
       totalCount

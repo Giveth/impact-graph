@@ -525,6 +525,7 @@ export class DonationResolver {
       .createQueryBuilder('donation')
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
+      .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .where(`donation.userId = ${userId}`)
       .orderBy(
         `donation.${orderBy.field}`,
