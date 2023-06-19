@@ -72,10 +72,9 @@ export class UserResolver {
         const score = Number(passportScore.score);
         foundUser.passportScore = isNaN(score) ? 0 : score;
       }
-
       if (passportStamps)
         foundUser.passportStamps = passportStamps.items.length;
-      await foundUser!.save();
+      await foundUser.save();
     } catch (e) {
       logger.error(`refreshUserScores Error with address ${address}: `, e);
     }

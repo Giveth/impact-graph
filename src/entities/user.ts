@@ -33,6 +33,8 @@ export const publicSelectionFields = [
   'user.avatar',
   'user.totalDonated',
   'user.totalReceived',
+  'user.passportScore',
+  'user.passportStamps',
 ];
 
 export enum UserRole {
@@ -100,8 +102,8 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   url?: string;
 
-  @Field(type => Number, { nullable: true })
-  @Column({ nullable: true, default: null })
+  @Field(type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true, default: null })
   passportScore?: number;
 
   @Field(type => Number, { nullable: true })

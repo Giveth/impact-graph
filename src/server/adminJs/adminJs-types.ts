@@ -5,6 +5,7 @@ export interface AdminJsContextInterface {
   h: any;
   resource: any;
   records: any[];
+  record?: any;
   currentAdmin: User;
   payload?: any;
 }

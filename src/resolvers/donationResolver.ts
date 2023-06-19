@@ -395,6 +395,8 @@ export class DonationResolver {
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Arg('traceable', type => Boolean, { defaultValue: false })
     traceable: boolean,
+    @Arg('qfRoundId', type => Int, { defaultValue: null, nullable: true })
+    qfRoundId: number,
     @Arg('projectId', type => Int, { nullable: false }) projectId: number,
     @Arg('status', type => String, { nullable: true }) status: string,
     @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
@@ -418,6 +420,7 @@ export class DonationResolver {
     const query = this.donationRepository
       .createQueryBuilder('donation')
       .leftJoin('donation.user', 'user')
+      .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .addSelect(publicSelectionFields)
       .where(`donation.projectId = ${projectId}`)
       .orderBy(
@@ -429,6 +432,12 @@ export class DonationResolver {
     if (status) {
       query.andWhere(`donation.status = :status`, {
         status,
+      });
+    }
+
+    if (qfRoundId) {
+      query.andWhere('qfRound.id = :qfRoundId', {
+        qfRoundId,
       });
     }
 
@@ -516,6 +525,7 @@ export class DonationResolver {
       .createQueryBuilder('donation')
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
+      .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .where(`donation.userId = ${userId}`)
       .orderBy(
         `donation.${orderBy.field}`,
