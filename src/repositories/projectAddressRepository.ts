@@ -2,6 +2,8 @@ import { ProjectAddress } from '../entities/projectAddress';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { BaseEntity } from 'typeorm';
+import { logger } from '../utils/logger';
+import SentryLogger from '../sentryLogger';
 
 export const getPurpleListAddresses = async (): Promise<
   { projectAddress: string }[]
@@ -94,9 +96,31 @@ export const addBulkNewProjectAddress = async (
     networkId: number;
   }[],
 ): Promise<void> => {
-  await ProjectAddress.insert(
-    params.map(item => ProjectAddress.create(item as ProjectAddress)),
-  );
+  const queryBuilder = ProjectAddress.createQueryBuilder()
+    .insert()
+    .into(ProjectAddress);
+
+  try {
+    const values = params.map(item => ({
+      projectId: item.project.id,
+      userId: item.user.id,
+      address: item.address,
+      title: item.title,
+      isRecipient: item.isRecipient,
+      networkId: item.networkId,
+    }));
+
+    await queryBuilder.values(values).execute();
+  } catch (error) {
+    // won't propagate the error in the meantime
+    SentryLogger.captureMessage(
+      `Error during bulk insert project ${params[0].project.id}: ${error}`,
+    );
+    logger.error(
+      `Error during bulk insert project ${params[0].project.id}: `,
+      error,
+    );
+  }
 };
 
 export const removeRecipientAddressOfProject = async (params: {
