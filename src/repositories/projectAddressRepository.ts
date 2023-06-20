@@ -2,6 +2,7 @@ import { ProjectAddress } from '../entities/projectAddress';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { BaseEntity } from 'typeorm';
+import { logger } from '../utils/logger';
 
 export const getPurpleListAddresses = async (): Promise<
   { projectAddress: string }[]
@@ -94,22 +95,34 @@ export const addBulkNewProjectAddress = async (
     networkId: number;
   }[],
 ): Promise<void> => {
-  await ProjectAddress.insert(
-    params.map(item => ProjectAddress.create(item as ProjectAddress)),
-  );
+  const queryBuilder = ProjectAddress.createQueryBuilder()
+    .insert()
+    .into(ProjectAddress);
+
+  try {
+    const values = params.map(item => ({
+      projectId: item.project.id,
+      userId: item.user.id,
+      address: item.address,
+      title: item.title,
+      isRecipient: item.isRecipient,
+      networkId: item.networkId,
+    }));
+
+    await queryBuilder.values(values).execute();
+  } catch (error) {
+    logger.error('Error occurred during bulk insert: ', error);
+    throw error;
+  }
 };
 
 export const removeRecipientAddressOfProject = async (params: {
   project: Project;
 }): Promise<void> => {
-  // await ProjectAddress.delete({
-  //   project: params.project,
-  //   isRecipient: true,
-  // });
-
   return ProjectAddress.query(`
     DELETE from project_address
     WHERE "projectId"=${params.project.id} AND "isRecipient"=true
+    RETURNING *
   `);
 };
 

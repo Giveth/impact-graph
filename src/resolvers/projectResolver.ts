@@ -1037,18 +1037,38 @@ export class ProjectResolver {
 
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
-      await removeRecipientAddressOfProject({ project });
-      await addBulkNewProjectAddress(
-        newProjectData?.addresses.map(relatedAddress => {
-          return {
-            project,
-            user: adminUser,
-            address: relatedAddress.address,
-            networkId: relatedAddress.networkId,
-            isRecipient: true,
-          };
-        }),
-      );
+      const removedAddresses = await removeRecipientAddressOfProject({
+        project,
+      });
+      try {
+        await addBulkNewProjectAddress(
+          newProjectData?.addresses.map(relatedAddress => {
+            return {
+              project,
+              user: adminUser,
+              address: relatedAddress.address,
+              networkId: relatedAddress.networkId,
+              isRecipient: true,
+            };
+          }),
+        );
+      } catch (e) {
+        // Since there was an error we have to re-add deleted addresses
+        await addBulkNewProjectAddress(
+          removedAddresses[0]?.map(relatedAddress => {
+            return {
+              project,
+              user: adminUser,
+              address: relatedAddress.address,
+              networkId: relatedAddress.networkId,
+              isRecipient: true,
+            };
+          }),
+        );
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.PROJECT_CREATION_ADDRESS_ERROR),
+        );
+      }
     }
 
     project.adminUser = adminUser;
@@ -1284,19 +1304,26 @@ export class ProjectResolver {
     });
 
     await project.save();
-    // const adminUser = (await findUserById(Number(newProject.admin))) as User;
-    // newProject.adminUser = adminUser;
-    await addBulkNewProjectAddress(
-      projectInput?.addresses.map(relatedAddress => {
-        return {
-          project,
-          user,
-          address: relatedAddress.address.toLowerCase(),
-          networkId: relatedAddress.networkId,
-          isRecipient: true,
-        };
-      }),
-    );
+
+    try {
+      await addBulkNewProjectAddress(
+        projectInput?.addresses.map(relatedAddress => {
+          return {
+            project,
+            user,
+            address: relatedAddress.address.toLowerCase(),
+            networkId: relatedAddress.networkId,
+            isRecipient: true,
+          };
+        }),
+      );
+    } catch (e) {
+      await project.remove();
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.PROJECT_CREATION_ADDRESS_ERROR),
+      );
+    }
+
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId: project.id,
     });

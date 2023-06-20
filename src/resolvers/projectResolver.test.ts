@@ -2277,6 +2277,55 @@ function createProjectTestCases() {
       sampleProject.addresses[0].address,
     );
   });
+
+  it('Should create unsuccessfully, when addresses are invalid or repeated', async () => {
+    const address = {
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.XDAI,
+    };
+    const sampleProject: CreateProjectInput = {
+      title: 'title ' + new Date().getTime(),
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
+      description: 'description',
+      image:
+        'https://gateway.pinata.cloud/ipfs/QmauSzWacQJ9rPkPJgr3J3pdgfNRGAaDCr1yAToVWev2QS',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        address,
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.MAIN_NET,
+        },
+        address,
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.exists(result.data);
+    assert.equal(
+      result.data.errors[0].message,
+      i18n.__(translationErrorMessagesKeys.PROJECT_CREATION_ADDRESS_ERROR),
+    );
+
+    const createdProject = await Project.findOne({
+      where: { title: sampleProject.title },
+    });
+
+    assert.isNull(createdProject);
+  });
   it('Should create successfully with special characters in title', async () => {
     const titleWithoutSpecialCharacters = 'title-_' + new Date().getTime();
     const sampleProject: CreateProjectInput = {
