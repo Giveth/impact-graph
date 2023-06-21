@@ -39,6 +39,7 @@ import { InstantPowerFetchState } from './instantPowerFetchState';
 import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { QfRound } from './qfRound';
 import { ReferredEvent } from './referredEvent';
+import { QfRoundHistory } from './qfRoundHistory';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -93,5 +94,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     InstantPowerFetchState,
 
     QfRound,
+    QfRoundHistory,
   ];
 };

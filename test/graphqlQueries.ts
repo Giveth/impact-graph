@@ -758,6 +758,25 @@ export const expectedMatchingFormulaQuery = `
   }
 `;
 
+export const getQfRoundHistoryQuery = `
+    query (
+      $projectId: Int!
+      $qfRoundId: Int!
+    ) {
+      getQfRoundHistory(
+        projectId: $projectId
+        qfRoundId: $qfRoundId
+      ) {
+        uniqueDonors
+        raisedFundInUsd
+        donationsCount
+        matchingFund
+        distributedFundNetwork
+        distributedFundTxHash
+      }
+    }
+`;
+
 export const fetchProjectsBySlugQuery = `
   query (
     $slug: String!
