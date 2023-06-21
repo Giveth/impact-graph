@@ -12,6 +12,7 @@ export const NETWORK_IDS = {
   XDAI: 100,
   POLYGON: 137,
   OPTIMISTIC: 10,
+  OPTIMISM_GOERLI: 420,
   BSC: 56,
   CELO: 42220,
   CELO_ALFAJORES: 44787,
@@ -27,6 +28,7 @@ export const NETWORKS_IDS_TO_NAME = {
   42220: 'CELO',
   44787: 'CELO_ALFAJORES',
   10: 'OPTIMISTIC',
+  420: 'OPTIMISM_GOERLI',
 };
 
 const NETWORK_NAMES = {
@@ -37,6 +39,7 @@ const NETWORK_NAMES = {
   GOERLI: 'goerli',
   POLYGON: 'polygon-mainnet',
   OPTIMISTIC: 'optimistic-mainnet',
+  OPTIMISM_GOERLI: 'optimism-goerli-testnet',
   CELO: 'Celo',
   CELO_ALFAJORES: 'Celo Alfajores',
 };
@@ -49,6 +52,7 @@ const NETWORK_NATIVE_TOKENS = {
   GOERLI: 'ETH',
   POLYGON: 'MATIC',
   OPTIMISTIC: 'ETH',
+  OPTIMISM_GOERLI: 'ETH',
   CELO: 'CELO',
   CELO_ALFAJORES: 'CELO',
 };
@@ -88,6 +92,11 @@ const networkNativeTokensList = [
     networkName: NETWORK_NAMES.OPTIMISTIC,
     networkId: NETWORK_IDS.OPTIMISTIC,
     nativeToken: NETWORK_NATIVE_TOKENS.OPTIMISTIC,
+  },
+  {
+    networkName: NETWORK_NAMES.OPTIMISM_GOERLI,
+    networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    nativeToken: NETWORK_NATIVE_TOKENS.OPTIMISM_GOERLI,
   },
   {
     networkName: NETWORK_NAMES.CELO,
@@ -140,6 +149,11 @@ export function getProvider(networkId: number) {
       url =
         (config.get('CELO_ALFAJORES_NODE_HTTP_URL') as string) ||
         `https://celo-alfajores.infura.io/v3/${INFURA_ID}`;
+      break;
+
+    case NETWORK_IDS.OPTIMISM_GOERLI:
+      url = config.get('OPTIMISM_GOERLI_NODE_HTTP_URL') as string;
+      `https://optimism-goerli.public.blastapi.io/v3/${INFURA_ID}`;
       break;
 
     default: {
@@ -200,6 +214,10 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiKey = config.get('CELO_ALFAJORES_SCAN_API_KEY');
       break;
     case NETWORK_IDS.OPTIMISTIC:
+      apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
+      apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.OPTIMISM_GOERLI:
       apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
       apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
       break;
