@@ -2,7 +2,6 @@ import { AppDataSource } from '../orm';
 import { QfRoundHistory } from '../entities/qfRoundHistory';
 import { logger } from '../utils/logger';
 
-// Should call it in checkActiveStatusQfRounds cron job merging https://github.com/Giveth/impact-graph/pull/1024
 export const fillQfRoundHistory = async (): Promise<void> => {
   logger.info('fillQfRoundHistory() has been called');
   return AppDataSource.getDataSource().query(`

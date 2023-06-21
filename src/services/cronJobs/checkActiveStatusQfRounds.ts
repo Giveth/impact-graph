@@ -27,6 +27,7 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../projectViewsService';
+import { fillQfRoundHistory } from '../../repositories/qfRoundHistoryRepository';
 
 // every 10 minutes
 const cronJobTime =
@@ -52,6 +53,7 @@ export const runCheckActiveStatusOfQfRounds = () => {
       await deactivateExpiredQfRounds();
       await refreshProjectEstimatedMatchingView();
       await refreshProjectDonationSummaryView();
+      await fillQfRoundHistory();
     }
   });
 };

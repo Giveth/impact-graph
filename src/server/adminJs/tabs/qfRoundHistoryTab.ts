@@ -32,32 +32,46 @@ export const qfRoundHistoryTab = {
   resource: QfRoundHistory,
   options: {
     properties: {
-      name: {
-        isVisible: true,
-      },
-      isActive: {
-        isVisible: true,
-      },
-      beginDate: {
-        isVisible: true,
-      },
-      endDate: {
-        isVisible: true,
-      },
-      allocatedFund: {
-        isVisible: true,
-      },
-      minimumPassportScore: {
-        isVisible: true,
-      },
-      projects: {
+      project: {
         isVisible: {
-          list: true,
+          list: false,
           edit: false,
-          filter: false,
+          filter: true,
           show: true,
         },
       },
+      qfRound: {
+        isVisible: {
+          list: false,
+          edit: false,
+          filter: true,
+          show: true,
+        },
+      },
+      uniqueDonors: {
+        isVisible: true,
+      },
+      donationsCount: {
+        isVisible: true,
+      },
+      raisedFundInUsd: {
+        isVisible: true,
+      },
+      matchingFund: {
+        isVisible: true,
+      },
+      distributedFundNetwork: {
+        isVisible: true,
+      },
+      distributedFundTxHash: {
+        isVisible: {
+          list: false,
+          edit: true,
+          filter: true,
+          show: true,
+        },
+      },
+
       createdAt: {
         type: 'string',
         isVisible: {

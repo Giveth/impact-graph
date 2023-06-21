@@ -771,7 +771,8 @@ export const getQfRoundHistoryQuery = `
         raisedFundInUsd
         donationsCount
         matchingFund
-        sendMatchingFundTxLink
+        distributedFundNetwork
+        distributedFundTxHash
       }
     }
 `;
