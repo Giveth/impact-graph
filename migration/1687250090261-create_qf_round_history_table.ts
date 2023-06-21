@@ -7,12 +7,12 @@ export class createQfRoundHistoryTable1687250090261
     await queryRunner.query(`
             CREATE TABLE "qf_round_history" (
                 "id" SERIAL NOT NULL,
-                "projectId" integer,
-                "qfRoundId" integer,
-                "uniqueDonors" integer NOT NULL DEFAULT 0,
-                "donationsCount" integer NOT NULL DEFAULT 0,
-                "raisedFundInUsd" real NOT NULL DEFAULT 0,
-                "matchingFund" real NOT NULL DEFAULT 0,
+                "projectId" integer NOT NULL,
+                "qfRoundId" integer NOT NULL,
+                "uniqueDonors" integer,
+                "donationsCount" integer,
+                "raisedFundInUsd" real,
+                "matchingFund" real,
                 "distributedFundTxHash" text,
                 "distributedFundNetwork" text,
                 "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),

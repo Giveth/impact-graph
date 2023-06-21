@@ -29,7 +29,7 @@ export class QfRoundHistory extends BaseEntity {
   @Index()
   @Field(type => ID, { nullable: true })
   @RelationId((qfRoundHistory: QfRoundHistory) => qfRoundHistory.project)
-  @Column({ nullable: true })
+  @Column()
   projectId: number;
 
   @ManyToOne(type => QfRound)
@@ -38,15 +38,15 @@ export class QfRoundHistory extends BaseEntity {
   @Index()
   @Field(type => ID, { nullable: true })
   @RelationId((qfRoundHistory: QfRoundHistory) => qfRoundHistory.qfRound)
-  @Column({ nullable: true })
+  @Column()
   qfRoundId: number;
 
   @Field(type => Number)
-  @Column({ default: 0 })
+  @Column({ nullable: true, default: 0 })
   uniqueDonors: number;
 
   @Field(type => Number)
-  @Column({ default: 0 })
+  @Column({ nullable: true, default: 0 })
   donationsCount: number;
 
   @Field(type => Float)
