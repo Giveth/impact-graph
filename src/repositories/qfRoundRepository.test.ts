@@ -7,8 +7,10 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { QfRound } from '../entities/qfRound';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import {
+  deactivateExpiredQfRounds,
+  getExpiredActiveQfRounds,
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalProjectsDonationsSum,
 } from './qfRoundRepository';
@@ -26,6 +28,14 @@ describe(
 describe(
   'getQfRoundTotalProjectsDonationsSum test cases',
   getQfRoundTotalProjectsDonationsSumTestCases,
+);
+describe(
+  'getExpiredActiveQfRounds test cases',
+  getExpiredActiveQfRoundsTestCases,
+);
+describe(
+  'deactivateExpiredQfRounds test cases',
+  deactivateExpiredQfRoundsTestCases,
 );
 
 function getProjectDonationsSqrRootSumTests() {
@@ -283,5 +293,75 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
       await getQfRoundTotalProjectsDonationsSum(qfRound.id);
     expect(sum).to.equal(289 * 5);
     expect(contributorsCount).to.equal(3 * 2);
+  });
+}
+
+function getExpiredActiveQfRoundsTestCases() {
+  it('should return zero when there is any active qfRound', async () => {
+    const expiredActiveQfRounds = await getExpiredActiveQfRounds();
+    assert.equal(expiredActiveQfRounds.length, 0);
+  });
+  it('should return zero when there is active qfRound but endDate havent passed', async () => {
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(1, 'days').toDate(),
+    });
+    await qfRound.save();
+    const expiredActiveQfRounds = await getExpiredActiveQfRounds();
+    assert.equal(expiredActiveQfRounds.length, 0);
+  });
+  it('should return expired active qfRound when there is some', async () => {
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().subtract(1, 'days').toDate(),
+    });
+    await qfRound.save();
+    const expiredActiveQfRounds = await getExpiredActiveQfRounds();
+    assert.equal(expiredActiveQfRounds.length, 1);
+  });
+}
+
+function deactivateExpiredQfRoundsTestCases() {
+  it('should not deactive qfRounds when endDate havent passed', async () => {
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(1, 'days').toDate(),
+    });
+    await qfRound.save();
+    await deactivateExpiredQfRounds();
+    const fetchedQfRound = await QfRound.findOne({
+      where: { id: qfRound.id },
+    });
+    assert.isTrue(fetchedQfRound?.isActive);
+  });
+  it('should deactive qfRounds when endDate  passed', async () => {
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().subtract(1, 'days').toDate(),
+    });
+    await qfRound.save();
+    assert.equal((await getExpiredActiveQfRounds()).length, 1);
+    await deactivateExpiredQfRounds();
+    const fetchedQfRound = await QfRound.findOne({
+      where: { id: qfRound.id },
+    });
+    assert.isFalse(fetchedQfRound?.isActive);
+    assert.equal((await getExpiredActiveQfRounds()).length, 0);
   });
 }

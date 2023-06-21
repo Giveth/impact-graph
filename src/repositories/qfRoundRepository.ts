@@ -83,3 +83,26 @@ export const getQfRoundTotalProjectsDonationsSum = async (
     contributorsCount,
   };
 };
+
+export const getExpiredActiveQfRounds = async (): Promise<QfRound[]> => {
+  const now = new Date();
+  return AppDataSource.getDataSource().query(
+    `
+    SELECT * FROM qf_round
+    WHERE "isActive" = true AND "endDate" < $1
+  `,
+    [now],
+  );
+};
+
+export const deactivateExpiredQfRounds = async (): Promise<void> => {
+  const now = new Date();
+  await AppDataSource.getDataSource().query(
+    `
+    UPDATE qf_round
+    SET "isActive" = false
+    WHERE "isActive" = true AND "endDate" < $1
+  `,
+    [now],
+  );
+};
