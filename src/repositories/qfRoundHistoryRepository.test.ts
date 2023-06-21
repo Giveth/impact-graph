@@ -290,6 +290,7 @@ function fillQfRoundHistoryTestCases() {
   it('should not count unverified donations', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     user.passportScore = 12;
+    await user.save();
 
     await saveDonationDirectlyToDb(
       {
