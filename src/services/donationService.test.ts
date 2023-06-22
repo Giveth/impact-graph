@@ -196,50 +196,6 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.isTrue(updateDonation.segmentNotified);
     assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
   });
-  // it('should verify a Optimis Goerli donation', async () => {
-  //   // https://goerli-optimism.etherscan.io/tx/0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3
-  //   const amount = 0.011;
-
-  //   const transactionInfo = {
-  //     txHash:
-  //       '0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3',
-  //     currency: 'ETH',
-  //     networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-  //     fromAddress: '0x317bbc1927be411cd05615d2ffdf8d320c6c4052',
-  //     toAddress: '0x00d18ca9782be1caef611017c2fbc1a39779a57c',
-  //     amount,
-  //     timestamp: 1679484540,
-  //   };
-  //   const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
-  //   const project = await saveProjectDirectlyToDb({
-  //     ...createProjectData(),
-  //     walletAddress: transactionInfo.toAddress,
-  //   });
-  //   const donation = await saveDonationDirectlyToDb(
-  //     {
-  //       amount: transactionInfo.amount,
-  //       transactionNetworkId: transactionInfo.networkId,
-  //       transactionId: transactionInfo.txHash,
-  //       currency: transactionInfo.currency,
-  //       fromWalletAddress: transactionInfo.fromAddress,
-  //       toWalletAddress: transactionInfo.toAddress,
-  //       valueUsd: 1.79,
-  //       anonymous: false,
-  //       createdAt: new Date(transactionInfo.timestamp),
-  //       status: DONATION_STATUS.PENDING,
-  //     },
-  //     user.id,
-  //     project.id,
-  //   );
-  //   const updateDonation = await syncDonationStatusWithBlockchainNetwork({
-  //     donationId: donation.id,
-  //   });
-  //   assert.isOk(updateDonation);
-  //   assert.equal(updateDonation.id, donation.id);
-  //   assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
-  //   assert.isTrue(updateDonation.segmentNotified);
-  // });
-
   it('should verify a Optimistic donation', async () => {
     // https://optimistic.etherscan.io/tx/0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7
 
