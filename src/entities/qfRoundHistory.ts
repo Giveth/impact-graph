@@ -41,19 +41,19 @@ export class QfRoundHistory extends BaseEntity {
   @Column()
   qfRoundId: number;
 
-  @Field(type => Number)
+  @Field(type => Number, { nullable: true })
   @Column({ nullable: true, default: 0 })
   uniqueDonors: number;
 
-  @Field(type => Number)
+  @Field(type => Number, { nullable: true })
   @Column({ nullable: true, default: 0 })
   donationsCount: number;
 
-  @Field(type => Float)
+  @Field(type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })
   raisedFundInUsd: number;
 
-  @Field(type => Float)
+  @Field(type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })
   matchingFund: number;
 
