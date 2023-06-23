@@ -152,7 +152,7 @@ export function getProvider(networkId: number) {
       break;
 
     case NETWORK_IDS.OPTIMISM_GOERLI:
-      url = `https://optimism-goerli.public.blastapi.io/v3/${INFURA_ID}`;
+      url = `https://optimism-goerli.infura.io/v3/${INFURA_ID}`;
       break;
 
     default: {

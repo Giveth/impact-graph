@@ -156,6 +156,17 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
+  for (const token of SEED_DATA.TOKENS.optimism_goerli) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'OP') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
 }
 
 async function seedOrganizations() {

@@ -476,7 +476,7 @@ function getTransactionDetailTestCases() {
       txHash:
         '0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3',
       symbol: 'ETH',
-      networkId: NETWORK_IDS.POLYGON,
+      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
       fromAddress: '0x317bbc1927be411cd05615d2ffdf8d320c6c4052',
       toAddress: '0x00d18ca9782be1caef611017c2fbc1a39779a57c',
       amount,
