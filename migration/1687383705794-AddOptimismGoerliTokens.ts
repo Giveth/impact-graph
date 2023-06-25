@@ -2,11 +2,18 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import { Token } from '../src/entities/token';
 import seedTokens from './data/seedTokens';
 import { NETWORK_IDS } from '../src/provider';
+import config from '../src/config';
 
 export class AddOptimismGoerliTokens1687383705794
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const environment = config.get('ENVIRONMENT') as string;
+    if (environment === 'production') {
+      // We dont add optimism-goerli tokens in production ENV
+      return;
+    }
+
     await queryRunner.manager.save(
       Token,
       seedTokens
@@ -38,6 +45,12 @@ export class AddOptimismGoerliTokens1687383705794
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    const environment = config.get('ENVIRONMENT') as string;
+    if (environment === 'production') {
+      // We dont add optimism-goerli tokens in production ENV
+      return;
+    }
+
     const tokens = await queryRunner.query(`
             SELECT * FROM token
             WHERE "networkId" = ${NETWORK_IDS.OPTIMISM_GOERLI}
