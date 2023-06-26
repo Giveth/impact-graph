@@ -588,11 +588,21 @@ export class DonationResolver {
         createDonationQueryValidator,
       );
 
-      const priceChainId =
-        transactionNetworkId === NETWORK_IDS.ROPSTEN ||
-        transactionNetworkId === NETWORK_IDS.GOERLI
-          ? NETWORK_IDS.MAIN_NET
-          : transactionNetworkId;
+      let priceChainId: number;
+      switch (transactionNetworkId) {
+        case NETWORK_IDS.ROPSTEN:
+          priceChainId = NETWORK_IDS.MAIN_NET;
+          break;
+        case NETWORK_IDS.GOERLI:
+          priceChainId = NETWORK_IDS.MAIN_NET;
+          break;
+        case NETWORK_IDS.OPTIMISM_GOERLI:
+          priceChainId = NETWORK_IDS.OPTIMISTIC;
+          break;
+        default:
+          priceChainId = transactionNetworkId;
+          break;
+      }
 
       const project = await findProjectById(projectId);
 

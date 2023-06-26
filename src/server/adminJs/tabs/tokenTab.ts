@@ -184,6 +184,7 @@ export const generateTokenTab = async () => {
             { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
             { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
             { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
+            { value: NETWORK_IDS.OPTIMISM_GOERLI, label: 'OPTIMISM GOERLI' },
             { value: NETWORK_IDS.CELO, label: 'CELO' },
             {
               value: NETWORK_IDS.CELO_ALFAJORES,

@@ -468,6 +468,25 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
+  it('should return transaction detail for normal transfer on optimism-goerli', async () => {
+    // https://goerli-optimism.etherscan.io/tx/0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3
+
+    const amount = 0.011;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+      fromAddress: '0x317bbc1927be411cd05615d2ffdf8d320c6c4052',
+      toAddress: '0x00d18ca9782be1caef611017c2fbc1a39779a57c',
+      amount,
+      timestamp: 167740007,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return transaction detail for normal transfer on CELO', async () => {
     // https://celoscan.io/tx/0xa2a282cf6a7dec8b166aa52ac3d00fcd15a370d414615e29a168cfbb592e3637
 
