@@ -5,9 +5,6 @@ export interface SigningMessageAndNonceResponse {
 
 export interface SubmitPassportInput {
   address: string;
-  scorer: string;
-  signature: string;
-  nonce: string;
 }
 
 export interface SubmittedPassportResponse {

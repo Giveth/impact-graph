@@ -61,16 +61,16 @@ export class UserResolver {
     if (!foundUser) return;
 
     try {
-      const passportScore = await getGitcoinAdapter().getWalletAddressScore(
+      const passportScore = await getGitcoinAdapter().submitPassport({
         address,
-      );
+      });
       const passportStamps = await getGitcoinAdapter().getPassportStamps(
         address,
       );
 
-      if (passportScore) {
+      if (passportScore && passportScore?.score) {
         const score = Number(passportScore.score);
-        foundUser.passportScore = isNaN(score) ? 0 : score;
+        foundUser.passportScore = score;
       }
       if (passportStamps)
         foundUser.passportStamps = passportStamps.items.length;

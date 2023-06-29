@@ -45,9 +45,6 @@ function refreshUserScoresTestCases() {
     const user = await User.create(userData).save();
     await getGitcoinAdapter().submitPassport({
       address: userData.walletAddress,
-      scorer: '200',
-      signature: 'any',
-      nonce: 'any',
     });
     const result = await axios.post(graphqlUrl, {
       query: refreshUserScores,
@@ -74,9 +71,6 @@ function refreshUserScoresTestCases() {
     const user = await User.create(userData).save();
     await getGitcoinAdapter().submitPassport({
       address: userData.walletAddress,
-      scorer: '200',
-      signature: 'any',
-      nonce: 'any',
     });
     const result = await axios.post(graphqlUrl, {
       query: refreshUserScores,
@@ -101,30 +95,6 @@ function refreshUserScoresTestCases() {
       fetchUserResponse.data.data.userByAddress.passportScore,
       updatedUser.passportScore,
     );
-  });
-  it('should not refresh user scores if not registered to gitcoin', async () => {
-    const userData = {
-      firstName: 'firstName',
-      lastName: 'lastName',
-      email: 'giveth@gievth.com',
-      avatar: 'pinata address',
-      url: 'website url',
-      loginType: 'wallet',
-      walletAddress: generateRandomEtheriumAddress(),
-    };
-    const user = await User.create(userData).save();
-    const result = await axios.post(graphqlUrl, {
-      query: refreshUserScores,
-      variables: {
-        address: userData.walletAddress,
-      },
-    });
-
-    const updatedUser = result.data.data.refreshUserScores;
-    assert.equal(updatedUser.walletAddress, user.walletAddress);
-    // if score remains null the user has not registered
-    assert.equal(updatedUser.passportScore, 0);
-    assert.equal(updatedUser.passportStamps, 0);
   });
 }
 

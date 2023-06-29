@@ -63,7 +63,7 @@ export class GitcoinMockAdapter implements GitcoinAdapterInterface {
     }
     return Promise.resolve({
       address: 'string',
-      score: 'string',
+      score: '10',
       status: 'string',
       last_score_timestamp: 'string',
       evidence: undefined,
