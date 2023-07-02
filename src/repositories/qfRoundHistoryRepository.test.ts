@@ -248,7 +248,7 @@ function fillQfRoundHistoryTestCases() {
     });
     assert.isNull(foundQfRoundHistory);
   });
-  it('should not count donations from users that their passportScore is lower than qfRound.minimumPassportScore', async () => {
+  it('should not cconsider donors passport score', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     user1.passportScore = 6;
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -284,8 +284,8 @@ function fillQfRoundHistoryTestCases() {
       qfRoundId: qfRound.id,
     });
     assert.isOk(foundQfRoundHistory);
-    assert.equal(foundQfRoundHistory?.uniqueDonors, 1);
-    assert.equal(foundQfRoundHistory?.raisedFundInUsd, 15);
+    assert.equal(foundQfRoundHistory?.uniqueDonors, 2);
+    assert.equal(foundQfRoundHistory?.raisedFundInUsd, 25);
   });
   it('should not count unverified donations', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

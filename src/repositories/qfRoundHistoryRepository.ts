@@ -21,7 +21,6 @@ export const fillQfRoundHistory = async (): Promise<void> => {
         WHERE 
           qr."isActive" = false AND
           qr."endDate" < NOW() AND
-          u."passportScore" >= qr."minimumPassportScore" AND
           d.status = 'verified'
         GROUP BY d."projectId", d."qfRoundId"
         ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;
