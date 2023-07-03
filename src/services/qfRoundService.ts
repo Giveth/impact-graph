@@ -18,3 +18,7 @@ export const relatedActiveQfRoundForProject = async (
   }
   return qfRound;
 };
+
+export const isQfRoundHasEnded = (params: { endDate: Date }): Boolean => {
+  return new Date() >= params.endDate;
+};

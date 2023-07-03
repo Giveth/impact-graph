@@ -8,6 +8,13 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../../../services/projectViewsService';
+import {
+  AdminJsContextInterface,
+  AdminJsRequestInterface,
+} from '../adminJs-types';
+import { ValidationError } from 'adminjs';
+import { isQfRoundHasEnded } from '../../../services/qfRoundService';
+import { findQfRoundById } from '../../../repositories/qfRoundRepository';
 
 export const refreshMaterializedViews = async (
   response,
@@ -84,6 +91,26 @@ export const qfRoundTab = {
       edit: {
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
+        before: async (
+          request: AdminJsRequestInterface,
+          response,
+          _context: AdminJsContextInterface,
+        ) => {
+          // https://docs.adminjs.co/basics/action#using-before-and-after-hooks
+          if (request?.payload?.id) {
+            const qfRoundId = Number(request.payload.id);
+            const qfRound = await findQfRoundById(qfRoundId);
+            if (!qfRound || isQfRoundHasEnded({ endDate: qfRound!.endDate })) {
+              throw new ValidationError({
+                endDate: {
+                  message:
+                    'The endDate has passed so qfRound cannot be edited.',
+                },
+              });
+            }
+          }
+          return request;
+        },
         after: refreshMaterializedViews,
       },
     },
