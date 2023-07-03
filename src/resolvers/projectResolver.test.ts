@@ -1358,6 +1358,53 @@ function allProjectsTestCases() {
     qfRound.isActive = false;
     await qfRound.save();
   });
+  it('should just return verified projects, filter by qfRoundId and verified', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'test filter by qfRoundId',
+      minimumPassportScore: 10,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project1.qfRounds = [qfRound];
+    await project1.save();
+    project2.qfRounds = [qfRound];
+    await project2.save();
+    project3.qfRounds = [qfRound];
+    await project3.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        qfRoundId: qfRound.id,
+        filters: ['Verified'],
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 2);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.equal(project.qfRounds[0].id, qfRound.id);
+    });
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
   it('should return projects, filter by qfRoundId, calculate estimated matching', async () => {
     const project1 = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1493,6 +1540,70 @@ function allProjectsTestCases() {
       },
     });
     assert.equal(result.data.data.allProjects.projects.length, 1);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
+  it('should return projects, filter by ActiveQfRound, and not return non verified projects', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: false,
+      listed: true,
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 10,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit: 50,
+        skip: 0,
+        filters: ['ActiveQfRound', 'Verified'],
+      },
+    });
+    assert.equal(result.data.data.allProjects.projects.length, 0);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return projects, filter by ActiveQfRound, and not return non listed projects', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      verified: true,
+      listed: false,
+      reviewStatus: ReviewStatus.NotListed,
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 10,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit: 50,
+        skip: 0,
+        filters: ['ActiveQfRound', 'Verified'],
+      },
+    });
+    assert.equal(result.data.data.allProjects.projects.length, 0);
     qfRound.isActive = false;
     await qfRound.save();
   });
