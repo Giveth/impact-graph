@@ -12,6 +12,9 @@ export const findActiveQfRound = async (): Promise<QfRound | null> => {
     .where('"isActive" = true')
     .getOne();
 };
+export const findQfRoundById = async (id: number): Promise<QfRound | null> => {
+  return QfRound.createQueryBuilder('qf_round').where(`id = ${id}`).getOne();
+};
 
 export const relateManyProjectsToQfRound = async (params: {
   projectIds: number[];
