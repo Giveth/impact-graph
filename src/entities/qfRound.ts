@@ -20,12 +20,12 @@ export class QfRound extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column('text', { nullable: true })
   name: string;
 
-  @Field()
-  @Column({ default: true })
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   isActive: boolean;
 
   @Field(type => Number)
