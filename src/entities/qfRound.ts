@@ -24,9 +24,6 @@ export class QfRound extends BaseEntity {
   @Column('text', { nullable: true })
   name: string;
 
-  @ManyToMany(type => Project, project => project.qfRounds)
-  projects: Project[];
-
   @Field()
   @Column({ default: true })
   isActive: boolean;
@@ -52,4 +49,7 @@ export class QfRound extends BaseEntity {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @ManyToMany(type => Project, project => project.qfRounds)
+  projects: Project[];
 }

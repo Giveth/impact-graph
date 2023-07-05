@@ -109,3 +109,16 @@ export const deactivateExpiredQfRounds = async (): Promise<void> => {
     [now],
   );
 };
+
+export const getRelatedProjectsOfQfRound = async (
+  qfRoundId: number,
+): Promise<{ slug: string; name: string }[]> => {
+  const query = `
+    SELECT "p"."slug", "p"."title" , p.id
+    FROM "project" "p"
+    INNER JOIN "project_qf_rounds_qf_round" "qp" ON "qp"."projectId" = "p"."id"
+    WHERE "qp"."qfRoundId" = ${qfRoundId}
+  `;
+
+  return QfRound.query(query);
+};
