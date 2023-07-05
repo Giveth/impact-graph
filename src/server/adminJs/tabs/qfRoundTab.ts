@@ -12,15 +12,39 @@ import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
 } from '../adminJs-types';
-import { ValidationError } from 'adminjs';
+import adminJs, { ValidationError } from 'adminjs';
 import { isQfRoundHasEnded } from '../../../services/qfRoundService';
-import { findQfRoundById } from '../../../repositories/qfRoundRepository';
+import {
+  findQfRoundById,
+  getRelatedProjectsOfQfRound,
+} from '../../../repositories/qfRoundRepository';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 
 export const refreshMaterializedViews = async (
   response,
 ): Promise<After<ActionResponse>> => {
   await refreshProjectEstimatedMatchingView();
   await refreshProjectDonationSummaryView();
+  return response;
+};
+
+export const fillProjects: After<ActionResponse> = async (
+  response,
+  _request,
+  _context,
+) => {
+  const record: RecordJSON = response.record || {};
+  const qfRoundId = record.params.qfRoundId || record.params.id;
+  const projects = await getRelatedProjectsOfQfRound(qfRoundId);
+
+  const adminJsBaseUrl = process.env.SERVER_URL;
+  response.record = {
+    ...record,
+    params: {
+      ...record.params,
+      projects,
+    },
+  };
   return response;
 };
 
@@ -47,11 +71,15 @@ export const qfRoundTab = {
         isVisible: true,
       },
       projects: {
+        type: 'mixed',
         isVisible: {
-          list: true,
-          edit: false,
+          list: false,
           filter: false,
           show: true,
+          edit: false,
+        },
+        components: {
+          show: adminJs.bundle('./components/ProjectsInQfRound'),
         },
       },
       createdAt: {
@@ -87,6 +115,11 @@ export const qfRoundTab = {
         isAccessible: ({ currentAdmin }) =>
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.NEW),
         after: refreshMaterializedViews,
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction({ currentAdmin }, ResourceActions.SHOW),
+        after: fillProjects,
       },
       edit: {
         isAccessible: ({ currentAdmin }) =>
