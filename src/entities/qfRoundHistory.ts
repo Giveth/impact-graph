@@ -13,6 +13,12 @@ import {
 } from 'typeorm';
 import { Project } from './project';
 import { QfRound } from './qfRound';
+import {
+  findQfRoundById,
+  getProjectDonationsSqrtRootSum,
+  getQfRoundTotalProjectsDonationsSum,
+} from '../repositories/qfRoundRepository';
+import { EstimatedMatching } from '../types/qfTypes';
 
 @Entity()
 @ObjectType()
@@ -70,4 +76,26 @@ export class QfRoundHistory extends BaseEntity {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  // In your main class
+  @Field(type => EstimatedMatching, { nullable: true })
+  async estimatedMatching(): Promise<EstimatedMatching | null> {
+    const projectDonationsSqrtRootSum = await getProjectDonationsSqrtRootSum(
+      this.projectId,
+      this.qfRoundId,
+    );
+
+    const allProjectsSum = await getQfRoundTotalProjectsDonationsSum(
+      this.qfRoundId,
+    );
+    const qfRound = await findQfRoundById(this.qfRoundId);
+
+    const matchingPool = qfRound!.allocatedFund;
+
+    return {
+      projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
+      allProjectsSum: allProjectsSum.sum,
+      matchingPool,
+    };
+  }
 }

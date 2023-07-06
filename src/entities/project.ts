@@ -50,6 +50,7 @@ import {
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalProjectsDonationsSum,
 } from '../repositories/qfRoundRepository';
+import { EstimatedMatching } from '../types/qfTypes';
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
@@ -119,18 +120,6 @@ export enum ReviewStatus {
   NotReviewed = 'Not Reviewed',
   Listed = 'Listed',
   NotListed = 'Not Listed',
-}
-
-@ObjectType()
-class EstimatedMatching {
-  @Field(type => Float)
-  projectDonationsSqrtRootSum: number;
-
-  @Field(type => Float)
-  allProjectsSum: number;
-
-  @Field(type => Float)
-  matchingPool: number;
 }
 
 @Entity()

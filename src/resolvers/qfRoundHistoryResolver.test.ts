@@ -90,5 +90,10 @@ function getQfRoundHistoryTestCases() {
     assert.equal(qfRoundHistory.donationsCount, 2);
     assert.equal(qfRoundHistory.uniqueDonors, 1);
     assert.equal(qfRoundHistory.raisedFundInUsd, 25);
+    assert.exists(qfRoundHistory.estimatedMatching);
+    assert.equal(
+      qfRoundHistory.estimatedMatching.matchingPool,
+      qfRound.allocatedFund,
+    );
   });
 }

@@ -773,6 +773,11 @@ export const getQfRoundHistoryQuery = `
         matchingFund
         distributedFundNetwork
         distributedFundTxHash
+        estimatedMatching {
+         projectDonationsSqrtRootSum
+         allProjectsSum
+         matchingPool
+        }
       }
     }
 `;
