@@ -5,7 +5,7 @@ export const relatedActiveQfRoundForProject = async (
   projectId: number,
 ): Promise<QfRound | null> => {
   const project = await findProjectById(projectId);
-  if (!project || !project?.listed || !project?.verified) {
+  if (!project) {
     return null;
   }
   const now = new Date();

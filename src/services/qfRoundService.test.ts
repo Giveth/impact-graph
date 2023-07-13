@@ -59,8 +59,7 @@ function relatedActiveQfRoundForProjectTestCases() {
     qfRound.isActive = false;
     await qfRound.save();
   });
-
-  it('should return null when project is not listed', async () => {
+  it('should return qfRound,  when project is not listed', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: false,
@@ -79,11 +78,11 @@ function relatedActiveQfRoundForProjectTestCases() {
     await project.save();
 
     const projectQfRound = await relatedActiveQfRoundForProject(project.id);
-    assert.isNull(projectQfRound);
+    assert.isNotNull(projectQfRound);
     qfRound.isActive = false;
     await qfRound.save();
   });
-  it('should return null when project is not listed', async () => {
+  it('should return qfRound when project is not verified', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: true,
@@ -102,7 +101,7 @@ function relatedActiveQfRoundForProjectTestCases() {
     await project.save();
 
     const projectQfRound = await relatedActiveQfRoundForProject(project.id);
-    assert.isNull(projectQfRound);
+    assert.isNotNull(projectQfRound);
     qfRound.isActive = false;
     await qfRound.save();
   });
