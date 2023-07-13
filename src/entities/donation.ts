@@ -169,6 +169,10 @@ export class Donation extends BaseEntity {
   @Column('text', { nullable: true })
   contactEmail?: string | null;
 
+  @Field(type => Number, { nullable: true })
+  @Column({ nullable: true })
+  qfRoundUserScore?: number;
+
   @Index()
   @Field(type => Date)
   @Column()
