@@ -24,7 +24,6 @@ export const fillQfRoundHistory = async (): Promise<void> => {
           d.status = 'verified'
         GROUP BY d."projectId", d."qfRoundId"
         ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;
-  
   `);
     logger.info('fillQfRoundHistory() query executed successfully');
   } catch (e) {

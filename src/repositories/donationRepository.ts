@@ -8,6 +8,23 @@ import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchi
 import { AppDataSource } from '../orm';
 import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
 
+export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
+  await Donation.query(`
+    UPDATE donation
+    SET "qfRoundUserScore" = u."passportScore"
+    FROM "user" u
+    WHERE donation."userId" = u.id
+    AND donation.status = 'verified'
+    AND EXISTS(
+      SELECT 1
+      FROM qf_round q
+      WHERE q.id = donation."qfRoundId"
+      AND q."isActive" = false
+      AND q."endDate" < NOW()
+    );
+  `);
+};
+
 export const createDonation = async (data: {
   amount: number;
   project: Project;
