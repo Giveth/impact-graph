@@ -124,7 +124,7 @@ function projectUserInstantPowerViewTest() {
     }
   });
 
-  it.only('should return correct result ordered with pagination', async () => {
+  it('should return correct result ordered with pagination', async () => {
     const result = await axios.post(graphqlUrl, {
       query: getProjectUserInstantPowerQuery,
       variables: { projectId: +project3.id, take: 2, skip: 0 },
@@ -160,5 +160,31 @@ function projectUserInstantPowerViewTest() {
       { userId: user2.id, boostedPower: 400 },
       { userId: user1.id, boostedPower: 200 },
     ]);
+  });
+
+  it('should return user information correctly', async () => {
+    user1.avatar = 'avatar1';
+    user2.avatar = 'avatar2';
+    user3.avatar = 'avatar3';
+    user4.avatar = 'avatar4';
+
+    await User.save([user1, user2, user3, user4]);
+
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectUserInstantPowerQuery,
+      variables: { projectId: +project3.id },
+    });
+
+    const { projectUserInstantPowers } =
+      result.data.data.getProjectUserInstantPower;
+
+    const expectedUsers = [user4, user3, user2, user1];
+    expect(projectUserInstantPowers.map(({ user }) => user)).deep.equal(
+      expectedUsers.map(({ name, walletAddress, avatar }) => ({
+        name,
+        walletAddress,
+        avatar,
+      })),
+    );
   });
 }
