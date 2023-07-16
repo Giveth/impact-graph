@@ -160,8 +160,10 @@ export const updateDonationByTransakData = async (
   }
   await donation.save();
   await updateTotalDonationsOfProject(donation.projectId);
-  await refreshProjectEstimatedMatchingView();
-  await refreshProjectDonationSummaryView();
+
+  // We dont wait for this to finish
+  refreshProjectEstimatedMatchingView();
+  refreshProjectDonationSummaryView();
 };
 
 export const updateTotalDonationsOfProject = async (projectId: number) => {
