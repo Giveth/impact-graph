@@ -97,10 +97,22 @@ export const getProjectUserInstantPowerView = async (
   limit = 50,
   offset = 0,
 ): Promise<[ProjectUserInstantPowerView[], number]> => {
-  return ProjectUserInstantPowerView.findAndCount({
-    where: { projectId },
-    order: { boostedPower: 'DESC' },
-    take: limit,
-    skip: offset,
-  });
+  return ProjectUserInstantPowerView.createQueryBuilder(
+    'projectUserInstantPowerView',
+  )
+    .where('projectUserInstantPowerView.projectId = :projectId', { projectId })
+    .take(limit)
+    .skip(offset)
+    .orderBy('projectUserInstantPowerView.boostedPower', 'DESC')
+    .leftJoin('projectUserInstantPowerView.user', 'user')
+    .select([
+      'projectUserInstantPowerView.id',
+      'projectUserInstantPowerView.projectId',
+      'projectUserInstantPowerView.userId',
+      'projectUserInstantPowerView.boostedPower',
+      'user.walletAddress',
+      'user.name',
+      'user.avatar',
+    ])
+    .getManyAndCount();
 };

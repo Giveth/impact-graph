@@ -1975,6 +1975,11 @@ export const getProjectUserInstantPowerQuery = `
       userId
       projectId
       boostedPower
+      user {
+        name
+        walletAddress
+        avatar
+        }
       }
       total
     }
