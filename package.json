@@ -157,6 +157,7 @@
     "test:powerBoostingResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/powerBoostingResolver.test.ts",
     "test:userProjectPowerResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/userProjectPowerResolver.test.ts",
     "test:projectPowerResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/projectPowerResolver.test.ts",
+    "test:instantPowerResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/instantPowerResolver.test.ts",
     "test:fillSnapshotBalance": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/fillSnapshotBalances.test.ts",
     "test:projectAddressRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/projectAddressRepository.test.ts",
     "test:donationService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/donationService.test.ts",
