@@ -812,6 +812,9 @@ export const fetchProjectsBySlugQuery = `
         powerRank
         round
       }
+      projectInstantPower {
+        totalPower
+      }
       projectFuturePower {
         totalPower
         powerRank

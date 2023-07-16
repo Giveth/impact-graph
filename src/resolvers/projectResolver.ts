@@ -894,6 +894,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
       .leftJoin('project.adminUser', 'user')

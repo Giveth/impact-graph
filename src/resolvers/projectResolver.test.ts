@@ -5727,6 +5727,55 @@ function projectBySlugTestCases() {
     assert.isOk(project.adminUser.firstName);
     assert.isNotOk(project.adminUser.email);
   });
+
+  it('should return project instant power get by slug', async () => {
+    await PowerBoosting.clear();
+    await InstantPowerBalance.clear();
+
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+
+    await Promise.all(
+      [
+        [user1, project1, 100],
+        [user2, project1, 100],
+      ].map(item => {
+        const [user, p, percentage] = item as [User, Project, number];
+        return insertSinglePowerBoosting({
+          user,
+          project: p,
+          percentage,
+        });
+      }),
+    );
+
+    await saveOrUpdateInstantPowerBalances([
+      {
+        userId: user1.id,
+        balance: 10000,
+        chainUpdatedAt: 1000,
+      },
+      {
+        userId: user2.id,
+        balance: 1000,
+        chainUpdatedAt: 1000,
+      },
+    ]);
+
+    await updateInstantBoosting();
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: project1.slug,
+      },
+    });
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(project.projectInstantPower.totalPower, 11000);
+  });
 }
 
 function similarProjectsBySlugTestCases() {
