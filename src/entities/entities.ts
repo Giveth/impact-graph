@@ -16,6 +16,7 @@ import { SocialProfile } from './socialProfile';
 import { MainCategory } from './mainCategory';
 import { PowerBoosting } from './powerBoosting';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
+import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView';
 import { PowerRound } from './powerRound';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { PowerSnapshot } from './powerSnapshot';
@@ -79,6 +80,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectFuturePowerView,
     LastSnapshotProjectPowerView,
     ProjectInstantPowerView,
+    ProjectUserInstantPowerView,
 
     // historic snapshots
     PowerSnapshotHistory,

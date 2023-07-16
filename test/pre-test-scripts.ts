@@ -31,6 +31,7 @@ import { createOrganisatioTokenTable1646302349926 } from '../migration/164630234
 import { CreateProjectInstantPowerView1683191367803 } from '../migration/1683191367803-CreateProjectInstantPowerView';
 import { ProjectDonationSummaryView1685972291645 } from '../migration/1685972291645-ProjectDonationSummaryView';
 import { ProjectEstimatedMatchingView1685958638251 } from '../migration/1685958638251-ProjectEstimatedMatchingView';
+import { CreateProjectUserInstantPowerView1689504711172 } from '../migration/1689504711172-CreateProjectUserInstantPowerView';
 
 async function seedDb() {
   await seedUsers();
@@ -370,6 +371,8 @@ async function runMigrations() {
       new ProjectDonationSummaryView1685972291645();
     const projectEstimatedMatchingView =
       new ProjectEstimatedMatchingView1685958638251();
+    const createProjectUserInstantPowerView1689504711172 =
+      new CreateProjectUserInstantPowerView1689504711172();
 
     await userProjectPowerView.up(queryRunner);
     await projectPowerView.up(queryRunner);
@@ -381,6 +384,7 @@ async function runMigrations() {
     await createProjectInstantPowerView1683191367803.up(queryRunner);
     await projectDonationSummaryView.up(queryRunner);
     await projectEstimatedMatchingView.up(queryRunner);
+    await createProjectUserInstantPowerView1689504711172.up(queryRunner);
   } catch (e) {
     throw e;
   } finally {

@@ -3,6 +3,7 @@ import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
 import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
 import { BlockInfo } from '../adapters/givpowerSubgraph/IGivPowerSubgraphAdapter';
+import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView';
 
 export const saveOrUpdateInstantPowerBalances = async (
   instances: Partial<InstantPowerBalance>[],
@@ -81,4 +82,25 @@ export const refreshProjectInstantPowerView = async (): Promise<void> => {
       REFRESH MATERIALIZED VIEW project_instant_power_view
     `,
   );
+};
+
+export const refreshProjectUserInstantPowerView = async (): Promise<void> => {
+  return AppDataSource.getDataSource().query(
+    `
+      REFRESH MATERIALIZED VIEW project_user_instant_power_view
+    `,
+  );
+};
+
+export const getProjectUserInstantPowerView = async (
+  projectId: number,
+  limit = 50,
+  offset = 0,
+): Promise<[ProjectUserInstantPowerView[], number]> => {
+  return ProjectUserInstantPowerView.findAndCount({
+    where: { projectId },
+    order: { boostedPower: 'DESC' },
+    take: limit,
+    skip: offset,
+  });
 };
