@@ -16,7 +16,7 @@ export const updateInstantBoosting = async (): Promise<void> => {
   await updateInstantPowerBalances();
   await Promise.all([
     refreshProjectInstantPowerView(),
-    refreshProjectUserInstantPowerView(),
+    // refreshProjectUserInstantPowerView(),
   ]);
 };
 
