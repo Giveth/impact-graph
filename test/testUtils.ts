@@ -281,6 +281,7 @@ export const createDonationData = (params?: {
   createdAt?: Date;
   valueUsd?: number;
   anonymous?: boolean;
+  qfRoundId?: number;
 }): CreateDonationData => {
   return {
     transactionId: generateRandomTxHash(),
@@ -294,6 +295,7 @@ export const createDonationData = (params?: {
     valueUsd: params?.valueUsd || 15,
     createdAt: params?.createdAt || moment().toDate(),
     segmentNotified: true,
+    qfRoundId: params?.qfRoundId || undefined,
   };
 };
 
@@ -1273,6 +1275,20 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
+    optimism_goerli: [
+      {
+        name: 'OPTIMISM native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+      {
+        name: 'OPTIMISM OP token',
+        symbol: 'OP',
+        address: '0x4200000000000000000000000000000000000042',
+        decimals: 18,
+      },
+    ],
     goerli: [
       {
         name: 'Ethereum native token',
@@ -1609,6 +1625,7 @@ export interface CreateDonationData {
   projectId?: number;
   status?: string;
   verified?: string;
+  qfRoundId?: number;
 }
 
 export interface CategoryData {

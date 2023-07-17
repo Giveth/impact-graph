@@ -13,17 +13,90 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import axios from 'axios';
-import { updateUser, userByAddress } from '../../test/graphqlQueries';
+import {
+  refreshUserScores,
+  updateUser,
+  userByAddress,
+} from '../../test/graphqlQueries';
 import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import { create } from 'domain';
 import { DONATION_STATUS } from '../entities/donation';
+import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+import { findUserById } from '../repositories/userRepository';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
+describe('refreshUserScores() test cases', refreshUserScoresTestCases);
 // TODO I think we can delete  addUserVerification query
 // describe('addUserVerification() test cases', addUserVerificationTestCases);
+function refreshUserScoresTestCases() {
+  it('should refresh user scores if the user has registered passport', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const user = await User.create(userData).save();
+    await getGitcoinAdapter().submitPassport({
+      address: userData.walletAddress,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: refreshUserScores,
+      variables: {
+        address: userData.walletAddress,
+      },
+    });
+
+    const updatedUser = result.data.data.refreshUserScores;
+    assert.equal(updatedUser.walletAddress, user.walletAddress);
+    assert.isTrue(updatedUser.passportScore > 0);
+    assert.isTrue(updatedUser.passportStamps > 0);
+  });
+  it('should persist passportScore in user ', async () => {
+    const userData = {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      email: 'giveth@gievth.com',
+      avatar: 'pinata address',
+      url: 'website url',
+      loginType: 'wallet',
+      walletAddress: generateRandomEtheriumAddress(),
+    };
+    const user = await User.create(userData).save();
+    await getGitcoinAdapter().submitPassport({
+      address: userData.walletAddress,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: refreshUserScores,
+      variables: {
+        address: userData.walletAddress,
+      },
+    });
+
+    const updatedUser = result.data.data.refreshUserScores;
+    assert.equal(updatedUser.walletAddress, user.walletAddress);
+    assert.isTrue(updatedUser.passportScore > 0);
+    assert.isTrue(updatedUser.passportStamps > 0);
+
+    const fetchUserResponse = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: userData.walletAddress,
+      },
+    });
+
+    assert.equal(
+      fetchUserResponse.data.data.userByAddress.passportScore,
+      updatedUser.passportScore,
+    );
+  });
+}
 
 function userByAddressTestCases() {
   it('Get non-sensitive fields of a user', async () => {

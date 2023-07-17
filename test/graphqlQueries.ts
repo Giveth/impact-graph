@@ -246,6 +246,7 @@ export const fetchDonationsByProjectIdQuery = `
     $take: Int
     $skip: Int
     $traceable: Boolean
+    $qfRoundId: Int
     $projectId: Int!
     $searchTerm: String
     $status: String
@@ -255,6 +256,7 @@ export const fetchDonationsByProjectIdQuery = `
       take: $take
       skip: $skip
       traceable: $traceable
+      qfRoundId: $qfRoundId
       projectId: $projectId
       searchTerm: $searchTerm
       status: $status
@@ -270,6 +272,9 @@ export const fetchDonationsByProjectIdQuery = `
         anonymous
         valueUsd
         amount
+        qfRound {
+          id
+        }
         status
         user {
           id
@@ -389,6 +394,7 @@ export const fetchRecentDonations = `
     }
   }
 `;
+
 export const fetchTotalDonors = `
   query (
     $fromDate: String
@@ -520,6 +526,11 @@ export const fetchDonationsByUserIdQuery = `
         project {
           id
         }
+       qfRound {
+          id
+          name
+          isActive
+        }
         createdAt
       }
       totalCount
@@ -624,6 +635,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $mainCategory: String
     $campaignSlug: String
     $connectedWalletUserId: Int
+    $qfRoundId: Int
   ) {
     allProjects(
       limit: $limit
@@ -635,6 +647,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       campaignSlug: $campaignSlug
       mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
+      qfRoundId: $qfRoundId
     ) {
     
       campaign{
@@ -705,9 +718,23 @@ export const fetchMultiFilterAllProjectsQuery = `
           totalPower
           powerRank
         }
+        qfRounds {
+          name
+          isActive
+          id
+        }
         totalReactions
         totalDonations
         totalTraceDonations
+        sumDonationValueUsdForActiveQfRound
+        sumDonationValueUsd
+        countUniqueDonorsForActiveQfRound
+        countUniqueDonors
+        estimatedMatching{
+           projectDonationsSqrtRootSum
+           allProjectsSum
+           matchingPool
+        }
       }
       totalCount
       categories {
@@ -715,6 +742,44 @@ export const fetchMultiFilterAllProjectsQuery = `
       }
     }
   }
+`;
+
+export const expectedMatchingFormulaQuery = `
+  query (
+    projectId: Int!
+  ) {
+    expectedMatching(
+      projectId: $projectId
+    ) {
+      projectDonationsSqrtRootSum
+      otherProjectsSum
+      matchingPool
+    }
+  }
+`;
+
+export const getQfRoundHistoryQuery = `
+    query (
+      $projectId: Int!
+      $qfRoundId: Int!
+    ) {
+      getQfRoundHistory(
+        projectId: $projectId
+        qfRoundId: $qfRoundId
+      ) {
+        uniqueDonors
+        raisedFundInUsd
+        donationsCount
+        matchingFund
+        distributedFundNetwork
+        distributedFundTxHash
+        estimatedMatching {
+         projectDonationsSqrtRootSum
+         allProjectsSum
+         matchingPool
+        }
+      }
+    }
 `;
 
 export const fetchProjectsBySlugQuery = `
@@ -747,6 +812,9 @@ export const fetchProjectsBySlugQuery = `
         powerRank
         round
       }
+      projectInstantPower {
+        totalPower
+      }
       projectFuturePower {
         totalPower
         powerRank
@@ -762,6 +830,11 @@ export const fetchProjectsBySlugQuery = `
        }
       }
       verificationFormStatus
+      qfRounds {
+        id
+        name
+        isActive
+      }
       projectVerificationForm {
         status
         id
@@ -1012,6 +1085,30 @@ export const userByAddress = `
       likedProjectsCount
       donationsCount
       projectsCount
+      passportScore
+      passportStamps
+    }
+  }
+`;
+
+export const refreshUserScores = `
+  query ($address: String!) {
+    refreshUserScores(address: $address) {
+      id
+      firstName
+      lastName
+      name
+      email
+      avatar
+      walletAddress
+      url
+      location
+      boostedProjectsCount
+      likedProjectsCount
+      donationsCount
+      projectsCount
+      passportScore
+      passportStamps
     }
   }
 `;
@@ -1320,6 +1417,7 @@ export const projectByIdQuery = `
     }
   }
 `;
+
 export const getProjectsAcceptTokensQuery = `
   query(
       $projectId: Float!,
@@ -1870,3 +1968,23 @@ export const getPowerAmountRankQuery = `
         powerAmountRank(powerAmount: $powerAmount, projectId: $projectId)
     }
 `;
+
+export const getProjectUserInstantPowerQuery = `
+  query ($projectId: Int!, $take: Int, $skip: Int)
+   {
+    getProjectUserInstantPower (projectId: $projectId, take: $take, skip: $skip) {
+    projectUserInstantPowers {
+      id
+      userId
+      projectId
+      boostedPower
+      user {
+        name
+        walletAddress
+        avatar
+        }
+      }
+      total
+    }
+  }
+  `;

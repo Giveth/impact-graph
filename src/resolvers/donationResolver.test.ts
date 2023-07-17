@@ -54,6 +54,8 @@ import { generateRandomString } from '../utils/utils';
 import { ChainvineMockAdapter } from '../adapters/chainvine/chainvineMockAdapter';
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
+import { QfRound } from '../entities/qfRound';
+import { findProjectById } from '../repositories/projectRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -451,7 +453,7 @@ function donationsTestCases() {
 }
 
 function createDonationTestCases() {
-  it('do not save refererr wallet if user refers himself', async () => {
+  it('do not save referrer wallet if user refers himself', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const referrerId = generateRandomString();
     const referrerWalletAddress =
@@ -542,6 +544,203 @@ function createDonationTestCases() {
     assert.isTrue(donation?.isTokenEligibleForGivback);
     assert.equal(donation?.referrerWallet, user2.walletAddress);
     assert.isOk(donation?.referralStartTimestamp);
+    assert.isNotOk(donation?.qfRound);
+  });
+  it('should create a donation in an active qfRound', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const referrerId = generateRandomString();
+    const referrerWalletAddress =
+      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
+
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const user2 = await User.create({
+      walletAddress: referrerWalletAddress,
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const referredEvent = await firstOrCreateReferredEventByUserId(user.id);
+    referredEvent.startTime = new Date();
+    await referredEvent.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+          referrerId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+
+    assert.equal(donation?.qfRound?.id as number, qfRound.id);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should create a donation in an active qfRound, when project is not listed', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+    }).save();
+    project.qfRounds = [qfRound];
+    project.listed = false;
+    project.reviewStatus = ReviewStatus.NotListed;
+    await project.save();
+    const referrerId = generateRandomString();
+    const referrerWalletAddress =
+      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
+
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const user2 = await User.create({
+      walletAddress: referrerWalletAddress,
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const referredEvent = await firstOrCreateReferredEventByUserId(user.id);
+    referredEvent.startTime = new Date();
+    await referredEvent.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+          referrerId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+
+    assert.equal(donation?.qfRound?.id as number, qfRound.id);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should create a donation in an active qfRound, when project is not verified', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+    }).save();
+    project.qfRounds = [qfRound];
+    project.listed = false;
+    project.reviewStatus = ReviewStatus.NotListed;
+    await project.save();
+    const referrerId = generateRandomString();
+    const referrerWalletAddress =
+      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
+
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const user2 = await User.create({
+      walletAddress: referrerWalletAddress,
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const referredEvent = await firstOrCreateReferredEventByUserId(user.id);
+    referredEvent.startTime = new Date();
+    await referredEvent.save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomTxHash(),
+          nonce: 1,
+          amount: 10,
+          token: 'GIV',
+          referrerId,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+
+    assert.equal(donation?.qfRound?.id as number, qfRound.id);
+    qfRound.isActive = false;
+    await qfRound.save();
   });
   it('should create GIV donation for giveth project on xdai successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -1664,7 +1863,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 56, 42220, 44787]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 420, 56, 42220, 44787]',
     );
   });
   it('should throw exception when currency is not valid when currency contain characters', async () => {
@@ -1843,6 +2042,134 @@ function donationsFromWalletsTestCases() {
 }
 
 function donationsByProjectIdTestCases() {
+  it('should return filtered by qfRound donations when specified', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const referrerId = generateRandomString();
+    const referrerWalletAddress =
+      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
+
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const user2 = await User.create({
+      walletAddress: referrerWalletAddress,
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    const donation1 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound.id,
+      }),
+      user.id,
+      project.id,
+    );
+
+    const donation2 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound.id,
+      }),
+      user.id,
+      project.id,
+    );
+    qfRound.isActive = false;
+    await qfRound.save();
+
+    // second QF round
+    const qfRound2 = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      minimumPassportScore: 8,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: moment().add(2, 'day'),
+    }).save();
+    project.qfRounds = [qfRound2];
+    await project.save();
+
+    const donation3 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound2.id,
+      }),
+      user.id,
+      project.id,
+    );
+
+    const donation4 = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        qfRoundId: qfRound2.id,
+      }),
+      user.id,
+      project.id,
+    );
+
+    const resultForRound1 = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          qfRoundId: qfRound.id,
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'DESC',
+          },
+        },
+      },
+      {},
+    );
+
+    const qfRound1donations =
+      resultForRound1.data.data.donationsByProjectId.donations;
+    assert.equal(qfRound1donations.length, 2);
+    qfRound1donations.forEach(donation => {
+      assert.equal(Number(donation.qfRound.id), qfRound.id);
+    });
+
+    const resultForRound2 = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          qfRoundId: qfRound2.id,
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'DESC',
+          },
+        },
+      },
+      {},
+    );
+
+    const qfRound2donations =
+      resultForRound2.data.data.donationsByProjectId.donations;
+    assert.equal(qfRound2donations.length, 2);
+    qfRound2donations.forEach(donation => {
+      assert.equal(Number(donation.qfRound.id), qfRound2.id);
+    });
+
+    qfRound2.isActive = false;
+    await qfRound2.save();
+  });
+
   it('should sort by the createdAt DESC', async () => {
     const result = await axios.post(
       graphqlUrl,
@@ -2808,6 +3135,55 @@ function donationsByUserIdTestCases() {
         donations[0].id !== String(DONATION_SEED_DATA.FIFTH_DONATION.id),
       );
     });
+  });
+  it('should join with qfRound', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+
+    const donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        qfRoundId: qfRound.id,
+      },
+      donor.id,
+      project.id,
+    );
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByUserIdQuery,
+        variables: {
+          orderBy: {
+            field: 'CreationDate',
+            direction: 'DESC',
+          },
+          userId: donor.id,
+        },
+      },
+      {},
+    );
+
+    const donations = result.data.data.donationsByUserId.donations;
+    assert.equal(donations[0].id, donation.id);
+    assert.equal(donations[0].qfRound.id, qfRound.id);
+    qfRound.isActive = false;
+    await qfRound.save();
   });
 }
 

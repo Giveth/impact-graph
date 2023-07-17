@@ -6,7 +6,11 @@ import {
   RevokeSteps,
 } from '../../../entities/project';
 import adminJs from 'adminjs';
-import { canAccessProjectAction, ResourceActions } from '../adminJsPermissions';
+import {
+  canAccessProjectAction,
+  canAccessQfRoundAction,
+  ResourceActions,
+} from '../adminJsPermissions';
 import {
   findProjectById,
   findProjectsByIdArray,
@@ -49,7 +53,15 @@ import {
   makeFormVerified,
 } from '../../../repositories/projectVerificationRepository';
 import { FeaturedUpdate } from '../../../entities/featuredUpdate';
+import {
+  findActiveQfRound,
+  relateManyProjectsToQfRound,
+} from '../../../repositories/qfRoundRepository';
 import { User } from '../../../entities/user';
+import {
+  refreshProjectDonationSummaryView,
+  refreshProjectEstimatedMatchingView,
+} from '../../../services/projectViewsService';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -372,7 +384,80 @@ export const updateStatusOfProjects = async (
   };
 };
 
-export const setSocialProfiles: After<ActionResponse> = async (
+export const addProjectsToQfRound = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+  add: boolean = true,
+) => {
+  const { records, currentAdmin } = context;
+  let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
+  try {
+    const projectIds = request?.query?.recordIds
+      ?.split(',')
+      ?.map(strId => Number(strId)) as number[];
+    const activeQfRound = await findActiveQfRound();
+    if (activeQfRound) {
+      await relateManyProjectsToQfRound({
+        projectIds,
+        qfRoundId: activeQfRound.id,
+        add,
+      });
+
+      await refreshProjectEstimatedMatchingView();
+      await refreshProjectDonationSummaryView();
+    } else {
+      message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
+    }
+  } catch (error) {
+    throw error;
+  }
+  return {
+    redirectUrl: '/admin/resources/Project',
+    records: records.map(record => {
+      record.toJSON(context.currentAdmin);
+    }),
+    notice: {
+      message,
+      type: 'success',
+    },
+  };
+};
+
+export const addSingleProjectToQfRound = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+  add: boolean = true,
+) => {
+  const { record, currentAdmin } = context;
+  let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
+  try {
+    const projectId = Number(request?.params?.recordId);
+    const activeQfRound = await findActiveQfRound();
+    if (activeQfRound) {
+      await relateManyProjectsToQfRound({
+        projectIds: [projectId],
+        qfRoundId: activeQfRound.id,
+        add,
+      });
+
+      await refreshProjectEstimatedMatchingView();
+      await refreshProjectDonationSummaryView();
+    } else {
+      message = messages.THERE_IS_NOT_ANY_ACTIVE_QF_ROUND;
+    }
+  } catch (error) {
+    throw error;
+  }
+  return {
+    record: record.toJSON(currentAdmin),
+    notice: {
+      message,
+      type: 'success',
+    },
+  };
+};
+
+export const fillSocialProfileAndQfRounds: After<ActionResponse> = async (
   response,
   request,
   context,
@@ -393,6 +478,7 @@ export const setSocialProfiles: After<ActionResponse> = async (
         project!.slug
       }`,
       socials,
+      qfRounds: project?.qfRounds,
       projectUpdates,
       adminJsBaseUrl,
     },
@@ -779,6 +865,18 @@ export const projectsTab = {
           show: adminJs.bundle('./components/ProjectUpdates'),
         },
       },
+      qfRounds: {
+        type: 'mixed',
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+        },
+        components: {
+          show: adminJs.bundle('./components/QfRoundsInProject'),
+        },
+      },
       adminJsBaseUrl: {
         type: 'string',
         isVisible: {
@@ -809,7 +907,7 @@ export const projectsTab = {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectAction({ currentAdmin }, ResourceActions.SHOW),
-        after: setSocialProfiles,
+        after: fillSocialProfileAndQfRounds,
       },
       edit: {
         isAccessible: ({ currentAdmin }) =>
@@ -1017,7 +1115,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      unlistProject: {
+      unlist: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1030,7 +1128,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      verifyProject: {
+      verify: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1043,7 +1141,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      rejectProject: {
+      reject: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1070,7 +1168,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      activateProject: {
+      activate: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1083,7 +1181,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      deactivateProject: {
+      deactivate: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1096,7 +1194,7 @@ export const projectsTab = {
         },
         component: false,
       },
-      cancelProject: {
+      cancel: {
         actionType: 'bulk',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
@@ -1106,6 +1204,65 @@ export const projectsTab = {
           ),
         handler: async (request, response, context) => {
           return updateStatusOfProjects(context, request, ProjStatus.cancelled);
+        },
+        component: false,
+      },
+
+      addProjectToQfRound: {
+        // https://docs.adminjs.co/basics/action#record-type-actions
+        actionType: 'record',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.ADD_PROJECT_TO_QF_ROUND,
+          ),
+        guard: 'Do you want to add this project to current active qf round?',
+        handler: async (request, response, context) => {
+          return addSingleProjectToQfRound(context, request, true);
+        },
+        component: false,
+      },
+      removeProjectFromQfRound: {
+        // https://docs.adminjs.co/basics/action#record-type-actions
+        actionType: 'record',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.ADD_PROJECT_TO_QF_ROUND,
+          ),
+        guard:
+          'Do you want to remove this project from current active qf round?',
+        handler: async (request, response, context) => {
+          return addSingleProjectToQfRound(context, request, false);
+        },
+        component: false,
+      },
+
+      addToQfRound: {
+        actionType: 'bulk',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.ADD_PROJECT_TO_QF_ROUND,
+          ),
+        handler: async (request, response, context) => {
+          return addProjectsToQfRound(context, request, true);
+        },
+        component: false,
+      },
+      removeFromQfRound: {
+        actionType: 'bulk',
+        isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.ADD_PROJECT_TO_QF_ROUND,
+          ),
+        handler: async (request, response, context) => {
+          return addProjectsToQfRound(context, request, false);
         },
         component: false,
       },

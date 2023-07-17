@@ -25,6 +25,10 @@ import { calculateGivbackFactor } from './givbackService';
 import { getTokenPrices } from '@giveth/monoswap';
 import SentryLogger from '../sentryLogger';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
+import {
+  refreshProjectDonationSummaryView,
+  refreshProjectEstimatedMatchingView,
+} from './projectViewsService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -156,6 +160,10 @@ export const updateDonationByTransakData = async (
   }
   await donation.save();
   await updateTotalDonationsOfProject(donation.projectId);
+
+  // We dont wait for this to finish
+  refreshProjectEstimatedMatchingView();
+  refreshProjectDonationSummaryView();
 };
 
 export const updateTotalDonationsOfProject = async (projectId: number) => {
@@ -308,6 +316,10 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donation.transactionId = transaction.hash;
     }
     await donation.save();
+
+    // Update materialized view for project and qfRound data
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
 
     // ONLY verified donations should be accumulated
     // After updating, recalculate user total donated and owner total received

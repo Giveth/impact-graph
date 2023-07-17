@@ -5,6 +5,7 @@ import slugify from 'slugify';
 
 import stringify from 'json-stable-stringify';
 import { SUMMARY_LENGTH } from '../constants/summary';
+import config from '../config';
 // tslint:disable-next-line:no-var-requires
 const { createHash } = require('node:crypto');
 
@@ -409,3 +410,5 @@ export const getHtmlTextSummary = (
       return text.slice(0, lengthLimit - 3) + '...';
   }
 };
+
+export const isTestEnv = (config.get('ENVIRONMENT') as string) === 'test';

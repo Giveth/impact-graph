@@ -55,7 +55,7 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
   } = {};
   while (!isFinished) {
     const powerBoostings = await getPowerBoostingSnapshotWithoutBalance(
-      50,
+      100,
       offset,
     );
     offset += powerBoostings.length;

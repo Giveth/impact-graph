@@ -25,6 +25,7 @@ export const findProjectById = (projectId: number): Promise<Project | null> => {
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.organization', 'organization')
     .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoinAndSelect('project.qfRounds', 'qfRounds')
     .leftJoin('project.adminUser', 'user')
     .addSelect(publicSelectionFields)
     .where({
@@ -57,6 +58,7 @@ export type FilterProjectQueryInputParams = {
   filters?: FilterField[];
   slugArray?: string[];
   sortingBy?: SortingField;
+  qfRoundId?: number;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -68,6 +70,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     filters,
     sortingBy,
     slugArray,
+    qfRoundId,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -75,6 +78,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     .leftJoinAndSelect('project.users', 'users')
     .leftJoinAndSelect('project.addresses', 'addresses')
     .leftJoinAndSelect('project.organization', 'organization')
+    .leftJoinAndSelect('project.qfRounds', 'qfRounds')
     // you can alias it as user but it still is mapped as adminUser
     // like defined in our project entity
     .innerJoin('project.adminUser', 'user')
@@ -96,7 +100,14 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
-
+  if (qfRoundId) {
+    query.innerJoinAndSelect(
+      'project.qfRounds',
+      'qf_rounds',
+      'qf_rounds.id = :qfRoundId',
+      { qfRoundId },
+    );
+  }
   if (!sortingBy || sortingBy === SortingField.InstantBoosting) {
     query = query
       .leftJoin('project.projectInstantPower', 'projectInstantPower')

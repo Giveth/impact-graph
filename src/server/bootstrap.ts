@@ -66,6 +66,12 @@ import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/dis
 import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
+import {
+  refreshProjectDonationSummaryView,
+  refreshProjectEstimatedMatchingView,
+} from '../services/projectViewsService';
+import { isTestEnv } from '../utils/utils';
+import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 
 Resource.validate = validate;
 
@@ -330,9 +336,16 @@ export async function bootstrap() {
       `🚀 Server is running, GraphQL Playground available at http://127.0.0.1:${4000}/graphql`,
     );
 
-    // Admin Bruh!
+    // AdminJs!
     app.use(adminJsQueryCache);
     app.use(adminJsRootPath, await getAdminJsRouter());
+
+    if (!isTestEnv) {
+      // They will fail in test env, because we run migrations after bootstrap so refreshing them will cause this error
+      // relation "project_estimated_matching_view" does not exist
+      await refreshProjectEstimatedMatchingView();
+      await refreshProjectDonationSummaryView();
+    }
 
     runCheckPendingDonationsCronJob();
     runNotifyMissingDonationsCronJob();
@@ -369,6 +382,7 @@ export async function bootstrap() {
     if ((config.get('ENABLE_INSTANT_BOOSTING_UPDATE') as string) === 'true') {
       runInstantBoostingUpdateCronJob();
     }
+    await runCheckActiveStatusOfQfRounds();
   } catch (err) {
     logger.error(err);
   }

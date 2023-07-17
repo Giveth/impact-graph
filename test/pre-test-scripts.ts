@@ -29,6 +29,9 @@ import { LastSnapshotProjectPowerView1671448387986 } from '../migration/16714483
 import { AppDataSource } from '../src/orm';
 import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
 import { CreateProjectInstantPowerView1683191367803 } from '../migration/1683191367803-CreateProjectInstantPowerView';
+import { ProjectDonationSummaryView1685972291645 } from '../migration/1685972291645-ProjectDonationSummaryView';
+import { ProjectEstimatedMatchingView1685958638251 } from '../migration/1685958638251-ProjectEstimatedMatchingView';
+import { CreateProjectUserInstantPowerView1689504711172 } from '../migration/1689504711172-CreateProjectUserInstantPowerView';
 
 async function seedDb() {
   await seedUsers();
@@ -147,6 +150,17 @@ async function seedTokens() {
     const tokenData = {
       ...token,
       networkId: NETWORK_IDS.OPTIMISTIC,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'OP') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.optimism_goerli) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
       isGivbackEligible: true,
     };
     if (token.symbol === 'OP') {
@@ -353,6 +367,13 @@ async function runMigrations() {
     const createProjectInstantPowerView1683191367803 =
       new CreateProjectInstantPowerView1683191367803();
 
+    const projectDonationSummaryView =
+      new ProjectDonationSummaryView1685972291645();
+    const projectEstimatedMatchingView =
+      new ProjectEstimatedMatchingView1685958638251();
+    const createProjectUserInstantPowerView1689504711172 =
+      new CreateProjectUserInstantPowerView1689504711172();
+
     await userProjectPowerView.up(queryRunner);
     await projectPowerView.up(queryRunner);
     await lastSnapshotProjectPowerView.up(queryRunner);
@@ -361,6 +382,9 @@ async function runMigrations() {
     await takeSnapshotsHistoryProcedure.up(queryRunner);
     await new createOrganisatioTokenTable1646302349926().up(queryRunner);
     await createProjectInstantPowerView1683191367803.up(queryRunner);
+    await projectDonationSummaryView.up(queryRunner);
+    await projectEstimatedMatchingView.up(queryRunner);
+    await createProjectUserInstantPowerView1689504711172.up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
