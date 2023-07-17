@@ -1401,7 +1401,6 @@ export class ProjectResolver {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
-
     if (
       content?.replace(/<[^>]+>/g, '')?.length >
       PROJECT_UPDATE_CONTENT_MAX_LENGTH
