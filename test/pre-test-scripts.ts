@@ -28,7 +28,7 @@ import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration
 import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
 import { AppDataSource } from '../src/orm';
 import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
-import { CreateProjectInstantPowerView1683191367805 } from '../migration/1683191367805-CreateProjectInstantPowerView';
+import { CreateProjectInstantPowerView1683191367806 } from '../migration/1683191367806-CreateProjectInstantPowerView';
 import { ProjectDonationSummaryView1685972291645 } from '../migration/1685972291645-ProjectDonationSummaryView';
 import { ProjectEstimatedMatchingView1685958638251 } from '../migration/1685958638251-ProjectEstimatedMatchingView';
 import { CreateProjectUserInstantPowerView1689504711172 } from '../migration/1689504711172-CreateProjectUserInstantPowerView';
@@ -364,8 +364,8 @@ async function runMigrations() {
       new TakePowerBoostingSnapshotProcedure1663594895751();
     const takeSnapshotsHistoryProcedure =
       new createGivPowerHistoricTablesProcedure1670429143091();
-    const createProjectInstantPowerView1683191367804 =
-      new CreateProjectInstantPowerView1683191367805();
+    const createProjectInstantPowerView1683191367806 =
+      new CreateProjectInstantPowerView1683191367806();
 
     const projectDonationSummaryView =
       new ProjectDonationSummaryView1685972291645();
@@ -381,7 +381,7 @@ async function runMigrations() {
     await takeSnapshotProcedure.up(queryRunner);
     await takeSnapshotsHistoryProcedure.up(queryRunner);
     await new createOrganisatioTokenTable1646302349926().up(queryRunner);
-    await createProjectInstantPowerView1683191367804.up(queryRunner);
+    await createProjectInstantPowerView1683191367806.up(queryRunner);
     await projectDonationSummaryView.up(queryRunner);
     await projectEstimatedMatchingView.up(queryRunner);
     await createProjectUserInstantPowerView1689504711172.up(queryRunner);
