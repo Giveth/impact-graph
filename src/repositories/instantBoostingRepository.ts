@@ -77,6 +77,7 @@ export const getLatestSyncedBlock = async (): Promise<BlockInfo> => {
 };
 
 export const refreshProjectInstantPowerView = async (): Promise<void> => {
+  logger.debug('Refresh project_instant_power_view materialized view');
   return AppDataSource.getDataSource().query(
     `
       REFRESH MATERIALIZED VIEW project_instant_power_view
@@ -85,6 +86,7 @@ export const refreshProjectInstantPowerView = async (): Promise<void> => {
 };
 
 export const refreshProjectUserInstantPowerView = async (): Promise<void> => {
+  logger.debug('Refresh project_user_instant_power_view materialized view');
   return AppDataSource.getDataSource().query(
     `
       REFRESH MATERIALIZED VIEW project_user_instant_power_view
