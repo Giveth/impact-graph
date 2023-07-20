@@ -88,6 +88,7 @@ const fetchUpdatedInstantPowerBalances = async (
 const fillMissingInstantPowerBalances = async (
   givPowerSubgraphAdapter: IGivPowerSubgraphAdapter,
 ): Promise<void> => {
+  logger.debug('2. Fetch missing instant powers');
   const latestSyncedBlock = await getLatestSyncedBlock();
   if (!latestSyncedBlock.timestamp) {
     logger.error(
