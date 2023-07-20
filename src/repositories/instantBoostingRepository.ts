@@ -8,12 +8,21 @@ import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerVie
 export const saveOrUpdateInstantPowerBalances = async (
   instances: Partial<InstantPowerBalance>[],
 ): Promise<void> => {
-  await InstantPowerBalance.createQueryBuilder<InstantPowerBalance>()
-    .insert()
-    .into(InstantPowerBalance)
-    .values(instances)
-    .orUpdate(['balance', 'chainUpdatedAt'], ['userId'])
-    .execute();
+  try {
+    logger.debug(
+      'saveOrUpdateInstantPowerBalances ',
+      JSON.stringify({ instances }, null, 2),
+    );
+    await InstantPowerBalance.createQueryBuilder<InstantPowerBalance>()
+      .insert()
+      .into(InstantPowerBalance)
+      .values(instances)
+      .orUpdate(['balance', 'chainUpdatedAt'], ['userId'])
+      .execute();
+  } catch (e) {
+    logger.error('saveOrUpdateInstantPowerBalances error', e);
+    throw e;
+  }
 };
 
 export const getUsersBoostedWithoutInstanceBalance = async (
