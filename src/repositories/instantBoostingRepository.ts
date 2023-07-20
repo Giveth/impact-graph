@@ -13,15 +13,23 @@ export const saveOrUpdateInstantPowerBalances = async (
       'saveOrUpdateInstantPowerBalances ',
       JSON.stringify({ instances }, null, 2),
     );
+
+    const userIdInstanceDic = {};
+    instances.forEach(instance => {
+      if (!instance.userId) {
+        throw new Error('userId is required for InstantPowerBalance');
+      }
+      userIdInstanceDic[instance.userId!] = instance;
+    });
+
     await InstantPowerBalance.createQueryBuilder<InstantPowerBalance>()
       .insert()
       .into(InstantPowerBalance)
-      .values(instances)
+      .values(Object.values(userIdInstanceDic))
       .orUpdate(['balance', 'chainUpdatedAt'], ['userId'])
       .execute();
   } catch (e) {
     logger.error('saveOrUpdateInstantPowerBalances error', e);
-    throw e;
   }
 };
 
