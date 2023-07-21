@@ -8,12 +8,29 @@ import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerVie
 export const saveOrUpdateInstantPowerBalances = async (
   instances: Partial<InstantPowerBalance>[],
 ): Promise<void> => {
-  await InstantPowerBalance.createQueryBuilder<InstantPowerBalance>()
-    .insert()
-    .into(InstantPowerBalance)
-    .values(instances)
-    .orUpdate(['balance', 'chainUpdatedAt'], ['userId'])
-    .execute();
+  try {
+    logger.debug(
+      'saveOrUpdateInstantPowerBalances ',
+      JSON.stringify({ instances }, null, 2),
+    );
+
+    const userIdInstanceDic = {};
+    instances.forEach(instance => {
+      if (!instance.userId) {
+        throw new Error('userId is required for InstantPowerBalance');
+      }
+      userIdInstanceDic[instance.userId!] = instance;
+    });
+
+    await InstantPowerBalance.createQueryBuilder<InstantPowerBalance>()
+      .insert()
+      .into(InstantPowerBalance)
+      .values(Object.values(userIdInstanceDic))
+      .orUpdate(['balance', 'chainUpdatedAt'], ['userId'])
+      .execute();
+  } catch (e) {
+    logger.error('saveOrUpdateInstantPowerBalances error', e);
+  }
 };
 
 export const getUsersBoostedWithoutInstanceBalance = async (
@@ -77,6 +94,7 @@ export const getLatestSyncedBlock = async (): Promise<BlockInfo> => {
 };
 
 export const refreshProjectInstantPowerView = async (): Promise<void> => {
+  logger.debug('Refresh project_instant_power_view materialized view');
   return AppDataSource.getDataSource().query(
     `
       REFRESH MATERIALIZED VIEW project_instant_power_view
@@ -85,6 +103,7 @@ export const refreshProjectInstantPowerView = async (): Promise<void> => {
 };
 
 export const refreshProjectUserInstantPowerView = async (): Promise<void> => {
+  logger.debug('Refresh project_user_instant_power_view materialized view');
   return AppDataSource.getDataSource().query(
     `
       REFRESH MATERIALIZED VIEW project_user_instant_power_view

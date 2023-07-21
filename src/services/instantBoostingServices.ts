@@ -14,10 +14,8 @@ import { IGivPowerSubgraphAdapter } from '../adapters/givpowerSubgraph/IGivPower
 export const updateInstantBoosting = async (): Promise<void> => {
   logger.debug('updateInstantBoosting() has been called');
   await updateInstantPowerBalances();
-  await Promise.all([
-    refreshProjectInstantPowerView(),
-    // refreshProjectUserInstantPowerView(),
-  ]);
+  await refreshProjectInstantPowerView();
+  // await refreshProjectUserInstantPowerView();
 };
 
 // Allow passing a custom subgraph adapter for testing purposes
@@ -90,6 +88,7 @@ const fetchUpdatedInstantPowerBalances = async (
 const fillMissingInstantPowerBalances = async (
   givPowerSubgraphAdapter: IGivPowerSubgraphAdapter,
 ): Promise<void> => {
+  logger.debug('2. Fetch missing instant powers');
   const latestSyncedBlock = await getLatestSyncedBlock();
   if (!latestSyncedBlock.timestamp) {
     logger.error(
