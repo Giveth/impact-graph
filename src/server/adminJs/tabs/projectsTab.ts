@@ -920,6 +920,13 @@ export const projectsTab = {
           const { verified, reviewStatus } = request.payload;
           const statusChanges: string[] = [];
           if (request?.payload?.id) {
+            // remove addresses from payload to avoid updating them
+            for (const key in request.payload) {
+              if (key.includes('addresses')) {
+                delete request.payload[key];
+              }
+            }
+
             const project = await findProjectById(Number(request.payload.id));
             if (
               project &&
