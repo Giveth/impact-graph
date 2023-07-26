@@ -44,6 +44,7 @@ export interface AdminJsDonationsQuery {
   currency?: string;
   transactionNetworkId?: string;
   isProjectVerified?: string;
+  qfRoundId?: string;
 }
 
 // headers defined by the verification team for exporting
@@ -95,4 +96,6 @@ export const donationHeaders = [
   'createdAt',
   'referrerWallet',
   'isTokenEligibleForGivback',
+  'qfRoundId',
+  'qfRoundUserScore',
 ];

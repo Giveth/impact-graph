@@ -185,6 +185,7 @@ export const buildDonationsQuery = (
   const query = Donation.createQueryBuilder('donation')
     .leftJoinAndSelect('donation.user', 'user')
     .leftJoinAndSelect('donation.project', 'project')
+    .leftJoinAndSelect('donation.qfRound', 'qfRound')
     .where('donation.amount > 0')
     .addOrderBy('donation.createdAt', 'DESC');
 
@@ -196,6 +197,11 @@ export const buildDonationsQuery = (
   if (queryStrings.projectId)
     query.andWhere('donation.projectId = :projectId', {
       projectId: queryStrings.projectId,
+    });
+
+  if (queryStrings.qfRoundId)
+    query.andWhere('donation.qfRoundId = :qfRoundId', {
+      qfRoundId: queryStrings.qfRoundId,
     });
 
   if (queryStrings.userId)
@@ -320,6 +326,8 @@ const sendDonationsToGoogleSheet = async (
       createdAt: donation?.createdAt.toISOString(),
       referrerWallet: donation?.referrerWallet || '',
       isTokenEligibleForGivback: Boolean(donation?.isTokenEligibleForGivback),
+      qfRoundId: donation?.qfRound?.id || '',
+      qfRoundUserScore: donation?.qfRoundUserScore || '',
     };
   });
 
@@ -337,6 +345,16 @@ export const donationTab = {
       projectId: {
         isVisible: {
           list: true,
+          filter: true,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      qfRoundId: {
+        type: Number,
+        isVisible: {
+          list: false,
           filter: true,
           show: true,
           edit: false,
@@ -452,6 +470,15 @@ export const donationTab = {
           new: false,
         },
       },
+      qfRoundUserScore: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
       tokenAddress: {
         isVisible: false,
       },
@@ -466,7 +493,7 @@ export const donationTab = {
       },
       toWalletAddress: {
         isVisible: {
-          list: true,
+          list: false,
           filter: true,
           show: true,
           edit: false,

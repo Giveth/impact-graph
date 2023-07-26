@@ -76,8 +76,8 @@ export const getAdminJsRouter = async () => {
 export const extractAdminJsReferrerUrlParams = (req: ActionContext) => {
   const queryStrings = {};
 
-  const refererUrlHeaderIndex = req.rawHeaders.indexOf('Referer');
-  if (refererUrlHeaderIndex < 0) return {};
+  const refererUrlHeaderIndex = req?.rawHeaders?.indexOf('Referer');
+  if (!refererUrlHeaderIndex || refererUrlHeaderIndex < 0) return {};
 
   const refererUrl = new URL(req.rawHeaders[refererUrlHeaderIndex + 1]);
   const searchParams = refererUrl.searchParams;
