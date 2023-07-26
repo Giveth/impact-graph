@@ -40,6 +40,8 @@ import {
   addDonationsSheetToSpreadsheet,
 } from '../../../services/googleSheets';
 import { SelectQueryBuilder } from 'typeorm';
+import { ActionContext } from 'adminjs';
+import { extractAdminJsReferrerUrlParams } from '../adminJs';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -186,6 +188,11 @@ export const buildDonationsQuery = (
     .where('donation.amount > 0')
     .addOrderBy('donation.createdAt', 'DESC');
 
+  if (queryStrings.id)
+    query.andWhere('donation.id = :id', {
+      id: queryStrings.id,
+    });
+
   if (queryStrings.projectId)
     query.andWhere('donation.projectId = :projectId', {
       projectId: queryStrings.projectId,
@@ -250,16 +257,13 @@ export const buildDonationsQuery = (
 };
 
 export const exportDonationsWithFiltersToCsv = async (
-  _request: AdminJsRequestInterface,
+  _request: ActionContext,
   _response,
   context: AdminJsContextInterface,
 ) => {
   try {
     const { records } = context;
-    const rawQueryStrings = await redis.get(
-      `adminbro:${context.currentAdmin.id}:Donation`,
-    );
-    const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
+    const queryStrings = extractAdminJsReferrerUrlParams(_request);
     const projectsQuery = buildDonationsQuery(queryStrings);
     const projects = await projectsQuery.getMany();
 

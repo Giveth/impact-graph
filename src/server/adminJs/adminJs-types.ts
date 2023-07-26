@@ -28,10 +28,11 @@ export interface AdminJsProjectsQuery {
   verified?: string;
   // listed?: string;
   isImported?: string;
-  reviewStatus: ReviewStatus;
+  reviewStatus?: ReviewStatus;
 }
 
 export interface AdminJsDonationsQuery {
+  id?: string;
   projectId?: string;
   contactEmail?: string;
   referrerWallet?: string;

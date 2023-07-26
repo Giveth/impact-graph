@@ -1,4 +1,4 @@
-import adminJs, { AdminJSOptions } from 'adminjs';
+import adminJs, { ActionContext, AdminJSOptions } from 'adminjs';
 import { User } from '../../entities/user';
 import adminJsExpress from '@adminjs/express';
 import config from '../../config';
@@ -72,37 +72,25 @@ export const getAdminJsRouter = async () => {
   );
 };
 
-// Express Middleware to save query of a search
-export const adminJsQueryCache = async (req, res, next) => {
-  if (
-    req.url.startsWith('/admin/api/resources/') &&
-    req.headers.cookie.includes('adminbro')
-  ) {
-    const admin = await getCurrentAdminJsSession(req);
-    if (!admin) return next(); // skip saving queries
+// Extract Referrer Header Parameter Filter Params
+export const extractAdminJsReferrerUrlParams = (req: ActionContext) => {
+  const queryStrings = {};
 
-    const matches = req.url.match(/\/admin\/api\/resources\/(.+?)(\/|$)/);
-    if (!matches) return next(); // invalid URL
+  const refererUrlHeaderIndex = req.rawHeaders.indexOf('Referer');
+  if (refererUrlHeaderIndex < 0) return {};
 
-    const resourceName = matches[1];
-    const queryStrings = {};
+  const refererUrl = new URL(req.rawHeaders[refererUrlHeaderIndex + 1]);
+  const searchParams = refererUrl.searchParams;
 
-    // Extract filter names and values from URL query string parameters
-    for (const key of Object.keys(req.query)) {
-      const [_, filter] = key.split('.');
-      if (!filter) continue;
+  // Extract filter names and values from URL query string parameters
+  for (const [key, value] of searchParams.entries()) {
+    const [_, filter] = key.split('.');
+    if (!filter) continue;
 
-      queryStrings[filter] = req.query[key];
-    }
-    // Save query strings to Redis hash with an expiration
-    await redis.hset(
-      `adminbro:${admin.id}:${resourceName}`,
-      queryStrings,
-      'ex',
-      1800,
-    );
+    queryStrings[filter] = value;
   }
-  next();
+
+  return queryStrings;
 };
 
 // Get CurrentSession for external express middlewares
