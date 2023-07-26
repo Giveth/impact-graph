@@ -606,7 +606,7 @@ export const listDelist = async (
 };
 
 export const exportProjectsWithFiltersToCsv = async (
-  _request: ActionContext,
+  _request,
   _response,
   context: AdminJsContextInterface,
 ) => {
