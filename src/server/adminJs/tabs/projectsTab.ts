@@ -5,7 +5,7 @@ import {
   ReviewStatus,
   RevokeSteps,
 } from '../../../entities/project';
-import adminJs from 'adminjs';
+import adminJs, { ActionContext } from 'adminjs';
 import {
   canAccessProjectAction,
   canAccessQfRoundAction,
@@ -62,6 +62,7 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../../../services/projectViewsService';
+import { extractAdminJsReferrerUrlParams } from '../adminJs';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -605,16 +606,13 @@ export const listDelist = async (
 };
 
 export const exportProjectsWithFiltersToCsv = async (
-  _request: AdminJsRequestInterface,
+  _request,
   _response,
   context: AdminJsContextInterface,
 ) => {
   try {
     const { records } = context;
-    const rawQueryStrings = await redis.get(
-      `adminbro:${context.currentAdmin.id}:Project`,
-    );
-    const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
+    const queryStrings = extractAdminJsReferrerUrlParams(_request);
     const projectsQuery = buildProjectsQuery(queryStrings);
     const projects = await projectsQuery.getMany();
 

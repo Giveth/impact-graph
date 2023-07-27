@@ -40,6 +40,8 @@ import {
   addDonationsSheetToSpreadsheet,
 } from '../../../services/googleSheets';
 import { SelectQueryBuilder } from 'typeorm';
+import { ActionContext } from 'adminjs';
+import { extractAdminJsReferrerUrlParams } from '../adminJs';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -183,12 +185,23 @@ export const buildDonationsQuery = (
   const query = Donation.createQueryBuilder('donation')
     .leftJoinAndSelect('donation.user', 'user')
     .leftJoinAndSelect('donation.project', 'project')
+    .leftJoinAndSelect('donation.qfRound', 'qfRound')
     .where('donation.amount > 0')
     .addOrderBy('donation.createdAt', 'DESC');
+
+  if (queryStrings.id)
+    query.andWhere('donation.id = :id', {
+      id: queryStrings.id,
+    });
 
   if (queryStrings.projectId)
     query.andWhere('donation.projectId = :projectId', {
       projectId: queryStrings.projectId,
+    });
+
+  if (queryStrings.qfRoundId)
+    query.andWhere('donation.qfRoundId = :qfRoundId', {
+      qfRoundId: queryStrings.qfRoundId,
     });
 
   if (queryStrings.userId)
@@ -250,16 +263,13 @@ export const buildDonationsQuery = (
 };
 
 export const exportDonationsWithFiltersToCsv = async (
-  _request: AdminJsRequestInterface,
+  _request: ActionContext,
   _response,
   context: AdminJsContextInterface,
 ) => {
   try {
     const { records } = context;
-    const rawQueryStrings = await redis.get(
-      `adminbro:${context.currentAdmin.id}:Donation`,
-    );
-    const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
+    const queryStrings = extractAdminJsReferrerUrlParams(_request);
     const projectsQuery = buildDonationsQuery(queryStrings);
     const projects = await projectsQuery.getMany();
 
@@ -316,6 +326,8 @@ const sendDonationsToGoogleSheet = async (
       createdAt: donation?.createdAt.toISOString(),
       referrerWallet: donation?.referrerWallet || '',
       isTokenEligibleForGivback: Boolean(donation?.isTokenEligibleForGivback),
+      qfRoundId: donation?.qfRound?.id || '',
+      qfRoundUserScore: donation?.qfRoundUserScore || '',
     };
   });
 
@@ -333,6 +345,16 @@ export const donationTab = {
       projectId: {
         isVisible: {
           list: true,
+          filter: true,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      qfRoundId: {
+        type: Number,
+        isVisible: {
+          list: false,
           filter: true,
           show: true,
           edit: false,
@@ -448,6 +470,15 @@ export const donationTab = {
           new: false,
         },
       },
+      qfRoundUserScore: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
       tokenAddress: {
         isVisible: false,
       },
@@ -462,7 +493,7 @@ export const donationTab = {
       },
       toWalletAddress: {
         isVisible: {
-          list: true,
+          list: false,
           filter: true,
           show: true,
           edit: false,
