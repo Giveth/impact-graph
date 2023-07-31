@@ -41,10 +41,7 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from '../repositories/powerBoostingRepository';
-import {
-  findInCompletePowerSnapShots,
-  insertSinglePowerBalanceSnapshot,
-} from '../repositories/powerSnapshotRepository';
+import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
@@ -56,6 +53,7 @@ import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
 import { QfRound } from '../entities/qfRound';
 import { findProjectById } from '../repositories/projectRepository';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -813,7 +811,7 @@ function createDonationTestCases() {
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user.id,
       powerSnapshotId: snapshot.id,
       balance: 100,
