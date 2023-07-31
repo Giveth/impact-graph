@@ -17,10 +17,7 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
-import {
-  findInCompletePowerSnapShots,
-  insertSinglePowerBalanceSnapshot,
-} from './powerSnapshotRepository';
+import { findInCompletePowerSnapShots } from './powerSnapshotRepository';
 import { getPowerRound, setPowerRound } from './powerRoundRepository';
 import {
   getProjectPowers,
@@ -32,6 +29,7 @@ import { assert } from 'chai';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { findProjectById } from './projectRepository';
 import { PowerRound } from '../entities/powerRound';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
 
 describe(
   'copyProjectRanksToPreviousRoundRankTable test cases',
@@ -82,7 +80,7 @@ const createSomeSampleProjectsAndPowerViews = async () => {
   snapshot.roundNumber = roundNumber;
   await snapshot.save();
 
-  await insertSinglePowerBalanceSnapshot({
+  await addOrUpdatePowerSnapshotBalances({
     userId: user.id,
     powerSnapshotId: snapshot.id,
     balance: 100,
@@ -146,7 +144,7 @@ function projectsThatTheirRanksHaveChangedTestCases() {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user.id,
       powerSnapshotId: snapshot.id,
 
