@@ -801,12 +801,13 @@ function setSingleBoostingTestCases() {
 }
 
 function powerBoostingSnapshotTests() {
-  it('should take snapshot of power boosting', async () => {
+  beforeEach(async () => {
     await PowerBoosting.clear();
     await AppDataSource.getDataSource().query(
       'truncate power_snapshot cascade',
     );
-
+  });
+  it('should take snapshot of power boosting and create power balance snapshot', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
@@ -869,20 +870,115 @@ function powerBoostingSnapshotTests() {
     assert.equal(powerBalanceSnapshotsCounts, 2);
     assert.isDefined(
       powerBalanceSnapshots.find(
-        p => p.userId === user1.id && p.powerSnapshotId === snapshot?.id,
+        p =>
+          p.userId === user1.id &&
+          p.powerSnapshotId === snapshot?.id &&
+          p.balance === null,
       ),
     );
     assert.isDefined(
       powerBalanceSnapshots.find(
-        p => p.userId === user2.id && p.powerSnapshotId === snapshot?.id,
+        p =>
+          p.userId === user2.id &&
+          p.powerSnapshotId === snapshot?.id &&
+          p.balance === null,
+      ),
+    );
+  });
+
+  it('should take snapshots for only verified projects', async () => {
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData());
+    const project2 = await saveProjectDirectlyToDb(createProjectData());
+    // Project 3 is unverified
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verified: false,
+    });
+
+    await insertSinglePowerBoosting({
+      user: user1,
+      project: project1,
+      percentage: 10,
+    });
+    await insertSinglePowerBoosting({
+      user: user2,
+      project: project2,
+      percentage: 20,
+    });
+
+    await insertSinglePowerBoosting({
+      user: user1,
+      project: project3,
+      percentage: 30,
+    });
+
+    await insertSinglePowerBoosting({
+      user: user2,
+      project: project3,
+      percentage: 40,
+    });
+
+    await insertSinglePowerBoosting({
+      user: user3,
+      project: project3,
+      percentage: 50,
+    });
+
+    await takePowerBoostingSnapshot();
+
+    const [snapshot] = await PowerSnapshot.find({ take: 1 });
+    assert.isDefined(snapshot);
+
+    const [powerBoostings, powerBoostingCounts] =
+      await PowerBoosting.findAndCount({
+        select: ['id', 'projectId', 'userId', 'percentage'],
+      });
+    const [powerBoostingSnapshots, powerBoostingSnapshotsCounts] =
+      await PowerBoostingSnapshot.findAndCount({
+        where: { powerSnapshotId: snapshot?.id },
+      });
+
+    const [powerBalanceSnapshots, powerBalanceSnapshotsCounts] =
+      await PowerBalanceSnapshot.findAndCount({
+        where: { powerSnapshotId: snapshot?.id },
+      });
+
+    assert.equal(powerBoostingSnapshotsCounts, 2); // User1 -> Project1 and User2 -> Project2
+    powerBoostings.forEach(pb => {
+      const pbs = powerBoostingSnapshots.find(
+        p =>
+          p.projectId === pb.projectId &&
+          p.userId === pb.userId &&
+          p.percentage === pb.percentage &&
+          p.powerSnapshotId === snapshot?.id,
+      );
+      if (pb.project.verified) assert.isDefined(pbs);
+      else assert.isUndefined(pbs);
+    });
+
+    assert.equal(powerBalanceSnapshotsCounts, 2);
+    assert.isDefined(
+      powerBalanceSnapshots.find(
+        p =>
+          p.userId === user1.id &&
+          p.powerSnapshotId === snapshot?.id &&
+          p.balance === null,
+      ),
+    );
+    assert.isDefined(
+      powerBalanceSnapshots.find(
+        p =>
+          p.userId === user2.id &&
+          p.powerSnapshotId === snapshot?.id &&
+          p.balance === null,
       ),
     );
   });
 
   it('should return snapshot corresponding round correctly', async () => {
-    await AppDataSource.getDataSource().query(
-      'truncate power_snapshot cascade',
-    );
     await takePowerBoostingSnapshot();
 
     let [snapshot] = (await PowerSnapshot.find({ take: 1 })) as PowerSnapshot[];
