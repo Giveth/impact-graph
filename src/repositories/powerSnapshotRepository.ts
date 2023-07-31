@@ -22,17 +22,6 @@ export const updatePowerSnapShots = async (params: {
   await powerSnapshot.save();
 };
 
-export const insertSinglePowerBalanceSnapshot = async (
-  param: Pick<PowerBalanceSnapshot, 'userId' | 'powerSnapshotId' | 'balance'>,
-) => {
-  const { userId, powerSnapshotId, balance } = param;
-  return PowerBalanceSnapshot.create({
-    userId,
-    powerSnapshotId,
-    balance,
-  }).save();
-};
-
 export const findPowerSnapshots = async (
   round?: number,
   powerSnapshotId?: number,
