@@ -5,7 +5,7 @@ import config from '../../config';
 import { schedule } from 'node-cron';
 import { getGivPowerSubgraphAdapter } from '../../adapters/adaptersFactory';
 import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository';
-import { createPowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
+import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
 
 const fillSnapshotBalanceQueue = new Bull<FillSnapShotBalanceData>(
   'fill-snapshot-balance',
@@ -106,7 +106,7 @@ export function processFillPowerSnapshotJobs() {
             ),
           });
 
-        await createPowerSnapshotBalances(
+        await addOrUpdatePowerSnapshotBalances(
           data.map(item => {
             return {
               balance: balances[item.walletAddress.toLowerCase()].balance,

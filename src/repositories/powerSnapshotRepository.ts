@@ -69,17 +69,12 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
   return await AppDataSource.getDataSource().query(
     `
         select "userId", "powerSnapshotId", "blockNumber","walletAddress"
-        from (select DISTINCT "powerSnapshotId", "userId" from power_boosting_snapshot) as boosting
+        from public."power_balance_snapshot" as balanceSnapshot
         inner join public."user" as "user" on  "userId"= "user".id
-        inner join power_snapshot as "snapshot" on boosting."powerSnapshotId" = snapshot.id
+        inner join power_snapshot as "snapshot" on balanceSnapshot."powerSnapshotId" = snapshot.id
         where snapshot."blockNumber" is not NULL
-        and not exists (
-          select
-          from power_balance_snapshot as "balance"
-          where balance."powerSnapshotId" = boosting."powerSnapshotId" and
-          balance."userId" = boosting."userId"
-        )
-        order by "blockNumber" ASC
+        and balanceSnapshot.balance is null
+        order by "powerSnapshotId", "userId" 
         LIMIT $1
         OFFSET $2
   `,
@@ -95,16 +90,9 @@ export const updatePowerSnapshotSyncedFlag = async (): Promise<number> => {
         "snapshot"."blockNumber" is not NULL and
         "snapshot"."synced" is not true and
         not exists (
-          select "userId", "powerSnapshotId", "blockNumber","walletAddress"
-          from (select DISTINCT "powerSnapshotId", "userId" from power_boosting_snapshot) as boosting
-          inner join public."user" as "user" on  "userId"= "user".id
-          where boosting."powerSnapshotId" = snapshot.id
-          and not exists (
-              select
-              from power_balance_snapshot as "balance"
-              where balance."powerSnapshotId" = boosting."powerSnapshotId" and
-              balance."userId" = boosting."userId"
-            )
+          select id
+          from power_balance_snapshot
+          where "powerSnapshotId" = snapshot.id and "balance" is null
         )`,
   );
   return result[1];

@@ -15,6 +15,7 @@ import {
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { AppDataSource } from '../orm';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
 
 describe(
   'findInCompletePowerSnapShots() test cases',
@@ -90,15 +91,27 @@ function balanceSnapshotTestCases() {
         balance: 1,
         powerSnapshot: powerSnapshots[0],
       },
+      {
+        userId: user2.id,
+        powerSnapshot: powerSnapshots[0],
+      },
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[1],
+      },
+      {
+        userId: user2.id,
+        powerSnapshot: powerSnapshots[1],
+      },
     ]);
 
     await PowerBalanceSnapshot.save(powerBalances);
 
-    PowerBalanceSnapshot.create({
-      userId: user1.id,
-      powerSnapshot: powerSnapshots[0],
-      balance: 10,
-    });
+    // PowerBalanceSnapshot.create({
+    //   userId: user1.id,
+    //   powerSnapshot: powerSnapshots[0],
+    //   balance: 10,
+    // });
 
     const result = await getPowerBoostingSnapshotWithoutBalance();
     assert.lengthOf(result, 1);
@@ -166,6 +179,18 @@ function balanceSnapshotTestCases() {
         userId: user1.id,
         balance: 1,
         powerSnapshot: powerSnapshots[0],
+      },
+      {
+        userId: user2.id,
+        powerSnapshot: powerSnapshots[0],
+      },
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[1],
+      },
+      {
+        userId: user2.id,
+        powerSnapshot: powerSnapshots[1],
       },
     ]);
 
@@ -238,6 +263,23 @@ function balanceSnapshotTestCases() {
       },
     ]);
     await PowerBoostingSnapshot.save(powerBoostingSnapshots);
+
+    const powerBalances = PowerBalanceSnapshot.create([
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[2],
+      },
+      {
+        userId: user2.id,
+        powerSnapshot: powerSnapshots[1],
+      },
+      {
+        userId: user3.id,
+        powerSnapshot: powerSnapshots[0],
+      },
+    ]);
+
+    await PowerBalanceSnapshot.save(powerBalances);
 
     // Only one slot
     // Must return corresponding to the first snapshot and only one
@@ -358,6 +400,27 @@ function findPowerSnapshotByIdTestCases() {
 
     await PowerBoostingSnapshot.save(powerBoostingSnapshots);
 
+    const powerBalances = PowerBalanceSnapshot.create([
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[0],
+      },
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[1],
+      },
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[2],
+      },
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[3],
+      },
+    ]);
+
+    await PowerBalanceSnapshot.save(powerBalances);
+
     // No snapshot has blockNumber
     let updateFlatResponse = await updatePowerSnapshotSyncedFlag();
 
@@ -372,11 +435,11 @@ function findPowerSnapshotByIdTestCases() {
     assert.equal(updateFlatResponse, 0);
 
     // Filled the balance for the first snapshot
-    await PowerBalanceSnapshot.create({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       balance: 1,
-      powerSnapshot: firstSnapshot,
-    }).save();
+      powerSnapshotId: firstSnapshot.id,
+    });
 
     updateFlatResponse = await updatePowerSnapshotSyncedFlag();
     assert.equal(updateFlatResponse, 1);
@@ -387,11 +450,11 @@ function findPowerSnapshotByIdTestCases() {
 
     thirdSnapshot.blockNumber = 3000;
     await thirdSnapshot.save();
-    await PowerBalanceSnapshot.create({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       balance: 1,
-      powerSnapshot: thirdSnapshot,
-    }).save();
+      powerSnapshotId: thirdSnapshot.id,
+    });
     updateFlatResponse = await updatePowerSnapshotSyncedFlag();
     assert.equal(updateFlatResponse, 1);
     await thirdSnapshot.reload();
@@ -401,20 +464,18 @@ function findPowerSnapshotByIdTestCases() {
     secondSnapshot.blockNumber = 2000;
     forthSnapshot.blockNumber = 4000;
     await PowerSnapshot.save([secondSnapshot, forthSnapshot]);
-    await PowerBalanceSnapshot.save(
-      PowerBalanceSnapshot.create([
-        {
-          userId: user1.id,
-          balance: 1,
-          powerSnapshot: secondSnapshot,
-        },
-        {
-          userId: user1.id,
-          balance: 1,
-          powerSnapshot: forthSnapshot,
-        },
-      ]),
-    );
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: user1.id,
+        balance: 1,
+        powerSnapshotId: secondSnapshot.id,
+      },
+      {
+        userId: user1.id,
+        balance: 1,
+        powerSnapshotId: forthSnapshot.id,
+      },
+    ]);
     updateFlatResponse = await updatePowerSnapshotSyncedFlag();
     assert.equal(updateFlatResponse, 2);
     await secondSnapshot.reload();
