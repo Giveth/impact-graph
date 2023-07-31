@@ -21,6 +21,7 @@ import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { errorMessages } from '../utils/errorMessages';
 import { AppDataSource } from '../orm';
+import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 
 describe('findUserPowerBoosting() testCases', findUserPowerBoostingTestCases);
 describe('findPowerBoostings() testCases', findPowerBoostingsTestCases);
@@ -848,6 +849,11 @@ function powerBoostingSnapshotTests() {
         take: 4,
       });
 
+    const [powerBalanceSnapshots, powerBalanceSnapshotsCounts] =
+      await PowerBalanceSnapshot.findAndCount({
+        where: { powerSnapshotId: snapshot?.id },
+      });
+
     assert.equal(powerBoostingCounts, powerBoostingSnapshotsCounts);
     powerBoostings.forEach(pb => {
       const pbs = powerBoostingSnapshots.find(
@@ -859,6 +865,18 @@ function powerBoostingSnapshotTests() {
       );
       assert.isDefined(pbs);
     });
+
+    assert.equal(powerBalanceSnapshotsCounts, 2);
+    assert.isDefined(
+      powerBalanceSnapshots.find(
+        p => p.userId === user1.id && p.powerSnapshotId === snapshot?.id,
+      ),
+    );
+    assert.isDefined(
+      powerBalanceSnapshots.find(
+        p => p.userId === user2.id && p.powerSnapshotId === snapshot?.id,
+      ),
+    );
   });
 
   it('should return snapshot corresponding round correctly', async () => {
