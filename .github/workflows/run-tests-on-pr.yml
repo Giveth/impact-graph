@@ -5,7 +5,7 @@ on:
   pull_request:
     branches:
       - develop
-      - main
+      - master
       - staging
     types:
       - opened
