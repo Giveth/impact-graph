@@ -1,9 +1,9 @@
 # Impact Graph
 ---
 ### Build status
-- Develop - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/CI-CD.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/develop-pipeline.yml)
-- Staging - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/CI-CD.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/staging-pipeline.yml)
-- Production - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/CI-CD.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/master-pipeline.yml)
+- Develop - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/develop-pipeline.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/develop-pipeline.yml)
+- Staging - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/staging-pipeline.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/staging-pipeline.yml)
+- Production - [![CI/CD](https://github.com/Giveth/impact-graph/actions/workflows/master-pipeline.yml/badge.svg)](https://github.com/Giveth/impact-graph/actions/workflows/master-pipeline.yml)
 ---
 ImpactQL is a GraphQL server, that enables rapid development of serverless impact project applications. It does this by taking care of the persistance of impact project data.
 
