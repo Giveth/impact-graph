@@ -80,6 +80,27 @@ async function processFillPowerSnapshotJobsTestCases() {
         powerSnapshot: powerSnapshots[1],
       },
     ]);
+
+    const powerBalances = PowerBalanceSnapshot.create([
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[0],
+      },
+      {
+        userId: user2.id,
+        powerSnapshot: powerSnapshots[0],
+      },
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[1],
+      },
+      {
+        userId: user2.id,
+        powerSnapshot: powerSnapshots[1],
+      },
+    ]);
+    await PowerBalanceSnapshot.save(powerBalances);
+
     await PowerBoostingSnapshot.save(powerBoostingSnapshots);
     assert.isNotEmpty(await getPowerBoostingSnapshotWithoutBalance());
     await addFillPowerSnapshotBalanceJobsToQueue();
@@ -118,8 +139,40 @@ async function processFillPowerSnapshotJobsTestCases() {
           percentage: 20,
           powerSnapshot: powerSnapshots[0],
         },
+        {
+          userId: user.id,
+          projectId: project.id,
+          percentage: 30,
+          powerSnapshot: powerSnapshots[1],
+        },
+        {
+          userId: user2.id,
+          projectId: project.id,
+          percentage: 40,
+          powerSnapshot: powerSnapshots[1],
+        },
       ]);
       await PowerBoostingSnapshot.save(powerBoostingSnapshots);
+
+      const powerBalances = PowerBalanceSnapshot.create([
+        {
+          userId: user.id,
+          powerSnapshot: powerSnapshots[0],
+        },
+        {
+          userId: user2.id,
+          powerSnapshot: powerSnapshots[0],
+        },
+        {
+          userId: user.id,
+          powerSnapshot: powerSnapshots[1],
+        },
+        {
+          userId: user2.id,
+          powerSnapshot: powerSnapshots[1],
+        },
+      ]);
+      await PowerBalanceSnapshot.save(powerBalances);
     }
 
     assert.isNotEmpty(await getPowerBoostingSnapshotWithoutBalance());

@@ -15,10 +15,7 @@ import {
   getUserProjectPowers,
   refreshUserProjectPowerView,
 } from './userProjectPowerViewRepository';
-import {
-  findInCompletePowerSnapShots,
-  insertSinglePowerBalanceSnapshot,
-} from './powerSnapshotRepository';
+import { findInCompletePowerSnapShots } from './powerSnapshotRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { PowerBoosting } from '../entities/powerBoosting';
@@ -27,6 +24,7 @@ import {
   UserPowerOrderField,
 } from '../resolvers/userProjectPowerResolver';
 import { AppDataSource } from '../orm';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
 
 describe('userProjectPowerViewRepository test', () => {
   beforeEach(async () => {
@@ -65,16 +63,10 @@ describe('userProjectPowerViewRepository test', () => {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 100,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 200,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      { userId: user1.id, powerSnapshotId: snapshot.id, balance: 100 },
+      { userId: user2.id, powerSnapshotId: snapshot.id, balance: 200 },
+    ]);
     await sleep(1);
 
     user1Boosting.percentage = 20;
@@ -90,16 +82,10 @@ describe('userProjectPowerViewRepository test', () => {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 200,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 400,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      { userId: user1.id, powerSnapshotId: snapshot.id, balance: 200 },
+      { userId: user2.id, powerSnapshotId: snapshot.id, balance: 400 },
+    ]);
 
     await setPowerRound(roundNumber);
 
@@ -154,16 +140,10 @@ describe('userProjectPowerViewRepository test', () => {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 100,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 200,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      { userId: user1.id, powerSnapshotId: snapshot.id, balance: 100 },
+      { userId: user2.id, powerSnapshotId: snapshot.id, balance: 200 },
+    ]);
     await sleep(1);
 
     user1Boosting.percentage = 20;
@@ -178,16 +158,10 @@ describe('userProjectPowerViewRepository test', () => {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 200,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 400,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      { userId: user1.id, powerSnapshotId: snapshot.id, balance: 200 },
+      { userId: user2.id, powerSnapshotId: snapshot.id, balance: 400 },
+    ]);
 
     await sleep(1);
     user1Boosting.percentage = 30;
@@ -202,16 +176,10 @@ describe('userProjectPowerViewRepository test', () => {
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 300,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 50,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      { userId: user1.id, powerSnapshotId: snapshot.id, balance: 300 },
+      { userId: user2.id, powerSnapshotId: snapshot.id, balance: 50 },
+    ]);
 
     await sleep(1);
     user1Boosting.percentage = 40;
@@ -226,16 +194,10 @@ describe('userProjectPowerViewRepository test', () => {
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 400,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 70,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      { userId: user1.id, powerSnapshotId: snapshot.id, balance: 400 },
+      { userId: user2.id, powerSnapshotId: snapshot.id, balance: 70 },
+    ]);
 
     await setPowerRound(roundNumber);
 
@@ -317,21 +279,11 @@ describe('userProjectPowerViewRepository test', () => {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 100,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 200,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user3.id,
-      powerSnapshotId: snapshot.id,
-      balance: 300,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      { userId: user1.id, powerSnapshotId: snapshot.id, balance: 100 },
+      { userId: user2.id, powerSnapshotId: snapshot.id, balance: 200 },
+      { userId: user3.id, powerSnapshotId: snapshot.id, balance: 300 },
+    ]);
 
     await sleep(1);
     await takePowerBoostingSnapshot();
@@ -342,21 +294,11 @@ describe('userProjectPowerViewRepository test', () => {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 200,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 300,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user3.id,
-      powerSnapshotId: snapshot.id,
-      balance: 400,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      { userId: user1.id, powerSnapshotId: snapshot.id, balance: 200 },
+      { userId: user2.id, powerSnapshotId: snapshot.id, balance: 300 },
+      { userId: user3.id, powerSnapshotId: snapshot.id, balance: 400 },
+    ]);
     await sleep(1);
 
     await takePowerBoostingSnapshot();
@@ -367,21 +309,11 @@ describe('userProjectPowerViewRepository test', () => {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 300,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 400,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user3.id,
-      powerSnapshotId: snapshot.id,
-      balance: 500,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      { userId: user1.id, powerSnapshotId: snapshot.id, balance: 300 },
+      { userId: user2.id, powerSnapshotId: snapshot.id, balance: 400 },
+      { userId: user3.id, powerSnapshotId: snapshot.id, balance: 500 },
+    ]);
 
     await setPowerRound(roundNumber);
 

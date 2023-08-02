@@ -28,16 +28,14 @@ import {
 } from './powerBoostingRepository';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
-import {
-  findInCompletePowerSnapShots,
-  insertSinglePowerBalanceSnapshot,
-} from './powerSnapshotRepository';
+import { findInCompletePowerSnapShots } from './powerSnapshotRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
 import { SUMMARY_LENGTH } from '../constants/summary';
 import { getHtmlTextSummary } from '../utils/utils';
 import { generateRandomString } from '../utils/utils';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -400,16 +398,18 @@ function orderByTotalPower() {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: user1.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+      {
+        userId: user2.id,
+        powerSnapshotId: snapshot.id,
+        balance: 20000,
+      },
+    ]);
 
     await setPowerRound(roundNumber);
     await refreshProjectPowerView();

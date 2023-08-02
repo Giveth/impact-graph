@@ -25,11 +25,9 @@ import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
-import {
-  findInCompletePowerSnapShots,
-  insertSinglePowerBalanceSnapshot,
-} from '../repositories/powerSnapshotRepository';
+import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepository';
 import { AppDataSource } from '../orm';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 
 describe(
   'setSinglePowerBoostingMutation test cases',
@@ -1164,7 +1162,7 @@ async function getBottomPowerRankTestCases() {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: firstUser.id,
       powerSnapshotId: snapshot.id,
       balance: 100,

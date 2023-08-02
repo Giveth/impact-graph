@@ -81,10 +81,7 @@ import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
-import {
-  findInCompletePowerSnapShots,
-  insertSinglePowerBalanceSnapshot,
-} from '../repositories/powerSnapshotRepository';
+import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
@@ -111,6 +108,7 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -500,7 +498,7 @@ function allProjectsTestCases() {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -744,16 +742,18 @@ function allProjectsTestCases() {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: user1.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+      {
+        userId: user2.id,
+        powerSnapshotId: snapshot.id,
+        balance: 20000,
+      },
+    ]);
 
     await setPowerRound(roundNumber);
     await refreshProjectPowerView();
@@ -5333,7 +5333,7 @@ function projectBySlugTestCases() {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -5405,7 +5405,7 @@ function projectBySlugTestCases() {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -5426,7 +5426,7 @@ function projectBySlugTestCases() {
     // Set next round for filling future power rank
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -5503,7 +5503,7 @@ function projectBySlugTestCases() {
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -5524,7 +5524,7 @@ function projectBySlugTestCases() {
     // Set next round for filling future power rank
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 0,
