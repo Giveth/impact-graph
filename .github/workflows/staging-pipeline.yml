@@ -38,7 +38,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5443:5432
+          - 5432:5432
 
     steps:
       - name: Checkout
@@ -55,8 +55,17 @@ jobs:
           FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ | sort | tail -n 1 | awk '{print $4}')
           aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.sql
 
+      - name: Wait for PostgreSQL to become ready
+        run: |
+          for i in {1..10}
+          do
+            pg_isready -h localhost -p 5432 -U postgres && echo Success && break
+            echo -n .
+            sleep 1
+          done
+
       - name: Restore DB backup
-        run: PGPASSWORD=postgres psql -h postgres -U postgres -d givethio < /tmp/db_backup.sql
+        run: PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d givethio < /tmp/db_backup.sql
 
       - name: Use Node.js
         uses: actions/setup-node@v1
