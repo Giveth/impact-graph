@@ -39,20 +39,42 @@ jobs:
           --health-retries 5
         ports:
           - 5443:5432
+
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_REGION }}
+
+      - name: Download latest DB backup from S3
+        run: |
+          FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ --recursive | sort | tail -n 1 | awk '{print $4}')
+          aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.sql
+
+      - name: Restore DB backup
+        run: psql -h localhost -U postgres -d givethio < /tmp/db_backup.sql
+
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 16.14.2
+      
       - name: Install dependencies
         run: npm ci
+      
       - name: Run tslint
         run: npm run tslint
+      
       - name: Run build
         run: npm run build
+      
       - name: Run migrations
         run: npm run db:migrate:run:test
+      
       - name: Run tests
         run: npm run test
         env:
