@@ -38,7 +38,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 5443:5432
 
     steps:
       - name: Checkout
@@ -64,13 +64,13 @@ jobs:
         run: |
           for i in {1..10}
           do
-            pg_isready -h localhost -p 5432 -U postgres && echo Success && break
+            pg_isready -h localhost -p 5443 -U postgres && echo Success && break
             echo -n .
             sleep 1
           done
 
       - name: Restore DB backup
-        run: PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
+        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
 
       - name: Use Node.js
         uses: actions/setup-node@v1
