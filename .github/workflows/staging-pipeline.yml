@@ -56,7 +56,7 @@ jobs:
           aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.sql
 
       - name: Restore DB backup
-        run: psql -h localhost -U postgres -d givethio < /tmp/db_backup.sql
+        run: psql -U postgres -d givethio < /tmp/db_backup.sql
 
       - name: Use Node.js
         uses: actions/setup-node@v1
