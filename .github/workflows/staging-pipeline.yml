@@ -53,7 +53,12 @@ jobs:
       - name: Download latest DB backup from S3
         run: |
           FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ | sort | tail -n 1 | awk '{print $4}')
-          aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.sql
+          aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.zip
+
+      - name: Unzip DB backup
+        run: |
+          unzip /tmp/db_backup.zip -d /tmp
+          mv /tmp/backups/givethio-staging/*.sql /tmp/backups/givethio-staging/db_backup.sql
 
       - name: Wait for PostgreSQL to become ready
         run: |
@@ -65,7 +70,7 @@ jobs:
           done
 
       - name: Restore DB backup
-        run: PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d givethio < /tmp/db_backup.sql
+        run: PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
 
       - name: Use Node.js
         uses: actions/setup-node@v1
