@@ -52,7 +52,7 @@ jobs:
 
       - name: Download latest DB backup from S3
         run: |
-          FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ --recursive | sort | tail -n 1 | awk '{print $4}')
+          FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ | sort | tail -n 1 | awk '{print $4}')
           aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.sql
 
       - name: Restore DB backup
