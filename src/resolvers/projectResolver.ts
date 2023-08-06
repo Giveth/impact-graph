@@ -1799,14 +1799,14 @@ export class ProjectResolver {
   ): Promise<ProjectUpdatesResponse> {
     const latestProjectUpdates = await ProjectUpdate.query(`
       SELECT pu.id, pu."projectId"
-      FROM project_update as pu
-      WHERE pu.id = (
-        SELECT puu.id
-        FROM project_update as puu
-        WHERE puu."isMain" = false AND pu."projectId" = puu."projectId"
-        ORDER BY puu."createdAt" DESC
-        LIMIT 1
-      )
+      FROM public.project_update AS pu
+      JOIN (
+          SELECT "projectId", MAX("createdAt") AS max_createdAt
+          FROM public.project_update
+          WHERE "isMain" = false
+          GROUP BY "projectId"
+      ) AS puu_max
+      ON pu."projectId" = puu_max."projectId" AND pu."createdAt" = puu_max.max_createdAt
       ORDER BY pu."createdAt" DESC
       LIMIT ${take}
       OFFSET ${skip}
