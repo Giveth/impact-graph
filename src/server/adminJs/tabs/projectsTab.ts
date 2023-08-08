@@ -1054,6 +1054,38 @@ export const projectsTab = {
             });
 
             if (
+              statusChanges?.includes(
+                NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
+              )
+            ) {
+              const verificationForm = await getVerificationFormByProjectId(
+                project.id,
+              );
+              if (verificationForm) {
+                await makeFormVerified({
+                  formId: verificationForm.id,
+                  adminId: currentAdmin.id,
+                });
+              }
+            }
+
+            if (
+              statusChanges?.includes(
+                NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
+              )
+            ) {
+              const verificationForm = await getVerificationFormByProjectId(
+                project.id,
+              );
+              if (verificationForm) {
+                await makeFormDraft({
+                  formId: verificationForm.id,
+                  adminId: currentAdmin.id,
+                });
+              }
+            }
+
+            if (
               statusChanges?.includes(NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED)
             ) {
               project.listed = true;
