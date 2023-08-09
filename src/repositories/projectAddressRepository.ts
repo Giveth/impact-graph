@@ -8,13 +8,13 @@ import SentryLogger from '../sentryLogger';
 export const getPurpleListAddresses = async (): Promise<
   { projectAddress: string }[]
 > => {
-  // addresses that are related to verified projects
+  // ProjStatus.active value is 5 and we need to just need to consider active projects for purple list
   const addresses = await ProjectAddress.query(
     `
           SELECT "projectId", LOWER(address) as "projectAddress"
           FROM project_address
           JOIN project
-          on project.id="projectId" and "verified"=true
+          on project.id="projectId" and "verified"=true and "statusId" = 5 
       `,
   );
   return addresses;
