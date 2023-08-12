@@ -14,6 +14,7 @@ export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
     SET "qfRoundUserScore" = u."passportScore"
     FROM "user" u
     WHERE donation."userId" = u.id
+    AND "qfRoundUserScore" IS NULL
     AND donation.status = 'verified'
     AND EXISTS(
       SELECT 1
