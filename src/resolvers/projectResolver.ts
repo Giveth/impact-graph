@@ -14,7 +14,6 @@ import {
   ImageUpload,
   UpdateProjectInput,
 } from './types/project-input';
-import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
@@ -1176,7 +1175,6 @@ export class ProjectResolver {
   async createProject(
     @Arg('project') projectInput: CreateProjectInput,
     @Ctx() ctx: ApolloContext,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx);
     const { image, description } = projectInput;
