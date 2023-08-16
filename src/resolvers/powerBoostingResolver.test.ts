@@ -25,9 +25,9 @@ import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
-import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepository';
 import { AppDataSource } from '../orm';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 
 describe(
   'setSinglePowerBoostingMutation test cases',
@@ -1153,8 +1153,8 @@ async function getBottomPowerRankTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     const roundNumber = firstProject.id * 10;
 

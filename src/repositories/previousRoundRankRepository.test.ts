@@ -17,7 +17,6 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
-import { findInCompletePowerSnapShots } from './powerSnapshotRepository';
 import { getPowerRound, setPowerRound } from './powerRoundRepository';
 import {
   getProjectPowers,
@@ -30,6 +29,7 @@ import { ProjectPowerView } from '../views/projectPowerView';
 import { findProjectById } from './projectRepository';
 import { PowerRound } from '../entities/powerRound';
 import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from './powerSnapshotRepository';
 
 describe(
   'copyProjectRanksToPreviousRoundRankTable test cases',
@@ -73,8 +73,8 @@ const createSomeSampleProjectsAndPowerViews = async () => {
   });
 
   await takePowerBoostingSnapshot();
-  const incompleteSnapshots = await findInCompletePowerSnapShots();
-  const snapshot = incompleteSnapshots[0];
+  const [powerSnapshots] = await findPowerSnapshots();
+  const snapshot = powerSnapshots[0];
 
   snapshot.blockNumber = 1;
   snapshot.roundNumber = roundNumber;
@@ -137,8 +137,8 @@ function projectsThatTheirRanksHaveChangedTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = roundNumber;
     snapshot.roundNumber = roundNumber;

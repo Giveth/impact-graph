@@ -81,7 +81,6 @@ import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
-import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
@@ -109,6 +108,7 @@ import {
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -491,8 +491,8 @@ function allProjectsTestCases() {
       percentage: 100,
     });
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -735,8 +735,8 @@ function allProjectsTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -5326,8 +5326,8 @@ function projectBySlugTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -5398,8 +5398,8 @@ function projectBySlugTestCases() {
       percentage: 40,
     });
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -5419,8 +5419,6 @@ function projectBySlugTestCases() {
     await PowerBoosting.save([boosting1, boosting2, boosting3, boosting4]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 2;
     // Set next round for filling future power rank
@@ -5496,8 +5494,8 @@ function projectBySlugTestCases() {
       percentage: 40,
     });
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -5517,8 +5515,6 @@ function projectBySlugTestCases() {
     await PowerBoosting.save([boosting1, boosting2, boosting3, boosting4]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 2;
     // Set next round for filling future power rank

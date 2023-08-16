@@ -15,7 +15,6 @@ import {
   getUserProjectPowers,
   refreshUserProjectPowerView,
 } from './userProjectPowerViewRepository';
-import { findInCompletePowerSnapShots } from './powerSnapshotRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { PowerBoosting } from '../entities/powerBoosting';
@@ -25,6 +24,7 @@ import {
 } from '../resolvers/userProjectPowerResolver';
 import { AppDataSource } from '../orm';
 import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from './powerSnapshotRepository';
 
 describe('userProjectPowerViewRepository test', () => {
   beforeEach(async () => {
@@ -55,9 +55,8 @@ describe('userProjectPowerViewRepository test', () => {
     });
 
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    assert.lengthOf(incompleteSnapshots, 1);
-    let snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -74,9 +73,6 @@ describe('userProjectPowerViewRepository test', () => {
     await PowerBoosting.save([user1Boosting, user2Boosting]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    assert.lengthOf(incompleteSnapshots, 1);
-    snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 2;
     snapshot.roundNumber = roundNumber;
@@ -133,8 +129,8 @@ describe('userProjectPowerViewRepository test', () => {
     });
 
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -151,8 +147,6 @@ describe('userProjectPowerViewRepository test', () => {
     await PowerBoosting.save([user1Boosting, user2Boosting]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 2;
     snapshot.roundNumber = roundNumber;
@@ -169,8 +163,6 @@ describe('userProjectPowerViewRepository test', () => {
     await PowerBoosting.save([user1Boosting, user2Boosting]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 3;
     snapshot.roundNumber = roundNumber + 1;
@@ -187,8 +179,6 @@ describe('userProjectPowerViewRepository test', () => {
     await PowerBoosting.save([user1Boosting, user2Boosting]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 4;
     snapshot.roundNumber = roundNumber + 1;
@@ -272,9 +262,8 @@ describe('userProjectPowerViewRepository test', () => {
     });
 
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
-
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
@@ -287,8 +276,6 @@ describe('userProjectPowerViewRepository test', () => {
 
     await sleep(1);
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 2;
     snapshot.roundNumber = roundNumber;
@@ -302,8 +289,6 @@ describe('userProjectPowerViewRepository test', () => {
     await sleep(1);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
     snapshot.blockNumber = 3;
     snapshot.roundNumber = roundNumber;

@@ -17,9 +17,9 @@ import {
 } from '../repositories/powerBoostingRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepository';
 import { AppDataSource } from '../orm';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 
 describe('userProjectPowers test cases', userProjectPowersTestCases);
 
@@ -73,8 +73,8 @@ function userProjectPowersTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
@@ -140,8 +140,8 @@ function userProjectPowersTestCases() {
     const givbackRound = secondProject.id * 10;
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
@@ -227,8 +227,8 @@ function userProjectPowersTestCases() {
     const givbackRound = secondProject.id * 10;
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
@@ -310,8 +310,8 @@ function userProjectPowersTestCases() {
     const givbackRound = secondProject.id * 10;
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
@@ -385,8 +385,8 @@ function userProjectPowersTestCases() {
     const givbackRound = secondProject.id * 10;
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
