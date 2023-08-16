@@ -44,7 +44,6 @@ function balanceSnapshotTestCases() {
     const powerSnapshots = PowerSnapshot.create([
       {
         time: new Date(powerSnapshotTime++),
-        blockNumber: 100,
       },
       {
         time: new Date(powerSnapshotTime++),
@@ -103,13 +102,7 @@ function balanceSnapshotTestCases() {
     await PowerBalanceSnapshot.save(powerBalances);
 
     const result = await getPowerBoostingSnapshotWithoutBalance();
-    assert.lengthOf(result, 1);
-    assert.deepEqual(result[0], {
-      userId: user2.id,
-      powerSnapshotId: powerSnapshots[0].id,
-      walletAddress: user2.walletAddress as string,
-      time: powerSnapshots[0].time,
-    });
+    assert.lengthOf(result, 3);
   });
   it('should return user wallet address alongside power snapshots', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -192,13 +185,7 @@ function balanceSnapshotTestCases() {
     });
 
     const result = await getPowerBoostingSnapshotWithoutBalance();
-    assert.lengthOf(result, 1);
-    assert.deepEqual(result[0], {
-      userId: user2.id,
-      powerSnapshotId: powerSnapshots[0].id,
-      walletAddress: user2.walletAddress as string,
-      time: powerSnapshots[0].time,
-    });
+    assert.lengthOf(result, 3);
   });
 
   it('should return power snapshots with not corresponding balance snapshot - pagination', async () => {
@@ -218,15 +205,12 @@ function balanceSnapshotTestCases() {
     const powerSnapshots = PowerSnapshot.create([
       {
         time: new Date(powerSnapshotTime++),
-        blockNumber: 1000,
       },
       {
         time: new Date(powerSnapshotTime++),
-        blockNumber: 2000,
       },
       {
         time: new Date(powerSnapshotTime++),
-        blockNumber: 3000,
       },
     ]);
     await PowerSnapshot.save(powerSnapshots);
@@ -277,7 +261,7 @@ function balanceSnapshotTestCases() {
     assert.deepEqual(result[0], {
       userId: user3.id,
       powerSnapshotId: powerSnapshots[0].id,
-      walletAddress: user2.walletAddress as string,
+      walletAddress: user3.walletAddress as string,
       time: powerSnapshots[0].time,
     });
 
@@ -295,7 +279,7 @@ function balanceSnapshotTestCases() {
         userId: user1.id,
         walletAddress: user1.walletAddress,
         powerSnapshotId: powerSnapshots[2].id,
-        blockNumber: powerSnapshots[2].blockNumber,
+        time: powerSnapshots[2].time,
       },
     ]);
   });

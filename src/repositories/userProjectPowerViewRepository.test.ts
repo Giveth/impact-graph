@@ -55,10 +55,9 @@ describe('userProjectPowerViewRepository test', () => {
     });
 
     await takePowerBoostingSnapshot();
-    const [powerSnapshots] = await findPowerSnapshots();
-    const snapshot = powerSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -73,8 +72,8 @@ describe('userProjectPowerViewRepository test', () => {
     await PowerBoosting.save([user1Boosting, user2Boosting]);
 
     await takePowerBoostingSnapshot();
-
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -129,10 +128,9 @@ describe('userProjectPowerViewRepository test', () => {
     });
 
     await takePowerBoostingSnapshot();
-    const [powerSnapshots] = await findPowerSnapshots();
-    const snapshot = powerSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -147,6 +145,8 @@ describe('userProjectPowerViewRepository test', () => {
     await PowerBoosting.save([user1Boosting, user2Boosting]);
 
     await takePowerBoostingSnapshot();
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
 
     snapshot.blockNumber = 2;
     snapshot.roundNumber = roundNumber;
@@ -163,8 +163,8 @@ describe('userProjectPowerViewRepository test', () => {
     await PowerBoosting.save([user1Boosting, user2Boosting]);
 
     await takePowerBoostingSnapshot();
-
-    snapshot.blockNumber = 3;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[2];
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
 
@@ -179,8 +179,8 @@ describe('userProjectPowerViewRepository test', () => {
     await PowerBoosting.save([user1Boosting, user2Boosting]);
 
     await takePowerBoostingSnapshot();
-
-    snapshot.blockNumber = 4;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[3];
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
 

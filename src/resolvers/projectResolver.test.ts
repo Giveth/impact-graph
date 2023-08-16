@@ -5429,10 +5429,9 @@ function projectBySlugTestCases() {
       percentage: 40,
     });
     await takePowerBoostingSnapshot();
-    const [powerSnapshots] = await findPowerSnapshots();
-    const snapshot = powerSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -5451,7 +5450,8 @@ function projectBySlugTestCases() {
 
     await takePowerBoostingSnapshot();
 
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     // Set next round for filling future power rank
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
@@ -5525,10 +5525,8 @@ function projectBySlugTestCases() {
       percentage: 40,
     });
     await takePowerBoostingSnapshot();
-    const [powerSnapshots] = await findPowerSnapshots();
-    const snapshot = powerSnapshots[0];
-
-    snapshot.blockNumber = 1;
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -5547,7 +5545,8 @@ function projectBySlugTestCases() {
 
     await takePowerBoostingSnapshot();
 
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     // Set next round for filling future power rank
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
