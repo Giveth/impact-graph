@@ -3,7 +3,10 @@ import { redisConfig } from '../../redis';
 import { logger } from '../../utils/logger';
 import config from '../../config';
 import { schedule } from 'node-cron';
-import { getGivPowerSubgraphAdapter } from '../../adapters/adaptersFactory';
+import {
+  getGivPowerSubgraphAdapter,
+  getPowerBalanceAggregatorAdapter,
+} from '../../adapters/adaptersFactory';
 import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
 
@@ -46,46 +49,48 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
   let offset = 0;
   let isFinished = false;
 
-  const groupByBlockNumbers: {
-    [p: number]: {
+  const groupByTimestamp: {
+    [timestamp: number]: {
       userId: number;
       powerSnapshotId: number;
       walletAddress: string;
     }[];
   } = {};
+
   while (!isFinished) {
     const powerBoostings = await getPowerBoostingSnapshotWithoutBalance(
-      100,
+      20,
       offset,
     );
+    powerBoostings.forEach(pb => {
+      const timestampInStr = String(Math.floor(pb.time.getTime() / 1000));
+      if (groupByTimestamp[timestampInStr]) {
+        groupByTimestamp[timestampInStr].push(pb);
+      } else {
+        groupByTimestamp[timestampInStr] = [pb];
+      }
+    });
+    logger.debug('Trying to fill incomplete powerBoostingSnapshots', {
+      offset,
+      powerBoostingsLength: powerBoostings?.length,
+    });
     offset += powerBoostings.length;
     if (powerBoostings.length === 0) {
       isFinished = true;
     }
-    powerBoostings.forEach(pb => {
-      if (groupByBlockNumbers[pb.blockNumber]) {
-        groupByBlockNumbers[pb.blockNumber].push(pb);
-      } else {
-        groupByBlockNumbers[pb.blockNumber] = [pb];
-      }
+    Object.keys(groupByTimestamp).forEach(key => {
+      fillSnapshotBalanceQueue.add({
+        timestamp: Number(key),
+        powerSnapshotId: powerBoostings[0].powerSnapshotId,
+        data: powerBoostings.map(pb => {
+          return {
+            userId: pb.userId,
+            walletAddress: pb.walletAddress.toLowerCase(),
+          };
+        }),
+      });
     });
   }
-  logger.debug('jobs', {
-    groupByBlockNumbers: JSON.stringify(groupByBlockNumbers, null, 2),
-  });
-  Object.keys(groupByBlockNumbers).forEach(key => {
-    const chunkSize = 50;
-    const jobDataArray = groupByBlockNumbers[key];
-    for (let i = 0; i < jobDataArray.length; i += chunkSize) {
-      // Our batches length would not be greater than 50, so we convert the array to multiple chunks and add them to queue
-      const chunk = jobDataArray.slice(i, i + chunkSize);
-
-      fillSnapshotBalanceQueue.add({
-        blockNumber: Number(key),
-        data: chunk,
-      });
-    }
-  });
 }
 
 export function processFillPowerSnapshotJobs() {
@@ -96,22 +101,26 @@ export function processFillPowerSnapshotJobs() {
     numberOfFillPowerSnapshotBAlancesConcurrentJob,
     async (job, done) => {
       logger.debug('processing fill powerSnapshot job', job.data);
-      const { blockNumber, data } = job.data;
+      const items = job.data.data;
+      const { timestamp, powerSnapshotId } = job.data;
       try {
+        const addresses = items.map(item => item.walletAddress).join(',');
         const balances =
-          await getGivPowerSubgraphAdapter().getUserPowerBalanceAtBlockNumber({
-            blockNumber,
-            walletAddresses: data.map(user =>
-              user?.walletAddress?.toLowerCase(),
-            ),
+          await getPowerBalanceAggregatorAdapter().getBalanceOfAddresses({
+            timestamp,
+            addresses,
           });
 
         await addOrUpdatePowerSnapshotBalances(
-          data.map(item => {
+          balances.map(balance => {
             return {
-              balance: balances[item.walletAddress.toLowerCase()].balance,
-              powerSnapshotId: item.powerSnapshotId,
-              userId: item.userId,
+              balance: balance.balance,
+              powerSnapshotId,
+              userId: items.find(
+                item =>
+                  item.walletAddress.toLowerCase() ===
+                  balance.address.toLowerCase(),
+              )!.userId,
             };
           }),
         );
@@ -125,9 +134,9 @@ export function processFillPowerSnapshotJobs() {
 }
 
 interface FillSnapShotBalanceData {
-  blockNumber: number;
+  timestamp: number;
+  powerSnapshotId: number;
   data: {
-    powerSnapshotId: number;
     userId: number;
     walletAddress: string;
   }[];

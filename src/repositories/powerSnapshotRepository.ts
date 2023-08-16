@@ -1,23 +1,12 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
 
-export const findInCompletePowerSnapShots = async (): Promise<
-  PowerSnapshot[]
-> => {
-  return PowerSnapshot.createQueryBuilder()
-    .where('"blockNumber" IS NULL')
-    .getMany();
-};
-
 export const updatePowerSnapShots = async (params: {
-  blockNumber: number;
   roundNumber: number;
   powerSnapshot: PowerSnapshot;
 }): Promise<void> => {
-  const { blockNumber, roundNumber, powerSnapshot } = params;
-  powerSnapshot.blockNumber = blockNumber;
+  const { roundNumber, powerSnapshot } = params;
   powerSnapshot.roundNumber = roundNumber;
   await powerSnapshot.save();
 };
@@ -49,23 +38,21 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
 ): Promise<
   {
     userId: number;
+    time: Date;
     powerSnapshotId: number;
-    blockNumber: number;
     walletAddress: string;
   }[]
 > => {
   logger.info('getPowerBoostingSnapshotWithoutBalance()', { limit, offset });
   return await AppDataSource.getDataSource().query(
     `
-        select "userId", "powerSnapshotId", "blockNumber","walletAddress"
+        select "userId", "powerSnapshotId", "walletAddress", "time"
         from public."power_balance_snapshot" as balanceSnapshot
         inner join public."user" as "user" on  "userId"= "user".id
         inner join power_snapshot as "snapshot" on balanceSnapshot."powerSnapshotId" = snapshot.id
-        where snapshot."blockNumber" is not NULL
         and balanceSnapshot.balance is null
         order by "powerSnapshotId", "userId" 
         LIMIT $1
-        OFFSET $2
   `,
     [limit, offset],
   );
@@ -76,7 +63,6 @@ export const updatePowerSnapshotSyncedFlag = async (): Promise<number> => {
     `
         update power_snapshot as "snapshot" set synced = true
         where
-        "snapshot"."blockNumber" is not NULL and
         "snapshot"."synced" is not true and
         not exists (
           select id

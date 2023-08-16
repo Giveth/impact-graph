@@ -19,6 +19,8 @@ import { ChainvineMockAdapter } from './chainvine/chainvineMockAdapter';
 import { IGivPowerSubgraphAdapter } from './givpowerSubgraph/IGivPowerSubgraphAdapter';
 import { GitcoinAdapter } from './gitcoin/gitcoinAdapter';
 import { GitcoinMockAdapter } from './gitcoin/gitcoinMockAdapter';
+import { GivPowerBalanceAggregatorAdapter } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapter';
+import { GivPowerBalanceAggregatorMock } from './givPowerBalanceAggregator/givPowerBalanceAggregatorMock';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -99,5 +101,19 @@ export const getGitcoinAdapter = () => {
       return mockGitcoinAdapter;
     default:
       return mockGitcoinAdapter;
+  }
+};
+
+const powerBalanceAggregator = new GivPowerBalanceAggregatorAdapter();
+const mockPowerBalanceAggregator = new GivPowerBalanceAggregatorMock();
+
+export const getPowerBalanceAggregatorAdapter = () => {
+  switch (process.env.POWER_BALANCE_AGGREGATOR_ADAPTER) {
+    case 'powerBalanceAggregator':
+      return powerBalanceAggregator;
+    case 'mock':
+      return mockPowerBalanceAggregator;
+    default:
+      return mockPowerBalanceAggregator;
   }
 };
