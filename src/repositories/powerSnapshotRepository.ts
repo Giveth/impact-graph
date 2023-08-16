@@ -50,9 +50,10 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
         from public."power_balance_snapshot" as balanceSnapshot
         inner join public."user" as "user" on  "userId"= "user".id
         inner join power_snapshot as "snapshot" on balanceSnapshot."powerSnapshotId" = snapshot.id
-        and balanceSnapshot.balance is null
+        where balanceSnapshot.balance is null
         order by "powerSnapshotId", "userId" 
         LIMIT $1
+        OFFSET $2
   `,
     [limit, offset],
   );

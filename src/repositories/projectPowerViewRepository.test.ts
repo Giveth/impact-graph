@@ -187,8 +187,8 @@ function projectPowerViewRepositoryTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const [powerSnapshots] = await findPowerSnapshots();
-    const snapshot = powerSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -216,6 +216,8 @@ function projectPowerViewRepositoryTestCases() {
     await user2Boosting.save();
 
     await takePowerBoostingSnapshot();
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
 
     snapshot.blockNumber = 2;
     snapshot.roundNumber = roundNumber;
@@ -335,10 +337,9 @@ function projectFuturePowerViewRepositoryTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const [powerSnapshots] = await findPowerSnapshots();
-    const snapshot = powerSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -358,8 +359,8 @@ function projectFuturePowerViewRepositoryTestCases() {
     await PowerBoosting.save([boosting1, boosting2, boosting3, boosting4]);
 
     await takePowerBoostingSnapshot();
-
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
 
