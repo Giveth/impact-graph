@@ -1,4 +1,4 @@
-import { UpdateResult } from 'typeorm';
+import { QueryBuilder, UpdateResult } from 'typeorm';
 import {
   FilterField,
   Project,
@@ -17,6 +17,8 @@ import {
 import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
+import { findActiveQfRound } from './qfRoundRepository';
+import { Donation } from '../entities/donation';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -60,7 +62,9 @@ export type FilterProjectQueryInputParams = {
   sortingBy?: SortingField;
   qfRoundId?: number;
 };
-export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
+export const filterProjectsQuery = async (
+  params: FilterProjectQueryInputParams,
+) => {
   const {
     limit,
     skip,
@@ -115,6 +119,35 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         'projectInstantPower.totalPower',
         'projectInstantPower.powerRank',
       ]);
+  } else if (sortingBy === SortingField.ActiveQfRoundFundsRaised) {
+    const activeQfRound = await findActiveQfRound();
+
+    const subquery = Donation.createQueryBuilder('donation')
+      .select('donation."projectId", donation."qfRoundId"')
+      .addSelect('SUM(donation."valueUsd")', 'qfRoundRaisedFunds')
+      .where(`donation."qfRoundId" = ${activeQfRound?.id || 0}`)
+      .groupBy('donation."projectId", donation."qfRoundId"')
+      .getQuery();
+
+    query = query.leftJoin(
+      `(${subquery})`,
+      'donation',
+      'project.id = donation."projectId"',
+    );
+
+    // query = query
+    //       .leftJoinAndSelect('project.donations', 'donation', 'donation.projectId = project.id AND donation.qfRoundId = :qfRoundId', { qfRoundId: activeQfRound?.id || 0 })
+    //       // .leftJoin(
+    //       //   qb => {
+    //       //     return qb
+    //       //       .select('donation."projectId", donation."qfRoundId"')
+    //       //       .addSelect('SUM(donation."valueUsd")', 'qfRoundRaisedFunds')
+    //       //       .from(Donation, 'donation')
+    //       //       .groupBy('donation."projectId", donation."qfRoundId"');
+    //       //   },
+    //       //   'donation',
+    //       //   `donation."projectId" = project.id AND donation."qfRoundId" = ${activeQfRound?.id || 0}`
+    //       // )
   }
 
   // Filters
@@ -167,6 +200,9 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           OrderDirection.DESC,
           'NULLS LAST',
         );
+      break;
+    case SortingField.ActiveQfRoundFundsRaised:
+      query.orderBy('donation."qfRoundRaisedFunds"', 'DESC');
       break;
     default:
       query

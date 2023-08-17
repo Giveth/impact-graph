@@ -39,7 +39,7 @@ export const fillCampaignProjects = async (params: {
     return campaign;
   }
 
-  const projectsQuery = filterProjectsQuery(projectsQueryParams);
+  const projectsQuery = await filterProjectsQuery(projectsQueryParams);
   const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(hasher =>
     hasher.hashProjectFilters({
       ...projectsQueryParams,

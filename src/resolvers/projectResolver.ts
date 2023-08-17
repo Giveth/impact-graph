@@ -778,7 +778,7 @@ export class ProjectResolver {
       filterQueryParams.slugArray = campaign.relatedProjectsSlugs;
     }
 
-    const projectsQuery = filterProjectsQuery(filterQueryParams);
+    const projectsQuery = await filterProjectsQuery(filterQueryParams);
 
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
       hasher =>
@@ -812,7 +812,7 @@ export class ProjectResolver {
 
     const categories = await categoriesResolver;
 
-    return { projects, totalCount, categories, campaign };
+    return { projects, totalCount: 0, categories, campaign };
   }
 
   @Query(returns => TopProjects)

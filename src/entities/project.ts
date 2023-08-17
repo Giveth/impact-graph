@@ -76,6 +76,7 @@ export enum SortingField {
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',
   InstantBoosting = 'InstantBoosting',
+  ActiveQfRoundFundsRaised = 'ActiveQfRoundFundsRaised',
 }
 
 export enum FilterField {
@@ -125,11 +126,11 @@ export enum ReviewStatus {
 @Entity()
 @ObjectType()
 export class Project extends BaseEntity {
-  @Field(type => ID)
+  @Field(type => ID, { nullable: true })
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   title: string;
 
