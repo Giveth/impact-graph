@@ -120,7 +120,7 @@ async function processFillPowerSnapshotJobsTestCases() {
   it('should fill more than 20 snapShotBalances for powerSnapshots', async () => {
     const powerSnapshotTime = new Date().getTime() - 1 * 3600 * 1000; // 1 hour earlier
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 120; i++) {
       const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
       const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
       const project = await saveProjectDirectlyToDb(createProjectData());
@@ -129,7 +129,7 @@ async function processFillPowerSnapshotJobsTestCases() {
           time: new Date(powerSnapshotTime + (i + 1) * 1000),
         },
         {
-          time: new Date(powerSnapshotTime + 1 + (i + 1) * 1000),
+          time: new Date(powerSnapshotTime + 500 + (i + 1) * 1000),
         },
       ]);
       await PowerSnapshot.save(powerSnapshots);
@@ -187,8 +187,9 @@ async function processFillPowerSnapshotJobsTestCases() {
 
     await addFillPowerSnapshotBalanceJobsToQueue();
 
-    await sleep(60_000);
+    await sleep(10_000);
 
-    assert.isEmpty(await getPowerBoostingSnapshotWithoutBalance());
+    assert.equal((await getPowerBoostingSnapshotWithoutBalance()).length, 0);
+    // assert.isEmpty(await getPowerBoostingSnapshotWithoutBalance());
   });
 }

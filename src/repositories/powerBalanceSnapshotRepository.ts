@@ -1,4 +1,5 @@
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
+import { logger } from '../utils/logger';
 
 type PowerBalanceSnapshotParams = Pick<
   PowerBalanceSnapshot,
@@ -7,6 +8,7 @@ type PowerBalanceSnapshotParams = Pick<
 export const addOrUpdatePowerSnapshotBalances = async (
   params: PowerBalanceSnapshotParams[] | PowerBalanceSnapshotParams,
 ): Promise<void> => {
+  logger.debug('addOrUpdatePowerSnapshotBalances', params);
   await PowerBalanceSnapshot.createQueryBuilder<PowerBalanceSnapshot>()
     .insert()
     .into(PowerBalanceSnapshot)
