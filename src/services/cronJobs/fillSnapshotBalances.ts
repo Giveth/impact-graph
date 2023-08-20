@@ -11,7 +11,7 @@ import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/power
 import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
 
 const fillSnapshotBalanceQueue = new Bull<FillSnapShotBalanceData>(
-  'fill-snapshot-balance',
+  'fill-snapshot-balance-aggregator',
   {
     redis: redisConfig,
   },
@@ -24,7 +24,7 @@ setInterval(async () => {
   });
 }, TWO_MINUTES);
 
-const numberOfFillPowerSnapshotBAlancesConcurrentJob =
+const numberOfFillPowerSnapshotBalancesConcurrentJob =
   Number(
     config.get('NUMBER_OF_FILLING_POWER_SNAPSHOT_BALANCE_CONCURRENT_JOB'),
   ) || 1;
@@ -63,24 +63,28 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
       offset,
     );
     powerBoostings.forEach(pb => {
-      const timestampInStr = String(Math.floor(pb.time.getTime() / 1000));
+      // const timestampInStr = String(Math.floor(pb.time.getTime() / 1000));
+      const timestampInStr = String(pb.time.getTime());
       if (groupByTimestamp[timestampInStr]) {
         groupByTimestamp[timestampInStr].push(pb);
       } else {
         groupByTimestamp[timestampInStr] = [pb];
       }
     });
-    logger.debug('Trying to fill incomplete powerBoostingSnapshots', {
-      offset,
-      powerBoostingsLength: powerBoostings?.length,
-    });
+    // logger.debug('Trying to fill incomplete powerBoostingSnapshots', {
+    //   offset,
+    //   powerBoostingsLength: powerBoostings?.length,
+    // });
     offset += powerBoostings.length;
     if (powerBoostings.length === 0) {
       isFinished = true;
+      break;
     }
+    // logger.debug('**powerBoostings**', powerBoostings);
     Object.keys(groupByTimestamp).forEach(key => {
       fillSnapshotBalanceQueue.add({
-        timestamp: Number(key),
+        // timestamp: Number(key),
+        timestamp: Number(Math.floor(Number(key) / 1000)),
         powerSnapshotId: powerBoostings[0].powerSnapshotId,
         data: powerBoostings.map(pb => {
           return {
@@ -95,21 +99,32 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
 
 export function processFillPowerSnapshotJobs() {
   logger.debug('processFillPowerSnapshotJobs() has been called ', {
-    numberOfFillPowerSnapshotBAlancesConcurrentJob,
+    numberOfFillPowerSnapshotBAlancesConcurrentJob:
+      numberOfFillPowerSnapshotBalancesConcurrentJob,
   });
   fillSnapshotBalanceQueue.process(
-    numberOfFillPowerSnapshotBAlancesConcurrentJob,
+    numberOfFillPowerSnapshotBalancesConcurrentJob,
     async (job, done) => {
-      logger.debug('processing fill powerSnapshot job', job.data);
+      logger.debug('*************hi***');
       const items = job.data.data;
       const { timestamp, powerSnapshotId } = job.data;
       try {
         const addresses = items.map(item => item.walletAddress).join(',');
+        logger.debug('processFillPowerSnapshotJobs() addresses ', {
+          addresses,
+          timestamp,
+          powerSnapshotId,
+        });
         const balances =
           await getPowerBalanceAggregatorAdapter().getBalanceOfAddresses({
             timestamp,
             addresses,
           });
+
+        // logger.debug('addresses and balances', {
+        //   addresses,
+        //   balances,
+        // });
 
         await addOrUpdatePowerSnapshotBalances(
           balances.map(balance => {
@@ -127,6 +142,7 @@ export function processFillPowerSnapshotJobs() {
       } catch (e) {
         logger.error('processFillPowerSnapshotJobs >> error', e);
       } finally {
+        logger.debug('calling done');
         done();
       }
     },
