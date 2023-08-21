@@ -53,7 +53,7 @@ export class GivPowerBalanceAggregatorAdapter
         addresses: params.addresses.join(','),
       };
       const response = await axios.post(
-        `${this.baseUrl}/givpower-balance-aggregator/power-balance/by-timestamp`,
+        `${this.baseUrl}/power-balance/by-timestamp`,
         data,
       );
       return response.data.map(balance => formatResponse(balance));
@@ -68,7 +68,7 @@ export class GivPowerBalanceAggregatorAdapter
   ): Promise<GetBalanceOfAddressesResponse> {
     try {
       const response = await axios.post(
-        `${this.baseUrl}/givpower-balance-aggregator/power-balance`,
+        `${this.baseUrl}/power-balance`,
         params,
       );
       return response.data.map(balance => formatResponse(balance));
@@ -83,7 +83,7 @@ export class GivPowerBalanceAggregatorAdapter
   ): Promise<GetBalancesUpdatedAfterASpecificDateResponse> {
     try {
       const response = await axios.post(
-        `${this.baseUrl}/givpower-balance-aggregator/power-balance/updated-after-date`,
+        `${this.baseUrl}/power-balance/updated-after-date`,
         params,
       );
       const responseData = response.data;
@@ -101,7 +101,7 @@ export class GivPowerBalanceAggregatorAdapter
   ): Promise<number> {
     try {
       const response = await axios.post(
-        `${this.baseUrl}/givpower-balance-aggregator/fetch-state/least-indexed-block-timestamp`,
+        `${this.baseUrl}/fetch-state/least-indexed-block-timestamp`,
         params,
       );
       return response.data;
