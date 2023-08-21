@@ -8,6 +8,7 @@ import {
   GetLeastIndexedBlockTimeStampInputParams,
   GivPowerBalanceAggregatorInterface,
 } from './givPowerBalanceAggregatorInterface';
+import { logger } from '../../utils/logger';
 
 export class GivPowerBalanceAggregatorMock
   implements GivPowerBalanceAggregatorInterface
@@ -15,6 +16,14 @@ export class GivPowerBalanceAggregatorMock
   async getAddressesBalance(
     params: GetBalanceOfAddressesInputParams,
   ): Promise<GetBalanceOfAddressesResponse> {
+    if (
+      params.addresses.length >
+      Number(process.env.NUMBER_OF_BALANCE_AGGREGATOR_BATCH)
+    ) {
+      throw new Error(
+        'addresses length can not be greater than NUMBER_OF_BALANCE_AGGREGATOR_BATCH that is defined in .env',
+      );
+    }
     return params.addresses.map(address => {
       return {
         address,
