@@ -12,10 +12,10 @@ import {
 export class GivPowerBalanceAggregatorMock
   implements GivPowerBalanceAggregatorInterface
 {
-  async getBalanceOfAddresses(
+  async getAddressesBalance(
     params: GetBalanceOfAddressesInputParams,
   ): Promise<GetBalanceOfAddressesResponse> {
-    return params.addresses.split(',').map(address => {
+    return params.addresses.map(address => {
       return {
         address,
         balance: 13, // Just an example balance
@@ -25,7 +25,7 @@ export class GivPowerBalanceAggregatorMock
     });
   }
 
-  async getLatestBalanceOfAnAddress(
+  async getLatestBalanceSingle(
     params: GetLatestBalanceOfAnAddressInputParams,
   ): Promise<GetBalanceOfAnAddressesResponse> {
     // Mocked data
@@ -37,7 +37,7 @@ export class GivPowerBalanceAggregatorMock
     };
   }
 
-  async getBalancesUpdatedAfterASpecificDate(
+  async getBalancesUpdatedAfterDate(
     params: GetBalancesUpdatedAfterASpecificDateInputParams,
   ): Promise<GetBalancesUpdatedAfterASpecificDateResponse> {
     // Mocked data

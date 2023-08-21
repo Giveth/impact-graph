@@ -121,14 +121,14 @@ export function processFillPowerSnapshotJobs() {
       const items = job.data.data;
       const { timestamp, powerSnapshotId } = job.data;
       try {
-        const addresses = items.map(item => item.walletAddress).join(',');
+        const addresses = items.map(item => item.walletAddress);
         // logger.debug('processFillPowerSnapshotJobs() addresses ', {
         //   addresses,
         //   timestamp,
         //   powerSnapshotId,
         // });
         const balances =
-          await getPowerBalanceAggregatorAdapter().getBalanceOfAddresses({
+          await getPowerBalanceAggregatorAdapter().getAddressesBalance({
             timestamp,
             addresses,
           });
