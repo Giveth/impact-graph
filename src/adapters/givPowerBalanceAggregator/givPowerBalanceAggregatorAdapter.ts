@@ -12,6 +12,7 @@ import {
   GivPowerBalanceAggregatorInterface,
 } from './givPowerBalanceAggregatorInterface';
 import { logger } from '../../utils/logger';
+import { formatGivPowerBalance } from '../givpowerSubgraph/givPowerSubgraphAdapter';
 
 const formatResponse = (balance: {
   address: string;
@@ -21,8 +22,7 @@ const formatResponse = (balance: {
 }): GetBalanceOfAnAddressesResponse => {
   return {
     address: balance.address,
-    // TODO convert wei to eth
-    balance: Number(balance.balance),
+    balance: formatGivPowerBalance(balance.balance),
     updatedAt: new Date(balance.update_at),
     networks: balance.networks,
   };
