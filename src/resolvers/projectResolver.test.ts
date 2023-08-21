@@ -638,12 +638,12 @@ function allProjectsTestCases() {
       {
         userId: user1.id,
         balance: 10000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
       {
         userId: user2.id,
         balance: 1000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
     ]);
 
@@ -5781,12 +5781,12 @@ function projectBySlugTestCases() {
       {
         userId: user1.id,
         balance: 10000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
       {
         userId: user2.id,
         balance: 1000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
     ]);
 
