@@ -47,9 +47,15 @@ export class GivPowerBalanceAggregatorAdapter
     params: GetBalanceOfAddressesInputParams,
   ): Promise<GetBalanceOfAddressesResponse> {
     try {
+      const data = {
+        timestamp: params.timestamp,
+        network: params.network,
+        networks: params.networks,
+        addresses: params.addresses.join(','),
+      };
       const response = await axios.post(
         `${this.baseUrl}/givpower-balance-aggregator/power-balance/by-timestamp`,
-        params,
+        data,
       );
       return response.data.map(balance => formatResponse(balance));
     } catch (e) {
