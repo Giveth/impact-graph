@@ -26,6 +26,5 @@ export class InstantPowerBalance extends BaseEntity {
   // the timestamp (of chain block) the balance value is update at
   @Field({ nullable: true })
   @Column()
-  @Index()
   balanceAggregatorUpdatedAt: Date;
 }
