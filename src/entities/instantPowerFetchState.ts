@@ -10,10 +10,6 @@ export class InstantPowerFetchState extends BaseEntity {
   id: boolean;
 
   @Field()
-  @Column({ type: 'integer' })
-  latestBlockNumber: number;
-
-  @Field()
-  @Column({ type: 'integer' })
-  latestBlockTimestamp: number;
+  @Column()
+  maxFetchedUpdateAtTimestampMS: number;
 }
