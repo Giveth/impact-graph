@@ -1,5 +1,4 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
-import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
 
 export const updatePowerSnapShots = async (params: {
@@ -43,7 +42,6 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
     walletAddress: string;
   }[]
 > => {
-  logger.info('getPowerBoostingSnapshotWithoutBalance()', { limit, offset });
   return await AppDataSource.getDataSource().query(
     `
         select "userId", "powerSnapshotId", "walletAddress", "time"

@@ -6,6 +6,7 @@ import { schedule } from 'node-cron';
 import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory';
 import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
+import { convertTimeStampToSeconds } from '../../utils/utils';
 
 const fillSnapshotBalanceQueue = new Bull<FillSnapShotBalanceData>(
   'fill-snapshot-balance-aggregator',
@@ -54,13 +55,32 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
     }[];
   } = {};
 
+  const leastIndexedBlockTimestamp =
+    await getPowerBalanceAggregatorAdapter().getLeastIndexedBlockTimeStamp({});
+
+  const now = convertTimeStampToSeconds(new Date().getTime());
+  const balanceAggregatorLastUpdateThresholdInSeconds = Number(
+    process.env.BALANCE_AGGREGATOR_LAST_UPDATE_THRESHOLD_IN_SECONDS,
+  );
+  if (
+    now - leastIndexedBlockTimestamp >
+    balanceAggregatorLastUpdateThresholdInSeconds
+  ) {
+    logger.error('The balance aggregator is not synced ', {
+      now: new Date(),
+      balanceAggregatorLastUpdatedTime: new Date(
+        leastIndexedBlockTimestamp * 1000,
+      ),
+    });
+    return;
+  }
+
   while (!isFinished) {
     const powerBoostings = await getPowerBoostingSnapshotWithoutBalance(
       100,
       offset,
     );
     powerBoostings.forEach(pb => {
-      // const timestampInStr = String(Math.floor(pb.time.getTime() / 1000));
       const timestampInStr = String(pb.time.getTime());
       if (groupByTimestamp[timestampInStr]) {
         groupByTimestamp[timestampInStr].push(pb);
@@ -68,32 +88,17 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
         groupByTimestamp[timestampInStr] = [pb];
       }
     });
-    // logger.debug('Trying to fill incomplete powerBoostingSnapshots', {
-    //   offset,
-    //   powerBoostingsLength: powerBoostings?.length,
-    // });
     if (powerBoostings.length === 0) {
-      // logger.debug('isFinished true', {
-      //   offset,
-      // });
       isFinished = true;
       break;
     }
     offset += powerBoostings.length;
-
-    // logger.debug('**powerBoostings**', powerBoostings);
-    // logger.debug('groupByTimestamp', groupByTimestamp);
   }
 
   Object.keys(groupByTimestamp).forEach(key => {
     const powerSnapshotId = groupByTimestamp[key][0].powerSnapshotId;
-    // logger.debug('inside forEach', {
-    //   timestamp: Number(key),
-    //   powerSnapshotId,
-    // });
     const jobData = {
-      timestamp: Number(key),
-      // timestamp: Number(Math.floor(Number(key) / 1000)),
+      timestamp: convertTimeStampToSeconds(Number(key)),
       powerSnapshotId,
       data: groupByTimestamp[key].map(pb => {
         return {
@@ -102,7 +107,6 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
         };
       }),
     };
-    // logger.debug('job data', jobData);
     fillSnapshotBalanceQueue.add(jobData);
   });
   groupByTimestamp = {};
@@ -119,30 +123,17 @@ export function processFillPowerSnapshotJobs() {
         const balanceAggregatorBatchNumber = Number(
           process.env.NUMBER_OF_BALANCE_AGGREGATOR_BATCH,
         );
-        logger.debug('**addresses**', {
-          powerSnapshotId,
-          addresses,
-          batchIndex: addresses.length / balanceAggregatorBatchNumber,
-        });
 
+        // We want to split array to batches with size of balanceAggregatorBatchNumber
         for (
           let i = 0;
           i < addresses.length / balanceAggregatorBatchNumber;
           i++
         ) {
-          logger.debug('sentAddresses index', {
-            maxIndex: addresses.length / balanceAggregatorBatchNumber,
-            i,
-            'i * balanceAggregatorBatchNumber':
-              i * balanceAggregatorBatchNumber,
-          });
           const sentAddresses = addresses.slice(
             i * balanceAggregatorBatchNumber,
             (i + 1) * balanceAggregatorBatchNumber,
           );
-          logger.debug('sentAddresses ', {
-            sentAddresses,
-          });
           const balances =
             await getPowerBalanceAggregatorAdapter().getAddressesBalance({
               timestamp,

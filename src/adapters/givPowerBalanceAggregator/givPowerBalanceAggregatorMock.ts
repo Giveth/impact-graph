@@ -9,6 +9,7 @@ import {
   GivPowerBalanceAggregatorInterface,
 } from './givPowerBalanceAggregatorInterface';
 import { logger } from '../../utils/logger';
+import { convertTimeStampToSeconds } from '../../utils/utils';
 
 export class GivPowerBalanceAggregatorMock
   implements GivPowerBalanceAggregatorInterface
@@ -66,6 +67,6 @@ export class GivPowerBalanceAggregatorMock
     params: GetLeastIndexedBlockTimeStampInputParams,
   ): Promise<number> {
     // Mocked data
-    return 1691739112;
+    return convertTimeStampToSeconds(new Date().getTime());
   }
 }

@@ -8,7 +8,6 @@ type PowerBalanceSnapshotParams = Pick<
 export const addOrUpdatePowerSnapshotBalances = async (
   params: PowerBalanceSnapshotParams[] | PowerBalanceSnapshotParams,
 ): Promise<void> => {
-  logger.debug('addOrUpdatePowerSnapshotBalances params', params);
   await PowerBalanceSnapshot.createQueryBuilder<PowerBalanceSnapshot>()
     .insert()
     .into(PowerBalanceSnapshot)
