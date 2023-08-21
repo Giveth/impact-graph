@@ -104,8 +104,8 @@ export const getGitcoinAdapter = () => {
   }
 };
 
-const powerBalanceAggregator = new GivPowerBalanceAggregatorAdapter();
-const mockPowerBalanceAggregator = new GivPowerBalanceAggregatorMock();
+export const powerBalanceAggregator = new GivPowerBalanceAggregatorAdapter();
+export const mockPowerBalanceAggregator = new GivPowerBalanceAggregatorMock();
 
 export const getPowerBalanceAggregatorAdapter = () => {
   switch (process.env.POWER_BALANCE_AGGREGATOR_ADAPTER) {
