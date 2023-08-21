@@ -1798,7 +1798,7 @@ export class ProjectResolver {
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdatesResponse> {
     const latestProjectUpdates = await ProjectUpdate.query(`
-      SELECT pu.id, pu."projectId", MAX(pu."createdAt") AS max_createdAt
+      SELECT pu.id, pu."projectId"
       FROM public.project_update AS pu
       WHERE pu."isMain" = false
       GROUP BY pu.id, pu."projectId"
