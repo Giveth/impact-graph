@@ -4,9 +4,9 @@ import { updateInstantPowerBalances } from './instantBoostingServices';
 import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
 import { expect } from 'chai';
 import {
-  getLatestSyncedBlock,
+  getMaxFetchedUpdatedAtTimestamp,
   saveOrUpdateInstantPowerBalances,
-  setLatestSyncedBlock,
+  setMaxFetchedUpdatedAtTimestamp,
 } from '../repositories/instantBoostingRepository';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import {
@@ -67,7 +67,7 @@ function updateInstancePowerBalancesTestCase() {
 
   it('should update latest synced block', async () => {
     await updateInstantPowerBalances();
-    const latestSyncedBlock = await getLatestSyncedBlock();
+    const latestSyncedBlock = await getMaxFetchedUpdatedAtTimestamp();
     expect(latestSyncedBlock.number).to.be.greaterThan(0);
     expect(latestSyncedBlock.timestamp).to.be.greaterThan(0);
   });
@@ -109,7 +109,7 @@ function updateInstancePowerBalancesTestCase() {
 
     const beforeUpdateTimestamp = Number(lastUpdatedUsers[0].updatedAt) - 1;
     // Let's save last sync state some time behind user's last update time
-    await setLatestSyncedBlock({
+    await setMaxFetchedUpdatedAtTimestamp({
       number: 1,
       timestamp: beforeUpdateTimestamp,
     });
@@ -165,7 +165,7 @@ function updateInstancePowerBalancesTestCase() {
       }),
 
       // Let's save last sync state some time behind user's last update time
-      setLatestSyncedBlock({
+      setMaxFetchedUpdatedAtTimestamp({
         number: 1,
         timestamp: beforeUpdateTimestamp,
       }),

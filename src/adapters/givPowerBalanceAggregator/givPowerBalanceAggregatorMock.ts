@@ -1,10 +1,10 @@
 import {
-  GetBalanceOfAddressesInputParams,
+  GetBalancesAtTimestampInputParams,
   GetBalanceOfAddressesResponse,
   GetBalanceOfAnAddressesResponse,
   GetBalancesUpdatedAfterASpecificDateInputParams,
   GetBalancesUpdatedAfterASpecificDateResponse,
-  GetLatestBalanceOfAnAddressInputParams,
+  GetLatestBalanceInputParams,
   GetLeastIndexedBlockTimeStampInputParams,
   GivPowerBalanceAggregatorInterface,
 } from './givPowerBalanceAggregatorInterface';
@@ -14,7 +14,7 @@ export class GivPowerBalanceAggregatorMock
   implements GivPowerBalanceAggregatorInterface
 {
   async getAddressesBalance(
-    params: GetBalanceOfAddressesInputParams,
+    params: GetBalancesAtTimestampInputParams,
   ): Promise<GetBalanceOfAddressesResponse> {
     if (
       params.addresses.length >
@@ -34,16 +34,18 @@ export class GivPowerBalanceAggregatorMock
     });
   }
 
-  async getLatestBalanceSingle(
-    params: GetLatestBalanceOfAnAddressInputParams,
-  ): Promise<GetBalanceOfAnAddressesResponse> {
+  async getLatestBalances(
+    params: GetLatestBalanceInputParams,
+  ): Promise<GetBalanceOfAnAddressesResponse[]> {
     // Mocked data
-    return {
-      address: params.address,
-      balance: 200, // Just another example balance
-      updatedAt: new Date('2023-08-10T16:18:02.655Z'),
-      networks: params.network ? [Number(params.network)] : [100],
-    };
+    return params.addresses.map(address => {
+      return {
+        address,
+        balance: 200, // Just another example balance
+        updatedAt: new Date('2023-08-10T16:18:02.655Z'),
+        networks: params.network ? [Number(params.network)] : [100],
+      };
+    });
   }
 
   async getBalancesUpdatedAfterDate(

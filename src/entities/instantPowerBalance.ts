@@ -27,5 +27,5 @@ export class InstantPowerBalance extends BaseEntity {
   @Field(type => Int, { defaultValue: 0 })
   @Column('integer')
   @Index()
-  chainUpdatedAt;
+  balanceAggregatorUpdatedAt: number;
 }
