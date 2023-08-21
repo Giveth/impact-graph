@@ -3,10 +3,7 @@ import { redisConfig } from '../../redis';
 import { logger } from '../../utils/logger';
 import config from '../../config';
 import { schedule } from 'node-cron';
-import {
-  getGivPowerSubgraphAdapter,
-  getPowerBalanceAggregatorAdapter,
-} from '../../adapters/adaptersFactory';
+import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory';
 import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
 
@@ -49,7 +46,7 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
   let offset = 0;
   let isFinished = false;
 
-  const groupByTimestamp: {
+  let groupByTimestamp: {
     [timestamp: number]: {
       userId: number;
       powerSnapshotId: number;
@@ -59,7 +56,7 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
 
   while (!isFinished) {
     const powerBoostings = await getPowerBoostingSnapshotWithoutBalance(
-      20,
+      100,
       offset,
     );
     powerBoostings.forEach(pb => {
@@ -76,85 +73,99 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
     //   powerBoostingsLength: powerBoostings?.length,
     // });
     if (powerBoostings.length === 0) {
-      logger.debug('isFinished true', {
-        offset,
-      });
+      // logger.debug('isFinished true', {
+      //   offset,
+      // });
       isFinished = true;
       break;
     }
     offset += powerBoostings.length;
 
     // logger.debug('**powerBoostings**', powerBoostings);
-    logger.debug('groupByTimestamp', groupByTimestamp);
-    Object.keys(groupByTimestamp).forEach(key => {
-      const powerSnapshotId = groupByTimestamp[key][0].powerSnapshotId;
-      logger.debug('inside forEach', {
-        timestamp: Number(key),
-        powerSnapshotId,
-      });
-      const jobData = {
-        timestamp: Number(key),
-        // timestamp: Number(Math.floor(Number(key) / 1000)),
-        powerSnapshotId,
-        data: groupByTimestamp[key].map(pb => {
-          return {
-            userId: pb.userId,
-            walletAddress: pb.walletAddress.toLowerCase(),
-          };
-        }),
-      };
-      logger.debug('job data', jobData);
-      fillSnapshotBalanceQueue.add(jobData);
-    });
+    // logger.debug('groupByTimestamp', groupByTimestamp);
   }
+
+  Object.keys(groupByTimestamp).forEach(key => {
+    const powerSnapshotId = groupByTimestamp[key][0].powerSnapshotId;
+    // logger.debug('inside forEach', {
+    //   timestamp: Number(key),
+    //   powerSnapshotId,
+    // });
+    const jobData = {
+      timestamp: Number(key),
+      // timestamp: Number(Math.floor(Number(key) / 1000)),
+      powerSnapshotId,
+      data: groupByTimestamp[key].map(pb => {
+        return {
+          userId: pb.userId,
+          walletAddress: pb.walletAddress.toLowerCase(),
+        };
+      }),
+    };
+    // logger.debug('job data', jobData);
+    fillSnapshotBalanceQueue.add(jobData);
+  });
+  groupByTimestamp = {};
 }
 
 export function processFillPowerSnapshotJobs() {
-  logger.debug('processFillPowerSnapshotJobs() has been called ', {
-    numberOfFillPowerSnapshotBAlancesConcurrentJob:
-      numberOfFillPowerSnapshotBalancesConcurrentJob,
-  });
   fillSnapshotBalanceQueue.process(
     numberOfFillPowerSnapshotBalancesConcurrentJob,
     async (job, done) => {
-      logger.debug('*************hi***');
       const items = job.data.data;
       const { timestamp, powerSnapshotId } = job.data;
       try {
         const addresses = items.map(item => item.walletAddress);
-        // logger.debug('processFillPowerSnapshotJobs() addresses ', {
-        //   addresses,
-        //   timestamp,
-        //   powerSnapshotId,
-        // });
-        const balances =
-          await getPowerBalanceAggregatorAdapter().getAddressesBalance({
-            timestamp,
-            addresses,
-          });
-
-        // logger.debug('addresses and balances', {
-        //   addresses,
-        //   balances,
-        // });
-
-        await addOrUpdatePowerSnapshotBalances(
-          balances.map(balance => {
-            return {
-              balance: balance.balance,
-              powerSnapshotId,
-              userId: items.find(
-                item =>
-                  item.walletAddress.toLowerCase() ===
-                  balance.address.toLowerCase(),
-              )!.userId,
-            };
-          }),
+        const balanceAggregatorBatchNumber = Number(
+          process.env.NUMBER_OF_BALANCE_AGGREGATOR_BATCH,
         );
+        logger.debug('**addresses**', {
+          powerSnapshotId,
+          addresses,
+          batchIndex: addresses.length / balanceAggregatorBatchNumber,
+        });
+
+        for (
+          let i = 0;
+          i < addresses.length / balanceAggregatorBatchNumber;
+          i++
+        ) {
+          logger.debug('sentAddresses index', {
+            maxIndex: addresses.length / balanceAggregatorBatchNumber,
+            i,
+            'i * balanceAggregatorBatchNumber':
+              i * balanceAggregatorBatchNumber,
+          });
+          const sentAddresses = addresses.slice(
+            i * balanceAggregatorBatchNumber,
+            (i + 1) * balanceAggregatorBatchNumber,
+          );
+          logger.debug('sentAddresses ', {
+            sentAddresses,
+          });
+          const balances =
+            await getPowerBalanceAggregatorAdapter().getAddressesBalance({
+              timestamp,
+              addresses: sentAddresses,
+            });
+
+          await addOrUpdatePowerSnapshotBalances(
+            balances.map(balance => {
+              return {
+                balance: balance.balance,
+                powerSnapshotId,
+                userId: items.find(
+                  item =>
+                    item.walletAddress.toLowerCase() ===
+                    balance.address.toLowerCase(),
+                )!.userId,
+              };
+            }),
+          );
+        }
       } catch (e) {
         logger.error('processFillPowerSnapshotJobs >> error', e);
       } finally {
-        logger.debug('calling done');
         done();
       }
     },
