@@ -2,12 +2,12 @@
 
 import axios from 'axios';
 import {
-  GetBalanceOfAddressesInputParams,
+  GetBalancesAtTimestampInputParams,
   GetBalanceOfAddressesResponse,
   GetBalanceOfAnAddressesResponse,
   GetBalancesUpdatedAfterASpecificDateInputParams,
   GetBalancesUpdatedAfterASpecificDateResponse,
-  GetLatestBalanceOfAnAddressInputParams,
+  GetLatestBalanceInputParams,
   GetLeastIndexedBlockTimeStampInputParams,
   GivPowerBalanceAggregatorInterface,
 } from './givPowerBalanceAggregatorInterface';
@@ -21,7 +21,6 @@ const formatResponse = (balance: {
 }): GetBalanceOfAnAddressesResponse => {
   return {
     address: balance.address,
-
     // TODO convert wei to eth
     balance: Number(balance.balance),
     updatedAt: new Date(balance.update_at),
@@ -44,7 +43,7 @@ export class GivPowerBalanceAggregatorAdapter
   }
 
   async getAddressesBalance(
-    params: GetBalanceOfAddressesInputParams,
+    params: GetBalancesAtTimestampInputParams,
   ): Promise<GetBalanceOfAddressesResponse> {
     try {
       const data = {
@@ -64,15 +63,15 @@ export class GivPowerBalanceAggregatorAdapter
     }
   }
 
-  async getLatestBalanceSingle(
-    params: GetLatestBalanceOfAnAddressInputParams,
-  ): Promise<GetBalanceOfAnAddressesResponse> {
+  async getLatestBalances(
+    params: GetLatestBalanceInputParams,
+  ): Promise<GetBalanceOfAddressesResponse> {
     try {
       const response = await axios.post(
         `${this.baseUrl}/givpower-balance-aggregator/power-balance`,
         params,
       );
-      return formatResponse(response.data);
+      return response.data.map(balance => formatResponse(balance));
     } catch (e) {
       logger.error('getLatestBalanceOfAnAddress >> error', e);
       throw e;

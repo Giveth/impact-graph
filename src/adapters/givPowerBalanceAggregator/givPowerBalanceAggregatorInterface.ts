@@ -3,15 +3,14 @@ export interface GetLeastIndexedBlockTimeStampInputParams {
   network?: string | number; // comma separated sample: 100
 }
 
-export interface GetLatestBalanceOfAnAddressInputParams
+export interface GetLatestBalanceInputParams
   extends GetLeastIndexedBlockTimeStampInputParams {
-  address: string; // Ethereum wallet address
+  addresses: string[]; // sample: [walletAddress1,walletAddress2,..]}
 }
 
-export interface GetBalanceOfAddressesInputParams
-  extends GetLeastIndexedBlockTimeStampInputParams {
+export interface GetBalancesAtTimestampInputParams
+  extends GetLatestBalanceInputParams {
   timestamp: number; // sample: 1691739112
-  addresses: string[]; // sample: [walletAddress1,walletAddress2,..]
 }
 
 export interface GetBalanceOfAnAddressesResponse {
@@ -26,17 +25,19 @@ export type GetBalancesUpdatedAfterASpecificDateResponse =
 
 export interface GetBalancesUpdatedAfterASpecificDateInputParams
   extends GetLeastIndexedBlockTimeStampInputParams {
-  date: Date; // sample: "2023-08-10T16:18:02.655Z"
+  date: Date | string | number; // sample: "2023-08-10T16:18:02.655Z"
+  take?: number;
+  skip?: number;
 }
 
 export interface GivPowerBalanceAggregatorInterface {
   getAddressesBalance(
-    params: GetBalanceOfAddressesInputParams,
+    params: GetBalancesAtTimestampInputParams,
   ): Promise<GetBalanceOfAddressesResponse>;
 
-  getLatestBalanceSingle(
-    params: GetLatestBalanceOfAnAddressInputParams,
-  ): Promise<GetBalanceOfAnAddressesResponse>;
+  getLatestBalances(
+    params: GetLatestBalanceInputParams,
+  ): Promise<GetBalanceOfAddressesResponse>;
 
   getBalancesUpdatedAfterDate(
     params: GetBalancesUpdatedAfterASpecificDateInputParams,

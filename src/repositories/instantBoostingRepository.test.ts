@@ -1,11 +1,11 @@
 import { assert } from 'chai';
 import {
-  getLatestSyncedBlock,
+  getMaxFetchedUpdatedAtTimestamp,
   // getLastInstantPowerUpdatedAt,
   getUsersBoostedWithoutInstanceBalance,
   refreshProjectInstantPowerView,
   saveOrUpdateInstantPowerBalances,
-  setLatestSyncedBlock,
+  setMaxFetchedUpdatedAtTimestamp,
 } from './instantBoostingRepository';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import {
@@ -53,15 +53,15 @@ describe(
 //   const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 //
 //   await saveOrUpdateInstantPowerBalances([
-//     { userId: user1.id, chainUpdatedAt: 100, balance: 1000 },
-//     { userId: user2.id, chainUpdatedAt: 300, balance: 3000 },
+//     { userId: user1.id, balanceAggregatorUpdatedAt: 100, balance: 1000 },
+//     { userId: user2.id, balanceAggregatorUpdatedAt: 300, balance: 3000 },
 //   ]);
 //
 //   let maxUpdateAt = await getLastInstantPowerUpdatedAt();
 //   assert.equal(maxUpdateAt, 300);
 //
 //   await saveOrUpdateInstantPowerBalances([
-//     { userId: user1.id, chainUpdatedAt: 400, balance: 900 },
+//     { userId: user1.id, balanceAggregatorUpdatedAt: 400, balance: 900 },
 //   ]);
 //
 //   maxUpdateAt = await getLastInstantPowerUpdatedAt();
@@ -78,8 +78,8 @@ function saveOrUpdateInstantPowerBalancesTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const entities: Partial<InstantPowerBalance>[] = [
-      { userId: user1.id, chainUpdatedAt: 100, balance: 1000 },
-      { userId: user2.id, chainUpdatedAt: 300, balance: 3000 },
+      { userId: user1.id, balanceAggregatorUpdatedAt: 100, balance: 1000 },
+      { userId: user2.id, balanceAggregatorUpdatedAt: 300, balance: 3000 },
     ];
 
     await saveOrUpdateInstantPowerBalances(entities);
@@ -95,15 +95,15 @@ function saveOrUpdateInstantPowerBalancesTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const entities: Partial<InstantPowerBalance>[] = [
-      { userId: user1.id, chainUpdatedAt: 100, balance: 1000 },
-      { userId: user2.id, chainUpdatedAt: 300, balance: 3000 },
+      { userId: user1.id, balanceAggregatorUpdatedAt: 100, balance: 1000 },
+      { userId: user2.id, balanceAggregatorUpdatedAt: 300, balance: 3000 },
     ];
 
     await saveOrUpdateInstantPowerBalances(entities);
-    entities[0].chainUpdatedAt = 200;
+    entities[0].balanceAggregatorUpdatedAt = 200;
     entities[0].balance = 2000;
 
-    entities[1].chainUpdatedAt = 400;
+    entities[1].balanceAggregatorUpdatedAt = 400;
     entities[1].balance = 4000;
 
     await saveOrUpdateInstantPowerBalances(entities);
@@ -119,16 +119,20 @@ function saveOrUpdateInstantPowerBalancesTestCases() {
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const entities: Partial<InstantPowerBalance>[] = [
-      { userId: user1.id, chainUpdatedAt: 100, balance: 1000 },
-      { userId: user2.id, chainUpdatedAt: 300, balance: 3000 },
+      { userId: user1.id, balanceAggregatorUpdatedAt: 100, balance: 1000 },
+      { userId: user2.id, balanceAggregatorUpdatedAt: 300, balance: 3000 },
     ];
 
     await saveOrUpdateInstantPowerBalances(entities);
 
-    entities[1].chainUpdatedAt = 400;
+    entities[1].balanceAggregatorUpdatedAt = 400;
     entities[1].balance = 4000;
 
-    entities.push({ userId: user3.id, chainUpdatedAt: 500, balance: 5000 });
+    entities.push({
+      userId: user3.id,
+      balanceAggregatorUpdatedAt: 500,
+      balance: 5000,
+    });
 
     await saveOrUpdateInstantPowerBalances(entities);
     const instances = await InstantPowerBalance.find({
@@ -168,7 +172,7 @@ function getUsersBoostedWithoutInstanceBalanceTestCases() {
     await saveOrUpdateInstantPowerBalances([
       {
         userId: user1.id,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: 1000,
         balance: 1000,
       },
     ]);
@@ -186,27 +190,18 @@ function latestSyncedBlockTestCases() {
     await InstantPowerFetchState.clear();
   });
   it('should return 0 for empty table', async () => {
-    const result = await getLatestSyncedBlock();
-    assert.equal(result.number, 0);
-    assert.equal(result.timestamp, 0);
+    const result = await getMaxFetchedUpdatedAtTimestamp();
+    assert.equal(result, 0);
   });
 
   it('should return correct latest synced block', async () => {
-    await setLatestSyncedBlock({
-      number: 100,
-      timestamp: 1000,
-    });
-    const result = await getLatestSyncedBlock();
-    assert.equal(result.number, 100);
-    assert.equal(result.timestamp, 1000);
+    await setMaxFetchedUpdatedAtTimestamp(1000);
+    const result = await getMaxFetchedUpdatedAtTimestamp();
+    assert.equal(result, 1000);
 
-    await setLatestSyncedBlock({
-      number: 200,
-      timestamp: 2000,
-    });
-    const result2 = await getLatestSyncedBlock();
-    assert.equal(result2.number, 200);
-    assert.equal(result2.timestamp, 2000);
+    await setMaxFetchedUpdatedAtTimestamp(2000);
+    const result2 = await getMaxFetchedUpdatedAtTimestamp();
+    assert.equal(result2, 2000);
   });
 }
 
@@ -238,12 +233,12 @@ function projectInstantPowerViewTestCases() {
     await saveOrUpdateInstantPowerBalances([
       {
         userId: user1.id,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: 1000,
         balance: 1000,
       },
       {
         userId: user2.id,
-        chainUpdatedAt: 2000,
+        balanceAggregatorUpdatedAt: 2000,
         balance: 2000,
       },
     ]);
