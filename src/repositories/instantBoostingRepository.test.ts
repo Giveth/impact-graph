@@ -78,8 +78,16 @@ function saveOrUpdateInstantPowerBalancesTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const entities: Partial<InstantPowerBalance>[] = [
-      { userId: user1.id, balanceAggregatorUpdatedAt: 100, balance: 1000 },
-      { userId: user2.id, balanceAggregatorUpdatedAt: 300, balance: 3000 },
+      {
+        userId: user1.id,
+        balanceAggregatorUpdatedAt: new Date(100_000),
+        balance: 1000,
+      },
+      {
+        userId: user2.id,
+        balanceAggregatorUpdatedAt: new Date(300_000),
+        balance: 3000,
+      },
     ];
 
     await saveOrUpdateInstantPowerBalances(entities);
@@ -95,15 +103,23 @@ function saveOrUpdateInstantPowerBalancesTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const entities: Partial<InstantPowerBalance>[] = [
-      { userId: user1.id, balanceAggregatorUpdatedAt: 100, balance: 1000 },
-      { userId: user2.id, balanceAggregatorUpdatedAt: 300, balance: 3000 },
+      {
+        userId: user1.id,
+        balanceAggregatorUpdatedAt: new Date(100_000),
+        balance: 1000,
+      },
+      {
+        userId: user2.id,
+        balanceAggregatorUpdatedAt: new Date(300_000),
+        balance: 3000,
+      },
     ];
 
     await saveOrUpdateInstantPowerBalances(entities);
-    entities[0].balanceAggregatorUpdatedAt = 200;
+    entities[0].balanceAggregatorUpdatedAt = new Date(200_000);
     entities[0].balance = 2000;
 
-    entities[1].balanceAggregatorUpdatedAt = 400;
+    entities[1].balanceAggregatorUpdatedAt = new Date(400_000);
     entities[1].balance = 4000;
 
     await saveOrUpdateInstantPowerBalances(entities);
@@ -119,18 +135,26 @@ function saveOrUpdateInstantPowerBalancesTestCases() {
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user3 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const entities: Partial<InstantPowerBalance>[] = [
-      { userId: user1.id, balanceAggregatorUpdatedAt: 100, balance: 1000 },
-      { userId: user2.id, balanceAggregatorUpdatedAt: 300, balance: 3000 },
+      {
+        userId: user1.id,
+        balanceAggregatorUpdatedAt: new Date(100_000),
+        balance: 1000,
+      },
+      {
+        userId: user2.id,
+        balanceAggregatorUpdatedAt: new Date(300_000),
+        balance: 3000,
+      },
     ];
 
     await saveOrUpdateInstantPowerBalances(entities);
 
-    entities[1].balanceAggregatorUpdatedAt = 400;
+    entities[1].balanceAggregatorUpdatedAt = new Date(400_000);
     entities[1].balance = 4000;
 
     entities.push({
       userId: user3.id,
-      balanceAggregatorUpdatedAt: 500,
+      balanceAggregatorUpdatedAt: new Date(500_000),
       balance: 5000,
     });
 
@@ -172,7 +196,7 @@ function getUsersBoostedWithoutInstanceBalanceTestCases() {
     await saveOrUpdateInstantPowerBalances([
       {
         userId: user1.id,
-        balanceAggregatorUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
         balance: 1000,
       },
     ]);
@@ -233,12 +257,12 @@ function projectInstantPowerViewTestCases() {
     await saveOrUpdateInstantPowerBalances([
       {
         userId: user1.id,
-        balanceAggregatorUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
         balance: 1000,
       },
       {
         userId: user2.id,
-        balanceAggregatorUpdatedAt: 2000,
+        balanceAggregatorUpdatedAt: new Date(2_000_000),
         balance: 2000,
       },
     ]);

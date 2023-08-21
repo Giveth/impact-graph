@@ -6,3 +6,12 @@ export class ColumnNumericTransformer {
     return parseFloat(data);
   }
 }
+
+export class ColumnBigIntTransformer {
+  to(data: number): number {
+    return data;
+  }
+  from(data: string): number {
+    return parseInt(data, 10);
+  }
+}
