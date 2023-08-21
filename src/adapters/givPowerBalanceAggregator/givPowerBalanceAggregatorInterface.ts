@@ -11,7 +11,7 @@ export interface GetLatestBalanceOfAnAddressInputParams
 export interface GetBalanceOfAddressesInputParams
   extends GetLeastIndexedBlockTimeStampInputParams {
   timestamp: number; // sample: 1691739112
-  addresses: string; // comma separated sample: walletAddress1,walletAddress2,..
+  addresses: string[]; // sample: [walletAddress1,walletAddress2,..]
 }
 
 export interface GetBalanceOfAnAddressesResponse {
@@ -30,15 +30,15 @@ export interface GetBalancesUpdatedAfterASpecificDateInputParams
 }
 
 export interface GivPowerBalanceAggregatorInterface {
-  getBalanceOfAddresses(
+  getAddressesBalance(
     params: GetBalanceOfAddressesInputParams,
   ): Promise<GetBalanceOfAddressesResponse>;
 
-  getLatestBalanceOfAnAddress(
+  getLatestBalanceSingle(
     params: GetLatestBalanceOfAnAddressInputParams,
   ): Promise<GetBalanceOfAnAddressesResponse>;
 
-  getBalancesUpdatedAfterASpecificDate(
+  getBalancesUpdatedAfterDate(
     params: GetBalancesUpdatedAfterASpecificDateInputParams,
   ): Promise<GetBalancesUpdatedAfterASpecificDateResponse>;
 

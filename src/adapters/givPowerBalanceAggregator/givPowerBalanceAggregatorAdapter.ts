@@ -43,7 +43,7 @@ export class GivPowerBalanceAggregatorAdapter
     }
   }
 
-  async getBalanceOfAddresses(
+  async getAddressesBalance(
     params: GetBalanceOfAddressesInputParams,
   ): Promise<GetBalanceOfAddressesResponse> {
     try {
@@ -58,7 +58,7 @@ export class GivPowerBalanceAggregatorAdapter
     }
   }
 
-  async getLatestBalanceOfAnAddress(
+  async getLatestBalanceSingle(
     params: GetLatestBalanceOfAnAddressInputParams,
   ): Promise<GetBalanceOfAnAddressesResponse> {
     try {
@@ -73,7 +73,7 @@ export class GivPowerBalanceAggregatorAdapter
     }
   }
 
-  async getBalancesUpdatedAfterASpecificDate(
+  async getBalancesUpdatedAfterDate(
     params: GetBalancesUpdatedAfterASpecificDateInputParams,
   ): Promise<GetBalancesUpdatedAfterASpecificDateResponse> {
     try {
