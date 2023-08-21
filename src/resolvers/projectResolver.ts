@@ -1798,18 +1798,13 @@ export class ProjectResolver {
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdatesResponse> {
     const latestProjectUpdates = await ProjectUpdate.query(`
-      SELECT pu.id, pu."projectId"
+      SELECT pu.id, pu."projectId", MAX(pu."createdAt") AS max_createdAt
       FROM public.project_update AS pu
-      JOIN (
-          SELECT "projectId", MAX("createdAt") AS max_createdAt
-          FROM public.project_update
-          WHERE "isMain" = false
-          GROUP BY "projectId"
-      ) AS puu_max
-      ON pu."projectId" = puu_max."projectId" AND pu."createdAt" = puu_max.max_createdAt
-      ORDER BY pu."createdAt" DESC
+      WHERE pu."isMain" = false
+      GROUP BY pu.id, pu."projectId"
+      ORDER BY MAX(pu."createdAt") DESC
       LIMIT ${take}
-      OFFSET ${skip}
+      OFFSET ${skip};
     `);
 
     // When using distinctOn with joins and orderBy, typeorm threw errors
