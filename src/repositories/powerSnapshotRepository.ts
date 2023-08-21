@@ -31,17 +31,16 @@ export const findPowerSnapshots = async (
   return query.take(take).skip(skip).getManyAndCount();
 };
 
+export interface GetPowerBoostingSnapshotWithoutBalanceOutput {
+  userId: number;
+  time: Date;
+  powerSnapshotId: number;
+  walletAddress: string;
+}
 export const getPowerBoostingSnapshotWithoutBalance = async (
   limit = 50,
   offset = 0,
-): Promise<
-  {
-    userId: number;
-    time: Date;
-    powerSnapshotId: number;
-    walletAddress: string;
-  }[]
-> => {
+): Promise<GetPowerBoostingSnapshotWithoutBalanceOutput[]> => {
   return await AppDataSource.getDataSource().query(
     `
         select "userId", "powerSnapshotId", "walletAddress", "time"
