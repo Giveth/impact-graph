@@ -60,6 +60,12 @@ export class GivPowerBalanceAggregatorMock
         updatedAt: new Date('2023-08-10T16:18:02.655Z'),
         networks: [100],
       },
+      {
+        address: '0x1234567890123456789012345678901234567891',
+        balance: 400,
+        updatedAt: new Date('2023-09-10T16:18:02.655Z'),
+        networks: [100],
+      },
     ];
   }
 

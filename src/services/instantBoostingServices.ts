@@ -1,7 +1,4 @@
-import {
-  getGivPowerSubgraphAdapter,
-  getPowerBalanceAggregatorAdapter,
-} from '../adapters/adaptersFactory';
+import { getPowerBalanceAggregatorAdapter } from '../adapters/adaptersFactory';
 import {
   getMaxFetchedUpdatedAtTimestamp,
   getUsersBoostedWithoutInstanceBalance,
@@ -83,7 +80,7 @@ const fetchUpdatedInstantPowerBalances = async (
       );
       return {
         balance,
-        balanceAggregatorUpdatedAt: dateToTimestampMs(update_at),
+        balanceAggregatorUpdatedAt: update_at,
         userId: user.id,
       };
     });
@@ -166,7 +163,7 @@ const fillMissingInstantPowerBalances = async (
       );
       return {
         balance,
-        balanceAggregatorUpdatedAt: dateToTimestampMs(updatedAt),
+        balanceAggregatorUpdatedAt: updatedAt,
         userId: item.id,
       };
     });

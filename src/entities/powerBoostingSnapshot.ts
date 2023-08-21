@@ -7,12 +7,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   RelationId,
-  UpdateDateColumn,
 } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
-import { Project } from './project';
 import { User } from './user';
-import { Max, Min, IsNumber } from 'class-validator';
 import { ColumnNumericTransformer } from '../utils/entities';
 import { PowerSnapshot } from './powerSnapshot';
 
