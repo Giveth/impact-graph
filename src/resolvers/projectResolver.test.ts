@@ -5127,7 +5127,7 @@ function projectUpdatesTestCases() {
       projectId: project.id,
       content: 'TestProjectUpdate1',
       title: 'testEditProjectUpdate1',
-      createdAt: new Date(),
+      createdAt: moment().add(10, 'days').toDate(),
       isMain: false,
     }).save();
     const projectUpdate2 = await ProjectUpdate.create({
@@ -5135,7 +5135,7 @@ function projectUpdatesTestCases() {
       projectId: project2.id,
       content: 'TestProjectUpdate2',
       title: 'testEditProjectUpdate2',
-      createdAt: new Date(),
+      createdAt: moment().add(11, 'days').toDate(),
       isMain: false,
     }).save();
     const projectUpdate3 = await ProjectUpdate.create({
