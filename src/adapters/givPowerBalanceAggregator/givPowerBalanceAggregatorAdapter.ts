@@ -2,15 +2,13 @@
 
 import axios from 'axios';
 import {
-  GetBalancesAtTimestampInputParams,
-  GetBalanceOfAddressesResponse,
-  GetBalanceOfAnAddressesResponse,
-  GetBalancesUpdatedAfterASpecificDateInputParams,
-  GetBalancesUpdatedAfterASpecificDateResponse,
-  GetLatestBalanceInputParams,
-  GetLeastIndexedBlockTimeStampInputParams,
-  GivPowerBalanceAggregatorInterface,
-} from './givPowerBalanceAggregatorInterface';
+  BalancesAtTimestampInputParams,
+  BalanceResponse,
+  BalanceUpdatedAfterDateInputParams,
+  LatestBalanceInputParams,
+  NetworksInputParams,
+  IGivPowerBalanceAggregator,
+} from '../../types/GivPowerBalanceAggregator';
 import { logger } from '../../utils/logger';
 import { formatGivPowerBalance } from '../givpowerSubgraph/givPowerSubgraphAdapter';
 
@@ -19,7 +17,7 @@ const formatResponse = (balance: {
   balance: string;
   update_at: Date;
   networks: number[];
-}): GetBalanceOfAnAddressesResponse => {
+}): BalanceResponse => {
   return {
     address: balance.address,
     balance: formatGivPowerBalance(balance.balance),
@@ -29,7 +27,7 @@ const formatResponse = (balance: {
 };
 
 export class GivPowerBalanceAggregatorAdapter
-  implements GivPowerBalanceAggregatorInterface
+  implements IGivPowerBalanceAggregator
 {
   private baseUrl: string;
 
@@ -43,8 +41,8 @@ export class GivPowerBalanceAggregatorAdapter
   }
 
   async getAddressesBalance(
-    params: GetBalancesAtTimestampInputParams,
-  ): Promise<GetBalanceOfAddressesResponse> {
+    params: BalancesAtTimestampInputParams,
+  ): Promise<BalanceResponse[]> {
     try {
       const data = {
         timestamp: params.timestamp,
@@ -64,8 +62,8 @@ export class GivPowerBalanceAggregatorAdapter
   }
 
   async getLatestBalances(
-    params: GetLatestBalanceInputParams,
-  ): Promise<GetBalanceOfAddressesResponse> {
+    params: LatestBalanceInputParams,
+  ): Promise<BalanceResponse[]> {
     try {
       const response = await axios.post(
         `${this.baseUrl}/power-balance`,
@@ -79,16 +77,17 @@ export class GivPowerBalanceAggregatorAdapter
   }
 
   async getBalancesUpdatedAfterDate(
-    params: GetBalancesUpdatedAfterASpecificDateInputParams,
-  ): Promise<GetBalancesUpdatedAfterASpecificDateResponse> {
+    params: BalanceUpdatedAfterDateInputParams,
+  ): Promise<BalanceResponse[]> {
     try {
       const response = await axios.post(
         `${this.baseUrl}/power-balance/updated-after-date`,
         params,
       );
       const responseData = response.data;
-      const result: GetBalancesUpdatedAfterASpecificDateResponse =
-        responseData.balances.map((balance: any) => formatResponse(balance));
+      const result: BalanceResponse[] = responseData.balances.map(
+        (balance: any) => formatResponse(balance),
+      );
       return result;
     } catch (e) {
       logger.error('getBalancesUpdatedAfterASpecificDate >> error', e);
@@ -97,7 +96,7 @@ export class GivPowerBalanceAggregatorAdapter
   }
 
   async getLeastIndexedBlockTimeStamp(
-    params: GetLeastIndexedBlockTimeStampInputParams,
+    params: NetworksInputParams,
   ): Promise<number> {
     try {
       const response = await axios.post(

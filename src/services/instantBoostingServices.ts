@@ -3,20 +3,17 @@ import {
   getMaxFetchedUpdatedAtTimestamp,
   getUsersBoostedWithoutInstanceBalance,
   refreshProjectInstantPowerView,
-  refreshProjectUserInstantPowerView,
   saveOrUpdateInstantPowerBalances,
   setMaxFetchedUpdatedAtTimestamp,
 } from '../repositories/instantBoostingRepository';
 import { logger } from '../utils/logger';
 import { getBoosterUsersByWalletAddresses } from '../repositories/powerBoostingRepository';
-import { IGivPowerSubgraphAdapter } from '../adapters/givpowerSubgraph/IGivPowerSubgraphAdapter';
-import {
-  GetBalanceOfAddressesResponse,
-  GetBalanceOfAnAddressesResponse,
-  GivPowerBalanceAggregatorInterface,
-} from '../adapters/givPowerBalanceAggregator/givPowerBalanceAggregatorInterface';
 import { dateToTimestampMs } from '../utils/utils';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
+import {
+  BalanceResponse,
+  IGivPowerBalanceAggregator,
+} from '../types/GivPowerBalanceAggregator';
 
 export const updateInstantBoosting = async (): Promise<void> => {
   logger.debug('updateInstantBoosting() has been called');
@@ -27,7 +24,7 @@ export const updateInstantBoosting = async (): Promise<void> => {
 
 // Allow passing a custom subgraph adapter for testing purposes
 export const updateInstantPowerBalances = async (
-  customGivPowerBalanceAggregator?: GivPowerBalanceAggregatorInterface,
+  customGivPowerBalanceAggregator?: IGivPowerBalanceAggregator,
 ): Promise<void> => {
   logger.info('Update instant power balances...');
   const givPowerSubgraphAdapter =
@@ -41,7 +38,7 @@ export const updateInstantPowerBalances = async (
  * Fetches power balances for users whose balance has been updated since last sync
  */
 const fetchUpdatedInstantPowerBalances = async (
-  givPowerSubgraphAdapter: GivPowerBalanceAggregatorInterface,
+  givPowerSubgraphAdapter: IGivPowerBalanceAggregator,
 ): Promise<void> => {
   logger.info('1. Fetch updated instant powers');
   // Let's save it now to sync all balances till this point
@@ -116,7 +113,7 @@ const fetchUpdatedInstantPowerBalances = async (
  * Fetches power balances of users who has boosted but their balances are not in db
  */
 const fillMissingInstantPowerBalances = async (
-  givPowerSubgraphAdapter: GivPowerBalanceAggregatorInterface,
+  givPowerSubgraphAdapter: IGivPowerBalanceAggregator,
 ): Promise<void> => {
   logger.debug('2. Fetch missing instant powers');
   // const latestSyncedBlock = await getMaxFetchedUpdatedAtTimestamp();
@@ -143,13 +140,12 @@ const fillMissingInstantPowerBalances = async (
 
   for (let i = 0; i < allUsersWithoutBalance.length; i += chunkSize) {
     const chunk = allUsersWithoutBalance.slice(i, i + chunkSize);
-    const balances: GetBalanceOfAddressesResponse =
+    const balances: BalanceResponse[] =
       await givPowerSubgraphAdapter.getLatestBalances({
         addresses: chunk.map(user => user!.walletAddress.toLowerCase()),
       });
 
-    const addressBalanceMap: Record<string, GetBalanceOfAnAddressesResponse> =
-      {};
+    const addressBalanceMap: Record<string, BalanceResponse> = {};
     balances.forEach(b => {
       addressBalanceMap[b.address.toLowerCase()] = b;
     });
