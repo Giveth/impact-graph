@@ -1798,10 +1798,10 @@ export class ProjectResolver {
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdatesResponse> {
     const latestProjectUpdates = await ProjectUpdate.query(`
-      SELECT pu.id
+      SELECT pu.id, pu."projectId"
       FROM public.project_update AS pu
       WHERE pu."isMain" = false
-      GROUP BY pu.id
+      GROUP BY pu."projectId", pu.id
       ORDER BY MAX(pu."createdAt") DESC
       LIMIT ${take}
       OFFSET ${skip};
@@ -1819,7 +1819,7 @@ export class ProjectResolver {
       .where('projectUpdate.id IN (:...ids)', {
         ids: latestProjectUpdates.map(p => p.id),
       })
-      .orderBy('projectUpdate.id', 'DESC');
+      .orderBy('projectUpdate.createdAt', 'DESC');
 
     if (user && user?.userId)
       query = ProjectResolver.addReactionToProjectsUpdateQuery(
