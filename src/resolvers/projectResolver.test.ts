@@ -4888,12 +4888,43 @@ function walletAddressIsPurpleListedTestCases() {
     });
     assert.isTrue(result.data.data.walletAddressIsPurpleListed);
   });
+  it('should return true if sent walletAddress is in upperCase', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress.toUpperCase(),
+      },
+    });
+    assert.isTrue(result.data.data.walletAddressIsPurpleListed);
+  });
   it('should return false if wallet address is from a nonverified project', async () => {
     const walletAddress = generateRandomEtheriumAddress();
     await saveProjectDirectlyToDb({
       ...createProjectData(),
       walletAddress,
       verified: false,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.isFalse(result.data.data.walletAddressIsPurpleListed);
+  });
+  it('should return false if wallet address is from a nonActive verified project', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+      statusId: ProjStatus.drafted,
     });
     const result = await axios.post(graphqlUrl, {
       query: walletAddressIsPurpleListed,
