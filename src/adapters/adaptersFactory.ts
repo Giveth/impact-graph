@@ -20,7 +20,7 @@ import { IGivPowerSubgraphAdapter } from './givpowerSubgraph/IGivPowerSubgraphAd
 import { GitcoinAdapter } from './gitcoin/gitcoinAdapter';
 import { GitcoinMockAdapter } from './gitcoin/gitcoinMockAdapter';
 import { GivPowerBalanceAggregatorAdapter } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapter';
-import { GivPowerBalanceAggregatorMock } from './givPowerBalanceAggregator/givPowerBalanceAggregatorMock';
+import { GivPowerBalanceAggregatorAdapterMock } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapterMock';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -105,7 +105,8 @@ export const getGitcoinAdapter = () => {
 };
 
 export const powerBalanceAggregator = new GivPowerBalanceAggregatorAdapter();
-export const mockPowerBalanceAggregator = new GivPowerBalanceAggregatorMock();
+export const mockPowerBalanceAggregator =
+  new GivPowerBalanceAggregatorAdapterMock();
 
 export const getPowerBalanceAggregatorAdapter = () => {
   switch (process.env.POWER_BALANCE_AGGREGATOR_ADAPTER) {

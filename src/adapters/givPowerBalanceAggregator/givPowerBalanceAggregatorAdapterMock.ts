@@ -1,22 +1,19 @@
 import {
-  GetBalancesAtTimestampInputParams,
-  GetBalanceOfAddressesResponse,
-  GetBalanceOfAnAddressesResponse,
-  GetBalancesUpdatedAfterASpecificDateInputParams,
-  GetBalancesUpdatedAfterASpecificDateResponse,
-  GetLatestBalanceInputParams,
-  GetLeastIndexedBlockTimeStampInputParams,
-  GivPowerBalanceAggregatorInterface,
-} from './givPowerBalanceAggregatorInterface';
-import { logger } from '../../utils/logger';
+  BalancesAtTimestampInputParams,
+  BalanceResponse,
+  BalanceUpdatedAfterDateInputParams,
+  LatestBalanceInputParams,
+  NetworksInputParams,
+  IGivPowerBalanceAggregator,
+} from '../../types/GivPowerBalanceAggregator';
 import { convertTimeStampToSeconds } from '../../utils/utils';
 
-export class GivPowerBalanceAggregatorMock
-  implements GivPowerBalanceAggregatorInterface
+export class GivPowerBalanceAggregatorAdapterMock
+  implements IGivPowerBalanceAggregator
 {
   async getAddressesBalance(
-    params: GetBalancesAtTimestampInputParams,
-  ): Promise<GetBalanceOfAddressesResponse> {
+    params: BalancesAtTimestampInputParams,
+  ): Promise<BalanceResponse[]> {
     if (
       params.addresses.length >
       Number(process.env.NUMBER_OF_BALANCE_AGGREGATOR_BATCH)
@@ -36,8 +33,8 @@ export class GivPowerBalanceAggregatorMock
   }
 
   async getLatestBalances(
-    params: GetLatestBalanceInputParams,
-  ): Promise<GetBalanceOfAnAddressesResponse[]> {
+    params: LatestBalanceInputParams,
+  ): Promise<BalanceResponse[]> {
     // Mocked data
     return params.addresses.map(address => {
       return {
@@ -50,8 +47,8 @@ export class GivPowerBalanceAggregatorMock
   }
 
   async getBalancesUpdatedAfterDate(
-    params: GetBalancesUpdatedAfterASpecificDateInputParams,
-  ): Promise<GetBalancesUpdatedAfterASpecificDateResponse> {
+    params: BalanceUpdatedAfterDateInputParams,
+  ): Promise<BalanceResponse[]> {
     // Mocked data
     return [
       {
@@ -70,7 +67,7 @@ export class GivPowerBalanceAggregatorMock
   }
 
   async getLeastIndexedBlockTimeStamp(
-    params: GetLeastIndexedBlockTimeStampInputParams,
+    params: NetworksInputParams,
   ): Promise<number> {
     // Mocked data
     return convertTimeStampToSeconds(new Date().getTime());

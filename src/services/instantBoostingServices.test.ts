@@ -11,7 +11,7 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { mockPowerBalanceAggregator } from '../adapters/adaptersFactory';
-import { GetBalancesUpdatedAfterASpecificDateResponse } from '../adapters/givPowerBalanceAggregator/givPowerBalanceAggregatorInterface';
+import { GetBalancesUpdatedAfterASpecificDateResponse } from '../types/GivPowerBalanceAggregator';
 
 describe(
   'updateInstancePowerBalances test cases',
