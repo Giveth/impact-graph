@@ -34,16 +34,16 @@ export const updateInstantPowerBalances = async (
 };
 
 /**
- * @param givPowerSubgraphAdapter subgraph adapter
+ * @param givPowerBalanceAggregator subgraph adapter
  * Fetches power balances for users whose balance has been updated since last sync
  */
 const fetchUpdatedInstantPowerBalances = async (
-  givPowerSubgraphAdapter: IGivPowerBalanceAggregator,
+  givPowerBalanceAggregator: IGivPowerBalanceAggregator,
 ): Promise<void> => {
   logger.info('1. Fetch updated instant powers');
   // Let's save it now to sync all balances till this point
   // const [latestSubgraphIndexBlock, latestSyncedBlock] = await Promise.all([
-  //   givPowerSubgraphAdapter.getLatestIndexedBlockInfo(),
+  //   givPowerBalanceAggregator.getLatestIndexedBlockInfo(),
   //   getLatestSyncedBlock(),
   // ]);
   let maxFetchedUpdatedAt = await getMaxFetchedUpdatedAtTimestamp();
@@ -53,15 +53,16 @@ const fetchUpdatedInstantPowerBalances = async (
 
   let counter = 0;
   while (true) {
-    const balances = await givPowerSubgraphAdapter.getBalancesUpdatedAfterDate({
-      date: maxFetchedUpdatedAt,
-      take: 1000,
-      skip: counter,
-    });
+    const balances =
+      await givPowerBalanceAggregator.getBalancesUpdatedAfterDate({
+        date: maxFetchedUpdatedAt,
+        take: 1000,
+        skip: counter,
+      });
 
     if (balances.length === 0) break;
 
-    const addressBalanceMap = {};
+    const addressBalanceMap: Record<string, BalanceResponse> = {};
     balances.forEach(b => {
       addressBalanceMap[b.address.toLowerCase()] = b;
     });
@@ -71,13 +72,13 @@ const fetchUpdatedInstantPowerBalances = async (
     );
     const instances = boosterUsers.map(user => {
       const walletAddress = user.walletAddress!.toLowerCase();
-      const { balance, update_at } = addressBalanceMap[walletAddress];
+      const { balance, updatedAt } = addressBalanceMap[walletAddress];
       logger.info(
-        `Update user ${user.id} - ${walletAddress} instant power balance to ${balance} - updateAt ${update_at}`,
+        `Update user ${user.id} - ${walletAddress} instant power balance to ${balance} - updateAt ${updatedAt}`,
       );
       return {
         balance,
-        balanceAggregatorUpdatedAt: update_at,
+        balanceAggregatorUpdatedAt: updatedAt,
         userId: user.id,
       };
     });

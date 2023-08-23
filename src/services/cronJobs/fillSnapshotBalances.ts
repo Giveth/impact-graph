@@ -115,23 +115,23 @@ export function processFillPowerSnapshotJobs() {
     async (job, done) => {
       try {
         const { timestamp, powerSnapshotId, data } = job.data;
-        const addresses = data.map(item => item.walletAddress);
         const batchNumber = Number(
           process.env.NUMBER_OF_BALANCE_AGGREGATOR_BATCH,
         );
 
         // Process in batches
-        for (let i = 0; i < Math.ceil(addresses.length / batchNumber); i++) {
-          const batch = addresses.slice(i * batchNumber, (i + 1) * batchNumber);
+        for (let i = 0; i < Math.ceil(data.length / batchNumber); i++) {
+          const batch = data.slice(i * batchNumber, (i + 1) * batchNumber);
+          const addresses = batch.map(item => item.walletAddress);
           const balances =
             await getPowerBalanceAggregatorAdapter().getAddressesBalance({
               timestamp,
-              addresses: batch,
+              addresses,
             });
 
           await addOrUpdatePowerSnapshotBalances(
             balances.map(balance => {
-              const correspondingItem = data.find(
+              const correspondingItem = batch.find(
                 item =>
                   item.walletAddress.toLowerCase() ===
                   balance.address.toLowerCase(),

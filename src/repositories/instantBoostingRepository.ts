@@ -29,6 +29,7 @@ export const saveOrUpdateInstantPowerBalances = async (
       .execute();
   } catch (e) {
     logger.error('saveOrUpdateInstantPowerBalances error', e);
+    throw e;
   }
 };
 

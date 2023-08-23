@@ -80,9 +80,11 @@ export class GivPowerBalanceAggregatorAdapter
     params: BalanceUpdatedAfterDateInputParams,
   ): Promise<BalanceResponse[]> {
     try {
-      const response = await axios.post(
+      const response = await axios.get(
         `${this.baseUrl}/power-balance/updated-after-date`,
-        params,
+        {
+          params,
+        },
       );
       const responseData = response.data;
       const result: BalanceResponse[] = responseData.balances.map(
