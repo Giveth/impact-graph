@@ -913,6 +913,23 @@ const getSegmentProjectAttributes = (params: { project: Project }) => {
   };
 };
 
+const buildProjectLink = (
+  eventName: NOTIFICATIONS_EVENT_NAMES,
+  projectSlug?: string,
+) => {
+  if (!projectSlug) return;
+
+  const projectLink = `${process.env.WEBSITE_URL}/project/${projectSlug}`;
+  switch (eventName) {
+    case NOTIFICATIONS_EVENT_NAMES.PROJECT_ADD_AN_UPDATE_USERS_WHO_SUPPORT:
+      return projectLink + '?tab=updates';
+    case NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATE_ADDED_OWNER:
+      return projectLink + '?tab=updates';
+    default:
+      return projectLink;
+  }
+};
+
 const sendProjectRelatedNotification = async (params: {
   project: Project;
   eventName: NOTIFICATIONS_EVENT_NAMES;
@@ -928,6 +945,7 @@ const sendProjectRelatedNotification = async (params: {
   const { project, eventName, metadata, user, segment, sendEmail, trackId } =
     params;
   const receivedUser = user || (project.adminUser as User);
+  const projectLink = buildProjectLink(eventName, project.slug);
   const data: SendNotificationBody = {
     eventName,
     email: receivedUser.email,
@@ -937,7 +955,7 @@ const sendProjectRelatedNotification = async (params: {
     projectId: String(project.id),
     metadata: {
       projectTitle: project.title,
-      projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
+      projectLink,
       ...metadata,
     },
     segment,
