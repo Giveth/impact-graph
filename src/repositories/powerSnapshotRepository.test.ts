@@ -15,6 +15,7 @@ import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { AppDataSource } from '../orm';
 import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
+import { getTimestampInSeconds } from '../utils/utils';
 
 describe('findPowerSnapshotById() test cases', findPowerSnapshotByIdTestCases);
 describe('test balance snapshot functions', balanceSnapshotTestCases);
@@ -200,17 +201,17 @@ function balanceSnapshotTestCases() {
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
-    let powerSnapshotTime = user1.id * 1000;
+    let powerSnapshotTime = user1.id * 1_000_000;
 
     const powerSnapshots = PowerSnapshot.create([
       {
-        time: new Date(powerSnapshotTime++),
+        time: new Date((powerSnapshotTime = powerSnapshotTime + 1000)),
       },
       {
-        time: new Date(powerSnapshotTime++),
+        time: new Date((powerSnapshotTime = powerSnapshotTime + 1000)),
       },
       {
-        time: new Date(powerSnapshotTime++),
+        time: new Date((powerSnapshotTime = powerSnapshotTime + 1000)),
       },
     ]);
     await PowerSnapshot.save(powerSnapshots);
@@ -262,7 +263,7 @@ function balanceSnapshotTestCases() {
       userId: user3.id,
       powerSnapshotId: powerSnapshots[0].id,
       walletAddress: user3.walletAddress as string,
-      time: powerSnapshots[0].time,
+      timestamp: getTimestampInSeconds(powerSnapshots[0].time),
     });
 
     // Must return 2 last items in order
@@ -273,13 +274,13 @@ function balanceSnapshotTestCases() {
         userId: user2.id,
         powerSnapshotId: powerSnapshots[1].id,
         walletAddress: user2.walletAddress as string,
-        time: powerSnapshots[1].time,
+        timestamp: getTimestampInSeconds(powerSnapshots[1].time),
       },
       {
         userId: user1.id,
         walletAddress: user1.walletAddress,
         powerSnapshotId: powerSnapshots[2].id,
-        time: powerSnapshots[2].time,
+        timestamp: getTimestampInSeconds(powerSnapshots[2].time),
       },
     ]);
   });

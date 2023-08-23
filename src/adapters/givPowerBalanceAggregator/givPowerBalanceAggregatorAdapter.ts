@@ -50,9 +50,11 @@ export class GivPowerBalanceAggregatorAdapter
         networks: params.networks,
         addresses: params.addresses.join(','),
       };
-      const response = await axios.post(
+      const response = await axios.get(
         `${this.baseUrl}/power-balance/by-timestamp`,
-        data,
+        {
+          params: data,
+        },
       );
       return response.data.map(balance => formatResponse(balance));
     } catch (e) {
@@ -101,9 +103,11 @@ export class GivPowerBalanceAggregatorAdapter
     params: NetworksInputParams,
   ): Promise<number> {
     try {
-      const response = await axios.post(
+      const response = await axios.get(
         `${this.baseUrl}/fetch-state/least-indexed-block-timestamp`,
-        params,
+        {
+          params,
+        },
       );
       return response.data;
     } catch (e) {

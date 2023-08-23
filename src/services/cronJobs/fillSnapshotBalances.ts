@@ -53,9 +53,7 @@ export const runFillPowerSnapshotBalanceCronJob = () => {
 
 export async function addFillPowerSnapshotBalanceJobsToQueue() {
   const balanceAggregatorLastUpdatedTime =
-    (await getPowerBalanceAggregatorAdapter().getLeastIndexedBlockTimeStamp(
-      {},
-    )) * 1000;
+    await getPowerBalanceAggregatorAdapter().getLeastIndexedBlockTimeStamp({});
 
   const groupByTimestamp: Record<
     number,
@@ -68,34 +66,36 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
 
   let offset = 0;
   let powerBoostings: GetPowerBoostingSnapshotWithoutBalanceOutput[] = [];
+  const snapshotTimestampsAheadOfBalanceAggregator = new Set<number>();
   do {
     powerBoostings = await getPowerBoostingSnapshotWithoutBalance(100, offset);
     powerBoostings.forEach(pb => {
-      if (pb.time.getTime() > balanceAggregatorLastUpdatedTime) {
-        logger.error(
-          'The balance aggregator has not synced after this snapshot ',
-          {
-            snapshotTime: pb.time,
-            powerSnapshotId: pb.powerSnapshotId,
-            balanceAggregatorLastUpdatedDate: new Date(
-              balanceAggregatorLastUpdatedTime,
-            ),
-          },
-        );
+      if (pb.timestamp > balanceAggregatorLastUpdatedTime) {
+        snapshotTimestampsAheadOfBalanceAggregator.add(pb.timestamp);
         return;
       }
 
-      const timestampInStr = String(pb.time.getTime());
+      const timestampInStr = String(pb.timestamp);
       groupByTimestamp[timestampInStr] = groupByTimestamp[timestampInStr] || [];
       groupByTimestamp[timestampInStr].push(pb);
     });
     offset += powerBoostings.length;
   } while (powerBoostings.length);
 
+  // log for each item in the set
+  snapshotTimestampsAheadOfBalanceAggregator.forEach(timestamp => {
+    logger.error('The balance aggregator has not synced to snapshot point ', {
+      snapshotTime: timestamp,
+      balanceAggregatorLastUpdatedDate: new Date(
+        balanceAggregatorLastUpdatedTime,
+      ),
+    });
+  });
+
   for (const [key, value] of Object.entries(groupByTimestamp)) {
     const powerSnapshotId = value[0].powerSnapshotId;
     const jobData = {
-      timestamp: convertTimeStampToSeconds(Number(key)),
+      timestamp: +key,
       powerSnapshotId,
       data: value.map(pb => ({
         userId: pb.userId,
@@ -113,7 +113,7 @@ export function processFillPowerSnapshotJobs() {
       try {
         const { timestamp, powerSnapshotId, data } = job.data;
         const batchNumber = Number(
-          process.env.NUMBER_OF_BALANCE_AGGREGATOR_BATCH,
+          process.env.NUMBER_OF_BALANCE_AGGREGATOR_BATCH || 20,
         );
 
         // Process in batches

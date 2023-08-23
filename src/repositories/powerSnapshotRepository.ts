@@ -33,7 +33,7 @@ export const findPowerSnapshots = async (
 
 export interface GetPowerBoostingSnapshotWithoutBalanceOutput {
   userId: number;
-  time: Date;
+  timestamp: number;
   powerSnapshotId: number;
   walletAddress: string;
 }
@@ -43,7 +43,7 @@ export const getPowerBoostingSnapshotWithoutBalance = async (
 ): Promise<GetPowerBoostingSnapshotWithoutBalanceOutput[]> => {
   return await AppDataSource.getDataSource().query(
     `
-        select "userId", "powerSnapshotId", "walletAddress", "time"
+        select "userId", "powerSnapshotId", "walletAddress", floor(extract (epoch  from "time" AT TIME ZONE 'UTC')) as "timestamp"
         from public."power_balance_snapshot" as balanceSnapshot
         inner join public."user" as "user" on  "userId"= "user".id
         inner join power_snapshot as "snapshot" on balanceSnapshot."powerSnapshotId" = snapshot.id
