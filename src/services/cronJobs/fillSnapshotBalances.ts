@@ -51,28 +51,11 @@ export const runFillPowerSnapshotBalanceCronJob = () => {
   });
 };
 
-async function isBalanceAggregatorSynced(): Promise<boolean> {
-  const leastIndexedBlockTimestamp =
-    await getPowerBalanceAggregatorAdapter().getLeastIndexedBlockTimeStamp({});
-  const now = convertTimeStampToSeconds(new Date().getTime());
-  const threshold = Number(
-    process.env.BALANCE_AGGREGATOR_LAST_UPDATE_THRESHOLD_IN_SECONDS,
-  );
-  return now - leastIndexedBlockTimestamp <= threshold;
-}
-
 export async function addFillPowerSnapshotBalanceJobsToQueue() {
-  if (!(await isBalanceAggregatorSynced())) {
-    logger.error('The balance aggregator is not synced ', {
-      now: new Date(),
-      balanceAggregatorLastUpdatedTime: new Date(
-        (await getPowerBalanceAggregatorAdapter().getLeastIndexedBlockTimeStamp(
-          {},
-        )) * 1000,
-      ),
-    });
-    return;
-  }
+  const balanceAggregatorLastUpdatedTime =
+    (await getPowerBalanceAggregatorAdapter().getLeastIndexedBlockTimeStamp(
+      {},
+    )) * 1000;
 
   const groupByTimestamp: Record<
     number,
@@ -88,6 +71,20 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
   do {
     powerBoostings = await getPowerBoostingSnapshotWithoutBalance(100, offset);
     powerBoostings.forEach(pb => {
+      if (pb.time.getTime() > balanceAggregatorLastUpdatedTime) {
+        logger.error(
+          'The balance aggregator has not synced after this snapshot ',
+          {
+            snapshotTime: pb.time,
+            powerSnapshotId: pb.powerSnapshotId,
+            balanceAggregatorLastUpdatedDate: new Date(
+              balanceAggregatorLastUpdatedTime,
+            ),
+          },
+        );
+        return;
+      }
+
       const timestampInStr = String(pb.time.getTime());
       groupByTimestamp[timestampInStr] = groupByTimestamp[timestampInStr] || [];
       groupByTimestamp[timestampInStr].push(pb);

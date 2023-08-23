@@ -60,9 +60,6 @@ async function processFillPowerSnapshotJobsTestCases() {
     ]);
     await PowerSnapshot.save(powerSnapshots);
 
-    await PowerSnapshot.create({
-      time: new Date(powerSnapshotTime + 2000),
-    }).save();
     const powerBoostingSnapshots = PowerBoostingSnapshot.create([
       {
         userId: user1.id,
@@ -118,23 +115,19 @@ async function processFillPowerSnapshotJobsTestCases() {
     assert.equal((await getPowerBoostingSnapshotWithoutBalance()).length, 0);
   });
 
-  it('should not fill snapShotBalances when balance aggregator is not updated', async () => {
-    const balanceAggregatorLastUpdateThresholdInSeconds = Number(
-      process.env.BALANCE_AGGREGATOR_LAST_UPDATE_THRESHOLD_IN_SECONDS,
-    );
+  it('should not fill snapShotBalances when balance aggregator is not updated after powerSnapshot', async () => {
+    const powerSnapshotTimeBeforeSyncTime =
+      new Date().getTime() - 2 * 3600 * 1000; // 2 hour earlier
+    const powerSnapshotTime = new Date().getTime() - 1 * 3600 * 1000; // 1 hour earlier
 
     stub = sinon
       .stub(getPowerBalanceAggregatorAdapter(), 'getLeastIndexedBlockTimeStamp')
-      // I added 5 seconds to balanceAggregatorLastUpdateThresholdInSeconds to make sure the difference is more than balanceAggregatorLastUpdateThresholdInSeconds
-      .resolves(
-        convertTimeStampToSeconds(new Date().getTime()) -
-          (balanceAggregatorLastUpdateThresholdInSeconds + 5),
-      );
+      // I decreased powerSnapshotTime 5 seconds to make sure those snapshot would not fill balances
+      .resolves(convertTimeStampToSeconds(powerSnapshotTime) - 5);
 
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project1 = await saveProjectDirectlyToDb(createProjectData());
-    const powerSnapshotTime = new Date().getTime() - 1 * 3600 * 1000; // 1 hour earlier
 
     const powerSnapshots = PowerSnapshot.create([
       {
@@ -143,12 +136,12 @@ async function processFillPowerSnapshotJobsTestCases() {
       {
         time: new Date(powerSnapshotTime + 1000),
       },
+      {
+        time: new Date(powerSnapshotTimeBeforeSyncTime),
+      },
     ]);
     await PowerSnapshot.save(powerSnapshots);
 
-    await PowerSnapshot.create({
-      time: new Date(powerSnapshotTime + 2000),
-    }).save();
     const powerBoostingSnapshots = PowerBoostingSnapshot.create([
       {
         userId: user1.id,
@@ -174,6 +167,18 @@ async function processFillPowerSnapshotJobsTestCases() {
         percentage: 21,
         powerSnapshot: powerSnapshots[1],
       },
+      {
+        userId: user1.id,
+        projectId: project1.id,
+        percentage: 12,
+        powerSnapshot: powerSnapshots[2],
+      },
+      {
+        userId: user2.id,
+        projectId: project1.id,
+        percentage: 32,
+        powerSnapshot: powerSnapshots[2],
+      },
     ]);
 
     const powerBalances = PowerBalanceSnapshot.create([
@@ -193,6 +198,14 @@ async function processFillPowerSnapshotJobsTestCases() {
         userId: user2.id,
         powerSnapshot: powerSnapshots[1],
       },
+      {
+        userId: user1.id,
+        powerSnapshot: powerSnapshots[2],
+      },
+      {
+        userId: user2.id,
+        powerSnapshot: powerSnapshots[2],
+      },
     ]);
     await PowerBalanceSnapshot.save(powerBalances);
     await PowerBoostingSnapshot.save(powerBoostingSnapshots);
@@ -201,7 +214,13 @@ async function processFillPowerSnapshotJobsTestCases() {
 
     // Give time to process jobs
     await sleep(5_000);
-    assert.isNotEmpty(await getPowerBoostingSnapshotWithoutBalance());
+    const powerBoostingWithoutBalances =
+      await getPowerBoostingSnapshotWithoutBalance();
+    assert.equal(powerBoostingWithoutBalances.length, 4);
+    powerBoostingWithoutBalances.forEach(pb => {
+      // powerSnapshots[2] time is before synced time of balance aggregator, so it must have been filled
+      assert.notEqual(pb.powerSnapshotId, powerSnapshots[2].id);
+    });
   });
 
   it('should fill more than 20 snapShotBalances for powerSnapshots', async () => {
