@@ -15,8 +15,6 @@ export class MigrateToBalanceAggregator1692623384774
 
     // Drop InstantPowerFetchState table and create new one
     await queryRunner.query(`
-        
-
     ALTER TABLE IF EXISTS public.instant_power_fetch_state
         DROP COLUMN "latestBlockNumber",
         DROP COLUMN "latestBlockTimestamp",
