@@ -41,7 +41,6 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from '../repositories/powerBoostingRepository';
-import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
@@ -54,6 +53,7 @@ import { firstOrCreateReferredEventByUserId } from '../repositories/referredEven
 import { QfRound } from '../entities/qfRound';
 import { findProjectById } from '../repositories/projectRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -805,8 +805,8 @@ function createDonationTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;

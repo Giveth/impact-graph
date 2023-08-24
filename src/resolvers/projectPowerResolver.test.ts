@@ -20,11 +20,11 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from '../repositories/powerBoostingRepository';
-import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { AppDataSource } from '../orm';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 
 describe('userProjectPowers test cases', projectPowersTestCases);
 
@@ -74,8 +74,8 @@ function projectPowersTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -143,8 +143,8 @@ function projectPowersTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber - 1;
@@ -209,10 +209,9 @@ function projectPowersTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber - 1;
     await snapshot.save();
 
@@ -256,10 +255,8 @@ function projectPowersTestCases() {
     await PowerBoosting.save(powerBoostings);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
-
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -323,10 +320,9 @@ function projectPowersTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -375,10 +371,9 @@ function projectPowersTestCases() {
     await PowerBoosting.save(boostings);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 

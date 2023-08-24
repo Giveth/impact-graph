@@ -44,7 +44,6 @@ import {
   schedulePowerBoostingSnapshot,
   schedulePowerSnapshotsHistory,
 } from '../repositories/dbCronRepository';
-import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
@@ -61,7 +60,6 @@ import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
@@ -358,11 +356,7 @@ export async function bootstrap() {
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
     }
-    if (
-      (config.get('FILL_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
-    ) {
-      runFillBlockNumbersOfSnapshotsCronjob();
-    }
+
     if (
       (config.get('FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE') as string) ===
       'true'

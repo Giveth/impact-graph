@@ -28,7 +28,6 @@ import {
 } from './powerBoostingRepository';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
-import { findInCompletePowerSnapShots } from './powerSnapshotRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../orm';
@@ -36,6 +35,7 @@ import { SUMMARY_LENGTH } from '../constants/summary';
 import { getHtmlTextSummary } from '../utils/utils';
 import { generateRandomString } from '../utils/utils';
 import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from './powerSnapshotRepository';
 
 describe(
   'findProjectByWalletAddress test cases',
@@ -391,8 +391,8 @@ function orderByTotalPower() {
     const roundNumber = project3.id * 10;
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
