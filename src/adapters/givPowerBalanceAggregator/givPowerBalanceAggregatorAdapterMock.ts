@@ -7,6 +7,7 @@ import {
   IGivPowerBalanceAggregator,
 } from '../../types/GivPowerBalanceAggregator';
 import { convertTimeStampToSeconds } from '../../utils/utils';
+import _ from 'lodash';
 
 export class GivPowerBalanceAggregatorAdapterMock
   implements IGivPowerBalanceAggregator
@@ -22,7 +23,7 @@ export class GivPowerBalanceAggregatorAdapterMock
         'addresses length can not be greater than NUMBER_OF_BALANCE_AGGREGATOR_BATCH that is defined in .env',
       );
     }
-    return params.addresses.map(address => {
+    return _.uniq(params.addresses).map(address => {
       return {
         address,
         balance: 13, // Just an example balance
@@ -36,7 +37,7 @@ export class GivPowerBalanceAggregatorAdapterMock
     params: LatestBalanceInputParams,
   ): Promise<BalanceResponse[]> {
     // Mocked data
-    return params.addresses.map(address => {
+    return _.uniq(params.addresses).map(address => {
       return {
         address,
         balance: 200, // Just another example balance
