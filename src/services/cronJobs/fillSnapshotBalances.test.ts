@@ -293,7 +293,7 @@ async function processFillPowerSnapshotJobsTestCases() {
 
     await addFillPowerSnapshotBalanceJobsToQueue();
 
-    await sleep(4_000);
+    await sleep(10_000);
 
     assert.equal((await getPowerBoostingSnapshotWithoutBalance()).length, 0);
     // assert.isEmpty(await getPowerBoostingSnapshotWithoutBalance());
