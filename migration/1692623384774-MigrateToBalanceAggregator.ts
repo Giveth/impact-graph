@@ -16,17 +16,11 @@ export class MigrateToBalanceAggregator1692623384774
     // Drop InstantPowerFetchState table and create new one
     await queryRunner.query(`
         
-    DROP TABLE IF EXISTS public.instant_power_fetch_state;
 
-    CREATE TABLE IF NOT EXISTS public.instant_power_fetch_state
-    (
-        id boolean NOT NULL,
-        "maxFetchedUpdateAtTimestampMS" bigint NOT NULL,
-        CONSTRAINT "PK_a686115bd3ba34aa38b006d3a4d" PRIMARY KEY (id),
-        CONSTRAINT "CHK_860e525a72150d69afd94fe18d" CHECK (id)
-    )
-
-    TABLESPACE pg_default;
+    ALTER TABLE IF EXISTS public.instant_power_fetch_state
+        DROP COLUMN "latestBlockNumber",
+        DROP COLUMN "latestBlockTimestamp",
+        ADD COLUMN "maxFetchedUpdateAtTimestampMS" bigint NOT NULL;
 
     ALTER TABLE IF EXISTS public.instant_power_fetch_state
         OWNER to postgres;
