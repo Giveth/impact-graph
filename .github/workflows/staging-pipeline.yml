@@ -69,8 +69,8 @@ jobs:
             sleep 1
           done
 
-      - name: Restore DB backup
-        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
+#      - name: Restore DB backup
+#        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
 
       - name: Use Node.js
         uses: actions/setup-node@v1
