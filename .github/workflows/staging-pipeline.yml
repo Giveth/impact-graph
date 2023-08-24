@@ -122,6 +122,7 @@ jobs:
           tag_with_sha: true
 
   deploy:
+    needs: publish
     runs-on: ubuntu-latest
     steps:
       - name: SSH and Redeploy
