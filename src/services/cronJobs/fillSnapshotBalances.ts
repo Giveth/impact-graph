@@ -10,6 +10,7 @@ import {
 } from '../../repositories/powerSnapshotRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
 import { convertTimeStampToSeconds } from '../../utils/utils';
+import _ from 'lodash';
 
 // Constants
 const FILL_SNAPSHOT_BALANCE_QUEUE_NAME = 'fill-snapshot-balance-aggregator';
@@ -93,16 +94,17 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
   });
 
   for (const [key, value] of Object.entries(groupByTimestamp)) {
-    const powerSnapshotId = value[0].powerSnapshotId;
     const jobData = {
       timestamp: +key,
-      powerSnapshotId,
       data: value.map(pb => ({
         userId: pb.userId,
+        powerSnapshotId: pb.powerSnapshotId,
         walletAddress: pb.walletAddress.toLowerCase(),
       })),
     };
-    fillSnapshotBalanceQueue.add(jobData);
+    fillSnapshotBalanceQueue.add(jobData, {
+      jobId: `${FILL_SNAPSHOT_BALANCE_QUEUE_NAME}-${key}`,
+    });
   }
 }
 
@@ -111,7 +113,7 @@ export function processFillPowerSnapshotJobs() {
     numberOfFillPowerSnapshotBalancesConcurrentJob,
     async (job, done) => {
       try {
-        const { timestamp, powerSnapshotId, data } = job.data;
+        const { timestamp, data } = job.data;
         const batchNumber = Number(
           process.env.NUMBER_OF_BALANCE_AGGREGATOR_BATCH || 20,
         );
@@ -126,20 +128,20 @@ export function processFillPowerSnapshotJobs() {
               addresses,
             });
 
-          await addOrUpdatePowerSnapshotBalances(
-            balances.map(balance => {
-              const correspondingItem = batch.find(
-                item =>
-                  item.walletAddress.toLowerCase() ===
-                  balance.address.toLowerCase(),
-              );
-              return {
-                balance: balance.balance,
-                powerSnapshotId,
-                userId: correspondingItem!.userId,
-              };
-            }),
+          const groupByWalletAddress = _.groupBy(batch, item =>
+            item.walletAddress.toLowerCase(),
           );
+
+          const snapshotBalances = balances
+            .map(balance =>
+              groupByWalletAddress[balance.address.toLowerCase()].map(item => ({
+                balance: balance.balance,
+                powerSnapshotId: item.powerSnapshotId,
+                userId: item!.userId,
+              })),
+            )
+            .flat();
+          await addOrUpdatePowerSnapshotBalances(snapshotBalances);
         }
       } catch (e) {
         logger.error('processFillPowerSnapshotJobs >> error', e);
@@ -152,9 +154,9 @@ export function processFillPowerSnapshotJobs() {
 
 interface FillSnapShotBalanceData {
   timestamp: number;
-  powerSnapshotId: number;
   data: {
     userId: number;
+    powerSnapshotId: number;
     walletAddress: string;
   }[];
 }

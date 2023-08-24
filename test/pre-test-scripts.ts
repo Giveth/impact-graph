@@ -33,6 +33,8 @@ import { ProjectDonationSummaryView1685972291645 } from '../migration/1685972291
 import { ProjectEstimatedMatchingView1685958638251 } from '../migration/1685958638251-ProjectEstimatedMatchingView';
 import { CreateProjectUserInstantPowerView1689504711172 } from '../migration/1689504711172-CreateProjectUserInstantPowerView';
 import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
+import { redis } from '../src/redis';
+import { logger } from '../src/utils/logger';
 
 async function seedDb() {
   await seedUsers();
@@ -381,6 +383,8 @@ async function runMigrations() {
 
 before(async () => {
   try {
+    logger.debug('Clear Redis: ', await redis.flushall());
+
     await bootstrap();
     await seedDb();
     await runMigrations();

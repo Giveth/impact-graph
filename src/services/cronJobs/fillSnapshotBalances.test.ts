@@ -223,7 +223,7 @@ async function processFillPowerSnapshotJobsTestCases() {
     });
   });
 
-  it('should fill more than 20 snapShotBalances for powerSnapshots', async () => {
+  it('should fill snapshot balances when we have snapshots taken in same seconds', async () => {
     const powerSnapshotTime = new Date().getTime() - 1 * 3600 * 1000; // 1 hour earlier
 
     for (let i = 0; i < 110; i++) {
@@ -293,7 +293,7 @@ async function processFillPowerSnapshotJobsTestCases() {
 
     await addFillPowerSnapshotBalanceJobsToQueue();
 
-    await sleep(10_000);
+    await sleep(4_000);
 
     assert.equal((await getPowerBoostingSnapshotWithoutBalance()).length, 0);
     // assert.isEmpty(await getPowerBoostingSnapshotWithoutBalance());
