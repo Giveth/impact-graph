@@ -20,9 +20,6 @@ export class MigrateToBalanceAggregator1692623384774
         DROP COLUMN "latestBlockNumber",
         DROP COLUMN "latestBlockTimestamp",
         ADD COLUMN "maxFetchedUpdateAtTimestampMS" bigint NOT NULL;
-
-    ALTER TABLE IF EXISTS public.instant_power_fetch_state
-        OWNER to postgres;
     `);
   }
 
