@@ -86,9 +86,9 @@ export async function addFillPowerSnapshotBalanceJobsToQueue() {
   // log for each item in the set
   snapshotTimestampsAheadOfBalanceAggregator.forEach(timestamp => {
     logger.error('The balance aggregator has not synced to snapshot point ', {
-      snapshotTime: timestamp,
+      snapshotTime: new Date(timestamp * 1000),
       balanceAggregatorLastUpdatedDate: new Date(
-        balanceAggregatorLastUpdatedTime,
+        balanceAggregatorLastUpdatedTime * 1000,
       ),
     });
   });
