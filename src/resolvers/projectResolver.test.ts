@@ -109,6 +109,7 @@ import {
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { logger } from '../utils/logger';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -877,13 +878,9 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.MAIN_NET,
     });
-    const gnosisAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.XDAI,
-    })) as ProjectAddress;
-    gnosisAddress.isRecipient = false;
-    await gnosisAddress.save();
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -912,13 +909,9 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const celoAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.CELO,
-    })) as ProjectAddress;
-    celoAddress.isRecipient = true;
-    await celoAddress.save();
+    });
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -947,13 +940,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.XDAI,
     });
-    const celoAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.CELO,
-    })) as ProjectAddress;
-    celoAddress.isRecipient = false;
-    await celoAddress.save();
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -982,13 +970,9 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const mainnetAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.MAIN_NET,
-    })) as ProjectAddress;
-    mainnetAddress.isRecipient = true;
-    await mainnetAddress.save();
+    });
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1017,13 +1001,9 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.XDAI,
     });
-    const mainnetAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.MAIN_NET,
-    })) as ProjectAddress;
-    mainnetAddress.isRecipient = false;
-    await mainnetAddress.save();
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1052,13 +1032,9 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const polygonAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.POLYGON,
-    })) as ProjectAddress;
-    polygonAddress.isRecipient = true;
-    await polygonAddress.save();
+    });
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1087,13 +1063,9 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.XDAI,
     });
-    const polygonAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.POLYGON,
-    })) as ProjectAddress;
-    polygonAddress.isRecipient = false;
-    await polygonAddress.save();
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1122,13 +1094,9 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.OPTIMISTIC,
-    })) as ProjectAddress;
-    optimismAddress.isRecipient = true;
-    await optimismAddress.save();
+    });
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1156,13 +1124,9 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.XDAI,
     });
-    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.OPTIMISTIC,
-    })) as ProjectAddress;
-    optimismAddress.isRecipient = false;
-    await optimismAddress.save();
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1262,6 +1226,73 @@ function allProjectsTestCases() {
       ),
     );
   });
+
+  it('should return projects, return projects that matches with at least one of networks', async () => {
+    const mainnetProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.MAIN_NET,
+    });
+
+    const gnosisProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.XDAI,
+    });
+
+    const polygonProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.POLYGON,
+    });
+
+    const optimismProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+    });
+
+    const celoProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.CELO,
+    });
+
+    const projects = [
+      celoProject,
+      mainnetProject,
+      gnosisProject,
+      polygonProject,
+      optimismProject,
+    ];
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: [
+          'AcceptFundOnMainnet',
+          'AcceptFundOnGnosis',
+          'AcceptFundOnPolygon',
+          'AcceptFundOnCelo',
+          'AcceptFundOnOptimism',
+        ],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    projects.forEach(p => {
+      assert.isOk(
+        result.data.data.allProjects.projects.find(
+          project => Number(project.id) === Number(p.id),
+        ),
+      );
+    });
+  });
+
   it('should return projects, filter by campaignSlug and limit, skip', async () => {
     const project1 = await saveProjectDirectlyToDb({
       ...createProjectData(),
