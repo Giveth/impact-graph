@@ -26,11 +26,6 @@ export class PowerSnapshot extends BaseEntity {
   @Index({ unique: true })
   time: Date;
 
-  @Field(type => Int)
-  @Column('integer', { nullable: true })
-  @Index({ unique: true })
-  blockNumber?: number;
-
   @Field()
   @Column({ type: 'integer', nullable: true })
   roundNumber: number;
