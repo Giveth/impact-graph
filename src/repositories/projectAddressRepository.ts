@@ -28,11 +28,11 @@ export const isWalletAddressInPurpleList = async (
           SELECT "projectId", LOWER(address) as "projectAddress"
           FROM project_address
           JOIN project
-          on project.id="projectId" and "verified"=true
+          on project.id="projectId" and "verified"=true and "statusId" = 5
           where address = $1
           limit 1
     `,
-    [address],
+    [address.toLowerCase()],
   );
   return projectAddress.length > 0;
 };

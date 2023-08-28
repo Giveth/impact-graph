@@ -1,6 +1,5 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import {
-  findInCompletePowerSnapShots,
   getPowerBoostingSnapshotWithoutBalance,
   updatePowerSnapshotSyncedFlag,
 } from './powerSnapshotRepository';
@@ -16,11 +15,8 @@ import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { AppDataSource } from '../orm';
 import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
+import { getTimestampInSeconds } from '../utils/utils';
 
-describe(
-  'findInCompletePowerSnapShots() test cases',
-  findInCompletePowerSnapShotsTestCases,
-);
 describe('findPowerSnapshotById() test cases', findPowerSnapshotByIdTestCases);
 describe('test balance snapshot functions', balanceSnapshotTestCases);
 
@@ -49,7 +45,6 @@ function balanceSnapshotTestCases() {
     const powerSnapshots = PowerSnapshot.create([
       {
         time: new Date(powerSnapshotTime++),
-        blockNumber: 100,
       },
       {
         time: new Date(powerSnapshotTime++),
@@ -107,20 +102,8 @@ function balanceSnapshotTestCases() {
 
     await PowerBalanceSnapshot.save(powerBalances);
 
-    // PowerBalanceSnapshot.create({
-    //   userId: user1.id,
-    //   powerSnapshot: powerSnapshots[0],
-    //   balance: 10,
-    // });
-
     const result = await getPowerBoostingSnapshotWithoutBalance();
-    assert.lengthOf(result, 1);
-    assert.deepEqual(result[0], {
-      userId: user2.id,
-      powerSnapshotId: powerSnapshots[0].id,
-      walletAddress: user2.walletAddress,
-      blockNumber: powerSnapshots[0].blockNumber,
-    });
+    assert.lengthOf(result, 3);
   });
   it('should return user wallet address alongside power snapshots', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -203,13 +186,7 @@ function balanceSnapshotTestCases() {
     });
 
     const result = await getPowerBoostingSnapshotWithoutBalance();
-    assert.lengthOf(result, 1);
-    assert.deepEqual(result[0], {
-      userId: user2.id,
-      powerSnapshotId: powerSnapshots[0].id,
-      walletAddress: user2.walletAddress,
-      blockNumber: powerSnapshots[0].blockNumber,
-    });
+    assert.lengthOf(result, 3);
   });
 
   it('should return power snapshots with not corresponding balance snapshot - pagination', async () => {
@@ -224,20 +201,17 @@ function balanceSnapshotTestCases() {
     await PowerBalanceSnapshot.clear();
     await PowerBoostingSnapshot.clear();
 
-    let powerSnapshotTime = user1.id * 1000;
+    let powerSnapshotTime = user1.id * 1_000_000;
 
     const powerSnapshots = PowerSnapshot.create([
       {
-        time: new Date(powerSnapshotTime++),
-        blockNumber: 1000,
+        time: new Date((powerSnapshotTime = powerSnapshotTime + 1000)),
       },
       {
-        time: new Date(powerSnapshotTime++),
-        blockNumber: 2000,
+        time: new Date((powerSnapshotTime = powerSnapshotTime + 1000)),
       },
       {
-        time: new Date(powerSnapshotTime++),
-        blockNumber: 3000,
+        time: new Date((powerSnapshotTime = powerSnapshotTime + 1000)),
       },
     ]);
     await PowerSnapshot.save(powerSnapshots);
@@ -288,8 +262,8 @@ function balanceSnapshotTestCases() {
     assert.deepEqual(result[0], {
       userId: user3.id,
       powerSnapshotId: powerSnapshots[0].id,
-      walletAddress: user3.walletAddress,
-      blockNumber: powerSnapshots[0].blockNumber,
+      walletAddress: user3.walletAddress as string,
+      timestamp: getTimestampInSeconds(powerSnapshots[0].time),
     });
 
     // Must return 2 last items in order
@@ -298,43 +272,17 @@ function balanceSnapshotTestCases() {
     assert.deepEqual(result, [
       {
         userId: user2.id,
-        walletAddress: user2.walletAddress,
         powerSnapshotId: powerSnapshots[1].id,
-        blockNumber: powerSnapshots[1].blockNumber,
+        walletAddress: user2.walletAddress as string,
+        timestamp: getTimestampInSeconds(powerSnapshots[1].time),
       },
       {
         userId: user1.id,
         walletAddress: user1.walletAddress,
         powerSnapshotId: powerSnapshots[2].id,
-        blockNumber: powerSnapshots[2].blockNumber,
+        timestamp: getTimestampInSeconds(powerSnapshots[2].time),
       },
     ]);
-  });
-}
-
-function findInCompletePowerSnapShotsTestCases() {
-  it('should return just incomplete powerSnapshots', async () => {
-    const snapShot1 = await PowerSnapshot.create({
-      time: moment().subtract(10, 'minutes'),
-    }).save();
-    const snapShot2 = await PowerSnapshot.create({
-      time: moment().subtract(8, 'minutes'),
-      blockNumber: 12,
-      roundNumber: 12,
-    }).save();
-    const snapShot3 = await PowerSnapshot.create({
-      time: moment().subtract(9, 'minutes'),
-    }).save();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    assert.isOk(
-      incompleteSnapshots.find(snapshot => snapshot.id === snapShot1.id),
-    );
-    assert.isNotOk(
-      incompleteSnapshots.find(snapshot => snapshot.id === snapShot2.id),
-    );
-    assert.isOk(
-      incompleteSnapshots.find(snapshot => snapshot.id === snapShot3.id),
-    );
   });
 }
 

@@ -1824,17 +1824,12 @@ export class ProjectResolver {
   ): Promise<ProjectUpdatesResponse> {
     const latestProjectUpdates = await ProjectUpdate.query(`
       SELECT pu.id, pu."projectId"
-      FROM project_update as pu
-      WHERE pu.id = (
-        SELECT puu.id
-        FROM project_update as puu
-        WHERE puu."isMain" = false AND pu."projectId" = puu."projectId"
-        ORDER BY puu."createdAt" DESC
-        LIMIT 1
-      )
-      ORDER BY pu."createdAt" DESC
+      FROM public.project_update AS pu
+      WHERE pu."isMain" = false
+      GROUP BY pu."projectId", pu.id
+      ORDER BY MAX(pu."createdAt") DESC
       LIMIT ${take}
-      OFFSET ${skip}
+      OFFSET ${skip};
     `);
 
     // When using distinctOn with joins and orderBy, typeorm threw errors
@@ -1849,7 +1844,7 @@ export class ProjectResolver {
       .where('projectUpdate.id IN (:...ids)', {
         ids: latestProjectUpdates.map(p => p.id),
       })
-      .orderBy('projectUpdate.id', 'DESC');
+      .orderBy('projectUpdate.createdAt', 'DESC');
 
     if (user && user?.userId)
       query = ProjectResolver.addReactionToProjectsUpdateQuery(

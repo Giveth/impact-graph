@@ -1,15 +1,19 @@
-import { getGivPowerSubgraphAdapter } from '../adapters/adaptersFactory';
+import { getPowerBalanceAggregatorAdapter } from '../adapters/adaptersFactory';
 import {
-  getLatestSyncedBlock,
+  getMaxFetchedUpdatedAtTimestamp,
   getUsersBoostedWithoutInstanceBalance,
   refreshProjectInstantPowerView,
-  refreshProjectUserInstantPowerView,
   saveOrUpdateInstantPowerBalances,
-  setLatestSyncedBlock,
+  setMaxFetchedUpdatedAtTimestamp,
 } from '../repositories/instantBoostingRepository';
 import { logger } from '../utils/logger';
 import { getBoosterUsersByWalletAddresses } from '../repositories/powerBoostingRepository';
-import { IGivPowerSubgraphAdapter } from '../adapters/givpowerSubgraph/IGivPowerSubgraphAdapter';
+import { dateToTimestampMs } from '../utils/utils';
+import { InstantPowerBalance } from '../entities/instantPowerBalance';
+import {
+  BalanceResponse,
+  IGivPowerBalanceAggregator,
+} from '../types/GivPowerBalanceAggregator';
 
 export const updateInstantBoosting = async (): Promise<void> => {
   logger.debug('updateInstantBoosting() has been called');
@@ -20,65 +24,89 @@ export const updateInstantBoosting = async (): Promise<void> => {
 
 // Allow passing a custom subgraph adapter for testing purposes
 export const updateInstantPowerBalances = async (
-  customGivPowerSubgraphAdapter?: IGivPowerSubgraphAdapter,
+  customGivPowerBalanceAggregator?: IGivPowerBalanceAggregator,
 ): Promise<void> => {
   logger.info('Update instant power balances...');
   const givPowerSubgraphAdapter =
-    customGivPowerSubgraphAdapter || getGivPowerSubgraphAdapter();
+    customGivPowerBalanceAggregator || getPowerBalanceAggregatorAdapter();
   await fetchUpdatedInstantPowerBalances(givPowerSubgraphAdapter);
   await fillMissingInstantPowerBalances(givPowerSubgraphAdapter);
 };
 
 /**
- * @param givPowerSubgraphAdapter subgraph adapter
+ * @param givPowerBalanceAggregator subgraph adapter
  * Fetches power balances for users whose balance has been updated since last sync
  */
 const fetchUpdatedInstantPowerBalances = async (
-  givPowerSubgraphAdapter: IGivPowerSubgraphAdapter,
+  givPowerBalanceAggregator: IGivPowerBalanceAggregator,
 ): Promise<void> => {
   logger.info('1. Fetch updated instant powers');
   // Let's save it now to sync all balances till this point
-  const [latestSubgraphIndexBlock, latestSyncedBlock] = await Promise.all([
-    givPowerSubgraphAdapter.getLatestIndexedBlockInfo(),
-    getLatestSyncedBlock(),
-  ]);
+  // const [latestSubgraphIndexBlock, latestSyncedBlock] = await Promise.all([
+  //   givPowerBalanceAggregator.getLatestIndexedBlockInfo(),
+  //   getLatestSyncedBlock(),
+  // ]);
+  let maxFetchedUpdatedAt = await getMaxFetchedUpdatedAtTimestamp();
 
-  logger.debug(`Latest subgraph indexed block: ${latestSubgraphIndexBlock}`);
-  logger.debug(`Latest synced block: ${latestSyncedBlock}`);
+  // logger.debug(`Latest subgraph indexed block: ${latestSubgraphIndexBlock}`);
+  // logger.debug(`Latest synced block: ${latestSyncedBlock}`);
 
-  // Fetch balances have been updated since last sync
   let counter = 0;
   while (true) {
     const balances =
-      await givPowerSubgraphAdapter.getUserPowerBalanceUpdatedAfterTimestamp({
-        blockNumber: latestSubgraphIndexBlock.number,
-        take: 100,
+      await givPowerBalanceAggregator.getBalancesUpdatedAfterDate({
+        date: maxFetchedUpdatedAt,
+        take: 1000,
         skip: counter,
-        timestamp: latestSyncedBlock.timestamp,
       });
-    if (Object.keys(balances).length === 0) break;
+
+    if (balances.length === 0) break;
+
+    const addressBalanceMap: Record<string, BalanceResponse> = {};
+    balances.forEach(b => {
+      addressBalanceMap[b.address.toLowerCase()] = b;
+    });
 
     const boosterUsers = await getBoosterUsersByWalletAddresses(
-      Object.keys(balances),
+      balances.map(b => b.address.toLowerCase()),
     );
     const instances = boosterUsers.map(user => {
       const walletAddress = user.walletAddress!.toLowerCase();
-      const { balance, updatedAt } = balances[walletAddress];
+      const { balance, updatedAt } = addressBalanceMap[walletAddress];
       logger.info(
         `Update user ${user.id} - ${walletAddress} instant power balance to ${balance} - updateAt ${updatedAt}`,
       );
       return {
         balance,
-        chainUpdatedAt: updatedAt,
+        balanceAggregatorUpdatedAt: updatedAt,
         userId: user.id,
       };
     });
     await saveOrUpdateInstantPowerBalances(instances);
-    counter += Object.keys(balances).length;
+    const _maxFetchedUpdatedAt = dateToTimestampMs(
+      balances[balances.length - 1].updatedAt,
+    );
+
+    if (balances.length < 1000) {
+      maxFetchedUpdatedAt = _maxFetchedUpdatedAt;
+      break;
+    } else {
+      if (_maxFetchedUpdatedAt <= maxFetchedUpdatedAt) {
+        logger.error(
+          `maxFetchedUpdatedAt is not increasing maxFetchedUpdatedAt: ${maxFetchedUpdatedAt}, _maxFetchedUpdatedAt: ${_maxFetchedUpdatedAt}`,
+        );
+        counter += balances.length;
+      } else {
+        // We will skip pagination and fetch 1000 again to avoid edge case issues
+        // https://github.com/Giveth/impact-graph/issues/1094#issue-1844862318
+        maxFetchedUpdatedAt = _maxFetchedUpdatedAt - 1;
+        counter = 0;
+      }
+    }
   }
 
   // Set synced block number to latest indexed block number
-  await setLatestSyncedBlock(latestSubgraphIndexBlock);
+  await setMaxFetchedUpdatedAtTimestamp(maxFetchedUpdatedAt);
 };
 
 /**
@@ -86,17 +114,17 @@ const fetchUpdatedInstantPowerBalances = async (
  * Fetches power balances of users who has boosted but their balances are not in db
  */
 const fillMissingInstantPowerBalances = async (
-  givPowerSubgraphAdapter: IGivPowerSubgraphAdapter,
+  givPowerSubgraphAdapter: IGivPowerBalanceAggregator,
 ): Promise<void> => {
   logger.debug('2. Fetch missing instant powers');
-  const latestSyncedBlock = await getLatestSyncedBlock();
-  if (!latestSyncedBlock.timestamp) {
-    logger.error(
-      'No latest block number found in db, cannot fetch missing balances\nAborting...',
-    );
-    return;
-  }
-
+  // const latestSyncedBlock = await getMaxFetchedUpdatedAtTimestamp();
+  // if (!latestSyncedBlock.timestamp) {
+  //   logger.error(
+  //     'No latest block number found in db, cannot fetch missing balances\nAborting...',
+  //   );
+  //   return;
+  // }
+  //
   let allUsersWithoutBalance: { id: number; walletAddress: string }[] = [];
   let counter = 0;
   while (true) {
@@ -113,19 +141,26 @@ const fillMissingInstantPowerBalances = async (
 
   for (let i = 0; i < allUsersWithoutBalance.length; i += chunkSize) {
     const chunk = allUsersWithoutBalance.slice(i, i + chunkSize);
-    const balances =
-      await givPowerSubgraphAdapter.getUserPowerBalanceAtBlockNumber({
-        blockNumber: latestSyncedBlock.number,
-        walletAddresses: chunk.map(user => user!.walletAddress.toLowerCase()),
+    const balances: BalanceResponse[] =
+      await givPowerSubgraphAdapter.getLatestBalances({
+        addresses: chunk.map(user => user!.walletAddress.toLowerCase()),
       });
-    const instances = chunk.map(item => {
-      const { balance, updatedAt } = balances[item.walletAddress];
+
+    const addressBalanceMap: Record<string, BalanceResponse> = {};
+    balances.forEach(b => {
+      addressBalanceMap[b.address.toLowerCase()] = b;
+    });
+
+    const instances: Partial<InstantPowerBalance>[] = chunk.map<
+      Partial<InstantPowerBalance>
+    >((item): Partial<InstantPowerBalance> => {
+      const { balance, updatedAt } = addressBalanceMap[item.walletAddress];
       logger.info(
         `Update user ${item.id} - ${item.walletAddress} instant power balance to ${balance} - updateAt ${updatedAt}`,
       );
       return {
         balance,
-        chainUpdatedAt: updatedAt,
+        balanceAggregatorUpdatedAt: updatedAt,
         userId: item.id,
       };
     });

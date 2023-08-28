@@ -3,32 +3,41 @@ import { redisConfig } from '../../redis';
 import { logger } from '../../utils/logger';
 import config from '../../config';
 import { schedule } from 'node-cron';
-import { getGivPowerSubgraphAdapter } from '../../adapters/adaptersFactory';
-import { getPowerBoostingSnapshotWithoutBalance } from '../../repositories/powerSnapshotRepository';
+import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory';
+import {
+  getPowerBoostingSnapshotWithoutBalance,
+  GetPowerBoostingSnapshotWithoutBalanceOutput,
+} from '../../repositories/powerSnapshotRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
+import { convertTimeStampToSeconds } from '../../utils/utils';
+import _ from 'lodash';
 
-const fillSnapshotBalanceQueue = new Bull<FillSnapShotBalanceData>(
-  'fill-snapshot-balance',
-  {
-    redis: redisConfig,
-  },
-);
+// Constants
+const FILL_SNAPSHOT_BALANCE_QUEUE_NAME = 'fill-snapshot-balance-aggregator';
 const TWO_MINUTES = 1000 * 60 * 2;
+const DEFAULT_CRON_JOB_TIME = '0 0 * * * *';
+const DEFAULT_CONCURRENT_JOB_COUNT = 1;
+
+// Queue for filling snapshot balances
+const fillSnapshotBalanceQueue = new Bull<FillSnapShotBalanceData>(
+  FILL_SNAPSHOT_BALANCE_QUEUE_NAME,
+  { redis: redisConfig },
+);
+
+// Periodically log the queue count
 setInterval(async () => {
-  const fillSnapshotBalanceQueueCount = await fillSnapshotBalanceQueue.count();
-  logger.debug(`Fill power snapshot balance queues count:`, {
-    fillSnapshotBalanceQueueCount,
-  });
+  const count = await fillSnapshotBalanceQueue.count();
+  logger.debug('Fill power snapshot balance queues count:', { count });
 }, TWO_MINUTES);
 
-const numberOfFillPowerSnapshotBAlancesConcurrentJob =
-  Number(
-    config.get('NUMBER_OF_FILLING_POWER_SNAPSHOT_BALANCE_CONCURRENT_JOB'),
-  ) || 1;
+const numberOfFillPowerSnapshotBalancesConcurrentJob = Number(
+  config.get('NUMBER_OF_FILLING_POWER_SNAPSHOT_BALANCE_CONCURRENT_JOB') ||
+    DEFAULT_CONCURRENT_JOB_COUNT,
+);
 
 const cronJobTime =
   (config.get('FILL_POWER_SNAPSHOT_BALANCE_CRONJOB_EXPRESSION') as string) ||
-  '0 0 * * * *';
+  DEFAULT_CRON_JOB_TIME;
 
 export const runFillPowerSnapshotBalanceCronJob = () => {
   logger.debug(
@@ -36,85 +45,104 @@ export const runFillPowerSnapshotBalanceCronJob = () => {
     cronJobTime,
   );
   processFillPowerSnapshotJobs();
-  // https://github.com/node-cron/node-cron#cron-syntax
+
+  // Schedule cron job to add jobs to queue
   schedule(cronJobTime, async () => {
     await addFillPowerSnapshotBalanceJobsToQueue();
   });
 };
 
 export async function addFillPowerSnapshotBalanceJobsToQueue() {
-  let offset = 0;
-  let isFinished = false;
+  const balanceAggregatorLastUpdatedTime =
+    await getPowerBalanceAggregatorAdapter().getLeastIndexedBlockTimeStamp({});
 
-  const groupByBlockNumbers: {
-    [p: number]: {
+  const groupByTimestamp: Record<
+    number,
+    {
       userId: number;
       powerSnapshotId: number;
       walletAddress: string;
-    }[];
-  } = {};
-  while (!isFinished) {
-    const powerBoostings = await getPowerBoostingSnapshotWithoutBalance(
-      100,
-      offset,
-    );
-    offset += powerBoostings.length;
-    if (powerBoostings.length === 0) {
-      isFinished = true;
-    }
+    }[]
+  > = {};
+
+  let offset = 0;
+  let powerBoostings: GetPowerBoostingSnapshotWithoutBalanceOutput[] = [];
+  const snapshotTimestampsAheadOfBalanceAggregator = new Set<number>();
+  do {
+    powerBoostings = await getPowerBoostingSnapshotWithoutBalance(100, offset);
     powerBoostings.forEach(pb => {
-      if (groupByBlockNumbers[pb.blockNumber]) {
-        groupByBlockNumbers[pb.blockNumber].push(pb);
-      } else {
-        groupByBlockNumbers[pb.blockNumber] = [pb];
+      if (pb.timestamp > balanceAggregatorLastUpdatedTime) {
+        snapshotTimestampsAheadOfBalanceAggregator.add(pb.timestamp);
+        return;
       }
+
+      const timestampInStr = String(pb.timestamp);
+      groupByTimestamp[timestampInStr] = groupByTimestamp[timestampInStr] || [];
+      groupByTimestamp[timestampInStr].push(pb);
+    });
+    offset += powerBoostings.length;
+  } while (powerBoostings.length);
+
+  // log for each item in the set
+  snapshotTimestampsAheadOfBalanceAggregator.forEach(timestamp => {
+    logger.error('The balance aggregator has not synced to snapshot point ', {
+      snapshotTime: new Date(timestamp * 1000),
+      balanceAggregatorLastUpdatedDate: new Date(
+        balanceAggregatorLastUpdatedTime * 1000,
+      ),
+    });
+  });
+
+  for (const [key, value] of Object.entries(groupByTimestamp)) {
+    const jobData = {
+      timestamp: +key,
+      data: value.map(pb => ({
+        userId: pb.userId,
+        powerSnapshotId: pb.powerSnapshotId,
+        walletAddress: pb.walletAddress.toLowerCase(),
+      })),
+    };
+    fillSnapshotBalanceQueue.add(jobData, {
+      jobId: `${FILL_SNAPSHOT_BALANCE_QUEUE_NAME}-${key}`,
     });
   }
-  logger.debug('jobs', {
-    groupByBlockNumbers: JSON.stringify(groupByBlockNumbers, null, 2),
-  });
-  Object.keys(groupByBlockNumbers).forEach(key => {
-    const chunkSize = 50;
-    const jobDataArray = groupByBlockNumbers[key];
-    for (let i = 0; i < jobDataArray.length; i += chunkSize) {
-      // Our batches length would not be greater than 50, so we convert the array to multiple chunks and add them to queue
-      const chunk = jobDataArray.slice(i, i + chunkSize);
-
-      fillSnapshotBalanceQueue.add({
-        blockNumber: Number(key),
-        data: chunk,
-      });
-    }
-  });
 }
 
 export function processFillPowerSnapshotJobs() {
-  logger.debug('processFillPowerSnapshotJobs() has been called ', {
-    numberOfFillPowerSnapshotBAlancesConcurrentJob,
-  });
   fillSnapshotBalanceQueue.process(
-    numberOfFillPowerSnapshotBAlancesConcurrentJob,
+    numberOfFillPowerSnapshotBalancesConcurrentJob,
     async (job, done) => {
-      logger.debug('processing fill powerSnapshot job', job.data);
-      const { blockNumber, data } = job.data;
       try {
-        const balances =
-          await getGivPowerSubgraphAdapter().getUserPowerBalanceAtBlockNumber({
-            blockNumber,
-            walletAddresses: data.map(user =>
-              user?.walletAddress?.toLowerCase(),
-            ),
-          });
-
-        await addOrUpdatePowerSnapshotBalances(
-          data.map(item => {
-            return {
-              balance: balances[item.walletAddress.toLowerCase()].balance,
-              powerSnapshotId: item.powerSnapshotId,
-              userId: item.userId,
-            };
-          }),
+        const { timestamp, data } = job.data;
+        const batchNumber = Number(
+          process.env.NUMBER_OF_BALANCE_AGGREGATOR_BATCH || 20,
         );
+
+        // Process in batches
+        for (let i = 0; i < Math.ceil(data.length / batchNumber); i++) {
+          const batch = data.slice(i * batchNumber, (i + 1) * batchNumber);
+          const addresses = batch.map(item => item.walletAddress);
+          const balances =
+            await getPowerBalanceAggregatorAdapter().getAddressesBalance({
+              timestamp,
+              addresses,
+            });
+
+          const groupByWalletAddress = _.groupBy(batch, item =>
+            item.walletAddress.toLowerCase(),
+          );
+
+          const snapshotBalances = balances
+            .map(balance =>
+              groupByWalletAddress[balance.address.toLowerCase()].map(item => ({
+                balance: balance.balance,
+                powerSnapshotId: item.powerSnapshotId,
+                userId: item!.userId,
+              })),
+            )
+            .flat();
+          await addOrUpdatePowerSnapshotBalances(snapshotBalances);
+        }
       } catch (e) {
         logger.error('processFillPowerSnapshotJobs >> error', e);
       } finally {
@@ -125,10 +153,10 @@ export function processFillPowerSnapshotJobs() {
 }
 
 interface FillSnapShotBalanceData {
-  blockNumber: number;
+  timestamp: number;
   data: {
-    powerSnapshotId: number;
     userId: number;
+    powerSnapshotId: number;
     walletAddress: string;
   }[];
 }

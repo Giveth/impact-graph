@@ -46,10 +46,26 @@ function projectUserInstantPowerViewTest() {
     user4 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveOrUpdateInstantPowerBalances([
-      { userId: user1.id, chainUpdatedAt: 100, balance: 1000 },
-      { userId: user2.id, chainUpdatedAt: 200, balance: 2000 },
-      { userId: user3.id, chainUpdatedAt: 300, balance: 3000 },
-      { userId: user4.id, chainUpdatedAt: 400, balance: 4000 },
+      {
+        userId: user1.id,
+        balanceAggregatorUpdatedAt: new Date(100_000),
+        balance: 1000,
+      },
+      {
+        userId: user2.id,
+        balanceAggregatorUpdatedAt: new Date(200_000),
+        balance: 2000,
+      },
+      {
+        userId: user3.id,
+        balanceAggregatorUpdatedAt: new Date(300_000),
+        balance: 3000,
+      },
+      {
+        userId: user4.id,
+        balanceAggregatorUpdatedAt: new Date(400_000),
+        balance: 4000,
+      },
     ]);
 
     await Promise.all(

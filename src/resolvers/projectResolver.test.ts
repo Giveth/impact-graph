@@ -81,7 +81,6 @@ import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
-import { findInCompletePowerSnapShots } from '../repositories/powerSnapshotRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
@@ -109,6 +108,7 @@ import {
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { logger } from '../utils/logger';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
@@ -492,8 +492,8 @@ function allProjectsTestCases() {
       percentage: 100,
     });
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -639,12 +639,12 @@ function allProjectsTestCases() {
       {
         userId: user1.id,
         balance: 10000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
       {
         userId: user2.id,
         balance: 1000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
     ]);
 
@@ -736,8 +736,8 @@ function allProjectsTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -4919,12 +4919,43 @@ function walletAddressIsPurpleListedTestCases() {
     });
     assert.isTrue(result.data.data.walletAddressIsPurpleListed);
   });
+  it('should return true if sent walletAddress is in upperCase', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress.toUpperCase(),
+      },
+    });
+    assert.isTrue(result.data.data.walletAddressIsPurpleListed);
+  });
   it('should return false if wallet address is from a nonverified project', async () => {
     const walletAddress = generateRandomEtheriumAddress();
     await saveProjectDirectlyToDb({
       ...createProjectData(),
       walletAddress,
       verified: false,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.isFalse(result.data.data.walletAddressIsPurpleListed);
+  });
+  it('should return false if wallet address is from a nonActive verified project', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+      statusId: ProjStatus.drafted,
     });
     const result = await axios.post(graphqlUrl, {
       query: walletAddressIsPurpleListed,
@@ -5127,7 +5158,7 @@ function projectUpdatesTestCases() {
       projectId: project.id,
       content: 'TestProjectUpdate1',
       title: 'testEditProjectUpdate1',
-      createdAt: new Date(),
+      createdAt: moment().add(10, 'days').toDate(),
       isMain: false,
     }).save();
     const projectUpdate2 = await ProjectUpdate.create({
@@ -5135,7 +5166,7 @@ function projectUpdatesTestCases() {
       projectId: project2.id,
       content: 'TestProjectUpdate2',
       title: 'testEditProjectUpdate2',
-      createdAt: new Date(),
+      createdAt: moment().add(11, 'days').toDate(),
       isMain: false,
     }).save();
     const projectUpdate3 = await ProjectUpdate.create({
@@ -5357,8 +5388,8 @@ function projectBySlugTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
@@ -5429,10 +5460,9 @@ function projectBySlugTestCases() {
       percentage: 40,
     });
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -5450,10 +5480,9 @@ function projectBySlugTestCases() {
     await PowerBoosting.save([boosting1, boosting2, boosting3, boosting4]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     // Set next round for filling future power rank
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
@@ -5527,10 +5556,8 @@ function projectBySlugTestCases() {
       percentage: 40,
     });
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
-
-    snapshot.blockNumber = 1;
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -5548,10 +5575,9 @@ function projectBySlugTestCases() {
     await PowerBoosting.save([boosting1, boosting2, boosting3, boosting4]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     // Set next round for filling future power rank
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
@@ -5786,12 +5812,12 @@ function projectBySlugTestCases() {
       {
         userId: user1.id,
         balance: 10000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
       {
         userId: user2.id,
         balance: 1000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
     ]);
 
