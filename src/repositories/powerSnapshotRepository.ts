@@ -1,6 +1,14 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { AppDataSource } from '../orm';
 
+export const findInCompletePowerSnapShots = async (): Promise<
+  PowerSnapshot[]
+> => {
+  return PowerSnapshot.createQueryBuilder()
+    .where('"roundNumber" IS NULL')
+    .getMany();
+};
+
 export const updatePowerSnapShots = async (params: {
   roundNumber: number;
   powerSnapshot: PowerSnapshot;
