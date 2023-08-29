@@ -85,6 +85,8 @@ export enum FilterField {
   AcceptFundOnPolygon = 'acceptFundOnPolygon',
   AcceptFundOnCelo = 'acceptFundOnCelo',
   AcceptFundOnOptimism = 'acceptFundOnOptimism',
+  AcceptFundOnGoerli = 'acceptFundOnGoerli',
+  AcceptFundOnAlfajores = 'acceptFundOnAlfajores',
   GivingBlock = 'fromGivingBlock',
   BoostedWithGivPower = 'boostedWithGivPower',
   ActiveQfRound = 'ActiveQfRound',

@@ -1117,6 +1117,76 @@ function allProjectsTestCases() {
     );
   });
 
+  it('should return projects, filter by accept donation on GOERLI', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.GOERLI,
+    })) as ProjectAddress;
+    optimismAddress.isRecipient = true;
+    await optimismAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnGoerli'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.GOERLI,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+
+  it('should return projects, filter by accept donation on ALFAJORES', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.CELO_ALFAJORES,
+    })) as ProjectAddress;
+    optimismAddress.isRecipient = true;
+    await optimismAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnAlfajores'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.CELO_ALFAJORES,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+
   it('should return projects, filter by accept donation on optimism', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),

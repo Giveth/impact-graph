@@ -495,7 +495,9 @@ export class ProjectResolver {
       (filter === FilterField.AcceptFundOnGnosis ||
         filter === FilterField.AcceptFundOnCelo ||
         filter === FilterField.AcceptFundOnPolygon ||
-        filter === FilterField.AcceptFundOnOptimism) &&
+        filter === FilterField.AcceptFundOnOptimism ||
+        filter === FilterField.AcceptFundOnGoerli ||
+        filter === FilterField.AcceptFundOnAlfajores) &&
       filterValue
     ) {
       const networkIds: number[] = [];
@@ -510,6 +512,14 @@ export class ProjectResolver {
 
       if (filter === 'acceptFundOnPolygon') {
         networkIds.push(NETWORK_IDS.POLYGON);
+      }
+
+      if (filter === 'acceptFundOnGoerli') {
+        networkIds.push(NETWORK_IDS.GOERLI);
+      }
+
+      if (filter === 'acceptFundOnAlfajores') {
+        networkIds.push(NETWORK_IDS.CELO_ALFAJORES);
       }
 
       if (filter === 'acceptFundOnOptimism') {
@@ -569,7 +579,9 @@ export class ProjectResolver {
               filter === FilterField.AcceptFundOnCelo ||
               filter === FilterField.AcceptFundOnPolygon ||
               filter === FilterField.AcceptFundOnMainnet ||
-              filter === FilterField.AcceptFundOnOptimism) &&
+              filter === FilterField.AcceptFundOnOptimism ||
+              filter === FilterField.AcceptFundOnGoerli ||
+              filter === FilterField.AcceptFundOnAlfajores) &&
             filter
           ) {
             const networkIds: number[] = [];
@@ -590,6 +602,14 @@ export class ProjectResolver {
 
             if (filter === FilterField.AcceptFundOnOptimism) {
               networkIds.push(NETWORK_IDS.OPTIMISTIC);
+            }
+
+            if (filter === FilterField.AcceptFundOnGoerli) {
+              networkIds.push(NETWORK_IDS.GOERLI);
+            }
+
+            if (filter === FilterField.AcceptFundOnAlfajores) {
+              networkIds.push(NETWORK_IDS.CELO_ALFAJORES);
             }
 
             return subQuery.andWhere(
