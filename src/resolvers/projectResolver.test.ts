@@ -977,7 +977,7 @@ function allProjectsTestCases() {
         project => Number(project.id) === Number(polygonProject.id),
       ),
     );
-    assert.isNotOk(
+    assert.isOk(
       result.data.data.allProjects.projects.find(
         project => Number(project.id) === Number(celoProject.id),
       ),
@@ -1224,17 +1224,13 @@ function allProjectsTestCases() {
     );
   });
   it('should return projects, filter by accept donation on optimism, not return when it doesnt have optimism address', async () => {
-    const savedProject = await saveProjectDirectlyToDb({
+    const gnosisProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.XDAI,
     });
-    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.OPTIMISTIC,
-    })) as ProjectAddress;
-    optimismAddress.isRecipient = false;
-    await optimismAddress.save();
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1246,14 +1242,15 @@ function allProjectsTestCases() {
       assert.isOk(
         project.addresses.find(
           address =>
-            address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.OPTIMISTIC,
+            (address.isRecipient === true &&
+              address.networkId === NETWORK_IDS.OPTIMISTIC) ||
+            address.networkId === NETWORK_IDS.OPTIMISM_GOERLI,
         ),
       );
     });
     assert.isNotOk(
       result.data.data.allProjects.projects.find(
-        project => Number(project.id) === Number(savedProject.id),
+        project => Number(project.id) === Number(gnosisProject.id),
       ),
     );
   });
