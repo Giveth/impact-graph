@@ -317,10 +317,6 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     }
     await donation.save();
 
-    // Update materialized view for project and qfRound data
-    await refreshProjectEstimatedMatchingView();
-    await refreshProjectDonationSummaryView();
-
     // ONLY verified donations should be accumulated
     // After updating, recalculate user total donated and owner total received
     await updateUserTotalDonated(donation.userId);
@@ -331,6 +327,10 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await sendSegmentEventForDonation({
       donation,
     });
+
+    // Update materialized view for project and qfRound data
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
 
     // send chainvine the referral as last step to not interrupt previous
     if (donation.referrerWallet && donation.isReferrerGivbackEligible) {
