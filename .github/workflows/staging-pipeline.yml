@@ -8,6 +8,7 @@ on:
     branches:
       - staging
 
+      
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -124,6 +125,7 @@ jobs:
   deploy:
     needs: publish
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
       - name: SSH and Redeploy
         uses: appleboy/ssh-action@v1.0.0
