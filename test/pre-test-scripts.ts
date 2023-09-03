@@ -32,6 +32,9 @@ import { CreateProjectInstantPowerView1683191367806 } from '../migration/1683191
 import { ProjectDonationSummaryView1685972291645 } from '../migration/1685972291645-ProjectDonationSummaryView';
 import { ProjectEstimatedMatchingView1685958638251 } from '../migration/1685958638251-ProjectEstimatedMatchingView';
 import { CreateProjectUserInstantPowerView1689504711172 } from '../migration/1689504711172-CreateProjectUserInstantPowerView';
+import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
+import { redis } from '../src/redis';
+import { logger } from '../src/utils/logger';
 
 async function seedDb() {
   await seedUsers();
@@ -355,36 +358,22 @@ async function runMigrations() {
   await queryRunner.connect();
 
   try {
-    const userProjectPowerView = new UserProjectPowerView1662877385339();
-    const projectPowerView = new ProjectPowerView1662915983385();
-    const lastSnapshotProjectPowerView =
-      new LastSnapshotProjectPowerView1671448387986();
-    const projectFuturePowerView = new ProjectFuturePowerView1668411738120();
-    const takeSnapshotProcedure =
-      new TakePowerBoostingSnapshotProcedure1663594895751();
-    const takeSnapshotsHistoryProcedure =
-      new createGivPowerHistoricTablesProcedure1670429143091();
-    const createProjectInstantPowerView1683191367806 =
-      new CreateProjectInstantPowerView1683191367806();
-
-    const projectDonationSummaryView =
-      new ProjectDonationSummaryView1685972291645();
-    const projectEstimatedMatchingView =
-      new ProjectEstimatedMatchingView1685958638251();
-    const createProjectUserInstantPowerView1689504711172 =
-      new CreateProjectUserInstantPowerView1689504711172();
-
-    await userProjectPowerView.up(queryRunner);
-    await projectPowerView.up(queryRunner);
-    await lastSnapshotProjectPowerView.up(queryRunner);
-    await projectFuturePowerView.up(queryRunner);
-    await takeSnapshotProcedure.up(queryRunner);
-    await takeSnapshotsHistoryProcedure.up(queryRunner);
+    await new UserProjectPowerView1662877385339().up(queryRunner);
+    await new ProjectPowerView1662915983385().up(queryRunner);
+    await new LastSnapshotProjectPowerView1671448387986().up(queryRunner);
+    await new ProjectFuturePowerView1668411738120().up(queryRunner);
+    await new TakePowerBoostingSnapshotProcedure1663594895751().up(queryRunner);
+    await new createGivPowerHistoricTablesProcedure1670429143091().up(
+      queryRunner,
+    );
     await new createOrganisatioTokenTable1646302349926().up(queryRunner);
-    await createProjectInstantPowerView1683191367806.up(queryRunner);
-    await projectDonationSummaryView.up(queryRunner);
-    await projectEstimatedMatchingView.up(queryRunner);
-    await createProjectUserInstantPowerView1689504711172.up(queryRunner);
+    await new CreateProjectInstantPowerView1683191367806().up(queryRunner);
+    await new ProjectDonationSummaryView1685972291645().up(queryRunner);
+    await new ProjectEstimatedMatchingView1685958638251().up(queryRunner);
+    await new CreateProjectUserInstantPowerView1689504711172().up(queryRunner);
+    await new TakePowerBoostingSnapshotProcedureSecondVersion1690723242749().up(
+      queryRunner,
+    );
   } catch (e) {
     throw e;
   } finally {
@@ -394,6 +383,8 @@ async function runMigrations() {
 
 before(async () => {
   try {
+    logger.debug('Clear Redis: ', await redis.flushall());
+
     await bootstrap();
     await seedDb();
     await runMigrations();

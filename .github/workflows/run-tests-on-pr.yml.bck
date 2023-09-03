@@ -1,12 +1,15 @@
-name:  develop-pipeline
+name:  run tests on pull request
 
 on:
-  push:
-    branches:
-      - develop
+  workflow_dispatch:
   pull_request:
     branches:
       - develop
+      - master
+      - staging
+    types:
+      - opened
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -43,7 +46,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 18.17.1
+          node-version: 16.14.2
       - name: Install dependencies
         run: npm ci
       - name: Run tslint
@@ -63,36 +66,3 @@ jobs:
           OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
           CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
           CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
-
-  publish:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Build image and push to GitHub Packages
-        uses: docker/build-push-action@v1
-        with:
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-          registry: ghcr.io
-          repository: giveth/impact-graph
-          add_git_labels: true
-          # Add branch name to docker image tag @see{@link https://github.com/docker/build-push-action/tree/releases/v1#tag_with_ref}
-          tag_with_ref: true
-          # Add commit hash to docker image tag @see{@link https://github.com/docker/build-push-action/tree/releases/v1#tag_with_sha}
-          tag_with_sha: true
-
-  deploy:
-    needs: publish
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    steps:
-      - name: Develop deploy
-        uses: garygrossgarten/github-action-ssh@v0.6.4
-        with:
-          command: cd impact-graph && git checkout develop && git pull &&  docker-compose -f docker-compose-develop.yml pull && docker-compose -f docker-compose-develop.yml down && docker-compose -f docker-compose-develop.yml up -d && docker image prune -a --force;
-          host: ${{ secrets.DEVELOP_HOST }}
-          username: ${{ secrets.DEVELOP_USERNAME }}
-          privateKey: ${{ secrets.DEVELOP_PRIVATE_KEY}}

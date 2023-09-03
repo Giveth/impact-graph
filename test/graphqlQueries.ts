@@ -915,6 +915,16 @@ export const fetchProjectsBySlugQuery = `
   }
 `;
 
+export const getDonationCurrencyStats = `
+  query {
+    getDonationStats {
+      currency
+      uniqueDonorCount
+      currencyPercentage
+    }
+  }
+`;
+
 export const fetchSimilarProjectsBySlugQuery = `
   query (
     $slug: String!

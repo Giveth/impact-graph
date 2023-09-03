@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { PowerBoostingSnapshot } from './powerBoostingSnapshot';
 import { PowerBalanceSnapshot } from './powerBalanceSnapshot';
+import { ColumnDateTransformer } from '../utils/entities';
 
 @Entity()
 @ObjectType()
@@ -18,7 +19,10 @@ export class PowerSnapshot extends BaseEntity {
   id: number;
 
   @Field(type => Date)
-  @Column()
+  @Column({
+    type: 'timestamp without time zone',
+    transformer: new ColumnDateTransformer(),
+  })
   @Index({ unique: true })
   time: Date;
 

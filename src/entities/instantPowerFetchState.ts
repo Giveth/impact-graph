@@ -1,5 +1,6 @@
 import { BaseEntity, Check, Column, Entity, PrimaryColumn } from 'typeorm';
 import { Field, ObjectType } from 'type-graphql';
+import { ColumnBigIntTransformer } from '../utils/entities';
 
 @Entity()
 @ObjectType()
@@ -10,10 +11,8 @@ export class InstantPowerFetchState extends BaseEntity {
   id: boolean;
 
   @Field()
-  @Column({ type: 'integer' })
-  latestBlockNumber: number;
-
-  @Field()
-  @Column({ type: 'integer' })
-  latestBlockTimestamp: number;
+  @Column('bigint', {
+    transformer: new ColumnBigIntTransformer(),
+  })
+  maxFetchedUpdateAtTimestampMS: number;
 }

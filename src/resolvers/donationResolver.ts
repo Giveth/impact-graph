@@ -181,11 +181,39 @@ class MainCategoryDonations {
   totalUsd: number;
 }
 
+@ObjectType()
+class DonationCurrencyStats {
+  @Field(type => String, { nullable: true })
+  currency?: String;
+
+  @Field(type => Int, { nullable: true })
+  uniqueDonorCount?: number;
+
+  @Field(type => Number, { nullable: true })
+  currencyPercentage?: Number;
+}
+
 @Resolver(of => User)
 export class DonationResolver {
   constructor(private readonly donationRepository: Repository<Donation>) {
     this.donationRepository =
       AppDataSource.getDataSource().getRepository(Donation);
+  }
+
+  @Query(returns => [DonationCurrencyStats])
+  async getDonationStats(): Promise<DonationCurrencyStats[]> {
+    const query = `
+      SELECT
+        currency,
+        COUNT(DISTINCT "userId") AS "uniqueDonorCount",
+        COUNT(DISTINCT "userId") * 100.0 / SUM(COUNT(DISTINCT "userId")) OVER () AS "currencyPercentage"
+      FROM public.donation
+      GROUP BY currency
+      ORDER BY currency;
+    `;
+
+    const result = await Donation.query(query);
+    return result;
   }
 
   @Query(returns => [Donation], { nullable: true })

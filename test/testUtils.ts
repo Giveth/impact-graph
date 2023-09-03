@@ -136,6 +136,7 @@ export interface CreateProjectData {
   projectUpdateCreationDate?: Date;
   verificationStatus?: string;
   image?: string;
+  networkId?: number;
 }
 
 export const saveUserDirectlyToDb = async (
@@ -226,15 +227,26 @@ export const saveProjectDirectlyToDb = async (
     adminUser: user,
   }).save();
 
-  for (const networkId of Object.values(NETWORK_IDS)) {
+  if (projectData.networkId) {
     await addNewProjectAddress({
       project,
       user,
       isRecipient: true,
       address: projectData.walletAddress,
-      networkId,
+      networkId: projectData.networkId,
     });
+  } else {
+    for (const networkId of Object.values(NETWORK_IDS)) {
+      await addNewProjectAddress({
+        project,
+        user,
+        isRecipient: true,
+        address: projectData.walletAddress,
+        networkId,
+      });
+    }
   }
+
   // default projectUpdate for liking projects
   // this was breaking updateAt tests as it was running update hooks sometime in the future.
   // Found no other way to avoid triggering the hooks.

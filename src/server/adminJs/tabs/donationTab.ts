@@ -295,6 +295,7 @@ export const exportDonationsWithFiltersToCsv = async (
   }
 };
 
+// Spreadsheet filters included
 const sendDonationsToGoogleSheet = async (
   donations: Donation[],
 ): Promise<void> => {

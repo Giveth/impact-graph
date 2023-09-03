@@ -81,10 +81,6 @@ import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../repositories/projectPowerViewRepository';
-import {
-  findInCompletePowerSnapShots,
-  insertSinglePowerBalanceSnapshot,
-} from '../repositories/powerSnapshotRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
@@ -111,6 +107,8 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -493,14 +491,14 @@ function allProjectsTestCases() {
       percentage: 100,
     });
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -640,12 +638,12 @@ function allProjectsTestCases() {
       {
         userId: user1.id,
         balance: 10000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
       {
         userId: user2.id,
         balance: 1000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
     ]);
 
@@ -737,23 +735,25 @@ function allProjectsTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: user1.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+      {
+        userId: user2.id,
+        powerSnapshotId: snapshot.id,
+        balance: 20000,
+      },
+    ]);
 
     await setPowerRound(roundNumber);
     await refreshProjectPowerView();
@@ -943,17 +943,19 @@ function allProjectsTestCases() {
   });
 
   it('should return projects, filter by accept donation on celo, not return when it doesnt have celo address', async () => {
-    const savedProject = await saveProjectDirectlyToDb({
+    const celoProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const celoAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.CELO,
-    })) as ProjectAddress;
-    celoAddress.isRecipient = false;
-    await celoAddress.save();
+    });
+    const polygonProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.POLYGON,
+    });
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -972,7 +974,12 @@ function allProjectsTestCases() {
     });
     assert.isNotOk(
       result.data.data.allProjects.projects.find(
-        project => Number(project.id) === Number(savedProject.id),
+        project => Number(project.id) === Number(polygonProject.id),
+      ),
+    );
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(celoProject.id),
       ),
     );
   });
@@ -1013,17 +1020,13 @@ function allProjectsTestCases() {
   });
 
   it('should return projects, filter by accept donation on mainnet, not return when it doesnt have mainnet address', async () => {
-    const savedProject = await saveProjectDirectlyToDb({
+    const polygonProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.POLYGON,
     });
-    const mainnetAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.MAIN_NET,
-    })) as ProjectAddress;
-    mainnetAddress.isRecipient = false;
-    await mainnetAddress.save();
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1042,7 +1045,7 @@ function allProjectsTestCases() {
     });
     assert.isNotOk(
       result.data.data.allProjects.projects.find(
-        project => Number(project.id) === Number(savedProject.id),
+        project => Number(project.id) === Number(polygonProject.id),
       ),
     );
   });
@@ -1117,6 +1120,75 @@ function allProjectsTestCases() {
     );
   });
 
+  it('should return projects, filter by accept donation on GOERLI', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
+      projectId: savedProject.id,
+      networkId: NETWORK_IDS.GOERLI,
+    })) as ProjectAddress;
+    optimismAddress.isRecipient = true;
+    await optimismAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnMainnet'],
+        sortingBy: SortingField.Newest,
+        limit: 50,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.networkId === NETWORK_IDS.GOERLI,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+
+  it('should return projects, filter by accept donation on ALFAJORES', async () => {
+    const alfajoresProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.CELO_ALFAJORES,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnCelo'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            (address.isRecipient === true &&
+              // We return both Celo and Alfajores when sending AcceptFundOnCelo filter
+              address.networkId === NETWORK_IDS.CELO_ALFAJORES) ||
+            address.networkId === NETWORK_IDS.CELO,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(alfajoresProject.id),
+      ),
+    );
+  });
+
   it('should return projects, filter by accept donation on optimism', async () => {
     const savedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -1152,17 +1224,13 @@ function allProjectsTestCases() {
     );
   });
   it('should return projects, filter by accept donation on optimism, not return when it doesnt have optimism address', async () => {
-    const savedProject = await saveProjectDirectlyToDb({
+    const gnosisProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.XDAI,
     });
-    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.OPTIMISTIC,
-    })) as ProjectAddress;
-    optimismAddress.isRecipient = false;
-    await optimismAddress.save();
+
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1174,14 +1242,15 @@ function allProjectsTestCases() {
       assert.isOk(
         project.addresses.find(
           address =>
-            address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.OPTIMISTIC,
+            (address.isRecipient === true &&
+              address.networkId === NETWORK_IDS.OPTIMISTIC) ||
+            address.networkId === NETWORK_IDS.OPTIMISM_GOERLI,
         ),
       );
     });
     assert.isNotOk(
       result.data.data.allProjects.projects.find(
-        project => Number(project.id) === Number(savedProject.id),
+        project => Number(project.id) === Number(gnosisProject.id),
       ),
     );
   });
@@ -4888,12 +4957,43 @@ function walletAddressIsPurpleListedTestCases() {
     });
     assert.isTrue(result.data.data.walletAddressIsPurpleListed);
   });
+  it('should return true if sent walletAddress is in upperCase', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress.toUpperCase(),
+      },
+    });
+    assert.isTrue(result.data.data.walletAddressIsPurpleListed);
+  });
   it('should return false if wallet address is from a nonverified project', async () => {
     const walletAddress = generateRandomEtheriumAddress();
     await saveProjectDirectlyToDb({
       ...createProjectData(),
       walletAddress,
       verified: false,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: walletAddressIsPurpleListed,
+      variables: {
+        address: walletAddress,
+      },
+    });
+    assert.isFalse(result.data.data.walletAddressIsPurpleListed);
+  });
+  it('should return false if wallet address is from a nonActive verified project', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+      statusId: ProjStatus.drafted,
     });
     const result = await axios.post(graphqlUrl, {
       query: walletAddressIsPurpleListed,
@@ -5096,7 +5196,7 @@ function projectUpdatesTestCases() {
       projectId: project.id,
       content: 'TestProjectUpdate1',
       title: 'testEditProjectUpdate1',
-      createdAt: new Date(),
+      createdAt: moment().add(10, 'days').toDate(),
       isMain: false,
     }).save();
     const projectUpdate2 = await ProjectUpdate.create({
@@ -5104,7 +5204,7 @@ function projectUpdatesTestCases() {
       projectId: project2.id,
       content: 'TestProjectUpdate2',
       title: 'testEditProjectUpdate2',
-      createdAt: new Date(),
+      createdAt: moment().add(11, 'days').toDate(),
       isMain: false,
     }).save();
     const projectUpdate3 = await ProjectUpdate.create({
@@ -5326,14 +5426,14 @@ function projectBySlugTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
     snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -5398,14 +5498,13 @@ function projectBySlugTestCases() {
       percentage: 40,
     });
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -5419,14 +5518,13 @@ function projectBySlugTestCases() {
     await PowerBoosting.save([boosting1, boosting2, boosting3, boosting4]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     // Set next round for filling future power rank
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -5496,14 +5594,12 @@ function projectBySlugTestCases() {
       percentage: 40,
     });
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
-
-    snapshot.blockNumber = 1;
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 200,
@@ -5517,14 +5613,13 @@ function projectBySlugTestCases() {
     await PowerBoosting.save([boosting1, boosting2, boosting3, boosting4]);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     // Set next round for filling future power rank
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 0,
@@ -5755,12 +5850,12 @@ function projectBySlugTestCases() {
       {
         userId: user1.id,
         balance: 10000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
       {
         userId: user2.id,
         balance: 1000,
-        chainUpdatedAt: 1000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
       },
     ]);
 

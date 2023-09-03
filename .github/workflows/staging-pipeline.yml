@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - staging
-      
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -39,20 +39,56 @@ jobs:
           --health-retries 5
         ports:
           - 5443:5432
+
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_S3_REGION }}
+
+      - name: Download latest DB backup from S3
+        run: |
+          FILENAME=$(aws s3 ls ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/ | sort | tail -n 1 | awk '{print $4}')
+          aws s3 cp ${{ secrets.AWS_S3_BUCKET_PATH_STAGING }}/$FILENAME /tmp/db_backup.zip
+
+      - name: Unzip DB backup
+        run: |
+          unzip /tmp/db_backup.zip -d /tmp
+          mv /tmp/backups/givethio-staging/*.sql /tmp/backups/givethio-staging/db_backup.sql
+
+      - name: Wait for PostgreSQL to become ready
+        run: |
+          for i in {1..10}
+          do
+            pg_isready -h localhost -p 5443 -U postgres && echo Success && break
+            echo -n .
+            sleep 1
+          done
+
+      - name: Restore DB backup
+        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
+
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 16.14.2
+          node-version: 18.17.1
+
       - name: Install dependencies
         run: npm ci
+
       - name: Run tslint
         run: npm run tslint
+
       - name: Run build
         run: npm run build
+
       - name: Run migrations
         run: npm run db:migrate:run:test
+
       - name: Run tests
         run: npm run test
         env:
@@ -88,12 +124,17 @@ jobs:
   deploy:
     needs: publish
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     steps:
-      - name: Staging deploy
-        uses: garygrossgarten/github-action-ssh@v0.6.4
+      - name: SSH and Redeploy
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          command: cd impact-graph && git checkout staging && git pull &&  docker-compose -f docker-compose-staging.yml pull && docker-compose -f docker-compose-staging.yml down && docker-compose -f docker-compose-staging.yml up -d && docker image prune -a --force;
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          privateKey: ${{ secrets.STAGING_PRIVATE_KEY}}
+          host: ${{ secrets.STAGING_HOST_ALL }}
+          username: ${{ secrets.STAGING_USERNAME_ALL }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY_ALL }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd giveth-all
+            docker-compose stop impact-graph
+            docker-compose pull impact-graph
+            docker-compose up -d impact-graph
+            docker image prune -a --force
