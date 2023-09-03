@@ -67,10 +67,9 @@ export class GivPowerBalanceAggregatorAdapter
     params: LatestBalanceInputParams,
   ): Promise<BalanceResponse[]> {
     try {
-      const response = await axios.post(
-        `${this.baseUrl}/power-balance`,
+      const response = await axios.get(`${this.baseUrl}/power-balance`, {
         params,
-      );
+      });
       return response.data.map(balance => formatResponse(balance));
     } catch (e) {
       logger.error('getLatestBalanceOfAnAddress >> error', e);
