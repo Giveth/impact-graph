@@ -5387,6 +5387,92 @@ function projectBySlugTestCases() {
     assert.isTrue(project.projectPower.totalPower > 0);
   });
 
+  it('should return projects including active campaigns', async () => {
+    const projectWithCampaign = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const projectWithoutCampaign = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const campaign = await Campaign.create({
+      isActive: true,
+      type: CampaignType.ManuallySelected,
+      slug: generateRandomString(),
+      title: 'title1',
+      description: 'description1',
+      photo: 'https://google.com',
+      relatedProjectsSlugs: [projectWithCampaign.slug as string],
+      order: 1,
+    }).save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: projectWithCampaign.slug,
+      },
+    });
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), projectWithCampaign.id);
+
+    assert.exists(project.campaigns);
+    assert.isNotEmpty(project.campaigns);
+
+    const projectWithoutCampaignResult = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: projectWithoutCampaign.slug,
+      },
+    });
+
+    const project2 = projectWithoutCampaignResult.data.data.projectBySlug;
+    assert.equal(Number(project2.id), projectWithoutCampaign.id);
+
+    assert.isEmpty(project2.campaigns);
+
+    await campaign.remove();
+  });
+
+  it('should return projects including active campaigns, even when sent slug is in the slugHistory of project', async () => {
+    const projectWithCampaign = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const previousSlug = `${String(new Date().getTime())}-previous`;
+    projectWithCampaign.slugHistory = [previousSlug];
+    await projectWithCampaign.save();
+
+    const campaign = await Campaign.create({
+      isActive: true,
+      type: CampaignType.ManuallySelected,
+      slug: generateRandomString(),
+      title: 'title1',
+      description: 'description1',
+      photo: 'https://google.com',
+      relatedProjectsSlugs: [previousSlug],
+      order: 1,
+    }).save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: previousSlug,
+      },
+    });
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), projectWithCampaign.id);
+
+    assert.exists(project.campaigns);
+    assert.isNotEmpty(project.campaigns);
+
+    await campaign.remove();
+  });
+
   it('should return projects including project future power rank', async () => {
     await AppDataSource.getDataSource().query(
       'truncate power_snapshot cascade',
