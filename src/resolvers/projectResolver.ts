@@ -486,11 +486,6 @@ export class ProjectResolver {
       return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
     }
 
-    if (filter === 'traceCampaignId') {
-      const isRequested = filterValue ? 'IS NOT' : 'IS';
-      return query.andWhere(`project.${filter} ${isRequested} NULL`);
-    }
-
     if (
       (filter === FilterField.AcceptFundOnGnosis ||
         filter === FilterField.AcceptFundOnCelo ||
@@ -923,6 +918,15 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndMapMany(
+        'project.campaigns',
+        Campaign,
+        'campaigns',
+        '(campaigns."relatedProjectsSlugs" && ARRAY[:slug]::text[] OR campaigns."relatedProjectsSlugs" && project."slugHistory") AND campaigns."isActive" = TRUE',
+        {
+          slug,
+        },
+      )
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
