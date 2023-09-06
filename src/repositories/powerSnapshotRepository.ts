@@ -1,36 +1,21 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
 
 export const findInCompletePowerSnapShots = async (): Promise<
   PowerSnapshot[]
 > => {
   return PowerSnapshot.createQueryBuilder()
-    .where('"blockNumber" IS NULL')
+    .where('"roundNumber" IS NULL')
     .getMany();
 };
 
 export const updatePowerSnapShots = async (params: {
-  blockNumber: number;
   roundNumber: number;
   powerSnapshot: PowerSnapshot;
 }): Promise<void> => {
-  const { blockNumber, roundNumber, powerSnapshot } = params;
-  powerSnapshot.blockNumber = blockNumber;
+  const { roundNumber, powerSnapshot } = params;
   powerSnapshot.roundNumber = roundNumber;
   await powerSnapshot.save();
-};
-
-export const insertSinglePowerBalanceSnapshot = async (
-  param: Pick<PowerBalanceSnapshot, 'userId' | 'powerSnapshotId' | 'balance'>,
-) => {
-  const { userId, powerSnapshotId, balance } = param;
-  return PowerBalanceSnapshot.create({
-    userId,
-    powerSnapshotId,
-    balance,
-  }).save();
 };
 
 export const findPowerSnapshots = async (
@@ -54,32 +39,24 @@ export const findPowerSnapshots = async (
   return query.take(take).skip(skip).getManyAndCount();
 };
 
+export interface GetPowerBoostingSnapshotWithoutBalanceOutput {
+  userId: number;
+  timestamp: number;
+  powerSnapshotId: number;
+  walletAddress: string;
+}
 export const getPowerBoostingSnapshotWithoutBalance = async (
   limit = 50,
   offset = 0,
-): Promise<
-  {
-    userId: number;
-    powerSnapshotId: number;
-    blockNumber: number;
-    walletAddress: string;
-  }[]
-> => {
-  logger.info('getPowerBoostingSnapshotWithoutBalance()', { limit, offset });
+): Promise<GetPowerBoostingSnapshotWithoutBalanceOutput[]> => {
   return await AppDataSource.getDataSource().query(
     `
-        select "userId", "powerSnapshotId", "blockNumber","walletAddress"
-        from (select DISTINCT "powerSnapshotId", "userId" from power_boosting_snapshot) as boosting
+        select "userId", "powerSnapshotId", "walletAddress", floor(extract (epoch  from "time" AT TIME ZONE 'UTC')) as "timestamp"
+        from public."power_balance_snapshot" as balanceSnapshot
         inner join public."user" as "user" on  "userId"= "user".id
-        inner join power_snapshot as "snapshot" on boosting."powerSnapshotId" = snapshot.id
-        where snapshot."blockNumber" is not NULL
-        and not exists (
-          select
-          from power_balance_snapshot as "balance"
-          where balance."powerSnapshotId" = boosting."powerSnapshotId" and
-          balance."userId" = boosting."userId"
-        )
-        order by "blockNumber" ASC
+        inner join power_snapshot as "snapshot" on balanceSnapshot."powerSnapshotId" = snapshot.id
+        where balanceSnapshot.balance is null
+        order by "powerSnapshotId", "userId" 
         LIMIT $1
         OFFSET $2
   `,
@@ -92,19 +69,11 @@ export const updatePowerSnapshotSyncedFlag = async (): Promise<number> => {
     `
         update power_snapshot as "snapshot" set synced = true
         where
-        "snapshot"."blockNumber" is not NULL and
         "snapshot"."synced" is not true and
         not exists (
-          select "userId", "powerSnapshotId", "blockNumber","walletAddress"
-          from (select DISTINCT "powerSnapshotId", "userId" from power_boosting_snapshot) as boosting
-          inner join public."user" as "user" on  "userId"= "user".id
-          where boosting."powerSnapshotId" = snapshot.id
-          and not exists (
-              select
-              from power_balance_snapshot as "balance"
-              where balance."powerSnapshotId" = boosting."powerSnapshotId" and
-              balance."userId" = boosting."userId"
-            )
+          select id
+          from power_balance_snapshot
+          where "powerSnapshotId" = snapshot.id and "balance" is null
         )`,
   );
   return result[1];

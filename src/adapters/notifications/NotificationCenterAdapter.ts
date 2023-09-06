@@ -20,6 +20,7 @@ import {
   findAllUsers,
   findUsersWhoSupportProject,
 } from '../../repositories/userRepository';
+import { buildProjectLink } from './NotificationCenterUtils';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -928,6 +929,7 @@ const sendProjectRelatedNotification = async (params: {
   const { project, eventName, metadata, user, segment, sendEmail, trackId } =
     params;
   const receivedUser = user || (project.adminUser as User);
+  const projectLink = buildProjectLink(eventName, project.slug);
   const data: SendNotificationBody = {
     eventName,
     email: receivedUser.email,
@@ -937,7 +939,7 @@ const sendProjectRelatedNotification = async (params: {
     projectId: String(project.id),
     metadata: {
       projectTitle: project.title,
-      projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
+      projectLink,
       ...metadata,
     },
     segment,

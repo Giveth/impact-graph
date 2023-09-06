@@ -14,7 +14,6 @@ import {
   ImageUpload,
   UpdateProjectInput,
 } from './types/project-input';
-import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
@@ -487,14 +486,10 @@ export class ProjectResolver {
       return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
     }
 
-    if (filter === 'traceCampaignId') {
-      const isRequested = filterValue ? 'IS NOT' : 'IS';
-      return query.andWhere(`project.${filter} ${isRequested} NULL`);
-    }
-
     if (
       (filter === FilterField.AcceptFundOnGnosis ||
         filter === FilterField.AcceptFundOnCelo ||
+        filter === FilterField.AcceptFundOnMainnet ||
         filter === FilterField.AcceptFundOnPolygon ||
         filter === FilterField.AcceptFundOnOptimism) &&
       filterValue
@@ -536,53 +531,79 @@ export class ProjectResolver {
 
   static addFiltersQuery(
     query: SelectQueryBuilder<Project>,
-    filtersArray: FilterField[] = [],
+    allFiltersArray: FilterField[] = [],
   ) {
-    if (!filtersArray || filtersArray.length === 0) return query;
-    query = query.andWhere(
-      new Brackets(subQuery => {
-        filtersArray.forEach(filter => {
-          if (filter === FilterField.AcceptGiv) {
-            // only giving Blocks do not accept Giv
-            return subQuery.andWhere(`project.${filter} IS NULL`);
-          }
+    if (!allFiltersArray || allFiltersArray.length === 0) return query;
+    const networkFiltersArray: FilterField[] = [];
+    const otherFiltersArray: FilterField[] = [];
+    allFiltersArray.forEach(filter => {
+      if (
+        filter === FilterField.AcceptFundOnGnosis ||
+        filter === FilterField.AcceptFundOnCelo ||
+        filter === FilterField.AcceptFundOnPolygon ||
+        filter === FilterField.AcceptFundOnMainnet ||
+        filter === FilterField.AcceptFundOnOptimism
+      ) {
+        networkFiltersArray.push(filter);
+      } else {
+        otherFiltersArray.push(filter);
+      }
+    });
 
-          if (filter === FilterField.GivingBlock) {
-            return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
-          }
+    // Other filters
+    if (otherFiltersArray.length > 0) {
+      query = query.andWhere(
+        new Brackets(subQuery => {
+          otherFiltersArray.forEach(filter => {
+            if (filter === FilterField.AcceptGiv) {
+              // only giving Blocks do not accept Giv
+              return subQuery.andWhere(`project.${filter} IS NULL`);
+            }
 
-          if (filter === FilterField.BoostedWithGivPower) {
-            return subQuery.andWhere(`projectPower.totalPower > 0`);
-          }
-          if (filter === FilterField.ActiveQfRound) {
-            return subQuery.andWhere(
-              `EXISTS (
+            if (filter === FilterField.GivingBlock) {
+              return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
+            }
+
+            if (filter === FilterField.BoostedWithGivPower) {
+              return subQuery.andWhere(`projectPower.totalPower > 0`);
+            }
+            if (filter === FilterField.ActiveQfRound) {
+              return subQuery.andWhere(
+                `EXISTS (
                         SELECT 1
                         FROM project_qf_rounds_qf_round
                         INNER JOIN qf_round on qf_round.id = project_qf_rounds_qf_round."qfRoundId"
                         WHERE project_qf_rounds_qf_round."projectId" = project.id AND qf_round."isActive" = true
                 )`,
-            );
-          }
+              );
+            }
+            return subQuery.andWhere(`project.${filter} = true`);
+          });
+        }),
+      );
+    }
 
-          if (
-            (filter === FilterField.AcceptFundOnGnosis ||
-              filter === FilterField.AcceptFundOnCelo ||
-              filter === FilterField.AcceptFundOnPolygon ||
-              filter === FilterField.AcceptFundOnMainnet ||
-              filter === FilterField.AcceptFundOnOptimism) &&
-            filter
-          ) {
-            const networkIds: number[] = [];
+    // Network filters
+    if (networkFiltersArray.length > 0) {
+      query = query.andWhere(
+        new Brackets(subQuery => {
+          const networkIds: number[] = [];
+          networkFiltersArray.forEach(filter => {
             if (filter === FilterField.AcceptFundOnGnosis) {
               networkIds.push(NETWORK_IDS.XDAI);
             }
             if (filter === FilterField.AcceptFundOnMainnet) {
               networkIds.push(NETWORK_IDS.MAIN_NET);
+
+              // Add this to make sure works on Staging
+              networkIds.push(NETWORK_IDS.GOERLI);
             }
 
             if (filter === FilterField.AcceptFundOnCelo) {
               networkIds.push(NETWORK_IDS.CELO);
+
+              // Add this to make sure works on Staging
+              networkIds.push(NETWORK_IDS.CELO_ALFAJORES);
             }
 
             if (filter === FilterField.AcceptFundOnPolygon) {
@@ -591,24 +612,24 @@ export class ProjectResolver {
 
             if (filter === FilterField.AcceptFundOnOptimism) {
               networkIds.push(NETWORK_IDS.OPTIMISTIC);
-            }
 
-            return subQuery.andWhere(
-              `EXISTS (
+              // Add this to make sure works on Staging
+              networkIds.push(NETWORK_IDS.OPTIMISM_GOERLI);
+            }
+          });
+
+          return subQuery.andWhere(
+            `EXISTS (
                         SELECT *
                         FROM project_address
                         WHERE "isRecipient" = true AND "networkId" IN (${networkIds.join(
                           ', ',
                         )}) AND "projectId" = project.id
                       )`,
-            );
-          }
-
-          return subQuery.andWhere(`project.${filter} = true`);
-        });
-      }),
-    );
-
+          );
+        }),
+      );
+    }
     return query;
   }
 
@@ -897,6 +918,15 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndMapMany(
+        'project.campaigns',
+        Campaign,
+        'campaigns',
+        '(campaigns."relatedProjectsSlugs" && ARRAY[:slug]::text[] OR campaigns."relatedProjectsSlugs" && project."slugHistory") AND campaigns."isActive" = TRUE',
+        {
+          slug,
+        },
+      )
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
@@ -1176,7 +1206,6 @@ export class ProjectResolver {
   async createProject(
     @Arg('project') projectInput: CreateProjectInput,
     @Ctx() ctx: ApolloContext,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx);
     const { image, description } = projectInput;
@@ -1799,17 +1828,12 @@ export class ProjectResolver {
   ): Promise<ProjectUpdatesResponse> {
     const latestProjectUpdates = await ProjectUpdate.query(`
       SELECT pu.id, pu."projectId"
-      FROM project_update as pu
-      WHERE pu.id = (
-        SELECT puu.id
-        FROM project_update as puu
-        WHERE puu."isMain" = false AND pu."projectId" = puu."projectId"
-        ORDER BY puu."createdAt" DESC
-        LIMIT 1
-      )
-      ORDER BY pu."createdAt" DESC
+      FROM public.project_update AS pu
+      WHERE pu."isMain" = false
+      GROUP BY pu."projectId", pu.id
+      ORDER BY MAX(pu."createdAt") DESC
       LIMIT ${take}
-      OFFSET ${skip}
+      OFFSET ${skip};
     `);
 
     // When using distinctOn with joins and orderBy, typeorm threw errors
@@ -1824,7 +1848,7 @@ export class ProjectResolver {
       .where('projectUpdate.id IN (:...ids)', {
         ids: latestProjectUpdates.map(p => p.id),
       })
-      .orderBy('projectUpdate.id', 'DESC');
+      .orderBy('projectUpdate.createdAt', 'DESC');
 
     if (user && user?.userId)
       query = ProjectResolver.addReactionToProjectsUpdateQuery(

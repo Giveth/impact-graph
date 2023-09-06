@@ -28,9 +28,9 @@ import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { setPowerRound } from './powerRoundRepository';
 import { PowerSnapshotHistory } from '../entities/powerSnapshotHistory';
 import { PowerBoostingSnapshotHistory } from '../entities/powerBoostingSnapshotHistory';
-import { insertSinglePowerBalanceSnapshot } from './powerSnapshotRepository';
 import { PowerBalanceSnapshotHistory } from '../entities/powerBalanceSnapshotHistory';
 import { AppDataSource } from '../orm';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
 
 describe(
   'db cron job historic procedures tests cases',
@@ -67,7 +67,7 @@ function givPowerHistoricTestCases() {
     roundOneSnapshot!.roundNumber = 1;
     await roundOneSnapshot!.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: roundOneSnapshot!.id,
       balance: 20000,
@@ -88,7 +88,7 @@ function givPowerHistoricTestCases() {
     roundTwoSnapshot!.roundNumber = 5;
     await roundTwoSnapshot!.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: roundTwoSnapshot!.id,
       balance: 25000,
@@ -107,7 +107,7 @@ function givPowerHistoricTestCases() {
     roundThreeSnapshot!.roundNumber = 5;
     await roundThreeSnapshot!.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: roundThreeSnapshot!.id,
       balance: 25000,

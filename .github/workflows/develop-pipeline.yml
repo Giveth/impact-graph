@@ -1,7 +1,12 @@
-name:  CI/CD
+name:  develop-pipeline
 
-on: [push]
-
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -38,7 +43,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 16.14.2
+          node-version: 18.17.1
       - name: Install dependencies
         run: npm ci
       - name: Run tslint
@@ -60,9 +65,9 @@ jobs:
           CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
 
   publish:
-    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/staging'
     needs: test
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -80,33 +85,14 @@ jobs:
           tag_with_sha: true
 
   deploy:
-    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'|| github.ref == 'refs/heads/staging'
     needs: publish
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
-      - name: Staging deploy
-        if: github.ref == 'refs/heads/staging'
-        uses: garygrossgarten/github-action-ssh@v0.6.4
-        with:
-          command: cd impact-graph && git checkout staging && git pull &&  docker-compose -f docker-compose-staging.yml pull && docker-compose -f docker-compose-staging.yml down && docker-compose -f docker-compose-staging.yml up -d && docker image prune -a --force;
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          privateKey: ${{ secrets.STAGING_PRIVATE_KEY}}
-
       - name: Develop deploy
-        if: github.ref == 'refs/heads/develop'
         uses: garygrossgarten/github-action-ssh@v0.6.4
         with:
           command: cd impact-graph && git checkout develop && git pull &&  docker-compose -f docker-compose-develop.yml pull && docker-compose -f docker-compose-develop.yml down && docker-compose -f docker-compose-develop.yml up -d && docker image prune -a --force;
           host: ${{ secrets.DEVELOP_HOST }}
           username: ${{ secrets.DEVELOP_USERNAME }}
           privateKey: ${{ secrets.DEVELOP_PRIVATE_KEY}}
-
-      - name: Production deploy
-        if: github.ref == 'refs/heads/master'
-        uses: garygrossgarten/github-action-ssh@v0.6.4
-        with:
-          command: cd impact-graph && git checkout master && git pull &&  docker-compose -f docker-compose-production.yml pull && docker-compose -f docker-compose-production.yml down && docker-compose -f docker-compose-production.yml up -d && docker image prune -a --force;
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USERNAME }}
-          privateKey: ${{ secrets.PRODUCTION_PRIVATE_KEY}}

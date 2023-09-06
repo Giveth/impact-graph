@@ -806,6 +806,24 @@ export const fetchProjectsBySlugQuery = `
       listed
       reviewStatus
       givingBlocksId
+      campaigns {
+        id
+        title
+        description
+        type
+        photo
+        video
+        videoPreview
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
+      
+      }
       givbackFactor
       projectPower {
         totalPower
@@ -911,6 +929,16 @@ export const fetchProjectsBySlugQuery = `
       totalReactions
       totalDonations
       totalTraceDonations
+    }
+  }
+`;
+
+export const getDonationCurrencyStats = `
+  query {
+    getDonationStats {
+      currency
+      uniqueDonorCount
+      currencyPercentage
     }
   }
 `;

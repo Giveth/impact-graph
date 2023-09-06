@@ -2,7 +2,6 @@ import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { logger } from '../utils/logger';
 import { AppDataSource } from '../orm';
 import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
-import { BlockInfo } from '../adapters/givpowerSubgraph/IGivPowerSubgraphAdapter';
 import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView';
 
 export const saveOrUpdateInstantPowerBalances = async (
@@ -26,10 +25,11 @@ export const saveOrUpdateInstantPowerBalances = async (
       .insert()
       .into(InstantPowerBalance)
       .values(Object.values(userIdInstanceDic))
-      .orUpdate(['balance', 'chainUpdatedAt'], ['userId'])
+      .orUpdate(['balance', 'balanceAggregatorUpdatedAt'], ['userId'])
       .execute();
   } catch (e) {
     logger.error('saveOrUpdateInstantPowerBalances error', e);
+    throw e;
   }
 };
 
@@ -62,20 +62,18 @@ export const getUsersBoostedWithoutInstanceBalance = async (
  * Sets the latest block number that instant power balances were fetched from subgraph
  * @param blockInfo {BlockInfo} block number and timestamp
  */
-export const setLatestSyncedBlock = async (
-  blockInfo: BlockInfo,
+export const setMaxFetchedUpdatedAtTimestamp = async (
+  timestampMs: number,
 ): Promise<InstantPowerFetchState> => {
   let state = await InstantPowerFetchState.findOne({ where: {} });
 
   if (!state) {
     state = InstantPowerFetchState.create({
       id: true,
-      latestBlockNumber: blockInfo.number,
-      latestBlockTimestamp: blockInfo.timestamp,
+      maxFetchedUpdateAtTimestampMS: timestampMs,
     });
   } else {
-    state.latestBlockNumber = blockInfo.number;
-    state.latestBlockTimestamp = blockInfo.timestamp;
+    state.maxFetchedUpdateAtTimestampMS = timestampMs;
   }
   return state.save();
 };
@@ -84,13 +82,10 @@ export const setLatestSyncedBlock = async (
  * Returns the latest block number that instant power balances were fetched from subgraph
  * @returns {Promise<number>}
  */
-export const getLatestSyncedBlock = async (): Promise<BlockInfo> => {
+export const getMaxFetchedUpdatedAtTimestamp = async (): Promise<number> => {
   const state = await InstantPowerFetchState.findOne({ where: {} });
 
-  return {
-    number: state?.latestBlockNumber || 0,
-    timestamp: state?.latestBlockTimestamp || 0,
-  };
+  return state?.maxFetchedUpdateAtTimestampMS || 0;
 };
 
 export const refreshProjectInstantPowerView = async (): Promise<void> => {
