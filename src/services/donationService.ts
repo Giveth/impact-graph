@@ -323,7 +323,8 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
 
     // After updating price we update totalDonations
     await updateTotalDonationsOfProject(donation.projectId);
-    await updateUserTotalReceived(donation.userId);
+    const project = await findProjectById(donation.projectId);
+    await updateUserTotalReceived(project!.adminUser.id);
     await sendSegmentEventForDonation({
       donation,
     });
