@@ -32,6 +32,7 @@ function authorizationHandlerTestCases() {
     const accessToken = await generateTestAccessToken(user.id);
     const jwtUser = await authorizationHandler('1', accessToken);
     assert.equal(jwtUser.userId, user.id);
+    await User.delete(user.id);
   });
   it('should decode user jwt with the auth microservice', async () => {
     const privateKey = process.env.PRIVATE_ETHERS_TEST_KEY as string;
@@ -73,6 +74,7 @@ function authorizationHandlerTestCases() {
     const accessToken = authenticationResult.data.jwt;
     const jwtUser = await authorizationHandler('2', accessToken);
     assert.equal(jwtUser.userId, user.id);
+    await User.delete(user.id);
   });
   it('should decode jwt and create user if it is nonexistent', async () => {
     const privateKey = process.env.PRIVATE_ETHERS_SECONDARY_TEST_KEY as string;
@@ -109,5 +111,7 @@ function authorizationHandlerTestCases() {
     const user = await findUserByWalletAddress(publicKey);
     assert.equal(jwtUser.userId, user!.id);
     assert.equal(user!.walletAddress, publicKey.toLowerCase());
+
+    await User.delete(user!.id);
   });
 }
