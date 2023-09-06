@@ -12,6 +12,7 @@ import {
   createDonationData,
   createProjectData,
   DONATION_SEED_DATA,
+  generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -79,10 +80,16 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       timestamp: 1661114988,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      walletAddress: transactionInfo.toAddress,
-    });
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      {
+        ...createProjectData(),
+        walletAddress: transactionInfo.toAddress,
+      },
+      projectOwner,
+    );
     const donation = await saveDonationDirectlyToDb(
       {
         amount: transactionInfo.amount,
@@ -110,8 +117,8 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     const donor = await findUserById(user.id);
     assert.equal(donor?.totalDonated, 100);
 
-    const projectOwnerUser = await findUserById(project.adminUser.id);
-    assert.equal(projectOwnerUser?.totalReceived, 100);
+    const updatedProjectOwner = await findUserById(projectOwner.id);
+    assert.equal(updatedProjectOwner?.totalReceived, 100);
   });
 
   it('should verify a Polygon donation', async () => {
