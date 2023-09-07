@@ -79,14 +79,6 @@ export const getQfRoundTotalProjectsDonationsSum = async (
   sum: number;
   contributorsCount: number;
 }> => {
-  const query = `
-    SELECT
-      SUM("sqrtRootSumSquared") as "sum",
-      SUM("donorsCount") as "contributorsCount"
-    FROM project_estimated_matching_view
-    WHERE "qfRoundId" = $1;
-  `;
-
   const result = await AppDataSource.getDataSource()
     .createQueryBuilder()
     .select(`SUM("sqrtRootSumSquared")`, 'sum')
