@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType, Int } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -36,6 +36,10 @@ export class QfRound extends BaseEntity {
   @Column()
   minimumPassportScore: number;
 
+  @Field(type => [Int], { nullable: true }) // Define the new field as an array of integers
+  @Column('integer', { array: true, default: [] })
+  eligibleNetworks: number[];
+
   @Field(type => Date)
   @Column()
   beginDate: Date;
@@ -52,4 +56,12 @@ export class QfRound extends BaseEntity {
 
   @ManyToMany(type => Project, project => project.qfRounds)
   projects: Project[];
+
+  // only projects with status active can be listed automatically
+  isEligibleNetwork(donationNetworkId: number): Boolean {
+    // when not specified, all are valid
+    if (this.eligibleNetworks.length === 0) return true;
+
+    return this.eligibleNetworks.includes(donationNetworkId);
+  }
 }

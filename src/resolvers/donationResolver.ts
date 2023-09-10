@@ -727,7 +727,10 @@ export class DonationResolver {
       const activeQfRoundForProject = await relatedActiveQfRoundForProject(
         projectId,
       );
-      if (activeQfRoundForProject) {
+      if (
+        activeQfRoundForProject &&
+        activeQfRoundForProject.isEligibleNetwork(Number(transactionNetworkId))
+      ) {
         donation.qfRound = activeQfRoundForProject;
       }
       await donation.save();
