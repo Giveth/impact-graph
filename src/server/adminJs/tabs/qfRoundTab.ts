@@ -70,6 +70,10 @@ export const qfRoundTab = {
       minimumPassportScore: {
         isVisible: true,
       },
+      eligibleNetworks: {
+        isVisible: true,
+        type: 'array',
+      },
       projects: {
         type: 'mixed',
         isVisible: {
