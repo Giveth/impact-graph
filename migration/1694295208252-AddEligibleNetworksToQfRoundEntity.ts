@@ -5,7 +5,7 @@ export class AddEligibleNetworksToQfRoundEntity1694295208252
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            ALTER TABLE "qf_round"
+            ALTER TABLE public.qf_round
             ADD COLUMN IF NOT EXIST "eligibleNetworks" integer array DEFAULT ARRAY[]::integer[]
         `);
   }

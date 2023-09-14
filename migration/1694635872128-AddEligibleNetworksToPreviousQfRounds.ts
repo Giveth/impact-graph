@@ -16,7 +16,7 @@ export class AddEligibleNetworksToPreviousQfRounds1694635872128
     // Update the "qf_round" table with the new eligibleNetworks values
     await queryRunner.query(
       `
-            UPDATE "qf_round"
+            UPDATE public.qf_round
             SET eligibleNetworks = $1
         `,
       [eligibleNetworks],
@@ -25,7 +25,7 @@ export class AddEligibleNetworksToPreviousQfRounds1694635872128
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            UPDATE "qf_round"
+            UPDATE public.qf_round
             SET eligibleNetworks = '{}'
         `);
   }
