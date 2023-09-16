@@ -18,6 +18,8 @@ import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsS
 import { AppDataSource } from '../orm';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 import { logger } from '../utils/logger';
+import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
+import { addressHasDonated } from '../repositories/donationRepository';
 
 @Resolver(of => User)
 export class UserResolver {
@@ -27,6 +29,14 @@ export class UserResolver {
 
   async create(@Arg('data', () => RegisterInput) data: any) {
     // return User.create(data).save();
+  }
+
+  @Query(returns => Boolean)
+  async walletAddressUsed(@Arg('address') address: string): Promise<Boolean> {
+    return (
+      (await isWalletAddressInPurpleList(address)) ||
+      (await addressHasDonated(address))
+    );
   }
 
   @Query(returns => UserByAddressResponse, { nullable: true })
