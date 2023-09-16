@@ -26,6 +26,19 @@ export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   `);
 };
 
+export const addressHasDonated = async (address: string) => {
+  const projectAddress = await Donation.query(
+    `
+          SELECT "id"
+          FROM donation
+          where lower("fromWalletAddress") = $1
+          limit 1
+    `,
+    [address.toLowerCase()],
+  );
+  return projectAddress.length > 0;
+};
+
 export const createDonation = async (data: {
   amount: number;
   project: Project;
