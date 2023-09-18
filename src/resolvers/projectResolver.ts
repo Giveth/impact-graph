@@ -812,7 +812,7 @@ export class ProjectResolver {
 
     const categories = await categoriesResolver;
 
-    return { projects, totalCount: 0, categories, campaign };
+    return { projects, totalCount, categories, campaign };
   }
 
   @Query(returns => TopProjects)

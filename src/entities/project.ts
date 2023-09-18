@@ -126,11 +126,11 @@ export enum ReviewStatus {
 @Entity()
 @ObjectType()
 export class Project extends BaseEntity {
-  @Field(type => ID, { nullable: true })
+  @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field({ nullable: true })
+  @Field()
   @Column()
   title: string;
 

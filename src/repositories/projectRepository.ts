@@ -130,9 +130,9 @@ export const filterProjectsQuery = async (
       .getQuery();
 
     query = query.leftJoin(
-      `(${subquery})`,
-      'donation',
-      'project.id = donation."projectId"',
+      '(' + subquery + ')',
+      'donationSummary',
+      'project.id = donationSummary."projectId"',
     );
 
     // query = query
