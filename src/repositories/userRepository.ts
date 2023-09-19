@@ -52,7 +52,7 @@ export const findUserByWalletAddress = async (
 
   user.projectsCount = await fetchUserProjectsCount(
     user!.id,
-    user?.id === ownerUserId,
+    Number(user?.id) === Number(ownerUserId),
   );
 
   return user;
