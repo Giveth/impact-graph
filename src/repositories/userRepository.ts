@@ -36,7 +36,6 @@ export const isFirstTimeDonor = async (userId: number): Promise<boolean> => {
 export const findUserByWalletAddress = async (
   walletAddress: string,
   includeSensitiveFields = true,
-  ownerUserId?: number,
 ): Promise<User | null> => {
   const query = User.createQueryBuilder('user').where(
     `LOWER("walletAddress") = :walletAddress`,
@@ -52,7 +51,7 @@ export const findUserByWalletAddress = async (
 
   user.projectsCount = await fetchUserProjectsCount(
     user!.id,
-    Number(user?.id) === Number(ownerUserId),
+    includeSensitiveFields,
   );
 
   return user;
@@ -60,14 +59,14 @@ export const findUserByWalletAddress = async (
 
 export const fetchUserProjectsCount = async (
   userId: number,
-  ownerViewing: boolean,
+  includeSensitiveFields: boolean,
 ) => {
   const projectsCount = Project.createQueryBuilder('project').where(
     'project."adminUserId" = :id',
     { id: userId },
   );
 
-  if (!ownerViewing) {
+  if (!includeSensitiveFields) {
     projectsCount.andWhere(
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
