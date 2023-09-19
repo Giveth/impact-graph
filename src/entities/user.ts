@@ -183,13 +183,7 @@ export class User extends BaseEntity {
   createdAt: Date;
 
   @Field(type => Int, { nullable: true })
-  async projectsCount() {
-    const projectsCount = await Project.createQueryBuilder('project')
-      .where('project."admin" = :id', { id: String(this.id) })
-      .getCount();
-
-    return projectsCount;
-  }
+  projectsCount?: number;
 
   @Field(type => Int, { nullable: true })
   async donationsCount() {
@@ -215,6 +209,7 @@ export class User extends BaseEntity {
 
     return likedProjectsCount;
   }
+
   @Field(type => Int, { nullable: true })
   async boostedProjectsCount() {
     return findPowerBoostingsCountByUserId(this.id);

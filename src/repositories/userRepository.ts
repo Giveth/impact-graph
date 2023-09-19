@@ -3,6 +3,7 @@ import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsS
 import { Donation } from '../entities/donation';
 import { Reaction } from '../entities/reaction';
 import { PowerBoosting } from '../entities/powerBoosting';
+import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 
 export const findAdminUserByEmail = async (
   email: string,
@@ -35,6 +36,7 @@ export const isFirstTimeDonor = async (userId: number): Promise<boolean> => {
 export const findUserByWalletAddress = async (
   walletAddress: string,
   includeSensitiveFields = true,
+  ownerUserId?: number,
 ): Promise<User | null> => {
   const query = User.createQueryBuilder('user').where(
     `LOWER("walletAddress") = :walletAddress`,
@@ -45,8 +47,34 @@ export const findUserByWalletAddress = async (
   if (!includeSensitiveFields) {
     query.select(publicSelectionFields);
   }
+  const user = await query.getOne();
+  if (!user) return null;
 
-  return query.getOne();
+  user.projectsCount = await fetchUserProjectsCount(
+    user!.id,
+    user?.id === ownerUserId,
+  );
+
+  return user;
+};
+
+export const fetchUserProjectsCount = async (
+  userId: number,
+  ownerViewing: boolean,
+) => {
+  const projectsCount = Project.createQueryBuilder('project').where(
+    'project."adminUserId" = :id',
+    { id: userId },
+  );
+
+  if (!ownerViewing) {
+    projectsCount.andWhere(
+      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+      { reviewStatus: ReviewStatus.Listed },
+    );
+  }
+
+  return projectsCount.getCount();
 };
 
 export const findUserById = (userId: number): Promise<User | null> => {

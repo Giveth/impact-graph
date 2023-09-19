@@ -66,6 +66,7 @@ export class UserResolver {
     const foundUser = await findUserByWalletAddress(
       address,
       includeSensitiveFields,
+      user?.userId,
     );
     return {
       isSignedIn: Boolean(user),
@@ -83,6 +84,7 @@ export class UserResolver {
     const foundUser = await findUserByWalletAddress(
       address,
       includeSensitiveFields,
+      user?.userId,
     );
 
     if (!foundUser) return;
