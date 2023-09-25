@@ -91,6 +91,10 @@ export const checkProjectVerificationStatus = async () => {
   const projects = await projectsWithoutUpdateAfterTimeFrame(
     maxDaysForSendingUpdateReminder,
   );
+  logger.debug('checkProjectVerificationStatus()', {
+    maxDaysForSendingUpdateReminder,
+    foundProjectsCount: projects?.length,
+  });
 
   // Run all iterations async, resulting in array of promises
   await Promise.all(projects.map(remindUpdatesOrRevokeVerification));
@@ -150,6 +154,11 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   }
 
   await project.save();
+  logger.debug('remindUpdatesOrRevokeVerification() save project', {
+    projectId: project.id,
+    slug: project.slug,
+    verificationStatus: project.verificationStatus,
+  });
 
   // draft the verification form to allow reapply
   if (
@@ -180,6 +189,11 @@ const sendProperNotification = (
   project: Project,
   projectVerificationStatus: string,
 ) => {
+  logger.debug('sendProperNotification()', {
+    projectId: project.id,
+    slug: project.slug,
+    verificationStatus: project.verificationStatus,
+  });
   switch (projectVerificationStatus) {
     case RevokeSteps.Reminder:
       return getNotificationAdapter().projectBadgeRevokeReminder({ project });
