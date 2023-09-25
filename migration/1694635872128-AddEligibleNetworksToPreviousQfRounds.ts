@@ -13,20 +13,20 @@ export class AddEligibleNetworksToPreviousQfRounds1694635872128
         ? [1, 3, 5, 100, 137, 10, 420, 56, 42220, 44787] // Include testnets for staging
         : [1, 137, 56, 42220, 100, 10]; // Exclude testnets for non-staging
 
-    // Convert the eligibleNetworks array to a comma-separated string
-    const eligibleNetworksString = eligibleNetworks.join(', ');
-
     // Update the "qf_round" table with the new eligibleNetworks values
-    await queryRunner.query(`
-            UPDATE "qf_round"
-            SET eligibleNetworks = '{${eligibleNetworksString}}'
-        `);
+    await queryRunner.query(
+      `
+            UPDATE public.qf_round
+            SET "eligibleNetworks" = $1
+        `,
+      [eligibleNetworks],
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            UPDATE "qf_round"
-            SET eligibleNetworks = '{}'
+            UPDATE public.qf_round
+            SET "eligibleNetworks" = '{}'
         `);
   }
 }

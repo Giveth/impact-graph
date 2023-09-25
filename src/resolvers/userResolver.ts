@@ -1,4 +1,12 @@
-import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import {
+  Arg,
+  Ctx,
+  Field,
+  Mutation,
+  ObjectType,
+  Query,
+  Resolver,
+} from 'type-graphql';
 import { Repository } from 'typeorm';
 
 import { User } from '../entities/user';
@@ -18,6 +26,17 @@ import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsS
 import { AppDataSource } from '../orm';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
 import { logger } from '../utils/logger';
+import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
+import { addressHasDonated } from '../repositories/donationRepository';
+
+@ObjectType()
+class UserRelatedAddressResponse {
+  @Field(type => Boolean, { nullable: false })
+  hasRelatedProject: boolean;
+
+  @Field(type => Boolean, { nullable: false })
+  hasDonated: boolean;
+}
 
 @Resolver(of => User)
 export class UserResolver {
@@ -27,6 +46,14 @@ export class UserResolver {
 
   async create(@Arg('data', () => RegisterInput) data: any) {
     // return User.create(data).save();
+  }
+
+  @Query(returns => UserRelatedAddressResponse)
+  async walletAddressUsed(@Arg('address') address: string) {
+    return {
+      hasRelatedProject: await isWalletAddressInPurpleList(address),
+      hasDonated: await addressHasDonated(address),
+    };
   }
 
   @Query(returns => UserByAddressResponse, { nullable: true })
