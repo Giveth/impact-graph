@@ -96,8 +96,9 @@ export const checkProjectVerificationStatus = async () => {
     foundProjectsCount: projects?.length,
   });
 
-  // Run all iterations async, resulting in array of promises
-  await Promise.all(projects.map(remindUpdatesOrRevokeVerification));
+  for (const project of projects) {
+    await remindUpdatesOrRevokeVerification(project);
+  }
 
   if (projects.length > 0) {
     await Promise.all([
@@ -109,6 +110,11 @@ export const checkProjectVerificationStatus = async () => {
 };
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
+  logger.debug('remindUpdatesOrRevokeVerification has been called', {
+    projectId: project.id,
+    projectSlug: project.slug,
+    projectVerificationStatus: project.verificationStatus,
+  });
   // Projects up for revoking when 30 days are done after feature release
   if (
     new Date() >= new Date(projectUpdatesFirstRevokeBatchDate) &&
