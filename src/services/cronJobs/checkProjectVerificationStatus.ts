@@ -97,7 +97,16 @@ export const checkProjectVerificationStatus = async () => {
   });
 
   for (const project of projects) {
-    await remindUpdatesOrRevokeVerification(project);
+    try {
+      await remindUpdatesOrRevokeVerification(project);
+    } catch (error) {
+      logger.error('Error in remindUpdatesOrRevokeVerification', {
+        projectId: project.id,
+        projectSlug: project.slug,
+        projectVerificationStatus: project.verificationStatus,
+        error,
+      });
+    }
   }
 
   if (projects.length > 0) {
@@ -110,7 +119,7 @@ export const checkProjectVerificationStatus = async () => {
 };
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
-  logger.debug('remindUpdatesOrRevokeVerification has been called', {
+  logger.debug('remindUpdatesOrRevokeVerification() has been called', {
     projectId: project.id,
     projectSlug: project.slug,
     projectVerificationStatus: project.verificationStatus,
@@ -188,7 +197,7 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   const user = await User.findOne({ where: { id: Number(project.admin) } });
 
   await sendProperNotification(project, project.verificationStatus as string);
-  await sleep(1000);
+  await sleep(300);
 };
 
 const sendProperNotification = (
