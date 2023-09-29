@@ -17,6 +17,8 @@ import {
 import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
+import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
+import { findActiveQfRound } from './qfRoundRepository';
 
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
@@ -59,6 +61,7 @@ export type FilterProjectQueryInputParams = {
   slugArray?: string[];
   sortingBy?: SortingField;
   qfRoundId?: number;
+  activeQfRoundId?: number;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -71,6 +74,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     sortingBy,
     slugArray,
     qfRoundId,
+    activeQfRoundId,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -167,6 +171,22 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           OrderDirection.DESC,
           'NULLS LAST',
         );
+      break;
+    case SortingField.QfRoundRaisedFunds:
+      if (activeQfRoundId) {
+        query
+          .leftJoin(
+            ProjectEstimatedMatchingView,
+            'projectEstimatedMatchingView',
+            'project.projectId = projectEstimatedMatchingView.projectId AND projectEstimatedMatchingView.qfRoundId = :qfRoundId',
+            { qfRoundId: activeQfRoundId },
+          )
+          .addOrderBy(
+            `projectEstimatedMatchingView.sumValueUsd`,
+            OrderDirection.DESC,
+            'NULLS LAST',
+          );
+      }
       break;
     default:
       query

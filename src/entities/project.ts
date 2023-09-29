@@ -76,6 +76,7 @@ export enum SortingField {
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',
   InstantBoosting = 'InstantBoosting',
+  QfRoundRaisedFunds = 'QfRoundRaisedFunds',
 }
 
 export enum FilterField {
