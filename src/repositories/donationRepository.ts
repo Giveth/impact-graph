@@ -354,6 +354,28 @@ export async function sumDonationValueUsdForQfRound(params: {
   return result[0] ? result[0].sumValueUsd : 0;
 }
 
+export async function projectsInQfRoundOrderedBySumValueUsd(
+  qfRoundId: number,
+  limit: number,
+  skip: number,
+): Promise<number[]> {
+  const result = await AppDataSource.getDataSource().query(
+    `
+      SELECT "projectId", "sumValueUsd"
+      FROM project_estimated_matching_view
+      WHERE "qfRoundId" = $1
+      ORDER BY "sumValueUsd" DESC
+      LIMIT $2
+      OFFSET $3;
+    `,
+    [qfRoundId, limit, skip],
+  );
+
+  return result?.length > 0
+    ? result.map(project => project.projectId)
+    : undefined;
+}
+
 export async function countUniqueDonors(projectId: number): Promise<number> {
   const result = await AppDataSource.getDataSource().query(
     `

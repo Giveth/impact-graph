@@ -1,6 +1,17 @@
-import { Entity, Column, Index, PrimaryColumn } from 'typeorm';
+import { ObjectType } from 'type-graphql';
+import {
+  Entity,
+  Column,
+  Index,
+  PrimaryColumn,
+  BaseEntity,
+  ViewEntity,
+  ManyToOne,
+  RelationId,
+} from 'typeorm';
+import { Project } from './project';
 
-@Entity({ name: 'project_estimated_matching_view' })
+@ViewEntity('project_estimated_matching_view', { synchronize: false })
 @Index('project_estimated_matching_view_project_id_qfround_id', [
   'projectId',
   'qfRoundId',
@@ -13,8 +24,8 @@ import { Entity, Column, Index, PrimaryColumn } from 'typeorm';
 @Index('project_estimated_matching_view_unique_donation_count', [
   'uniqueDonationCount',
 ])
-export class ProjectEstimatedMatchingView {
-  // Project ID associated with the donations
+@ObjectType()
+export class ProjectEstimatedMatchingView extends BaseEntity {
   @PrimaryColumn()
   projectId: number;
 

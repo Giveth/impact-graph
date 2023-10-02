@@ -62,6 +62,7 @@ export type FilterProjectQueryInputParams = {
   sortingBy?: SortingField;
   qfRoundId?: number;
   activeQfRoundId?: number;
+  qfRoundProjectsIds?: number[];
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -75,6 +76,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     slugArray,
     qfRoundId,
     activeQfRoundId,
+    qfRoundProjectsIds,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -172,20 +174,11 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           'NULLS LAST',
         );
       break;
-    case SortingField.QfRoundRaisedFunds:
-      if (activeQfRoundId) {
-        query
-          .leftJoin(
-            ProjectEstimatedMatchingView,
-            'projectEstimatedMatchingView',
-            'project.projectId = projectEstimatedMatchingView.projectId AND projectEstimatedMatchingView.qfRoundId = :qfRoundId',
-            { qfRoundId: activeQfRoundId },
-          )
-          .addOrderBy(
-            `projectEstimatedMatchingView.sumValueUsd`,
-            OrderDirection.DESC,
-            'NULLS LAST',
-          );
+    case SortingField.ActiveQfRoundRaisedFunds:
+      if (activeQfRoundId && qfRoundProjectsIds) {
+        query.andWhere('project.id IN (:...qfRoundProjectsIds)', {
+          qfRoundProjectsIds,
+        });
       }
       break;
     default:
