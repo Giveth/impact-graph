@@ -2016,3 +2016,17 @@ export const getProjectUserInstantPowerQuery = `
     }
   }
   `;
+
+export const doesDonatedToProjectInQfRoundQuery = `
+  query (
+   $projectId: Int!,
+   $qfRoundId: Int!,
+   $userId: Int!
+  ) {
+    doesDonatedToProjectInQfRound(
+      projectId: $projectId
+      qfRoundId: $qfRoundId
+      userId: $userId
+    )
+  }
+`;

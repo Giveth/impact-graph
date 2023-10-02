@@ -20,6 +20,7 @@ import {
   findDonationsByTransactionId,
   findStableCoinDonationsWithoutPrice,
   getPendingDonationsIds,
+  isVerifiedDonationExistsInQfRound,
   sumDonationValueUsd,
   sumDonationValueUsdForQfRound,
 } from './donationRepository';
@@ -64,6 +65,10 @@ describe(
 describe('countUniqueDonors() test cases', countUniqueDonorsTestCases);
 describe('sumDonationValueUsd() test cases', sumDonationValueUsdTestCases);
 describe('estimatedMatching() test cases', estimatedMatchingTestCases);
+describe(
+  'isVerifiedDonationExistsInQfRound() test cases',
+  isVerifiedDonationExistsInQfRoundTestCases,
+);
 
 function fillQfRoundDonationsUserScoresTestCases() {
   let qfRound: QfRound;
@@ -1260,5 +1265,193 @@ function sumDonationValueUsdTestCases() {
     const donationSum = await sumDonationValueUsd(project.id);
 
     assert.equal(donationSum, valueUsd1 + valueUsd2 + valueUsd3);
+  });
+}
+
+function isVerifiedDonationExistsInQfRoundTestCases() {
+  it('should return true when there is a verified donation', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        qfRoundId: qfRound.id,
+      },
+      donor.id,
+      project.id,
+    );
+    const doesExist = await isVerifiedDonationExistsInQfRound({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+      userId: donor.id,
+    });
+    assert.isTrue(doesExist);
+
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return false when there is a non-verified donation', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'pending',
+        qfRoundId: qfRound.id,
+      },
+      donor.id,
+      project.id,
+    );
+    const doesExist = await isVerifiedDonationExistsInQfRound({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+      userId: donor.id,
+    });
+    assert.isFalse(doesExist);
+
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return false when sending invalid userId', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        qfRoundId: qfRound.id,
+      },
+      donor.id,
+      project.id,
+    );
+    const doesExist = await isVerifiedDonationExistsInQfRound({
+      projectId: project.id,
+      qfRoundId: qfRound.id,
+      userId: 999999,
+    });
+    assert.isFalse(doesExist);
+
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return false when sending invalid projectId', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        qfRoundId: qfRound.id,
+      },
+      donor.id,
+      project.id,
+    );
+    const doesExist = await isVerifiedDonationExistsInQfRound({
+      projectId: 9999900,
+      qfRoundId: qfRound.id,
+      userId: donor.id,
+    });
+    assert.isFalse(doesExist);
+
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return false when sending invalid qfRoundId', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 12,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        qfRoundId: qfRound.id,
+      },
+      donor.id,
+      project.id,
+    );
+    const doesExist = await isVerifiedDonationExistsInQfRound({
+      projectId: project.id,
+      qfRoundId: 9999999,
+      userId: donor.id,
+    });
+    assert.isFalse(doesExist);
+
+    qfRound.isActive = false;
+    await qfRound.save();
   });
 }
