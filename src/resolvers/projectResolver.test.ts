@@ -114,6 +114,7 @@ import {
 } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
+import { cacheProjectCampaigns } from '../services/campaignService';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -5526,6 +5527,7 @@ function projectBySlugTestCases() {
       photo: 'https://google.com',
       order: 1,
     }).save();
+    await cacheProjectCampaigns();
     const result = await axios.post(graphqlUrl, {
       query: fetchProjectBySlugQuery,
       variables: {
@@ -5609,6 +5611,7 @@ function projectBySlugTestCases() {
       photo: 'https://google.com',
       order: 1,
     }).save();
+    await cacheProjectCampaigns();
     const result = await axios.post(graphqlUrl, {
       query: fetchProjectBySlugQuery,
       variables: {
