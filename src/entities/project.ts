@@ -52,6 +52,7 @@ import {
 } from '../repositories/qfRoundRepository';
 import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
+import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
@@ -76,6 +77,7 @@ export enum SortingField {
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',
   InstantBoosting = 'InstantBoosting',
+  ActiveQfRoundRaisedFunds = 'ActiveQfRoundRaisedFunds',
 }
 
 export enum FilterField {
@@ -340,6 +342,13 @@ export class Project extends BaseEntity {
   @Field(type => [SocialProfile], { nullable: true })
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
   socialProfiles?: SocialProfile[];
+
+  @Field(type => [ProjectEstimatedMatchingView], { nullable: true })
+  @OneToMany(
+    type => ProjectEstimatedMatchingView,
+    projectEstimatedMatchingView => projectEstimatedMatchingView.project,
+  )
+  projectEstimatedMatchingView?: ProjectEstimatedMatchingView[];
 
   @Field(type => Float)
   @Column({ type: 'real' })

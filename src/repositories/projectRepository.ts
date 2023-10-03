@@ -9,15 +9,10 @@ import {
 } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { ProjectAddress } from '../entities/projectAddress';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
-
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
 
@@ -59,6 +54,7 @@ export type FilterProjectQueryInputParams = {
   slugArray?: string[];
   sortingBy?: SortingField;
   qfRoundId?: number;
+  activeQfRoundId?: number;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -71,6 +67,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     sortingBy,
     slugArray,
     qfRoundId,
+    activeQfRoundId,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -167,6 +164,27 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           OrderDirection.DESC,
           'NULLS LAST',
         );
+      break;
+    case SortingField.ActiveQfRoundRaisedFunds:
+      if (activeQfRoundId) {
+        query
+          .innerJoin(
+            'project.projectEstimatedMatchingView',
+            'projectEstimatedMatchingView',
+          )
+          .addSelect([
+            'projectEstimatedMatchingView.sumValueUsd',
+            'projectEstimatedMatchingView.qfRoundId',
+          ])
+          .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
+            qfRoundId: activeQfRoundId,
+          })
+          .orderBy(
+            'projectEstimatedMatchingView.sumValueUsd',
+            OrderDirection.DESC,
+          )
+          .addOrderBy(`project.verified`, OrderDirection.DESC);
+      }
       break;
     default:
       query
