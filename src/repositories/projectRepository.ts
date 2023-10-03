@@ -9,17 +9,10 @@ import {
 } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { ProjectAddress } from '../entities/projectAddress';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
-import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
-import { findActiveQfRound } from './qfRoundRepository';
-
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
 
@@ -62,7 +55,6 @@ export type FilterProjectQueryInputParams = {
   sortingBy?: SortingField;
   qfRoundId?: number;
   activeQfRoundId?: number;
-  qfRoundProjectsIds?: number[];
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -76,7 +68,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     slugArray,
     qfRoundId,
     activeQfRoundId,
-    qfRoundProjectsIds,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -175,10 +166,24 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         );
       break;
     case SortingField.ActiveQfRoundRaisedFunds:
-      if (activeQfRoundId && qfRoundProjectsIds) {
-        query.andWhere('project.id IN (:...qfRoundProjectsIds)', {
-          qfRoundProjectsIds,
-        });
+      if (activeQfRoundId) {
+        query
+          .innerJoin(
+            'project.projectEstimatedMatchingView',
+            'projectEstimatedMatchingView',
+          )
+          .addSelect([
+            'projectEstimatedMatchingView.sumValueUsd',
+            'projectEstimatedMatchingView.qfRoundId',
+          ])
+          .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
+            qfRoundId: activeQfRoundId,
+          })
+          .orderBy(
+            'projectEstimatedMatchingView.sumValueUsd',
+            OrderDirection.DESC,
+          )
+          .addOrderBy(`project.verified`, OrderDirection.DESC);
       }
       break;
     default:

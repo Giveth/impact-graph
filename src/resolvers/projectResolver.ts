@@ -109,7 +109,6 @@ import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
-import { projectsInQfRoundOrderedBySumValueUsd } from '../repositories/donationRepository';
 
 @ObjectType()
 class AllProjects {
@@ -762,18 +761,9 @@ export class ProjectResolver {
     let projects: Project[];
     let totalCount: number;
     let activeQfRoundId: number | undefined;
-    let qfRoundProjectsIds: number[] | undefined;
 
     if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
       activeQfRoundId = (await findActiveQfRound())?.id;
-
-      if (activeQfRoundId) {
-        qfRoundProjectsIds = await projectsInQfRoundOrderedBySumValueUsd(
-          activeQfRoundId,
-          limit,
-          skip,
-        );
-      }
     }
 
     const filterQueryParams: FilterProjectQueryInputParams = {
@@ -786,7 +776,6 @@ export class ProjectResolver {
       sortingBy,
       qfRoundId,
       activeQfRoundId,
-      qfRoundProjectsIds,
     };
     let campaign;
     if (campaignSlug) {
@@ -814,25 +803,6 @@ export class ProjectResolver {
     [projects, totalCount] = await projectsQuery
       .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
       .getManyAndCount();
-
-    // No join or custom subquery worked, solution is to write a full raw sql which is too much work
-    // Sorting will be required to be done in-memory
-    if (
-      sortingBy === SortingField.ActiveQfRoundRaisedFunds &&
-      activeQfRoundId &&
-      qfRoundProjectsIds
-    ) {
-      const orderMap: { [key: string]: number } = {};
-      qfRoundProjectsIds.forEach((id, index) => {
-        orderMap[id] = index;
-      });
-
-      const orderedProjects = projects.sort((a, b) => {
-        return orderMap[a.id] - orderMap[b.id];
-      });
-
-      projects = orderedProjects;
-    }
 
     const userId = connectedWalletUserId || user?.userId;
     if (projects.length > 0 && userId) {
