@@ -91,9 +91,23 @@ export const checkProjectVerificationStatus = async () => {
   const projects = await projectsWithoutUpdateAfterTimeFrame(
     maxDaysForSendingUpdateReminder,
   );
+  logger.debug('checkProjectVerificationStatus()', {
+    maxDaysForSendingUpdateReminder,
+    foundProjectsCount: projects?.length,
+  });
 
-  // Run all iterations async, resulting in array of promises
-  await Promise.all(projects.map(remindUpdatesOrRevokeVerification));
+  for (const project of projects) {
+    try {
+      await remindUpdatesOrRevokeVerification(project);
+    } catch (error) {
+      logger.error('Error in remindUpdatesOrRevokeVerification', {
+        projectId: project.id,
+        projectSlug: project.slug,
+        projectVerificationStatus: project.verificationStatus,
+        error,
+      });
+    }
+  }
 
   if (projects.length > 0) {
     await Promise.all([
@@ -105,6 +119,11 @@ export const checkProjectVerificationStatus = async () => {
 };
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
+  logger.debug('remindUpdatesOrRevokeVerification() has been called', {
+    projectId: project.id,
+    projectSlug: project.slug,
+    projectVerificationStatus: project.verificationStatus,
+  });
   // Projects up for revoking when 30 days are done after feature release
   if (
     new Date() >= new Date(projectUpdatesFirstRevokeBatchDate) &&
@@ -150,6 +169,11 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   }
 
   await project.save();
+  logger.debug('remindUpdatesOrRevokeVerification() save project', {
+    projectId: project.id,
+    slug: project.slug,
+    verificationStatus: project.verificationStatus,
+  });
 
   // draft the verification form to allow reapply
   if (
@@ -173,13 +197,18 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
   const user = await User.findOne({ where: { id: Number(project.admin) } });
 
   await sendProperNotification(project, project.verificationStatus as string);
-  await sleep(1000);
+  await sleep(300);
 };
 
 const sendProperNotification = (
   project: Project,
   projectVerificationStatus: string,
 ) => {
+  logger.debug('sendProperNotification()', {
+    projectId: project.id,
+    slug: project.slug,
+    verificationStatus: project.verificationStatus,
+  });
   switch (projectVerificationStatus) {
     case RevokeSteps.Reminder:
       return getNotificationAdapter().projectBadgeRevokeReminder({ project });

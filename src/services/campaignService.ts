@@ -7,16 +7,15 @@ import { FilterField, Project, SortingField } from '../entities/project';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
 import { ModuleThread, Pool } from 'threads';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
+import { QueryBuilder } from 'typeorm/query-builder/QueryBuilder';
+import { findAllActiveCampaigns } from '../repositories/campaignRepository';
 
 const projectFiltersCacheDuration =
   Number(process.env.PROJECT_FILTERS_THREADS_POOL_DURATION) || 60000;
 
-export const fillCampaignProjects = async (params: {
-  userId?: number;
-  campaign: Campaign;
-  projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>>;
-}): Promise<Campaign> => {
-  const { campaign, userId, projectsFiltersThreadPool } = params;
+const createFetchCampaignProjectsQuery = (
+  campaign: Campaign,
+): FilterProjectQueryInputParams | null => {
   const limit = 10;
   const skip = 0;
   const projectsQueryParams: FilterProjectQueryInputParams = {
@@ -36,9 +35,55 @@ export const fillCampaignProjects = async (params: {
       campaign.sortingField as unknown as SortingField;
   } else if (campaign.type === CampaignType.WithoutProjects) {
     // Dont add projects to this campaign type
-    return campaign;
+    return null;
   }
 
+  return projectsQueryParams;
+};
+let projectCampaignCache: { [key: number]: string[] } | undefined;
+
+export const getAllProjectsRelatedToActiveCampaigns = async (): Promise<{
+  [key: number]: string[];
+}> => {
+  // It returns all project and campaigns( excluding manuallySelectedCampaign)
+  if (projectCampaignCache) {
+    return projectCampaignCache;
+  }
+  projectCampaignCache = {};
+  const activeCampaigns = await findAllActiveCampaigns();
+  for (const campaign of activeCampaigns) {
+    const projectsQueryParams = createFetchCampaignProjectsQuery(campaign);
+    if (!projectsQueryParams) {
+      break;
+    }
+    const projectsQuery = filterProjectsQuery(projectsQueryParams);
+    const projects = await projectsQuery.getMany();
+    for (const project of projects) {
+      projectCampaignCache[project.id]
+        ? projectCampaignCache[project.id].push(campaign.slug)
+        : (projectCampaignCache[project.id] = [campaign.slug]);
+    }
+  }
+  const projectCampaignsCacheDuration =
+    Number(process.env.PROJECT_CAMPAIGNS_CACHE_DURATION) || 10 * 60 * 1000;
+  setTimeout(() => {
+    // We make it undefined every 10 minutes, to refresh it
+    projectCampaignCache = undefined;
+  }, projectCampaignsCacheDuration);
+
+  return projectCampaignCache;
+};
+
+export const fillCampaignProjects = async (params: {
+  userId?: number;
+  campaign: Campaign;
+  projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>>;
+}): Promise<Campaign> => {
+  const { campaign, userId, projectsFiltersThreadPool } = params;
+  const projectsQueryParams = createFetchCampaignProjectsQuery(campaign);
+  if (!projectsQueryParams) {
+    return campaign;
+  }
   const projectsQuery = filterProjectsQuery(projectsQueryParams);
   const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(hasher =>
     hasher.hashProjectFilters({

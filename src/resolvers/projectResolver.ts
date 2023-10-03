@@ -77,6 +77,7 @@ import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
   findProjectById,
+  findProjectBySlugWithoutAnyJoin,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
   userIsOwnerOfProject,
@@ -109,6 +110,7 @@ import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 
 @ObjectType()
 class AllProjects {
@@ -906,11 +908,18 @@ export class ProjectResolver {
       isOwnerOfProject = await userIsOwnerOfProject(viewerUserId, slug);
     }
 
+    const minimalProject = await findProjectBySlugWithoutAnyJoin(slug);
+    if (!minimalProject) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+    const campaignSlugs = (await getAllProjectsRelatedToActiveCampaigns())[
+      minimalProject.id
+    ];
+
     let query = this.projectRepository
       .createQueryBuilder('project')
-      // check current slug and previous slugs
-      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-        slug,
+      .where(`project.id = :id`, {
+        id: minimalProject.id,
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect(
@@ -930,9 +939,10 @@ export class ProjectResolver {
         'project.campaigns',
         Campaign,
         'campaigns',
-        '(campaigns."relatedProjectsSlugs" && ARRAY[:slug]::text[] OR campaigns."relatedProjectsSlugs" && project."slugHistory") AND campaigns."isActive" = TRUE',
+        '((campaigns."relatedProjectsSlugs" && ARRAY[:slug]::text[] OR campaigns."relatedProjectsSlugs" && project."slugHistory") AND campaigns."isActive" = TRUE) OR (campaigns.slug = ANY(:campaignSlugs))',
         {
           slug,
+          campaignSlugs,
         },
       )
       .leftJoin('project.adminUser', 'user')
@@ -954,9 +964,6 @@ export class ProjectResolver {
     });
 
     const project = await query.getOne();
-    if (!project) {
-      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
-    }
     canUserVisitProject(project, String(user?.userId));
     const verificationForm =
       project?.projectVerificationForm ||
@@ -964,7 +971,9 @@ export class ProjectResolver {
     if (verificationForm) {
       (project as Project).verificationFormStatus = verificationForm?.status;
     }
-    const { givbackFactor } = await calculateGivbackFactor(project.id);
+
+    // We know that we have the project because if we reach this line means minimalProject is not null
+    const { givbackFactor } = await calculateGivbackFactor(project!.id);
 
     return { ...project, givbackFactor };
   }

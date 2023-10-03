@@ -229,6 +229,17 @@ export const findProjectBySlug = (slug: string): Promise<Project | null> => {
   );
 };
 
+export const findProjectBySlugWithoutAnyJoin = (
+  slug: string,
+): Promise<Project | null> => {
+  // check current slug and previous slugs
+  return Project.createQueryBuilder('project')
+    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+      slug,
+    })
+    .getOne();
+};
+
 export const verifyMultipleProjects = async (params: {
   verified: boolean;
   projectsIds: string[] | number[];

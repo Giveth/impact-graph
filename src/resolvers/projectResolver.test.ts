@@ -90,7 +90,12 @@ import { refreshUserProjectPowerView } from '../repositories/userProjectPowerVie
 import { AppDataSource } from '../orm';
 // We are using cache so redis needs to be cleared for tests with same filters
 import { redis } from '../redis';
-import { Campaign, CampaignType } from '../entities/campaign';
+import {
+  Campaign,
+  CampaignFilterField,
+  CampaignSortingField,
+  CampaignType,
+} from '../entities/campaign';
 import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
 import { FeaturedUpdate } from '../entities/featuredUpdate';
 import {
@@ -5524,7 +5529,7 @@ function projectBySlugTestCases() {
     assert.isTrue(project.projectPower.totalPower > 0);
   });
 
-  it('should return projects including active campaigns', async () => {
+  it('should return projects including active ManuallySelected campaigns', async () => {
     const projectWithCampaign = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
@@ -5558,6 +5563,133 @@ function projectBySlugTestCases() {
 
     assert.exists(project.campaigns);
     assert.isNotEmpty(project.campaigns);
+
+    const projectWithoutCampaignResult = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: projectWithoutCampaign.slug,
+      },
+    });
+
+    const project2 = projectWithoutCampaignResult.data.data.projectBySlug;
+    assert.equal(Number(project2.id), projectWithoutCampaign.id);
+
+    assert.isEmpty(project2.campaigns);
+
+    await campaign.remove();
+  });
+  it('should return projects including active SortField campaigns', async () => {
+    const projectWithCampaign = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const campaign = await Campaign.create({
+      isActive: true,
+      type: CampaignType.SortField,
+      sortingField: CampaignSortingField.Newest,
+      slug: generateRandomString(),
+      title: 'title1',
+      description: 'description1',
+      photo: 'https://google.com',
+      order: 1,
+    }).save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: projectWithCampaign.slug,
+      },
+    });
+
+    const project = result.data.data.projectBySlug;
+    assert.equal(Number(project.id), projectWithCampaign.id);
+
+    assert.exists(project.campaigns);
+    assert.isNotEmpty(project.campaigns);
+    assert.equal(project.campaigns[0].id, campaign.id);
+
+    const projectWithoutCampaignResult = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        // and old project that I'm sure it would not be in the Newest campaign
+        slug: SEED_DATA.FIRST_PROJECT.slug,
+      },
+    });
+
+    const project2 = projectWithoutCampaignResult.data.data.projectBySlug;
+    assert.equal(Number(project2.id), SEED_DATA.FIRST_PROJECT.id);
+
+    assert.isEmpty(project2.campaigns);
+
+    await campaign.remove();
+  });
+
+  it('should return projects including active FilterField campaigns (acceptOnGnosis)', async () => {
+    // In this filter the default sorting for projects is givPower so I need to create a project with power
+    // to be sure that it will be in the campaign
+    await PowerBoosting.clear();
+    await InstantPowerBalance.clear();
+
+    const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const projectWithCampaign = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.XDAI,
+    });
+
+    const projectWithoutCampaign = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.POLYGON,
+    });
+
+    await Promise.all(
+      [[user1, projectWithCampaign, 10]].map(item => {
+        const [user, project, percentage] = item as [User, Project, number];
+        return insertSinglePowerBoosting({
+          user,
+          project,
+          percentage,
+        });
+      }),
+    );
+
+    await saveOrUpdateInstantPowerBalances([
+      {
+        userId: user1.id,
+        balance: 10000,
+        balanceAggregatorUpdatedAt: new Date(1_000_000),
+      },
+    ]);
+
+    await updateInstantBoosting();
+
+    const campaign = await Campaign.create({
+      isActive: true,
+      type: CampaignType.FilterFields,
+      filterFields: [CampaignFilterField.acceptFundOnGnosis],
+      slug: generateRandomString(),
+      title: 'title1',
+      description: 'description1',
+      photo: 'https://google.com',
+      order: 1,
+    }).save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchProjectsBySlugQuery,
+      variables: {
+        slug: projectWithCampaign.slug,
+      },
+    });
+
+    const fetchedProject = result.data.data.projectBySlug;
+    assert.equal(Number(fetchedProject.id), projectWithCampaign.id);
+
+    assert.exists(fetchedProject.campaigns);
+    assert.isNotEmpty(fetchedProject.campaigns);
+    assert.equal(fetchedProject.campaigns[0].id, campaign.id);
 
     const projectWithoutCampaignResult = await axios.post(graphqlUrl, {
       query: fetchProjectsBySlugQuery,
