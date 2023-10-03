@@ -29,7 +29,7 @@ import {
   fetchLikedProjectsQuery,
   fetchMultiFilterAllProjectsQuery,
   fetchNewProjectsPerDate,
-  fetchProjectsBySlugQuery,
+  fetchProjectBySlugQuery,
   fetchProjectUpdatesQuery,
   fetchSimilarProjectsBySlugQuery,
   getProjectsAcceptTokensQuery,
@@ -114,6 +114,7 @@ import {
 } from '../services/projectViewsService';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
+import { cacheProjectCampaigns } from '../services/campaignService';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -5324,7 +5325,7 @@ function projectBySlugTestCases() {
     const result = await axios.post(
       graphqlUrl,
       {
-        query: fetchProjectsBySlugQuery,
+        query: fetchProjectBySlugQuery,
         variables: {
           slug: project1.slug,
           connectedWalletUserId: user!.id,
@@ -5367,7 +5368,7 @@ function projectBySlugTestCases() {
     }).save();
 
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: project1.slug,
         connectedWalletUserId: user!.id,
@@ -5390,7 +5391,7 @@ function projectBySlugTestCases() {
     });
 
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: project1.slug,
       },
@@ -5448,7 +5449,7 @@ function projectBySlugTestCases() {
 
     await refreshProjectPowerView();
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: project1.slug,
       },
@@ -5484,7 +5485,7 @@ function projectBySlugTestCases() {
       order: 1,
     }).save();
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: projectWithCampaign.slug,
       },
@@ -5497,7 +5498,7 @@ function projectBySlugTestCases() {
     assert.isNotEmpty(project.campaigns);
 
     const projectWithoutCampaignResult = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: projectWithoutCampaign.slug,
       },
@@ -5526,8 +5527,9 @@ function projectBySlugTestCases() {
       photo: 'https://google.com',
       order: 1,
     }).save();
+    await cacheProjectCampaigns();
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: projectWithCampaign.slug,
       },
@@ -5541,7 +5543,7 @@ function projectBySlugTestCases() {
     assert.equal(project.campaigns[0].id, campaign.id);
 
     const projectWithoutCampaignResult = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         // and old project that I'm sure it would not be in the Newest campaign
         slug: SEED_DATA.FIRST_PROJECT.slug,
@@ -5609,8 +5611,9 @@ function projectBySlugTestCases() {
       photo: 'https://google.com',
       order: 1,
     }).save();
+    await cacheProjectCampaigns();
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: projectWithCampaign.slug,
       },
@@ -5624,7 +5627,7 @@ function projectBySlugTestCases() {
     assert.equal(fetchedProject.campaigns[0].id, campaign.id);
 
     const projectWithoutCampaignResult = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: projectWithoutCampaign.slug,
       },
@@ -5659,7 +5662,7 @@ function projectBySlugTestCases() {
       order: 1,
     }).save();
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: previousSlug,
       },
@@ -5755,7 +5758,7 @@ function projectBySlugTestCases() {
     await refreshProjectFuturePowerView();
 
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: project1.slug,
       },
@@ -5850,7 +5853,7 @@ function projectBySlugTestCases() {
     await refreshProjectFuturePowerView(false);
 
     let result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: project1.slug,
       },
@@ -5865,7 +5868,7 @@ function projectBySlugTestCases() {
     await refreshProjectFuturePowerView(true);
 
     result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: project1.slug,
       },
@@ -5884,7 +5887,7 @@ function projectBySlugTestCases() {
     });
 
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: draftedProject.slug,
       },
@@ -5908,7 +5911,7 @@ function projectBySlugTestCases() {
     const result = await axios.post(
       graphqlUrl,
       {
-        query: fetchProjectsBySlugQuery,
+        query: fetchProjectBySlugQuery,
         variables: {
           slug: draftedProject.slug,
           connectedWalletUserId: SEED_DATA.FIRST_USER.id,
@@ -5939,7 +5942,7 @@ function projectBySlugTestCases() {
     const result = await axios.post(
       graphqlUrl,
       {
-        query: fetchProjectsBySlugQuery,
+        query: fetchProjectBySlugQuery,
         variables: {
           slug: draftedProject.slug,
         },
@@ -5967,7 +5970,7 @@ function projectBySlugTestCases() {
     });
 
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: project.slug,
       },
@@ -5991,7 +5994,7 @@ function projectBySlugTestCases() {
     const result = await axios.post(
       graphqlUrl,
       {
-        query: fetchProjectsBySlugQuery,
+        query: fetchProjectBySlugQuery,
         variables: {
           slug: project.slug,
           connectedWalletUserId: SEED_DATA.FIRST_USER.id,
@@ -6022,7 +6025,7 @@ function projectBySlugTestCases() {
     const result = await axios.post(
       graphqlUrl,
       {
-        query: fetchProjectsBySlugQuery,
+        query: fetchProjectBySlugQuery,
         variables: {
           slug: cancelledProject.slug,
         },
@@ -6080,7 +6083,7 @@ function projectBySlugTestCases() {
     await updateInstantBoosting();
 
     const result = await axios.post(graphqlUrl, {
-      query: fetchProjectsBySlugQuery,
+      query: fetchProjectBySlugQuery,
       variables: {
         slug: project1.slug,
       },

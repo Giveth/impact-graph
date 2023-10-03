@@ -66,6 +66,8 @@ import {
 } from '../services/projectViewsService';
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
+import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
+import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 
 Resource.validate = validate;
 
@@ -372,6 +374,7 @@ export async function bootstrap() {
       runInstantBoostingUpdateCronJob();
     }
     await runCheckActiveStatusOfQfRounds();
+    await runUpdateProjectCampaignsCacheJob();
   } catch (err) {
     logger.error(err);
   }

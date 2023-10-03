@@ -9,6 +9,7 @@ import { ModuleThread, Pool } from 'threads';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 import { QueryBuilder } from 'typeorm/query-builder/QueryBuilder';
 import { findAllActiveCampaigns } from '../repositories/campaignRepository';
+import { logger } from '../utils/logger';
 
 const projectFiltersCacheDuration =
   Number(process.env.PROJECT_FILTERS_THREADS_POOL_DURATION) || 60000;
@@ -40,38 +41,37 @@ const createFetchCampaignProjectsQuery = (
 
   return projectsQueryParams;
 };
-let projectCampaignCache: { [key: number]: string[] } | undefined;
+let projectCampaignCache: { [key: number]: string[] } = {};
 
-export const getAllProjectsRelatedToActiveCampaigns = async (): Promise<{
+export const getAllProjectsRelatedToActiveCampaigns = (): {
   [key: number]: string[];
-}> => {
+} => {
   // It returns all project and campaigns( excluding manuallySelectedCampaign)
-  if (projectCampaignCache) {
-    return projectCampaignCache;
-  }
-  projectCampaignCache = {};
+  return projectCampaignCache;
+};
+
+export const cacheProjectCampaigns = async (): Promise<void> => {
+  logger.debug('cacheProjectCampaigns() has been called');
+  const newProjectCampaignCache = {};
   const activeCampaigns = await findAllActiveCampaigns();
   for (const campaign of activeCampaigns) {
     const projectsQueryParams = createFetchCampaignProjectsQuery(campaign);
     if (!projectsQueryParams) {
-      break;
+      continue;
     }
     const projectsQuery = filterProjectsQuery(projectsQueryParams);
     const projects = await projectsQuery.getMany();
     for (const project of projects) {
-      projectCampaignCache[project.id]
-        ? projectCampaignCache[project.id].push(campaign.slug)
-        : (projectCampaignCache[project.id] = [campaign.slug]);
+      newProjectCampaignCache[project.id]
+        ? newProjectCampaignCache[project.id].push(campaign.slug)
+        : (newProjectCampaignCache[project.id] = [campaign.slug]);
     }
   }
-  const projectCampaignsCacheDuration =
-    Number(process.env.PROJECT_CAMPAIGNS_CACHE_DURATION) || 10 * 60 * 1000;
-  setTimeout(() => {
-    // We make it undefined every 10 minutes, to refresh it
-    projectCampaignCache = undefined;
-  }, projectCampaignsCacheDuration);
-
-  return projectCampaignCache;
+  projectCampaignCache = newProjectCampaignCache;
+  logger.debug(
+    'cacheProjectCampaigns() ended successfully, projectCampaignCache size ',
+    Object.keys(projectCampaignCache).length,
+  );
 };
 
 export const fillCampaignProjects = async (params: {

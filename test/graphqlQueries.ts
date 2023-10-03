@@ -782,7 +782,7 @@ export const getQfRoundHistoryQuery = `
     }
 `;
 
-export const fetchProjectsBySlugQuery = `
+export const fetchProjectBySlugQuery = `
   query (
     $slug: String!
   ) {

@@ -14,7 +14,7 @@ import moment from 'moment';
 import { fillQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
 import axios from 'axios';
 import {
-  fetchProjectsBySlugQuery,
+  fetchProjectBySlugQuery,
   getQfRoundHistoryQuery,
 } from '../../test/graphqlQueries';
 

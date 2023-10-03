@@ -1,23 +1,6 @@
 import config from '../../config';
 import { logger } from '../../utils/logger';
 import { schedule } from 'node-cron';
-import {
-  getPowerRound,
-  setPowerRound,
-} from '../../repositories/powerRoundRepository';
-import { getRoundNumberByDate } from '../../utils/powerBoostingUtils';
-import {
-  refreshProjectPowerView,
-  refreshProjectFuturePowerView,
-  getBottomRank,
-} from '../../repositories/projectPowerViewRepository';
-import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
-import {
-  copyProjectRanksToPreviousRoundRankTable,
-  deleteAllPreviousRoundRanks,
-  projectsThatTheirRanksHaveChanged,
-} from '../../repositories/previousRoundRankRepository';
-import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { isTestEnv, sleep } from '../../utils/utils';
 import {
   deactivateExpiredQfRounds,
