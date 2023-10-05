@@ -171,14 +171,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           .leftJoin(
             'project.projectEstimatedMatchingView',
             'projectEstimatedMatchingView',
+            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
+            { qfRoundId: activeQfRoundId },
           )
           .addSelect([
             'projectEstimatedMatchingView.sumValueUsd',
             'projectEstimatedMatchingView.qfRoundId',
           ])
-          .andWhere('projectEstimatedMatchingView.qfRoundId = :qfRoundId', {
-            qfRoundId: activeQfRoundId,
-          })
           .orderBy(
             'projectEstimatedMatchingView.sumValueUsd',
             OrderDirection.DESC,
