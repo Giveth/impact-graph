@@ -97,12 +97,12 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
-  if (qfRoundId) {
+  if (qfRoundId || activeQfRoundId) {
     query.innerJoinAndSelect(
       'project.qfRounds',
       'qf_rounds',
       'qf_rounds.id = :qfRoundId',
-      { qfRoundId },
+      { qfRoundId: qfRoundId ? qfRoundId : activeQfRoundId },
     );
   }
   if (!sortingBy || sortingBy === SortingField.InstantBoosting) {
@@ -168,7 +168,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.ActiveQfRoundRaisedFunds:
       if (activeQfRoundId) {
         query
-          .innerJoin(
+          .leftJoin(
             'project.projectEstimatedMatchingView',
             'projectEstimatedMatchingView',
           )
