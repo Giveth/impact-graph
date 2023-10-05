@@ -10,6 +10,7 @@ import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 import { QueryBuilder } from 'typeorm/query-builder/QueryBuilder';
 import { findAllActiveCampaigns } from '../repositories/campaignRepository';
 import { logger } from '../utils/logger';
+import { getRedisObject, setObjectInRedis } from '../redis';
 
 const projectFiltersCacheDuration =
   Number(process.env.PROJECT_FILTERS_THREADS_POOL_DURATION) || 60000;
@@ -41,13 +42,17 @@ const createFetchCampaignProjectsQuery = (
 
   return projectsQueryParams;
 };
-let projectCampaignCache: { [key: number]: string[] } = {};
+const PROJECT_CAMPAIGN_CACHE_REDIS_KEY =
+  'projectCampaignCache-for-projectBySlug';
 
-export const getAllProjectsRelatedToActiveCampaigns = (): {
+export const getAllProjectsRelatedToActiveCampaigns = async (): Promise<{
   [key: number]: string[];
-} => {
+}> => {
+  const projectCampaignCache = await getRedisObject(
+    PROJECT_CAMPAIGN_CACHE_REDIS_KEY,
+  );
   // It returns all project and campaigns( excluding manuallySelectedCampaign)
-  return projectCampaignCache;
+  return projectCampaignCache || {};
 };
 
 export const cacheProjectCampaigns = async (): Promise<void> => {
@@ -67,10 +72,15 @@ export const cacheProjectCampaigns = async (): Promise<void> => {
         : (newProjectCampaignCache[project.id] = [campaign.slug]);
     }
   }
-  projectCampaignCache = newProjectCampaignCache;
+  await setObjectInRedis({
+    key: PROJECT_CAMPAIGN_CACHE_REDIS_KEY,
+    value: newProjectCampaignCache,
+    // cronjob would fill it every 10 minutes so the expiration doesnt matter
+    expiration: 60 * 60 * 24 * 1, // 1 day
+  });
   logger.debug(
     'cacheProjectCampaigns() ended successfully, projectCampaignCache size ',
-    Object.keys(projectCampaignCache).length,
+    Object.keys(newProjectCampaignCache).length,
   );
 };
 
