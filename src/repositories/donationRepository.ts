@@ -1,10 +1,8 @@
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { Reaction } from '../entities/reaction';
-import { Brackets, LessThan, MoreThan } from 'typeorm';
+import { Brackets, MoreThan } from 'typeorm';
 import moment from 'moment';
-import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
 import { AppDataSource } from '../orm';
 import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
 

@@ -16,6 +16,7 @@ export const NETWORK_IDS = {
   BSC: 56,
   CELO: 42220,
   CELO_ALFAJORES: 44787,
+  ETC: 61,
 };
 
 export const NETWORKS_IDS_TO_NAME = {
@@ -29,6 +30,7 @@ export const NETWORKS_IDS_TO_NAME = {
   44787: 'CELO_ALFAJORES',
   10: 'OPTIMISTIC',
   420: 'OPTIMISM_GOERLI',
+  61: 'ETC',
 };
 
 const NETWORK_NAMES = {
@@ -42,6 +44,7 @@ const NETWORK_NAMES = {
   OPTIMISM_GOERLI: 'optimism-goerli-testnet',
   CELO: 'Celo',
   CELO_ALFAJORES: 'Celo Alfajores',
+  ETC: 'Ethereum Classic',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -55,6 +58,7 @@ const NETWORK_NATIVE_TOKENS = {
   OPTIMISM_GOERLI: 'ETH',
   CELO: 'CELO',
   CELO_ALFAJORES: 'CELO',
+  ETC: 'ETC',
 };
 
 const networkNativeTokensList = [
@@ -108,6 +112,11 @@ const networkNativeTokensList = [
     networkId: NETWORK_IDS.CELO_ALFAJORES,
     nativeToken: NETWORK_NATIVE_TOKENS.CELO_ALFAJORES,
   },
+  {
+    networkName: NETWORK_NAMES.ETC,
+    networkId: NETWORK_IDS.ETC,
+    nativeToken: NETWORK_NATIVE_TOKENS.ETC,
+  },
 ];
 
 export function getNetworkNativeToken(networkId: number): string {
@@ -129,6 +138,11 @@ export function getProvider(networkId: number) {
   let url;
   let options;
   switch (networkId) {
+    case NETWORK_IDS.ETC:
+      // url = config.get('ETC_NODE_HTTP_URL') as string;
+      url =
+        'https://etc.getblock.io/78a7319e-6790-4a58-b1b4-43d16e400527/mainnet';
+      break;
     case NETWORK_IDS.XDAI:
       url = config.get('XDAI_NODE_HTTP_URL') as string;
       break;
@@ -220,6 +234,9 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
       apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
       break;
+    case NETWORK_IDS.ETC:
+      // ETC network doesn't need API key
+      return config.get('ETC_SCAN_API_URL') as string;
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }
