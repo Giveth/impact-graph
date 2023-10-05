@@ -181,6 +181,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           .orderBy(
             'projectEstimatedMatchingView.sumValueUsd',
             OrderDirection.DESC,
+            'NULLS LAST',
           )
           .addOrderBy(`project.verified`, OrderDirection.DESC);
       }
