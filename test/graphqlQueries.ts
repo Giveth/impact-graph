@@ -343,10 +343,14 @@ export const fetchNewProjectsPerDate = `
   query (
     $fromDate: String
     $toDate: String
+    $verified: Boolean
+    $includesOptimism: Boolean
   ) {
     projectsPerDate(
       fromDate: $fromDate
       toDate: $toDate
+      verified: $verified
+      includesOptimism: $includesOptimism
     ) {
       total
       totalPerMonthAndYear {
@@ -399,10 +403,12 @@ export const fetchTotalDonors = `
   query (
     $fromDate: String
     $toDate: String
+    $fromOptimism: Boolean
   ) {
     totalDonorsCountPerDate(
       fromDate: $fromDate
       toDate: $toDate
+      fromOptimism: $fromOptimism
     ) {
       total
       totalPerMonthAndYear {
@@ -417,10 +423,12 @@ export const fetchTotalDonationsUsdAmount = `
   query (
     $fromDate: String
     $toDate: String
+    $fromOptimism: Boolean
   ) {
     donationsTotalUsdPerDate (
       fromDate: $fromDate
       toDate: $toDate
+      fromOptimism: $fromOptimism
     ) {
       total
       totalPerMonthAndYear {
@@ -435,10 +443,12 @@ export const fetchTotalDonationsNumberPerDateRange = `
   query (
     $fromDate: String
     $toDate: String
+    $fromOptimism: Boolean
   ) {
     totalDonationsNumberPerDate (
       fromDate: $fromDate
       toDate: $toDate
+      fromOptimism: $fromOptimism
     ) {
       total
       totalPerMonthAndYear {
