@@ -1197,16 +1197,25 @@ export class ProjectResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('verified', { nullable: true }) verified?: boolean,
+    @Arg('includesOptimism', { nullable: true }) includesOptimism?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const total = await totalProjectsPerDate(fromDate, toDate);
+      const total = await totalProjectsPerDate(
+        fromDate,
+        toDate,
+        verified,
+        includesOptimism,
+      );
       const totalPerMonthAndYear = await totalProjectsPerDateByMonthAndYear(
         fromDate,
         toDate,
+        verified,
+        includesOptimism,
       );
 
       return {

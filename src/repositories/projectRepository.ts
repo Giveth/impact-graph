@@ -327,6 +327,8 @@ export const userIsOwnerOfProject = async (
 export const totalProjectsPerDate = async (
   fromDate?: string,
   toDate?: string,
+  verified?: boolean,
+  includesOptimism?: boolean,
 ): Promise<number> => {
   const query = Project.createQueryBuilder('project');
 
@@ -338,6 +340,20 @@ export const totalProjectsPerDate = async (
     query.andWhere(`project."creationDate" <= '${toDate}'`);
   }
 
+  if (verified) {
+    query.andWhere(
+      `project."verified" = true AND project."reviewStatus" = 'Listed'`,
+    );
+  }
+
+  if (includesOptimism) {
+    query.innerJoin(
+      `project.addresses`,
+      'addresses',
+      'addresses."networkId" = 10',
+    );
+  }
+
   query.cache(`totalProjectPerDate-${fromDate || ''}-${toDate || ''}`, 300000);
 
   return await query.getCount();
@@ -346,6 +362,8 @@ export const totalProjectsPerDate = async (
 export const totalProjectsPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
+  verified?: boolean,
+  includesOptimism?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Project.createQueryBuilder('project').select(
     `COUNT(project.id) as total, EXTRACT(YEAR from project."creationDate") as year, EXTRACT(MONTH from project."creationDate") as month, CONCAT(CAST(EXTRACT(YEAR from project."creationDate") as VARCHAR), '/', CAST(EXTRACT(MONTH from project."creationDate") as VARCHAR)) as date`,
@@ -357,6 +375,20 @@ export const totalProjectsPerDateByMonthAndYear = async (
 
   if (toDate) {
     query.andWhere(`project."creationDate" <= '${toDate}'`);
+  }
+
+  if (verified) {
+    query.andWhere(
+      `project."verified" = true AND project."reviewStatus" = 'Listed'`,
+    );
+  }
+
+  if (includesOptimism) {
+    query.innerJoin(
+      `project.addresses`,
+      'addresses',
+      'addresses."networkId" = 10',
+    );
   }
 
   query.groupBy('year, month');
