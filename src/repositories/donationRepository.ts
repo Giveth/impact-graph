@@ -115,6 +115,7 @@ export const findDonationById = async (
 export const donationsTotalAmountPerDateRange = async (
   fromDate?: string,
   toDate?: string,
+  fromOptimism?: boolean,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
     .select(`COALESCE(SUM(donation."valueUsd"), 0)`, 'sum')
@@ -127,6 +128,11 @@ export const donationsTotalAmountPerDateRange = async (
   if (toDate) {
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
+
+  if (fromOptimism) {
+    query.andWhere(`donation."transactionNetworkId" = 10`);
+  }
+
   const donationsUsdAmount = await query.getRawOne();
 
   query.cache(
@@ -140,6 +146,7 @@ export const donationsTotalAmountPerDateRange = async (
 export const donationsTotalAmountPerDateRangeByMonth = async (
   fromDate?: string,
   toDate?: string,
+  fromOptimism?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -154,6 +161,10 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
 
   if (toDate) {
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
+  }
+
+  if (fromOptimism) {
+    query.andWhere(`donation."transactionNetworkId" = 10`);
   }
 
   query.groupBy('year, month');
@@ -171,6 +182,7 @@ export const donationsTotalAmountPerDateRangeByMonth = async (
 export const donationsNumberPerDateRange = async (
   fromDate?: string,
   toDate?: string,
+  fromOptimism?: boolean,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
     .select(`COALESCE(COUNT(donation."valueUsd"), 0)`, 'count')
@@ -183,6 +195,11 @@ export const donationsNumberPerDateRange = async (
   if (toDate) {
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
+
+  if (fromOptimism) {
+    query.andWhere(`donation."transactionNetworkId" = 10`);
+  }
+
   const donationsUsdAmount = await query.getRawOne();
 
   query.cache(
@@ -196,6 +213,7 @@ export const donationsNumberPerDateRange = async (
 export const donationsTotalNumberPerDateRangeByMonth = async (
   fromDate?: string,
   toDate?: string,
+  fromOptimism?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -210,6 +228,10 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
 
   if (toDate) {
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
+  }
+
+  if (fromOptimism) {
+    query.andWhere(`donation."transactionNetworkId" = 10`);
   }
 
   query.groupBy('year, month');
@@ -227,6 +249,7 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
 export const donorsCountPerDate = async (
   fromDate?: string,
   toDate?: string,
+  fromOptimism?: boolean,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -243,6 +266,10 @@ export const donorsCountPerDate = async (
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
   }
 
+  if (fromOptimism) {
+    query.andWhere(`donation."transactionNetworkId" = 10`);
+  }
+
   query.cache(`donorsCountPerDate-${fromDate || ''}-${toDate || ''}`, 300000);
 
   const queryResult = await query.getRawOne();
@@ -252,6 +279,7 @@ export const donorsCountPerDate = async (
 export const donorsCountPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
+  fromOptimism?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
@@ -265,6 +293,10 @@ export const donorsCountPerDateByMonthAndYear = async (
 
   if (toDate) {
     query.andWhere(`donation."createdAt" <= '${toDate}'`);
+  }
+
+  if (fromOptimism) {
+    query.andWhere(`donation."transactionNetworkId" = 10`);
   }
 
   query.groupBy('year, month');
