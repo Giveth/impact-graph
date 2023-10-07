@@ -17,7 +17,14 @@ import {
 
 export const updateInstantBoosting = async (): Promise<void> => {
   logger.debug('updateInstantBoosting() has been called');
-  await updateInstantPowerBalances();
+  try {
+    await updateInstantPowerBalances();
+  } catch (e) {
+    logger.error(
+      'updateInstantBoosting() calling updateInstantPowerBalances() error',
+      e,
+    );
+  }
   await refreshProjectInstantPowerView();
   // await refreshProjectUserInstantPowerView();
 };
