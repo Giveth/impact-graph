@@ -8,7 +8,7 @@ import { CacheProjectCampaignsWorker } from '../../workers/cacheProjectCampaigns
 // every 10 minutes
 const cronJobTime =
   (config.get('CACHE_PROJECT_CAMPAIGNS_CRONJOB_EXPRESSION') as string) ||
-  '0 */5 * * *';
+  '0 */5 * * * *';
 
 const projectsFiltersThreadPool: Pool<
   ModuleThread<CacheProjectCampaignsWorker>
