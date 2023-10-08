@@ -51,3 +51,19 @@ export const fetchGivHistoricPrice = async (
     throw e;
   }
 };
+
+export const fetchGivPrice = async (): Promise<GivPricesResponse> => {
+  try {
+    /**
+     * @see {@link https://givback.develop.giveth.io/api-docs/#/default/get_givPrice}
+     */
+    const result = await Axios.get(givPricesUrl, {
+      headers: { accept: 'application/json' },
+      timeout: axiosTimeout,
+    });
+    return result.data;
+  } catch (e) {
+    logger.error('fetching Giv Price fetchGivPrice() err', e);
+    throw e;
+  }
+};
