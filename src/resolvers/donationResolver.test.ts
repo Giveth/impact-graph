@@ -1745,7 +1745,7 @@ function createDonationTestCases() {
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
 
-  it('should fill usd value of when creating donation', async () => {
+  it('should fill usd value of when creating GIV donation', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
