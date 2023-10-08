@@ -12,7 +12,7 @@ import {
 import { getTransactionInfoFromNetwork } from './transactionService';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
-import { fetchGivHistoricPrice } from './givPriceService';
+import { fetchGivHistoricPrice, fetchGivPrice } from './givPriceService';
 import {
   findDonationById,
   findStableCoinDonationsWithoutPrice,
@@ -41,18 +41,28 @@ export const updateDonationPricesAndValues = async (
   amount: string | number,
 ) => {
   try {
-    const tokenPrices = await getMonoSwapTokenPrices(
-      currency,
-      baseTokens,
-      Number(priceChainId),
-    );
+    if (currency === 'GIV') {
+      const { givPriceInEth, ethPriceInUsd, givPriceInUsd } =
+        await fetchGivPrice();
 
-    if (tokenPrices.length !== 0) {
-      donation.priceUsd = Number(tokenPrices[0]);
-      donation.priceEth = Number(tokenPrices[1]);
+      donation.priceEth = toFixNumber(ethPriceInUsd, 7);
+      donation.priceUsd = toFixNumber(givPriceInUsd, 4);
+      donation.valueUsd = toFixNumber(donation.amount * givPriceInUsd, 4);
+      donation.valueEth = toFixNumber(donation.amount * givPriceInEth, 7);
+    } else {
+      const tokenPrices = await getMonoSwapTokenPrices(
+        currency,
+        baseTokens,
+        Number(priceChainId),
+      );
 
-      donation.valueUsd = Number(amount) * donation.priceUsd;
-      donation.valueEth = Number(amount) * donation.priceEth;
+      if (tokenPrices.length !== 0) {
+        donation.priceUsd = Number(tokenPrices[0]);
+        donation.priceEth = Number(tokenPrices[1]);
+
+        donation.valueUsd = Number(amount) * donation.priceUsd;
+        donation.valueEth = Number(amount) * donation.priceEth;
+      }
     }
   } catch (e) {
     logger.error('Error in getting price from monoswap', {
@@ -233,18 +243,18 @@ export const updateOldGivDonationsPrice = async () => {
         ...givHistoricPrices,
         valueEth: toFixNumber(
           donation.amount * givHistoricPrices.givPriceInEth,
-          6,
+          7,
         ),
       });
-      donation.priceEth = toFixNumber(givHistoricPrices.ethPriceInUsd, 6);
-      donation.priceUsd = toFixNumber(givHistoricPrices.givPriceInUsd, 3);
+      donation.priceEth = toFixNumber(givHistoricPrices.ethPriceInUsd, 7);
+      donation.priceUsd = toFixNumber(givHistoricPrices.givPriceInUsd, 4);
       donation.valueUsd = toFixNumber(
         donation.amount * givHistoricPrices.givPriceInUsd,
-        3,
+        4,
       );
       donation.valueEth = toFixNumber(
         donation.amount * givHistoricPrices.givPriceInEth,
-        6,
+        7,
       );
       await donation.save();
       await updateTotalDonationsOfProject(donation.projectId);
