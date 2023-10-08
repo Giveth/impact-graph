@@ -12,6 +12,7 @@ import {
   createDonationData,
   createProjectData,
   DONATION_SEED_DATA,
+  generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -25,6 +26,7 @@ import { errorMessages } from '../utils/errorMessages';
 import { findDonationById } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
+import { findUserById } from '../repositories/userRepository';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -64,7 +66,7 @@ function sendSegmentEventForDonationTestCases() {
 }
 
 function syncDonationStatusWithBlockchainNetworkTestCases() {
-  it('should verify a goerli donation', async () => {
+  it('should verify a goerli donation and update donor.totalDonated and projectOwner.totalReceived', async () => {
     // https://goerli.etherscan.io/tx/0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1
 
     const transactionInfo = {
@@ -78,10 +80,16 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
       timestamp: 1661114988,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      walletAddress: transactionInfo.toAddress,
-    });
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      {
+        ...createProjectData(),
+        walletAddress: transactionInfo.toAddress,
+      },
+      projectOwner,
+    );
     const donation = await saveDonationDirectlyToDb(
       {
         amount: transactionInfo.amount,
@@ -105,6 +113,12 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.equal(updateDonation.id, donation.id);
     assert.isTrue(updateDonation.segmentNotified);
     assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+
+    const donor = await findUserById(user.id);
+    assert.equal(donor?.totalDonated, 100);
+
+    const updatedProjectOwner = await findUserById(projectOwner.id);
+    assert.equal(updatedProjectOwner?.totalReceived, 100);
   });
 
   it('should verify a Polygon donation', async () => {

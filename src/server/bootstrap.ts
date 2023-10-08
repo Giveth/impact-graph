@@ -66,6 +66,8 @@ import {
 } from '../services/projectViewsService';
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
+import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
+import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 
 Resource.validate = validate;
 
@@ -363,6 +365,20 @@ export async function bootstrap() {
     ) {
       runFillPowerSnapshotBalanceCronJob();
     }
+    logger.debug('Running givPower cron jobs info ', {
+      UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE: config.get(
+        'UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE',
+      ),
+      ENABLE_INSTANT_BOOSTING_UPDATE: config.get(
+        'ENABLE_INSTANT_BOOSTING_UPDATE',
+      ),
+      INSTANT_BOOSTING_UPDATE_CRONJOB_EXPRESSION: config.get(
+        'INSTANT_BOOSTING_UPDATE_CRONJOB_EXPRESSION',
+      ),
+      UPDATE_POWER_ROUND_CRONJOB_EXPRESSION: config.get(
+        'UPDATE_POWER_ROUND_CRONJOB_EXPRESSION',
+      ),
+    });
     if (
       (config.get('UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
     ) {
@@ -372,6 +388,7 @@ export async function bootstrap() {
       runInstantBoostingUpdateCronJob();
     }
     await runCheckActiveStatusOfQfRounds();
+    await runUpdateProjectCampaignsCacheJob();
   } catch (err) {
     logger.error(err);
   }

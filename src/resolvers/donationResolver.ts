@@ -45,8 +45,6 @@ import {
   setUserAsReferrer,
 } from '../repositories/userRepository';
 import {
-  countUniqueDonors,
-  countUniqueDonorsForRound,
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
@@ -55,8 +53,7 @@ import {
   donorsCountPerDateByMonthAndYear,
   findDonationById,
   getRecentDonations,
-  sumDonationValueUsd,
-  sumDonationValueUsdForQfRound,
+  isVerifiedDonationExistsInQfRound,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -727,7 +724,10 @@ export class DonationResolver {
       const activeQfRoundForProject = await relatedActiveQfRoundForProject(
         projectId,
       );
-      if (activeQfRoundForProject) {
+      if (
+        activeQfRoundForProject &&
+        activeQfRoundForProject.isEligibleNetwork(Number(transactionNetworkId))
+      ) {
         donation.qfRound = activeQfRoundForProject;
       }
       await donation.save();
@@ -838,5 +838,18 @@ export class DonationResolver {
       logger.error('updateDonationStatus() error', e);
       throw e;
     }
+  }
+
+  @Query(() => Boolean)
+  async doesDonatedToProjectInQfRound(
+    @Arg('projectId', _ => Int) projectId: number,
+    @Arg('qfRoundId', _ => Int) qfRoundId: number,
+    @Arg('userId', _ => Int) userId: number,
+  ): Promise<Boolean> {
+    return isVerifiedDonationExistsInQfRound({
+      projectId,
+      qfRoundId,
+      userId,
+    });
   }
 }

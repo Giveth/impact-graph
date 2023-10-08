@@ -782,7 +782,7 @@ export const getQfRoundHistoryQuery = `
     }
 `;
 
-export const fetchProjectsBySlugQuery = `
+export const fetchProjectBySlugQuery = `
   query (
     $slug: String!
   ) {
@@ -806,6 +806,24 @@ export const fetchProjectsBySlugQuery = `
       listed
       reviewStatus
       givingBlocksId
+      campaigns {
+        id
+        title
+        description
+        type
+        photo
+        video
+        videoPreview
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
+      
+      }
       givbackFactor
       projectPower {
         totalPower
@@ -1998,3 +2016,17 @@ export const getProjectUserInstantPowerQuery = `
     }
   }
   `;
+
+export const doesDonatedToProjectInQfRoundQuery = `
+  query (
+   $projectId: Int!,
+   $qfRoundId: Int!,
+   $userId: Int!
+  ) {
+    doesDonatedToProjectInQfRound(
+      projectId: $projectId
+      qfRoundId: $qfRoundId
+      userId: $userId
+    )
+  }
+`;

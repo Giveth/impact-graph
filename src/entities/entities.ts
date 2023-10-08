@@ -41,6 +41,7 @@ import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { QfRound } from './qfRound';
 import { ReferredEvent } from './referredEvent';
 import { QfRoundHistory } from './qfRoundHistory';
+import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -81,6 +82,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     LastSnapshotProjectPowerView,
     ProjectInstantPowerView,
     ProjectUserInstantPowerView,
+    ProjectEstimatedMatchingView,
 
     // historic snapshots
     PowerSnapshotHistory,

@@ -51,6 +51,8 @@ import {
   getQfRoundTotalProjectsDonationsSum,
 } from '../repositories/qfRoundRepository';
 import { EstimatedMatching } from '../types/qfTypes';
+import { Campaign } from './campaign';
+import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
@@ -75,6 +77,7 @@ export enum SortingField {
   QualityScore = 'QualityScore',
   GIVPower = 'GIVPower',
   InstantBoosting = 'InstantBoosting',
+  ActiveQfRoundRaisedFunds = 'ActiveQfRoundRaisedFunds',
 }
 
 export enum FilterField {
@@ -101,7 +104,6 @@ export enum OrderField {
   QualityScore = 'qualityScore',
   Verified = 'verified',
   Reactions = 'totalReactions',
-  Traceable = 'traceCampaignId',
   Donations = 'totalDonations',
   TraceDonations = 'totalTraceDonations',
   AcceptGiv = 'givingBlocksId',
@@ -341,6 +343,13 @@ export class Project extends BaseEntity {
   @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
   socialProfiles?: SocialProfile[];
 
+  @Field(type => [ProjectEstimatedMatchingView], { nullable: true })
+  @OneToMany(
+    type => ProjectEstimatedMatchingView,
+    projectEstimatedMatchingView => projectEstimatedMatchingView.project,
+  )
+  projectEstimatedMatchingView?: ProjectEstimatedMatchingView[];
+
   @Field(type => Float)
   @Column({ type: 'real' })
   totalDonations: number;
@@ -389,6 +398,9 @@ export class Project extends BaseEntity {
   // User reaction to the project
   @Field({ nullable: true })
   reaction?: Reaction;
+
+  @Field(type => [Campaign], { nullable: true })
+  campaigns: Campaign[];
 
   // only projects with status active can be listed automatically
   static pendingReviewSince(maximumDaysForListing: Number) {

@@ -35,9 +35,26 @@ export enum CampaignFilterField {
 }
 
 export enum CampaignType {
+  // https://github.com/Giveth/impact-graph/blob/staging/docs/campaignsInstruction.md
+
+  // In these type of projects we pick some projects to show them in campaign,
+  // for instance for Turkey earthquake we pick some projects.
+  // so we just need to add slug of those projects in Related Projects Slugs and in
+  // what order we add them they will be shown in frontend
   ManuallySelected = 'ManuallySelected',
+
+  //  Sometimes in a campaign we just want to show projects in an specified order,
+  //  for instance we can create a campaign like ** Check projects that received most likes** so for
+  //  this campaign you set SortField as campaign type and then you can use one of below sorting fields
   SortField = 'SortField',
+
+  // Sometimes we need to filter some projects in a campaign,
+  // for instance Let's verified projects that accept funds on Gnosis chain,
+  // for this we can Add verified and acceptFundOnGnosis filters
   FilterFields = 'FilterFields',
+
+  //  Some campaigns don't include any project in them and they are just some banner
+  //  like Feeling $nice? campaign in below image
   WithoutProjects = 'WithoutProjects',
 }
 

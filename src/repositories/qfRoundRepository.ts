@@ -1,5 +1,10 @@
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
+import { logger } from '../utils/logger';
+
+const qfRoundEstimatedMatchingParamsCacheDuration = Number(
+  process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
+);
 
 export const findAllQfRounds = async (): Promise<QfRound[]> => {
   return QfRound.createQueryBuilder('qf_round')
@@ -47,18 +52,25 @@ export async function getProjectDonationsSqrtRootSum(
   projectId: number,
   qfRoundId: number,
 ): Promise<{ sqrtRootSum: number; uniqueDonorsCount: number }> {
-  const result = await AppDataSource.getDataSource().query(
-    `
-      SELECT "sqrtRootSum", "uniqueDonorsCount"
-      FROM project_estimated_matching_view
-      WHERE "projectId" = $1 AND "qfRoundId" = $2;
-    `,
-    [projectId, qfRoundId],
-  );
+  const result = await AppDataSource.getDataSource()
+    .createQueryBuilder()
+    .select('"sqrtRootSum"')
+    .addSelect('"uniqueDonorsCount"')
+    .from('project_estimated_matching_view', 'project_estimated_matching_view')
+    .where('"projectId" = :projectId AND "qfRoundId" = :qfRoundId', {
+      projectId,
+      qfRoundId,
+    })
+    // Add cache here
+    .cache(
+      'projectDonationsSqrtRootSum_' + projectId + '_' + qfRoundId,
+      qfRoundEstimatedMatchingParamsCacheDuration,
+    )
+    .getRawOne();
 
   return {
-    sqrtRootSum: result[0] ? result[0].sqrtRootSum : 0,
-    uniqueDonorsCount: result[0] ? Number(result[0].uniqueDonorsCount) : 0,
+    sqrtRootSum: result ? result.sqrtRootSum : 0,
+    uniqueDonorsCount: result ? Number(result.uniqueDonorsCount) : 0,
   };
 }
 
@@ -68,18 +80,21 @@ export const getQfRoundTotalProjectsDonationsSum = async (
   sum: number;
   contributorsCount: number;
 }> => {
-  const query = `
-    SELECT
-      SUM("sqrtRootSumSquared") as "sum",
-      SUM("donorsCount") as "contributorsCount"
-    FROM project_estimated_matching_view
-    WHERE "qfRoundId" = $1;
-  `;
+  const result = await AppDataSource.getDataSource()
+    .createQueryBuilder()
+    .select(`SUM("sqrtRootSumSquared")`, 'sum')
+    .addSelect(`SUM("donorsCount")`, 'contributorsCount')
+    .from('project_estimated_matching_view', 'project_estimated_matching_view')
+    .where('"qfRoundId" = :qfRoundId', { qfRoundId })
+    // Add cache here
+    .cache(
+      'qfRoundTotalProjectsDonationsSum_' + qfRoundId,
+      qfRoundEstimatedMatchingParamsCacheDuration,
+    )
+    .getRawOne();
 
-  const result = await AppDataSource.getDataSource().query(query, [qfRoundId]);
-
-  const sum = result[0]?.sum || 0;
-  const contributorsCount = parseInt(result[0]?.contributorsCount, 10) || 0;
+  const sum = result?.sum || 0;
+  const contributorsCount = parseInt(result?.contributorsCount, 10) || 0;
 
   return {
     sum,

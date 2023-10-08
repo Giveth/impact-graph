@@ -9,15 +9,10 @@ import {
 } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { ProjectAddress } from '../entities/projectAddress';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
-
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
 
@@ -59,6 +54,7 @@ export type FilterProjectQueryInputParams = {
   slugArray?: string[];
   sortingBy?: SortingField;
   qfRoundId?: number;
+  activeQfRoundId?: number;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -71,6 +67,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     sortingBy,
     slugArray,
     qfRoundId,
+    activeQfRoundId,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -100,12 +97,12 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
-  if (qfRoundId) {
+  if (qfRoundId || activeQfRoundId) {
     query.innerJoinAndSelect(
       'project.qfRounds',
       'qf_rounds',
       'qf_rounds.id = :qfRoundId',
-      { qfRoundId },
+      { qfRoundId: qfRoundId ? qfRoundId : activeQfRoundId },
     );
   }
   if (!sortingBy || sortingBy === SortingField.InstantBoosting) {
@@ -168,6 +165,27 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           'NULLS LAST',
         );
       break;
+    case SortingField.ActiveQfRoundRaisedFunds:
+      if (activeQfRoundId) {
+        query
+          .leftJoin(
+            'project.projectEstimatedMatchingView',
+            'projectEstimatedMatchingView',
+            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
+            { qfRoundId: activeQfRoundId },
+          )
+          .addSelect([
+            'projectEstimatedMatchingView.sumValueUsd',
+            'projectEstimatedMatchingView.qfRoundId',
+          ])
+          .orderBy(
+            'projectEstimatedMatchingView.sumValueUsd',
+            OrderDirection.DESC,
+            'NULLS LAST',
+          )
+          .addOrderBy(`project.verified`, OrderDirection.DESC);
+      }
+      break;
     default:
       query
         .orderBy('projectInstantPower.totalPower', OrderDirection.DESC)
@@ -209,6 +227,17 @@ export const findProjectBySlug = (slug: string): Promise<Project | null> => {
       })
       .getOne()
   );
+};
+
+export const findProjectBySlugWithoutAnyJoin = (
+  slug: string,
+): Promise<Project | null> => {
+  // check current slug and previous slugs
+  return Project.createQueryBuilder('project')
+    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+      slug,
+    })
+    .getOne();
 };
 
 export const verifyMultipleProjects = async (params: {

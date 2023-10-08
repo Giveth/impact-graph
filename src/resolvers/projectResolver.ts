@@ -77,6 +77,7 @@ import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
   findProjectById,
+  findProjectBySlugWithoutAnyJoin,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
   userIsOwnerOfProject,
@@ -108,6 +109,8 @@ import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 
 @ObjectType()
 class AllProjects {
@@ -486,11 +489,6 @@ export class ProjectResolver {
       return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
     }
 
-    if (filter === 'traceCampaignId') {
-      const isRequested = filterValue ? 'IS NOT' : 'IS';
-      return query.andWhere(`project.${filter} ${isRequested} NULL`);
-    }
-
     if (
       (filter === FilterField.AcceptFundOnGnosis ||
         filter === FilterField.AcceptFundOnCelo ||
@@ -764,6 +762,12 @@ export class ProjectResolver {
   ): Promise<AllProjects> {
     let projects: Project[];
     let totalCount: number;
+    let activeQfRoundId: number | undefined;
+
+    if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
+      activeQfRoundId = (await findActiveQfRound())?.id;
+    }
+
     const filterQueryParams: FilterProjectQueryInputParams = {
       limit,
       skip,
@@ -773,6 +777,7 @@ export class ProjectResolver {
       filters,
       sortingBy,
       qfRoundId,
+      activeQfRoundId,
     };
     let campaign;
     if (campaignSlug) {
@@ -903,11 +908,18 @@ export class ProjectResolver {
       isOwnerOfProject = await userIsOwnerOfProject(viewerUserId, slug);
     }
 
+    const minimalProject = await findProjectBySlugWithoutAnyJoin(slug);
+    if (!minimalProject) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+    const campaignSlugs = (await getAllProjectsRelatedToActiveCampaigns())[
+      minimalProject.id
+    ];
+
     let query = this.projectRepository
       .createQueryBuilder('project')
-      // check current slug and previous slugs
-      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-        slug,
+      .where(`project.id = :id`, {
+        id: minimalProject.id,
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect(
@@ -923,6 +935,16 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndMapMany(
+        'project.campaigns',
+        Campaign,
+        'campaigns',
+        '((campaigns."relatedProjectsSlugs" && ARRAY[:slug]::text[] OR campaigns."relatedProjectsSlugs" && project."slugHistory") AND campaigns."isActive" = TRUE) OR (campaigns.slug = ANY(:campaignSlugs))',
+        {
+          slug,
+          campaignSlugs,
+        },
+      )
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
@@ -942,9 +964,6 @@ export class ProjectResolver {
     });
 
     const project = await query.getOne();
-    if (!project) {
-      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
-    }
     canUserVisitProject(project, String(user?.userId));
     const verificationForm =
       project?.projectVerificationForm ||
@@ -952,7 +971,9 @@ export class ProjectResolver {
     if (verificationForm) {
       (project as Project).verificationFormStatus = verificationForm?.status;
     }
-    const { givbackFactor } = await calculateGivbackFactor(project.id);
+
+    // We know that we have the project because if we reach this line means minimalProject is not null
+    const { givbackFactor } = await calculateGivbackFactor(project!.id);
 
     return { ...project, givbackFactor };
   }
