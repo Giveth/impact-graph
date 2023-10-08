@@ -1,6 +1,5 @@
 import Axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
-import config from '../config';
 import { logger } from '../utils/logger';
 import { NETWORK_IDS } from '../provider';
 
