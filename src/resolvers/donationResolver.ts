@@ -752,6 +752,7 @@ export class DonationResolver {
       await updateDonationPricesAndValues(
         donation,
         project,
+        tokenInDb,
         token,
         baseTokens,
         priceChainId,

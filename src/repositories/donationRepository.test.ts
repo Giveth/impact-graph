@@ -34,6 +34,7 @@ import {
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
 import { calculateEstimateMatchingForProjectById } from '../utils/qfUtils';
+import { NETWORK_IDS } from '../provider';
 
 describe('createDonation test cases', createDonationTestCases);
 
@@ -351,33 +352,42 @@ function findStableCoinDonationsWithoutPriceTestCases() {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const donationData1 = createDonationData();
+    const donationData1 = { ...createDonationData(), currency: 'USDC' };
     delete donationData1.valueUsd;
-    donationData1.currency = 'USDC';
 
-    const donationData2 = createDonationData();
-    donationData2.currency = 'USDC';
+    const donationData2 = { ...createDonationData(), currency: 'USDC' };
 
-    const donationData3 = createDonationData();
+    const donationData3 = { ...createDonationData(), currency: 'USDT' };
     delete donationData3.valueUsd;
-    donationData3.currency = 'USDT';
 
-    const donationData4 = createDonationData();
+    const donationData4 = { ...createDonationData(), currency: 'USDT' };
     donationData4.currency = 'USDT';
 
-    const donationData5 = createDonationData();
+    const donationData5 = {
+      ...createDonationData(),
+      currency: 'WXDAI',
+      transactionNetworkId: NETWORK_IDS.XDAI,
+    };
     delete donationData5.valueUsd;
-    donationData5.currency = 'WXDAI';
 
-    const donationData6 = createDonationData();
-    donationData6.currency = 'WXDAI';
+    const donationData6 = {
+      ...createDonationData(),
+      currency: 'WXDAI',
+      transactionNetworkId: NETWORK_IDS.XDAI,
+    };
 
-    const donationData7 = createDonationData();
+    const donationData7 = {
+      ...createDonationData(),
+      currency: 'WXDAI',
+      transactionNetworkId: NETWORK_IDS.XDAI,
+    };
     delete donationData7.valueUsd;
-    donationData7.currency = 'XDAI';
 
-    const donationData8 = createDonationData();
-    donationData8.currency = 'XDAI';
+    const donationData8 = {
+      ...createDonationData(),
+      currency: 'WXDAI',
+      transactionNetworkId: NETWORK_IDS.XDAI,
+    };
 
     const donationData9 = createDonationData();
     delete donationData9.valueUsd;

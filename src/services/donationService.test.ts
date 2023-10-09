@@ -757,6 +757,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       token,
       ['USDC', 'MATIC'], // For matic USDC returns more favorable values
       CHAIN_ID.POLYGON,
@@ -795,6 +796,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       token,
       ['cUSD', 'CELO'], // For matic USDC returns more favorable values
       CHAIN_ID.CELO,
@@ -833,6 +835,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       token,
       ['cUSD', 'CELO'], // For matic USDC returns more favorable values
       CHAIN_ID.ALFAJORES,

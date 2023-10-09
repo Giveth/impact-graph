@@ -35,13 +35,20 @@ export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 export const updateDonationPricesAndValues = async (
   donation: Donation,
   project: Project,
+  token: Token | null,
   currency: string,
   baseTokens: string[],
   priceChainId: string | number,
   amount: string | number,
 ) => {
   try {
-    if (currency === 'GIV') {
+    if (token?.isStableCoin) {
+      const { ethPriceInUsd } = await fetchGivPrice();
+      donation.priceUsd = 1;
+      donation.priceEth = 1 / ethPriceInUsd;
+      donation.valueUsd = Number(amount);
+      donation.valueEth = toFixNumber(donation.amount / ethPriceInUsd, 7);
+    } else if (currency === 'GIV') {
       const { givPriceInEth, ethPriceInUsd, givPriceInUsd } =
         await fetchGivPrice();
 

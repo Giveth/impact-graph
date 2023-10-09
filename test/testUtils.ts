@@ -539,6 +539,7 @@ export const SEED_DATA = {
         symbol: 'DAI',
         name: 'Dai',
         decimals: 18,
+        isStableCoin: true,
       },
       {
         address: '0x03ab458634910aad20ef5f1c8ee96f1d6ac54919',
@@ -623,6 +624,7 @@ export const SEED_DATA = {
         symbol: 'USDT',
         name: 'Tether',
         decimals: 6,
+        isStableCoin: true,
       },
       {
         address: '0xa0b73e1ff0b80914ab6fe0444e65848c4c34450b',
@@ -647,6 +649,7 @@ export const SEED_DATA = {
         symbol: 'USDC',
         name: 'USD Coin',
         decimals: 6,
+        isStableCoin: true,
       },
       {
         address: '0x6f259637dcd74c767781e37bc6133cd6a68aa161',
@@ -1238,6 +1241,21 @@ export const SEED_DATA = {
         name: 'Fetch',
         decimals: 18,
       },
+
+      {
+        name: 'GLO',
+        symbol: 'GLO',
+        address: '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3',
+        decimals: 18,
+        isStableCoin: true,
+      },
+      {
+        name: 'pyUSD',
+        symbol: 'pyUSD',
+        address: '0x6c3ea9036406852006290770BEdFcAbA0e23A0e8',
+        decimals: 18,
+        isStableCoin: true,
+      },
     ],
     ropsten: [
       {
@@ -1251,6 +1269,7 @@ export const SEED_DATA = {
         symbol: 'DAI',
         name: 'DAI Ropsten',
         decimals: 18,
+        isStableCoin: true,
       },
       {
         address: '0x067eA48882E6D728A37acfd1535ec03f8E33794a',
@@ -1272,6 +1291,14 @@ export const SEED_DATA = {
         address: '0x52459834ca561cb55411699e9c2143683bcf865f',
         decimals: 18,
       },
+
+      {
+        name: 'GLO',
+        symbol: 'GLO',
+        address: '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3',
+        decimals: 18,
+        isStableCoin: true,
+      },
     ],
     optimistic: [
       {
@@ -1285,6 +1312,13 @@ export const SEED_DATA = {
         symbol: 'OP',
         address: '0x4200000000000000000000000000000000000042',
         decimals: 18,
+      },
+      {
+        name: 'GLO',
+        symbol: 'GLO',
+        address: '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3',
+        decimals: 18,
+        isStableCoin: true,
       },
     ],
     optimism_goerli: [
@@ -1313,6 +1347,7 @@ export const SEED_DATA = {
         symbol: 'DAI',
         name: 'DAI Goerli',
         decimals: 18,
+        isStableCoin: true,
       },
       {
         address: '0xA2470F25bb8b53Bd3924C7AC0C68d32BF2aBd5be',
@@ -1327,6 +1362,7 @@ export const SEED_DATA = {
         symbol: 'XDAI',
         address: '0x0000000000000000000000000000000000000000',
         decimals: 18,
+        isStableCoin: true,
       },
       {
         name: 'Giveth Token',
@@ -1393,12 +1429,14 @@ export const SEED_DATA = {
         symbol: 'WXDAI',
         name: 'Wrapped XDAI',
         decimals: 18,
+        isStableCoin: true,
       },
       {
         address: '0x4ECaBa5870353805a9F068101A40E0f32ed605C6',
         symbol: 'USDT',
         name: 'Tether USD on xDai',
         decimals: 6,
+        isStableCoin: true,
       },
       {
         address: '0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252',
@@ -1450,6 +1488,7 @@ export const SEED_DATA = {
         name: 'Celo Dollar',
         address: '0x765DE816845861e75A25fCA122bb6898B8B1282a',
         decimals: 18,
+        isStableCoin: true,
       },
       {
         symbol: 'cEUR',
@@ -1462,6 +1501,13 @@ export const SEED_DATA = {
         name: 'Celo Brazilian Real',
         address: '0xe8537a3d056DA446677B9E9d6c5dB704EaAb4787',
         decimals: 18,
+      },
+      {
+        name: 'GLO',
+        symbol: 'GLO',
+        address: '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3',
+        decimals: 18,
+        isStableCoin: true,
       },
     ],
     celo_alfajores: [
@@ -1477,6 +1523,7 @@ export const SEED_DATA = {
         name: 'Celo Dollar',
         address: '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1',
         decimals: 18,
+        isStableCoin: true,
       },
       {
         symbol: 'cEUR',

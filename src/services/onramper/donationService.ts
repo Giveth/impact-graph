@@ -137,6 +137,7 @@ export const createFiatDonationFromOnramper = async (
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       fiatTransaction.payload.outCurrency,
       baseTokens,
       priceChainId,

@@ -279,19 +279,19 @@ export const donorsCountPerDateByMonthAndYear = async (
   return await query.getRawMany();
 };
 
-export const findStableCoinDonationsWithoutPrice = () => {
-  return Donation.createQueryBuilder('donation')
-    .where(
-      new Brackets(qb =>
-        qb.where(
-          `donation.currency = 'DAI' OR donation.currency= 'XDAI' OR donation.currency= 'WXDAI' OR donation.currency= 'USDT' OR donation.currency= 'USDC'`,
-        ),
-      ),
+export const findStableCoinDonationsWithoutPrice = async (): Promise<
+  Donation[]
+> => {
+  return await Donation.createQueryBuilder('donation')
+    .leftJoin(
+      'token',
+      'token',
+      'donation.currency = token.symbol AND donation.transactionNetworkId = token.networkId',
     )
-    .andWhere(`donation."valueUsd" IS NULL `)
+    .where('token.isStableCoin = true')
+    .andWhere('donation.valueUsd IS NULL')
     .getMany();
 };
-
 export const getRecentDonations = async (take: number): Promise<Donation[]> => {
   return await Donation.createQueryBuilder('donation')
     .leftJoin('donation.user', 'user')
