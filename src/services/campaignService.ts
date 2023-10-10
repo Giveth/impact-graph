@@ -9,6 +9,8 @@ import { ModuleThread, Pool } from 'threads';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 import { QueryBuilder } from 'typeorm/query-builder/QueryBuilder';
 import { findAllActiveCampaigns } from '../repositories/campaignRepository';
+import { logger } from '../utils/logger';
+import { getRedisObject, setObjectInRedis } from '../redis';
 
 const projectFiltersCacheDuration =
   Number(process.env.PROJECT_FILTERS_THREADS_POOL_DURATION) || 60000;
@@ -40,38 +42,46 @@ const createFetchCampaignProjectsQuery = (
 
   return projectsQueryParams;
 };
-let projectCampaignCache: { [key: number]: string[] } | undefined;
+const PROJECT_CAMPAIGN_CACHE_REDIS_KEY =
+  'projectCampaignCache-for-projectBySlug';
 
 export const getAllProjectsRelatedToActiveCampaigns = async (): Promise<{
   [key: number]: string[];
 }> => {
+  const projectCampaignCache = await getRedisObject(
+    PROJECT_CAMPAIGN_CACHE_REDIS_KEY,
+  );
   // It returns all project and campaigns( excluding manuallySelectedCampaign)
-  if (projectCampaignCache) {
-    return projectCampaignCache;
-  }
-  projectCampaignCache = {};
+  return projectCampaignCache || {};
+};
+
+export const cacheProjectCampaigns = async (): Promise<void> => {
+  logger.debug('cacheProjectCampaigns() has been called');
+  const newProjectCampaignCache = {};
   const activeCampaigns = await findAllActiveCampaigns();
   for (const campaign of activeCampaigns) {
     const projectsQueryParams = createFetchCampaignProjectsQuery(campaign);
     if (!projectsQueryParams) {
-      break;
+      continue;
     }
     const projectsQuery = filterProjectsQuery(projectsQueryParams);
     const projects = await projectsQuery.getMany();
     for (const project of projects) {
-      projectCampaignCache[project.id]
-        ? projectCampaignCache[project.id].push(campaign.slug)
-        : (projectCampaignCache[project.id] = [campaign.slug]);
+      newProjectCampaignCache[project.id]
+        ? newProjectCampaignCache[project.id].push(campaign.slug)
+        : (newProjectCampaignCache[project.id] = [campaign.slug]);
     }
   }
-  const projectCampaignsCacheDuration =
-    Number(process.env.PROJECT_CAMPAIGNS_CACHE_DURATION) || 10 * 60 * 1000;
-  setTimeout(() => {
-    // We make it undefined every 10 minutes, to refresh it
-    projectCampaignCache = undefined;
-  }, projectCampaignsCacheDuration);
-
-  return projectCampaignCache;
+  await setObjectInRedis({
+    key: PROJECT_CAMPAIGN_CACHE_REDIS_KEY,
+    value: newProjectCampaignCache,
+    // cronjob would fill it every 10 minutes so the expiration doesnt matter
+    expiration: 60 * 60 * 24 * 1, // 1 day
+  });
+  logger.debug(
+    'cacheProjectCampaigns() ended successfully, projectCampaignCache size ',
+    Object.keys(newProjectCampaignCache).length,
+  );
 };
 
 export const fillCampaignProjects = async (params: {

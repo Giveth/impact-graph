@@ -782,7 +782,7 @@ export const getQfRoundHistoryQuery = `
     }
 `;
 
-export const fetchProjectsBySlugQuery = `
+export const fetchProjectBySlugQuery = `
   query (
     $slug: String!
   ) {
@@ -2016,3 +2016,17 @@ export const getProjectUserInstantPowerQuery = `
     }
   }
   `;
+
+export const doesDonatedToProjectInQfRoundQuery = `
+  query (
+   $projectId: Int!,
+   $qfRoundId: Int!,
+   $userId: Int!
+  ) {
+    doesDonatedToProjectInQfRound(
+      projectId: $projectId
+      qfRoundId: $qfRoundId
+      userId: $userId
+    )
+  }
+`;

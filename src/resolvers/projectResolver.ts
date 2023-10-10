@@ -109,6 +109,7 @@ import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 
 @ObjectType()
@@ -761,6 +762,12 @@ export class ProjectResolver {
   ): Promise<AllProjects> {
     let projects: Project[];
     let totalCount: number;
+    let activeQfRoundId: number | undefined;
+
+    if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
+      activeQfRoundId = (await findActiveQfRound())?.id;
+    }
+
     const filterQueryParams: FilterProjectQueryInputParams = {
       limit,
       skip,
@@ -770,6 +777,7 @@ export class ProjectResolver {
       filters,
       sortingBy,
       qfRoundId,
+      activeQfRoundId,
     };
     let campaign;
     if (campaignSlug) {

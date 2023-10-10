@@ -1,5 +1,6 @@
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
+import { logger } from '../utils/logger';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,

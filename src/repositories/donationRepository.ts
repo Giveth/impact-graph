@@ -5,6 +5,7 @@ import { Brackets, MoreThan } from 'typeorm';
 import moment from 'moment';
 import { AppDataSource } from '../orm';
 import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
+import { logger } from '../utils/logger';
 
 export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   await Donation.query(`
@@ -376,4 +377,34 @@ export async function sumDonationValueUsd(projectId: number): Promise<number> {
   );
 
   return result[0]?.sumVerifiedDonations || 0;
+}
+
+export async function isVerifiedDonationExistsInQfRound(params: {
+  qfRoundId: number;
+  projectId: number;
+  userId: number;
+}): Promise<boolean> {
+  try {
+    const result = await Donation.query(
+      `
+      SELECT EXISTS (
+        SELECT 1
+        FROM donation
+        WHERE 
+          status = 'verified' AND 
+          "qfRoundId" = $1 AND 
+          "projectId" = $2 AND 
+          "userId" = $3
+      ) AS exists;
+      `,
+      [params.qfRoundId, params.projectId, params.userId],
+    );
+    return result?.[0]?.exists || false;
+  } catch (err) {
+    logger.error(
+      'Error executing the query in isVerifiedDonationExists() function',
+      err,
+    );
+    return false;
+  }
 }
