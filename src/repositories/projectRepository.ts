@@ -29,6 +29,20 @@ export const findProjectById = (projectId: number): Promise<Project | null> => {
     .getOne();
 };
 
+export const verifiedProjectsAddressesWithOptimism = async (): Promise<
+  String[]
+> => {
+  const recipients = await Project.createQueryBuilder('project')
+    .select('LOWER(addresses.address) AS recipient')
+    .innerJoin('project.addresses', 'addresses', 'addresses.networkId = 10')
+    .where(
+      `project.verified = true AND project.isImported = false AND project.reviewStatus = 'Listed'`,
+    )
+    .getRawMany();
+
+  return recipients.map(recipientAddress => recipientAddress.recipient);
+};
+
 export const findProjectsByIdArray = (
   projectIds: number[],
 ): Promise<Project[]> => {

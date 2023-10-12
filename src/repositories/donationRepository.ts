@@ -27,6 +27,31 @@ export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
   `);
 };
 
+// example 110356996 returns just one transaction
+// for bigger block ranges run multiple times with additional endBlock param in tippingContract.queryFilter()
+export const getLatestBlockNumberFromDonations = async (): Promise<number> => {
+  const latestDonation = await Donation.createQueryBuilder('donation')
+    .select('MAX(donation.blockNumber)', 'maxBlock')
+    .where('donation.isExternal = true')
+    .getRawOne();
+
+  return (
+    latestDonation?.maxBlock ||
+    Number(process.env.IDRISS_STARTING_BLOCKNUMBER || 110356996)
+  );
+};
+
+export const isTransactionHashStored = async (
+  transactionHash: string,
+  origin: string,
+): Promise<boolean> => {
+  const donationCount = await Donation.count({
+    where: { transactionId: transactionHash, origin },
+  });
+
+  return donationCount > 0;
+};
+
 export const addressHasDonated = async (address: string) => {
   const projectAddress = await Donation.query(
     `
