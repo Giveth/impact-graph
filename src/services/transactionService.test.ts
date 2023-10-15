@@ -172,6 +172,63 @@ function getTransactionDetailTestCases() {
     );
   });
 
+  it('should return transaction detail for normal transfer on ethereum classic testnet', async () => {
+    // https://etc-mordor.blockscout.com/tx/0xdf0581ead2dce7f6b4fd13bf075892245edbf513d96ef03e98e54adbc81c64c2
+    const amount = 0.07;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xdf0581ead2dce7f6b4fd13bf075892245edbf513d96ef03e98e54adbc81c64c2',
+      symbol: 'mETC',
+      networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
+      fromAddress: '0xBF012CE0BBA042aCFfA89d0a2f29407644d46A0c',
+      toAddress: '0x1f88F255d9218e0Bd441C72422A3E40a0408ff53',
+      timestamp: 1696924970,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'mETC');
+    assert.equal(transactionInfo.amount, amount);
+  });
+  it('should return transaction when transactionHash is wrong because of speedup in ethereum classic testnet', async () => {
+    // https://etc-mordor.blockscout.com/tx/0xdf0581ead2dce7f6b4fd13bf075892245edbf513d96ef03e98e54adbc81c64c2
+    const amount = 0.07;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xdf0581ead2dce7f6b4fd13bf075892245edbf513d96ef03e98e54adbc81c6111',
+      symbol: 'mETC',
+      networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
+      fromAddress: '0xBF012CE0BBA042aCFfA89d0a2f29407644d46A0c',
+      toAddress: '0x1f88F255d9218e0Bd441C72422A3E40a0408ff53',
+      timestamp: 1696924970,
+      nonce: 5,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'mETC');
+    assert.equal(transactionInfo.amount, amount);
+  });
+  it('should return error when transactionHash is wrong on ethereum classic testnet', async () => {
+    // https://etc.blockscout.com/tx/0x48e0c03ed99996fac3a7ecaaf05a1582a9191d8e37b6ebdbdd630b83350faf63
+    const badFunc = async () => {
+      await getTransactionInfoFromNetwork({
+        amount: 0.04,
+        txHash:
+          '0x48e0c03ed99996fac3a7ecaaf05a1582a9191d8e37b6ebdbdd630b83350f1111',
+        symbol: 'mETC',
+        networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
+        fromAddress: '0x1a50354Cb666BD015760399D49b4b4D8a8f4a978',
+        toAddress: '0x40E3780e5Bec58629ac4C5Dc3bcA3dF2d7FD0C35',
+        timestamp: 1668186000,
+
+        nonce: 99999999,
+      });
+    };
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_WITH_THIS_NONCE_IS_NOT_MINED_ALREADY,
+    );
+  });
+
   it('should return transaction detail for normal transfer on mainnet', async () => {
     // https://etherscan.io/tx/0x37765af1a7924fb6ee22c83668e55719c9ecb1b79928bd4b208c42dfff44da3a
     const amount = 0.04;

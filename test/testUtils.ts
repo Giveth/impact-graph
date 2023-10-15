@@ -1301,6 +1301,14 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
+    morderEtc: [
+      {
+        name: 'ETHEREUM CLASSIC Testnet native token',
+        symbol: 'mETC',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+    ],
     optimism_goerli: [
       {
         name: 'OPTIMISM native token',

@@ -494,6 +494,7 @@ export class ProjectResolver {
         filter === FilterField.AcceptFundOnCelo ||
         filter === FilterField.AcceptFundOnMainnet ||
         filter === FilterField.AcceptFundOnPolygon ||
+        filter === FilterField.AcceptFundOnETC ||
         filter === FilterField.AcceptFundOnOptimism) &&
       filterValue
     ) {
@@ -513,6 +514,9 @@ export class ProjectResolver {
 
       if (filter === 'acceptFundOnOptimism') {
         networkIds.push(NETWORK_IDS.OPTIMISTIC);
+      }
+      if (filter === 'acceptFundOnETC') {
+        networkIds.push(NETWORK_IDS.ETC);
       }
       return query.andWhere(
         new Brackets(subQuery => {
@@ -545,6 +549,7 @@ export class ProjectResolver {
         filter === FilterField.AcceptFundOnCelo ||
         filter === FilterField.AcceptFundOnPolygon ||
         filter === FilterField.AcceptFundOnMainnet ||
+        filter === FilterField.AcceptFundOnETC ||
         filter === FilterField.AcceptFundOnOptimism
       ) {
         networkFiltersArray.push(filter);
@@ -618,6 +623,13 @@ export class ProjectResolver {
 
               // Add this to make sure works on Staging
               networkIds.push(NETWORK_IDS.OPTIMISM_GOERLI);
+            }
+
+            if (filter === FilterField.AcceptFundOnETC) {
+              networkIds.push(NETWORK_IDS.ETC);
+
+              // Add this to make sure works on Staging
+              networkIds.push(NETWORK_IDS.MORDOR_ETC_TESTNET);
             }
           });
 
