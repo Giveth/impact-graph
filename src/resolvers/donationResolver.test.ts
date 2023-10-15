@@ -1073,6 +1073,80 @@ function createDonationTestCases() {
     });
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
+  it('should create XDAI StableCoin donation for giveth project on xdai successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const amount = 10;
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomTxHash(),
+          nonce: 1,
+          amount,
+          token: 'WXDAI',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.isTrue(donation?.isTokenEligibleForGivback);
+    assert.equal(donation?.amount, amount);
+  });
+  it('should create USDT StableCoin donation for giveth project on mainnet successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const amount = 10;
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET,
+          transactionId: generateRandomTxHash(),
+          nonce: 1,
+          amount,
+          token: 'USDT',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.isTrue(donation?.isTokenEligibleForGivback);
+    assert.equal(donation?.amount, amount);
+  });
   it('should create GIV donation and fill averageGivbackFactor', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());

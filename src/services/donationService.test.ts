@@ -724,6 +724,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
         currency: 'XDAI',
         valueUsd: undefined,
         amount: 100,
+        transactionNetworkId: NETWORK_IDS.XDAI,
       },
       SEED_DATA.FIRST_USER.id,
       SEED_DATA.FIRST_PROJECT.id,
@@ -757,6 +758,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       token,
       ['USDC', 'MATIC'], // For matic USDC returns more favorable values
       CHAIN_ID.POLYGON,
@@ -795,6 +797,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       token,
       ['cUSD', 'CELO'], // For matic USDC returns more favorable values
       CHAIN_ID.CELO,
@@ -833,6 +836,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       token,
       ['cUSD', 'CELO'], // For matic USDC returns more favorable values
       CHAIN_ID.ALFAJORES,

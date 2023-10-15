@@ -35,6 +35,7 @@ import { CreateProjectUserInstantPowerView1689504711172 } from '../migration/168
 import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
 import { redis } from '../src/redis';
 import { logger } from '../src/utils/logger';
+import { addIsStableCoinFieldToTokenTable1696842672748 } from '../migration/1696842672748-add_isStableCoin_field_to_token_table';
 
 async function seedDb() {
   await seedUsers();
@@ -374,6 +375,7 @@ async function runMigrations() {
     await new TakePowerBoostingSnapshotProcedureSecondVersion1690723242749().up(
       queryRunner,
     );
+    await new addIsStableCoinFieldToTokenTable1696842672748().up(queryRunner);
   } catch (e) {
     throw e;
   } finally {

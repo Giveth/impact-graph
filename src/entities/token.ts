@@ -6,7 +6,6 @@ import {
   BaseEntity,
   ManyToMany,
   Index,
-  JoinTable,
 } from 'typeorm';
 import { Organization } from './organization';
 
@@ -52,6 +51,10 @@ export class Token extends BaseEntity {
   @Field(type => Boolean, { nullable: true })
   @Column({ nullable: false, default: false })
   isGivbackEligible: boolean;
+
+  @Field(type => Boolean, { nullable: true })
+  @Column({ nullable: false, default: false })
+  isStableCoin: boolean;
 
   @ManyToMany(type => Organization, organization => organization.tokens, {
     // make it true to show organizations in token page of adminjs panel
