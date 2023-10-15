@@ -60,7 +60,7 @@ const transactions: Partial<Donation>[] = [
 
   // https://etherscan.io/tx/0x30954cb441cb7b2184e6cd1afc6acbd1318f86a68b669f6bfb2786dd459e2d6c
   {
-    fromWalletAddress: '0xe04885c3f1419c6e8495c33bdcf5f8387cd88846',
+    fromWalletAddress: '0x3808429e985f0b06878c74089831865e5d82a584',
     toWalletAddress:
       '0x30954cb441cb7b2184e6cd1afc6acbd1318f86a68b669f6bfb2786dd459e2d6c',
     // https://giveth.io/project/giveth-matching-pool-0
@@ -68,10 +68,12 @@ const transactions: Partial<Donation>[] = [
     transactionId:
       '0x30954cb441cb7b2184e6cd1afc6acbd1318f86a68b669f6bfb2786dd459e2d6c',
     currency: 'ETH',
+    isProjectVerified: true,
+    isTokenEligibleForGivback: true,
     amount: 5,
     valueUsd: 9_458.4,
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
-    createdAt: new Date(1696405076000),
+    createdAt: new Date(1696325095000),
   },
 ];
 
