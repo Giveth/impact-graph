@@ -5,323 +5,29 @@ import {
   getLatestBlockNumberFromDonations,
   isTransactionHashStored,
 } from '../../repositories/donationRepository';
-import { DONATION_EXTERNAL_SOURCES } from '../../entities/donation';
-import { verifiedProjectsAddressesWithOptimism } from '../../repositories/projectRepository';
-
-// OP contract ABI
-const IDDRISS_TIPPING_CONTRACT_PARAMS = [
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: '_nativeUsdAggregator',
-        type: 'address',
-      },
-      { internalType: 'address', name: '_eas', type: 'address' },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'constructor',
-  },
-  {
-    inputs: [{ internalType: 'bytes', name: 'innerError', type: 'bytes' }],
-    name: 'BatchError',
-    type: 'error',
-  },
-  { inputs: [], name: 'InvalidEAS', type: 'error' },
-  {
-    inputs: [],
-    name: 'tipping__withdraw__OnlyAdminCanWithdraw',
-    type: 'error',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'previousOwner',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'newOwner',
-        type: 'address',
-      },
-    ],
-    name: 'OwnershipTransferred',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'recipientAddress',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'string',
-        name: 'message',
-        type: 'string',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'sender',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'tokenAddress',
-        type: 'address',
-      },
-      { indexed: false, internalType: 'uint256', name: 'fee', type: 'uint256' },
-    ],
-    name: 'TipMessage',
-    type: 'event',
-  },
-  {
-    inputs: [],
-    name: 'MINIMAL_PAYMENT_FEE',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'MINIMAL_PAYMENT_FEE_DENOMINATOR',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'PAYMENT_FEE_PERCENTAGE',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'PAYMENT_FEE_PERCENTAGE_DENOMINATOR',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'PAYMENT_FEE_SLIPPAGE_PERCENT',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: '_adminAddress', type: 'address' },
-    ],
-    name: 'addAdmin',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: 'publicGoodAddress', type: 'address' },
-    ],
-    name: 'addPublicGood',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'address', name: '', type: 'address' }],
-    name: 'admins',
-    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'bytes[]', name: '_calls', type: 'bytes[]' }],
-    name: 'batch',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint256', name: '_minimalPaymentFee', type: 'uint256' },
-      {
-        internalType: 'uint256',
-        name: '_paymentFeeDenominator',
-        type: 'uint256',
-      },
-    ],
-    name: 'changeMinimalPaymentFee',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: '_paymentFeePercentage',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: '_paymentFeeDenominator',
-        type: 'uint256',
-      },
-    ],
-    name: 'changePaymentFeePercentage',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'contractOwner',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: '_adminAddress', type: 'address' },
-    ],
-    name: 'deleteAdmin',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: 'publicGoodAddress', type: 'address' },
-    ],
-    name: 'deletePublicGood',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint256', name: '_value', type: 'uint256' },
-      { internalType: 'enum AssetType', name: '_assetType', type: 'uint8' },
-    ],
-    name: 'getPaymentFee',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'owner',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'address', name: '', type: 'address' }],
-    name: 'publicGoods',
-    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'renounceOwnership',
-    outputs: [],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: '_recipient', type: 'address' },
-      { internalType: 'uint256', name: '_assetId', type: 'uint256' },
-      { internalType: 'uint256', name: '_amount', type: 'uint256' },
-      {
-        internalType: 'address',
-        name: '_assetContractAddress',
-        type: 'address',
-      },
-      { internalType: 'string', name: '_message', type: 'string' },
-    ],
-    name: 'sendERC1155To',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: '_recipient', type: 'address' },
-      { internalType: 'uint256', name: '_tokenId', type: 'uint256' },
-      { internalType: 'address', name: '_nftContractAddress', type: 'address' },
-      { internalType: 'string', name: '_message', type: 'string' },
-    ],
-    name: 'sendERC721To',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: '_recipient', type: 'address' },
-      { internalType: 'uint256', name: '', type: 'uint256' },
-      { internalType: 'string', name: '_message', type: 'string' },
-    ],
-    name: 'sendTo',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: '_recipient', type: 'address' },
-      { internalType: 'uint256', name: '_amount', type: 'uint256' },
-      { internalType: 'address', name: '_tokenContractAddr', type: 'address' },
-      { internalType: 'string', name: '_message', type: 'string' },
-    ],
-    name: 'sendTokenTo',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'bytes4', name: 'interfaceId', type: 'bytes4' }],
-    name: 'supportsInterface',
-    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    stateMutability: 'pure',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'address', name: 'newOwner', type: 'address' }],
-    name: 'transferOwnership',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'withdraw',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: '_tokenContract', type: 'address' },
-    ],
-    name: 'withdrawToken',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-];
+import { DONATION_EXTERNAL_SOURCES, Donation } from '../../entities/donation';
+import {
+  findProjectByWalletAddress,
+  verifiedProjectsAddressesWithOptimism,
+} from '../../repositories/projectRepository';
+import { NETWORK_IDS } from '../../provider';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+import { ProjStatus } from '../../entities/project';
+import { Token } from '../../entities/token';
+import {
+  isTokenAcceptableForProject,
+  updateDonationPricesAndValues,
+} from '../donationService';
+import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
+import { relatedActiveQfRoundForProject } from '../qfRoundService';
+import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
+import {
+  createUserWithPublicAddress,
+  findUserByWalletAddress,
+} from '../../repositories/userRepository';
+import { logger } from '../../utils/logger';
+import { IDDRISS_TIPPING_CONTRACT_PARAMS } from './tippingContractParams';
+import { getGitcoinAdapter } from '../../adapters/adaptersFactory';
 
 // contract address
 const IDDRISS_ADDRESS_CONTRACT = '0x43f532d678b6a1587be989a50526f89428f68315';
@@ -379,7 +85,8 @@ export const getTwitterDonations = async () => {
 
   // Add all Giveth recipient addresses in lowercase for recipient filter
   // ['0x5abca791c22e7f99237fcc04639e094ffa0ccce9']; example
-  const relevantRecipients = await verifiedProjectsAddressesWithOptimism();
+  // const relevantRecipients = await verifiedProjectsAddressesWithOptimism();
+  const relevantRecipients = [''];
 
   const tippingEvents = await tippingContract.queryFilter(
     tippingContract.filters.TipMessage(),
@@ -413,4 +120,139 @@ export const getTwitterDonations = async () => {
   }
 };
 
-// export const createIdrissTwitterDonation = async () => {};
+export const createIdrissTwitterDonation = async (
+  idrissDonation: IdrissDonation,
+) => {
+  try {
+    const priceChainId = NETWORK_IDS.OPTIMISTIC;
+    const project = await findProjectByWalletAddress(idrissDonation.recipient);
+
+    if (!project) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+
+    if (project.status.id !== ProjStatus.active) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.JUST_ACTIVE_PROJECTS_ACCEPT_DONATION,
+        ),
+      );
+    }
+
+    const token =
+      idrissDonation.token === '0x0000000000000000000000000000000000000000'
+        ? 'ETH'
+        : 'OPT';
+    const tokenInDb = await Token.findOne({
+      where: {
+        networkId: priceChainId,
+        symbol: token,
+      },
+    });
+    // Token givback Eligibility
+    let isTokenEligibleForGivback = false;
+    if (tokenInDb) {
+      const acceptsToken = await isTokenAcceptableForProject({
+        projectId: project.id,
+        tokenId: tokenInDb.id,
+      });
+      if (!acceptsToken && !project.organization.supportCustomTokens) {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+          ),
+        );
+      }
+      isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
+    }
+
+    // ProjectRelatedAddress
+    const projectRelatedAddress = await findProjectRecipientAddressByNetworkId({
+      projectId: project.id,
+      networkId: priceChainId,
+    });
+    if (!projectRelatedAddress) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+        ),
+      );
+    }
+
+    // Donation Creation and User fetch or create.
+    const toAddress = idrissDonation.recipient.toLowerCase() as string;
+    const fromAddress = idrissDonation.from.toLowerCase() as string;
+
+    let donorUser = await findUserByWalletAddress(fromAddress);
+
+    if (!donorUser) {
+      donorUser = await createUserWithPublicAddress(fromAddress);
+
+      try {
+        const passportScore = await getGitcoinAdapter().submitPassport({
+          address: donorUser!.walletAddress!,
+        });
+        const passportStamps = await getGitcoinAdapter().getPassportStamps(
+          donorUser!.walletAddress!,
+        );
+
+        if (passportScore && passportScore?.score) {
+          const score = Number(passportScore.score);
+          donorUser.passportScore = score;
+        }
+        if (passportStamps)
+          donorUser.passportStamps = passportStamps.items.length;
+        await donorUser.save();
+      } catch (e) {
+        logger.error(
+          `refreshUserScores Error with address ${donorUser.walletAddress}: `,
+          e,
+        );
+      }
+    }
+
+    const donation = await Donation.create({
+      amount: Number(idrissDonation.amount),
+      transactionId: idrissDonation?.txHash?.toLowerCase(),
+      isFiat: false,
+      transactionNetworkId: Number(priceChainId),
+      currency: token,
+      user: donorUser,
+      tokenAddress: idrissDonation.token,
+      project,
+      isTokenEligibleForGivback,
+      isCustomToken: false,
+      isProjectVerified: project.verified,
+      createdAt: new Date(),
+      segmentNotified: false,
+      toWalletAddress: toAddress.toString().toLowerCase(),
+      fromWalletAddress: fromAddress.toString().toLowerCase(),
+      anonymous: false,
+    });
+
+    // set QFround
+    const activeQfRoundForProject = await relatedActiveQfRoundForProject(
+      project.id,
+    );
+    if (
+      activeQfRoundForProject &&
+      activeQfRoundForProject.isEligibleNetwork(Number(priceChainId))
+    ) {
+      donation.qfRound = activeQfRoundForProject;
+    }
+    await donation.save();
+
+    const baseTokens: string[] = ['USDT', 'ETH'];
+
+    await updateDonationPricesAndValues(
+      donation,
+      project,
+      token,
+      baseTokens,
+      priceChainId,
+      idrissDonation.amount,
+    );
+  } catch (e) {
+    logger.error('createIdrissTwitterDonation() error', e);
+  }
+};

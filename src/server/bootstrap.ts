@@ -69,6 +69,7 @@ import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActive
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 import { runSyncIdrissTwitterDonations } from '../services/cronJobs/syncIdrissTwitterDonations';
+import { getTwitterDonations } from '../services/Idriss/contractDonations';
 
 Resource.validate = validate;
 
@@ -230,6 +231,8 @@ export async function bootstrap() {
     const bodyParserJson = bodyParser.json({
       limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
     });
+
+    await getTwitterDonations();
 
     app.use(setI18nLocaleForRequest); // accept-language header
     app.use(cors(corsOptions));
