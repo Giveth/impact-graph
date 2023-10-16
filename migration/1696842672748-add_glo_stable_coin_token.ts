@@ -45,7 +45,7 @@ const newTokens = [
   },
 ];
 
-export class addGloStableCoinToken1696839139940 implements MigrationInterface {
+export class addGloStableCoinToken1696842672748 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.manager.save(Token, newTokens);
 
