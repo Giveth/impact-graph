@@ -53,7 +53,7 @@ export class Token extends BaseEntity {
   isGivbackEligible: boolean;
 
   @Field(type => Boolean, { nullable: true })
-  @Column({ nullable: false, default: false })
+  @Column({ nullable: true, default: false })
   isStableCoin: boolean;
 
   @ManyToMany(type => Organization, organization => organization.tokens, {
