@@ -327,7 +327,6 @@ export const userIsOwnerOfProject = async (
 export const totalProjectsPerDate = async (
   fromDate?: string,
   toDate?: string,
-  verified?: boolean,
   includesOptimism?: boolean,
 ): Promise<number> => {
   const query = Project.createQueryBuilder('project');
@@ -340,21 +339,20 @@ export const totalProjectsPerDate = async (
     query.andWhere(`project."creationDate" <= '${toDate}'`);
   }
 
-  if (verified) {
-    query.andWhere(
-      `project."verified" = true AND project."reviewStatus" = 'Listed'`,
-    );
-  }
-
   if (includesOptimism) {
-    query.innerJoin(
-      `project.addresses`,
-      'addresses',
-      'addresses."networkId" = 10',
-    );
+    query
+      .innerJoin(`project.addresses`, 'addresses', 'addresses."networkId" = 10')
+      .andWhere(
+        `project."verified" = true AND project."reviewStatus" = 'Listed'`,
+      );
   }
 
-  query.cache(`totalProjectPerDate-${fromDate || ''}-${toDate || ''}`, 300000);
+  query.cache(
+    `totalProjectPerDate-${fromDate || ''}-${toDate || ''}-${
+      includesOptimism || 'all'
+    }`,
+    300000,
+  );
 
   return await query.getCount();
 };
@@ -362,7 +360,6 @@ export const totalProjectsPerDate = async (
 export const totalProjectsPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
-  verified?: boolean,
   includesOptimism?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Project.createQueryBuilder('project').select(
@@ -377,25 +374,21 @@ export const totalProjectsPerDateByMonthAndYear = async (
     query.andWhere(`project."creationDate" <= '${toDate}'`);
   }
 
-  if (verified) {
-    query.andWhere(
-      `project."verified" = true AND project."reviewStatus" = 'Listed'`,
-    );
-  }
-
   if (includesOptimism) {
-    query.innerJoin(
-      `project.addresses`,
-      'addresses',
-      'addresses."networkId" = 10',
-    );
+    query
+      .innerJoin(`project.addresses`, 'addresses', 'addresses."networkId" = 10')
+      .andWhere(
+        `project."verified" = true AND project."reviewStatus" = 'Listed'`,
+      );
   }
 
   query.groupBy('year, month');
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
   query.cache(
-    `totalProjectsPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}`,
+    `totalProjectsPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}-${
+      includesOptimism || 'all'
+    }`,
     300000,
   );
 
