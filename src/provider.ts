@@ -16,6 +16,8 @@ export const NETWORK_IDS = {
   BSC: 56,
   CELO: 42220,
   CELO_ALFAJORES: 44787,
+  ETC: 61,
+  MORDOR_ETC_TESTNET: 63,
 };
 
 export const NETWORKS_IDS_TO_NAME = {
@@ -29,6 +31,8 @@ export const NETWORKS_IDS_TO_NAME = {
   44787: 'CELO_ALFAJORES',
   10: 'OPTIMISTIC',
   420: 'OPTIMISM_GOERLI',
+  61: 'ETC',
+  63: 'MORDOR_ETC_TESTNET',
 };
 
 const NETWORK_NAMES = {
@@ -42,6 +46,8 @@ const NETWORK_NAMES = {
   OPTIMISM_GOERLI: 'optimism-goerli-testnet',
   CELO: 'Celo',
   CELO_ALFAJORES: 'Celo Alfajores',
+  ETC: 'Ethereum Classic',
+  MORDOR_ETC_TESTNET: 'Ethereum Classic Testnet',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -55,6 +61,8 @@ const NETWORK_NATIVE_TOKENS = {
   OPTIMISM_GOERLI: 'ETH',
   CELO: 'CELO',
   CELO_ALFAJORES: 'CELO',
+  ETC: 'ETC',
+  MORDOR_ETC_TESTNET: 'mETC',
 };
 
 const networkNativeTokensList = [
@@ -108,6 +116,16 @@ const networkNativeTokensList = [
     networkId: NETWORK_IDS.CELO_ALFAJORES,
     nativeToken: NETWORK_NATIVE_TOKENS.CELO_ALFAJORES,
   },
+  {
+    networkName: NETWORK_NAMES.ETC,
+    networkId: NETWORK_IDS.ETC,
+    nativeToken: NETWORK_NATIVE_TOKENS.ETC,
+  },
+  {
+    networkName: NETWORK_NAMES.MORDOR_ETC_TESTNET,
+    networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.MORDOR_ETC_TESTNET,
+  },
 ];
 
 export function getNetworkNativeToken(networkId: number): string {
@@ -129,6 +147,15 @@ export function getProvider(networkId: number) {
   let url;
   let options;
   switch (networkId) {
+    case NETWORK_IDS.MORDOR_ETC_TESTNET:
+      // url = config.get('MORDOR_ETC_TESTNET_NODE_HTTP_URL') as string;
+      url = 'https://rpc.mordor.etccooperative.org';
+      break;
+    case NETWORK_IDS.ETC:
+      // url = config.get('ETC_NODE_HTTP_URL') as string;
+      url =
+        'https://etc.getblock.io/78a7319e-6790-4a58-b1b4-43d16e400527/mainnet';
+      break;
     case NETWORK_IDS.XDAI:
       url = config.get('XDAI_NODE_HTTP_URL') as string;
       break;
@@ -220,6 +247,12 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
       apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
       break;
+    case NETWORK_IDS.ETC:
+      // ETC network doesn't need API key
+      return config.get('ETC_SCAN_API_URL') as string;
+    case NETWORK_IDS.MORDOR_ETC_TESTNET:
+      // ETC network doesn't need API key
+      return config.get('MORDOR_ETC_TESTNET_SCAN_API_URL') as string;
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }

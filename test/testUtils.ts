@@ -1321,6 +1321,28 @@ export const SEED_DATA = {
         isStableCoin: true,
       },
     ],
+    etc: [
+      {
+        name: 'ETHEREUM CLASSIC native token',
+        symbol: 'ETC',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+      {
+        name: 'Dai Stablecoin',
+        symbol: 'DAI',
+        address: '0x2C78f1b70Ccf63CDEe49F9233e9fAa99D43AA07e',
+        decimals: 18,
+      },
+    ],
+    morderEtc: [
+      {
+        name: 'ETHEREUM CLASSIC Testnet native token',
+        symbol: 'mETC',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+    ],
     optimism_goerli: [
       {
         name: 'OPTIMISM native token',

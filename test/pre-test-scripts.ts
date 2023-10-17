@@ -172,6 +172,34 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
+  for (const token of SEED_DATA.TOKENS.etc) {
+    const tokenData = {
+      ...token,
+      networkId: 61,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETC') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.morderEtc) {
+    const tokenData = {
+      ...token,
+      networkId: 63,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'mETC') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
 }
 
 async function seedOrganizations() {
