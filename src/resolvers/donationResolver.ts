@@ -251,6 +251,7 @@ export class DonationResolver {
   async totalDonationsPerCategory(
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
   ): Promise<MainCategoryDonations[] | []> {
     try {
       validateWithJoiSchema(
@@ -279,6 +280,10 @@ export class DonationResolver {
         query.where(`donations."createdAt" <= '${toDate}'`);
       }
 
+      if (fromOptimismOnly) {
+        query.andWhere(`donation."transactionNetworkId" = 10`);
+      }
+
       const result = await query.getRawMany();
       return result;
     } catch (e) {
@@ -292,7 +297,7 @@ export class DonationResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-    @Arg('fromOptimism', { nullable: true }) fromOptimism?: boolean,
+    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -302,13 +307,13 @@ export class DonationResolver {
       const total = await donationsTotalAmountPerDateRange(
         fromDate,
         toDate,
-        fromOptimism,
+        fromOptimismOnly,
       );
       const totalPerMonthAndYear =
         await donationsTotalAmountPerDateRangeByMonth(
           fromDate,
           toDate,
-          fromOptimism,
+          fromOptimismOnly,
         );
 
       return {
@@ -326,7 +331,7 @@ export class DonationResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-    @Arg('fromOptimism', { nullable: true }) fromOptimism?: boolean,
+    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -336,13 +341,13 @@ export class DonationResolver {
       const total = await donationsNumberPerDateRange(
         fromDate,
         toDate,
-        fromOptimism,
+        fromOptimismOnly,
       );
       const totalPerMonthAndYear =
         await donationsTotalNumberPerDateRangeByMonth(
           fromDate,
           toDate,
-          fromOptimism,
+          fromOptimismOnly,
         );
 
       return {
@@ -372,18 +377,22 @@ export class DonationResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-    @Arg('fromOptimism', { nullable: true }) fromOptimism?: boolean,
+    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const total = await donorsCountPerDate(fromDate, toDate, fromOptimism);
+      const total = await donorsCountPerDate(
+        fromDate,
+        toDate,
+        fromOptimismOnly,
+      );
       const totalPerMonthAndYear = await donorsCountPerDateByMonthAndYear(
         fromDate,
         toDate,
-        fromOptimism,
+        fromOptimismOnly,
       );
       return {
         total,

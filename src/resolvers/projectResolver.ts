@@ -1208,13 +1208,11 @@ export class ProjectResolver {
       const total = await totalProjectsPerDate(
         fromDate,
         toDate,
-        verified,
         includesOptimism,
       );
       const totalPerMonthAndYear = await totalProjectsPerDateByMonthAndYear(
         fromDate,
         toDate,
-        verified,
         includesOptimism,
       );
 
