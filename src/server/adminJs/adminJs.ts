@@ -212,6 +212,7 @@ const getadminJsInstance = async () => {
             properties: {
               transactionNetworkId: 'Network',
               transactionId: 'txHash',
+              isProjectVerified: 'Givback Eligible',
               disperseTxHash:
                 'disperseTxHash, this is optional, just for disperse transactions',
             },

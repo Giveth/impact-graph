@@ -521,7 +521,16 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
+          new: false,
+        },
+      },
+      isProjectVerified: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: true,
           new: false,
         },
       },
@@ -530,9 +539,14 @@ export const donationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
+        availableValues: [
+          { value: DONATION_STATUS.VERIFIED, label: DONATION_STATUS.VERIFIED },
+          { value: DONATION_STATUS.PENDING, label: DONATION_STATUS.PENDING },
+          { value: DONATION_STATUS.FAILED, label: DONATION_STATUS.FAILED },
+        ],
       },
       createdAt: {
         isVisible: {
@@ -580,7 +594,7 @@ export const donationTab = {
           list: false,
           show: false,
           new: true,
-          edit: true,
+          edit: false,
         },
       },
       priceUsd: {
@@ -588,10 +602,46 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
         type: 'number',
+      },
+      transactionId: {
+        isVisible: {
+          list: true,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      isReferrerGivbackEligible: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      segmentNotified: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      referralStartTimestamp: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
       },
     },
     actions: {
@@ -604,7 +654,7 @@ export const donationTab = {
           ),
       },
       edit: {
-        isVisible: false,
+        isVisible: true,
         isAccessible: ({ currentAdmin }) =>
           canAccessDonationAction({ currentAdmin }, ResourceActions.EDIT),
       },
