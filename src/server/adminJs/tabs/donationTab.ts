@@ -610,7 +610,7 @@ export const donationTab = {
       transactionId: {
         isVisible: {
           list: true,
-          filter: false,
+          filter: true,
           show: true,
           edit: false,
           new: false,
