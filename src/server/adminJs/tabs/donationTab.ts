@@ -655,6 +655,24 @@ export const donationTab = {
       },
       edit: {
         isVisible: true,
+        before: async (request: AdminJsRequestInterface) => {
+          const availableFieldsForEdit = [
+            'isProjectVerified',
+            'status',
+            'valueUsd',
+            'priceUsd',
+          ];
+          Object.keys(request?.payload).forEach(key => {
+            if (!availableFieldsForEdit.includes(key)) {
+              delete request?.payload[key];
+            }
+          });
+          logger.debug('request?.payload', {
+            payload: request?.payload,
+          });
+
+          return request;
+        },
         isAccessible: ({ currentAdmin }) =>
           canAccessDonationAction({ currentAdmin }, ResourceActions.EDIT),
       },
