@@ -281,7 +281,11 @@ export class DonationResolver {
       }
 
       if (fromOptimismOnly) {
-        query.andWhere(`donation."transactionNetworkId" = 10`);
+        if (fromDate || toDate) {
+          query.andWhere(`donations."transactionNetworkId" = 10`);
+        } else {
+          query.where(`donations."transactionNetworkId" = 10`);
+        }
       }
 
       const result = await query.getRawMany();
