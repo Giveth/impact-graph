@@ -1197,7 +1197,8 @@ export class ProjectResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
-    @Arg('verified', { nullable: true }) verified?: boolean,
+    @Arg('onlyListed', { nullable: true }) onlyListed?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
     @Arg('includesOptimism', { nullable: true }) includesOptimism?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
@@ -1209,11 +1210,15 @@ export class ProjectResolver {
         fromDate,
         toDate,
         includesOptimism,
+        onlyListed,
+        onlyVerified,
       );
       const totalPerMonthAndYear = await totalProjectsPerDateByMonthAndYear(
         fromDate,
         toDate,
         includesOptimism,
+        onlyListed,
+        onlyVerified,
       );
 
       return {

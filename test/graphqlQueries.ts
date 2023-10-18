@@ -343,11 +343,15 @@ export const fetchNewProjectsPerDate = `
   query (
     $fromDate: String
     $toDate: String
+    $onlyListed: Boolean
+    $onlyVerified: Boolean
     $includesOptimism: Boolean
   ) {
     projectsPerDate(
       fromDate: $fromDate
       toDate: $toDate
+      onlyListed: $onlyListed
+      onlyVerified: $onlyVerified
       includesOptimism: $includesOptimism
     ) {
       total
