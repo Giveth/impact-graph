@@ -73,7 +73,7 @@ const transactions: Partial<Donation>[] = [
     amount: 5,
     valueUsd: 9_458.4,
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
-    createdAt: new Date(1696325095000),
+    createdAt: new Date(1697618053000),
   },
 ];
 
