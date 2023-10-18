@@ -225,8 +225,7 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
     .select(
       `COALESCE(COUNT(donation.id), 0) AS total, EXTRACT(YEAR from donation."createdAt") as year, EXTRACT(MONTH from donation."createdAt") as month, CONCAT(CAST(EXTRACT(YEAR from donation."createdAt") as VARCHAR), '/', CAST(EXTRACT(MONTH from donation."createdAt") as VARCHAR)) as date`,
     )
-    .where(`donation.status = 'verified'`)
-    .andWhere('donation."valueUsd" IS NOT NULL');
+    .where(`donation.status = 'verified'`);
 
   if (fromDate) {
     query.andWhere(`donation."createdAt" >= '${fromDate}'`);
