@@ -187,7 +187,7 @@ export const donationsNumberPerDateRange = async (
   fromOptimismOnly?: boolean,
 ): Promise<number> => {
   const query = Donation.createQueryBuilder('donation')
-    .select(`COALESCE(COUNT(donation."valueUsd"), 0)`, 'count')
+    .select(`COALESCE(COUNT(donation.id), 0)`, 'count')
     .where(`donation.status = 'verified'`);
 
   if (fromDate) {
@@ -221,7 +221,7 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Donation.createQueryBuilder('donation')
     .select(
-      `COALESCE(COUNT(donation."valueUsd"), 0) AS total, EXTRACT(YEAR from donation."createdAt") as year, EXTRACT(MONTH from donation."createdAt") as month, CONCAT(CAST(EXTRACT(YEAR from donation."createdAt") as VARCHAR), '/', CAST(EXTRACT(MONTH from donation."createdAt") as VARCHAR)) as date`,
+      `COALESCE(COUNT(donation.id), 0) AS total, EXTRACT(YEAR from donation."createdAt") as year, EXTRACT(MONTH from donation."createdAt") as month, CONCAT(CAST(EXTRACT(YEAR from donation."createdAt") as VARCHAR), '/', CAST(EXTRACT(MONTH from donation."createdAt") as VARCHAR)) as date`,
     )
     .where(`donation.status = 'verified'`)
     .andWhere('donation."valueUsd" IS NOT NULL');
