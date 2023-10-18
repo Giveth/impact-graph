@@ -207,7 +207,7 @@ export const donationsNumberPerDateRange = async (
   const donationsUsdAmount = await query.getRawOne();
 
   query.cache(
-    `donationsTotalAmountPerDateRange-${fromDate || ''}-${toDate || ''}--${
+    `donationsTotalNumberPerDateRange-${fromDate || ''}-${toDate || ''}--${
       fromOptimismOnly || 'all'
     }`,
     300000,
@@ -244,7 +244,7 @@ export const donationsTotalNumberPerDateRangeByMonth = async (
   query.addOrderBy('month', 'ASC');
 
   query.cache(
-    `donationsTotalAmountPerDateRangeByMonth-${fromDate || ''}-${
+    `donationsTotalNumberPerDateRangeByMonth-${fromDate || ''}-${
       toDate || ''
     }-${fromOptimismOnly || 'all'}`,
     300000,
