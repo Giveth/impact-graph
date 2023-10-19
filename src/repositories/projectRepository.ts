@@ -408,7 +408,7 @@ export const totalProjectsPerDateByMonthAndYear = async (
   query.cache(
     `totalProjectsPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}-${
       includesOptimism || 'all'
-    }`,
+    }-${onlyVerified || 'all'}-${onlyListed || 'all'}`,
     300000,
   );
 
