@@ -232,7 +232,7 @@ export async function bootstrap() {
       limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
     });
 
-    await getTwitterDonations();
+    // await getTwitterDonations();
 
     app.use(setI18nLocaleForRequest); // accept-language header
     app.use(cors(corsOptions));

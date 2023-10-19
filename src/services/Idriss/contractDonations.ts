@@ -45,7 +45,7 @@ const tippingContract = new ethers.Contract(
 export interface IdrissDonation {
   from: string;
   recipient: string;
-  amount: string;
+  amount: number;
   chain: string;
   token: string;
   txHash: string;
@@ -80,13 +80,14 @@ export const getInputs = async (method, data) => {
 };
 
 export const getTwitterDonations = async () => {
-  const tippingResults: IdrissDonation[] = []; // array
   const startingBlock = await getLatestBlockNumberFromDonations();
 
   // Add all Giveth recipient addresses in lowercase for recipient filter
   // ['0x5abca791c22e7f99237fcc04639e094ffa0ccce9']; example
   // const relevantRecipients = await verifiedProjectsAddressesWithOptimism();
-  const relevantRecipients = [''];
+  const relevantRecipients = String(process.env.QF_ROUND_PROJECTS || '').split(
+    ',',
+  );
 
   const tippingEvents = await tippingContract.queryFilter(
     tippingContract.filters.TipMessage(),
@@ -105,10 +106,10 @@ export const getTwitterDonations = async () => {
       const inputs = await getInputs(method, t.data);
       // Check if recipient is a relevant Giveth recipient
       if (relevantRecipients.includes(inputs!.recipient_.toLowerCase())) {
-        tippingResults.push({
+        await createIdrissTwitterDonation({
           from: t.from,
           recipient: inputs!.recipient_,
-          amount: inputs!.amount_,
+          amount: parseFloat(ethers.utils.formatEther(inputs!.amount_)),
           chain: 'optimism',
           token:
             inputs!.tokenContractAddr_ ??
