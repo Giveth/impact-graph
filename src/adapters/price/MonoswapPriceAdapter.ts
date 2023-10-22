@@ -28,8 +28,6 @@ export class MonoswapPriceAdapter implements PriceAdapterInterface {
       baseTokens,
       params.networkId,
     );
-    donation.priceUsd = Number(tokenPrices[0]);
-    donation.priceEth = Number(tokenPrices[1]);
-    return 0;
+    return Number(tokenPrices[0]);
   }
 }

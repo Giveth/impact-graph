@@ -36,6 +36,7 @@ import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '..
 import { redis } from '../src/redis';
 import { logger } from '../src/utils/logger';
 import { addIsStableCoinFieldToTokenTable1696839139940 } from '../migration/1696839139940-add_isStableCoin_field_to_token_table';
+import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens';
 
 async function seedDb() {
   await seedUsers();
@@ -404,6 +405,9 @@ async function runMigrations() {
       queryRunner,
     );
     await new addIsStableCoinFieldToTokenTable1696839139940().up(queryRunner);
+    await new addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387().up(
+      queryRunner,
+    );
   } catch (e) {
     throw e;
   } finally {

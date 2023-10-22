@@ -13,10 +13,10 @@ export const redis = new Redis(redisConfig);
 export const setObjectInRedis = async (params: {
   key: string;
   value: any;
-  expiration: number;
+  expirationInSeconds: number;
 }): Promise<void> => {
-  const { key, value, expiration } = params;
-  await redis.setex(key, expiration, JSON.stringify(value, null, 4));
+  const { key, value, expirationInSeconds } = params;
+  await redis.setex(key, expirationInSeconds, JSON.stringify(value, null, 4));
 };
 export const getRedisObject = async (key: string): Promise<any> => {
   const result = await redis.get(key);
