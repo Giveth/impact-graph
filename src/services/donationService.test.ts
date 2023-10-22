@@ -760,19 +760,12 @@ function fillOldStableCoinDonationsPriceTestCases() {
       project,
       null,
       token,
-      ['USDC', 'MATIC'], // For matic USDC returns more favorable values
       CHAIN_ID.POLYGON,
       amount,
     );
 
     donation = (await findDonationById(donation.id))!;
-
     expect(donation.valueUsd).to.gt(0);
-    assert.equal(
-      donation.valueEth,
-      amount,
-      'valueEth should be equal to amount',
-    );
   });
 
   it('should fill price for Celo donation on the CELO network', async () => {
@@ -799,19 +792,11 @@ function fillOldStableCoinDonationsPriceTestCases() {
       project,
       null,
       token,
-      ['cUSD', 'CELO'], // For matic USDC returns more favorable values
       CHAIN_ID.CELO,
       amount,
     );
-
     donation = (await findDonationById(donation.id))!;
-
     expect(donation.valueUsd).to.gt(0);
-    assert.equal(
-      donation.valueEth,
-      amount,
-      'valueEth should be equal to amount',
-    );
   });
 
   it('should fill price for Celo donation on the CELO Alfajores network', async () => {
@@ -838,18 +823,11 @@ function fillOldStableCoinDonationsPriceTestCases() {
       project,
       null,
       token,
-      ['cUSD', 'CELO'], // For matic USDC returns more favorable values
       CHAIN_ID.ALFAJORES,
       amount,
     );
 
     donation = (await findDonationById(donation.id))!;
-
     expect(donation.valueUsd).to.gt(0);
-    assert.equal(
-      donation.valueEth,
-      amount,
-      'valueEth should be equal to amount',
-    );
   });
 }

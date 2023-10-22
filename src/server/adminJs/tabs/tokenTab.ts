@@ -212,6 +212,24 @@ export const generateTokenTab = async () => {
             filter: true,
           },
         },
+        coingeckoId: {
+          isVisible: {
+            show: true,
+            edit: true,
+            new: true,
+            list: false,
+            filter: true,
+          },
+        },
+        cryptoCompareId: {
+          isVisible: {
+            show: true,
+            edit: true,
+            new: true,
+            list: false,
+            filter: true,
+          },
+        },
         decimals: { isVisible: true },
         organizations: {
           isVisible: {

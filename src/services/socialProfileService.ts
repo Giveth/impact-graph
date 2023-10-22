@@ -126,7 +126,7 @@ export const setOauth2SocialProfileInRedis = async (params: {
       socialNetwork,
       userId,
     },
-    expiration: THREE_MINUTES,
+    expirationInSeconds: THREE_MINUTES,
   });
   return trackId;
 };
