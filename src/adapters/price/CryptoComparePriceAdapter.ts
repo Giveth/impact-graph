@@ -6,6 +6,7 @@ import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { getMonoSwapTokenPrices } from '../../services/donationService';
 import axios from 'axios';
 import { getRedisObject, setObjectInRedis } from '../../redis';
+import { logger } from '../../utils/logger';
 
 const cryptoCompareCacheExpirationInSeconds =
   Number(process.env.COINGECKO_CACHE_EXPIRATION_IN_SECONDS) || 60 * 60 * 24 * 7; // 1 hour
@@ -31,13 +32,25 @@ export class CryptoComparePriceAdapter implements PriceAdapterInterface {
   }
 
   async getTokenPrice(params: GetTokenPriceParams): Promise<number> {
-    const cachedPrice = await this.readTokenFromCache(params.symbol);
-    if (cachedPrice) {
-      return cachedPrice;
+    try {
+      const cachedPrice = await this.readTokenFromCache(params.symbol);
+      if (cachedPrice) {
+        return cachedPrice;
+      }
+      const result = await axios.get(
+        `https://min-api.cryptocompare.com/data/price?fsym=${params.symbol}&tsyms=USD`,
+      );
+      const priceUsd = result?.data?.USD;
+      if (!priceUsd) {
+        throw new Error(
+          `Price not found for ${params.symbol} in cryptocompare`,
+        );
+      }
+      await this.cachePrice(params.symbol, priceUsd);
+      return priceUsd;
+    } catch (e) {
+      logger.error('Error in CryptoComparePriceAdapter', e);
+      throw e;
     }
-    const result = await axios.get(
-      `https://min-api.cryptocompare.com/data/price?fsym=${params.symbol}&tsyms=USD`,
-    );
-    return result?.data?.USD;
   }
 }

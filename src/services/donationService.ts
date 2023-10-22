@@ -30,7 +30,8 @@ import {
   refreshProjectEstimatedMatchingView,
 } from './projectViewsService';
 import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
-import { CryptoComparePriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
+import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -58,7 +59,7 @@ export const updateDonationPricesAndValues = async (
       donation.priceUsd = toFixNumber(priceUsd, 4);
       donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
     } else if (token?.coingeckoId) {
-      const priceUsd = await new CryptoComparePriceAdapter().getTokenPrice({
+      const priceUsd = await new CoingeckoPriceAdapter().getTokenPrice({
         symbol: token.coingeckoId,
         networkId: priceChainId,
       });
