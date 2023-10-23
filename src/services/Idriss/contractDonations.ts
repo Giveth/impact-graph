@@ -28,6 +28,7 @@ import { logger } from '../../utils/logger';
 import { IDDRISS_TIPPING_CONTRACT_PARAMS } from './tippingContractParams';
 import { getGitcoinAdapter } from '../../adapters/adaptersFactory';
 import { sleep } from '../../utils/utils';
+import moment from 'moment';
 
 // contract address
 const IDDRISS_ADDRESS_CONTRACT = '0x43f532d678b6a1587be989a50526f89428f68315';
@@ -229,7 +230,7 @@ export const createIdrissTwitterDonation = async (
       isTokenEligibleForGivback,
       isCustomToken: false,
       isProjectVerified: project.verified,
-      createdAt: new Date(),
+      createdAt: moment().subtract(1, 'day').toDate(),
       segmentNotified: false,
       isExternal: true,
       toWalletAddress: toAddress.toString().toLowerCase(),
