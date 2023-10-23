@@ -46,7 +46,7 @@ export const isTransactionHashStored = async (
   origin: string,
 ): Promise<boolean> => {
   const donationCount = await Donation.count({
-    where: { transactionId: transactionHash, origin },
+    where: { transactionId: transactionHash?.toLowerCase(), origin },
   });
 
   return donationCount > 0;

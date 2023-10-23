@@ -20,7 +20,6 @@ import {
 } from '../donationService';
 import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
-import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import {
   createUserWithPublicAddress,
   findUserByWalletAddress,
@@ -28,6 +27,7 @@ import {
 import { logger } from '../../utils/logger';
 import { IDDRISS_TIPPING_CONTRACT_PARAMS } from './tippingContractParams';
 import { getGitcoinAdapter } from '../../adapters/adaptersFactory';
+import { sleep } from '../../utils/utils';
 
 // contract address
 const IDDRISS_ADDRESS_CONTRACT = '0x43f532d678b6a1587be989a50526f89428f68315';
@@ -49,6 +49,7 @@ export interface IdrissDonation {
   chain: string;
   token: string;
   txHash: string;
+  // blockNumber: number;
 }
 
 export const getInputs = async (method, data) => {
@@ -85,14 +86,17 @@ export const getTwitterDonations = async () => {
   // Add all Giveth recipient addresses in lowercase for recipient filter
   // ['0x5abca791c22e7f99237fcc04639e094ffa0ccce9']; example
   // const relevantRecipients = await verifiedProjectsAddressesWithOptimism();
-  const relevantRecipients = String(process.env.QF_ROUND_PROJECTS || '').split(
-    ',',
-  );
+  const relevantRecipients = String(
+    process.env.QF_ROUND_PROJECTS_ADDRESSES || '',
+  ).split(',');
 
+  // Have to add a wait time or the function might throw error
+  await sleep(100);
   const tippingEvents = await tippingContract.queryFilter(
-    tippingContract.filters.TipMessage(),
+    await tippingContract.filters.TipMessage(),
     startingBlock,
   );
+  await sleep(100);
 
   for (const event of tippingEvents) {
     if (
@@ -106,6 +110,7 @@ export const getTwitterDonations = async () => {
       const inputs = await getInputs(method, t.data);
       // Check if recipient is a relevant Giveth recipient
       if (relevantRecipients.includes(inputs!.recipient_.toLowerCase())) {
+        logger.info('CreationDonation ' + inputs!.recipient_.toLowerCase());
         await createIdrissTwitterDonation({
           from: t.from,
           recipient: inputs!.recipient_,
@@ -226,6 +231,7 @@ export const createIdrissTwitterDonation = async (
       isProjectVerified: project.verified,
       createdAt: new Date(),
       segmentNotified: false,
+      isExternal: true,
       toWalletAddress: toAddress.toString().toLowerCase(),
       fromWalletAddress: fromAddress.toString().toLowerCase(),
       anonymous: false,
