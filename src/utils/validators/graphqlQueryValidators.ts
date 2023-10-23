@@ -165,6 +165,8 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.OPTIMISTIC,
         NETWORK_IDS.OPTIMISM_GOERLI,
         NETWORK_IDS.XDAI,
+        NETWORK_IDS.ETC,
+        NETWORK_IDS.MORDOR_ETC_TESTNET,
       ),
     }),
   ),
