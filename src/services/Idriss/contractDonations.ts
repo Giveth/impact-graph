@@ -16,6 +16,7 @@ import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { ProjStatus } from '../../entities/project';
 import { Token } from '../../entities/token';
 import {
+  getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
   updateTotalDonationsOfProject,
@@ -35,6 +36,7 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
+import { calculateGivbackFactor } from '../givbackService';
 
 // contract address
 const IDDRISS_ADDRESS_CONTRACT = '0x43f532d678b6a1587be989a50526f89428f68315';
@@ -267,14 +269,29 @@ export const createIdrissTwitterDonation = async (
 
     const baseTokens: string[] = ['USDT', 'ETH'];
 
-    await updateDonationPricesAndValues(
-      donation,
-      project,
-      String(tokenSymbol),
+    // get prices
+    const tokenPrices = await getMonoSwapTokenPrices(
+      tokenSymbol,
       baseTokens,
-      priceChainId,
-      idrissDonation.amount,
+      Number(priceChainId),
     );
+
+    if (tokenPrices.length !== 0) {
+      donation.priceUsd = Number(tokenPrices[0]);
+      donation.priceEth = Number(tokenPrices[1]);
+
+      donation.valueUsd = Number(idrissDonation.amount) * donation.priceUsd;
+      donation.valueEth = Number(idrissDonation.amount) * donation.priceEth;
+    }
+
+    const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+      await calculateGivbackFactor(project.id);
+    donation.givbackFactor = givbackFactor;
+    donation.projectRank = projectRank;
+    donation.bottomRankInRound = bottomRankInRound;
+    donation.powerRound = powerRound;
+
+    await donation.save();
 
     await updateUserTotalDonated(donation.userId);
 
