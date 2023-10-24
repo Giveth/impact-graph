@@ -97,6 +97,10 @@ export const getTwitterDonations = async () => {
     process.env.QF_ROUND_PROJECTS_ADDRESSES || '',
   ).split(',');
 
+  if (relevantRecipients.length <= 1 && relevantRecipients[0] === '') {
+    return;
+  }
+
   // Have to add a wait time or the function might throw error
   await sleep(100);
   const tippingEvents = await tippingContract.queryFilter(
@@ -112,22 +116,26 @@ export const getTwitterDonations = async () => {
         DONATION_EXTERNAL_SOURCES.IDRISS_TWITTER,
       ))
     ) {
-      const t = await ethersProvider.getTransaction(event.transactionHash);
-      const method = t.data.slice(2, 10);
-      const inputs = await getInputs(method, t.data);
-      // Check if recipient is a relevant Giveth recipient
-      if (relevantRecipients.includes(inputs!.recipient_.toLowerCase())) {
-        logger.info('CreationDonation ' + inputs!.recipient_.toLowerCase());
-        await createIdrissTwitterDonation({
-          from: t.from,
-          recipient: inputs!.recipient_,
-          amount: parseFloat(ethers.utils.formatEther(inputs!.amount_)),
-          chain: 'optimism',
-          token:
-            inputs!.tokenContractAddr_ ??
-            '0x0000000000000000000000000000000000000000',
-          txHash: event.transactionHash,
-        });
+      try {
+        const t = await ethersProvider.getTransaction(event.transactionHash);
+        const method = t.data.slice(2, 10);
+        const inputs = await getInputs(method, t.data);
+        // Check if recipient is a relevant Giveth recipient
+        if (relevantRecipients.includes(inputs!.recipient_.toLowerCase())) {
+          logger.info('CreationDonation ' + inputs!.recipient_.toLowerCase());
+          await createIdrissTwitterDonation({
+            from: t.from,
+            recipient: inputs!.recipient_,
+            amount: parseFloat(ethers.utils.formatEther(inputs!.amount_)),
+            chain: 'optimism',
+            token:
+              inputs!.tokenContractAddr_ ??
+              '0x0000000000000000000000000000000000000000',
+            txHash: event.transactionHash,
+          });
+        }
+      } catch (e) {
+        logger.error('error creating twitter donation', e);
       }
     }
   }
@@ -262,7 +270,7 @@ export const createIdrissTwitterDonation = async (
     await updateDonationPricesAndValues(
       donation,
       project,
-      tokenSymbol,
+      String(tokenSymbol),
       baseTokens,
       priceChainId,
       idrissDonation.amount,
