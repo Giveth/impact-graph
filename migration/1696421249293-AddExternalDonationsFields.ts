@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class AddExternalDonationsFields1697069046224
+export class AddExternalDonationsFields1696421249293
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
