@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class addIsStableCoinFieldToTokenTable1696839139940
+export class addIsStableCoinFieldToTokenTable1696421249293
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
