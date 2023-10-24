@@ -7,6 +7,7 @@ import {
 } from '../../repositories/donationRepository';
 import { DONATION_EXTERNAL_SOURCES, Donation } from '../../entities/donation';
 import {
+  findProjectById,
   findProjectByWalletAddress,
   verifiedProjectsAddressesWithOptimism,
 } from '../../repositories/projectRepository';
@@ -17,6 +18,7 @@ import { Token } from '../../entities/token';
 import {
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
+  updateTotalDonationsOfProject,
 } from '../donationService';
 import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
@@ -29,6 +31,10 @@ import { IDDRISS_TIPPING_CONTRACT_PARAMS } from './tippingContractParams';
 import { getGitcoinAdapter } from '../../adapters/adaptersFactory';
 import { sleep } from '../../utils/utils';
 import moment from 'moment';
+import {
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from '../userService';
 
 // contract address
 const IDDRISS_ADDRESS_CONTRACT = '0x43f532d678b6a1587be989a50526f89428f68315';
@@ -146,14 +152,14 @@ export const createIdrissTwitterDonation = async (
       );
     }
 
-    const token =
+    const tokenSymbol =
       idrissDonation.token === '0x0000000000000000000000000000000000000000'
         ? 'ETH'
-        : 'OPT';
+        : 'OP';
     const tokenInDb = await Token.findOne({
       where: {
         networkId: priceChainId,
-        symbol: token,
+        symbol: tokenSymbol,
       },
     });
     // Token givback Eligibility
@@ -223,8 +229,9 @@ export const createIdrissTwitterDonation = async (
       transactionId: idrissDonation?.txHash?.toLowerCase(),
       isFiat: false,
       transactionNetworkId: Number(priceChainId),
-      currency: token,
+      currency: tokenSymbol,
       user: donorUser,
+      status: 'verified',
       tokenAddress: idrissDonation.token,
       project,
       isTokenEligibleForGivback,
@@ -255,11 +262,17 @@ export const createIdrissTwitterDonation = async (
     await updateDonationPricesAndValues(
       donation,
       project,
-      token,
+      tokenSymbol,
       baseTokens,
       priceChainId,
       idrissDonation.amount,
     );
+
+    await updateUserTotalDonated(donation.userId);
+
+    // After updating price we update totalDonations
+    await updateTotalDonationsOfProject(donation.projectId);
+    await updateUserTotalReceived(project!.adminUser.id);
   } catch (e) {
     logger.error('createIdrissTwitterDonation() error', e);
   }
