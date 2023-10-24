@@ -724,6 +724,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
         currency: 'XDAI',
         valueUsd: undefined,
         amount: 100,
+        transactionNetworkId: NETWORK_IDS.XDAI,
       },
       SEED_DATA.FIRST_USER.id,
       SEED_DATA.FIRST_PROJECT.id,
@@ -757,20 +758,14 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       token,
-      ['USDC', 'MATIC'], // For matic USDC returns more favorable values
       CHAIN_ID.POLYGON,
       amount,
     );
 
     donation = (await findDonationById(donation.id))!;
-
     expect(donation.valueUsd).to.gt(0);
-    assert.equal(
-      donation.valueEth,
-      amount,
-      'valueEth should be equal to amount',
-    );
   });
 
   it('should fill price for Celo donation on the CELO network', async () => {
@@ -795,20 +790,13 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       token,
-      ['cUSD', 'CELO'], // For matic USDC returns more favorable values
       CHAIN_ID.CELO,
       amount,
     );
-
     donation = (await findDonationById(donation.id))!;
-
     expect(donation.valueUsd).to.gt(0);
-    assert.equal(
-      donation.valueEth,
-      amount,
-      'valueEth should be equal to amount',
-    );
   });
 
   it('should fill price for Celo donation on the CELO Alfajores network', async () => {
@@ -833,19 +821,13 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       token,
-      ['cUSD', 'CELO'], // For matic USDC returns more favorable values
       CHAIN_ID.ALFAJORES,
       amount,
     );
 
     donation = (await findDonationById(donation.id))!;
-
     expect(donation.valueUsd).to.gt(0);
-    assert.equal(
-      donation.valueEth,
-      amount,
-      'valueEth should be equal to amount',
-    );
   });
 }

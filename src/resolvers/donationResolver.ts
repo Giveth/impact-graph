@@ -657,6 +657,9 @@ export class DonationResolver {
         case NETWORK_IDS.OPTIMISM_GOERLI:
           priceChainId = NETWORK_IDS.OPTIMISTIC;
           break;
+        case NETWORK_IDS.MORDOR_ETC_TESTNET:
+          priceChainId = NETWORK_IDS.ETC;
+          break;
         default:
           priceChainId = transactionNetworkId;
           break;
@@ -765,28 +768,11 @@ export class DonationResolver {
       }
       await donation.save();
 
-      let baseTokens: string[];
-      switch (priceChainId) {
-        case CHAIN_ID.XDAI:
-          baseTokens = ['WXDAI', 'WETH'];
-          break;
-        case CHAIN_ID.POLYGON:
-          baseTokens = ['USDC', 'MATIC'];
-          break;
-        case CHAIN_ID.CELO:
-        case CHAIN_ID.ALFAJORES:
-          baseTokens = ['cUSD', 'CELO'];
-          break;
-        default:
-          baseTokens = ['USDT', 'ETH'];
-          break;
-      }
-
       await updateDonationPricesAndValues(
         donation,
         project,
+        tokenInDb,
         token,
-        baseTokens,
         priceChainId,
         amount,
       );

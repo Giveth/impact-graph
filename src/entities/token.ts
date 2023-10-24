@@ -6,7 +6,6 @@ import {
   BaseEntity,
   ManyToMany,
   Index,
-  JoinTable,
 } from 'typeorm';
 import { Organization } from './organization';
 
@@ -52,6 +51,20 @@ export class Token extends BaseEntity {
   @Field(type => Boolean, { nullable: true })
   @Column({ nullable: false, default: false })
   isGivbackEligible: boolean;
+
+  @Field(type => Boolean, { nullable: true })
+  @Column({ nullable: true, default: false })
+  isStableCoin: boolean;
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  // If we fill that, we will get price of this token from coingecko
+  coingeckoId: string;
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  // If we fill that, we will get price of this token from cryptocompare
+  cryptoCompareId: string;
 
   @ManyToMany(type => Organization, organization => organization.tokens, {
     // make it true to show organizations in token page of adminjs panel

@@ -20,6 +20,10 @@ export const DONATION_STATUS = {
   FAILED: 'failed',
 };
 
+export const DONATION_EXTERNAL_SOURCES = {
+  IDRISS_TWITTER: 'Idriss',
+};
+
 export const DONATION_TYPES = {
   CSV_AIR_DROP: 'csvAirDrop',
   GNOSIS_SAFE: 'gnosisSafe',
@@ -66,6 +70,18 @@ export class Donation extends BaseEntity {
   @Field()
   @Column('text', { default: DONATION_STATUS.PENDING })
   status: string;
+
+  @Field(type => Boolean)
+  @Column({ type: 'boolean', default: false })
+  isExternal: boolean;
+
+  @Field(type => Int)
+  @Column('integer', { nullable: true })
+  blockNumber?: number;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  origin: string;
 
   @Field({ nullable: true })
   @Column('text', { nullable: true })
@@ -153,7 +169,7 @@ export class Donation extends BaseEntity {
   @ManyToOne(type => QfRound, { eager: true })
   qfRound: QfRound;
 
-  @RelationId((donation: Donation) => donation.project)
+  @RelationId((donation: Donation) => donation.qfRound)
   @Column({ nullable: true })
   qfRoundId: number;
 

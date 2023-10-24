@@ -1,10 +1,8 @@
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { Reaction } from '../entities/reaction';
-import { Brackets, LessThan, MoreThan } from 'typeorm';
+import { Brackets, MoreThan } from 'typeorm';
 import moment from 'moment';
-import { ProjectEstimatedMatchingView } from '../entities/ProjectEstimatedMatchingView';
 import { AppDataSource } from '../orm';
 import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
 import { logger } from '../utils/logger';
@@ -25,6 +23,31 @@ export const fillQfRoundDonationsUserScores = async (): Promise<void> => {
       AND q."endDate" < NOW()
     );
   `);
+};
+
+// example 110356996 returns just one transaction
+// for bigger block ranges run multiple times with additional endBlock param in tippingContract.queryFilter()
+export const getLatestBlockNumberFromDonations = async (): Promise<number> => {
+  const latestDonation = await Donation.createQueryBuilder('donation')
+    .select('MAX(donation.blockNumber)', 'maxBlock')
+    .where('donation.isExternal = true')
+    .getRawOne();
+
+  return (
+    latestDonation?.maxBlock ||
+    Number(process.env.IDRISS_STARTING_BLOCKNUMBER || 110356996)
+  );
+};
+
+export const isTransactionHashStored = async (
+  transactionHash: string,
+  origin: string,
+): Promise<boolean> => {
+  const donationCount = await Donation.count({
+    where: { transactionId: transactionHash?.toLowerCase(), origin },
+  });
+
+  return donationCount > 0;
 };
 
 export const addressHasDonated = async (address: string) => {
@@ -325,19 +348,19 @@ export const donorsCountPerDateByMonthAndYear = async (
   return await query.getRawMany();
 };
 
-export const findStableCoinDonationsWithoutPrice = () => {
-  return Donation.createQueryBuilder('donation')
-    .where(
-      new Brackets(qb =>
-        qb.where(
-          `donation.currency = 'DAI' OR donation.currency= 'XDAI' OR donation.currency= 'WXDAI' OR donation.currency= 'USDT' OR donation.currency= 'USDC'`,
-        ),
-      ),
+export const findStableCoinDonationsWithoutPrice = async (): Promise<
+  Donation[]
+> => {
+  return await Donation.createQueryBuilder('donation')
+    .leftJoin(
+      'token',
+      'token',
+      'donation.currency = token.symbol AND donation.transactionNetworkId = token.networkId',
     )
-    .andWhere(`donation."valueUsd" IS NULL `)
+    .where('token.isStableCoin = true')
+    .andWhere('donation.valueUsd IS NULL')
     .getMany();
 };
-
 export const getRecentDonations = async (take: number): Promise<Donation[]> => {
   return await Donation.createQueryBuilder('donation')
     .leftJoin('donation.user', 'user')

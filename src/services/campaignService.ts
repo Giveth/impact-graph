@@ -76,7 +76,7 @@ export const cacheProjectCampaigns = async (): Promise<void> => {
     key: PROJECT_CAMPAIGN_CACHE_REDIS_KEY,
     value: newProjectCampaignCache,
     // cronjob would fill it every 10 minutes so the expiration doesnt matter
-    expiration: 60 * 60 * 24 * 1, // 1 day
+    expirationInSeconds: 60 * 60 * 24 * 1, // 1 day
   });
   logger.debug(
     'cacheProjectCampaigns() ended successfully, projectCampaignCache size ',

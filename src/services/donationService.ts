@@ -29,39 +29,51 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from './projectViewsService';
+import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
+import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
+import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
 export const updateDonationPricesAndValues = async (
   donation: Donation,
   project: Project,
+  token: Token | null,
   currency: string,
-  baseTokens: string[],
-  priceChainId: string | number,
+  priceChainId: number,
   amount: string | number,
 ) => {
   try {
-    if (currency === 'GIV') {
-      const { givPriceInEth, ethPriceInUsd, givPriceInUsd } =
-        await fetchGivPrice();
-
-      donation.priceEth = toFixNumber(ethPriceInUsd, 7);
+    if (token?.isStableCoin) {
+      donation.priceUsd = 1;
+      donation.valueUsd = Number(amount);
+    } else if (currency === 'GIV') {
+      const { givPriceInUsd } = await fetchGivPrice();
       donation.priceUsd = toFixNumber(givPriceInUsd, 4);
       donation.valueUsd = toFixNumber(donation.amount * givPriceInUsd, 4);
-      donation.valueEth = toFixNumber(donation.amount * givPriceInEth, 7);
+    } else if (token?.cryptoCompareId) {
+      const priceUsd = await new CryptoComparePriceAdapter().getTokenPrice({
+        symbol: token.cryptoCompareId,
+        networkId: priceChainId,
+      });
+      donation.priceUsd = toFixNumber(priceUsd, 4);
+      donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
+    } else if (token?.coingeckoId) {
+      const priceUsd = await new CoingeckoPriceAdapter().getTokenPrice({
+        symbol: token.coingeckoId,
+        networkId: priceChainId,
+      });
+      donation.priceUsd = toFixNumber(priceUsd, 4);
+      donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
     } else {
-      const tokenPrices = await getMonoSwapTokenPrices(
-        currency,
-        baseTokens,
-        Number(priceChainId),
-      );
+      const priceUsd = await new MonoswapPriceAdapter().getTokenPrice({
+        symbol: currency,
+        networkId: priceChainId,
+      });
 
-      if (tokenPrices.length !== 0) {
-        donation.priceUsd = Number(tokenPrices[0]);
-        donation.priceEth = Number(tokenPrices[1]);
-
-        donation.valueUsd = Number(amount) * donation.priceUsd;
-        donation.valueEth = Number(amount) * donation.priceEth;
+      if (priceUsd) {
+        donation.priceUsd = Number(priceUsd);
+        donation.valueUsd = toFixNumber(Number(amount) * donation.priceUsd, 4);
       }
     }
   } catch (e) {
