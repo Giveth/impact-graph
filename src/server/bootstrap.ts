@@ -347,9 +347,6 @@ export async function bootstrap() {
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
     runUpdateDonationsWithoutValueUsdPrices();
-    if ((config.get('IDRISS_DONATIONS_SYNC_ACTIVE') as string) === 'true') {
-      runSyncIdrissTwitterDonations();
-    }
 
     if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
       runCheckProjectVerificationStatus();
