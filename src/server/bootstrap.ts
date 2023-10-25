@@ -68,6 +68,7 @@ import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { runSyncIdrissTwitterDonations } from '../services/cronJobs/syncIdrissTwitterDonations';
+import { getTwitterDonations } from '../services/Idriss/contractDonations';
 
 Resource.validate = validate;
 
@@ -346,7 +347,9 @@ export async function bootstrap() {
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
     runUpdateDonationsWithoutValueUsdPrices();
-    runSyncIdrissTwitterDonations();
+    if ((config.get('IDRISS_DONATIONS_SYNC_ACTIVE') as string) === 'true') {
+      runSyncIdrissTwitterDonations();
+    }
 
     if ((config.get('PROJECT_REVOKE_SERVICE_ACTIVE') as string) === 'true') {
       runCheckProjectVerificationStatus();

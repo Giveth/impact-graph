@@ -6,11 +6,7 @@ import {
   isTransactionHashStored,
 } from '../../repositories/donationRepository';
 import { DONATION_EXTERNAL_SOURCES, Donation } from '../../entities/donation';
-import {
-  findProjectById,
-  findProjectByWalletAddress,
-  verifiedProjectsAddressesWithOptimism,
-} from '../../repositories/projectRepository';
+import { findProjectByWalletAddress } from '../../repositories/projectRepository';
 import { NETWORK_IDS } from '../../provider';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { ProjStatus } from '../../entities/project';
@@ -18,7 +14,6 @@ import { Token } from '../../entities/token';
 import {
   getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
-  updateDonationPricesAndValues,
   updateTotalDonationsOfProject,
 } from '../donationService';
 import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
@@ -28,28 +23,33 @@ import {
   findUserByWalletAddress,
 } from '../../repositories/userRepository';
 import { logger } from '../../utils/logger';
-import { IDDRISS_TIPPING_CONTRACT_PARAMS } from './tippingContractParams';
 import { getGitcoinAdapter } from '../../adapters/adaptersFactory';
-import { sleep } from '../../utils/utils';
 import moment from 'moment';
+import { calculateGivbackFactor } from '../givbackService';
+import axios from 'axios';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
-import { calculateGivbackFactor } from '../givbackService';
 
 // contract address
-const IDDRISS_ADDRESS_CONTRACT = '0x43f532d678b6a1587be989a50526f89428f68315';
-
-// Initialize with your RPC
-const providerUrl = 'https://mainnet.optimism.io';
-const ethersProvider = new ethers.providers.JsonRpcProvider(providerUrl);
-
-const tippingContract = new ethers.Contract(
-  IDDRISS_ADDRESS_CONTRACT,
-  IDDRISS_TIPPING_CONTRACT_PARAMS,
-  ethersProvider,
-);
+const IDRISS_SUBSQUID_SUBGRAPH_URL =
+  'https://squid.subsquid.io/giveth-idriss-squid/v/v1/graphql';
+const IDRISS_SUBSQUID_QUERY = `
+  query MyQuery {
+    contractEventTipMessages(limit: 1000, where: {blockNumber_gt: 110356996, message_not_eq: ""}) {
+      id
+      blockNumber
+      blockTimestamp
+      message
+      transactionHash
+      contract
+      recipientAddress
+      sender
+      tokenAddress
+    }
+  }
+`;
 
 export interface IdrissDonation {
   from: string;
@@ -58,82 +58,53 @@ export interface IdrissDonation {
   chain: string;
   token: string;
   txHash: string;
-  // blockNumber: number;
+  blockNumber?: number;
+  blockTimestamp?: string;
 }
-
-export const getInputs = async (method, data) => {
-  const parsedLog = await tippingContract.interface.parseTransaction({
-    data,
-  });
-  if (method === '16e49145') {
-    if (parsedLog) {
-      const { args } = parsedLog;
-
-      return {
-        recipient_: args[0],
-        amount_: args[1],
-        tokenContractAddr_: '0x0000000000000000000000000000000000000000',
-      };
-    }
-  } else {
-    if (parsedLog) {
-      const { args } = parsedLog;
-
-      return {
-        recipient_: args[0],
-        amount_: args[1],
-        tokenContractAddr_: args[2],
-      };
-    }
-  }
-  return null;
-};
 
 export const getTwitterDonations = async () => {
   const startingBlock = await getLatestBlockNumberFromDonations();
 
   // Add all Giveth recipient addresses in lowercase for recipient filter
   // ['0x5abca791c22e7f99237fcc04639e094ffa0ccce9']; example
-  // const relevantRecipients = await verifiedProjectsAddressesWithOptimism();
   const relevantRecipients = String(
     process.env.QF_ROUND_PROJECTS_ADDRESSES || '',
-  ).split(',');
+  )
+    .split(',')
+    .map(recipient => recipient.toLowerCase());
 
   if (relevantRecipients.length <= 1 && relevantRecipients[0] === '') {
     return;
   }
 
-  // Have to add a wait time or the function might throw error
-  await sleep(100);
-  const tippingEvents = await tippingContract.queryFilter(
-    await tippingContract.filters.TipMessage(),
-    startingBlock,
-  );
-  await sleep(100);
+  const result = await axios.post(IDRISS_SUBSQUID_SUBGRAPH_URL, {
+    query: IDRISS_SUBSQUID_QUERY,
+  });
+
+  const tippingEvents = result?.data?.data?.contractEventTipMessages;
+
+  if (!tippingEvents) return;
 
   for (const event of tippingEvents) {
-    if (
-      !(await isTransactionHashStored(
-        event.transactionHash,
-        DONATION_EXTERNAL_SOURCES.IDRISS_TWITTER,
-      ))
-    ) {
+    if (!(await isTransactionHashStored(event.transactionHash))) {
       try {
-        const t = await ethersProvider.getTransaction(event.transactionHash);
-        const method = t.data.slice(2, 10);
-        const inputs = await getInputs(method, t.data);
         // Check if recipient is a relevant Giveth recipient
-        if (relevantRecipients.includes(inputs!.recipient_.toLowerCase())) {
-          logger.info('CreationDonation ' + inputs!.recipient_.toLowerCase());
+        if (relevantRecipients.includes(event.recipientAddress.toLowerCase())) {
+          logger.info(
+            'Creating Donation from Idriss' +
+              event.recipientAddress.toLowerCase(),
+          );
           await createIdrissTwitterDonation({
-            from: t.from,
-            recipient: inputs!.recipient_,
-            amount: parseFloat(ethers.utils.formatEther(inputs!.amount_)),
+            from: event.sender.toLowerCase(),
+            recipient: event.recipientAddress.toLowerCase(),
+            amount: parseFloat(ethers.utils.formatEther(event.message)),
             chain: 'optimism',
             token:
-              inputs!.tokenContractAddr_ ??
+              event.tokenAddress ??
               '0x0000000000000000000000000000000000000000',
             txHash: event.transactionHash,
+            blockNumber: event.blockNumber,
+            blockTimestamp: event.blockTimestamp,
           });
         }
       } catch (e) {
@@ -241,13 +212,15 @@ export const createIdrissTwitterDonation = async (
       transactionNetworkId: Number(priceChainId),
       currency: tokenSymbol,
       user: donorUser,
-      status: 'verified',
       tokenAddress: idrissDonation.token,
       project,
+      status: 'verified',
+      blockNumber: idrissDonation.blockNumber,
+      origin: DONATION_EXTERNAL_SOURCES.IDRISS_TWITTER,
       isTokenEligibleForGivback,
       isCustomToken: false,
       isProjectVerified: project.verified,
-      createdAt: moment().subtract(1, 'day').toDate(),
+      createdAt: moment(idrissDonation.blockTimestamp).toDate(),
       segmentNotified: false,
       isExternal: true,
       toWalletAddress: toAddress.toString().toLowerCase(),
@@ -297,7 +270,9 @@ export const createIdrissTwitterDonation = async (
 
     // After updating price we update totalDonations
     await updateTotalDonationsOfProject(donation.projectId);
-    await updateUserTotalReceived(project!.adminUser.id);
+    await updateUserTotalReceived(
+      project?.adminUserId || project?.adminUser?.id,
+    );
   } catch (e) {
     logger.error('createIdrissTwitterDonation() error', e);
   }

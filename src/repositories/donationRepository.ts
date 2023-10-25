@@ -41,10 +41,9 @@ export const getLatestBlockNumberFromDonations = async (): Promise<number> => {
 
 export const isTransactionHashStored = async (
   transactionHash: string,
-  origin: string,
 ): Promise<boolean> => {
   const donationCount = await Donation.count({
-    where: { transactionId: transactionHash?.toLowerCase(), origin },
+    where: { transactionId: transactionHash?.toLowerCase() },
   });
 
   return donationCount > 0;
