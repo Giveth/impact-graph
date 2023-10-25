@@ -42,6 +42,7 @@ import {
 import { SelectQueryBuilder } from 'typeorm';
 import { ActionContext } from 'adminjs';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
+import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -260,6 +261,35 @@ export const buildDonationsQuery = (
     });
 
   return query;
+};
+
+export const importDonationsFromIdrissTwitter = async (
+  _request: ActionContext,
+  _response,
+  context: AdminJsContextInterface,
+) => {
+  const { records } = context;
+
+  try {
+    await getTwitterDonations();
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      records,
+      notice: {
+        message: `Donation(s) successfully exported`,
+        type: 'success',
+      },
+    };
+  } catch (e) {
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      record: {},
+      notice: {
+        message: e.message,
+        type: 'danger',
+      },
+    };
+  }
 };
 
 export const exportDonationsWithFiltersToCsv = async (
@@ -696,6 +726,13 @@ export const donationTab = {
             ResourceActions.EXPORT_FILTER_TO_CSV,
           ),
         handler: exportDonationsWithFiltersToCsv,
+        component: false,
+      },
+      importIdrissDonations: {
+        actionType: 'resource',
+        isVisible: true,
+        isAccessible: true,
+        handler: importDonationsFromIdrissTwitter,
         component: false,
       },
     },
