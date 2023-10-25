@@ -336,6 +336,7 @@ export const findProjectByWalletAddressAndNetwork = async (
       walletAddress: walletAddress.toLowerCase(),
     })
     .andWhere(`address."networkId" = :network`, { network })
+    .leftJoinAndSelect('project.status', 'status')
     .getOne();
 };
 
