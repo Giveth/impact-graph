@@ -326,6 +326,19 @@ export const findProjectByWalletAddress = async (
     .getOne();
 };
 
+export const findProjectByWalletAddressAndNetwork = async (
+  walletAddress: string,
+  network: number,
+): Promise<Project | null> => {
+  return Project.createQueryBuilder('project')
+    .innerJoin('project.addresses', 'address')
+    .where(`LOWER(address."address") = :walletAddress`, {
+      walletAddress: walletAddress.toLowerCase(),
+    })
+    .andWhere(`address."networkId" = :network`, { network })
+    .getOne();
+};
+
 export const userIsOwnerOfProject = async (
   viewerUserId: number,
   slug: string,

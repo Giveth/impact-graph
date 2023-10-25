@@ -6,7 +6,10 @@ import {
   isTransactionHashStored,
 } from '../../repositories/donationRepository';
 import { DONATION_EXTERNAL_SOURCES, Donation } from '../../entities/donation';
-import { findProjectByWalletAddress } from '../../repositories/projectRepository';
+import {
+  findProjectByWalletAddress,
+  findProjectByWalletAddressAndNetwork,
+} from '../../repositories/projectRepository';
 import { NETWORK_IDS } from '../../provider';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { ProjStatus } from '../../entities/project';
@@ -63,8 +66,6 @@ export interface IdrissDonation {
 }
 
 export const getTwitterDonations = async () => {
-  const startingBlock = await getLatestBlockNumberFromDonations();
-
   // Add all Giveth recipient addresses in lowercase for recipient filter
   // ['0x5abca791c22e7f99237fcc04639e094ffa0ccce9']; example
   const relevantRecipients = String(
@@ -119,7 +120,10 @@ export const createIdrissTwitterDonation = async (
 ) => {
   try {
     const priceChainId = NETWORK_IDS.OPTIMISTIC;
-    const project = await findProjectByWalletAddress(idrissDonation.recipient);
+    const project = await findProjectByWalletAddressAndNetwork(
+      idrissDonation.recipient,
+      priceChainId,
+    );
 
     if (!project) {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
