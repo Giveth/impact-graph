@@ -192,14 +192,18 @@ export const updateTotalDonationsOfProject = async (projectId: number) => {
   try {
     await Project.query(
       `
-      UPDATE "project"
-      SET "totalDonations" = (
-        SELECT COALESCE(SUM(d."valueUsd"),0)
-        FROM "donation" as d
-        WHERE d."projectId" = $1 AND d."status" = 'verified'
-      )
-      WHERE "id" = $1
-    `,
+                  UPDATE "project"
+                  SET "totalDonations" = (
+                    SELECT COALESCE(SUM(d."valueUsd"), 0)
+                    FROM "donation" as d
+                    WHERE d."projectId" = $1 AND d."status" = 'verified'
+                  ) + (
+                    SELECT COALESCE(SUM(q."matchingFund"), 0)
+                    FROM "qf_round_history" as q
+                    WHERE q."projectId" = $1
+                  )
+                 WHERE "id" = $1
+          `,
       [projectId],
     );
   } catch (e) {

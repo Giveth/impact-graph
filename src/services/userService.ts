@@ -27,18 +27,22 @@ export const updateUserTotalDonated = async (userId: number) => {
 
 export const updateUserTotalReceived = async (userId: number) => {
   try {
-    const totalReceived = await User.createQueryBuilder('user')
-      .select('COALESCE(SUM(project.totalDonations), 0)', 'totalReceived')
-      .leftJoin('project', 'project', 'project.adminUserId = user.id')
-      .where('user.id = :userId', { userId })
-      .addGroupBy('user.id')
-      .getRawOne();
-
-    await User.createQueryBuilder()
-      .update(User)
-      .set({ totalReceived: totalReceived.totalReceived })
-      .where('id = :userId', { userId })
-      .execute();
+    await Donation.query(
+      `
+                WITH total_received AS (
+                  SELECT COALESCE(SUM(p."totalDonations"), 0) + COALESCE(SUM(q."matchingFund"), 0) AS total
+                  FROM "user" u
+                  LEFT JOIN "project" p ON p."adminUserId" = u."id"
+                  LEFT JOIN "qf_round_history" q ON q."projectId" = p."id"
+                  WHERE u."id" = $1
+                  GROUP BY u."id"
+                )
+                UPDATE "user"
+                SET "totalReceived" = (SELECT total FROM total_received)
+                WHERE "id" = $1;
+             `,
+      [userId],
+    );
   } catch (e) {
     logger.error('updateUserTotalReceived() error', e);
   }
