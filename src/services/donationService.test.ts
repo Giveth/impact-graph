@@ -721,7 +721,9 @@ function fillTotalDonationsOfProjectTestCases() {
   it('should update totalDonations of project and count matching funds', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const donation = await saveDonationDirectlyToDb(
-      DONATION_SEED_DATA.FIRST_DONATION,
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+      }),
       SEED_DATA.FIRST_USER.id,
       project.id,
     );
