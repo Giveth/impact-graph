@@ -1,6 +1,7 @@
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
 import { logger } from '../utils/logger';
+import { QfRoundDonationRow } from './googleSheets';
 
 export const refreshProjectEstimatedMatchingView = async (): Promise<void> => {
   logger.debug('Refresh project_estimated_matching_view materialized view');
@@ -29,7 +30,9 @@ export const refreshProjectDonationSummaryView = async (): Promise<void> => {
   );
 };
 
-export const getQfRoundActualDonationDetails = async (qfRoundId: Number) => {
+export const getQfRoundActualDonationDetails = async (
+  qfRoundId: Number,
+): Promise<QfRoundDonationRow[]> => {
   const qfRound = await QfRound.createQueryBuilder('qfRound')
     .where('qfRound.id = :id', { id: qfRoundId })
     .getOne();
@@ -47,10 +50,9 @@ export const getQfRoundActualDonationDetails = async (qfRoundId: Number) => {
   let totalReward = qfRound!.allocatedFund;
   const qfRoundMaxReward =
     totalReward * Number(process.env.QF_ROUND_MAX_REWARD_PERCENTAGE || 0.2);
-  let totalWeight = rows.reduce(
-    (a, b) => a.donationsSqrtRootSumSquared + b.donationsSqrtRootSumSquared,
-    0,
-  );
+  let totalWeight = rows.reduce((accumulator, currentRow) => {
+    return accumulator + currentRow.donationsSqrtRootSumSquared;
+  }, 0);
 
   for (const row of rows) {
     const weight = row.donationsSqrtRootSumSquared;
@@ -58,9 +60,7 @@ export const getQfRoundActualDonationDetails = async (qfRoundId: Number) => {
       (totalReward * weight) / totalWeight,
       qfRoundMaxReward,
     );
-
     row.actualMatching = reward;
-
     totalReward -= reward;
     totalWeight -= weight;
   }

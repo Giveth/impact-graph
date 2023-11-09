@@ -29,7 +29,7 @@ interface ProjectExport {
   secondWalletAddress: string;
   secondWalletAddressNetwork: string;
 }
-interface QfRoundDonationRow {
+export interface QfRoundDonationRow {
   projectName: string;
   // Pattern is networkId-projectAddress,... Example: 1-0x123...456,10,ETH,0x123...456
   addresses: string;
@@ -154,14 +154,14 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
 
     const currentDate = moment().toDate();
     const headers = [
-      'Project Name',
-      'Addresses',
-      'Link',
-      'All USD Received',
-      'All USD Received After Sybils Analysis',
-      'Total Donors',
-      'Unique Donors',
-      'Real Matching Fund',
+      'projectName',
+      'addresses',
+      'link',
+      'allUsdReceived',
+      'allUsdReceivedAfterSybilsAnalysis',
+      'totalDonors',
+      'uniqueDonors',
+      'realMatchingFund',
     ];
     const { rows, qfRoundId } = params;
 
@@ -169,6 +169,7 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
       headerValues: headers,
       title: `QfRound -${qfRoundId} - ${currentDate.toDateString()} ${currentDate.getTime()}`,
     });
+    logger.debug('addQfRoundDonationsSheetToSpreadsheet', params);
     await sheet.addRows(rows);
   } catch (e) {
     logger.error('addQfRoundDonationsSheetToSpreadsheet error', e);

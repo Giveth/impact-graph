@@ -66,7 +66,7 @@ const returnAllQfRoundDonationAnalysis = async (
     const qfRoundDonationsRows = await getQfRoundActualDonationDetails(
       qfRoundId,
     );
-
+    logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
     await addQfRoundDonationsSheetToSpreadsheet({
       rows: qfRoundDonationsRows,
       qfRoundId,
