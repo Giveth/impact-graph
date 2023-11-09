@@ -10,6 +10,15 @@ export const refreshProjectEstimatedMatchingView = async (): Promise<void> => {
   );
 };
 
+export const refreshProjectActualMatchingView = async (): Promise<void> => {
+  logger.debug('Refresh project_actual_matching_view materialized view');
+  return AppDataSource.getDataSource().query(
+    `
+      REFRESH MATERIALIZED VIEW project_actual_matching_view
+    `,
+  );
+};
+
 export const refreshProjectDonationSummaryView = async (): Promise<void> => {
   logger.debug('Refresh project_donation_summary_view materialized view');
   return AppDataSource.getDataSource().query(
