@@ -5,6 +5,8 @@ import {
   After,
 } from 'adminjs/src/backend/actions/action.interface';
 import {
+  getQfRoundActualDonationDetails,
+  refreshProjectActualMatchingView,
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../../../services/projectViewsService';
@@ -22,6 +24,7 @@ import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interfac
 import { NETWORK_IDS } from '../../../provider';
 import { logger } from '../../../utils/logger';
 import { messages } from '../../../utils/messages';
+import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
 
 export const refreshMaterializedViews = async (
   response,
@@ -51,7 +54,7 @@ export const fillProjects: After<ActionResponse> = async (
   return response;
 };
 
-const returnAllDonationData = async (
+const returnAllQfRoundDonationAnalysis = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
 ) => {
@@ -59,27 +62,15 @@ const returnAllDonationData = async (
   try {
     const qfRoundId = Number(request?.params?.recordId);
     logger.debug('qfRoundId', qfRoundId);
-    // TODO Upload to google sheet
-  } catch (error) {
-    throw error;
-  }
-  return {
-    record: record.toJSON(currentAdmin),
-    notice: {
-      message: messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY,
-      type: 'success',
-    },
-  };
-};
 
-const returnSybilsData = async (
-  context: AdminJsContextInterface,
-  request: AdminJsRequestInterface,
-) => {
-  const { record, currentAdmin } = context;
-  try {
-    const qfRoundId = Number(request?.params?.recordId);
-    logger.debug('qfRoundId', qfRoundId);
+    const qfRoundDonationsRows = await getQfRoundActualDonationDetails(
+      qfRoundId,
+    );
+
+    await addQfRoundDonationsSheetToSpreadsheet({
+      rows: qfRoundDonationsRows,
+      qfRoundId,
+    });
     // TODO Upload to google sheet
   } catch (error) {
     throw error;
@@ -216,25 +207,7 @@ export const qfRoundTab = {
         actionType: 'record',
         isVisible: true,
         handler: async (request, response, context) => {
-          return returnAllDonationData(context, request);
-        },
-        component: false,
-      },
-      returnSybilDonationsData: {
-        // https://docs.adminjs.co/basics/action#record-type-actions
-        actionType: 'record',
-        isVisible: true,
-        handler: async (request, response, context) => {
-          return returnSybilsData(context, request);
-        },
-        component: false,
-      },
-      returnAllDonationDataExcludeSybilsAddresses: {
-        // https://docs.adminjs.co/basics/action#record-type-actions
-        actionType: 'record',
-        isVisible: true,
-        handler: async (request, response, context) => {
-          return returnSybilsData(context, request);
+          return returnAllQfRoundDonationAnalysis(context, request);
         },
         component: false,
       },

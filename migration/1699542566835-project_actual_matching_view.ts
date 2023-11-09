@@ -65,13 +65,14 @@ export class projectActualMatchingView1699542566835
                 d1.id AS "projectId",
                 d1.title,
                 d1.slug, 
+                d1."networkAddresses",
                 d1."qfId" AS "qfRoundId",
                 d1."allUsdReceived",
                 d1."totalDonors",
                 d2."allUsdReceivedAfterSybilsAnalysis",
                 d2."uniqueDonors",
-                d2."DonationsSqrtRootSum",
-                d2."DonationsSqrtRootSumSquared"
+                d2."donationsSqrtRootSum",
+                d2."donationsSqrtRootSumSquared"
             FROM 
                 DonationsBeforeAnalysis d1
             INNER JOIN DonationsAfterAnalysis d2 ON d1.id = d2.id AND d1.slug = d2.slug and d1."qfId" = d2."qfId";
