@@ -88,7 +88,7 @@ export const initExportSpreadsheet = async (): Promise<
   return spreadSheet;
 };
 
-export const initQfRoundDonationsSpreadsheet = async (): Promise<
+const initQfRoundDonationsSpreadsheet = async (): Promise<
   typeof GoogleSpreadsheet
 > => {
   // Initialize the sheet - document ID is the long id in the sheets URL
@@ -147,11 +147,7 @@ export const addProjectsSheetToSpreadsheet = async (
 
 export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
   rows: QfRoundDonationRow[];
-  prefix:
-    | 'AfterSybilsAnalysis'
-    | 'BeforeSybilsAnalysis'
-    | 'SybilsAnalysisFailed';
-  qfRoundId: string;
+  qfRoundId: number;
 }): Promise<void> => {
   try {
     const spreadSheet = await initQfRoundDonationsSpreadsheet();
@@ -167,11 +163,11 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
       'Unique Donors',
       'Real Matching Fund',
     ];
-    const { rows, prefix, qfRoundId } = params;
+    const { rows, qfRoundId } = params;
 
     const sheet = await spreadSheet.addSheet({
       headerValues: headers,
-      title: `QfRound -${qfRoundId} -${prefix} - ${currentDate.toDateString()} ${currentDate.getTime()}`,
+      title: `QfRound -${qfRoundId} - ${currentDate.toDateString()} ${currentDate.getTime()}`,
     });
     await sheet.addRows(rows);
   } catch (e) {
