@@ -36,8 +36,8 @@ export class projectActualMatchingView1699542566835
                 qr.id as "qfId",
                 COALESCE(SUM(d2."valueUsd"), 0) AS "allUsdReceivedAfterSybilsAnalysis", 
                 COUNT(DISTINCT d2."fromWalletAddress") AS "uniqueDonors",
-                SUM(SQRT(d2."valueUsd")) AS "DonationsSqrtRootSum",
-                POWER(SUM(SQRT(d2."valueUsd")), 2) as "DonationsSqrtRootSumSquared"
+                SUM(SQRT(d2."valueUsd")) AS "donationsSqrtRootSum",
+                POWER(SUM(SQRT(d2."valueUsd")), 2) as "donationsSqrtRootSumSquared"
             FROM 
                 public.donation AS d2
                 INNER JOIN project p2 ON p2.id = d2."projectId"
