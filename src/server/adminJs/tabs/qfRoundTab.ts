@@ -5,6 +5,8 @@ import {
   After,
 } from 'adminjs/src/backend/actions/action.interface';
 import {
+  getQfRoundActualDonationDetails,
+  refreshProjectActualMatchingView,
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../../../services/projectViewsService';
@@ -20,6 +22,9 @@ import {
 } from '../../../repositories/qfRoundRepository';
 import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { NETWORK_IDS } from '../../../provider';
+import { logger } from '../../../utils/logger';
+import { messages } from '../../../utils/messages';
+import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
 
 export const refreshMaterializedViews = async (
   response,
@@ -47,6 +52,36 @@ export const fillProjects: After<ActionResponse> = async (
     },
   };
   return response;
+};
+
+const returnAllQfRoundDonationAnalysis = async (
+  context: AdminJsContextInterface,
+  request: AdminJsRequestInterface,
+) => {
+  const { record, currentAdmin } = context;
+  try {
+    const qfRoundId = Number(request?.params?.recordId);
+    logger.debug('qfRoundId', qfRoundId);
+
+    const qfRoundDonationsRows = await getQfRoundActualDonationDetails(
+      qfRoundId,
+    );
+    logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
+    await addQfRoundDonationsSheetToSpreadsheet({
+      rows: qfRoundDonationsRows,
+      qfRoundId,
+    });
+    // TODO Upload to google sheet
+  } catch (error) {
+    throw error;
+  }
+  return {
+    record: record.toJSON(currentAdmin),
+    notice: {
+      message: messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY,
+      type: 'success',
+    },
+  };
 };
 
 export const qfRoundTab = {
@@ -165,6 +200,16 @@ export const qfRoundTab = {
           return request;
         },
         after: refreshMaterializedViews,
+      },
+
+      returnAllDonationData: {
+        // https://docs.adminjs.co/basics/action#record-type-actions
+        actionType: 'record',
+        isVisible: true,
+        handler: async (request, response, context) => {
+          return returnAllQfRoundDonationAnalysis(context, request);
+        },
+        component: false,
       },
     },
   },
