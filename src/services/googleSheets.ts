@@ -37,6 +37,8 @@ interface QfRoundDonationRow {
   allUsdReceived?: number;
   allUsdReceivedAfterSybilsAnalysis?: number;
   totalDonors: number;
+
+  // We can have 20 donors but after sybils analysis we can have 15 unique donors
   uniqueDonors: number;
   realMatchingFund: number;
 }
