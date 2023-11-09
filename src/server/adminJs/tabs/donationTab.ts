@@ -5,7 +5,6 @@ import {
 } from '../../../entities/donation';
 import {
   canAccessDonationAction,
-  canAccessQfRoundAction,
   ResourceActions,
 } from '../adminJsPermissions';
 import {
@@ -262,48 +261,6 @@ export const buildDonationsQuery = (
     });
 
   return query;
-};
-
-export const returnAllDonationData = async (
-  context: AdminJsContextInterface,
-  request: AdminJsRequestInterface,
-) => {
-  const { record, currentAdmin } = context;
-  try {
-    const qfRoundId = Number(request?.params?.recordId);
-    logger.debug('qfRoundId', qfRoundId);
-    // TODO Upload to google sheet
-  } catch (error) {
-    throw error;
-  }
-  return {
-    record: record.toJSON(currentAdmin),
-    notice: {
-      message: messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY,
-      type: 'success',
-    },
-  };
-};
-
-export const returnSybilsData = async (
-  context: AdminJsContextInterface,
-  request: AdminJsRequestInterface,
-) => {
-  const { record, currentAdmin } = context;
-  try {
-    const qfRoundId = Number(request?.params?.recordId);
-    logger.debug('qfRoundId', qfRoundId);
-    // TODO Upload to google sheet
-  } catch (error) {
-    throw error;
-  }
-  return {
-    record: record.toJSON(currentAdmin),
-    notice: {
-      message: messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY,
-      type: 'success',
-    },
-  };
 };
 
 export const importDonationsFromIdrissTwitter = async (
@@ -707,15 +664,6 @@ export const donationTab = {
           new: false,
         },
       },
-      knownAsSybilAddress: {
-        isVisible: {
-          list: false,
-          filter: false,
-          show: true,
-          edit: false,
-          new: false,
-        },
-      },
       referralStartTimestamp: {
         isVisible: {
           list: false,
@@ -785,34 +733,6 @@ export const donationTab = {
         isVisible: true,
         isAccessible: true,
         handler: importDonationsFromIdrissTwitter,
-        component: false,
-      },
-
-      returnAllDonationData: {
-        // https://docs.adminjs.co/basics/action#record-type-actions
-        actionType: 'record',
-        isVisible: true,
-        handler: async (request, response, context) => {
-          return returnAllDonationData(context, request);
-        },
-        component: false,
-      },
-      returnSybilDonationsData: {
-        // https://docs.adminjs.co/basics/action#record-type-actions
-        actionType: 'record',
-        isVisible: true,
-        handler: async (request, response, context) => {
-          return returnSybilsData(context, request);
-        },
-        component: false,
-      },
-      returnAllDonationDataExcludeSybilsAddresses: {
-        // https://docs.adminjs.co/basics/action#record-type-actions
-        actionType: 'record',
-        isVisible: true,
-        handler: async (request, response, context) => {
-          return returnSybilsData(context, request);
-        },
         component: false,
       },
     },
