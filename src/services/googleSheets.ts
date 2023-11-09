@@ -33,9 +33,9 @@ interface QfRoundDonationRow {
   projectName: string;
   // Pattern is networkId-projectAddress,... Example: 1-0x123...456,10,ETH,0x123...456
   addresses: string;
-  link?: string | null;
-  allUsdReceived?: string | null;
-  allUsdReceivedAfterSybilsAnalysis?: string | null;
+  link: string;
+  allUsdReceived?: number;
+  allUsdReceivedAfterSybilsAnalysis?: number;
   totalDonors: number;
   uniqueDonors: number;
   realMatchingFund: number;
