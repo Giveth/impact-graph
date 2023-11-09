@@ -20,8 +20,8 @@ export class projectActualMatchingView1699542566835
             FROM 
                 public.donation AS d
                 INNER JOIN project p ON p.id = d."projectId"
-                inner join project_address pa on pa."projectId" = p.id AND pa."networkId" = ANY(qr."eligibleNetworks")
                 INNER JOIN qf_round qr on qr.id = d."qfRoundId"
+                inner join project_address pa on pa."projectId" = p.id AND pa."networkId" = ANY(qr."eligibleNetworks")
                 inner join "user" u on u.id = d."userId" 
             GROUP BY 
                 p.id,
@@ -42,7 +42,7 @@ export class projectActualMatchingView1699542566835
                 public.donation AS d2
                 INNER JOIN project p2 ON p2.id = d2."projectId"
                 INNER JOIN qf_round qr on qr.id = d2."qfRoundId"
-                inner join project_address pa on pa."projectId" = p.id AND pa."networkId" = ANY(qr."eligibleNetworks")
+                inner join project_address pa on pa."projectId" = p2.id AND pa."networkId" = ANY(qr."eligibleNetworks")
                 inner join "user" u on u.id = d2."userId" and u."knownAsSybilAddress" = false
             WHERE 
                 p2."statusId" = 5 
