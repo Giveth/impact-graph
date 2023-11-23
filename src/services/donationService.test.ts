@@ -27,6 +27,9 @@ import { findDonationById } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { findUserById } from '../repositories/userRepository';
+import { QfRound } from '../entities/qfRound';
+import moment from 'moment';
+import { QfRoundHistory } from '../entities/qfRoundHistory';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -709,6 +712,52 @@ function fillTotalDonationsOfProjectTestCases() {
     await updateTotalDonationsOfProject(project.id);
     const updatedProject = (await findProjectById(project.id)) as Project;
     assert.equal(updatedProject.totalDonations, donation.valueUsd);
+    assert.equal(
+      new Date(updatedProject.updatedAt).getTime(),
+      new Date(project.updatedAt).getTime(),
+    );
+  });
+
+  it('should update totalDonations of project and count matching funds', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+      }),
+      SEED_DATA.FIRST_USER.id,
+      project.id,
+    );
+    const qfRound = await QfRound.create({
+      isActive: false,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+    const qfRound2 = await QfRound.create({
+      isActive: false,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+    project.qfRounds = [qfRound, qfRound2];
+    await project.save();
+    await QfRoundHistory.create({
+      qfRoundId: qfRound.id,
+      projectId: project.id,
+      matchingFund: 150,
+    }).save();
+    await QfRoundHistory.create({
+      qfRoundId: qfRound2.id,
+      projectId: project.id,
+      matchingFund: 160,
+    }).save();
+    await updateTotalDonationsOfProject(project.id);
+    const updatedProject = (await findProjectById(project.id)) as Project;
+    assert.equal(updatedProject.totalDonations, donation.valueUsd + 150 + 160);
     assert.equal(
       new Date(updatedProject.updatedAt).getTime(),
       new Date(project.updatedAt).getTime(),

@@ -8,16 +8,8 @@ import {
 } from '../../test/testUtils';
 import { QfRound } from '../entities/qfRound';
 import { assert, expect } from 'chai';
-import {
-  getProjectDonationsSqrtRootSum,
-  getQfRoundTotalProjectsDonationsSum,
-} from './qfRoundRepository';
 import { Project } from '../entities/project';
 import moment from 'moment';
-import {
-  refreshProjectDonationSummaryView,
-  refreshProjectEstimatedMatchingView,
-} from '../services/projectViewsService';
 import {
   fillQfRoundHistory,
   getQfRoundHistory,
