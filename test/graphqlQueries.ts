@@ -772,6 +772,20 @@ export const expectedMatchingFormulaQuery = `
   }
 `;
 
+export const qfRoundStatsQuery = `
+  query (
+    $slug: String!
+  ) {
+    qfRoundStats(
+      slug: $slug
+    ) {
+      uniqueDonors
+      allDonationsUsdValue
+      matchingPool
+    }
+  }
+`;
+
 export const getQfRoundHistoryQuery = `
     query (
       $projectId: Int!

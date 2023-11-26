@@ -5,10 +5,23 @@ import { User } from '../entities/user';
 import {
   findActiveQfRound,
   findAllQfRounds,
+  findQfRoundBySlug,
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalProjectsDonationsSum,
 } from '../repositories/qfRoundRepository';
 import { QfRound } from '../entities/qfRound';
+
+@ObjectType()
+export class QfRoundStatsResponse {
+  @Field()
+  uniqueDonors: number;
+
+  @Field()
+  allDonationsUsdValue: number;
+
+  @Field()
+  matchingPool: number;
+}
 
 @ObjectType()
 export class ExpectedMatchingResponse {
@@ -55,6 +68,22 @@ export class QfRoundResolver {
       projectDonationsSqrtRootSum: projectDonationsSqrtRootSum.sqrtRootSum,
       allProjectsSum: allProjectsSum.sum,
       matchingPool,
+    };
+  }
+  @Query(() => QfRoundStatsResponse, { nullable: true })
+  async qfRoundStats(
+    @Arg('slug') slug: string,
+  ): Promise<QfRoundStatsResponse | null> {
+    const qfRound = await findQfRoundBySlug(slug);
+    if (!qfRound) {
+      return null;
+    }
+    const { totalDonationsSum, contributorsCount } =
+      await getQfRoundTotalProjectsDonationsSum(qfRound.id);
+    return {
+      uniqueDonors: contributorsCount,
+      allDonationsUsdValue: totalDonationsSum,
+      matchingPool: qfRound.allocatedFund,
     };
   }
 }

@@ -91,6 +91,9 @@ export const qfRoundTab = {
       name: {
         isVisible: true,
       },
+      slug: {
+        isVisible: true,
+      },
       isActive: {
         isVisible: true,
       },
