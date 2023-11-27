@@ -69,6 +69,7 @@ export type FilterProjectQueryInputParams = {
   sortingBy?: SortingField;
   qfRoundId?: number;
   activeQfRoundId?: number;
+  qfRoundSlug?: string;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -81,6 +82,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     sortingBy,
     slugArray,
     qfRoundId,
+    qfRoundSlug,
     activeQfRoundId,
   } = params;
 
@@ -117,6 +119,13 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       'qf_rounds',
       'qf_rounds.id = :qfRoundId',
       { qfRoundId: qfRoundId ? qfRoundId : activeQfRoundId },
+    );
+  } else if (qfRoundSlug) {
+    query.innerJoinAndSelect(
+      'project.qfRounds',
+      'qf_rounds',
+      `qf_rounds.slug = :qfRoundSlug`,
+      { qfRoundSlug },
     );
   }
   if (!sortingBy || sortingBy === SortingField.InstantBoosting) {

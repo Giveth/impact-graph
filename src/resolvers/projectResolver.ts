@@ -262,6 +262,9 @@ class GetProjectsArgs {
 
   @Field(type => Int, { nullable: true })
   qfRoundId?: number;
+
+  @Field(type => String, { nullable: true })
+  qfRoundSlug?: string;
 }
 
 @Service()
@@ -475,65 +478,6 @@ export class ProjectResolver {
     allProjects.totalCount = totalCount;
 
     return allProjects;
-  }
-
-  static addFilterQuery(
-    query: SelectQueryBuilder<Project>,
-    filter: string,
-    filterValue: boolean,
-  ) {
-    if (!filter) return query;
-
-    if (filter === 'givingBlocksId') {
-      const acceptGiv = filterValue ? 'IS' : 'IS NOT';
-      return query.andWhere(`project.${filter} ${acceptGiv} NULL`);
-    }
-
-    if (
-      (filter === FilterField.AcceptFundOnGnosis ||
-        filter === FilterField.AcceptFundOnCelo ||
-        filter === FilterField.AcceptFundOnMainnet ||
-        filter === FilterField.AcceptFundOnPolygon ||
-        filter === FilterField.AcceptFundOnETC ||
-        filter === FilterField.AcceptFundOnOptimism) &&
-      filterValue
-    ) {
-      const networkIds: number[] = [];
-
-      if (filter === 'acceptFundOnGnosis') {
-        networkIds.push(NETWORK_IDS.XDAI);
-      }
-
-      if (filter === 'acceptFundOnCelo') {
-        networkIds.push(NETWORK_IDS.CELO);
-      }
-
-      if (filter === 'acceptFundOnPolygon') {
-        networkIds.push(NETWORK_IDS.POLYGON);
-      }
-
-      if (filter === 'acceptFundOnOptimism') {
-        networkIds.push(NETWORK_IDS.OPTIMISTIC);
-      }
-      if (filter === 'acceptFundOnETC') {
-        networkIds.push(NETWORK_IDS.ETC);
-      }
-      return query.andWhere(
-        new Brackets(subQuery => {
-          subQuery.where(
-            `EXISTS (
-              SELECT *
-              FROM project_address
-              WHERE "isRecipient" = true AND "networkId" IN (${networkIds.join(
-                ', ',
-              )}) AND "projectId" = project.id
-            )`,
-          );
-        }),
-      );
-    }
-
-    return query.andWhere(`project.${filter} = ${filterValue}`);
   }
 
   static addFiltersQuery(
@@ -769,6 +713,7 @@ export class ProjectResolver {
       connectedWalletUserId,
       campaignSlug,
       qfRoundId,
+      qfRoundSlug,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
@@ -789,6 +734,7 @@ export class ProjectResolver {
       filters,
       sortingBy,
       qfRoundId,
+      qfRoundSlug,
       activeQfRoundId,
     };
     let campaign;

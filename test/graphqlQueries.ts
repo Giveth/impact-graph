@@ -650,6 +650,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $campaignSlug: String
     $connectedWalletUserId: Int
     $qfRoundId: Int
+    $qfRoundSlug: String
   ) {
     allProjects(
       limit: $limit
@@ -662,6 +663,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
       qfRoundId: $qfRoundId
+      qfRoundSlug: $qfRoundSlug
     ) {
     
       campaign{

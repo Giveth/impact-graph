@@ -18,6 +18,7 @@ import {
 import { findUserByWalletAddress } from '../src/repositories/userRepository';
 import {
   addNewProjectAddress,
+  findProjectRecipientAddressByProjectId,
   findRelatedAddressByWalletAddress,
 } from '../src/repositories/projectAddressRepository';
 import {
@@ -246,6 +247,9 @@ export const saveProjectDirectlyToDb = async (
       });
     }
   }
+  project.addresses = await findProjectRecipientAddressByProjectId({
+    projectId: project.id,
+  });
 
   // default projectUpdate for liking projects
   // this was breaking updateAt tests as it was running update hooks sometime in the future.
