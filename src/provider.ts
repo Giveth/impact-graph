@@ -148,7 +148,7 @@ export function getProvider(networkId: number) {
   let options;
   switch (networkId) {
     case NETWORK_IDS.MORDOR_ETC_TESTNET:
-      url = config.get('MORDOR_ETC_TESTNET_NODE_HTTP_URL') as string;
+      url = config.get('MORDOR_ETC_TESTNET') as string;
       break;
     case NETWORK_IDS.ETC:
       url = config.get('ETC_NODE_HTTP_URL') as string;
