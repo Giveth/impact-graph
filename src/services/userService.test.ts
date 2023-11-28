@@ -113,13 +113,13 @@ function updateUserTotalReceivedTestCases() {
       ...createProjectData(),
       admin: String(user.id),
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
-      totalDonations: 180,
+      totalDonations: 0,
     });
     const project2 = await saveProjectDirectlyToDb({
       ...createProjectData(),
       admin: String(user.id),
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
-      totalDonations: 190,
+      totalDonations: 0,
     });
     const qfRound = QfRound.create({
       isActive: false,
@@ -149,11 +149,12 @@ function updateUserTotalReceivedTestCases() {
     await owner?.save();
 
     await updateTotalDonationsOfProject(project.id);
+    await updateTotalDonationsOfProject(project2.id);
     await updateUserTotalReceived(user.id);
 
     const updatedOwner = await findUserById(user.id);
     assert.notEqual(owner!.totalReceived, updatedOwner!.totalReceived);
-    assert.equal(updatedOwner!.totalReceived, 180 + 190 + 150 + 160);
+    assert.equal(updatedOwner!.totalReceived, 150 + 160);
   });
 }
 
