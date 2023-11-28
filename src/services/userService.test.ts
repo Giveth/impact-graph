@@ -25,6 +25,7 @@ import { findUserById } from '../repositories/userRepository';
 import { QfRound } from '../entities/qfRound';
 import moment from 'moment';
 import { QfRoundHistory } from '../entities/qfRoundHistory';
+import { updateTotalDonationsOfProject } from './donationService';
 
 describe(
   'updateUserTotalDonated() test cases',
@@ -147,6 +148,7 @@ function updateUserTotalReceivedTestCases() {
     owner.totalReceived = 0;
     await owner?.save();
 
+    await updateTotalDonationsOfProject(project.id);
     await updateUserTotalReceived(user.id);
 
     const updatedOwner = await findUserById(user.id);
