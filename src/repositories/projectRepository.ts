@@ -303,10 +303,10 @@ export const updateProjectWithVerificationForm = async (
       isRecipient: false,
     }).save();
   }
-
-  project.contacts = verificationForm.projectContacts;
-  await project.save();
-  return (await findProjectById(project.id)) as Project;
+  const fetchedProject = await findProjectById(verificationForm.projectId);
+  fetchedProject!.contacts = verificationForm.projectContacts;
+  await fetchedProject!.save();
+  return fetchedProject!;
 };
 
 export const verifyProject = async (params: {

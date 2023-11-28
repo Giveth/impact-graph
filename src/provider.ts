@@ -148,13 +148,10 @@ export function getProvider(networkId: number) {
   let options;
   switch (networkId) {
     case NETWORK_IDS.MORDOR_ETC_TESTNET:
-      // url = config.get('MORDOR_ETC_TESTNET_NODE_HTTP_URL') as string;
-      url = 'https://rpc.mordor.etccooperative.org';
+      url = config.get('MORDOR_ETC_TESTNET_NODE_HTTP_URL') as string;
       break;
     case NETWORK_IDS.ETC:
-      // url = config.get('ETC_NODE_HTTP_URL') as string;
-      url =
-        'https://etc.getblock.io/78a7319e-6790-4a58-b1b4-43d16e400527/mainnet';
+      url = config.get('ETC_NODE_HTTP_URL') as string;
       break;
     case NETWORK_IDS.XDAI:
       url = config.get('XDAI_NODE_HTTP_URL') as string;
