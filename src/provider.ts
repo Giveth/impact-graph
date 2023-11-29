@@ -149,6 +149,8 @@ export function getProvider(networkId: number) {
   switch (networkId) {
     case NETWORK_IDS.MORDOR_ETC_TESTNET:
       url = process.env.MORDOR_ETC_TESTNET as string;
+      // tslint:disable-next-line:no-console
+      console.log('*** MORDOR_ETC_TESTNET ***', url);
       break;
     case NETWORK_IDS.ETC:
       url = process.env.ETC_NODE_HTTP_URL as string;
