@@ -148,30 +148,30 @@ export function getProvider(networkId: number) {
   let options;
   switch (networkId) {
     case NETWORK_IDS.MORDOR_ETC_TESTNET:
-      url = config.get('MORDOR_ETC_TESTNET') as string;
+      url = process.env.MORDOR_ETC_TESTNET as string;
       break;
     case NETWORK_IDS.ETC:
-      url = config.get('ETC_NODE_HTTP_URL') as string;
+      url = process.env.ETC_NODE_HTTP_URL as string;
       break;
     case NETWORK_IDS.XDAI:
-      url = config.get('XDAI_NODE_HTTP_URL') as string;
+      url = process.env.XDAI_NODE_HTTP_URL as string;
       break;
 
     case NETWORK_IDS.BSC:
       // 'https://bsc-dataseed.binance.org/'
-      url = config.get('BSC_NODE_HTTP_URL') as string;
+      url = process.env.BSC_NODE_HTTP_URL as string;
       options = { name: NETWORK_NAMES.BSC, chainId: NETWORK_IDS.BSC };
       break;
 
     case NETWORK_IDS.CELO:
       url =
-        (config.get('CELO_NODE_HTTP_URL') as string) ||
+        (process.env.CELO_NODE_HTTP_URL as string) ||
         `https://celo-mainnet.infura.io/v3/${INFURA_ID}`;
       break;
 
     case NETWORK_IDS.CELO_ALFAJORES:
       url =
-        (config.get('CELO_ALFAJORES_NODE_HTTP_URL') as string) ||
+        (process.env.CELO_ALFAJORES_NODE_HTTP_URL as string) ||
         `https://celo-alfajores.infura.io/v3/${INFURA_ID}`;
       break;
 
