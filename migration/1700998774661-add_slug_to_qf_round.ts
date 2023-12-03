@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddSlugToQfRoundXXXXXXXXXX implements MigrationInterface {
+export class AddSlugToQfRound1700998774661 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     // Adding the 'slug' column with a default value
     await queryRunner.query(
