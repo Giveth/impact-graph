@@ -1,6 +1,7 @@
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
 import { logger } from '../utils/logger';
+import { Field } from 'type-graphql';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -17,8 +18,17 @@ export const findActiveQfRound = async (): Promise<QfRound | null> => {
     .where('"isActive" = true')
     .getOne();
 };
+
 export const findQfRoundById = async (id: number): Promise<QfRound | null> => {
   return QfRound.createQueryBuilder('qf_round').where(`id = ${id}`).getOne();
+};
+
+export const findQfRoundBySlug = async (
+  slug: string,
+): Promise<QfRound | null> => {
+  return QfRound.createQueryBuilder('qf_round')
+    .where(`slug = '${slug}'`)
+    .getOne();
 };
 
 export const relateManyProjectsToQfRound = async (params: {
@@ -78,12 +88,14 @@ export const getQfRoundTotalProjectsDonationsSum = async (
   qfRoundId: number,
 ): Promise<{
   sum: number;
+  totalDonationsSum: number;
   contributorsCount: number;
 }> => {
   const result = await AppDataSource.getDataSource()
     .createQueryBuilder()
     .select(`SUM("sqrtRootSumSquared")`, 'sum')
     .addSelect(`SUM("donorsCount")`, 'contributorsCount')
+    .addSelect(`SUM("sumValueUsd")`, 'totalDonationsSum') // Added sum of all donation values
     .from('project_estimated_matching_view', 'project_estimated_matching_view')
     .where('"qfRoundId" = :qfRoundId', { qfRoundId })
     // Add cache here
@@ -94,11 +106,13 @@ export const getQfRoundTotalProjectsDonationsSum = async (
     .getRawOne();
 
   const sum = result?.sum || 0;
+  const totalDonationsSum = result?.totalDonationsSum || 0;
   const contributorsCount = parseInt(result?.contributorsCount, 10) || 0;
 
   return {
     sum,
     contributorsCount,
+    totalDonationsSum,
   };
 };
 

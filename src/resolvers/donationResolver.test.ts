@@ -221,6 +221,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -260,6 +261,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -299,6 +301,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -338,6 +341,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -377,6 +381,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -752,6 +757,7 @@ function createDonationTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -817,6 +823,7 @@ function createDonationTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       eligibleNetworks: [100], // accepts ONLY xdai to mark as part of QFround
       beginDate: new Date(),
@@ -912,6 +919,7 @@ function createDonationTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -978,6 +986,7 @@ function createDonationTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -2418,6 +2427,7 @@ function donationsByProjectIdTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -2465,6 +2475,7 @@ function donationsByProjectIdTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -3521,6 +3532,7 @@ function donationsByUserIdTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: new Date(),
     }).save();

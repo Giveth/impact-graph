@@ -126,6 +126,7 @@ function updateUserTotalReceivedTestCases() {
       name: 'test',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     });

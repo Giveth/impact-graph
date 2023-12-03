@@ -25,6 +25,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
     }).save();
@@ -48,6 +49,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: moment().subtract(3, 'day'),
       endDate: moment().subtract(2, 'day'),
     }).save();
@@ -71,6 +73,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
     }).save();
@@ -94,6 +97,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
     }).save();
@@ -117,6 +121,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
     }).save();
