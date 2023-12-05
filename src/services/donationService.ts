@@ -448,6 +448,7 @@ export const sendSegmentEventForDonation = async (params: {
 export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
   const qfRoundHistories =
     await getQfRoundHistoriesThatDontHaveRelatedDonations();
+  const donationDotEthAddress = '0x6e8873085530406995170Da467010565968C7C62'; // Address behind donation.eth ENS address;
   const powerRound = (await getPowerRound())?.round || 1;
   if (qfRoundHistories.length === 0) {
     logger.debug(
@@ -461,7 +462,7 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
 
   const matchingFundFromAddress =
     (process.env.MATCHING_FUND_DONATIONS_FROM_ADDRESS as string) ||
-    '0x6e8873085530406995170Da467010565968C7C62'; // Address behind donation.eth ENS address;
+    donationDotEthAddress;
   const user = await findUserByWalletAddress(matchingFundFromAddress);
   if (!user) {
     logger.error(

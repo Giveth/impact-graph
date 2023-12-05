@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-
+const donationDotEthAddress = '0x6e8873085530406995170Da467010565968C7C62'; // Address behind donation.eth ENS address;
 const matchingFundDonationsFromAddress =
   (process.env.MATCHING_FUND_DONATIONS_FROM_ADDRESS as string) ||
-  '0x6e8873085530406995170Da467010565968C7C62'; // Address behind donation.eth ENS address;
+  donationDotEthAddress;
 
 export class createDonationethUser1701756190381 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
