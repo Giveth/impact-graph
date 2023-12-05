@@ -50,9 +50,13 @@ export const getQfRoundHistoriesThatDontHaveRelatedDonations =
           'd',
           'q.distributedFundTxHash = d.transactionId AND q.projectId = d.projectId AND d.distributedFundQfRoundId IS NOT NULL',
         )
-        .where(
-          'd.id IS NULL AND q.matchingFund IS NOT NULL AND q.matchingFund != 0',
-        )
+        .where('d.id IS NULL')
+        .andWhere('q.matchingFund IS NOT NULL')
+        .andWhere('q.matchingFund != 0')
+        .andWhere('q.distributedFundTxHash IS NOT NUL')
+        .andWhere('q.distributedFundNetwork IS NOT NUL')
+        .andWhere('q.matchingFundCurrency IS NOT NUL')
+        .andWhere('q.matchingFundAmount IS NOT NUL')
         .getMany();
     } catch (e) {
       logger.error('getQfRoundHistoriesThatDontHaveRelatedDonations error', e);

@@ -515,6 +515,10 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
               d."transactionId" = q."distributedFundTxHash" AND
               d."projectId" = q."projectId" AND
               d."distributedFundQfRoundId" = q."qfRoundId" AND
+              q."matchingFundAmount" IS NOT NULL AND
+              q."matchingFundCurrency" IS NOT NULL AND
+              q."distributedFundNetwork" IS NOT NULL AND
+              q."distributedFundTxHash" IS NOT NULL AND
               q."matchingFund" IS NOT NULL AND
               q."matchingFund" != 0
          )
