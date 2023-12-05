@@ -986,13 +986,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const celoAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.CELO,
-    })) as ProjectAddress;
-    celoAddress.isRecipient = true;
-    await celoAddress.save();
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1005,7 +1000,38 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.CELO,
+            (address.networkId === NETWORK_IDS.CELO ||
+              address.networkId === NETWORK_IDS.CELO_ALFAJORES),
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on celo', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.CELO,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnCelo'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.CELO ||
+              address.networkId === NETWORK_IDS.CELO_ALFAJORES),
         ),
       );
     });
@@ -1037,12 +1063,14 @@ function allProjectsTestCases() {
         sortingBy: SortingField.Newest,
       },
     });
+
     result.data.data.allProjects.projects.forEach(project => {
       assert.isOk(
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.CELO,
+            (address.networkId === NETWORK_IDS.CELO ||
+              address.networkId === NETWORK_IDS.CELO_ALFAJORES),
         ),
       );
     });
@@ -1063,13 +1091,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const mainnetAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.MAIN_NET,
-    })) as ProjectAddress;
-    mainnetAddress.isRecipient = true;
-    await mainnetAddress.save();
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1081,8 +1104,9 @@ function allProjectsTestCases() {
       assert.isOk(
         project.addresses.find(
           address =>
-            address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.MAIN_NET,
+            (address.isRecipient === true &&
+              address.networkId === NETWORK_IDS.MAIN_NET) ||
+            address.networkId === NETWORK_IDS.GOERLI,
         ),
       );
     });
@@ -1164,13 +1188,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.OPTIMISTIC,
     });
-    const polygonAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.POLYGON,
-    })) as ProjectAddress;
-    polygonAddress.isRecipient = false;
-    await polygonAddress.save();
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1199,13 +1218,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.GOERLI,
-    })) as ProjectAddress;
-    optimismAddress.isRecipient = true;
-    await optimismAddress.save();
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1218,7 +1232,8 @@ function allProjectsTestCases() {
       assert.isOk(
         project.addresses.find(
           address =>
-            address.isRecipient === true &&
+            (address.isRecipient === true &&
+              address.networkId === NETWORK_IDS.MAIN_NET) ||
             address.networkId === NETWORK_IDS.GOERLI,
         ),
       );
@@ -1268,13 +1283,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.OPTIMISTIC,
-    })) as ProjectAddress;
-    optimismAddress.isRecipient = true;
-    await optimismAddress.save();
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1476,6 +1486,7 @@ function allProjectsTestCases() {
     const qfRound = await QfRound.create({
       isActive: true,
       name: 'test filter by qfRoundId',
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       allocatedFund: 100,
       beginDate: new Date(),
@@ -1491,6 +1502,52 @@ function allProjectsTestCases() {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
         qfRoundId: qfRound.id,
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 3);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.equal(project.qfRounds[0].id, qfRound.id);
+    });
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return projects, filter by qfRoundSlug', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'test filter by qfRoundId',
+      slug: new Date().getTime().toString(),
+      minimumPassportScore: 10,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project1.qfRounds = [qfRound];
+    await project1.save();
+    project2.qfRounds = [qfRound];
+    await project2.save();
+    project3.qfRounds = [qfRound];
+    await project3.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        qfRoundSlug: qfRound.slug,
       },
     });
 
@@ -1522,6 +1579,7 @@ function allProjectsTestCases() {
     const qfRound = await QfRound.create({
       isActive: true,
       name: 'test filter by qfRoundId',
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       allocatedFund: 100,
       beginDate: new Date(),
@@ -1563,6 +1621,7 @@ function allProjectsTestCases() {
     const qfRound = await QfRound.create({
       isActive: true,
       name: new Date().toString(),
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 8,
       allocatedFund: 1000,
       beginDate: new Date(),
@@ -1668,6 +1727,7 @@ function allProjectsTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
@@ -1700,6 +1760,7 @@ function allProjectsTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
@@ -1732,6 +1793,7 @@ function allProjectsTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
@@ -1764,6 +1826,7 @@ function allProjectsTestCases() {
       isActive: false,
       name: 'test2',
       allocatedFund: 100,
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),

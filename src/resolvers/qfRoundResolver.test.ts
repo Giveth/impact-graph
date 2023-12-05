@@ -1,8 +1,9 @@
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import {
   createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
+  graphqlUrl,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -10,8 +11,92 @@ import {
 import { Project } from '../entities/project';
 import { QfRound } from '../entities/qfRound';
 import moment from 'moment';
+import {
+  refreshProjectDonationSummaryView,
+  refreshProjectEstimatedMatchingView,
+} from '../services/projectViewsService';
+import { getProjectDonationsSqrtRootSum } from '../repositories/qfRoundRepository';
+import axios from 'axios';
+import {
+  fetchProjectBySlugQuery,
+  qfRoundStatsQuery,
+} from '../../test/graphqlQueries';
+import { generateRandomString } from '../utils/utils';
 
 describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);
+describe('Fetch qfRoundStats test cases', fetchQfRoundStatesTestCases);
+
+function fetchQfRoundStatesTestCases() {
+  let qfRound: QfRound;
+  let project: Project;
+
+  beforeEach(async () => {
+    await QfRound.update({}, { isActive: false });
+    qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      slug: generateRandomString(10),
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+    project = await saveProjectDirectlyToDb(createProjectData());
+    project.qfRounds = [qfRound];
+    await project.save();
+  });
+
+  afterEach(async () => {
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return correct data when there is some donations', async () => {
+    const usersDonations: number[][] = [
+      [1, 3], // 4
+      [2, 23], // 25
+      [3, 97], // 100
+    ];
+
+    await Promise.all(
+      usersDonations.map(async valuesUsd => {
+        const user = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+        user.passportScore = 10;
+        await user.save();
+
+        return Promise.all(
+          valuesUsd.map(valueUsd => {
+            return saveDonationDirectlyToDb(
+              {
+                ...createDonationData(),
+                valueUsd,
+                qfRoundId: qfRound.id,
+                status: 'verified',
+              },
+              user.id,
+              project.id,
+            );
+          }),
+        );
+      }),
+    );
+
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
+    const result = await axios.post(graphqlUrl, {
+      query: qfRoundStatsQuery,
+      variables: {
+        slug: qfRound.slug,
+      },
+    });
+    const qfRoundStats = result.data.data.qfRoundStats;
+
+    expect(qfRoundStats.allDonationsUsdValue).to.equal(4 + 25 + 100);
+    expect(qfRoundStats.uniqueDonors).to.equal(3);
+  });
+}
 
 function fetchEstimatedMatchingTestCases() {
   let qfRound: QfRound;
@@ -22,6 +107,7 @@ function fetchEstimatedMatchingTestCases() {
     qfRound = QfRound.create({
       isActive: true,
       name: 'test',
+      slug: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 8,
       beginDate: new Date(),

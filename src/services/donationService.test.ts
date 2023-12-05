@@ -39,8 +39,8 @@ import {
   getQfRoundHistoriesThatDontHaveRelatedDonations,
   getQfRoundHistory,
 } from '../repositories/qfRoundHistoryRepository';
-import { logger } from '../utils/logger';
 import { User } from '../entities/user';
+import { QfRoundHistory } from '../entities/qfRoundHistory';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -862,6 +862,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
     qfRound = QfRound.create({
       isActive: true,
       name: 'test',
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       minimumPassportScore: 8,
       beginDate: new Date(),

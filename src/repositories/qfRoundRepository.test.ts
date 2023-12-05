@@ -11,6 +11,7 @@ import { assert, expect } from 'chai';
 import {
   deactivateExpiredQfRounds,
   findQfRoundById,
+  findQfRoundBySlug,
   getExpiredActiveQfRounds,
   getProjectDonationsSqrtRootSum,
   getQfRoundTotalProjectsDonationsSum,
@@ -39,6 +40,7 @@ describe(
   deactivateExpiredQfRoundsTestCases,
 );
 describe('findQfRoundById test cases', findQfRoundByIdTestCases);
+describe('findQfRoundBySlug test cases', findQfRoundBySlugTestCases);
 
 function getProjectDonationsSqrRootSumTests() {
   let qfRound: QfRound;
@@ -51,6 +53,7 @@ function getProjectDonationsSqrRootSumTests() {
       name: 'test',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     });
@@ -184,6 +187,7 @@ function getQfRoundTotalProjectsDonationsSumTestCases() {
       name: 'test',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     });
@@ -309,6 +313,7 @@ function getExpiredActiveQfRoundsTestCases() {
       name: 'test',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(1, 'days').toDate(),
     });
@@ -322,6 +327,7 @@ function getExpiredActiveQfRoundsTestCases() {
       name: 'test',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().subtract(1, 'days').toDate(),
     });
@@ -338,6 +344,7 @@ function deactivateExpiredQfRoundsTestCases() {
       name: 'test',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(1, 'days').toDate(),
     });
@@ -354,6 +361,7 @@ function deactivateExpiredQfRoundsTestCases() {
       name: 'test',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().subtract(1, 'days').toDate(),
     });
@@ -375,6 +383,7 @@ function findQfRoundByIdTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(1, 'days').toDate(),
     });
@@ -390,6 +399,44 @@ function findQfRoundByIdTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      beginDate: new Date(),
+      endDate: moment().subtract(1, 'days').toDate(),
+    });
+    await qfRound.save();
+    const result = await findQfRoundById(qfRound.id);
+    assert.equal(result?.id, qfRound.id);
+  });
+  it('should return null if id is invalid', async () => {
+    const result = await findQfRoundById(99999999);
+    assert.isNull(result);
+  });
+}
+
+function findQfRoundBySlugTestCases() {
+  it('should return qfRound with slug', async () => {
+    const qfRound = QfRound.create({
+      isActive: true,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      beginDate: new Date(),
+      endDate: moment().add(1, 'days').toDate(),
+    });
+    await qfRound.save();
+    const result = await findQfRoundBySlug(qfRound.slug);
+    assert.equal(result?.slug, qfRound.slug);
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return inactive qfRound with slug', async () => {
+    const qfRound = QfRound.create({
+      isActive: false,
+      name: new Date().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().subtract(1, 'days').toDate(),
     });

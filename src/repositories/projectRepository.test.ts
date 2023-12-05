@@ -250,12 +250,10 @@ function updateProjectWithVerificationFormTestCases() {
       ...createProjectData(),
       admin: String(user.id),
       verified: false,
+      networkId: NETWORK_IDS.GOERLI,
     });
     const fetchedProject = await findProjectById(project.id);
-    assert.equal(
-      fetchedProject?.addresses?.length,
-      Object.keys(NETWORK_IDS).length,
-    );
+    assert.equal(fetchedProject?.addresses?.length, 1);
     assert.equal(fetchedProject?.addresses?.[0].address, project.walletAddress);
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -282,9 +280,10 @@ function updateProjectWithVerificationFormTestCases() {
 
     await updateProjectWithVerificationForm(projectVerificationForm, project);
     const fetchedProject2 = await findProjectById(project.id);
+
     assert.equal(
       fetchedProject2?.addresses?.length,
-      Object.keys(NETWORK_IDS).length + 1,
+      fetchedProject!.addresses!.length + 1,
     );
     assert.isOk(
       fetchedProject2?.addresses?.find(
