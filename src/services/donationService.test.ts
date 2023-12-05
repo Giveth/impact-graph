@@ -950,8 +950,6 @@ function insertDonationsFromQfRoundHistoryTestCases() {
           item.projectId === firstProject.id && item.qfRoundId === qfRound.id,
       ),
     );
-    assert.equal(matchingFundFromUser?.totalDonated, 0);
-    assert.equal(matchingFundFromUser?.totalReceived, 0);
 
     await insertDonationsFromQfRoundHistory();
 
@@ -960,9 +958,13 @@ function insertDonationsFromQfRoundHistoryTestCases() {
     );
     assert.equal(
       updatedMatchingFundFromUser?.totalDonated,
-      qfRoundHistory?.matchingFund,
+      (Number(matchingFundFromUser?.totalDonated) as number) +
+        Number(qfRoundHistory?.matchingFund),
     );
-    assert.equal(updatedMatchingFundFromUser?.totalReceived, 0);
+    assert.equal(
+      updatedMatchingFundFromUser?.totalReceived,
+      matchingFundFromUser?.totalReceived,
+    );
 
     const inCompleteQfRoundHistories2 =
       await getQfRoundHistoriesThatDontHaveRelatedDonations();
