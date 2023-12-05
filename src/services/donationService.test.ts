@@ -773,7 +773,6 @@ function fillOldStableCoinDonationsPriceTestCases() {
     const project = (await Project.findOne({
       where: { id: SEED_DATA.FIRST_PROJECT.id },
     })) as Project;
-
     await updateDonationPricesAndValues(
       donation,
       project,
