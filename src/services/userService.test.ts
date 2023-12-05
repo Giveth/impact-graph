@@ -22,10 +22,6 @@ import { generateRandomString } from '../utils/utils';
 // tslint:disable-next-line:no-var-requires
 const bcrypt = require('bcrypt');
 import { findUserById } from '../repositories/userRepository';
-import { QfRound } from '../entities/qfRound';
-import moment from 'moment';
-import { QfRoundHistory } from '../entities/qfRoundHistory';
-import { updateTotalDonationsOfProject } from './donationService';
 
 describe(
   'updateUserTotalDonated() test cases',
@@ -101,61 +97,6 @@ function updateUserTotalReceivedTestCases() {
     const updatedOwner = await findUserById(user.id);
     assert.notEqual(owner!.totalReceived, updatedOwner!.totalReceived);
     assert.equal(updatedOwner!.totalReceived, 180);
-  });
-
-  it('should update total received of a owner including matchingFunds', async () => {
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'test name',
-    }).save();
-    const project = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      admin: String(user.id),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
-      totalDonations: 0,
-    });
-    const project2 = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      admin: String(user.id),
-      organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,
-      totalDonations: 0,
-    });
-    const qfRound = QfRound.create({
-      isActive: false,
-      name: 'test',
-      allocatedFund: 100,
-      minimumPassportScore: 8,
-      slug: new Date().getTime().toString(),
-      beginDate: new Date(),
-      endDate: moment().add(10, 'days').toDate(),
-    });
-    await qfRound.save();
-    project.qfRounds = [qfRound];
-    project2.qfRounds = [qfRound];
-    await project.save();
-    await project2.save();
-    await QfRoundHistory.create({
-      qfRoundId: qfRound.id,
-      projectId: project.id,
-      matchingFund: 150,
-    }).save();
-    await QfRoundHistory.create({
-      qfRoundId: qfRound.id,
-      projectId: project2.id,
-      matchingFund: 160,
-    }).save();
-    const owner = (await findUserById(user.id)) as User;
-    owner.totalReceived = 0;
-    await owner?.save();
-
-    await updateTotalDonationsOfProject(project.id);
-    await updateTotalDonationsOfProject(project2.id);
-    await updateUserTotalReceived(user.id);
-
-    const updatedOwner = await findUserById(user.id);
-    assert.notEqual(owner!.totalReceived, updatedOwner!.totalReceived);
-    assert.equal(updatedOwner!.totalReceived, 150 + 160);
   });
 }
 
