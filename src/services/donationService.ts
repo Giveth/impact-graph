@@ -491,44 +491,47 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             q."distributedFundTxHash",
             CAST(q."distributedFundNetwork" AS INTEGER),
             'verified',
-            pa."address",  -- Using address from project_address table
+            pa."address",
             u."walletAddress",
             q."matchingFundCurrency",
             q."matchingFundAmount",
             q."matchingFund",
             q."matchingFundPriceUsd",
-            ${powerRound},  
+            ${powerRound},
             q."projectId",
             q."qfRoundId",
-            true, -- If we want send email for project owner for these donations we should set this to false
-            ${user.id},  -- Make sure this substitution is correctly handled in your code
-            NOW()  -- Current timestamp
+            true,
+            ${user.id},
+            NOW()
         FROM
             "qf_round_history" q
             LEFT JOIN "project" p ON q."projectId" = p."id"
             LEFT JOIN "user" u ON u."id" = ${user.id}
             LEFT JOIN "project_address" pa ON pa."projectId" = p."id" AND pa."networkId" = CAST(q."distributedFundNetwork" AS INTEGER)
-          WHERE NOT EXISTS (
-          SELECT 1
-          FROM "donation" d
-          WHERE 
-              d."transactionId" = q."distributedFundTxHash" AND
-              d."projectId" = q."projectId" AND
-              d."distributedFundQfRoundId" = q."qfRoundId" AND
-              q."matchingFundAmount" IS NOT NULL AND
-              q."matchingFundCurrency" IS NOT NULL AND
-              q."distributedFundNetwork" IS NOT NULL AND
-              q."distributedFundTxHash" IS NOT NULL AND
-              q."matchingFund" IS NOT NULL AND
-              q."matchingFund" != 0
-         )
- 
+        WHERE
+            q."distributedFundTxHash" IS NOT NULL AND
+            q."matchingFundAmount" IS NOT NULL AND
+            q."matchingFundCurrency" IS NOT NULL AND
+            q."distributedFundNetwork" IS NOT NULL AND
+            q."distributedFundTxHash" IS NOT NULL AND
+            q."matchingFund" IS NOT NULL AND
+            q."matchingFund" != 0 AND
+            NOT EXISTS (
+              SELECT 1
+              FROM "donation" d
+              WHERE 
+                  d."transactionId" = q."distributedFundTxHash" AND
+                  d."projectId" = q."projectId" AND
+                  d."distributedFundQfRoundId" = q."qfRoundId"
+            )
   `);
 
   for (const qfRoundHistory of qfRoundHistories) {
     await updateTotalDonationsOfProject(qfRoundHistory.projectId);
     const project = await findProjectById(qfRoundHistory.projectId);
-    await updateUserTotalReceived(project!.adminUser.id);
+    if (project) {
+      await updateUserTotalReceived(project.adminUser.id);
+    }
   }
   await updateUserTotalDonated(user.id);
 };
