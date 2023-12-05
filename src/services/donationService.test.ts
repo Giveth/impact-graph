@@ -978,6 +978,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
     const donations = await Donation.find({
       where: {
         fromWalletAddress: matchingFundFromAddress,
+        projectId: firstProject.id,
       },
     });
     assert.equal(donations.length, 1);
