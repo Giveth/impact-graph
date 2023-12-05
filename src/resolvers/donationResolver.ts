@@ -613,7 +613,7 @@ export class DonationResolver {
   @Mutation(returns => Number)
   async createDonation(
     @Arg('amount') amount: number,
-    @Arg('transactionId') transactionId: string,
+    @Arg('transactionId', { nullable: true }) transactionId: string,
     @Arg('transactionNetworkId') transactionNetworkId: number,
     @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
     @Arg('anonymous', { nullable: true }) anonymous: boolean,
@@ -623,6 +623,7 @@ export class DonationResolver {
     @Arg('transakId', { nullable: true }) transakId: string,
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
+    @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
   ): Promise<Number> {
     try {
       const userId = ctx?.req?.user?.userId;
@@ -642,6 +643,7 @@ export class DonationResolver {
           nonce,
           transakId,
           referrerId,
+          safeTransactionId,
         },
         createDonationQueryValidator,
       );
@@ -734,6 +736,7 @@ export class DonationResolver {
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: Boolean(anonymous),
+        safeTransactionId,
       });
       if (referrerId) {
         // Fill referrer data if referrerId is valid

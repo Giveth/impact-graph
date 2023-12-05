@@ -1,6 +1,6 @@
 export const createDonationMutation = `
   mutation (
-    $transactionId: String!
+    $transactionId: String
     $transactionNetworkId: Float!
     $nonce: Float!
     $amount: Float!
@@ -10,6 +10,7 @@ export const createDonationMutation = `
     $tokenAddress: String
     $anonymous: Boolean
     $referrerId: String
+    $safeTransactionId: String
   ) {
     createDonation(
       transactionId: $transactionId
@@ -22,6 +23,7 @@ export const createDonationMutation = `
       tokenAddress: $tokenAddress
       anonymous: $anonymous
       referrerId: $referrerId
+      safeTransactionId: $safeTransactionId
     )
   }
 `;
