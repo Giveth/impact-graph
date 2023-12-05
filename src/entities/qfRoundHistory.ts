@@ -59,9 +59,22 @@ export class QfRoundHistory extends BaseEntity {
   @Column({ type: 'real', nullable: true, default: 0 })
   raisedFundInUsd: number;
 
+  // usd value of matching fund
   @Field(type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })
   matchingFund: number;
+
+  @Field(type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true })
+  matchingFundAmount?: number;
+
+  @Field(type => Float, { nullable: true })
+  @Column({ type: 'real', nullable: true })
+  matchingFundPriceUsd?: number;
+
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  matchingFundCurrency?: string;
 
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })

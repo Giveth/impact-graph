@@ -38,3 +38,24 @@ export const getQfRoundHistory = async (params: {
   const { projectId, qfRoundId } = params;
   return QfRoundHistory.findOne({ where: { projectId, qfRoundId } });
 };
+
+export const getQfRoundHistoriesThatDontHaveRelatedDonations =
+  async (): Promise<QfRoundHistory[]> => {
+    try {
+      return QfRoundHistory.createQueryBuilder('q')
+        .innerJoin('qf_round', 'qr', 'qr.id = q.qfRoundId')
+        .innerJoin('project', 'p', 'p.id = q.projectId')
+        .leftJoin(
+          'donation',
+          'd',
+          'q.distributedFundTxHash = d.transactionId AND q.projectId = d.projectId AND d.distributedFundQfRoundId IS NOT NULL',
+        )
+        .where(
+          'd.id IS NULL AND q.matchingFund IS NOT NULL AND q.matchingFund != 0',
+        )
+        .getMany();
+    } catch (e) {
+      logger.error('getQfRoundHistoriesThatDontHaveRelatedDonations error', e);
+      throw e;
+    }
+  };
