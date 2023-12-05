@@ -37,6 +37,7 @@ import { redis } from '../src/redis';
 import { logger } from '../src/utils/logger';
 import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens';
 import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
+import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
 
 async function seedDb() {
   await seedUsers();
@@ -408,6 +409,7 @@ async function runMigrations() {
     await new addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387().up(
       queryRunner,
     );
+    await new createDonationethUser1701756190381().up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
