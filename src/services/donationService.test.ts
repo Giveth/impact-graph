@@ -6,6 +6,7 @@ import {
   syncDonationStatusWithBlockchainNetwork,
   updateTotalDonationsOfProject,
   updateDonationPricesAndValues,
+  insertDonationsFromQfRoundHistory,
 } from './donationService';
 import { NETWORK_IDS } from '../provider';
 import {
@@ -13,6 +14,7 @@ import {
   createProjectData,
   DONATION_SEED_DATA,
   generateRandomEtheriumAddress,
+  generateRandomTxHash,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -26,7 +28,19 @@ import { errorMessages } from '../utils/errorMessages';
 import { findDonationById } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
-import { findUserById } from '../repositories/userRepository';
+import {
+  findUserById,
+  findUserByWalletAddress,
+} from '../repositories/userRepository';
+import { QfRound } from '../entities/qfRound';
+import moment from 'moment';
+import {
+  fillQfRoundHistory,
+  getQfRoundHistoriesThatDontHaveRelatedDonations,
+  getQfRoundHistory,
+} from '../repositories/qfRoundHistoryRepository';
+import { logger } from '../utils/logger';
+import { User } from '../entities/user';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -45,6 +59,11 @@ describe(
 describe(
   'sendSegmentEventForDonation test cases',
   sendSegmentEventForDonationTestCases,
+);
+
+describe(
+  'insertDonationsFromQfRoundHistory test cases',
+  insertDonationsFromQfRoundHistoryTestCases,
 );
 
 function sendSegmentEventForDonationTestCases() {
@@ -754,7 +773,6 @@ function fillOldStableCoinDonationsPriceTestCases() {
     const project = (await Project.findOne({
       where: { id: SEED_DATA.FIRST_PROJECT.id },
     })) as Project;
-
     await updateDonationPricesAndValues(
       donation,
       project,
@@ -829,5 +847,162 @@ function fillOldStableCoinDonationsPriceTestCases() {
 
     donation = (await findDonationById(donation.id))!;
     expect(donation.valueUsd).to.gt(0);
+  });
+}
+
+function insertDonationsFromQfRoundHistoryTestCases() {
+  // We should write lots of test cases to cover all edge cases, now I just has written
+  // one test case because this task has high priority and I must have doe it soon
+  let qfRound: QfRound;
+  let firstProject: Project;
+  let projectOwner: User;
+  beforeEach(async () => {
+    await QfRound.update({}, { isActive: false });
+    qfRound = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+    projectOwner = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    firstProject = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+
+    firstProject.qfRounds = [qfRound];
+
+    await firstProject.save();
+  });
+
+  afterEach(async () => {
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+
+  it('should return correct value for single project', async () => {
+    const usersDonations: number[][] = [
+      [1, 3], // 4
+      [2, 23], // 25
+      [3, 97], // 100
+    ];
+
+    await Promise.all(
+      usersDonations.map(async valuesUsd => {
+        const user = await saveUserDirectlyToDb(
+          generateRandomEtheriumAddress(),
+        );
+        user.passportScore = 10;
+        await user.save();
+        return Promise.all(
+          valuesUsd.map(valueUsd => {
+            return saveDonationDirectlyToDb(
+              {
+                ...createDonationData(),
+                valueUsd,
+                qfRoundId: qfRound.id,
+                status: 'verified',
+              },
+              user.id,
+              firstProject.id,
+            );
+          }),
+        );
+      }),
+    );
+
+    // if want to fill history round end date should be passed and be inactive
+    qfRound.endDate = moment().subtract(1, 'days').toDate();
+    qfRound.isActive = false;
+    await qfRound.save();
+
+    await fillQfRoundHistory();
+    const matchingFundFromAddress = process.env
+      .MATCHING_FUND_DONATIONS_FROM_ADDRESS as string;
+    const matchingFundFromUser = await findUserByWalletAddress(
+      matchingFundFromAddress,
+    );
+    assert.isNotNull(
+      matchingFundFromAddress,
+      'Should define MATCHING_FUND_DONATIONS_FROM_ADDRESS in process.env',
+    );
+    const qfRoundHistory = await getQfRoundHistory({
+      projectId: firstProject.id,
+      qfRoundId: qfRound.id,
+    });
+    assert.isNotNull(qfRoundHistory);
+    qfRoundHistory!.distributedFundTxHash = generateRandomTxHash();
+    qfRoundHistory!.distributedFundNetwork = '100';
+    qfRoundHistory!.matchingFundAmount = 1000;
+    qfRoundHistory!.matchingFundCurrency = 'DAI';
+    qfRoundHistory!.matchingFund = 1000;
+    await qfRoundHistory?.save();
+
+    const inCompleteQfRoundHistories =
+      await getQfRoundHistoriesThatDontHaveRelatedDonations();
+    assert.isNotNull(
+      inCompleteQfRoundHistories.find(
+        item =>
+          item.projectId === firstProject.id && item.qfRoundId === qfRound.id,
+      ),
+    );
+
+    await insertDonationsFromQfRoundHistory();
+
+    const updatedMatchingFundFromUser = await findUserByWalletAddress(
+      matchingFundFromAddress,
+    );
+    assert.equal(
+      updatedMatchingFundFromUser?.totalDonated,
+      (Number(matchingFundFromUser?.totalDonated) as number) +
+        Number(qfRoundHistory?.matchingFund),
+    );
+    assert.equal(
+      updatedMatchingFundFromUser?.totalReceived,
+      matchingFundFromUser?.totalReceived,
+    );
+
+    const inCompleteQfRoundHistories2 =
+      await getQfRoundHistoriesThatDontHaveRelatedDonations();
+    assert.isUndefined(
+      inCompleteQfRoundHistories2.find(
+        item =>
+          item.projectId === firstProject.id && item.qfRoundId === qfRound.id,
+      ),
+    );
+
+    const donations = await Donation.find({
+      where: {
+        fromWalletAddress: matchingFundFromAddress,
+      },
+    });
+    assert.equal(donations.length, 1);
+    assert.equal(donations[0].distributedFundQfRoundId, qfRound.id);
+    assert.equal(donations[0].projectId, firstProject.id);
+    assert.equal(donations[0].valueUsd, qfRoundHistory?.matchingFund);
+    assert.equal(donations[0].currency, qfRoundHistory?.matchingFundCurrency);
+    assert.equal(donations[0].amount, qfRoundHistory?.matchingFundAmount);
+    assert.equal(
+      donations[0].transactionNetworkId,
+      Number(qfRoundHistory?.distributedFundNetwork),
+    );
+    assert.equal(
+      donations[0].transactionId,
+      qfRoundHistory?.distributedFundTxHash,
+    );
+
+    const updatedProject = await findProjectById(firstProject.id);
+    assert.equal(
+      updatedProject?.totalDonations,
+      4 + 25 + 100 + qfRoundHistory!.matchingFund,
+    );
+    assert.equal(
+      updatedProject?.adminUser?.totalReceived,
+      4 + 25 + 100 + qfRoundHistory!.matchingFund,
+    );
   });
 }
