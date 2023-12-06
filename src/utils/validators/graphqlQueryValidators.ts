@@ -72,14 +72,25 @@ export const resourcePerDateReportValidator = Joi.object({
 
 export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
-  transactionId: Joi.string()
-    .required()
-    .pattern(txHashRegex)
-    .messages({
-      'string.pattern.base': i18n.__(
-        translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-      ),
-    }),
+  transactionId: Joi.when('safeTransactionId', {
+    is: null || undefined || '',
+    then: Joi.string()
+      .required()
+      .pattern(txHashRegex)
+      .messages({
+        'string.pattern.base': i18n.__(
+          translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+        ),
+      }),
+    otherwise: Joi.string()
+      .allow(null, '')
+      .pattern(txHashRegex)
+      .messages({
+        'string.pattern.base': i18n.__(
+          translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+        ),
+      }),
+  }),
   transactionNetworkId: Joi.string()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
@@ -98,6 +109,7 @@ export const createDonationQueryValidator = Joi.object({
   anonymous: Joi.boolean(),
   transakId: Joi.string(),
   referrerId: Joi.string().allow(null, ''),
+  safeTransactionId: Joi.string().allow(null, ''),
 });
 
 export const updateDonationQueryValidator = Joi.object({

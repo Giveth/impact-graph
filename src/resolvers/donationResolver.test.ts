@@ -1828,6 +1828,44 @@ function createDonationTestCases() {
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
 
+  it('should create donation with safeTransactionId successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const safeTransactionHash = 'xxxxxxx';
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          nonce: 4,
+          amount: 10,
+          token: 'GIV',
+          safeTransactionId: safeTransactionHash,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.equal(donation?.userId, user.id);
+    assert.equal(donation?.safeTransactionId, safeTransactionHash);
+  });
+
   it('should fill usd value of when creating GIV donation', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({

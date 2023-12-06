@@ -38,6 +38,7 @@ import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
+import { fetchSafeTransactionHash } from './safeServices';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -324,6 +325,22 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
   if (!donation) {
     throw new Error(i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND));
   }
+
+  // fetch the transactionId from the safeTransaction Approval
+  if (!donation.transactionId && donation.safeTransactionId) {
+    const safeTransactionHash = await fetchSafeTransactionHash(
+      donation.safeTransactionId,
+      donation.transactionNetworkId,
+    );
+    if (safeTransactionHash) {
+      donation.transactionId = safeTransactionHash;
+      await donation.save();
+    } else {
+      // Donation is not ready in the multisig
+      throw new Error(i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND));
+    }
+  }
+
   logger.debug('syncDonationStatusWithBlockchainNetwork() has been called', {
     donationId,
     fetchDonationId: donation.id,

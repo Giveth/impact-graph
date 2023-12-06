@@ -49,7 +49,7 @@ export class Donation extends BaseEntity {
   id: number;
 
   @Field()
-  @Column()
+  @Column({ nullable: true })
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string;
 
@@ -61,6 +61,10 @@ export class Donation extends BaseEntity {
   @Field()
   @Column({ nullable: false })
   transactionNetworkId: number;
+
+  @Field()
+  @Column({ nullable: true })
+  safeTransactionId?: string;
 
   @Field()
   @Column('boolean', { default: false })
