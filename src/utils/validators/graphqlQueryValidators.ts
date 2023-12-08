@@ -105,7 +105,7 @@ export const createDonationQueryValidator = Joi.object({
       'string.base': i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID),
     }),
   projectId: Joi.number().integer().min(0).required(),
-  nonce: Joi.number().integer().min(0).allow(null, undefined),
+  nonce: Joi.number().integer().min(0).allow(null),
   anonymous: Joi.boolean(),
   transakId: Joi.string(),
   referrerId: Joi.string().allow(null, ''),
