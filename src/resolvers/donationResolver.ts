@@ -619,7 +619,7 @@ export class DonationResolver {
     @Arg('anonymous', { nullable: true }) anonymous: boolean,
     @Arg('token') token: string,
     @Arg('projectId') projectId: number,
-    @Arg('nonce') nonce: number,
+    @Arg('nonce', { nullable: true }) nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
