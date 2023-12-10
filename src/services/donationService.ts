@@ -523,9 +523,9 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             NOW()
         FROM
             "qf_round_history" q
-            LEFT JOIN "project" p ON q."projectId" = p."id"
-            LEFT JOIN "user" u ON u."id" = ${user.id}
-            LEFT JOIN "project_address" pa ON pa."projectId" = p."id" AND pa."networkId" = CAST(q."distributedFundNetwork" AS INTEGER)
+            INNER JOIN "project" p ON q."projectId" = p."id"
+            INNER JOIN "user" u ON u."id" = ${user.id}
+            INNER JOIN "project_address" pa ON pa."projectId" = p."id" AND pa."networkId" = CAST(q."distributedFundNetwork" AS INTEGER)
         WHERE
             q."distributedFundTxHash" IS NOT NULL AND
             q."matchingFundAmount" IS NOT NULL AND
