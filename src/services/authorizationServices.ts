@@ -109,7 +109,7 @@ export const validateAuthMicroserviceJwt = async (
       },
     );
 
-    const userAddress = result.data.publicAddress.toLowerCase();
+    const userAddress = result.data.publicAddress;
     user = await findUserByWalletAddress(userAddress);
 
     if (!user) {
