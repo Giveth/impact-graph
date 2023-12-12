@@ -27,6 +27,7 @@ import {
 import { MainCategory } from '../src/entities/mainCategory';
 import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
+import { ChainType } from '../src/types/network';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -233,6 +234,7 @@ export const saveProjectDirectlyToDb = async (
       isRecipient: true,
       address: projectData.walletAddress,
       networkId,
+      chainType: ChainType.EVM,
     });
   }
   // default projectUpdate for liking projects

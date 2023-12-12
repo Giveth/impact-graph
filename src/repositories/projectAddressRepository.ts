@@ -1,7 +1,7 @@
 import { ProjectAddress } from '../entities/projectAddress';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
-import { BaseEntity } from 'typeorm';
+import { ChainType } from '../types/network';
 
 export const getPurpleListAddresses = async (): Promise<
   { projectAddress: string }[]
@@ -37,13 +37,24 @@ export const isWalletAddressInPurpleList = async (
 
 export const findRelatedAddressByWalletAddress = async (
   walletAddress: string,
+  chainType?: ChainType,
 ) => {
-  return ProjectAddress.createQueryBuilder('projectAddress')
-    .where(`LOWER(address) = :walletAddress`, {
-      walletAddress: walletAddress.toLowerCase(),
-    })
-    .leftJoinAndSelect('projectAddress.project', 'project')
-    .getOne();
+  let query = ProjectAddress.createQueryBuilder('projectAddress');
+
+  switch (chainType) {
+    case ChainType.SOLANA:
+      query = query.where(`address = :walletAddress`, {
+        walletAddress,
+      });
+      break;
+    case ChainType.EVM:
+    default:
+      query = query.where(`LOWER(address) = :walletAddress`, {
+        walletAddress: walletAddress.toLowerCase(),
+      });
+      break;
+  }
+  return query.leftJoinAndSelect('projectAddress.project', 'project').getOne();
 };
 export const findAllRelatedAddressByWalletAddress = async (
   walletAddress: string,
@@ -79,8 +90,9 @@ export const addNewProjectAddress = async (params: {
   title?: string;
   isRecipient?: boolean;
   networkId: number;
+  chainType?: ChainType;
 }): Promise<ProjectAddress> => {
-  const projectAddress = await ProjectAddress.create(params as ProjectAddress);
+  const projectAddress = ProjectAddress.create(params as ProjectAddress);
   return projectAddress.save();
 };
 
@@ -92,6 +104,7 @@ export const addBulkNewProjectAddress = async (
     title?: string;
     isRecipient?: boolean;
     networkId: number;
+    chainType?: ChainType;
   }[],
 ): Promise<void> => {
   await ProjectAddress.insert(

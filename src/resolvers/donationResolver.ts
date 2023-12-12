@@ -67,6 +67,7 @@ import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
 import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
 import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
+import { detectAddressChainType } from '../utils/networks';
 
 @ObjectType()
 class PaginateDonations {
@@ -459,7 +460,7 @@ export class DonationResolver {
 
           // WalletAddresses are translanted to huge integers
           // this breaks postgresql query integer limit
-          if (!ethers.utils.isAddress(searchTerm)) {
+          if (detectAddressChainType(searchTerm) === undefined) {
             const amount = Number(searchTerm);
 
             qb.orWhere('donation.amount = :number', {

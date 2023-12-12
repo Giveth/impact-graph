@@ -4,6 +4,7 @@ import { Donation } from '../entities/donation';
 import { Reaction } from '../entities/reaction';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { ethers } from 'ethers';
+import { isEvmAddress } from '../utils/networks';
 
 export const findAdminUserByEmail = async (
   email: string,
@@ -72,7 +73,7 @@ export const findAllUsers = async (params: {
 export const createUserWithPublicAddress = async (
   _walletAddress: string,
 ): Promise<User> => {
-  const walletAddress = ethers.utils.isAddress(_walletAddress)
+  const walletAddress = isEvmAddress(_walletAddress)
     ? _walletAddress.toLocaleLowerCase()
     : _walletAddress;
   const user = await User.create({

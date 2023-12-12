@@ -13,6 +13,7 @@ import {
 import { Project } from './project';
 import { User } from './user';
 import { QfRound } from './qfRound';
+import { ChainType } from '../types/network';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -57,6 +58,14 @@ export class Donation extends BaseEntity {
   @Field()
   @Column({ nullable: false })
   transactionNetworkId: number;
+
+  @Field()
+  @Column({
+    type: 'enum',
+    enum: ChainType,
+    default: ChainType.EVM,
+  })
+  chainType: ChainType;
 
   @Field()
   @Column('boolean', { default: false })

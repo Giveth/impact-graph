@@ -111,6 +111,7 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
+import { ChainType } from '../types/network';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -1903,10 +1904,12 @@ function createProjectTestCases() {
         {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.XDAI,
+          chainType: ChainType.EVM,
         },
         {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.MAIN_NET,
+          chainType: ChainType.EVM,
         },
       ],
     };
