@@ -268,6 +268,7 @@ async function getTransactionDetailForTokenTransfer(
     input.txHash,
   );
   const transaction = await provider.getTransaction(txHash);
+  let transactionTo = transaction.to?.toLowerCase();
   logger.debug(
     'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransactionReceipt txHash:',
     input.txHash,
@@ -282,10 +283,25 @@ async function getTransactionDetailForTokenTransfer(
   if (!transaction) {
     return null;
   }
-  if (
-    transaction &&
-    transaction.to?.toLowerCase() !== token.address.toLowerCase()
-  ) {
+  if (!receipt) {
+    // Transaction is not mined yet
+    // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
+    return null;
+  }
+  // Multisig Donation
+  if (receipt && input.safeTxHash && input.txHash) {
+    transactionTo = receipt?.logs[1]?.address?.toLowerCase();
+
+    if (!transactionTo) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+        ),
+      );
+    }
+  }
+
+  if (transaction && transactionTo !== token.address.toLowerCase()) {
     throw new Error(
       i18n.__(
         translationErrorMessagesKeys.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
@@ -293,11 +309,16 @@ async function getTransactionDetailForTokenTransfer(
     );
   }
 
-  if (!receipt) {
-    // Transaction is not mined yet
-    // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
-    return null;
+  // Normal Donation
+  const transactionData = abiDecoder.decodeMethod(transaction.data);
+  const transactionToAddress = transactionData.params.find(
+    item => item.name === '_to',
+  ).value;
+
+  if (receipt && !input.safeTxHash && input.txHash) {
+    transactionTo = transactionToAddress;
   }
+
   if (!receipt.status) {
     throw new Error(
       i18n.__(
@@ -306,10 +327,6 @@ async function getTransactionDetailForTokenTransfer(
     );
   }
 
-  const transactionData = abiDecoder.decodeMethod(transaction.data);
-  const transactionToAddress = transactionData.params.find(
-    item => item.name === '_to',
-  ).value;
   logger.debug(
     'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getBlock txHash:',
     input.txHash,
@@ -321,7 +338,7 @@ async function getTransactionDetailForTokenTransfer(
     from: transaction.from,
     timestamp: block.timestamp as number,
     hash: txHash,
-    to: transactionToAddress,
+    to: transactionTo!,
     amount: normalizeAmount(
       transactionData.params.find(item => item.name === '_value').value,
       token.decimals,
