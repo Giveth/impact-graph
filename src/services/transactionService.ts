@@ -250,14 +250,16 @@ async function getTransactionDetailForNormalTransfer(
   );
 
   let transactionTo = transaction.to;
+  let transactionFrom = transaction.from;
 
   if (input.safeTxHash && receipt) {
     const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
-    const events = decodedLogs[0];
+    const events = decodedLogs[0].events;
 
-    transactionTo = events?.value?.toLowerCase();
+    transactionTo = events[0]?.value?.toLowerCase();
+    transactionFrom = transaction.to!;
 
-    if (!transactionTo) {
+    if (!transactionTo || !transactionFrom) {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
@@ -267,9 +269,9 @@ async function getTransactionDetailForNormalTransfer(
   }
 
   return {
-    from: transaction.from,
+    from: transactionFrom,
     timestamp: block.timestamp as number,
-    to: transaction.to as string,
+    to: transactionTo as string,
     hash: txHash,
     amount: ethers.utils.formatEther(transaction.value),
     currency: symbol,
@@ -310,13 +312,15 @@ async function getTransactionDetailForTokenTransfer(
     return null;
   }
   const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+  let transactionFrom: string = transaction.from;
 
   // Multisig Donation
   if (receipt && input.safeTxHash && input.txHash) {
     const events = decodedLogs[1]?.events;
 
-    transactionTokenAddress = events[1]?.address?.toLowerCase();
+    transactionTokenAddress = decodedLogs[1]?.address?.toLowerCase();
     transactionTo = events[1]?.value?.toLowerCase();
+    transactionFrom = events[0]?.value?.toLowerCase();
 
     if (!transactionTokenAddress || !transactionTo) {
       throw new Error(
@@ -339,10 +343,10 @@ async function getTransactionDetailForTokenTransfer(
   const transactionData = abiDecoder.decodeMethod(transaction.data);
   const transactionToAddress = transactionData.params.find(
     item => item.name === '_to',
-  ).value;
+  )?.value;
 
   let amount = normalizeAmount(
-    transactionData.params.find(item => item.name === '_value').value,
+    transactionData.params.find(item => item.name === '_value')?.value || 0,
     token.decimals,
   );
 
@@ -351,7 +355,7 @@ async function getTransactionDetailForTokenTransfer(
   }
 
   if (receipt && input.safeTxHash && input.txHash) {
-    const logsAmount = decodedLogs[2]?.value;
+    const logsAmount = decodedLogs[1]?.events[2]?.value;
 
     amount = normalizeAmount(logsAmount, token.decimals);
   }
@@ -372,7 +376,7 @@ async function getTransactionDetailForTokenTransfer(
     transaction.blockNumber as number,
   );
   return {
-    from: transaction.from,
+    from: transactionFrom,
     timestamp: block.timestamp as number,
     hash: txHash,
     to: transactionTo!,
