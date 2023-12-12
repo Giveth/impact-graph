@@ -251,13 +251,16 @@ async function getTransactionDetailForNormalTransfer(
 
   let transactionTo = transaction.to;
   let transactionFrom = transaction.from;
+  let amount = ethers.utils.formatEther(transaction.value);
 
   if (input.safeTxHash && receipt) {
     const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+    const token = await findTokenByNetworkAndSymbol(networkId, symbol);
     const events = decodedLogs[0].events;
 
     transactionTo = events[0]?.value?.toLowerCase();
     transactionFrom = transaction.to!;
+    amount = normalizeAmount(events[1]?.value, token.decimals);
 
     if (!transactionTo || !transactionFrom) {
       throw new Error(
@@ -273,7 +276,7 @@ async function getTransactionDetailForNormalTransfer(
     timestamp: block.timestamp as number,
     to: transactionTo as string,
     hash: txHash,
-    amount: ethers.utils.formatEther(transaction.value),
+    amount,
     currency: symbol,
   };
 }
