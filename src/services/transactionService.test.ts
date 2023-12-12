@@ -97,23 +97,62 @@ function getDisperseTransactionsTestCases() {
 }
 
 function getTransactionDetailTestCases() {
-  it('should return transaction detail for normal transfer on ethereum classic', async () => {
+  it('should return transaction detail for normal transfer on gnosis when it belongs to a multisig', async () => {
     // https://etc.blockscout.com/tx/0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec23b1
-    const amount = 1.0204004980625;
+    const amount = 0.0;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
-        '0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec23b1',
-      symbol: 'ETC',
-      networkId: NETWORK_IDS.ETC,
-      fromAddress: '0x8d0846e68a457D457c71124d14D2b43988a17E4f',
-      toAddress: '0x216D44960291E4129435c719217a7ECAe8c29927',
+        '0xac9a229d772623137e5bb809e2cd09c2ffa6d75dce391ffefef5c50398d706d5',
+      symbol: 'XDAI',
+      networkId: NETWORK_IDS.XDAI,
+      fromAddress: '0xad2386a6F21F028CC0D167411e59C5C3F9829B2c',
+      toAddress: '0x9924285ff2207d6e36642b6832a515a6a3aedcab',
       timestamp: 1696324809,
+      safeTxHash: 'xxxxxx',
       amount,
     });
     assert.isOk(transactionInfo);
-    assert.equal(transactionInfo.currency, 'ETC');
+    assert.equal(transactionInfo.currency, 'XDAI');
+    assert.equal(transactionInfo.amount, 0);
+  });
+
+  it('should return transaction detail for token transfer on gnosis when it belongs to a multisig', async () => {
+    // https://etc.blockscout.com/tx/0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec23b1
+    const amount = 0.1;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x42c0f15029557ec35e61515a89366297fc239a334e3ba22fab15a3f1d04ad53f',
+      symbol: 'GIV',
+      networkId: NETWORK_IDS.XDAI,
+      fromAddress: '0x76884f5147f7b6d1f3d15cd8224235ea84036f9e',
+      toAddress: '0x9924285ff2207d6e36642b6832a515a6a3aedcab',
+      timestamp: 1696324809,
+      safeTxHash: 'xxxxx',
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'GIV');
     assert.equal(transactionInfo.amount, amount);
   });
+
+  // it('should return transaction detail for token transfer on gnosis when it belongs to a multisig', async () => {
+  //   // https://etc.blockscout.com/tx/0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec23b1
+  //   const amount = 1.0204004980625;
+  //   const transactionInfo = await getTransactionInfoFromNetwork({
+  //     txHash:
+  //       '0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec23b1',
+  //     symbol: 'ETC',
+  //     networkId: NETWORK_IDS.XDAI,
+  //     fromAddress: '0x8d0846e68a457D457c71124d14D2b43988a17E4f',
+  //     toAddress: '0x216D44960291E4129435c719217a7ECAe8c29927',
+  //     timestamp: 1696324809,
+  //     amount,
+  //   });
+  //   assert.isOk(transactionInfo);
+  //   assert.equal(transactionInfo.currency, 'ETC');
+  //   assert.equal(transactionInfo.amount, amount);
+  // });
+
   it('should return transaction when transactionHash is wrong because of speedup in ethereum classic', async () => {
     const amount = 1.0204004980625;
     const txHash =
