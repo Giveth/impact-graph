@@ -99,7 +99,7 @@ function getDisperseTransactionsTestCases() {
 function getTransactionDetailTestCases() {
   it('should return transaction detail for normal transfer on gnosis when it belongs to a multisig', async () => {
     // https://etc.blockscout.com/tx/0xb31720ed83098a5ef7f8dd15f345c5a1e643c3b7debb98afab9fb7b96eec23b1
-    const amount = 0.0;
+    const amount = 0.01;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
         '0xac9a229d772623137e5bb809e2cd09c2ffa6d75dce391ffefef5c50398d706d5',
@@ -113,7 +113,7 @@ function getTransactionDetailTestCases() {
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'XDAI');
-    assert.equal(transactionInfo.amount, 0);
+    assert.equal(transactionInfo.amount, 0.01);
   });
 
   it('should return transaction detail for token transfer on gnosis when it belongs to a multisig', async () => {
