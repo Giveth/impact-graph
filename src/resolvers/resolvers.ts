@@ -19,6 +19,7 @@ import { ChainvineResolver } from './chainvineResolver';
 import { QfRoundResolver } from './qfRoundResolver';
 import { QfRoundHistoryResolver } from './qfRoundHistoryResolver';
 import { ProjectUserInstantPowerViewResolver } from './instantPowerResolver';
+import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
 
 export const getResolvers = (): Function[] => {
   return [
@@ -45,5 +46,7 @@ export const getResolvers = (): Function[] => {
     CampaignResolver,
     QfRoundResolver,
     QfRoundHistoryResolver,
+
+    AnchorContractAddressResolver,
   ];
 };

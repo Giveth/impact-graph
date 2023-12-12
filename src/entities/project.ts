@@ -53,6 +53,7 @@ import {
 import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
+import { AnchorContractAddress } from './anchorContractAddress';
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
@@ -277,6 +278,16 @@ export class Project extends BaseEntity {
     eager: true,
   })
   addresses?: ProjectAddress[];
+
+  @Field(type => [AnchorContractAddress], { nullable: true })
+  @OneToMany(
+    type => AnchorContractAddress,
+    anchorContractAddress => anchorContractAddress.project,
+    {
+      eager: true,
+    },
+  )
+  anchorContracts?: AnchorContractAddress[];
 
   @Index()
   @Field(type => ProjectStatus)
