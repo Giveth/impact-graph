@@ -22,10 +22,12 @@ import {
   NETWORK_IDS,
 } from '../provider';
 import { logger } from '../utils/logger';
+import { gnosisSafeL2ABI } from '../assets/gnosisSafeL2ABI';
 
 // tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
+abiDecoder.addABI(gnosisSafeL2ABI);
 
 const ONE_HOUR = 60 * 60;
 
@@ -247,6 +249,23 @@ async function getTransactionDetailForNormalTransfer(
     transaction.blockNumber as number,
   );
 
+  let transactionTo = transaction.to;
+
+  if (input.safeTxHash && receipt) {
+    const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+    const events = decodedLogs[0];
+
+    transactionTo = events?.value?.toLowerCase();
+
+    if (!transactionTo) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+        ),
+      );
+    }
+  }
+
   return {
     from: transaction.from,
     timestamp: block.timestamp as number,
@@ -268,7 +287,9 @@ async function getTransactionDetailForTokenTransfer(
     input.txHash,
   );
   const transaction = await provider.getTransaction(txHash);
-  let transactionTo = transaction.to?.toLowerCase();
+  let transactionTokenAddress = transaction.to?.toLowerCase();
+  let transactionTo: string;
+
   logger.debug(
     'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransactionReceipt txHash:',
     input.txHash,
@@ -288,11 +309,16 @@ async function getTransactionDetailForTokenTransfer(
     // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
     return null;
   }
+  const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+
   // Multisig Donation
   if (receipt && input.safeTxHash && input.txHash) {
-    transactionTo = receipt?.logs[1]?.address?.toLowerCase();
+    const events = decodedLogs[1]?.events;
 
-    if (!transactionTo) {
+    transactionTokenAddress = events[1]?.address?.toLowerCase();
+    transactionTo = events[1]?.value?.toLowerCase();
+
+    if (!transactionTokenAddress || !transactionTo) {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
@@ -301,7 +327,7 @@ async function getTransactionDetailForTokenTransfer(
     }
   }
 
-  if (transaction && transactionTo !== token.address.toLowerCase()) {
+  if (transaction && transactionTokenAddress !== token.address.toLowerCase()) {
     throw new Error(
       i18n.__(
         translationErrorMessagesKeys.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
@@ -315,8 +341,19 @@ async function getTransactionDetailForTokenTransfer(
     item => item.name === '_to',
   ).value;
 
+  let amount = normalizeAmount(
+    transactionData.params.find(item => item.name === '_value').value,
+    token.decimals,
+  );
+
   if (receipt && !input.safeTxHash && input.txHash) {
     transactionTo = transactionToAddress;
+  }
+
+  if (receipt && input.safeTxHash && input.txHash) {
+    const logsAmount = decodedLogs[2]?.value;
+
+    amount = normalizeAmount(logsAmount, token.decimals);
   }
 
   if (!receipt.status) {
@@ -339,10 +376,7 @@ async function getTransactionDetailForTokenTransfer(
     timestamp: block.timestamp as number,
     hash: txHash,
     to: transactionTo!,
-    amount: normalizeAmount(
-      transactionData.params.find(item => item.name === '_value').value,
-      token.decimals,
-    ),
+    amount,
     currency: symbol,
   };
 }
