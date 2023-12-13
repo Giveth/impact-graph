@@ -344,12 +344,12 @@ async function getTransactionDetailForTokenTransfer(
 
   // Normal Donation
   const transactionData = abiDecoder.decodeMethod(transaction.data);
-  const transactionToAddress = transactionData.params.find(
+  const transactionToAddress = transactionData?.params?.find(
     item => item.name === '_to',
   )?.value;
 
   let amount = normalizeAmount(
-    transactionData.params.find(item => item.name === '_value')?.value || 0,
+    transactionData?.params?.find(item => item.name === '_value')?.value || 0,
     token.decimals,
   );
 
