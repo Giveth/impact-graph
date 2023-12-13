@@ -9,6 +9,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Organization } from './organization';
+import { ChainType } from '../types/network';
 
 @Entity()
 @ObjectType()
@@ -39,6 +40,14 @@ export class Token extends BaseEntity {
   @Field()
   @Column()
   networkId: number;
+
+  @Field()
+  @Column({
+    type: 'enum',
+    enum: ChainType,
+    default: ChainType.EVM,
+  })
+  chainType: ChainType;
 
   @Field()
   @Column()

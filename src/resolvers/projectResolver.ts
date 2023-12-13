@@ -487,63 +487,56 @@ export class ProjectResolver {
     filtersArray: FilterField[] = [],
   ) {
     if (!filtersArray || filtersArray.length === 0) return query;
-    query = query.andWhere(
-      new Brackets(subQuery => {
-        filtersArray.forEach(filter => {
-          if (filter === FilterField.AcceptGiv) {
-            // only giving Blocks do not accept Giv
-            return subQuery.andWhere(`project.${filter} IS NULL`);
-          }
+    const networkIds: number[] = [];
+    let acceptFundOnSolanaSeen = false;
 
-          if (filter === FilterField.GivingBlock) {
-            return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
-          }
-
-          if (filter === FilterField.BoostedWithGivPower) {
-            return subQuery.andWhere(`projectPower.totalPower > 0`);
-          }
-          if (filter === FilterField.ActiveQfRound) {
-            return subQuery.andWhere(
-              `EXISTS (
+    filtersArray.forEach(filter => {
+      switch (filter) {
+        case FilterField.AcceptGiv:
+          // only giving Blocks do not accept Giv
+          return query.andWhere(`project.${filter} IS NULL`);
+        case FilterField.GivingBlock:
+          return query.andWhere('project.givingBlocksId IS NOT NULL');
+        case FilterField.BoostedWithGivPower:
+          return query.andWhere(`projectPower.totalPower > 0`);
+        case FilterField.ActiveQfRound:
+          return query.andWhere(
+            `EXISTS (
                         SELECT 1
                         FROM project_qf_rounds_qf_round
                         INNER JOIN qf_round on qf_round.id = project_qf_rounds_qf_round."qfRoundId"
                         WHERE project_qf_rounds_qf_round."projectId" = project.id AND qf_round."isActive" = true
                 )`,
-            );
-          }
+          );
+        case FilterField.AcceptFundOnGnosis:
+          networkIds.push(NETWORK_IDS.XDAI);
+          return;
+        case FilterField.AcceptFundOnMainnet:
+          networkIds.push(NETWORK_IDS.MAIN_NET);
+          return;
+        case FilterField.AcceptFundOnCelo:
+          networkIds.push(NETWORK_IDS.CELO);
+          return;
+        case FilterField.AcceptFundOnPolygon:
+          networkIds.push(NETWORK_IDS.POLYGON);
+          return;
+        case FilterField.AcceptFundOnOptimism:
+          networkIds.push(NETWORK_IDS.OPTIMISTIC);
+          return;
+        case FilterField.AcceptFundOnSolana:
+          acceptFundOnSolanaSeen = true;
+          return;
+        default:
+          return query.andWhere(`project.${filter} = true`);
+      }
+    });
 
-          // TODO: This logic seems wrong! since it allows only one of these fundings to be accepted
-          if (
-            (filter === FilterField.AcceptFundOnGnosis ||
-              filter === FilterField.AcceptFundOnCelo ||
-              filter === FilterField.AcceptFundOnPolygon ||
-              filter === FilterField.AcceptFundOnMainnet ||
-              filter === FilterField.AcceptFundOnOptimism) &&
-            filter
-          ) {
-            const networkIds: number[] = [];
-            if (filter === FilterField.AcceptFundOnGnosis) {
-              networkIds.push(NETWORK_IDS.XDAI);
-            }
-            if (filter === FilterField.AcceptFundOnMainnet) {
-              networkIds.push(NETWORK_IDS.MAIN_NET);
-            }
-
-            if (filter === FilterField.AcceptFundOnCelo) {
-              networkIds.push(NETWORK_IDS.CELO);
-            }
-
-            if (filter === FilterField.AcceptFundOnPolygon) {
-              networkIds.push(NETWORK_IDS.POLYGON);
-            }
-
-            if (filter === FilterField.AcceptFundOnOptimism) {
-              networkIds.push(NETWORK_IDS.OPTIMISTIC);
-            }
-
-            // TODO: This logic seems wrong! since only one of the following filters can be true at the same time
-            return subQuery.andWhere(
+    if (networkIds.length > 0 || acceptFundOnSolanaSeen) {
+      // TODO: This logic seems wrong! since only one of the following filters can be true at the same time
+      query.andWhere(
+        new Brackets(subQuery => {
+          if (networkIds.length > 0) {
+            subQuery.orWhere(
               `EXISTS (
                         SELECT *
                         FROM project_address
@@ -553,9 +546,8 @@ export class ProjectResolver {
                       )`,
             );
           }
-
-          if (filter === FilterField.AcceptFundOnSolana) {
-            return subQuery.andWhere(
+          if (acceptFundOnSolanaSeen) {
+            subQuery.orWhere(
               `EXISTS (
                         SELECT *
                         FROM project_address
@@ -565,12 +557,9 @@ export class ProjectResolver {
                       )`,
             );
           }
-
-          return subQuery.andWhere(`project.${filter} = true`);
-        });
-      }),
-    );
-
+        }),
+      );
+    }
     return query;
   }
 

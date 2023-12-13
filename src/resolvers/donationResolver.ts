@@ -458,8 +458,6 @@ export class DonationResolver {
               searchTerm: `%${searchTerm}%`,
             });
 
-          // WalletAddresses are translanted to huge integers
-          // this breaks postgresql query integer limit
           if (detectAddressChainType(searchTerm) === undefined) {
             const amount = Number(searchTerm);
 

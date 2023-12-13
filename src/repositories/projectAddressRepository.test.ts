@@ -12,6 +12,7 @@ import {
 import {
   createProjectData,
   generateRandomEtheriumAddress,
+  generateRandomSolanaAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
@@ -206,6 +207,7 @@ function addBulkNewProjectAddressTestCases() {
     });
     const newAddress1 = generateRandomEtheriumAddress();
     const newAddress2 = generateRandomEtheriumAddress();
+    const newAddress3 = generateRandomSolanaAddress();
     await addBulkNewProjectAddress([
       {
         address: newAddress1,
@@ -218,6 +220,13 @@ function addBulkNewProjectAddressTestCases() {
         address: newAddress2,
         networkId: NETWORK_IDS.XDAI,
         chainType: ChainType.EVM,
+        project,
+        user,
+      },
+      {
+        address: newAddress3,
+        networkId: 0,
+        chainType: ChainType.SOLANA,
         project,
         user,
       },

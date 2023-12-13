@@ -109,6 +109,7 @@ export const updateProjectQuery = `
         address
         isRecipient
         networkId
+        chainType
       }
       adminUser {
         id
@@ -150,6 +151,7 @@ export const addRecipientAddressToProjectQuery = `
         address
         isRecipient
         networkId
+        chainType
       }
       adminUser {
         id
@@ -157,11 +159,6 @@ export const addRecipientAddressToProjectQuery = `
         email
         walletAddress
       }
-     addresses {
-      address
-      isRecipient
-      networkId
-    }
     }
   }
  `;
@@ -600,6 +597,7 @@ export const fetchFeaturedProjects = `
           address
           isRecipient
           networkId
+          chainType
         }
         projectPower {
           totalPower
@@ -703,6 +701,7 @@ export const fetchMultiFilterAllProjectsQuery = `
           address
           isRecipient
           networkId
+          chainType
         }
         projectPower {
           totalPower
@@ -845,6 +844,7 @@ export const fetchProjectsBySlugQuery = `
           relatedAddresses {
             address
             networkId
+            chainType
             title
           }
         }
@@ -869,6 +869,7 @@ export const fetchProjectsBySlugQuery = `
         address
         isRecipient
         networkId
+        chainType
       }
       adminUser {
         id
@@ -927,6 +928,7 @@ export const fetchSimilarProjectsBySlugQuery = `
           address
           isRecipient
           networkId
+          chainType
         }
         adminUser {
           id
@@ -987,6 +989,7 @@ export const fetchLikedProjectsQuery = `
           address
           isRecipient
           networkId
+          chainType
         }
         adminUser {
           id
@@ -1222,6 +1225,7 @@ export const projectsBySlugsQuery = `
             address
             isRecipient
             networkId
+            chainType
           }
           organization {
             label
@@ -1297,6 +1301,7 @@ export const projectsByUserIdQuery = `
               relatedAddresses {
                 address
                 networkId
+                chainType
                 title
               }
             }
@@ -1315,6 +1320,7 @@ export const projectsByUserIdQuery = `
             address
             isRecipient
             networkId
+            chainType
           }
           organization {
             label
@@ -1359,6 +1365,7 @@ export const projectByIdQuery = `
         address
         isRecipient
         networkId
+        chaintype
       }
       organization {
         name
@@ -1393,6 +1400,7 @@ export const getProjectsAcceptTokensQuery = `
       id
       symbol
       networkId
+      chainType
       decimals
       mainnetAddress
       name
