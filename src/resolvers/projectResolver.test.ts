@@ -3812,7 +3812,7 @@ function addRecipientAddressToProjectTestCases() {
       SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
     );
   });
-  it('Should add address successfully', async () => {
+  it('Should add address successfully - EVM', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
@@ -3841,7 +3841,46 @@ function addRecipientAddressToProjectTestCases() {
     assert.isOk(response.data.data.addRecipientAddressToProject);
     assert.isOk(
       response.data.data.addRecipientAddressToProject.addresses.find(
-        projectAddress => projectAddress.address === newWalletAddress,
+        projectAddress =>
+          projectAddress.address === newWalletAddress &&
+          projectAddress.chainType === ChainType.EVM,
+      ),
+    );
+  });
+
+  it('Should add address successfully - EVM', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const newWalletAddress = generateRandomSolanaAddress();
+
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: project.id,
+          networkId: 0,
+          address: newWalletAddress,
+          chainType: ChainType.SOLANA,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    // assert.equal(JSON.stringify(response.data, null, 4), 'hi');
+    assert.isOk(response.data.data.addRecipientAddressToProject);
+    assert.isOk(
+      response.data.data.addRecipientAddressToProject.addresses.find(
+        projectAddress =>
+          projectAddress.address === newWalletAddress &&
+          projectAddress.chainType === ChainType.SOLANA,
       ),
     );
   });
@@ -3940,6 +3979,7 @@ function addRecipientAddressToProjectTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.POLYGON,
           address: newWalletAddress,
+          chainType: ChainType.EVM,
         },
       },
       {

@@ -127,8 +127,8 @@ export const updateProjectQuery = `
  `;
 
 export const addRecipientAddressToProjectQuery = `
-  mutation ($projectId: Float!, $networkId: Float!, $address: String!) {
-    addRecipientAddressToProject(projectId: $projectId, networkId: $networkId, address: $address) {
+  mutation ($projectId: Float!, $networkId: Float!, $address: String!, $chainType: ChainType) {
+    addRecipientAddressToProject(projectId: $projectId, networkId: $networkId, address: $address, chainType: $chainType) {
       id
       title
       description
@@ -1365,7 +1365,7 @@ export const projectByIdQuery = `
         address
         isRecipient
         networkId
-        chaintype
+        chainType
       }
       organization {
         name
