@@ -10,6 +10,7 @@ import { NETWORK_IDS } from '../../provider';
 import { DONATION_STATUS } from '../../entities/donation';
 import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
 import { countriesList } from '../utils';
+import { ChainType } from '../../types/network';
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 const resourcePerDateRegex = new RegExp(
@@ -156,6 +157,7 @@ const managingFundsValidator = Joi.object({
       title: Joi.string().required(),
       address: Joi.string().required().pattern(ethereumWalletAddressRegex),
       networkId: Joi.number()?.valid(
+        0, // Solana
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,
@@ -165,6 +167,9 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.OPTIMISTIC,
         NETWORK_IDS.XDAI,
       ),
+      chainType: Joi.string()
+        .valid(ChainType.EVM, ChainType.SOLANA)
+        .default(ChainType.EVM),
     }),
   ),
 });
