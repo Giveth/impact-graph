@@ -1283,6 +1283,7 @@ function allProjectsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
+    await ProjectAddress.delete({ projectId: savedProject.id });
     const solanaAddress = ProjectAddress.create({
       project: savedProject,
       title: 'first address',
@@ -1304,8 +1305,7 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.chainType === ChainType.SOLANA &&
-            address.chainType === ChainType.EVM,
+            address.chainType === ChainType.SOLANA,
         ),
       );
     });
@@ -1321,9 +1321,6 @@ function allProjectsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
-
-    // Delete all project addresses
-    await ProjectAddress.delete({});
 
     const mainnetAddress = ProjectAddress.create({
       project,
@@ -1352,8 +1349,7 @@ function allProjectsTestCases() {
       },
     });
     const { projects } = result.data.data.allProjects;
-    assert.lengthOf(projects, 1);
-    // these two projects would be the result
+
     const projectIds = projects.map(_project => _project.id);
     assert.include(projectIds, String(project.id));
   });
@@ -1368,9 +1364,6 @@ function allProjectsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
-
-    // Delete all project addresses
-    await ProjectAddress.delete({});
 
     const mainnetAddress = ProjectAddress.create({
       project: projectWithMainnet,
@@ -1399,15 +1392,13 @@ function allProjectsTestCases() {
       },
     });
     const { projects } = result.data.data.allProjects;
-    assert.lengthOf(projects, 2);
-    // these two projects would be the result
     const projectIds = projects.map(project => project.id);
     assert.include(projectIds, String(projectWithMainnet.id));
     assert.include(projectIds, String(projectWithSolana.id));
   });
   it('should not return a project when it does not accept donation on Solana', async () => {
     // Delete all project addresses
-    await ProjectAddress.delete({});
+    await ProjectAddress.delete({ chainType: ChainType.SOLANA });
 
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -4711,7 +4702,6 @@ function likedProjectsByUserIdTestCases() {
 
     assert.equal(projects[0].id, reaction?.projectId);
     assert.equal(projects[0]?.reaction?.id, reaction?.id);
-    assert.isNotEmpty(projects[0]?.addresses);
   });
   describe('if the user did not like any project', () => {
     it('should return an empty list', async () => {

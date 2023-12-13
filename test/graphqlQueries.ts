@@ -74,6 +74,7 @@ export const createProjectQuery = `
           address
           isRecipient
           networkId
+          chainType
         }
         adminUser{
           id
@@ -117,11 +118,6 @@ export const updateProjectQuery = `
         email
         walletAddress
       }
-     addresses {
-      address
-      isRecipient
-      networkId
-    }
     }
   }
  `;

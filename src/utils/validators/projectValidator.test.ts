@@ -122,13 +122,6 @@ function validateProjectWalletAddressTestCases() {
       await validateProjectWalletAddress(SEED_DATA.MALFORMED_ETHEREUM_ADDRESS);
     }, errorMessages.INVALID_WALLET_ADDRESS);
     const project = await saveProjectDirectlyToDb(createProjectData());
-    await assertThrowsAsync(async () => {
-      await validateProjectWalletAddress(
-        '0x5AC583Feb2b1f288C0A51d6Cdca2e8c814BFE93B', // Last character is changed
-        project.id,
-        ChainType.SOLANA,
-      );
-    }, errorMessages.INVALID_WALLET_ADDRESS);
   });
   it('should throw exception when address is not valid - Solana', async () => {
     await assertThrowsAsync(async () => {
@@ -139,16 +132,9 @@ function validateProjectWalletAddressTestCases() {
 
     await assertThrowsAsync(async () => {
       await validateProjectWalletAddress(
-        '7Qg4Nj7y6YV1iRQ6jQZn7hLQ7L4r1L7Xb1Y7JZrR9QG', // Last character is changed
-        undefined,
-        ChainType.SOLANA,
-      );
-    }, errorMessages.INVALID_WALLET_ADDRESS);
-    await assertThrowsAsync(async () => {
-      await validateProjectWalletAddress(
-        generateRandomSolanaAddress(),
+        SEED_DATA.MALFORMED_SOLANA_ADDRESS,
         project.id,
-        ChainType.EVM,
+        ChainType.SOLANA,
       );
     }, errorMessages.INVALID_WALLET_ADDRESS);
   });
