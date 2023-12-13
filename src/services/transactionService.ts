@@ -259,7 +259,7 @@ async function getTransactionDetailForNormalTransfer(
     const events = decodedLogs[0].events;
 
     transactionTo = events[0]?.value?.toLowerCase();
-    transactionFrom = transaction.to!;
+    transactionFrom = decodedLogs[0]?.address!;
     amount = normalizeAmount(events[1]?.value, token.decimals);
 
     if (!transactionTo || !transactionFrom) {
