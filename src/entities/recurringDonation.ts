@@ -13,6 +13,7 @@ import {
 import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
+import { AnchorContractAddress } from './anchorContractAddress';
 
 @Entity()
 @ObjectType()
@@ -42,6 +43,18 @@ export class RecurringDonation extends BaseEntity {
   )
   @Column({ nullable: true })
   projectId: number;
+
+  @Index()
+  @Field(type => AnchorContractAddress)
+  @ManyToOne(type => AnchorContractAddress)
+  anchorContractAddress: AnchorContractAddress;
+
+  @RelationId(
+    (recurringDonation: RecurringDonation) =>
+      recurringDonation.anchorContractAddress,
+  )
+  @Column({ nullable: true })
+  anchorContractAddressId: number;
 
   @Index()
   @Field(type => User, { nullable: true })
