@@ -2062,3 +2062,18 @@ export const doesDonatedToProjectInQfRoundQuery = `
     )
   }
 `;
+
+export const createAnchorContractAddressQuery = `
+  mutation ($projectId: Int!,
+            $networkId: Int!, 
+            $address: String!) {
+    addAnchorContractAddress(
+      projectId: $projectId 
+      networkId: $networkId
+       address:$address ) {
+      id
+      address
+      isActive
+    }
+  }
+`;

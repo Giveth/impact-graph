@@ -42,6 +42,8 @@ import { QfRound } from './qfRound';
 import { ReferredEvent } from './referredEvent';
 import { QfRoundHistory } from './qfRoundHistory';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
+import { AnchorContractAddress } from './anchorContractAddress';
+import { RecurringDonation } from './recurringDonation';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -99,5 +101,8 @@ export const getEntities = (): DataSourceOptions['entities'] => {
 
     QfRound,
     QfRoundHistory,
+
+    AnchorContractAddress,
+    RecurringDonation,
   ];
 };

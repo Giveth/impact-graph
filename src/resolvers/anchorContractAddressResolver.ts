@@ -1,4 +1,4 @@
-import { Arg, Ctx, Int, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
 
 import { QfRoundHistory } from '../entities/qfRoundHistory';
 import { getQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
@@ -15,10 +15,11 @@ import {
 } from '../repositories/anchorContractAddressRepository';
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
+import { Donation } from '../entities/donation';
 
 @Resolver(of => AnchorContractAddress)
 export class AnchorContractAddressResolver {
-  @Query(() => AnchorContractAddress, { nullable: true })
+  @Mutation(returns => AnchorContractAddress, { nullable: true })
   async addAnchorContractAddress(
     @Ctx() ctx: ApolloContext,
     @Arg('projectId', () => Int) projectId: number,
@@ -46,6 +47,19 @@ export class AnchorContractAddressResolver {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT,
+        ),
+      );
+    }
+    if (
+      !project.addresses?.find(
+        projectAddress =>
+          projectAddress.networkId === networkId &&
+          projectAddress.isRecipient === true,
+      )
+    ) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK,
         ),
       );
     }
