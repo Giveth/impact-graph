@@ -36,6 +36,11 @@ export class AnchorContractAddress extends BaseEntity {
   address: string;
 
   @Index()
+  @Field()
+  @Column()
+  txHash: string;
+
+  @Index()
   @Field(type => Project)
   @ManyToOne(type => Project)
   project: Project;

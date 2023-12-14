@@ -8,6 +8,7 @@ export const addNewAnchorAddress = async (params: {
   creator: User;
   address: string;
   networkId: number;
+  txHash: string;
 }): Promise<AnchorContractAddress> => {
   const anchorContractAddress = await AnchorContractAddress.create({
     ...params,

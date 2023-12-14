@@ -2066,14 +2066,34 @@ export const doesDonatedToProjectInQfRoundQuery = `
 export const createAnchorContractAddressQuery = `
   mutation ($projectId: Int!,
             $networkId: Int!, 
-            $address: String!) {
+            $address: String!,
+            $txHash: String!
+            ) {
     addAnchorContractAddress(
       projectId: $projectId 
       networkId: $networkId
-       address:$address ) {
+       address:$address
+       txHash:$txHash
+        ) {
       id
       address
       isActive
+    }
+  }
+`;
+
+export const createRecurringDonationQuery = `
+  mutation ($projectId: Int!,
+            $networkId: Int!, 
+            $txHash: String!
+            ) {
+    createRecurringDonation(
+      projectId: $projectId 
+      networkId: $networkId
+      txHash:$txHash
+        ) {
+      txHash
+      networkId
     }
   }
 `;

@@ -20,6 +20,7 @@ import { QfRoundResolver } from './qfRoundResolver';
 import { QfRoundHistoryResolver } from './qfRoundHistoryResolver';
 import { ProjectUserInstantPowerViewResolver } from './instantPowerResolver';
 import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
+import { RecurringDonationResolver } from './recurringDonationResolver';
 
 export const getResolvers = (): Function[] => {
   return [
@@ -48,5 +49,6 @@ export const getResolvers = (): Function[] => {
     QfRoundHistoryResolver,
 
     AnchorContractAddressResolver,
+    RecurringDonationResolver,
   ];
 };

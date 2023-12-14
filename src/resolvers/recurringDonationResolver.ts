@@ -16,20 +16,21 @@ import {
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
 import { Donation } from '../entities/donation';
+import { RecurringDonation } from '../entities/recurringDonation';
+import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
 
 @Resolver(of => AnchorContractAddress)
-export class AnchorContractAddressResolver {
-  @Mutation(returns => AnchorContractAddress, { nullable: true })
-  async addAnchorContractAddress(
+export class RecurringDonationResolver {
+  @Mutation(returns => RecurringDonation, { nullable: true })
+  async createRecurringDonation(
     @Ctx() ctx: ApolloContext,
     @Arg('projectId', () => Int) projectId: number,
     @Arg('networkId', () => Int) networkId: number,
-    @Arg('address', () => String) address: string,
     @Arg('txHash', () => String) txHash: string,
-  ): Promise<AnchorContractAddress> {
+  ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
-    const creatorUser = await findUserById(userId);
-    if (!creatorUser) {
+    const donor = await findUserById(userId);
+    if (!donor) {
       throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
     }
     const project = await findProjectById(projectId);
@@ -41,37 +42,18 @@ export class AnchorContractAddressResolver {
       networkId,
     });
 
-    if (
-      currentAnchorProjectAddress &&
-      project.adminUser.id !== creatorUser.id
-    ) {
+    if (!currentAnchorProjectAddress) {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT,
         ),
       );
     }
-    if (
-      !project.addresses?.find(
-        projectAddress =>
-          projectAddress.networkId === networkId &&
-          projectAddress.isRecipient === true,
-      )
-    ) {
-      throw new Error(
-        i18n.__(
-          translationErrorMessagesKeys.PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK,
-        ),
-      );
-    }
 
-    // Validate anchor address, the owner of contract must be the project owner
-
-    return addNewAnchorAddress({
+    return createNewRecurringDonation({
+      donor,
       project,
-      owner: project.adminUser,
-      creator: creatorUser,
-      address,
+      anchorContractAddress: currentAnchorProjectAddress,
       networkId,
       txHash,
     });

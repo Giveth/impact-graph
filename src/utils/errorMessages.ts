@@ -98,6 +98,8 @@ export const errorMessages = {
   PROJECT_NOT_FOUND: 'Project not found.',
   THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT:
     'There is already an anchor address for this project, only project owner can change it',
+  PROJECT_DOESNT_HAVE_ANY_ADDRESS_ON_THIS_NETWORK_FOR_RECURRING_DONATION:
+    'Project doesnt have any address on this network for recurring donation',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
   PROJECT_IS_NOT_ACTIVE: 'Project is not active.',
@@ -262,6 +264,8 @@ export const translationErrorMessagesKeys = {
     'Project doesnt have recipient address on this network',
   THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT:
     'There is already an anchor address for this project, only project owner can change it',
+  PROJECT_DOESNT_HAVE_ANY_ADDRESS_ON_THIS_NETWORK_FOR_RECURRING_DONATION:
+    'Project doesnt have any address on this network for recurring donation',
   PROJECT_IS_NOT_ACTIVE: 'PROJECT_IS_NOT_ACTIVE',
   INVALID_FUNCTION: 'INVALID_FUNCTION',
   PROJECT_UPDATE_NOT_FOUND: 'PROJECT_UPDATE_NOT_FOUND',

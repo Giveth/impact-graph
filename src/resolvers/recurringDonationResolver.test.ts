@@ -10,17 +10,20 @@ import {
 } from '../../test/testUtils';
 import { assert } from 'chai';
 import axios from 'axios';
-import { createAnchorContractAddressQuery } from '../../test/graphqlQueries';
+import {
+  createAnchorContractAddressQuery,
+  createRecurringDonationQuery,
+} from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 
 describe(
-  'addAnchorContractAddress test cases',
-  addAnchorContractAddressTestCases,
+  'createRecurringDonation test cases',
+  createRecurringDonationTestCases,
 );
 
-function addAnchorContractAddressTestCases() {
-  it('should create anchorContractAddress successfully', async () => {
+function createRecurringDonationTestCases() {
+  it('should create recurringDonation successfully', async () => {
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );
@@ -32,16 +35,24 @@ function addAnchorContractAddressTestCases() {
       generateRandomEtheriumAddress(),
     );
 
-    const accessToken = await generateTestAccessToken(contractCreator.id);
-    const contractAddress = generateRandomEtheriumAddress();
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: contractCreator,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomTxHash(),
+    });
+
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(donor.id);
     const result = await axios.post(
       graphqlUrl,
       {
-        query: createAnchorContractAddressQuery,
+        query: createRecurringDonationQuery,
         variables: {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
-          address: contractAddress,
           txHash: generateRandomTxHash(),
         },
       },
@@ -51,7 +62,11 @@ function addAnchorContractAddressTestCases() {
         },
       },
     );
-    assert.isTrue(result.data.data.addAnchorContractAddress.isActive);
+    assert.isNotNull(result.data.data.createRecurringDonation);
+    assert.equal(
+      result.data.data.createRecurringDonation.networkId,
+      NETWORK_IDS.OPTIMISTIC,
+    );
   });
 
   it('should return unAuthorized error when not sending JWT', async () => {
@@ -62,17 +77,27 @@ function addAnchorContractAddressTestCases() {
       createProjectData(),
       projectOwner,
     );
-    const contractAddress = generateRandomEtheriumAddress();
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: donor,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomTxHash(),
+    });
+
     const result = await axios.post(graphqlUrl, {
-      query: createAnchorContractAddressQuery,
+      query: createRecurringDonationQuery,
       variables: {
         projectId: project.id,
         networkId: NETWORK_IDS.OPTIMISTIC,
-        address: contractAddress,
         txHash: generateRandomTxHash(),
       },
     });
-    assert.isNull(result.data.data.addAnchorContractAddress);
+
+    assert.isNull(result.data.data.createRecurringDonation);
     assert.equal(result.data.errors[0].message, errorMessages.UN_AUTHORIZED);
   });
 
@@ -86,11 +111,10 @@ function addAnchorContractAddressTestCases() {
     const result = await axios.post(
       graphqlUrl,
       {
-        query: createAnchorContractAddressQuery,
+        query: createRecurringDonationQuery,
         variables: {
-          projectId: 999999,
+          projectId: 99999,
           networkId: NETWORK_IDS.OPTIMISTIC,
-          address: contractAddress,
           txHash: generateRandomTxHash(),
         },
       },
@@ -100,60 +124,14 @@ function addAnchorContractAddressTestCases() {
         },
       },
     );
-    assert.isNull(result.data.data.addAnchorContractAddress);
+    assert.isNull(result.data.data.createRecurringDonation);
     assert.equal(
       result.data.errors[0].message,
       errorMessages.PROJECT_NOT_FOUND,
     );
   });
 
-  it('should return error when project already has anchor contract address and creator is not the project owner', async () => {
-    const projectOwner = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const project = await saveProjectDirectlyToDb(
-      createProjectData(),
-      projectOwner,
-    );
-    await addNewAnchorAddress({
-      address: generateRandomEtheriumAddress(),
-      project,
-      creator: projectOwner,
-      networkId: NETWORK_IDS.OPTIMISTIC,
-      owner: projectOwner,
-      txHash: generateRandomTxHash(),
-    });
-    const contractCreator = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-
-    const accessToken = await generateTestAccessToken(contractCreator.id);
-    const contractAddress = generateRandomEtheriumAddress();
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: createAnchorContractAddressQuery,
-        variables: {
-          projectId: project.id,
-          networkId: NETWORK_IDS.OPTIMISTIC,
-          address: contractAddress,
-          txHash: generateRandomTxHash(),
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.isNull(result.data.data.addAnchorContractAddress);
-    assert.equal(
-      result.data.errors[0].message,
-      errorMessages.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT,
-    );
-  });
-
-  it('should return error when project doesnt have recipient address on that network', async () => {
+  it('should return error when project doesnt have anchorAddress on that network', async () => {
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );
@@ -161,20 +139,17 @@ function addAnchorContractAddressTestCases() {
       { ...createProjectData(), networkId: NETWORK_IDS.MAIN_NET },
       projectOwner,
     );
-    const contractCreator = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const accessToken = await generateTestAccessToken(contractCreator.id);
-    const contractAddress = generateRandomEtheriumAddress();
+    const accessToken = await generateTestAccessToken(donor.id);
+
     const result = await axios.post(
       graphqlUrl,
       {
-        query: createAnchorContractAddressQuery,
+        query: createRecurringDonationQuery,
         variables: {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
-          address: contractAddress,
           txHash: generateRandomTxHash(),
         },
       },
@@ -184,10 +159,11 @@ function addAnchorContractAddressTestCases() {
         },
       },
     );
-    assert.isNull(result.data.data.addAnchorContractAddress);
+
+    assert.isNull(result.data.data.createRecurringDonation);
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK,
+      errorMessages.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT,
     );
   });
 }

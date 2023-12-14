@@ -10,6 +10,7 @@ export class createAnchorContractAddressTable1702364570535
                 "networkId" INTEGER NOT NULL,
                 "isActive" BOOLEAN DEFAULT false,
                 "address" TEXT NOT NULL,
+                "txHash" TEXT NOT NULL,
                 "projectId" INTEGER NULL,
                 "creatorId" INTEGER NULL,
                 "ownerId" INTEGER NULL,

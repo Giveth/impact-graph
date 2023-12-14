@@ -1,4 +1,3 @@
-import { addNewAnchorAddress } from './anchorContractAddressRepository';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -8,11 +7,16 @@ import {
 } from '../../test/testUtils';
 import { NETWORK_IDS } from '../provider';
 import { assert } from 'chai';
+import { addNewAnchorAddress } from './anchorContractAddressRepository';
+import { createNewRecurringDonation } from './recurringDonationRepository';
 
-describe('addNewAnchorAddressTestCases', addNewAnchorAddressTestCases);
+describe(
+  'createNewRecurringDonationTestCases',
+  createNewRecurringDonationTestCases,
+);
 
-function addNewAnchorAddressTestCases() {
-  it('should create anchorAddress successfully', async () => {
+function createNewRecurringDonationTestCases() {
+  it('should create recurring donation successfully', async () => {
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );
@@ -32,11 +36,19 @@ function addNewAnchorAddressTestCases() {
       networkId: NETWORK_IDS.OPTIMISTIC,
       txHash: generateRandomTxHash(),
     });
+    const recurringDonation = await createNewRecurringDonation({
+      txHash: generateRandomTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: creator,
+      anchorContractAddress,
+      project,
+    });
 
-    assert.isNotNull(anchorContractAddress);
-    assert.equal(anchorContractAddress.address, anchorAddress);
-    assert.equal(anchorContractAddress.isActive, true);
-    assert.equal(anchorContractAddress.creator.id, creator.id);
-    assert.equal(anchorContractAddress.owner.id, projectOwner.id);
+    assert.isNotNull(recurringDonation);
+    assert.equal(
+      recurringDonation.anchorContractAddress.id,
+      anchorContractAddress.id,
+    );
+    assert.equal(recurringDonation.donor.id, creator.id);
   });
 }
