@@ -1,4 +1,5 @@
 import { NETWORK_IDS } from '../../src/provider';
+import { ChainType } from '../../src/types/network';
 
 interface ITokenData {
   name: string;
@@ -8,6 +9,7 @@ interface ITokenData {
   isGivbackEligible?: boolean;
   decimals: number;
   networkId: number;
+  chainType?: ChainType;
 }
 const seedTokens: ITokenData[] = [
   // Mainnet tokens
@@ -1244,6 +1246,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
   },
+  // TODO: Add solana token
 ];
 
 export default seedTokens;
