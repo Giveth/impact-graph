@@ -6,6 +6,7 @@ export interface TransactionDetailInput {
   toAddress: string;
   amount: number;
   timestamp: number;
+  safeTxHash?: string;
   nonce?: number;
 }
 

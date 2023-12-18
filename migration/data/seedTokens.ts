@@ -10,6 +10,7 @@ interface ITokenData {
   networkId: number;
 }
 const seedTokens: ITokenData[] = [
+  // Mainnet tokens
   {
     name: 'Ethereum native token',
     symbol: 'ETH',
@@ -1200,6 +1201,48 @@ const seedTokens: ITokenData[] = [
     address: '0xE4D517785D091D3c54818832dB6094bcc2744545',
     decimals: 18,
     networkId: NETWORK_IDS.CELO_ALFAJORES,
+  },
+
+  // ETC tokens
+  {
+    name: 'ETC native token',
+    symbol: 'ETC',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    networkId: NETWORK_IDS.ETC,
+  },
+
+  // ETC tokens
+  {
+    name: 'Wrapped ETC token',
+    symbol: 'WETC',
+    address: '0x82A618305706B14e7bcf2592D4B9324A366b6dAd',
+    decimals: 18,
+    networkId: NETWORK_IDS.ETC,
+  },
+  // HEBE tokens
+  {
+    name: 'HEBE',
+    symbol: 'HEBE',
+    address: '0x88d8C3Dc6B5324f34E8Cf229a93E197048671abD',
+    decimals: 18,
+    networkId: NETWORK_IDS.ETC,
+  },
+
+  // Mordor ETC testnet tokens
+  {
+    name: 'Mordor ETC native token',
+    symbol: 'mETC',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
+  },
+  {
+    name: 'Wrapped Ethereum',
+    symbol: 'WETH',
+    address: '0x3B2e50b6CBe03AcA7578Da058eFe2Acc56dd386e',
+    decimals: 18,
+    networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
   },
 ];
 

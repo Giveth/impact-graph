@@ -316,6 +316,7 @@ export const getVerificationFormByProjectId = async (
       projectId,
     })
     .leftJoinAndSelect('project_verification_form.project', 'project')
+    .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect(
       'project_verification_form.socialProfiles',
       'socialProfiles',

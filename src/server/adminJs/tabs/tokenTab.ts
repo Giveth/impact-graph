@@ -192,6 +192,11 @@ export const generateTokenTab = async () => {
             },
             { value: NETWORK_IDS.XDAI, label: 'XDAI' },
             { value: NETWORK_IDS.BSC, label: 'BSC' },
+            { value: NETWORK_IDS.ETC, label: 'Ethereum Classic' },
+            {
+              value: NETWORK_IDS.MORDOR_ETC_TESTNET,
+              label: 'Ethereum Classic Testnet',
+            },
           ],
         },
         symbol: { isVisible: true },
@@ -199,6 +204,24 @@ export const generateTokenTab = async () => {
         isGivbackEligible: { isVisible: true },
         address: { isVisible: true },
         mainnetAddress: {
+          isVisible: {
+            show: true,
+            edit: true,
+            new: true,
+            list: false,
+            filter: true,
+          },
+        },
+        coingeckoId: {
+          isVisible: {
+            show: true,
+            edit: true,
+            new: true,
+            list: false,
+            filter: true,
+          },
+        },
+        cryptoCompareId: {
           isVisible: {
             show: true,
             edit: true,

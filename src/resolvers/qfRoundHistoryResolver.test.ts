@@ -14,7 +14,7 @@ import moment from 'moment';
 import { fillQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
 import axios from 'axios';
 import {
-  fetchProjectsBySlugQuery,
+  fetchProjectBySlugQuery,
   getQfRoundHistoryQuery,
 } from '../../test/graphqlQueries';
 
@@ -30,6 +30,7 @@ function getQfRoundHistoryTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     });

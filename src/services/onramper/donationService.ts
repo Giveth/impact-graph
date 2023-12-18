@@ -132,13 +132,12 @@ export const createFiatDonationFromOnramper = async (
     }
 
     await donation.save();
-    const baseTokens = priceChainId === 1 ? ['USDT', 'ETH'] : ['WXDAI', 'WETH'];
 
     await updateDonationPricesAndValues(
       donation,
       project,
+      null,
       fiatTransaction.payload.outCurrency,
-      baseTokens,
       priceChainId,
       fiatTransaction.payload.outAmount,
     );

@@ -35,6 +35,9 @@ import { CreateProjectUserInstantPowerView1689504711172 } from '../migration/168
 import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
 import { redis } from '../src/redis';
 import { logger } from '../src/utils/logger';
+import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens';
+import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
+import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
 
 async function seedDb() {
   await seedUsers();
@@ -167,6 +170,34 @@ async function seedTokens() {
       isGivbackEligible: true,
     };
     if (token.symbol === 'OP') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.etc) {
+    const tokenData = {
+      ...token,
+      networkId: 61,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETC') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.morderEtc) {
+    const tokenData = {
+      ...token,
+      networkId: 63,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'mETC') {
       (tokenData as any).order = 2;
     }
     await Token.create(tokenData as Token).save();
@@ -374,6 +405,11 @@ async function runMigrations() {
     await new TakePowerBoostingSnapshotProcedureSecondVersion1690723242749().up(
       queryRunner,
     );
+    await new addIsStableCoinFieldToTokenTable1696421249293().up(queryRunner);
+    await new addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387().up(
+      queryRunner,
+    );
+    await new createDonationethUser1701756190381().up(queryRunner);
   } catch (e) {
     throw e;
   } finally {

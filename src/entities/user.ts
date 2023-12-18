@@ -135,6 +135,12 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   isReferrer: boolean;
 
+  @Field(type => Boolean, { nullable: true })
+  @Column('bool', { default: false })
+  // After each QF round Lauren and Griff review the donations and pass me a list of sybil addresses
+  // And then we exclude qfRound donation from those addresses when calculating the real matchingFund
+  knownAsSybilAddress: boolean;
+
   @Field(() => ReferredEvent, { nullable: true })
   @OneToOne(() => ReferredEvent, referredEvent => referredEvent.user, {
     cascade: true,
@@ -183,13 +189,7 @@ export class User extends BaseEntity {
   createdAt: Date;
 
   @Field(type => Int, { nullable: true })
-  async projectsCount() {
-    const projectsCount = await Project.createQueryBuilder('project')
-      .where('project."admin" = :id', { id: String(this.id) })
-      .getCount();
-
-    return projectsCount;
-  }
+  projectsCount?: number;
 
   @Field(type => Int, { nullable: true })
   async donationsCount() {
@@ -215,6 +215,7 @@ export class User extends BaseEntity {
 
     return likedProjectsCount;
   }
+
   @Field(type => Int, { nullable: true })
   async boostedProjectsCount() {
     return findPowerBoostingsCountByUserId(this.id);

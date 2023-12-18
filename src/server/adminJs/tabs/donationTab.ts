@@ -42,6 +42,7 @@ import {
 import { SelectQueryBuilder } from 'typeorm';
 import { ActionContext } from 'adminjs';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
+import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -260,6 +261,35 @@ export const buildDonationsQuery = (
     });
 
   return query;
+};
+
+export const importDonationsFromIdrissTwitter = async (
+  _request: ActionContext,
+  _response,
+  context: AdminJsContextInterface,
+) => {
+  const { records } = context;
+
+  try {
+    await getTwitterDonations();
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      records,
+      notice: {
+        message: `Donation(s) successfully exported`,
+        type: 'success',
+      },
+    };
+  } catch (e) {
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      record: {},
+      notice: {
+        message: e.message,
+        type: 'danger',
+      },
+    };
+  }
 };
 
 export const exportDonationsWithFiltersToCsv = async (
@@ -521,7 +551,16 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
+          new: false,
+        },
+      },
+      isProjectVerified: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: true,
           new: false,
         },
       },
@@ -530,9 +569,14 @@ export const donationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
+        availableValues: [
+          { value: DONATION_STATUS.VERIFIED, label: DONATION_STATUS.VERIFIED },
+          { value: DONATION_STATUS.PENDING, label: DONATION_STATUS.PENDING },
+          { value: DONATION_STATUS.FAILED, label: DONATION_STATUS.FAILED },
+        ],
       },
       createdAt: {
         isVisible: {
@@ -580,7 +624,7 @@ export const donationTab = {
           list: false,
           show: false,
           new: true,
-          edit: true,
+          edit: false,
         },
       },
       priceUsd: {
@@ -588,10 +632,46 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
         type: 'number',
+      },
+      transactionId: {
+        isVisible: {
+          list: true,
+          filter: true,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      isReferrerGivbackEligible: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      segmentNotified: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      referralStartTimestamp: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
       },
     },
     actions: {
@@ -604,7 +684,25 @@ export const donationTab = {
           ),
       },
       edit: {
-        isVisible: false,
+        isVisible: true,
+        before: async (request: AdminJsRequestInterface) => {
+          const availableFieldsForEdit = [
+            'isProjectVerified',
+            'status',
+            'valueUsd',
+            'priceUsd',
+          ];
+          Object.keys(request?.payload).forEach(key => {
+            if (!availableFieldsForEdit.includes(key)) {
+              delete request?.payload[key];
+            }
+          });
+          logger.debug('request?.payload', {
+            payload: request?.payload,
+          });
+
+          return request;
+        },
         isAccessible: ({ currentAdmin }) =>
           canAccessDonationAction({ currentAdmin }, ResourceActions.EDIT),
       },
@@ -628,6 +726,13 @@ export const donationTab = {
             ResourceActions.EXPORT_FILTER_TO_CSV,
           ),
         handler: exportDonationsWithFiltersToCsv,
+        component: false,
+      },
+      importIdrissDonations: {
+        actionType: 'resource',
+        isVisible: true,
+        isAccessible: true,
+        handler: importDonationsFromIdrissTwitter,
         component: false,
       },
     },

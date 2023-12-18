@@ -22,10 +22,12 @@ import {
   NETWORK_IDS,
 } from '../provider';
 import { logger } from '../utils/logger';
+import { gnosisSafeL2ABI } from '../assets/gnosisSafeL2ABI';
 
 // tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
+abiDecoder.addABI(gnosisSafeL2ABI);
 
 const ONE_HOUR = 60 * 60;
 
@@ -247,12 +249,34 @@ async function getTransactionDetailForNormalTransfer(
     transaction.blockNumber as number,
   );
 
+  let transactionTo = transaction.to;
+  let transactionFrom = transaction.from;
+  let amount = ethers.utils.formatEther(transaction.value);
+
+  if (input.safeTxHash && receipt) {
+    const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+    const token = await findTokenByNetworkAndSymbol(networkId, symbol);
+    const events = decodedLogs[0].events;
+
+    transactionTo = events[0]?.value?.toLowerCase();
+    transactionFrom = decodedLogs[0]?.address!;
+    amount = normalizeAmount(events[1]?.value, token.decimals);
+
+    if (!transactionTo || !transactionFrom) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+        ),
+      );
+    }
+  }
+
   return {
-    from: transaction.from,
+    from: transactionFrom,
     timestamp: block.timestamp as number,
-    to: transaction.to as string,
+    to: transactionTo as string,
     hash: txHash,
-    amount: ethers.utils.formatEther(transaction.value),
+    amount,
     currency: symbol,
   };
 }
@@ -268,6 +292,9 @@ async function getTransactionDetailForTokenTransfer(
     input.txHash,
   );
   const transaction = await provider.getTransaction(txHash);
+  let transactionTokenAddress = transaction.to?.toLowerCase();
+  let transactionTo: string;
+
   logger.debug(
     'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransactionReceipt txHash:',
     input.txHash,
@@ -282,10 +309,32 @@ async function getTransactionDetailForTokenTransfer(
   if (!transaction) {
     return null;
   }
-  if (
-    transaction &&
-    transaction.to?.toLowerCase() !== token.address.toLowerCase()
-  ) {
+  if (!receipt) {
+    // Transaction is not mined yet
+    // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
+    return null;
+  }
+  const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+  let transactionFrom: string = transaction.from;
+
+  // Multisig Donation
+  if (receipt && input.safeTxHash && input.txHash) {
+    const events = decodedLogs[1]?.events;
+
+    transactionTokenAddress = decodedLogs[1]?.address?.toLowerCase();
+    transactionTo = events[1]?.value?.toLowerCase();
+    transactionFrom = events[0]?.value?.toLowerCase();
+
+    if (!transactionTokenAddress || !transactionTo) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.TRANSACTION_STATUS_IS_FAILED_IN_NETWORK,
+        ),
+      );
+    }
+  }
+
+  if (transaction && transactionTokenAddress !== token.address.toLowerCase()) {
     throw new Error(
       i18n.__(
         translationErrorMessagesKeys.TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY,
@@ -293,11 +342,27 @@ async function getTransactionDetailForTokenTransfer(
     );
   }
 
-  if (!receipt) {
-    // Transaction is not mined yet
-    // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
-    return null;
+  // Normal Donation
+  const transactionData = abiDecoder.decodeMethod(transaction.data);
+  const transactionToAddress = transactionData?.params?.find(
+    item => item.name === '_to',
+  )?.value;
+
+  let amount = normalizeAmount(
+    transactionData?.params?.find(item => item.name === '_value')?.value || 0,
+    token.decimals,
+  );
+
+  if (receipt && !input.safeTxHash && input.txHash) {
+    transactionTo = transactionToAddress;
   }
+
+  if (receipt && input.safeTxHash && input.txHash) {
+    const logsAmount = decodedLogs[1]?.events[2]?.value;
+
+    amount = normalizeAmount(logsAmount, token.decimals);
+  }
+
   if (!receipt.status) {
     throw new Error(
       i18n.__(
@@ -306,10 +371,6 @@ async function getTransactionDetailForTokenTransfer(
     );
   }
 
-  const transactionData = abiDecoder.decodeMethod(transaction.data);
-  const transactionToAddress = transactionData.params.find(
-    item => item.name === '_to',
-  ).value;
   logger.debug(
     'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getBlock txHash:',
     input.txHash,
@@ -318,14 +379,11 @@ async function getTransactionDetailForTokenTransfer(
     transaction.blockNumber as number,
   );
   return {
-    from: transaction.from,
+    from: transactionFrom,
     timestamp: block.timestamp as number,
     hash: txHash,
-    to: transactionToAddress,
-    amount: normalizeAmount(
-      transactionData.params.find(item => item.name === '_value').value,
-      token.decimals,
-    ),
+    to: transactionTo!,
+    amount,
     currency: symbol,
   };
 }

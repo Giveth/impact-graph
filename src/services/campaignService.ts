@@ -7,16 +7,17 @@ import { FilterField, Project, SortingField } from '../entities/project';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
 import { ModuleThread, Pool } from 'threads';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
+import { QueryBuilder } from 'typeorm/query-builder/QueryBuilder';
+import { findAllActiveCampaigns } from '../repositories/campaignRepository';
+import { logger } from '../utils/logger';
+import { getRedisObject, setObjectInRedis } from '../redis';
 
 const projectFiltersCacheDuration =
   Number(process.env.PROJECT_FILTERS_THREADS_POOL_DURATION) || 60000;
 
-export const fillCampaignProjects = async (params: {
-  userId?: number;
-  campaign: Campaign;
-  projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>>;
-}): Promise<Campaign> => {
-  const { campaign, userId, projectsFiltersThreadPool } = params;
+const createFetchCampaignProjectsQuery = (
+  campaign: Campaign,
+): FilterProjectQueryInputParams | null => {
   const limit = 10;
   const skip = 0;
   const projectsQueryParams: FilterProjectQueryInputParams = {
@@ -36,9 +37,63 @@ export const fillCampaignProjects = async (params: {
       campaign.sortingField as unknown as SortingField;
   } else if (campaign.type === CampaignType.WithoutProjects) {
     // Dont add projects to this campaign type
-    return campaign;
+    return null;
   }
 
+  return projectsQueryParams;
+};
+const PROJECT_CAMPAIGN_CACHE_REDIS_KEY =
+  'projectCampaignCache-for-projectBySlug';
+
+export const getAllProjectsRelatedToActiveCampaigns = async (): Promise<{
+  [key: number]: string[];
+}> => {
+  const projectCampaignCache = await getRedisObject(
+    PROJECT_CAMPAIGN_CACHE_REDIS_KEY,
+  );
+  // It returns all project and campaigns( excluding manuallySelectedCampaign)
+  return projectCampaignCache || {};
+};
+
+export const cacheProjectCampaigns = async (): Promise<void> => {
+  logger.debug('cacheProjectCampaigns() has been called');
+  const newProjectCampaignCache = {};
+  const activeCampaigns = await findAllActiveCampaigns();
+  for (const campaign of activeCampaigns) {
+    const projectsQueryParams = createFetchCampaignProjectsQuery(campaign);
+    if (!projectsQueryParams) {
+      continue;
+    }
+    const projectsQuery = filterProjectsQuery(projectsQueryParams);
+    const projects = await projectsQuery.getMany();
+    for (const project of projects) {
+      newProjectCampaignCache[project.id]
+        ? newProjectCampaignCache[project.id].push(campaign.slug)
+        : (newProjectCampaignCache[project.id] = [campaign.slug]);
+    }
+  }
+  await setObjectInRedis({
+    key: PROJECT_CAMPAIGN_CACHE_REDIS_KEY,
+    value: newProjectCampaignCache,
+    // cronjob would fill it every 10 minutes so the expiration doesnt matter
+    expirationInSeconds: 60 * 60 * 24 * 1, // 1 day
+  });
+  logger.debug(
+    'cacheProjectCampaigns() ended successfully, projectCampaignCache size ',
+    Object.keys(newProjectCampaignCache).length,
+  );
+};
+
+export const fillCampaignProjects = async (params: {
+  userId?: number;
+  campaign: Campaign;
+  projectsFiltersThreadPool: Pool<ModuleThread<ProjectResolverWorker>>;
+}): Promise<Campaign> => {
+  const { campaign, userId, projectsFiltersThreadPool } = params;
+  const projectsQueryParams = createFetchCampaignProjectsQuery(campaign);
+  if (!projectsQueryParams) {
+    return campaign;
+  }
   const projectsQuery = filterProjectsQuery(projectsQueryParams);
   const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(hasher =>
     hasher.hashProjectFilters({

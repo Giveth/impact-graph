@@ -69,8 +69,8 @@ jobs:
             sleep 1
           done
 
-#      - name: Restore DB backup
-#        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
+      - name: Restore DB backup
+        run: PGPASSWORD=postgres psql -h localhost -p 5443 -U postgres -d givethio < /tmp/backups/givethio-staging/db_backup.sql
 
       - name: Use Node.js
         uses: actions/setup-node@v1
@@ -100,6 +100,9 @@ jobs:
           OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
           CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
           CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
+          MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
+          ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
+          DROP_DATABASE: ${{ secrets.DROP_DATABASE }}
 
   publish:
     needs: test

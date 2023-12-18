@@ -1,6 +1,7 @@
 import {
   findProjectById,
   findProjectBySlug,
+  findProjectBySlugWithoutAnyJoin,
   findProjectByWalletAddress,
   findProjectsByIdArray,
   findProjectsBySlugArray,
@@ -56,6 +57,20 @@ describe(
   updateDescriptionSummaryTestCases,
 );
 
+describe('verifyProject test cases', verifyProjectTestCases);
+describe('verifyMultipleProjects test cases', verifyMultipleProjectsTestCases);
+describe('findProjectById test cases', findProjectByIdTestCases);
+describe('findProjectsByIdArray test cases', findProjectsByIdArrayTestCases);
+describe('findProjectBySlug test cases', findProjectBySlugTestCases);
+describe(
+  'findProjectBySlugWithoutAnyJoin test cases',
+  findProjectBySlugWithoutAnyJoinTestCases,
+);
+describe(
+  'findProjectsBySlugArray test cases',
+  findProjectsBySlugArrayTestCases,
+);
+
 function projectsWithoutUpdateAfterTimeFrameTestCases() {
   it('should return projects created a long time ago', async () => {
     const superExpiredProject = await saveProjectDirectlyToDb({
@@ -96,26 +111,36 @@ function projectsWithoutUpdateAfterTimeFrameTestCases() {
   });
 }
 
-describe('verifyProject test cases', verifyProjectTestCases);
-describe('verifyMultipleProjects test cases', verifyMultipleProjectsTestCases);
-describe('findProjectById test cases', findProjectByIdTestCases);
-describe('findProjectsByIdArray test cases', findProjectsByIdArrayTestCases);
-describe('findProjectBySlug test cases', findProjectBySlugTestCases);
-describe(
-  'findProjectsBySlugArray test cases',
-  findProjectsBySlugArrayTestCases,
-);
-
 function findProjectBySlugTestCases() {
-  it('Should find project by id', async () => {
+  it('Should find project by slug', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const foundProject = await findProjectBySlug(project.slug as string);
     assert.isOk(foundProject);
     assert.equal(foundProject?.id, project.id);
+    assert.isOk(foundProject?.adminUser);
   });
 
   it('should not find project when project doesnt exists', async () => {
     const foundProject = await findProjectBySlug(new Date().toString());
+    assert.isNull(foundProject);
+  });
+}
+
+function findProjectBySlugWithoutAnyJoinTestCases() {
+  it('Should find project by slug', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const foundProject = await findProjectBySlugWithoutAnyJoin(
+      project.slug as string,
+    );
+    assert.isOk(foundProject);
+    assert.equal(foundProject?.id, project.id);
+    assert.isNotOk(foundProject?.adminUser);
+  });
+
+  it('should not find project when project doesnt exists', async () => {
+    const foundProject = await findProjectBySlugWithoutAnyJoin(
+      new Date().toString(),
+    );
     assert.isNull(foundProject);
   });
 }
@@ -225,12 +250,10 @@ function updateProjectWithVerificationFormTestCases() {
       ...createProjectData(),
       admin: String(user.id),
       verified: false,
+      networkId: NETWORK_IDS.GOERLI,
     });
     const fetchedProject = await findProjectById(project.id);
-    assert.equal(
-      fetchedProject?.addresses?.length,
-      Object.keys(NETWORK_IDS).length,
-    );
+    assert.equal(fetchedProject?.addresses?.length, 1);
     assert.equal(fetchedProject?.addresses?.[0].address, project.walletAddress);
     const projectVerificationForm = await createProjectVerificationForm({
       projectId: project.id,
@@ -257,9 +280,10 @@ function updateProjectWithVerificationFormTestCases() {
 
     await updateProjectWithVerificationForm(projectVerificationForm, project);
     const fetchedProject2 = await findProjectById(project.id);
+
     assert.equal(
       fetchedProject2?.addresses?.length,
-      Object.keys(NETWORK_IDS).length + 1,
+      fetchedProject!.addresses!.length + 1,
     );
     assert.isOk(
       fetchedProject2?.addresses?.find(

@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - develop
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -64,6 +63,8 @@ jobs:
           OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
           CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
           CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
+          MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
+          ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
 
   publish:
     needs: test

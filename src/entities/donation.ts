@@ -20,6 +20,10 @@ export const DONATION_STATUS = {
   FAILED: 'failed',
 };
 
+export const DONATION_EXTERNAL_SOURCES = {
+  IDRISS_TWITTER: 'Idriss',
+};
+
 export const DONATION_TYPES = {
   CSV_AIR_DROP: 'csvAirDrop',
   GNOSIS_SAFE: 'gnosisSafe',
@@ -37,15 +41,13 @@ export enum SortField {
 
 @Entity()
 @ObjectType()
-// https://typeorm.io/#/decorator-reference/unique
-@Unique(['transactionId', 'toWalletAddress', 'currency'])
 export class Donation extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
   @Field()
-  @Column()
+  @Column({ nullable: true })
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string;
 
@@ -59,6 +61,10 @@ export class Donation extends BaseEntity {
   transactionNetworkId: number;
 
   @Field()
+  @Column({ nullable: true })
+  safeTransactionId?: string;
+
+  @Field()
   @Column('boolean', { default: false })
   // https://github.com/Giveth/impact-graph/issues/407#issuecomment-1066892258
   isProjectVerified: boolean;
@@ -66,6 +72,18 @@ export class Donation extends BaseEntity {
   @Field()
   @Column('text', { default: DONATION_STATUS.PENDING })
   status: string;
+
+  @Field(type => Boolean)
+  @Column({ type: 'boolean', default: false })
+  isExternal: boolean;
+
+  @Field(type => Int)
+  @Column('integer', { nullable: true })
+  blockNumber?: number;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  origin: string;
 
   @Field({ nullable: true })
   @Column('text', { nullable: true })
@@ -153,9 +171,18 @@ export class Donation extends BaseEntity {
   @ManyToOne(type => QfRound, { eager: true })
   qfRound: QfRound;
 
-  @RelationId((donation: Donation) => donation.project)
+  @RelationId((donation: Donation) => donation.qfRound)
   @Column({ nullable: true })
   qfRoundId: number;
+
+  @Index()
+  @Field(type => QfRound, { nullable: true })
+  @ManyToOne(type => QfRound, { eager: true })
+  distributedFundQfRound: QfRound;
+
+  @RelationId((donation: Donation) => donation.distributedFundQfRound)
+  @Column({ nullable: true })
+  distributedFundQfRoundId: number;
 
   @Index()
   @Field(type => User, { nullable: true })
