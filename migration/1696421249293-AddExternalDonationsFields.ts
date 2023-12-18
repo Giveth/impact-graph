@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 export class AddExternalDonationsFields1696421249293
   implements MigrationInterface
 {
-  async up(queryRunner: QueryRunner): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable('donation');
     if (!table?.findColumnByName('isExternal')) {
       await queryRunner.addColumn(
@@ -39,7 +39,7 @@ export class AddExternalDonationsFields1696421249293
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropColumn('donation', 'isExternal');
     await queryRunner.dropColumn('donation', 'blockNumber');
   }

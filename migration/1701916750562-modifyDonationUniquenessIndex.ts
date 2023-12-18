@@ -4,7 +4,7 @@ import { logger } from '../src/utils/logger';
 export class modifyDonationUniquenessIndex1701916750562
   implements MigrationInterface
 {
-  async up(queryRunner: QueryRunner): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `DROP INDEX IF EXISTS "UQ_c9db9fd133378af80c3521bb146";`,
     );
@@ -15,7 +15,7 @@ export class modifyDonationUniquenessIndex1701916750562
         `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `DROP INDEX IF EXISTS "UQ_c9db9fd133378af80c3521bb146";`,
     );

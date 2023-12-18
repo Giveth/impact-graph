@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class projectActualMatchingView1699542566835
   implements MigrationInterface
 {
-  async up(queryRunner: QueryRunner): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
             DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
@@ -83,7 +83,7 @@ export class projectActualMatchingView1699542566835
     );
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `
             DROP MATERIALIZED VIEW project_actual_matching_view;

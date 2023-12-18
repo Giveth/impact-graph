@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class addIsStableCoinFieldToTokenTable1696421249293
   implements MigrationInterface
 {
-  async up(queryRunner: QueryRunner): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     // Add the isStableCoin column with a default value of false
     await queryRunner.query(`
             DO $$
@@ -26,7 +26,7 @@ export class addIsStableCoinFieldToTokenTable1696421249293
         `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     // Remove the "isStableCoin" column
     await queryRunner.query(`
             ALTER TABLE token

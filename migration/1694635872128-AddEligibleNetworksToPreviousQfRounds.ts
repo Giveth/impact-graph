@@ -4,7 +4,7 @@ import config from '../src/config';
 export class AddEligibleNetworksToPreviousQfRounds1694635872128
   implements MigrationInterface
 {
-  async up(queryRunner: QueryRunner): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
 
     // Define the eligible network IDs based on the conditions
@@ -23,7 +23,7 @@ export class AddEligibleNetworksToPreviousQfRounds1694635872128
     );
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
             UPDATE public.qf_round
             SET "eligibleNetworks" = '{}'

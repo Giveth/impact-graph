@@ -7,7 +7,7 @@ import config from '../src/config';
 export class AddOptimismGoerliTokens1687383705794
   implements MigrationInterface
 {
-  async up(queryRunner: QueryRunner): Promise<void> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
     if (environment === 'production') {
       // We dont add optimism-goerli tokens in production ENV
@@ -44,7 +44,7 @@ export class AddOptimismGoerliTokens1687383705794
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
     if (environment === 'production') {
       // We dont add optimism-goerli tokens in production ENV
