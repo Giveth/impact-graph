@@ -2,17 +2,19 @@ import { ProjectAddress } from '../entities/projectAddress';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { BaseEntity } from 'typeorm';
+import { logger } from '../utils/logger';
+import SentryLogger from '../sentryLogger';
 
 export const getPurpleListAddresses = async (): Promise<
   { projectAddress: string }[]
 > => {
-  // addresses that are related to verified projects
+  // ProjStatus.active value is 5 and we need to just need to consider active projects for purple list
   const addresses = await ProjectAddress.query(
     `
           SELECT "projectId", LOWER(address) as "projectAddress"
           FROM project_address
           JOIN project
-          on project.id="projectId" and "verified"=true
+          on project.id="projectId" and "verified"=true and "statusId" = 5 
       `,
   );
   return addresses;
@@ -26,11 +28,11 @@ export const isWalletAddressInPurpleList = async (
           SELECT "projectId", LOWER(address) as "projectAddress"
           FROM project_address
           JOIN project
-          on project.id="projectId" and "verified"=true
+          on project.id="projectId" and "verified"=true and "statusId" = 5
           where address = $1
           limit 1
     `,
-    [address],
+    [address.toLowerCase()],
   );
   return projectAddress.length > 0;
 };
@@ -94,9 +96,31 @@ export const addBulkNewProjectAddress = async (
     networkId: number;
   }[],
 ): Promise<void> => {
-  await ProjectAddress.insert(
-    params.map(item => ProjectAddress.create(item as ProjectAddress)),
-  );
+  const queryBuilder = ProjectAddress.createQueryBuilder()
+    .insert()
+    .into(ProjectAddress);
+
+  try {
+    const values = params.map(item => ({
+      projectId: item.project.id,
+      userId: item.user.id,
+      address: item.address,
+      title: item.title,
+      isRecipient: item.isRecipient,
+      networkId: item.networkId,
+    }));
+
+    await queryBuilder.values(values).execute();
+  } catch (error) {
+    // won't propagate the error in the meantime
+    SentryLogger.captureMessage(
+      `Error during bulk insert project ${params[0].project.id}: ${error}`,
+    );
+    logger.error(
+      `Error during bulk insert project ${params[0].project.id}: `,
+      error,
+    );
+  }
 };
 
 export const removeRecipientAddressOfProject = async (params: {

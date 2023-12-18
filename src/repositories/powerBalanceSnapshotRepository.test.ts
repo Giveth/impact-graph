@@ -4,7 +4,7 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { PowerSnapshot } from '../entities/powerSnapshot';
-import { createPowerSnapshotBalances } from './powerBalanceSnapshotRepository';
+import { addOrUpdatePowerSnapshotBalances } from './powerBalanceSnapshotRepository';
 
 describe(
   'createPowerSnapshotBalances test cases',
@@ -18,17 +18,14 @@ function createPowerSnapshotBalancesTestCases() {
 
     const powerSnapshot = await PowerSnapshot.create({
       time: new Date(powerSnapshotTime++),
-      blockNumber: powerSnapshotTime,
     }).save();
 
     await assertNotThrowsAsync(async () => {
-      await createPowerSnapshotBalances([
-        {
-          powerSnapshotId: powerSnapshot.id,
-          userId: user.id,
-          balance: 100,
-        },
-      ]);
+      await addOrUpdatePowerSnapshotBalances({
+        powerSnapshotId: powerSnapshot.id,
+        userId: user.id,
+        balance: 100,
+      });
     });
   });
 }

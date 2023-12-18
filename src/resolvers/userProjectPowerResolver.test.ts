@@ -17,11 +17,9 @@ import {
 } from '../repositories/powerBoostingRepository';
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import {
-  findInCompletePowerSnapShots,
-  insertSinglePowerBalanceSnapshot,
-} from '../repositories/powerSnapshotRepository';
 import { AppDataSource } from '../orm';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 
 describe('userProjectPowers test cases', userProjectPowersTestCases);
 
@@ -75,23 +73,24 @@ function userProjectPowersTestCases() {
     });
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: firstUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: secondUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: firstUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+      {
+        userId: secondUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 20000,
+      },
+    ]);
 
     await setPowerRound(givbackRound);
     await refreshUserProjectPowerView();
@@ -140,23 +139,24 @@ function userProjectPowersTestCases() {
     const givbackRound = secondProject.id * 10;
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: firstUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: secondUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: firstUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+      {
+        userId: secondUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 20000,
+      },
+    ]);
 
     await setPowerRound(givbackRound);
     await refreshUserProjectPowerView();
@@ -225,28 +225,29 @@ function userProjectPowersTestCases() {
     const givbackRound = secondProject.id * 10;
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: firstUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: secondUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: thirdUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 30000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: firstUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+      {
+        userId: secondUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 20000,
+      },
+      {
+        userId: thirdUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 30000,
+      },
+    ]);
 
     await setPowerRound(givbackRound);
     await refreshUserProjectPowerView();
@@ -306,23 +307,24 @@ function userProjectPowersTestCases() {
     const givbackRound = secondProject.id * 10;
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: firstUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: secondUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: firstUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+      {
+        userId: secondUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 20000,
+      },
+    ]);
 
     await setPowerRound(givbackRound);
     await refreshUserProjectPowerView();
@@ -379,23 +381,24 @@ function userProjectPowersTestCases() {
     const givbackRound = secondProject.id * 10;
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: firstUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: secondUser.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: firstUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+      {
+        userId: secondUser.id,
+        powerSnapshotId: snapshot.id,
+        balance: 20000,
+      },
+    ]);
 
     await setPowerRound(givbackRound);
     await refreshUserProjectPowerView();

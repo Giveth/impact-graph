@@ -6,7 +6,7 @@ export class createQfRoundTable1684071046520 implements MigrationInterface {
             CREATE TABLE "qf_round" (
                 "id" SERIAL NOT NULL,
                 "name" text,
-                "isActive" boolean NOT NULL DEFAULT true,
+                "isActive" boolean,
                 "allocatedFund" integer NOT NULL,
                 "beginDate" timestamp without time zone NOT NULL,
                 "endDate" timestamp without time zone NOT NULL,

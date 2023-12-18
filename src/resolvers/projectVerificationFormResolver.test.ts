@@ -276,8 +276,48 @@ function updateProjectVerificationFormMutationTestCases() {
       },
       {
         address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.GOERLI,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
         networkId: NETWORK_IDS.XDAI,
-        title: 'test title xdai',
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.OPTIMISTIC,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.POLYGON,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.CELO_ALFAJORES,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.CELO,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.ETC,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
+        title: 'test title',
       },
     ],
   };

@@ -20,13 +20,11 @@ import {
   insertSinglePowerBoosting,
   takePowerBoostingSnapshot,
 } from '../repositories/powerBoostingRepository';
-import {
-  findInCompletePowerSnapShots,
-  insertSinglePowerBalanceSnapshot,
-} from '../repositories/powerSnapshotRepository';
 import { setPowerRound } from '../repositories/powerRoundRepository';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { AppDataSource } from '../orm';
+import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
+import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 
 describe('userProjectPowers test cases', projectPowersTestCases);
 
@@ -76,14 +74,13 @@ function projectPowersTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 10000,
@@ -145,14 +142,13 @@ function projectPowersTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    const incompleteSnapshots = await findInCompletePowerSnapShots();
-    const snapshot = incompleteSnapshots[0];
+    const [powerSnapshots] = await findPowerSnapshots();
+    const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber - 1;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 10000,
@@ -211,23 +207,24 @@ function projectPowersTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber - 1;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 50000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: user1.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+      {
+        userId: user2.id,
+        powerSnapshotId: snapshot.id,
+        balance: 50000,
+      },
+    ]);
 
     await setPowerRound(roundNumber - 1);
     await refreshProjectFuturePowerView();
@@ -256,23 +253,23 @@ function projectPowersTestCases() {
     await PowerBoosting.save(powerBoostings);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
-
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
-      userId: user1.id,
-      powerSnapshotId: snapshot.id,
-      balance: 20000,
-    });
-    await insertSinglePowerBalanceSnapshot({
-      userId: user2.id,
-      powerSnapshotId: snapshot.id,
-      balance: 10000,
-    });
+    await addOrUpdatePowerSnapshotBalances([
+      {
+        userId: user1.id,
+        powerSnapshotId: snapshot.id,
+        balance: 20000,
+      },
+      {
+        userId: user2.id,
+        powerSnapshotId: snapshot.id,
+        balance: 10000,
+      },
+    ]);
 
     // Project1: 8000 + 1000 = 9_000
     // Project2: 6000 + 2000 = 8_000
@@ -321,14 +318,13 @@ function projectPowersTestCases() {
     );
 
     await takePowerBoostingSnapshot();
-    let incompleteSnapshots = await findInCompletePowerSnapShots();
-    let snapshot = incompleteSnapshots[0];
+    let [powerSnapshots] = await findPowerSnapshots();
+    let snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 10000,
@@ -373,14 +369,13 @@ function projectPowersTestCases() {
     await PowerBoosting.save(boostings);
 
     await takePowerBoostingSnapshot();
-    incompleteSnapshots = await findInCompletePowerSnapShots();
-    snapshot = incompleteSnapshots[0];
 
-    snapshot.blockNumber = 2;
+    [powerSnapshots] = await findPowerSnapshots();
+    snapshot = powerSnapshots[1];
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
-    await insertSinglePowerBalanceSnapshot({
+    await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       powerSnapshotId: snapshot.id,
       balance: 10000,

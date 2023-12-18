@@ -45,8 +45,6 @@ import {
   setUserAsReferrer,
 } from '../repositories/userRepository';
 import {
-  countUniqueDonors,
-  countUniqueDonorsForRound,
   donationsNumberPerDateRange,
   donationsTotalAmountPerDateRange,
   donationsTotalAmountPerDateRangeByMonth,
@@ -55,8 +53,7 @@ import {
   donorsCountPerDateByMonthAndYear,
   findDonationById,
   getRecentDonations,
-  sumDonationValueUsd,
-  sumDonationValueUsdForQfRound,
+  isVerifiedDonationExistsInQfRound,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -181,11 +178,39 @@ class MainCategoryDonations {
   totalUsd: number;
 }
 
+@ObjectType()
+class DonationCurrencyStats {
+  @Field(type => String, { nullable: true })
+  currency?: String;
+
+  @Field(type => Int, { nullable: true })
+  uniqueDonorCount?: number;
+
+  @Field(type => Number, { nullable: true })
+  currencyPercentage?: Number;
+}
+
 @Resolver(of => User)
 export class DonationResolver {
   constructor(private readonly donationRepository: Repository<Donation>) {
     this.donationRepository =
       AppDataSource.getDataSource().getRepository(Donation);
+  }
+
+  @Query(returns => [DonationCurrencyStats])
+  async getDonationStats(): Promise<DonationCurrencyStats[]> {
+    const query = `
+      SELECT
+        currency,
+        COUNT(DISTINCT "userId") AS "uniqueDonorCount",
+        COUNT(DISTINCT "userId") * 100.0 / SUM(COUNT(DISTINCT "userId")) OVER () AS "currencyPercentage"
+      FROM public.donation
+      GROUP BY currency
+      ORDER BY currency;
+    `;
+
+    const result = await Donation.query(query);
+    return result;
   }
 
   @Query(returns => [Donation], { nullable: true })
@@ -226,6 +251,7 @@ export class DonationResolver {
   async totalDonationsPerCategory(
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
   ): Promise<MainCategoryDonations[] | []> {
     try {
       validateWithJoiSchema(
@@ -254,6 +280,14 @@ export class DonationResolver {
         query.where(`donations."createdAt" <= '${toDate}'`);
       }
 
+      if (fromOptimismOnly) {
+        if (fromDate || toDate) {
+          query.andWhere(`donations."transactionNetworkId" = 10`);
+        } else {
+          query.where(`donations."transactionNetworkId" = 10`);
+        }
+      }
+
       const result = await query.getRawMany();
       return result;
     } catch (e) {
@@ -267,15 +301,24 @@ export class DonationResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const total = await donationsTotalAmountPerDateRange(fromDate, toDate);
+      const total = await donationsTotalAmountPerDateRange(
+        fromDate,
+        toDate,
+        fromOptimismOnly,
+      );
       const totalPerMonthAndYear =
-        await donationsTotalAmountPerDateRangeByMonth(fromDate, toDate);
+        await donationsTotalAmountPerDateRangeByMonth(
+          fromDate,
+          toDate,
+          fromOptimismOnly,
+        );
 
       return {
         total,
@@ -292,15 +335,24 @@ export class DonationResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const total = await donationsNumberPerDateRange(fromDate, toDate);
+      const total = await donationsNumberPerDateRange(
+        fromDate,
+        toDate,
+        fromOptimismOnly,
+      );
       const totalPerMonthAndYear =
-        await donationsTotalNumberPerDateRangeByMonth(fromDate, toDate);
+        await donationsTotalNumberPerDateRangeByMonth(
+          fromDate,
+          toDate,
+          fromOptimismOnly,
+        );
 
       return {
         total,
@@ -329,16 +381,22 @@ export class DonationResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const total = await donorsCountPerDate(fromDate, toDate);
+      const total = await donorsCountPerDate(
+        fromDate,
+        toDate,
+        fromOptimismOnly,
+      );
       const totalPerMonthAndYear = await donorsCountPerDateByMonthAndYear(
         fromDate,
         toDate,
+        fromOptimismOnly,
       );
       return {
         total,
@@ -525,6 +583,7 @@ export class DonationResolver {
       .createQueryBuilder('donation')
       .leftJoinAndSelect('donation.project', 'project')
       .leftJoinAndSelect('donation.user', 'user')
+      .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .where(`donation.userId = ${userId}`)
       .orderBy(
         `donation.${orderBy.field}`,
@@ -554,16 +613,17 @@ export class DonationResolver {
   @Mutation(returns => Number)
   async createDonation(
     @Arg('amount') amount: number,
-    @Arg('transactionId') transactionId: string,
+    @Arg('transactionId', { nullable: true }) transactionId: string,
     @Arg('transactionNetworkId') transactionNetworkId: number,
     @Arg('tokenAddress', { nullable: true }) tokenAddress: string,
     @Arg('anonymous', { nullable: true }) anonymous: boolean,
     @Arg('token') token: string,
     @Arg('projectId') projectId: number,
-    @Arg('nonce') nonce: number,
+    @Arg('nonce', { nullable: true }) nonce: number,
     @Arg('transakId', { nullable: true }) transakId: string,
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
+    @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
   ): Promise<Number> {
     try {
       const userId = ctx?.req?.user?.userId;
@@ -583,15 +643,29 @@ export class DonationResolver {
           nonce,
           transakId,
           referrerId,
+          safeTransactionId,
         },
         createDonationQueryValidator,
       );
 
-      const priceChainId =
-        transactionNetworkId === NETWORK_IDS.ROPSTEN ||
-        transactionNetworkId === NETWORK_IDS.GOERLI
-          ? NETWORK_IDS.MAIN_NET
-          : transactionNetworkId;
+      let priceChainId: number;
+      switch (transactionNetworkId) {
+        case NETWORK_IDS.ROPSTEN:
+          priceChainId = NETWORK_IDS.MAIN_NET;
+          break;
+        case NETWORK_IDS.GOERLI:
+          priceChainId = NETWORK_IDS.MAIN_NET;
+          break;
+        case NETWORK_IDS.OPTIMISM_GOERLI:
+          priceChainId = NETWORK_IDS.OPTIMISTIC;
+          break;
+        case NETWORK_IDS.MORDOR_ETC_TESTNET:
+          priceChainId = NETWORK_IDS.ETC;
+          break;
+        default:
+          priceChainId = transactionNetworkId;
+          break;
+      }
 
       const project = await findProjectById(projectId);
 
@@ -662,6 +736,7 @@ export class DonationResolver {
         toWalletAddress: toAddress.toString().toLowerCase(),
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: Boolean(anonymous),
+        safeTransactionId,
       });
       if (referrerId) {
         // Fill referrer data if referrerId is valid
@@ -688,33 +763,19 @@ export class DonationResolver {
       const activeQfRoundForProject = await relatedActiveQfRoundForProject(
         projectId,
       );
-      if (activeQfRoundForProject) {
+      if (
+        activeQfRoundForProject &&
+        activeQfRoundForProject.isEligibleNetwork(Number(transactionNetworkId))
+      ) {
         donation.qfRound = activeQfRoundForProject;
       }
       await donation.save();
 
-      let baseTokens: string[];
-      switch (priceChainId) {
-        case CHAIN_ID.XDAI:
-          baseTokens = ['WXDAI', 'WETH'];
-          break;
-        case CHAIN_ID.POLYGON:
-          baseTokens = ['USDC', 'MATIC'];
-          break;
-        case CHAIN_ID.CELO:
-        case CHAIN_ID.ALFAJORES:
-          baseTokens = ['cUSD', 'CELO'];
-          break;
-        default:
-          baseTokens = ['USDT', 'ETH'];
-          break;
-      }
-
       await updateDonationPricesAndValues(
         donation,
         project,
+        tokenInDb,
         token,
-        baseTokens,
         priceChainId,
         amount,
       );
@@ -799,5 +860,18 @@ export class DonationResolver {
       logger.error('updateDonationStatus() error', e);
       throw e;
     }
+  }
+
+  @Query(() => Boolean)
+  async doesDonatedToProjectInQfRound(
+    @Arg('projectId', _ => Int) projectId: number,
+    @Arg('qfRoundId', _ => Int) qfRoundId: number,
+    @Arg('userId', _ => Int) userId: number,
+  ): Promise<Boolean> {
+    return isVerifiedDonationExistsInQfRound({
+      projectId,
+      qfRoundId,
+      userId,
+    });
   }
 }

@@ -184,6 +184,7 @@ export const generateTokenTab = async () => {
             { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
             { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
             { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
+            { value: NETWORK_IDS.OPTIMISM_GOERLI, label: 'OPTIMISM GOERLI' },
             { value: NETWORK_IDS.CELO, label: 'CELO' },
             {
               value: NETWORK_IDS.CELO_ALFAJORES,
@@ -191,6 +192,11 @@ export const generateTokenTab = async () => {
             },
             { value: NETWORK_IDS.XDAI, label: 'XDAI' },
             { value: NETWORK_IDS.BSC, label: 'BSC' },
+            { value: NETWORK_IDS.ETC, label: 'Ethereum Classic' },
+            {
+              value: NETWORK_IDS.MORDOR_ETC_TESTNET,
+              label: 'Ethereum Classic Testnet',
+            },
           ],
         },
         symbol: { isVisible: true },
@@ -198,6 +204,24 @@ export const generateTokenTab = async () => {
         isGivbackEligible: { isVisible: true },
         address: { isVisible: true },
         mainnetAddress: {
+          isVisible: {
+            show: true,
+            edit: true,
+            new: true,
+            list: false,
+            filter: true,
+          },
+        },
+        coingeckoId: {
+          isVisible: {
+            show: true,
+            edit: true,
+            new: true,
+            list: false,
+            filter: true,
+          },
+        },
+        cryptoCompareId: {
           isVisible: {
             show: true,
             edit: true,

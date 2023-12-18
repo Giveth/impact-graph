@@ -17,6 +17,8 @@ import { ProjectPowerResolver } from './projectPowerResolver';
 import { CampaignResolver } from './campaignResolver';
 import { ChainvineResolver } from './chainvineResolver';
 import { QfRoundResolver } from './qfRoundResolver';
+import { QfRoundHistoryResolver } from './qfRoundHistoryResolver';
+import { ProjectUserInstantPowerViewResolver } from './instantPowerResolver';
 
 export const getResolvers = (): Function[] => {
   return [
@@ -38,8 +40,10 @@ export const getResolvers = (): Function[] => {
     UserProjectPowerResolver,
     ProjectPowerResolver,
     GivPowerTestingResolver,
+    ProjectUserInstantPowerViewResolver,
 
     CampaignResolver,
     QfRoundResolver,
+    QfRoundHistoryResolver,
   ];
 };
