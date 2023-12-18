@@ -1158,6 +1158,7 @@ async function getBottomPowerRankTestCases() {
 
     const roundNumber = firstProject.id * 10;
 
+    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 

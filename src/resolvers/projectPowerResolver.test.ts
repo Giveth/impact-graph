@@ -77,6 +77,7 @@ function projectPowersTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
+    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -145,6 +146,7 @@ function projectPowersTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
+    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber - 1;
     await snapshot.save();
 

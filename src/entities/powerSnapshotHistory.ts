@@ -1,5 +1,15 @@
 import { Field, ID, Int, ObjectType } from 'type-graphql';
-import { Column, Entity, BaseEntity, Index, PrimaryColumn } from 'typeorm';
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  BaseEntity,
+  Index,
+  OneToMany,
+  PrimaryColumn,
+} from 'typeorm';
+import { PowerBalanceSnapshotHistory } from './powerBalanceSnapshotHistory';
+import { PowerBoostingSnapshotHistory } from './powerBoostingSnapshotHistory';
 
 @Entity()
 @ObjectType()

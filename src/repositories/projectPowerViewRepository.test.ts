@@ -78,6 +78,7 @@ function projectPowerViewRepositoryTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
+    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -136,6 +137,7 @@ function projectPowerViewRepositoryTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
+    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -188,6 +190,7 @@ function projectPowerViewRepositoryTestCases() {
     let [powerSnapshots] = await findPowerSnapshots();
     let snapshot = powerSnapshots[0];
 
+    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -216,6 +219,7 @@ function projectPowerViewRepositoryTestCases() {
     [powerSnapshots] = await findPowerSnapshots();
     snapshot = powerSnapshots[1];
 
+    snapshot.blockNumber = 2;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -273,6 +277,7 @@ function findProjectPowerViewByProjectIdTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
+    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -423,6 +428,7 @@ function projectFuturePowerViewRepositoryTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
+    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -442,6 +448,7 @@ function projectFuturePowerViewRepositoryTestCases() {
 
     await takePowerBoostingSnapshot();
 
+    snapshot.blockNumber = 2;
     snapshot.roundNumber = roundNumber + 1;
     await snapshot.save();
 
@@ -507,6 +514,7 @@ function getBottomPowerRankTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
+    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
