@@ -1304,7 +1304,7 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.POLYGON &&
+            address.networkId === NETWORK_IDS.OPTIMISTIC &&
             address.chainType === ChainType.EVM,
         ),
       );

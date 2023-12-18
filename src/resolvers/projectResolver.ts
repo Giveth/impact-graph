@@ -518,19 +518,35 @@ export class ProjectResolver {
           return;
         case FilterField.AcceptFundOnMainnet:
           networkIds.push(NETWORK_IDS.MAIN_NET);
+
+          // Add this to make sure works on Staging
+          networkIds.push(NETWORK_IDS.GOERLI);
           return;
         case FilterField.AcceptFundOnCelo:
           networkIds.push(NETWORK_IDS.CELO);
+
+          // Add this to make sure works on Staging
+          networkIds.push(NETWORK_IDS.CELO_ALFAJORES);
           return;
         case FilterField.AcceptFundOnPolygon:
           networkIds.push(NETWORK_IDS.POLYGON);
           return;
         case FilterField.AcceptFundOnOptimism:
           networkIds.push(NETWORK_IDS.OPTIMISTIC);
+
+          // Add this to make sure works on Staging
+          networkIds.push(NETWORK_IDS.OPTIMISM_GOERLI);
+          return;
+        case FilterField.AcceptFundOnETC:
+          networkIds.push(NETWORK_IDS.ETC);
+
+          // Add this to make sure works on Staging
+          networkIds.push(NETWORK_IDS.MORDOR_ETC_TESTNET);
           return;
         case FilterField.AcceptFundOnSolana:
           acceptFundOnSolanaSeen = true;
           return;
+
         default:
           return query.andWhere(`project.${filter} = true`);
       }
