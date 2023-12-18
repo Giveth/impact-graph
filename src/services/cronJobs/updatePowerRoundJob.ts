@@ -19,6 +19,7 @@ import {
 } from '../../repositories/previousRoundRankRepository';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { sleep } from '../../utils/utils';
+import { fillIncompletePowerSnapshots } from '../powerSnapshotServices';
 
 const cronJobTime =
   (config.get('UPDATE_POWER_ROUND_CRONJOB_EXPRESSION') as string) ||
@@ -30,6 +31,8 @@ export const runUpdatePowerRoundCronJob = () => {
     cronJobTime,
   );
   schedule(cronJobTime, async () => {
+    const fillSnapshotsRoundNumberPromise = fillIncompletePowerSnapshots();
+
     const currentRound = await getPowerRound();
     const powerRound = getRoundNumberByDate(new Date()).round - 1;
     logger.debug('runUpdatePowerRoundCronJob', {
@@ -46,6 +49,9 @@ export const runUpdatePowerRoundCronJob = () => {
       await setPowerRound(powerRound);
       oldBottomRank = await getBottomRank();
     }
+
+    await fillSnapshotsRoundNumberPromise;
+
     await Promise.all([
       refreshProjectPowerView(),
       refreshProjectFuturePowerView(),

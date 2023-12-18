@@ -24,6 +24,7 @@ import { insertSinglePowerBoosting } from '../repositories/powerBoostingReposito
 import { create } from 'domain';
 import { DONATION_STATUS } from '../entities/donation';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+import { findUserById } from '../repositories/userRepository';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);
@@ -44,9 +45,6 @@ function refreshUserScoresTestCases() {
     const user = await User.create(userData).save();
     await getGitcoinAdapter().submitPassport({
       address: userData.walletAddress,
-      scorer: '200',
-      signature: 'any',
-      nonce: 'any',
     });
     const result = await axios.post(graphqlUrl, {
       query: refreshUserScores,
@@ -60,7 +58,7 @@ function refreshUserScoresTestCases() {
     assert.isTrue(updatedUser.passportScore > 0);
     assert.isTrue(updatedUser.passportStamps > 0);
   });
-  it('should not refresh user scores if not registered to gitcoin', async () => {
+  it('should persist passportScore in user ', async () => {
     const userData = {
       firstName: 'firstName',
       lastName: 'lastName',
@@ -71,6 +69,9 @@ function refreshUserScoresTestCases() {
       walletAddress: generateRandomEtheriumAddress(),
     };
     const user = await User.create(userData).save();
+    await getGitcoinAdapter().submitPassport({
+      address: userData.walletAddress,
+    });
     const result = await axios.post(graphqlUrl, {
       query: refreshUserScores,
       variables: {
@@ -80,9 +81,20 @@ function refreshUserScoresTestCases() {
 
     const updatedUser = result.data.data.refreshUserScores;
     assert.equal(updatedUser.walletAddress, user.walletAddress);
-    // if score remains null the user has not registered
-    assert.equal(updatedUser.passportScore, 0);
-    assert.equal(updatedUser.passportStamps, 0);
+    assert.isTrue(updatedUser.passportScore > 0);
+    assert.isTrue(updatedUser.passportStamps > 0);
+
+    const fetchUserResponse = await axios.post(graphqlUrl, {
+      query: userByAddress,
+      variables: {
+        address: userData.walletAddress,
+      },
+    });
+
+    assert.equal(
+      fetchUserResponse.data.data.userByAddress.passportScore,
+      updatedUser.passportScore,
+    );
   });
 }
 

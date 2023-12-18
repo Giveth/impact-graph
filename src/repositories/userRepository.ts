@@ -4,6 +4,7 @@ import { Donation } from '../entities/donation';
 import { Reaction } from '../entities/reaction';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { ethers } from 'ethers';
+import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import { isEvmAddress } from '../utils/networks';
 
 export const findAdminUserByEmail = async (
@@ -47,8 +48,34 @@ export const findUserByWalletAddress = async (
   if (!includeSensitiveFields) {
     query.select(publicSelectionFields);
   }
+  const user = await query.getOne();
+  if (!user) return null;
 
-  return query.getOne();
+  user.projectsCount = await fetchUserProjectsCount(
+    user!.id,
+    includeSensitiveFields,
+  );
+
+  return user;
+};
+
+export const fetchUserProjectsCount = async (
+  userId: number,
+  includeSensitiveFields: boolean,
+) => {
+  const projectsCount = Project.createQueryBuilder('project').where(
+    'project."adminUserId" = :id',
+    { id: userId },
+  );
+
+  if (!includeSensitiveFields) {
+    projectsCount.andWhere(
+      `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
+      { reviewStatus: ReviewStatus.Listed },
+    );
+  }
+
+  return projectsCount.getCount();
 };
 
 export const findUserById = (userId: number): Promise<User | null> => {

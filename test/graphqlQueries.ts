@@ -1,6 +1,6 @@
 export const createDonationMutation = `
   mutation (
-    $transactionId: String!
+    $transactionId: String
     $transactionNetworkId: Float!
     $nonce: Float!
     $amount: Float!
@@ -10,6 +10,7 @@ export const createDonationMutation = `
     $tokenAddress: String
     $anonymous: Boolean
     $referrerId: String
+    $safeTransactionId: String
   ) {
     createDonation(
       transactionId: $transactionId
@@ -22,6 +23,7 @@ export const createDonationMutation = `
       tokenAddress: $tokenAddress
       anonymous: $anonymous
       referrerId: $referrerId
+      safeTransactionId: $safeTransactionId
     )
   }
 `;
@@ -336,10 +338,16 @@ export const fetchNewProjectsPerDate = `
   query (
     $fromDate: String
     $toDate: String
+    $onlyListed: Boolean
+    $onlyVerified: Boolean
+    $includesOptimism: Boolean
   ) {
     projectsPerDate(
       fromDate: $fromDate
       toDate: $toDate
+      onlyListed: $onlyListed
+      onlyVerified: $onlyVerified
+      includesOptimism: $includesOptimism
     ) {
       total
       totalPerMonthAndYear {
@@ -354,10 +362,12 @@ export const fetchTotalDonationsPerCategoryPerDate = `
   query (
     $fromDate: String
     $toDate: String
+    $fromOptimismOnly: Boolean
   ) {
     totalDonationsPerCategory(
       fromDate: $fromDate
       toDate: $toDate
+      fromOptimismOnly: $fromOptimismOnly
     ) {
       id
       title
@@ -392,10 +402,12 @@ export const fetchTotalDonors = `
   query (
     $fromDate: String
     $toDate: String
+    $fromOptimismOnly: Boolean
   ) {
     totalDonorsCountPerDate(
       fromDate: $fromDate
       toDate: $toDate
+      fromOptimismOnly: $fromOptimismOnly
     ) {
       total
       totalPerMonthAndYear {
@@ -410,10 +422,12 @@ export const fetchTotalDonationsUsdAmount = `
   query (
     $fromDate: String
     $toDate: String
+    $fromOptimismOnly: Boolean
   ) {
     donationsTotalUsdPerDate (
       fromDate: $fromDate
       toDate: $toDate
+      fromOptimismOnly: $fromOptimismOnly
     ) {
       total
       totalPerMonthAndYear {
@@ -428,10 +442,12 @@ export const fetchTotalDonationsNumberPerDateRange = `
   query (
     $fromDate: String
     $toDate: String
+    $fromOptimismOnly: Boolean
   ) {
     totalDonationsNumberPerDate (
       fromDate: $fromDate
       toDate: $toDate
+      fromOptimismOnly: $fromOptimismOnly
     ) {
       total
       totalPerMonthAndYear {
@@ -518,6 +534,11 @@ export const fetchDonationsByUserIdQuery = `
         }
         project {
           id
+        }
+       qfRound {
+          id
+          name
+          isActive
         }
         createdAt
       }
@@ -625,6 +646,7 @@ export const fetchMultiFilterAllProjectsQuery = `
     $campaignSlug: String
     $connectedWalletUserId: Int
     $qfRoundId: Int
+    $qfRoundSlug: String
   ) {
     allProjects(
       limit: $limit
@@ -637,6 +659,7 @@ export const fetchMultiFilterAllProjectsQuery = `
       mainCategory: $mainCategory
       connectedWalletUserId: $connectedWalletUserId
       qfRoundId: $qfRoundId
+      qfRoundSlug: $qfRoundSlug
     ) {
     
       campaign{
@@ -748,7 +771,45 @@ export const expectedMatchingFormulaQuery = `
   }
 `;
 
-export const fetchProjectsBySlugQuery = `
+export const qfRoundStatsQuery = `
+  query (
+    $slug: String!
+  ) {
+    qfRoundStats(
+      slug: $slug
+    ) {
+      uniqueDonors
+      allDonationsUsdValue
+      matchingPool
+    }
+  }
+`;
+
+export const getQfRoundHistoryQuery = `
+    query (
+      $projectId: Int!
+      $qfRoundId: Int!
+    ) {
+      getQfRoundHistory(
+        projectId: $projectId
+        qfRoundId: $qfRoundId
+      ) {
+        uniqueDonors
+        raisedFundInUsd
+        donationsCount
+        matchingFund
+        distributedFundNetwork
+        distributedFundTxHash
+        estimatedMatching {
+         projectDonationsSqrtRootSum
+         allProjectsSum
+         matchingPool
+        }
+      }
+    }
+`;
+
+export const fetchProjectBySlugQuery = `
   query (
     $slug: String!
   ) {
@@ -772,11 +833,32 @@ export const fetchProjectsBySlugQuery = `
       listed
       reviewStatus
       givingBlocksId
+      campaigns {
+        id
+        title
+        description
+        type
+        photo
+        video
+        videoPreview
+        slug
+        isActive
+        order
+        landingLink
+        filterFields
+        sortingField
+        createdAt
+        updatedAt
+      
+      }
       givbackFactor
       projectPower {
         totalPower
         powerRank
         round
+      }
+      projectInstantPower {
+        totalPower
       }
       projectFuturePower {
         totalPower
@@ -876,6 +958,16 @@ export const fetchProjectsBySlugQuery = `
       totalReactions
       totalDonations
       totalTraceDonations
+    }
+  }
+`;
+
+export const getDonationCurrencyStats = `
+  query {
+    getDonationStats {
+      currency
+      uniqueDonorCount
+      currencyPercentage
     }
   }
 `;
@@ -1052,6 +1144,8 @@ export const userByAddress = `
       likedProjectsCount
       donationsCount
       projectsCount
+      passportScore
+      passportStamps
     }
   }
 `;
@@ -1937,4 +2031,38 @@ export const getPowerAmountRankQuery = `
       ) {
         powerAmountRank(powerAmount: $powerAmount, projectId: $projectId)
     }
+`;
+
+export const getProjectUserInstantPowerQuery = `
+  query ($projectId: Int!, $take: Int, $skip: Int)
+   {
+    getProjectUserInstantPower (projectId: $projectId, take: $take, skip: $skip) {
+    projectUserInstantPowers {
+      id
+      userId
+      projectId
+      boostedPower
+      user {
+        name
+        walletAddress
+        avatar
+        }
+      }
+      total
+    }
+  }
+  `;
+
+export const doesDonatedToProjectInQfRoundQuery = `
+  query (
+   $projectId: Int!,
+   $qfRoundId: Int!,
+   $userId: Int!
+  ) {
+    doesDonatedToProjectInQfRound(
+      projectId: $projectId
+      qfRoundId: $qfRoundId
+      userId: $userId
+    )
+  }
 `;

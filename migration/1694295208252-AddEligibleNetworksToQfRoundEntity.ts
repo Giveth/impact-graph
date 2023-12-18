@@ -1,0 +1,16 @@
+import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
+
+export class AddEligibleNetworksToQfRoundEntity1694295208252
+  implements MigrationInterface
+{
+  async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+            ALTER TABLE public.qf_round
+            ADD COLUMN IF NOT EXISTS "eligibleNetworks" integer array DEFAULT ARRAY[]::integer[]
+        `);
+  }
+
+  async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.dropColumn('qf_round', 'eligibleNetworks');
+  }
+}

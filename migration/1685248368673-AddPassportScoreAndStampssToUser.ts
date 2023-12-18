@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 export class AddPassportScoreAndStampssToUser1685248368673
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.addColumn(
       'user',
       new TableColumn({
@@ -23,7 +23,7 @@ export class AddPassportScoreAndStampssToUser1685248368673
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropColumn('user', 'passportStamps');
     await queryRunner.dropColumn('user', 'passportScore');
   }

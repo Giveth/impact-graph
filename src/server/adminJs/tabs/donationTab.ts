@@ -40,6 +40,9 @@ import {
   addDonationsSheetToSpreadsheet,
 } from '../../../services/googleSheets';
 import { SelectQueryBuilder } from 'typeorm';
+import { ActionContext } from 'adminjs';
+import { extractAdminJsReferrerUrlParams } from '../adminJs';
+import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -183,12 +186,23 @@ export const buildDonationsQuery = (
   const query = Donation.createQueryBuilder('donation')
     .leftJoinAndSelect('donation.user', 'user')
     .leftJoinAndSelect('donation.project', 'project')
+    .leftJoinAndSelect('donation.qfRound', 'qfRound')
     .where('donation.amount > 0')
     .addOrderBy('donation.createdAt', 'DESC');
+
+  if (queryStrings.id)
+    query.andWhere('donation.id = :id', {
+      id: queryStrings.id,
+    });
 
   if (queryStrings.projectId)
     query.andWhere('donation.projectId = :projectId', {
       projectId: queryStrings.projectId,
+    });
+
+  if (queryStrings.qfRoundId)
+    query.andWhere('donation.qfRoundId = :qfRoundId', {
+      qfRoundId: queryStrings.qfRoundId,
     });
 
   if (queryStrings.userId)
@@ -249,17 +263,43 @@ export const buildDonationsQuery = (
   return query;
 };
 
+export const importDonationsFromIdrissTwitter = async (
+  _request: ActionContext,
+  _response,
+  context: AdminJsContextInterface,
+) => {
+  const { records } = context;
+
+  try {
+    await getTwitterDonations();
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      records,
+      notice: {
+        message: `Donation(s) successfully exported`,
+        type: 'success',
+      },
+    };
+  } catch (e) {
+    return {
+      redirectUrl: '/admin/resources/Donation',
+      record: {},
+      notice: {
+        message: e.message,
+        type: 'danger',
+      },
+    };
+  }
+};
+
 export const exportDonationsWithFiltersToCsv = async (
-  _request: AdminJsRequestInterface,
+  _request: ActionContext,
   _response,
   context: AdminJsContextInterface,
 ) => {
   try {
     const { records } = context;
-    const rawQueryStrings = await redis.get(
-      `adminbro:${context.currentAdmin.id}:Donation`,
-    );
-    const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
+    const queryStrings = extractAdminJsReferrerUrlParams(_request);
     const projectsQuery = buildDonationsQuery(queryStrings);
     const projects = await projectsQuery.getMany();
 
@@ -285,6 +325,7 @@ export const exportDonationsWithFiltersToCsv = async (
   }
 };
 
+// Spreadsheet filters included
 const sendDonationsToGoogleSheet = async (
   donations: Donation[],
 ): Promise<void> => {
@@ -316,6 +357,8 @@ const sendDonationsToGoogleSheet = async (
       createdAt: donation?.createdAt.toISOString(),
       referrerWallet: donation?.referrerWallet || '',
       isTokenEligibleForGivback: Boolean(donation?.isTokenEligibleForGivback),
+      qfRoundId: donation?.qfRound?.id || '',
+      qfRoundUserScore: donation?.qfRoundUserScore || '',
     };
   });
 
@@ -333,6 +376,16 @@ export const donationTab = {
       projectId: {
         isVisible: {
           list: true,
+          filter: true,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      qfRoundId: {
+        type: Number,
+        isVisible: {
+          list: false,
           filter: true,
           show: true,
           edit: false,
@@ -448,6 +501,15 @@ export const donationTab = {
           new: false,
         },
       },
+      qfRoundUserScore: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
       tokenAddress: {
         isVisible: false,
       },
@@ -462,7 +524,7 @@ export const donationTab = {
       },
       toWalletAddress: {
         isVisible: {
-          list: true,
+          list: false,
           filter: true,
           show: true,
           edit: false,
@@ -489,7 +551,16 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
+          new: false,
+        },
+      },
+      isProjectVerified: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: true,
           new: false,
         },
       },
@@ -498,9 +569,14 @@ export const donationTab = {
           list: true,
           filter: true,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
+        availableValues: [
+          { value: DONATION_STATUS.VERIFIED, label: DONATION_STATUS.VERIFIED },
+          { value: DONATION_STATUS.PENDING, label: DONATION_STATUS.PENDING },
+          { value: DONATION_STATUS.FAILED, label: DONATION_STATUS.FAILED },
+        ],
       },
       createdAt: {
         isVisible: {
@@ -548,7 +624,7 @@ export const donationTab = {
           list: false,
           show: false,
           new: true,
-          edit: true,
+          edit: false,
         },
       },
       priceUsd: {
@@ -556,10 +632,46 @@ export const donationTab = {
           list: false,
           filter: false,
           show: true,
-          edit: false,
+          edit: true,
           new: false,
         },
         type: 'number',
+      },
+      transactionId: {
+        isVisible: {
+          list: true,
+          filter: true,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      isReferrerGivbackEligible: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      segmentNotified: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
+      referralStartTimestamp: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
       },
     },
     actions: {
@@ -572,7 +684,25 @@ export const donationTab = {
           ),
       },
       edit: {
-        isVisible: false,
+        isVisible: true,
+        before: async (request: AdminJsRequestInterface) => {
+          const availableFieldsForEdit = [
+            'isProjectVerified',
+            'status',
+            'valueUsd',
+            'priceUsd',
+          ];
+          Object.keys(request?.payload).forEach(key => {
+            if (!availableFieldsForEdit.includes(key)) {
+              delete request?.payload[key];
+            }
+          });
+          logger.debug('request?.payload', {
+            payload: request?.payload,
+          });
+
+          return request;
+        },
         isAccessible: ({ currentAdmin }) =>
           canAccessDonationAction({ currentAdmin }, ResourceActions.EDIT),
       },
@@ -596,6 +726,13 @@ export const donationTab = {
             ResourceActions.EXPORT_FILTER_TO_CSV,
           ),
         handler: exportDonationsWithFiltersToCsv,
+        component: false,
+      },
+      importIdrissDonations: {
+        actionType: 'resource',
+        isVisible: true,
+        isAccessible: true,
+        handler: importDonationsFromIdrissTwitter,
         component: false,
       },
     },

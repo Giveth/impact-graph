@@ -16,6 +16,7 @@ import { SocialProfile } from './socialProfile';
 import { MainCategory } from './mainCategory';
 import { PowerBoosting } from './powerBoosting';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
+import { ProjectUserInstantPowerView } from '../views/projectUserInstantPowerView';
 import { PowerRound } from './powerRound';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { PowerSnapshot } from './powerSnapshot';
@@ -39,6 +40,8 @@ import { InstantPowerFetchState } from './instantPowerFetchState';
 import { ProjectInstantPowerView } from '../views/projectInstantPowerView';
 import { QfRound } from './qfRound';
 import { ReferredEvent } from './referredEvent';
+import { QfRoundHistory } from './qfRoundHistory';
+import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -78,6 +81,8 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectFuturePowerView,
     LastSnapshotProjectPowerView,
     ProjectInstantPowerView,
+    ProjectUserInstantPowerView,
+    ProjectEstimatedMatchingView,
 
     // historic snapshots
     PowerSnapshotHistory,
@@ -93,5 +98,6 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     InstantPowerFetchState,
 
     QfRound,
+    QfRoundHistory,
   ];
 };

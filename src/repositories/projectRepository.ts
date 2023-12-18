@@ -9,15 +9,10 @@ import {
 } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { ProjectAddress } from '../entities/projectAddress';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
-
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
 
@@ -32,6 +27,20 @@ export const findProjectById = (projectId: number): Promise<Project | null> => {
       id: projectId,
     })
     .getOne();
+};
+
+export const verifiedProjectsAddressesWithOptimism = async (): Promise<
+  String[]
+> => {
+  const recipients = await Project.createQueryBuilder('project')
+    .select('LOWER(addresses.address) AS recipient')
+    .innerJoin('project.addresses', 'addresses', 'addresses.networkId = 10')
+    .where(
+      `project.verified = true AND project.isImported = false AND project.reviewStatus = 'Listed'`,
+    )
+    .getRawMany();
+
+  return recipients.map(recipientAddress => recipientAddress.recipient);
 };
 
 export const findProjectsByIdArray = (
@@ -59,6 +68,8 @@ export type FilterProjectQueryInputParams = {
   slugArray?: string[];
   sortingBy?: SortingField;
   qfRoundId?: number;
+  activeQfRoundId?: number;
+  qfRoundSlug?: string;
 };
 export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   const {
@@ -71,6 +82,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     sortingBy,
     slugArray,
     qfRoundId,
+    qfRoundSlug,
+    activeQfRoundId,
   } = params;
 
   let query = Project.createQueryBuilder('project')
@@ -100,12 +113,19 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
-  if (qfRoundId) {
+  if (qfRoundId || activeQfRoundId) {
     query.innerJoinAndSelect(
       'project.qfRounds',
       'qf_rounds',
       'qf_rounds.id = :qfRoundId',
-      { qfRoundId },
+      { qfRoundId: qfRoundId ? qfRoundId : activeQfRoundId },
+    );
+  } else if (qfRoundSlug) {
+    query.innerJoinAndSelect(
+      'project.qfRounds',
+      'qf_rounds',
+      `qf_rounds.slug = :qfRoundSlug`,
+      { qfRoundSlug },
     );
   }
   if (!sortingBy || sortingBy === SortingField.InstantBoosting) {
@@ -168,6 +188,27 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           'NULLS LAST',
         );
       break;
+    case SortingField.ActiveQfRoundRaisedFunds:
+      if (activeQfRoundId) {
+        query
+          .leftJoin(
+            'project.projectEstimatedMatchingView',
+            'projectEstimatedMatchingView',
+            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
+            { qfRoundId: activeQfRoundId },
+          )
+          .addSelect([
+            'projectEstimatedMatchingView.sumValueUsd',
+            'projectEstimatedMatchingView.qfRoundId',
+          ])
+          .orderBy(
+            'projectEstimatedMatchingView.sumValueUsd',
+            OrderDirection.DESC,
+            'NULLS LAST',
+          )
+          .addOrderBy(`project.verified`, OrderDirection.DESC);
+      }
+      break;
     default:
       query
         .orderBy('projectInstantPower.totalPower', OrderDirection.DESC)
@@ -211,6 +252,17 @@ export const findProjectBySlug = (slug: string): Promise<Project | null> => {
   );
 };
 
+export const findProjectBySlugWithoutAnyJoin = (
+  slug: string,
+): Promise<Project | null> => {
+  // check current slug and previous slugs
+  return Project.createQueryBuilder('project')
+    .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
+      slug,
+    })
+    .getOne();
+};
+
 export const verifyMultipleProjects = async (params: {
   verified: boolean;
   projectsIds: string[] | number[];
@@ -251,10 +303,10 @@ export const updateProjectWithVerificationForm = async (
       isRecipient: false,
     }).save();
   }
-
-  project.contacts = verificationForm.projectContacts;
-  await project.save();
-  return (await findProjectById(project.id)) as Project;
+  const fetchedProject = await findProjectById(verificationForm.projectId);
+  fetchedProject!.contacts = verificationForm.projectContacts;
+  await fetchedProject!.save();
+  return fetchedProject!;
 };
 
 export const verifyProject = async (params: {
@@ -283,6 +335,20 @@ export const findProjectByWalletAddress = async (
     .getOne();
 };
 
+export const findProjectByWalletAddressAndNetwork = async (
+  walletAddress: string,
+  network: number,
+): Promise<Project | null> => {
+  return Project.createQueryBuilder('project')
+    .innerJoin('project.addresses', 'address')
+    .where(`LOWER(address."address") = :walletAddress`, {
+      walletAddress: walletAddress.toLowerCase(),
+    })
+    .andWhere(`address."networkId" = :network`, { network })
+    .leftJoinAndSelect('project.status', 'status')
+    .getOne();
+};
+
 export const userIsOwnerOfProject = async (
   viewerUserId: number,
   slug: string,
@@ -298,6 +364,9 @@ export const userIsOwnerOfProject = async (
 export const totalProjectsPerDate = async (
   fromDate?: string,
   toDate?: string,
+  includesOptimism?: boolean,
+  onlyListed?: boolean,
+  onlyVerified?: boolean,
 ): Promise<number> => {
   const query = Project.createQueryBuilder('project');
 
@@ -309,7 +378,28 @@ export const totalProjectsPerDate = async (
     query.andWhere(`project."creationDate" <= '${toDate}'`);
   }
 
-  query.cache(`totalProjectPerDate-${fromDate || ''}-${toDate || ''}`, 300000);
+  if (onlyVerified) {
+    query.andWhere('project."verified" = true');
+  }
+
+  if (onlyListed) {
+    query.andWhere(`project."reviewStatus" = 'Listed'`);
+  }
+
+  if (includesOptimism) {
+    query.innerJoin(
+      `project.addresses`,
+      'addresses',
+      'addresses."networkId" = 10',
+    );
+  }
+
+  query.cache(
+    `totalProjectPerDate-${fromDate || ''}-${toDate || ''}-${
+      includesOptimism || 'all'
+    }-${onlyVerified || 'all'}-${onlyListed || 'all'}`,
+    300000,
+  );
 
   return await query.getCount();
 };
@@ -317,6 +407,9 @@ export const totalProjectsPerDate = async (
 export const totalProjectsPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
+  includesOptimism?: boolean,
+  onlyListed?: boolean,
+  onlyVerified?: boolean,
 ): Promise<ResourcesTotalPerMonthAndYear[]> => {
   const query = Project.createQueryBuilder('project').select(
     `COUNT(project.id) as total, EXTRACT(YEAR from project."creationDate") as year, EXTRACT(MONTH from project."creationDate") as month, CONCAT(CAST(EXTRACT(YEAR from project."creationDate") as VARCHAR), '/', CAST(EXTRACT(MONTH from project."creationDate") as VARCHAR)) as date`,
@@ -330,11 +423,29 @@ export const totalProjectsPerDateByMonthAndYear = async (
     query.andWhere(`project."creationDate" <= '${toDate}'`);
   }
 
+  if (onlyVerified) {
+    query.andWhere('project."verified" = true');
+  }
+
+  if (onlyListed) {
+    query.andWhere(`project."reviewStatus" = 'Listed'`);
+  }
+
+  if (includesOptimism) {
+    query.innerJoin(
+      `project.addresses`,
+      'addresses',
+      'addresses."networkId" = 10',
+    );
+  }
+
   query.groupBy('year, month');
   query.orderBy('year', 'ASC');
   query.addOrderBy('month', 'ASC');
   query.cache(
-    `totalProjectsPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}`,
+    `totalProjectsPerDateByMonthAndYear-${fromDate || ''}-${toDate || ''}-${
+      includesOptimism || 'all'
+    }-${onlyVerified || 'all'}-${onlyListed || 'all'}`,
     300000,
   );
 

@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 // tslint:disable-next-line:class-name
-export class createGivPowerHistoricTablesProcedure1670429143091
+export class createGivPowerHistoricTablesProcedure1693205688574
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -41,10 +41,10 @@ export class createGivPowerHistoricTablesProcedure1670429143091
               FROM "power_snapshot" AS "snapshot", "power_round" AS "powerRound"
               WHERE "snapshot"."roundNumber" < "powerRound"."round" - 1
           )
-          RETURNING ps."id", ps."time", ps."blockNumber", ps."roundNumber", ps."synced"
+          RETURNING ps."id", ps."time", ps."roundNumber", ps."synced"
         )
-        INSERT INTO "power_snapshot_history" ("id", "time", "blockNumber", "roundNumber", "synced")
-        SELECT se."id", se."time", se."blockNumber", se."roundNumber", se."synced"
+        INSERT INTO "power_snapshot_history" ("id", "time", "roundNumber", "synced")
+        SELECT se."id", se."time", se."roundNumber", se."synced"
         FROM snapshot_entity AS se;
     $BODY$;
   `);

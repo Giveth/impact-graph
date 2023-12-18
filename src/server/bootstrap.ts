@@ -22,11 +22,7 @@ import { runCheckPendingProjectListingCronJob } from '../services/cronJobs/syncP
 import { runCheckProjectVerificationStatus } from '../services/cronJobs/checkProjectVerificationStatus';
 import { webhookHandler } from '../services/transak/webhookHandler';
 
-import {
-  adminJsQueryCache,
-  adminJsRootPath,
-  getAdminJsRouter,
-} from './adminJs/adminJs';
+import { adminJsRootPath, getAdminJsRouter } from './adminJs/adminJs';
 import { redis } from '../redis';
 import { logger } from '../utils/logger';
 import { runNotifyMissingDonationsCronJob } from '../services/cronJobs/notifyDonationsWithSegment';
@@ -48,7 +44,6 @@ import {
   schedulePowerBoostingSnapshot,
   schedulePowerSnapshotsHistory,
 } from '../repositories/dbCronRepository';
-import { runFillBlockNumbersOfSnapshotsCronjob } from '../services/cronJobs/fillBlockNumberOfPoweSnapShots';
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
@@ -65,12 +60,15 @@ import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
-import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
 import { isTestEnv } from '../utils/utils';
+import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
+import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
+import { runSyncIdrissTwitterDonations } from '../services/cronJobs/syncIdrissTwitterDonations';
+import { getTwitterDonations } from '../services/Idriss/contractDonations';
 
 Resource.validate = validate;
 
@@ -336,7 +334,6 @@ export async function bootstrap() {
     );
 
     // AdminJs!
-    app.use(adminJsQueryCache);
     app.use(adminJsRootPath, await getAdminJsRouter());
 
     if (!isTestEnv) {
@@ -362,17 +359,27 @@ export async function bootstrap() {
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
     }
-    if (
-      (config.get('FILL_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
-    ) {
-      runFillBlockNumbersOfSnapshotsCronjob();
-    }
+
     if (
       (config.get('FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE') as string) ===
       'true'
     ) {
       runFillPowerSnapshotBalanceCronJob();
     }
+    logger.debug('Running givPower cron jobs info ', {
+      UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE: config.get(
+        'UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE',
+      ),
+      ENABLE_INSTANT_BOOSTING_UPDATE: config.get(
+        'ENABLE_INSTANT_BOOSTING_UPDATE',
+      ),
+      INSTANT_BOOSTING_UPDATE_CRONJOB_EXPRESSION: config.get(
+        'INSTANT_BOOSTING_UPDATE_CRONJOB_EXPRESSION',
+      ),
+      UPDATE_POWER_ROUND_CRONJOB_EXPRESSION: config.get(
+        'UPDATE_POWER_ROUND_CRONJOB_EXPRESSION',
+      ),
+    });
     if (
       (config.get('UPDATE_POWER_SNAPSHOT_SERVICE_ACTIVE') as string) === 'true'
     ) {
@@ -381,6 +388,8 @@ export async function bootstrap() {
     if ((config.get('ENABLE_INSTANT_BOOSTING_UPDATE') as string) === 'true') {
       runInstantBoostingUpdateCronJob();
     }
+    await runCheckActiveStatusOfQfRounds();
+    await runUpdateProjectCampaignsCacheJob();
   } catch (err) {
     logger.error(err);
   }

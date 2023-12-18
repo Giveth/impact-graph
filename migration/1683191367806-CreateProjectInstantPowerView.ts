@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateProjectInstantPowerView1683191367803
+export class CreateProjectInstantPowerView1683191367806
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -27,15 +27,13 @@ export class CreateProjectInstantPowerView1683191367803
               LEFT JOIN (
                 SELECT
                   "powerBoosting"."projectId",
-                  "powerBoosting"."userId",
                   sum("instantPowerBalance".balance * "powerBoosting".percentage :: double precision / 100 :: double precision) AS "boostedPower",
                   now() AS "updateTime"
                 FROM
                   instant_power_balance "instantPowerBalance"
                   JOIN power_boosting "powerBoosting" ON "powerBoosting"."userId" = "instantPowerBalance"."userId"
                 GROUP BY
-                  "powerBoosting"."projectId",
-                  "powerBoosting"."userId"
+                  "powerBoosting"."projectId"
               ) pp ON pp."projectId" = project.id
             GROUP BY
               project.id

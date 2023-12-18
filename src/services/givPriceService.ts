@@ -1,6 +1,5 @@
 import Axios, { AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
-import config from '../config';
 import { logger } from '../utils/logger';
 import { NETWORK_IDS } from '../provider';
 
@@ -48,6 +47,22 @@ export const fetchGivHistoricPrice = async (
     return result.data;
   } catch (e) {
     logger.error('fetching Giv Historic Price fetchGivHistoricPrice() err', e);
+    throw e;
+  }
+};
+
+export const fetchGivPrice = async (): Promise<GivPricesResponse> => {
+  try {
+    /**
+     * @see {@link https://givback.develop.giveth.io/api-docs/#/default/get_givPrice}
+     */
+    const result = await Axios.get(givPricesUrl, {
+      headers: { accept: 'application/json' },
+      timeout: axiosTimeout,
+    });
+    return result.data;
+  } catch (e) {
+    logger.error('fetching Giv Price fetchGivPrice() err', e);
     throw e;
   }
 };

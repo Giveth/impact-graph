@@ -18,6 +18,8 @@ import {
 } from '../../test/testUtils';
 import { assert } from 'chai';
 import { NETWORK_IDS } from '../provider';
+import { ProjectStatus } from '../entities/projectStatus';
+import { ProjStatus } from '../entities/project';
 import { ChainType } from '../types/network';
 
 describe('getPurpleListAddresses test cases', getPurpleListAddressesTestCases);
@@ -161,6 +163,26 @@ function addNewProjectAddressTestCases() {
       walletAddress,
       verified: false,
     });
+    const purpleListAddresses = await getPurpleListAddresses();
+    assert.isNotOk(
+      purpleListAddresses.find(
+        ({ projectAddress }) => projectAddress === walletAddress,
+      ),
+    );
+  });
+  it('should not return address of a non-active project', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress,
+      verified: true,
+    });
+    const draftStatus = await ProjectStatus.findOne({
+      where: { id: ProjStatus.drafted },
+    });
+    project.status = draftStatus as ProjectStatus;
+    await project.save();
+
     const purpleListAddresses = await getPurpleListAddresses();
     assert.isNotOk(
       purpleListAddresses.find(

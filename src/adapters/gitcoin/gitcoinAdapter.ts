@@ -96,7 +96,8 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
       const result = await axios.post(
         `${GITCOIN_API_BASE_URL}/registry/submit-passport`,
         {
-          variables: params,
+          address: params.address.toLowerCase(),
+          scorer_id: this.ScorerID,
         },
         {
           headers: {

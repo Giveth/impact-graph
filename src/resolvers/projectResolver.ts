@@ -14,7 +14,6 @@ import {
   ImageUpload,
   UpdateProjectInput,
 } from './types/project-input';
-import { PubSubEngine } from 'graphql-subscriptions';
 import { pinFile } from '../middleware/pinataUtils';
 import { Category } from '../entities/category';
 import { Donation } from '../entities/donation';
@@ -78,6 +77,7 @@ import {
   FilterProjectQueryInputParams,
   filterProjectsQuery,
   findProjectById,
+  findProjectBySlugWithoutAnyJoin,
   totalProjectsPerDate,
   totalProjectsPerDateByMonthAndYear,
   userIsOwnerOfProject,
@@ -111,6 +111,8 @@ import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
 import { detectAddressChainType } from '../utils/networks';
+import { findActiveQfRound } from '../repositories/qfRoundRepository';
+import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 
 @ObjectType()
 class AllProjects {
@@ -267,6 +269,9 @@ class GetProjectsArgs {
 
   @Field(type => Int, { nullable: true })
   qfRoundId?: number;
+
+  @Field(type => String, { nullable: true })
+  qfRoundSlug?: string;
 }
 
 @Service()
@@ -684,11 +689,18 @@ export class ProjectResolver {
       connectedWalletUserId,
       campaignSlug,
       qfRoundId,
+      qfRoundSlug,
     }: GetProjectsArgs,
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
   ): Promise<AllProjects> {
     let projects: Project[];
     let totalCount: number;
+    let activeQfRoundId: number | undefined;
+
+    if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
+      activeQfRoundId = (await findActiveQfRound())?.id;
+    }
+
     const filterQueryParams: FilterProjectQueryInputParams = {
       limit,
       skip,
@@ -698,6 +710,8 @@ export class ProjectResolver {
       filters,
       sortingBy,
       qfRoundId,
+      qfRoundSlug,
+      activeQfRoundId,
     };
     let campaign;
     if (campaignSlug) {
@@ -828,11 +842,18 @@ export class ProjectResolver {
       isOwnerOfProject = await userIsOwnerOfProject(viewerUserId, slug);
     }
 
+    const minimalProject = await findProjectBySlugWithoutAnyJoin(slug);
+    if (!minimalProject) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+    const campaignSlugs = (await getAllProjectsRelatedToActiveCampaigns())[
+      minimalProject.id
+    ];
+
     let query = this.projectRepository
       .createQueryBuilder('project')
-      // check current slug and previous slugs
-      .where(`:slug = ANY(project."slugHistory") or project.slug = :slug`, {
-        slug,
+      .where(`project.id = :id`, {
+        id: minimalProject.id,
       })
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect(
@@ -845,8 +866,19 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
+      .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .leftJoinAndSelect('project.projectFuturePower', 'projectFuturePower')
+      .leftJoinAndMapMany(
+        'project.campaigns',
+        Campaign,
+        'campaigns',
+        '((campaigns."relatedProjectsSlugs" && ARRAY[:slug]::text[] OR campaigns."relatedProjectsSlugs" && project."slugHistory") AND campaigns."isActive" = TRUE) OR (campaigns.slug = ANY(:campaignSlugs))',
+        {
+          slug,
+          campaignSlugs,
+        },
+      )
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
@@ -866,9 +898,6 @@ export class ProjectResolver {
     });
 
     const project = await query.getOne();
-    if (!project) {
-      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
-    }
     canUserVisitProject(project, String(user?.userId));
     const verificationForm =
       project?.projectVerificationForm ||
@@ -876,7 +905,9 @@ export class ProjectResolver {
     if (verificationForm) {
       (project as Project).verificationFormStatus = verificationForm?.status;
     }
-    const { givbackFactor } = await calculateGivbackFactor(project.id);
+
+    // We know that we have the project because if we reach this line means minimalProject is not null
+    const { givbackFactor } = await calculateGivbackFactor(project!.id);
 
     return { ...project, givbackFactor };
   }
@@ -1104,16 +1135,28 @@ export class ProjectResolver {
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
+    @Arg('onlyListed', { nullable: true }) onlyListed?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
+    @Arg('includesOptimism', { nullable: true }) includesOptimism?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
         resourcePerDateReportValidator,
       );
-      const total = await totalProjectsPerDate(fromDate, toDate);
+      const total = await totalProjectsPerDate(
+        fromDate,
+        toDate,
+        includesOptimism,
+        onlyListed,
+        onlyVerified,
+      );
       const totalPerMonthAndYear = await totalProjectsPerDateByMonthAndYear(
         fromDate,
         toDate,
+        includesOptimism,
+        onlyListed,
+        onlyVerified,
       );
 
       return {
@@ -1130,7 +1173,6 @@ export class ProjectResolver {
   async createProject(
     @Arg('project') projectInput: CreateProjectInput,
     @Ctx() ctx: ApolloContext,
-    @PubSub() pubSub: PubSubEngine,
   ): Promise<Project> {
     const user = await getLoggedInUser(ctx);
     const { image, description } = projectInput;
@@ -1294,7 +1336,10 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
 
-    if (content?.length > PROJECT_UPDATE_CONTENT_MAX_LENGTH) {
+    if (
+      content?.replace(/<[^>]+>/g, '')?.length >
+      PROJECT_UPDATE_CONTENT_MAX_LENGTH
+    ) {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED,
@@ -1355,8 +1400,10 @@ export class ProjectResolver {
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
       );
-
-    if (content?.length > PROJECT_UPDATE_CONTENT_MAX_LENGTH) {
+    if (
+      content?.replace(/<[^>]+>/g, '')?.length >
+      PROJECT_UPDATE_CONTENT_MAX_LENGTH
+    ) {
       throw new Error(
         i18n.__(
           translationErrorMessagesKeys.PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED,
@@ -1751,17 +1798,12 @@ export class ProjectResolver {
   ): Promise<ProjectUpdatesResponse> {
     const latestProjectUpdates = await ProjectUpdate.query(`
       SELECT pu.id, pu."projectId"
-      FROM project_update as pu
-      WHERE pu.id = (
-        SELECT puu.id
-        FROM project_update as puu
-        WHERE puu."isMain" = false AND pu."projectId" = puu."projectId"
-        ORDER BY puu."createdAt" DESC
-        LIMIT 1
-      )
-      ORDER BY pu."createdAt" DESC
+      FROM public.project_update AS pu
+      WHERE pu."isMain" = false
+      GROUP BY pu."projectId", pu.id
+      ORDER BY MAX(pu."createdAt") DESC
       LIMIT ${take}
-      OFFSET ${skip}
+      OFFSET ${skip};
     `);
 
     // When using distinctOn with joins and orderBy, typeorm threw errors
@@ -1776,7 +1818,7 @@ export class ProjectResolver {
       .where('projectUpdate.id IN (:...ids)', {
         ids: latestProjectUpdates.map(p => p.id),
       })
-      .orderBy('projectUpdate.id', 'DESC');
+      .orderBy('projectUpdate.createdAt', 'DESC');
 
     if (user && user?.userId)
       query = ProjectResolver.addReactionToProjectsUpdateQuery(

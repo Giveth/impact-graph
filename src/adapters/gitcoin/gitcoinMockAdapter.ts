@@ -17,7 +17,7 @@ export class GitcoinMockAdapter implements GitcoinAdapterInterface {
     if (cachedReferralAddresses[address]) {
       return Promise.resolve({
         address,
-        score: '10',
+        score: '10.5',
         status: 'ok',
         last_score_timestamp: 'string',
         evidence: undefined,
@@ -63,7 +63,7 @@ export class GitcoinMockAdapter implements GitcoinAdapterInterface {
     }
     return Promise.resolve({
       address: 'string',
-      score: 'string',
+      score: '10',
       status: 'string',
       last_score_timestamp: 'string',
       evidence: undefined,
