@@ -121,6 +121,7 @@ export const addBulkNewProjectAddress = async (
       title: item.title,
       isRecipient: item.isRecipient,
       networkId: item.networkId,
+      chainType: item.chainType,
     }));
 
     await queryBuilder.values(values).execute();
