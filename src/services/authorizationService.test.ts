@@ -2,6 +2,7 @@ import { assert } from 'chai';
 import {
   generateRandomEtheriumAddress,
   generateTestAccessToken,
+  saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { User } from '../entities/user';
 import Axios from 'axios';
@@ -20,15 +21,7 @@ const origin = 'https://serve.giveth.io';
 
 function authorizationHandlerTestCases() {
   it('should decode user jwt with current impact graph authorization', async () => {
-    const userData = {
-      firstName: 'firstName',
-      lastName: 'lastName',
-      email: `${new Date().getTime()}-giveth@giveth.com`,
-      url: 'website url',
-      loginType: 'wallet',
-      walletAddress: generateRandomEtheriumAddress(),
-    };
-    const user = await User.create(userData).save();
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const jwtUser = await authorizationHandler('1', accessToken);
     assert.equal(jwtUser.userId, user.id);
@@ -36,15 +29,8 @@ function authorizationHandlerTestCases() {
   it('should decode user jwt with the auth microservice', async () => {
     const privateKey = process.env.PRIVATE_ETHERS_TEST_KEY as string;
     const publicKey = process.env.PUBLIC_ETHERS_TEST_KEY as string;
-    const userData = {
-      firstName: 'firstName',
-      lastName: 'lastName',
-      email: `${new Date().getTime()}-giveth@giveth.com`,
-      url: 'website url',
-      loginType: 'wallet',
-      walletAddress: publicKey,
-    };
-    const user = await User.create(userData).save();
+
+    const user = await saveUserDirectlyToDb(publicKey);
     const nonceRoute = config.get('AUTH_MICROSERVICE_NONCE_URL') as string;
     const nonceResult = await Axios.get(nonceRoute);
     const wallet = new ethers.Wallet(privateKey);
@@ -73,6 +59,7 @@ function authorizationHandlerTestCases() {
     const accessToken = authenticationResult.data.jwt;
     const jwtUser = await authorizationHandler('2', accessToken);
     assert.equal(jwtUser.userId, user.id);
+    await User.delete(user.id);
   });
   it('should decode jwt and create user if it is nonexistent', async () => {
     const privateKey = process.env.PRIVATE_ETHERS_SECONDARY_TEST_KEY as string;

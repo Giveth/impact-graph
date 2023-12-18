@@ -1,17 +1,19 @@
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { DeepPartial } from 'typeorm';
+import { logger } from '../utils/logger';
 
-export const createPowerSnapshotBalances = async (
-  params: {
-    powerSnapshotId: number;
-    userId: number;
-    balance: number;
-  }[],
+type PowerBalanceSnapshotParams = Pick<
+  PowerBalanceSnapshot,
+  'userId' | 'balance' | 'powerSnapshotId'
+>;
+export const addOrUpdatePowerSnapshotBalances = async (
+  params: PowerBalanceSnapshotParams[] | PowerBalanceSnapshotParams,
 ): Promise<void> => {
-  const powerBalanceSnapshots = PowerBalanceSnapshot.create(
-    params as DeepPartial<PowerBalanceSnapshot>[],
-  );
-  await PowerBalanceSnapshot.save(powerBalanceSnapshots);
+  await PowerBalanceSnapshot.createQueryBuilder<PowerBalanceSnapshot>()
+    .insert()
+    .into(PowerBalanceSnapshot)
+    .values(params)
+    .orUpdate(['balance'], ['userId', 'powerSnapshotId'])
+    .execute();
 };
 
 export const findCurrentPowerBalanceByUserId = async (

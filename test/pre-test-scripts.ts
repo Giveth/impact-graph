@@ -24,13 +24,20 @@ import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-Us
 import { ProjectPowerView1662915983385 } from '../migration/1662915983385-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
 import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-ProjectFuturePowerView';
-import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
+import { createGivPowerHistoricTablesProcedure1693205688574 } from '../migration/1693205688574-createGivPowerHistoricTablesProcedure';
 import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
 import { AppDataSource } from '../src/orm';
 import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
-import { CreateProjectInstantPowerView1683191367803 } from '../migration/1683191367803-CreateProjectInstantPowerView';
+import { CreateProjectInstantPowerView1683191367806 } from '../migration/1683191367806-CreateProjectInstantPowerView';
 import { ProjectDonationSummaryView1685972291645 } from '../migration/1685972291645-ProjectDonationSummaryView';
 import { ProjectEstimatedMatchingView1685958638251 } from '../migration/1685958638251-ProjectEstimatedMatchingView';
+import { CreateProjectUserInstantPowerView1689504711172 } from '../migration/1689504711172-CreateProjectUserInstantPowerView';
+import { TakePowerBoostingSnapshotProcedureSecondVersion1690723242749 } from '../migration/1690723242749-TakePowerBoostingSnapshotProcedureSecondVersion';
+import { redis } from '../src/redis';
+import { logger } from '../src/utils/logger';
+import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens';
+import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
+import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
 
 async function seedDb() {
   await seedUsers();
@@ -152,6 +159,45 @@ async function seedTokens() {
       isGivbackEligible: true,
     };
     if (token.symbol === 'OP') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.optimism_goerli) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'OP') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.etc) {
+    const tokenData = {
+      ...token,
+      networkId: 61,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'ETC') {
+      (tokenData as any).order = 2;
+    }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.morderEtc) {
+    const tokenData = {
+      ...token,
+      networkId: 63,
+      isGivbackEligible: true,
+    };
+    if (token.symbol === 'GIV') {
+      // TODO I'm not sure whether we support GIV or not
+      (tokenData as any).order = 1;
+    } else if (token.symbol === 'mETC') {
       (tokenData as any).order = 2;
     }
     await Token.create(tokenData as Token).save();
@@ -343,33 +389,27 @@ async function runMigrations() {
   await queryRunner.connect();
 
   try {
-    const userProjectPowerView = new UserProjectPowerView1662877385339();
-    const projectPowerView = new ProjectPowerView1662915983385();
-    const lastSnapshotProjectPowerView =
-      new LastSnapshotProjectPowerView1671448387986();
-    const projectFuturePowerView = new ProjectFuturePowerView1668411738120();
-    const takeSnapshotProcedure =
-      new TakePowerBoostingSnapshotProcedure1663594895751();
-    const takeSnapshotsHistoryProcedure =
-      new createGivPowerHistoricTablesProcedure1670429143091();
-    const createProjectInstantPowerView1683191367803 =
-      new CreateProjectInstantPowerView1683191367803();
-
-    const projectDonationSummaryView =
-      new ProjectDonationSummaryView1685972291645();
-    const projectEstimatedMatchingView =
-      new ProjectEstimatedMatchingView1685958638251();
-
-    await userProjectPowerView.up(queryRunner);
-    await projectPowerView.up(queryRunner);
-    await lastSnapshotProjectPowerView.up(queryRunner);
-    await projectFuturePowerView.up(queryRunner);
-    await takeSnapshotProcedure.up(queryRunner);
-    await takeSnapshotsHistoryProcedure.up(queryRunner);
+    await new UserProjectPowerView1662877385339().up(queryRunner);
+    await new ProjectPowerView1662915983385().up(queryRunner);
+    await new LastSnapshotProjectPowerView1671448387986().up(queryRunner);
+    await new ProjectFuturePowerView1668411738120().up(queryRunner);
+    await new TakePowerBoostingSnapshotProcedure1663594895751().up(queryRunner);
+    await new createGivPowerHistoricTablesProcedure1693205688574().up(
+      queryRunner,
+    );
     await new createOrganisatioTokenTable1646302349926().up(queryRunner);
-    await createProjectInstantPowerView1683191367803.up(queryRunner);
-    await projectDonationSummaryView.up(queryRunner);
-    await projectEstimatedMatchingView.up(queryRunner);
+    await new CreateProjectInstantPowerView1683191367806().up(queryRunner);
+    await new ProjectDonationSummaryView1685972291645().up(queryRunner);
+    await new ProjectEstimatedMatchingView1685958638251().up(queryRunner);
+    await new CreateProjectUserInstantPowerView1689504711172().up(queryRunner);
+    await new TakePowerBoostingSnapshotProcedureSecondVersion1690723242749().up(
+      queryRunner,
+    );
+    await new addIsStableCoinFieldToTokenTable1696421249293().up(queryRunner);
+    await new addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387().up(
+      queryRunner,
+    );
+    await new createDonationethUser1701756190381().up(queryRunner);
   } catch (e) {
     throw e;
   } finally {
@@ -379,6 +419,8 @@ async function runMigrations() {
 
 before(async () => {
   try {
+    logger.debug('Clear Redis: ', await redis.flushall());
+
     await bootstrap();
     await seedDb();
     await runMigrations();

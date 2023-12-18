@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType, Int } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -9,6 +9,7 @@ import {
   RelationId,
   UpdateDateColumn,
   CreateDateColumn,
+  Index,
 } from 'typeorm';
 import { Project } from './project';
 import { MainCategory } from './mainCategory';
@@ -20,15 +21,17 @@ export class QfRound extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column('text', { nullable: true })
   name: string;
 
-  @ManyToMany(type => Project, project => project.qfRounds)
-  projects: Project[];
-
   @Field()
-  @Column({ default: true })
+  @Index({ unique: true })
+  @Column('text')
+  slug: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   isActive: boolean;
 
   @Field(type => Number)
@@ -38,6 +41,10 @@ export class QfRound extends BaseEntity {
   @Field(type => Number)
   @Column()
   minimumPassportScore: number;
+
+  @Field(type => [Int], { nullable: true }) // Define the new field as an array of integers
+  @Column('integer', { array: true, default: [] })
+  eligibleNetworks: number[];
 
   @Field(type => Date)
   @Column()
@@ -52,4 +59,15 @@ export class QfRound extends BaseEntity {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @ManyToMany(type => Project, project => project.qfRounds)
+  projects: Project[];
+
+  // only projects with status active can be listed automatically
+  isEligibleNetwork(donationNetworkId: number): Boolean {
+    // when not specified, all are valid
+    if (this.eligibleNetworks.length === 0) return true;
+
+    return this.eligibleNetworks.includes(donationNetworkId);
+  }
 }

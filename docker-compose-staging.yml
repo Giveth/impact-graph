@@ -34,14 +34,14 @@ services:
       - redis-giveth
 
   redis-giveth:
-    # it's better to not using latest tag, maybe latest tag have some breaking changes
-    image: bitnami/redis:5.0.9-debian-10-r142
+    # it's better to not using the latest tag, maybe latest tag have some breaking changes
+    image: redis:7.2.0-alpine3.18
     container_name: redis-giveth
     environment:
-      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_ALLOW_EMPTY_PASSWORD=yes
     restart: always
     volumes:
-      - redis-data:/bitnami/redis/data
+      - redis-data:/data
 
 volumes:
   redis-data:

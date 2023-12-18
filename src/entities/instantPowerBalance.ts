@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType } from 'type-graphql';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -24,8 +24,7 @@ export class InstantPowerBalance extends BaseEntity {
   balance: number;
 
   // the timestamp (of chain block) the balance value is update at
-  @Field(type => Int, { defaultValue: 0 })
-  @Column('integer')
-  @Index()
-  chainUpdatedAt;
+  @Field({ nullable: true })
+  @Column()
+  balanceAggregatorUpdatedAt: Date;
 }

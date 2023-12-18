@@ -5,7 +5,7 @@ import {
   ReviewStatus,
   RevokeSteps,
 } from '../../../entities/project';
-import adminJs from 'adminjs';
+import adminJs, { ActionContext } from 'adminjs';
 import {
   canAccessProjectAction,
   canAccessQfRoundAction,
@@ -62,6 +62,7 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../../../services/projectViewsService';
+import { extractAdminJsReferrerUrlParams } from '../adminJs';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -605,16 +606,13 @@ export const listDelist = async (
 };
 
 export const exportProjectsWithFiltersToCsv = async (
-  _request: AdminJsRequestInterface,
+  _request,
   _response,
   context: AdminJsContextInterface,
 ) => {
   try {
     const { records } = context;
-    const rawQueryStrings = await redis.get(
-      `adminbro:${context.currentAdmin.id}:Project`,
-    );
-    const queryStrings = rawQueryStrings ? JSON.parse(rawQueryStrings) : {};
+    const queryStrings = extractAdminJsReferrerUrlParams(_request);
     const projectsQuery = buildProjectsQuery(queryStrings);
     const projects = await projectsQuery.getMany();
 
@@ -920,6 +918,13 @@ export const projectsTab = {
           const { verified, reviewStatus } = request.payload;
           const statusChanges: string[] = [];
           if (request?.payload?.id) {
+            // remove addresses from payload to avoid updating them
+            for (const key in request.payload) {
+              if (key.includes('addresses')) {
+                delete request.payload[key];
+              }
+            }
+
             const project = await findProjectById(Number(request.payload.id));
             if (
               project &&
@@ -1047,6 +1052,38 @@ export const projectsTab = {
                 eventHandler.handler({ project });
               }
             });
+
+            if (
+              statusChanges?.includes(
+                NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
+              )
+            ) {
+              const verificationForm = await getVerificationFormByProjectId(
+                project.id,
+              );
+              if (verificationForm) {
+                await makeFormVerified({
+                  formId: verificationForm.id,
+                  adminId: currentAdmin.id,
+                });
+              }
+            }
+
+            if (
+              statusChanges?.includes(
+                NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
+              )
+            ) {
+              const verificationForm = await getVerificationFormByProjectId(
+                project.id,
+              );
+              if (verificationForm) {
+                await makeFormDraft({
+                  formId: verificationForm.id,
+                  adminId: currentAdmin.id,
+                });
+              }
+            }
 
             if (
               statusChanges?.includes(NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED)

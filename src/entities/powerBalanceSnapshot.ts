@@ -13,6 +13,8 @@ import { PowerSnapshot } from './powerSnapshot';
 @Entity()
 @ObjectType()
 @Index(['userId', 'powerSnapshotId'], { unique: true })
+// To improve the performance of the query, we need to add the following index
+@Index(['powerSnapshotId', 'userId'], { where: 'balance IS NULL' })
 export class PowerBalanceSnapshot extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -23,7 +25,7 @@ export class PowerBalanceSnapshot extends BaseEntity {
   userId: number;
 
   @Field()
-  @Column('float')
+  @Column('float', { nullable: true })
   balance: number;
 
   @Field(type => ID)

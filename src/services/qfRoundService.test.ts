@@ -25,6 +25,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
     }).save();
@@ -48,6 +49,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: moment().subtract(3, 'day'),
       endDate: moment().subtract(2, 'day'),
     }).save();
@@ -59,8 +61,7 @@ function relatedActiveQfRoundForProjectTestCases() {
     qfRound.isActive = false;
     await qfRound.save();
   });
-
-  it('should return null when project is not listed', async () => {
+  it('should return qfRound,  when project is not listed', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: false,
@@ -72,6 +73,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
     }).save();
@@ -79,11 +81,11 @@ function relatedActiveQfRoundForProjectTestCases() {
     await project.save();
 
     const projectQfRound = await relatedActiveQfRoundForProject(project.id);
-    assert.isNull(projectQfRound);
+    assert.isNotNull(projectQfRound);
     qfRound.isActive = false;
     await qfRound.save();
   });
-  it('should return null when project is not listed', async () => {
+  it('should return qfRound when project is not verified', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
       listed: true,
@@ -95,6 +97,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
     }).save();
@@ -102,7 +105,7 @@ function relatedActiveQfRoundForProjectTestCases() {
     await project.save();
 
     const projectQfRound = await relatedActiveQfRoundForProject(project.id);
-    assert.isNull(projectQfRound);
+    assert.isNotNull(projectQfRound);
     qfRound.isActive = false;
     await qfRound.save();
   });
@@ -118,6 +121,7 @@ function relatedActiveQfRoundForProjectTestCases() {
       name: 'test filter by qfRoundId',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
     }).save();

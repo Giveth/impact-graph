@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class addChainTypeToProjectAddressAndDonation1702374813793
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     // Add chainType to projectAddress
     await queryRunner.query(
       `ALTER TABLE "project_address" ADD "chainType" character varying NOT NULL DEFAULT 'EVM'`,
@@ -26,5 +26,5 @@ export class addChainTypeToProjectAddressAndDonation1702374813793
     await queryRunner.query(`UPDATE "token" SET "chainType" = 'EVM'`);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(queryRunner: QueryRunner): Promise<void> {}
 }

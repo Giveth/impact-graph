@@ -65,6 +65,7 @@ export const getBottomRank = async (): Promise<number> => {
 };
 
 export const refreshProjectPowerView = async (): Promise<void> => {
+  logger.debug('Refresh project_power_view materialized view');
   return AppDataSource.getDataSource().query(
     `
       REFRESH MATERIALIZED VIEW project_power_view
@@ -78,6 +79,9 @@ export const refreshProjectFuturePowerView = async (
   if (updateSyncedFlag) {
     const numberNewSyncedSnapshots = await updatePowerSnapshotSyncedFlag();
     if (numberNewSyncedSnapshots > 0) {
+      logger.debug(
+        'Refresh last_snapshot_project_power_view materialized view',
+      );
       await AppDataSource.getDataSource().query(
         `
       REFRESH MATERIALIZED VIEW last_snapshot_project_power_view
@@ -86,6 +90,7 @@ export const refreshProjectFuturePowerView = async (
     }
   }
 
+  logger.debug('Refresh project_future_power_view materialized view');
   return AppDataSource.getDataSource().query(
     `
       REFRESH MATERIALIZED VIEW project_future_power_view
