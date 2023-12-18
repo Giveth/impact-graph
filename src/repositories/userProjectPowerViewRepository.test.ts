@@ -148,7 +148,6 @@ describe('userProjectPowerViewRepository test', () => {
     [powerSnapshots] = await findPowerSnapshots();
     snapshot = powerSnapshots[1];
 
-    snapshot.blockNumber = 2;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -264,7 +263,6 @@ describe('userProjectPowerViewRepository test', () => {
     await takePowerBoostingSnapshot();
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -277,7 +275,6 @@ describe('userProjectPowerViewRepository test', () => {
     await sleep(1);
     await takePowerBoostingSnapshot();
 
-    snapshot.blockNumber = 2;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 
@@ -290,7 +287,6 @@ describe('userProjectPowerViewRepository test', () => {
 
     await takePowerBoostingSnapshot();
 
-    snapshot.blockNumber = 3;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
 

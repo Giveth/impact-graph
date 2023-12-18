@@ -1189,7 +1189,6 @@ function createDonationTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = roundNumber;
     await snapshot.save();
     await addOrUpdatePowerSnapshotBalances({

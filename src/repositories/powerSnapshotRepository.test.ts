@@ -121,7 +121,6 @@ function balanceSnapshotTestCases() {
     const powerSnapshots = PowerSnapshot.create([
       {
         time: new Date(powerSnapshotTime++),
-        blockNumber: 100,
       },
       {
         time: new Date(powerSnapshotTime++),
@@ -375,9 +374,6 @@ function findPowerSnapshotByIdTestCases() {
     assert.equal(updateFlatResponse, 0);
 
     // firstSnapshot with blockNumber without balance saved.
-
-    firstSnapshot.blockNumber = 1000;
-    await firstSnapshot.save();
     updateFlatResponse = await updatePowerSnapshotSyncedFlag();
 
     assert.equal(updateFlatResponse, 0);
@@ -396,8 +392,6 @@ function findPowerSnapshotByIdTestCases() {
 
     // Fill only the third snapshot info
 
-    thirdSnapshot.blockNumber = 3000;
-    await thirdSnapshot.save();
     await addOrUpdatePowerSnapshotBalances({
       userId: user1.id,
       balance: 1,
@@ -409,9 +403,6 @@ function findPowerSnapshotByIdTestCases() {
     assert.isTrue(thirdSnapshot.synced);
 
     // Fill second and forth snapshots info
-    secondSnapshot.blockNumber = 2000;
-    forthSnapshot.blockNumber = 4000;
-    await PowerSnapshot.save([secondSnapshot, forthSnapshot]);
     await addOrUpdatePowerSnapshotBalances([
       {
         userId: user1.id,

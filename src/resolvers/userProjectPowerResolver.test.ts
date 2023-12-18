@@ -76,7 +76,6 @@ function userProjectPowersTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 
@@ -143,7 +142,6 @@ function userProjectPowersTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 
@@ -230,7 +228,6 @@ function userProjectPowersTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 
@@ -313,7 +310,6 @@ function userProjectPowersTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 
@@ -388,7 +384,6 @@ function userProjectPowersTestCases() {
     const [powerSnapshots] = await findPowerSnapshots();
     const snapshot = powerSnapshots[0];
 
-    snapshot.blockNumber = 1;
     snapshot.roundNumber = givbackRound;
     await snapshot.save();
 

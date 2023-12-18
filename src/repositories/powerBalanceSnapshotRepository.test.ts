@@ -18,7 +18,6 @@ function createPowerSnapshotBalancesTestCases() {
 
     const powerSnapshot = await PowerSnapshot.create({
       time: new Date(powerSnapshotTime++),
-      blockNumber: powerSnapshotTime,
     }).save();
 
     await assertNotThrowsAsync(async () => {

@@ -24,7 +24,7 @@ import { UserProjectPowerView1662877385339 } from '../migration/1662877385339-Us
 import { ProjectPowerView1662915983385 } from '../migration/1662915983385-ProjectPowerView';
 import { TakePowerBoostingSnapshotProcedure1663594895751 } from '../migration/1663594895751-takePowerSnapshotProcedure';
 import { ProjectFuturePowerView1668411738120 } from '../migration/1668411738120-ProjectFuturePowerView';
-import { createGivPowerHistoricTablesProcedure1670429143091 } from '../migration/1670429143091-createGivPowerHistoricTablesProcedure';
+import { createGivPowerHistoricTablesProcedure1693205688574 } from '../migration/1693205688574-createGivPowerHistoricTablesProcedure';
 import { LastSnapshotProjectPowerView1671448387986 } from '../migration/1671448387986-LastSnapshotProjectPowerView';
 import { AppDataSource } from '../src/orm';
 import { createOrganisatioTokenTable1646302349926 } from '../migration/1646302349926-createOrganisatioTokenTable';
@@ -394,7 +394,7 @@ async function runMigrations() {
     await new LastSnapshotProjectPowerView1671448387986().up(queryRunner);
     await new ProjectFuturePowerView1668411738120().up(queryRunner);
     await new TakePowerBoostingSnapshotProcedure1663594895751().up(queryRunner);
-    await new createGivPowerHistoricTablesProcedure1670429143091().up(
+    await new createGivPowerHistoricTablesProcedure1693205688574().up(
       queryRunner,
     );
     await new createOrganisatioTokenTable1646302349926().up(queryRunner);
