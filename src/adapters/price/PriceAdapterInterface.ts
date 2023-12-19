@@ -1,6 +1,6 @@
 export interface GetTokenPriceParams {
   symbol: string;
-  networkId: number;
+  networkId?: number;
 }
 export interface PriceAdapterInterface {
   getTokenPrice(params: GetTokenPriceParams): Promise<number>;

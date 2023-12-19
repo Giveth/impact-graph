@@ -14,6 +14,8 @@ import {
   findUserByWalletAddress,
 } from '../repositories/userRepository';
 import config from '../config';
+import { detectAddressChainType, isSolanaAddress } from '../utils/networks';
+import { ChainType } from '../types/network';
 
 // Add any other service that checks auth on a query or mutation
 export const checkIfUserInRequest = (ctx: ApolloContext) => {
@@ -49,6 +51,7 @@ export interface JwtVerifiedUser {
   lastName?: string;
   walletAddress?: string;
   userId: number;
+  chainType: string;
   token: string;
 }
 
@@ -77,6 +80,7 @@ export const validateImpactGraphJwt = async (
 ): Promise<JwtVerifiedUser> => {
   const secret = config.get('JWT_SECRET') as string;
   const decodedJwt: any = jwt.verify(token, secret);
+  const chainType = detectAddressChainType(decodedJwt?.walletAddress);
 
   const user = {
     email: decodedJwt?.email,
@@ -85,6 +89,7 @@ export const validateImpactGraphJwt = async (
     lastName: decodedJwt?.lastName,
     walletAddress: decodedJwt?.walletAddress,
     userId: decodedJwt?.userId,
+    chainType: chainType!,
     token,
   };
 
@@ -116,6 +121,8 @@ export const validateAuthMicroserviceJwt = async (
       user = await createUserWithPublicAddress(userAddress);
     }
 
+    const chainType = detectAddressChainType(user?.walletAddress);
+
     return {
       email: user?.email,
       firstName: user?.firstName,
@@ -123,6 +130,7 @@ export const validateAuthMicroserviceJwt = async (
       name: user?.name,
       walletAddress: user?.walletAddress,
       userId: user!.id,
+      chainType: chainType!,
       token,
     };
   } catch (e) {

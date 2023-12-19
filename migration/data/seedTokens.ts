@@ -1247,6 +1247,14 @@ const seedTokens: ITokenData[] = [
     networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
   },
   // TODO: Add solana token
+  {
+    name: 'Solana native token',
+    symbol: 'SOL',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    networkId: 1399811149,
+    chainType: ChainType.SOLANA,
+  },
 ];
 
 export default seedTokens;

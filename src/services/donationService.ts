@@ -34,11 +34,15 @@ import {
 } from './projectViewsService';
 import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
 import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
-import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+import {
+  COINGECKO_TOKEN_IDS,
+  CoingeckoPriceAdapter,
+} from '../adapters/price/CoingeckoPriceAdapter';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
 import { fetchSafeTransactionHash } from './safeServices';
+import { ChainType } from '../types/network';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -47,11 +51,19 @@ export const updateDonationPricesAndValues = async (
   project: Project,
   token: Token | null,
   currency: string,
-  priceChainId: number,
+  priceChainId: number | null,
   amount: string | number,
+  chainType: string,
 ) => {
   try {
-    if (token?.isStableCoin) {
+    if (chainType === ChainType.SOLANA) {
+      const coingeckoAdapter = new CoingeckoPriceAdapter();
+      const solanaPriceUsd = await coingeckoAdapter.getTokenPrice({
+        symbol: COINGECKO_TOKEN_IDS.SOLANA,
+      });
+      donation.priceUsd = toFixNumber(solanaPriceUsd, 4);
+      donation.valueUsd = toFixNumber(donation.amount * solanaPriceUsd, 4);
+    } else if (token?.isStableCoin) {
       donation.priceUsd = 1;
       donation.valueUsd = Number(amount);
     } else if (currency === 'GIV') {
@@ -61,21 +73,21 @@ export const updateDonationPricesAndValues = async (
     } else if (token?.cryptoCompareId) {
       const priceUsd = await new CryptoComparePriceAdapter().getTokenPrice({
         symbol: token.cryptoCompareId,
-        networkId: priceChainId,
+        networkId: priceChainId!,
       });
       donation.priceUsd = toFixNumber(priceUsd, 4);
       donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
     } else if (token?.coingeckoId) {
       const priceUsd = await new CoingeckoPriceAdapter().getTokenPrice({
         symbol: token.coingeckoId,
-        networkId: priceChainId,
+        networkId: priceChainId!,
       });
       donation.priceUsd = toFixNumber(priceUsd, 4);
       donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
     } else {
       const priceUsd = await new MonoswapPriceAdapter().getTokenPrice({
         symbol: currency,
-        networkId: priceChainId,
+        networkId: priceChainId!,
       });
 
       if (priceUsd) {
