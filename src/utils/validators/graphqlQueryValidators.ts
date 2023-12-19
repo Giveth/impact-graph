@@ -1,4 +1,6 @@
 import { CustomHelpers, number, ObjectSchema, ValidationResult } from 'joi';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+
 // tslint:disable-next-line:no-var-requires
 const Joi = require('joi');
 import {
@@ -19,6 +21,7 @@ const resourcePerDateRegex = new RegExp(
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
+const solanaTxRegex = /^[0-9a-fA-F]{64}$/;
 const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
@@ -75,22 +78,42 @@ export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
   transactionId: Joi.when('safeTransactionId', {
     is: null || undefined || '',
-    then: Joi.string()
-      .required()
-      .pattern(txHashRegex)
-      .messages({
-        'string.pattern.base': i18n.__(
-          translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-        ),
-      }),
-    otherwise: Joi.string()
-      .allow(null, '')
-      .pattern(txHashRegex)
-      .messages({
-        'string.pattern.base': i18n.__(
-          translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-        ),
-      }),
+    then: Joi.alternatives().try(
+      Joi.string()
+        .required()
+        .pattern(txHashRegex, 'EVM transaction IDs')
+        .messages({
+          'string.pattern.base': i18n.__(
+            translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+          ),
+        }),
+      Joi.string()
+        .required()
+        .pattern(solanaTxRegex, 'Solana Transaction ID')
+        .messages({
+          'string.pattern.base': i18n.__(
+            translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+          ),
+        }),
+    ),
+    otherwise: Joi.alternatives().try(
+      Joi.string()
+        .allow(null, '')
+        .pattern(txHashRegex, 'EVM transaction IDs')
+        .messages({
+          'string.pattern.base': i18n.__(
+            translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+          ),
+        }),
+      Joi.string()
+        .allow(null, '')
+        .pattern(solanaTxRegex, 'Solana Transaction ID')
+        .messages({
+          'string.pattern.base': i18n.__(
+            translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+          ),
+        }),
+    ),
   }),
   transactionNetworkId: Joi.string()
     .required()

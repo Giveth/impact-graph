@@ -38,6 +38,7 @@ import { logger } from '../src/utils/logger';
 import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../migration/1697959345387-addCoingeckoIdAndCryptoCompareIdToEtcTokens';
 import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
 import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
+import { ChainType } from '../src/types/network';
 
 async function seedDb() {
   await seedUsers();
@@ -200,6 +201,15 @@ async function seedTokens() {
     } else if (token.symbol === 'mETC') {
       (tokenData as any).order = 2;
     }
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.solana) {
+    const tokenData = {
+      ...token,
+      networkId: 1399811149,
+      isGivbackEligible: false,
+      chainType: ChainType.SOLANA,
+    };
     await Token.create(tokenData as Token).save();
   }
 }

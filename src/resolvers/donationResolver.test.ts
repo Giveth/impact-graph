@@ -12,6 +12,7 @@ import {
   createDonationData,
   saveUserDirectlyToDb,
   generateUserIdLessAccessToken,
+  generateRandomSolanaAddress,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
@@ -751,31 +752,12 @@ function createDonationTestCases() {
     assert.isOk(donation?.referralStartTimestamp);
     assert.isNotOk(donation?.qfRound);
   });
-  it('should create a donation in an active qfRound', async () => {
+  it('should create a solana donation succesfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const qfRound = await QfRound.create({
-      isActive: true,
-      name: new Date().toString(),
-      minimumPassportScore: 8,
-      slug: new Date().getTime().toString(),
-      allocatedFund: 100,
-      beginDate: new Date(),
-      endDate: moment().add(2, 'day'),
-    }).save();
-    project.qfRounds = [qfRound];
     await project.save();
-    const referrerId = generateRandomString();
-    const referrerWalletAddress =
-      await getChainvineAdapter().getWalletAddressFromReferrer(referrerId);
 
     const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'first name',
-    }).save();
-
-    const user2 = await User.create({
-      walletAddress: referrerWalletAddress,
+      walletAddress: generateRandomSolanaAddress(),
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
@@ -791,12 +773,12 @@ function createDonationTestCases() {
         query: createDonationMutation,
         variables: {
           projectId: project.id,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionNetworkId: NETWORK_IDS.SOLANA,
+          transactionId:
+            '5GAnyapzrTdjhc3xNH6Nsf61xcu1vGRBd7MDXZbx8waKEznSjMtqdgTwHBhrBcrkqTfusHAzeoV3kAVpr6aFXU6j',
           nonce: 1,
           amount: 10,
-          token: 'GIV',
-          referrerId,
+          token: 'SOL',
         },
       },
       {
@@ -811,10 +793,6 @@ function createDonationTestCases() {
         id: saveDonationResponse.data.data.createDonation,
       },
     });
-
-    assert.equal(donation?.qfRound?.id as number, qfRound.id);
-    qfRound.isActive = false;
-    await qfRound.save();
   });
 
   it('should create a donation in an active qfRound when qfround has network eligiblity on XDAI', async () => {
@@ -2280,7 +2258,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 420, 56, 42220, 44787, 61, 63]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 420, 56, 42220, 44787, 61, 63, 1399811149]',
     );
   });
   it('should throw exception when currency is not valid when currency contain characters', async () => {

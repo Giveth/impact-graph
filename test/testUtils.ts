@@ -1366,6 +1366,14 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
+    solana: [
+      {
+        name: 'Solana native token',
+        symbol: 'SOL',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+    ],
     goerli: [
       {
         name: 'Ethereum native token',

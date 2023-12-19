@@ -18,6 +18,7 @@ export const NETWORK_IDS = {
   CELO_ALFAJORES: 44787,
   ETC: 61,
   MORDOR_ETC_TESTNET: 63,
+  SOLANA: 1399811149,
 };
 
 export const NETWORKS_IDS_TO_NAME = {
