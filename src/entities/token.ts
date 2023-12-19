@@ -40,7 +40,7 @@ export class Token extends BaseEntity {
   @Column()
   networkId: number;
 
-  @Field()
+  @Field(type => String)
   @Column({
     type: 'enum',
     enum: ChainType,

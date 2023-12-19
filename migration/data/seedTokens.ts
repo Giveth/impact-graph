@@ -1252,7 +1252,7 @@ const seedTokens: ITokenData[] = [
     symbol: 'SOL',
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
-    networkId: 1399811149,
+    networkId: 0,
     chainType: ChainType.SOLANA,
   },
 ];

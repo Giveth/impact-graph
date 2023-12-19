@@ -719,6 +719,7 @@ export class DonationResolver {
         fromWalletAddress: fromAddress.toString().toLowerCase(),
         anonymous: Boolean(anonymous),
         safeTransactionId,
+        chainType: chainType as ChainType,
       });
       if (referrerId) {
         // Fill referrer data if referrerId is valid
