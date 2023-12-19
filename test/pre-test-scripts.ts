@@ -39,6 +39,7 @@ import { addCoingeckoIdAndCryptoCompareIdToEtcTokens1697959345387 } from '../mig
 import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696421249293-add_isStableCoin_field_to_token_table';
 import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
 import { ChainType } from '../src/types/network';
+import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
 
 async function seedDb() {
   await seedUsers();
@@ -209,6 +210,7 @@ async function seedTokens() {
       networkId: 0,
       isGivbackEligible: false,
       chainType: ChainType.SOLANA,
+      coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
     };
     await Token.create(tokenData as Token).save();
   }

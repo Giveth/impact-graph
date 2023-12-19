@@ -56,10 +56,10 @@ export const updateDonationPricesAndValues = async (
   chainType: string,
 ) => {
   try {
-    if (chainType === ChainType.SOLANA) {
+    if (chainType === ChainType.SOLANA && token) {
       const coingeckoAdapter = new CoingeckoPriceAdapter();
       const solanaPriceUsd = await coingeckoAdapter.getTokenPrice({
-        symbol: COINGECKO_TOKEN_IDS.SOLANA,
+        symbol: token.coingeckoId,
       });
       donation.priceUsd = toFixNumber(solanaPriceUsd, 4);
       donation.valueUsd = toFixNumber(donation.amount * solanaPriceUsd, 4);
