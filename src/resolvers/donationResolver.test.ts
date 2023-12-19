@@ -55,6 +55,7 @@ import { QfRound } from '../entities/qfRound';
 import { findProjectById } from '../repositories/projectRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
+import { ChainType } from '../types/network';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -766,6 +767,9 @@ function createDonationTestCases() {
     referredEvent.startTime = new Date();
     await referredEvent.save();
 
+    const transactionId =
+      '5GAnyapzrTdjhc3xNH6Nsf61xcu1vGRBd7MDXZbx8waKEznSjMtqdgTwHBhrBcrkqTfusHAzeoV3kAVpr6aFXU6j';
+
     const accessToken = await generateTestAccessToken(user.id);
     const saveDonationResponse = await axios.post(
       graphqlUrl,
@@ -774,8 +778,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.SOLANA,
-          transactionId:
-            '5GAnyapzrTdjhc3xNH6Nsf61xcu1vGRBd7MDXZbx8waKEznSjMtqdgTwHBhrBcrkqTfusHAzeoV3kAVpr6aFXU6j',
+          transactionId,
           nonce: 1,
           amount: 10,
           token: 'SOL',
@@ -793,6 +796,8 @@ function createDonationTestCases() {
         id: saveDonationResponse.data.data.createDonation,
       },
     });
+    assert.equal(donation!.transactionId, transactionId);
+    assert.equal(donation!.chainType, ChainType.SOLANA);
   });
 
   it('should create a donation in an active qfRound when qfround has network eligiblity on XDAI', async () => {

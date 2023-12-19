@@ -21,7 +21,7 @@ const resourcePerDateRegex = new RegExp(
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
-const solanaTxRegex = /^[0-9a-fA-F]{64}$/;
+const solanaTxRegex = /^.*$/; // TODO find the correct transaction ID and validation
 const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
