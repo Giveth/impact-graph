@@ -26,7 +26,7 @@ export class MonoswapPriceAdapter implements PriceAdapterInterface {
     const tokenPrices = await getMonoSwapTokenPrices(
       params.symbol,
       baseTokens,
-      params.networkId,
+      params.networkId!,
     );
     return Number(tokenPrices[0]);
   }

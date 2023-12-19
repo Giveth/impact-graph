@@ -19,6 +19,7 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
+import { ChainType } from '../../types/network';
 
 export const createFiatDonationFromOnramper = async (
   fiatTransaction: OnRamperFiatTransaction,
@@ -140,6 +141,7 @@ export const createFiatDonationFromOnramper = async (
       fiatTransaction.payload.outCurrency,
       priceChainId,
       fiatTransaction.payload.outAmount,
+      ChainType.EVM,
     );
 
     // After updating, recalculate user total donated and owner total received
