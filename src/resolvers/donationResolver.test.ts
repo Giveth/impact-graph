@@ -862,7 +862,7 @@ function createDonationTestCases() {
         id: saveDonationResponse.data.data.createDonation,
       },
     });
-    assert.equal(donation?.transactionId, transactionId.toLowerCase());
+    assert.equal(donation?.transactionId, transactionId);
     assert.equal(donation?.chainType, ChainType.SOLANA);
   });
 
