@@ -2,22 +2,24 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import { NETWORK_IDS } from '../src/provider';
 import { Token } from '../src/entities/token';
 import seedTokens from './data/seedTokens';
-import config from '../src/config';
+import { ChainType } from '../src/types/network';
+import { SOLANA_SYSTEM_ADDRESS } from '../src/utils/networks';
 
 export class addSolanaToken1703044586989 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.manager.save(
       Token,
       seedTokens
-        .filter(token => token.networkId === NETWORK_IDS.SOLANA)
+        .filter(token => token.chainType === ChainType.SOLANA)
         .map(t => {
-          t.address = t.address?.toLowerCase();
+          t.address = t.address;
           return t;
         }),
     );
     const tokens = await queryRunner.query(`
                     SELECT * FROM token
-                    WHERE "networkId" = ${NETWORK_IDS.SOLANA}
+                    WHERE "chainType" = ${ChainType.SOLANA}
+                    AND "address" = ${SOLANA_SYSTEM_ADDRESS}
                     `);
     const givethOrganization = (
       await queryRunner.query(`SELECT * FROM organization
@@ -39,7 +41,8 @@ export class addSolanaToken1703044586989 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     const tokens = await queryRunner.query(`
             SELECT * FROM token
-            WHERE "networkId" = ${NETWORK_IDS.SOLANA}
+            WHERE "chainType" = ${ChainType.SOLANA}
+            AND "address" = ${SOLANA_SYSTEM_ADDRESS}
             `);
     await queryRunner.query(
       `DELETE FROM organization_tokens_token WHERE "tokenId" IN (${tokens

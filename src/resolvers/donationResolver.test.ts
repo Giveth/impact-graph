@@ -828,11 +828,6 @@ function createDonationTestCases() {
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
-
-    const referredEvent = await firstOrCreateReferredEventByUserId(user.id);
-    referredEvent.startTime = new Date();
-    await referredEvent.save();
-
     const transactionId =
       '5GAnyapzrTdjhc3xNH6Nsf61xcu1vGRBd7MDXZbx8waKEznSjMtqdgTwHBhrBcrkqTfusHAzeoV3kAVpr6aFXU6j';
 

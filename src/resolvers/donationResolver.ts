@@ -627,11 +627,11 @@ export class DonationResolver {
   ): Promise<Number> {
     try {
       const userId = ctx?.req?.user?.userId;
-      const chainType = ctx?.req?.user?.chainType;
       const donorUser = await findUserById(userId);
-      if (!chainType || !donorUser) {
+      if (!donorUser) {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
+      const chainType = detectAddressChainType(donorUser.walletAddress!);
       validateWithJoiSchema(
         {
           amount,
@@ -754,36 +754,39 @@ export class DonationResolver {
       }
       await donation.save();
 
-      switch (chainType) {
-        case ChainType.EVM:
-          const priceChainId =
-            transactionNetworkId === NETWORK_IDS.ROPSTEN ||
-            transactionNetworkId === NETWORK_IDS.GOERLI
-              ? NETWORK_IDS.MAIN_NET
-              : transactionNetworkId;
+      let priceChainId =
+        transactionNetworkId === NETWORK_IDS.ROPSTEN ||
+        transactionNetworkId === NETWORK_IDS.GOERLI
+          ? NETWORK_IDS.MAIN_NET
+          : transactionNetworkId;
 
-          await updateDonationPricesAndValues(
-            donation,
-            project,
-            tokenInDb,
-            token,
-            priceChainId,
-            amount,
-            chainType,
-          );
+      switch (transactionNetworkId) {
+        case NETWORK_IDS.ROPSTEN:
+          priceChainId = NETWORK_IDS.MAIN_NET;
           break;
-        case ChainType.SOLANA:
-          await updateDonationPricesAndValues(
-            donation,
-            project,
-            tokenInDb,
-            token,
-            null,
-            amount,
-            chainType,
-          );
+        case NETWORK_IDS.GOERLI:
+          priceChainId = NETWORK_IDS.MAIN_NET;
+          break;
+        case NETWORK_IDS.OPTIMISM_GOERLI:
+          priceChainId = NETWORK_IDS.OPTIMISTIC;
+          break;
+        case NETWORK_IDS.MORDOR_ETC_TESTNET:
+          priceChainId = NETWORK_IDS.ETC;
+          break;
+        default:
+          priceChainId = transactionNetworkId;
           break;
       }
+
+      await updateDonationPricesAndValues(
+        donation,
+        project,
+        tokenInDb,
+        token,
+        priceChainId,
+        amount,
+        chainType!,
+      );
 
       return donation.id;
     } catch (e) {

@@ -43,6 +43,7 @@ import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories
 import { getPowerRound } from '../repositories/powerRoundRepository';
 import { fetchSafeTransactionHash } from './safeServices';
 import { ChainType } from '../types/network';
+import { NETWORK_IDS } from '../provider';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -51,15 +52,16 @@ export const updateDonationPricesAndValues = async (
   project: Project,
   token: Token | null,
   currency: string,
-  priceChainId: number | null,
+  priceChainId: number,
   amount: string | number,
-  chainType: string,
+  chainType: string = ChainType.EVM,
 ) => {
   try {
     if (chainType === ChainType.SOLANA && token) {
       const coingeckoAdapter = new CoingeckoPriceAdapter();
       const solanaPriceUsd = await coingeckoAdapter.getTokenPrice({
         symbol: token.coingeckoId,
+        networkId: NETWORK_IDS.SOLANA,
       });
       donation.priceUsd = toFixNumber(solanaPriceUsd, 4);
       donation.valueUsd = toFixNumber(donation.amount * solanaPriceUsd, 4);

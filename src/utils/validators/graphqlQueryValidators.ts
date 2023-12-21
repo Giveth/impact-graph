@@ -77,7 +77,7 @@ export const resourcePerDateReportValidator = Joi.object({
 export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
   transactionId: Joi.when('safeTransactionId', {
-    is: null || undefined || '',
+    is: null,
     then: Joi.alternatives().try(
       Joi.string()
         .required()
@@ -100,14 +100,6 @@ export const createDonationQueryValidator = Joi.object({
       Joi.string()
         .allow(null, '')
         .pattern(txHashRegex, 'EVM transaction IDs')
-        .messages({
-          'string.pattern.base': i18n.__(
-            translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-          ),
-        }),
-      Joi.string()
-        .allow(null, '')
-        .pattern(solanaTxRegex, 'Solana Transaction ID')
         .messages({
           'string.pattern.base': i18n.__(
             translationErrorMessagesKeys.INVALID_TRANSACTION_ID,

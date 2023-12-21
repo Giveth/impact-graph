@@ -207,7 +207,7 @@ async function seedTokens() {
   for (const token of SEED_DATA.TOKENS.solana) {
     const tokenData = {
       ...token,
-      networkId: 0,
+      networkId: NETWORK_IDS.SOLANA,
       isGivbackEligible: false,
       chainType: ChainType.SOLANA,
       coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
