@@ -632,22 +632,34 @@ export class DonationResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       const chainType = detectAddressChainType(donorUser.walletAddress!);
-      validateWithJoiSchema(
-        {
-          amount,
-          transactionId,
-          transactionNetworkId,
-          anonymous,
-          tokenAddress,
-          token,
-          projectId,
-          nonce,
-          transakId,
-          referrerId,
-          safeTransactionId,
-        },
-        createDonationQueryValidator,
-      );
+
+      try {
+        validateWithJoiSchema(
+          {
+            amount,
+            transactionId,
+            transactionNetworkId,
+            anonymous,
+            tokenAddress,
+            token,
+            projectId,
+            nonce,
+            transakId,
+            referrerId,
+            safeTransactionId,
+          },
+          createDonationQueryValidator,
+        );
+      } catch (e) {
+        // Joi alternatives does not handle custom errors, have to catch them.
+        if (e.message.includes('does not match any of the allowed types')) {
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.INVALID_TRANSACTION_ID),
+          );
+        } else {
+          throw e; // Rethrow the original error
+        }
+      }
 
       const project = await findProjectById(projectId);
 
@@ -698,11 +710,20 @@ export class DonationResolver {
           ),
         );
       }
-      const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
-      const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
+      let toAddress = projectRelatedAddress?.address;
+      let fromAddress = donorUser.walletAddress!;
+      let transactionTx = transactionId;
+
+      // Keep the flow the same as before if it's EVM
+      if (chainType === ChainType.EVM) {
+        toAddress = toAddress?.toLowerCase();
+        fromAddress = fromAddress?.toLowerCase();
+        transactionTx = transactionId?.toLowerCase() as string;
+      }
+
       const donation = await Donation.create({
         amount: Number(amount),
-        transactionId: transactionId?.toLowerCase() || transakId,
+        transactionId: transactionTx,
         isFiat: Boolean(transakId),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
@@ -715,8 +736,8 @@ export class DonationResolver {
         isProjectVerified: project.verified,
         createdAt: new Date(),
         segmentNotified: false,
-        toWalletAddress: toAddress.toString().toLowerCase(),
-        fromWalletAddress: fromAddress.toString().toLowerCase(),
+        toWalletAddress: toAddress,
+        fromWalletAddress: fromAddress,
         anonymous: Boolean(anonymous),
         safeTransactionId,
         chainType: chainType as ChainType,

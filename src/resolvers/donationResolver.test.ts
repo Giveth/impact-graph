@@ -2290,7 +2290,10 @@ function createDonationTestCases() {
         },
       },
     );
-    assert.isOk(saveDonationResponse.data.errors[0]);
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.INVALID_TRANSACTION_ID,
+    );
   });
   it('should throw exception when transactionNetworkId is invalid', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());

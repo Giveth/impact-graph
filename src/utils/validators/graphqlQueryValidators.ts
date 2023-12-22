@@ -77,35 +77,19 @@ export const resourcePerDateReportValidator = Joi.object({
 export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
   transactionId: Joi.when('safeTransactionId', {
-    is: null,
+    is: Joi.any().empty(),
     then: Joi.alternatives().try(
-      Joi.string()
-        .required()
-        .pattern(txHashRegex, 'EVM transaction IDs')
-        .messages({
-          'string.pattern.base': i18n.__(
-            translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-          ),
-        }),
-      Joi.string()
-        .required()
-        .pattern(solanaTxRegex, 'Solana Transaction ID')
-        .messages({
-          'string.pattern.base': i18n.__(
-            translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-          ),
-        }),
+      Joi.string().required().pattern(txHashRegex, 'EVM transaction IDs'),
+      Joi.string().required().pattern(solanaTxRegex, 'Solana Transaction ID'),
     ),
-    otherwise: Joi.alternatives().try(
-      Joi.string()
-        .allow(null, '')
-        .pattern(txHashRegex, 'EVM transaction IDs')
-        .messages({
-          'string.pattern.base': i18n.__(
-            translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-          ),
-        }),
-    ),
+    otherwise: Joi.string()
+      .allow(null, '')
+      .pattern(txHashRegex, 'EVM transaction IDs')
+      .messages({
+        'string.pattern.base': i18n.__(
+          translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+        ),
+      }),
   }),
   transactionNetworkId: Joi.string()
     .required()
@@ -184,7 +168,7 @@ const managingFundsValidator = Joi.object({
       title: Joi.string().required(),
       address: Joi.string().required().pattern(ethereumWalletAddressRegex),
       networkId: Joi.number()?.valid(
-        0, // Solana
+        NETWORK_IDS.SOLANA, // Solana
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,
