@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { ChainType } from '../types/network';
 import { PublicKey } from '@solana/web3.js';
 
-export const SOLANA_SYSTEM_ADDRESS = '11111111111111111111111111111111';
+export const SOLANA_SYSTEM_PROGRAM = '11111111111111111111111111111111';
 
 export const isSolanaAddress = (address: string): boolean => {
   try {

@@ -19,7 +19,6 @@ import {
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
-import { ChainType } from '../../types/network';
 
 export const createFiatDonationFromOnramper = async (
   fiatTransaction: OnRamperFiatTransaction,

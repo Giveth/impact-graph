@@ -1,7 +1,7 @@
 import { COINGECKO_TOKEN_IDS } from '../../src/adapters/price/CoingeckoPriceAdapter';
 import { NETWORK_IDS } from '../../src/provider';
 import { ChainType } from '../../src/types/network';
-import { SOLANA_SYSTEM_ADDRESS } from '../../src/utils/networks';
+import { SOLANA_SYSTEM_PROGRAM } from '../../src/utils/networks';
 
 interface ITokenData {
   name: string;
@@ -1253,7 +1253,7 @@ const seedTokens: ITokenData[] = [
   {
     name: 'Solana native token',
     symbol: 'SOL',
-    address: SOLANA_SYSTEM_ADDRESS,
+    address: SOLANA_SYSTEM_PROGRAM,
     decimals: 9,
     networkId: NETWORK_IDS.SOLANA,
     chainType: ChainType.SOLANA,

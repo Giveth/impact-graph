@@ -75,21 +75,21 @@ export const updateDonationPricesAndValues = async (
     } else if (token?.cryptoCompareId) {
       const priceUsd = await new CryptoComparePriceAdapter().getTokenPrice({
         symbol: token.cryptoCompareId,
-        networkId: priceChainId!,
+        networkId: priceChainId,
       });
       donation.priceUsd = toFixNumber(priceUsd, 4);
       donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
     } else if (token?.coingeckoId) {
       const priceUsd = await new CoingeckoPriceAdapter().getTokenPrice({
         symbol: token.coingeckoId,
-        networkId: priceChainId!,
+        networkId: priceChainId,
       });
       donation.priceUsd = toFixNumber(priceUsd, 4);
       donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
     } else {
       const priceUsd = await new MonoswapPriceAdapter().getTokenPrice({
         symbol: currency,
-        networkId: priceChainId!,
+        networkId: priceChainId,
       });
 
       if (priceUsd) {
