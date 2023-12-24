@@ -2,38 +2,34 @@ import abiDecoder from 'abi-decoder';
 import {
   findTokenByNetworkAndAddress,
   findTokenByNetworkAndSymbol,
-} from '../utils/tokenUtils';
+} from '../../../utils/tokenUtils';
 import {
-  errorMessages,
   i18n,
   translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import {
-  NetworkTransactionInfo,
-  TransactionDetailInput,
-} from '../types/TransactionInquiry';
+} from '../../../utils/errorMessages';
 import axios from 'axios';
-import { erc20ABI } from '../assets/erc20ABI';
-import { disperseABI } from '../assets/disperseABI';
+import { erc20ABI } from '../../../assets/erc20ABI';
+import { disperseABI } from '../../../assets/disperseABI';
 import {
   getBlockExplorerApiUrl,
   getNetworkNativeToken,
   getProvider,
   NETWORK_IDS,
-} from '../provider';
-import { logger } from '../utils/logger';
-import { gnosisSafeL2ABI } from '../assets/gnosisSafeL2ABI';
+} from '../../../provider';
+import { logger } from '../../../utils/logger';
+import { gnosisSafeL2ABI } from '../../../assets/gnosisSafeL2ABI';
+import { NetworkTransactionInfo, TransactionDetailInput } from '../index';
+import { normalizeAmount } from '../../../utils/utils';
+import { ONE_HOUR, validateTransactionWithInputData } from '../index';
 
 // tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 abiDecoder.addABI(gnosisSafeL2ABI);
 
-const ONE_HOUR = 60 * 60;
-
-export async function getTransactionInfoFromNetwork(
+export async function getEvmTransactionInfoFromNetwork(
   input: TransactionDetailInput,
-): Promise<NetworkTransactionInfo> {
+): Promise<NetworkTransactionInfo | null> {
   const { networkId, nonce } = input;
 
   const provider = getProvider(networkId);
@@ -55,13 +51,12 @@ export async function getTransactionInfoFromNetwork(
       ),
     );
   }
-  let transaction: NetworkTransactionInfo | null = await findTransactionByHash(
-    input,
-  );
+  let transaction: NetworkTransactionInfo | null =
+    await findEvmTransactionByHash(input);
 
   if (!transaction && nonce) {
     // if nonce didn't pass, we can not understand whether is speedup or not
-    transaction = await findTransactionByNonce({
+    transaction = await findEvmTransactionByNonce({
       input,
     });
   }
@@ -82,16 +77,13 @@ export async function getTransactionInfoFromNetwork(
       ),
     );
   }
-  if (!transaction) {
-    throw new Error(
-      i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
-    );
-  }
   validateTransactionWithInputData(transaction, input);
   return transaction;
 }
 
-export async function findTransactionByHash(input: TransactionDetailInput) {
+export async function findEvmTransactionByHash(
+  input: TransactionDetailInput,
+): Promise<NetworkTransactionInfo | null> {
   const nativeToken = getNetworkNativeToken(input.networkId);
   if (nativeToken.toLowerCase() === input.symbol.toLowerCase()) {
     return getTransactionDetailForNormalTransfer(input);
@@ -100,7 +92,7 @@ export async function findTransactionByHash(input: TransactionDetailInput) {
   }
 }
 
-async function findTransactionByNonce(data: {
+async function findEvmTransactionByNonce(data: {
   input: TransactionDetailInput;
   page?: number;
 }): Promise<NetworkTransactionInfo | null> {
@@ -116,7 +108,7 @@ async function findTransactionByNonce(data: {
   if (isTransactionListEmpty) {
     // we know that we reached to end of transactions
     logger.debug(
-      'findTransactionByNonce, no more found donations for address',
+      'findEvmTransactionByNonce, no more found donations for address',
       {
         page,
         address: input.fromAddress,
@@ -131,7 +123,10 @@ async function findTransactionByNonce(data: {
   );
 
   if (foundTransaction) {
-    return findTransactionByHash({ ...input, txHash: foundTransaction.hash });
+    return findEvmTransactionByHash({
+      ...input,
+      txHash: foundTransaction.hash,
+    });
   }
 
   // userRecentTransactions just includes the transactions that source is our fromAddress
@@ -156,14 +151,10 @@ async function findTransactionByNonce(data: {
     );
   }
 
-  return findTransactionByNonce({
+  return findEvmTransactionByNonce({
     input,
     page: page + 1,
   });
-}
-
-function normalizeAmount(amount: string, decimals: number): number {
-  return Number(amount) / 10 ** decimals;
 }
 
 async function getListOfTransactionsByAddress(input: {
@@ -386,52 +377,6 @@ async function getTransactionDetailForTokenTransfer(
     amount,
     currency: symbol,
   };
-}
-
-function validateTransactionWithInputData(
-  transaction: NetworkTransactionInfo,
-  input: TransactionDetailInput,
-): never | void {
-  if (transaction.to.toLowerCase() !== input.toAddress.toLowerCase()) {
-    throw new Error(
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_TO_ADDRESS_IS_DIFFERENT_FROM_SENT_TO_ADDRESS,
-      ),
-    );
-  }
-
-  if (transaction.from.toLowerCase() !== input.fromAddress.toLowerCase()) {
-    throw new Error(
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_FROM_ADDRESS_IS_DIFFERENT_FROM_SENT_FROM_ADDRESS,
-      ),
-    );
-  }
-  if (Math.abs(transaction.amount - input.amount) > 0.001) {
-    // We ignore small conflicts but for bigger amount we throw exception https://github.com/Giveth/impact-graph/issues/289
-    throw new Error(
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_AMOUNT_IS_DIFFERENT_WITH_SENT_AMOUNT,
-      ),
-    );
-  }
-
-  if (input.timestamp - transaction.timestamp > ONE_HOUR) {
-    // because we first create donation, then transaction will be mined, the transaction always should be greater than
-    // donation created time, but we set one hour because maybe our server time is different with blockchain time server
-    logger.debug(
-      'i18n.__(translationErrorMessagesKeys.TRANSACTION_CANT_BE_OLDER_THAN_DONATION)',
-      {
-        transaction,
-        input,
-      },
-    );
-    throw new Error(
-      i18n.__(
-        translationErrorMessagesKeys.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
-      ),
-    );
-  }
 }
 
 export const getDisperseTransactions = async (

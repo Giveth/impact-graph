@@ -16,14 +16,10 @@ import {
 import { messages } from '../../../utils/messages';
 import { logger } from '../../../utils/logger';
 import {
-  NetworkTransactionInfo,
-  TransactionDetailInput,
-} from '../../../types/TransactionInquiry';
-import {
-  findTransactionByHash,
+  findEvmTransactionByHash,
   getCsvAirdropTransactions,
   getGnosisSafeTransactions,
-} from '../../../services/transactionService';
+} from '../../../services/chains/evm/transactionService';
 import {
   i18n,
   translationErrorMessagesKeys,
@@ -43,6 +39,10 @@ import { SelectQueryBuilder } from 'typeorm';
 import { ActionContext } from 'adminjs';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
+import {
+  NetworkTransactionInfo,
+  TransactionDetailInput,
+} from '../../../services/chains';
 
 export const createDonation = async (
   request: AdminJsRequestInterface,
@@ -85,7 +85,7 @@ export const createDonation = async (
           i18n.__(translationErrorMessagesKeys.INVALID_TOKEN_SYMBOL),
         );
       }
-      const txInfo = await findTransactionByHash({
+      const txInfo = await findEvmTransactionByHash({
         networkId,
         txHash,
         symbol: currency,

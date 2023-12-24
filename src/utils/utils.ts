@@ -416,3 +416,7 @@ export const isTestEnv = (config.get('ENVIRONMENT') as string) === 'test';
 export const dateToTimestampMs = (date: Date | string | number): number => {
   return new Date(date).valueOf();
 };
+
+export function normalizeAmount(amount: string, decimals: number): number {
+  return Number(amount) / 10 ** decimals;
+}

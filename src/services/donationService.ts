@@ -12,7 +12,6 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { getTransactionInfoFromNetwork } from './transactionService';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice, fetchGivPrice } from './givPriceService';
@@ -39,6 +38,7 @@ import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
 import { fetchSafeTransactionHash } from './safeServices';
+import { getTransactionInfoFromNetwork } from './chains';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
