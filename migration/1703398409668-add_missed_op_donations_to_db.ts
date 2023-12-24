@@ -100,6 +100,22 @@ const transactions: Partial<Donation>[] = [
     createdAt: millisecondTimestampToDate(1703166533000),
   },
 
+  // https://optimistic.etherscan.io/tx/0x8838d5be728ac29110340aacd883e9ede19048146e1c28842e4f4e28e4ba4761
+  {
+    fromWalletAddress: '0x48c29821235ffc527d1a265eaf2dde0b4a1a0f07',
+    toWalletAddress: '0x42eA99EE6FfF2Dc8d4c3F95eCcD17C5055905139',
+    // https://giveth.io/project/dream-dao
+    projectId: 2778,
+    transactionId:
+      '0x8838d5be728ac29110340aacd883e9ede19048146e1c28842e4f4e28e4ba4761',
+    currency: 'DAI',
+    tokenAddress: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
+    amount: 1,
+    valueUsd: 1,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
+    createdAt: millisecondTimestampToDate(1703083505000),
+  },
+
   // https://optimistic.etherscan.io/tx/0x519eba6cb2cd23629a190dec600faa025f485dac8e6b331d299e87cea837d18a
   {
     fromWalletAddress: '0x1900c042ce71f8384e19b207b6cd155dd069e3ec',
@@ -228,8 +244,16 @@ export class addMissedOpDonationsToDb1703398409668
       await queryRunner.query(`
            INSERT INTO donation ("toWalletAddress", "projectId", "fromWalletAddress", "userId", amount, currency, "transactionId", "transactionNetworkId", anonymous, "valueUsd", status,
             "segmentNotified", "isTokenEligibleForGivback", "isProjectVerified", "createdAt", "givbackFactor", "powerRound", "projectRank", "bottomRankInRound", "qfRoundId", "tokenAddress")
-           VALUES ('${tx.toWalletAddress}', ${tx.projectId}, '${tx.fromWalletAddress}', ${user.id}, ${tx.amount}, '${tx.currency}', '${tx.transactionId}', ${tx.transactionNetworkId}, false, ${tx.valueUsd}, 'verified',
-             true, true, true, '${createdAt}', ${givbackFactor}, ${powerRound}, ${projectRank}, ${bottomRankInRound}, ${QF_ROUND_ID}, '${tx.tokenAddress}');
+           VALUES ('${tx.toWalletAddress?.toLowerCase()}', ${
+        tx.projectId
+      }, '${tx.fromWalletAddress?.toLocaleLowerCase()}', ${user.id}, ${
+        tx.amount
+      }, '${tx.currency}', '${tx.transactionId?.toLocaleLowerCase()}', ${
+        tx.transactionNetworkId
+      }, false, ${tx.valueUsd}, 'verified',
+             true, true, true, '${createdAt}', ${givbackFactor}, ${powerRound}, ${projectRank}, ${bottomRankInRound}, ${QF_ROUND_ID}, '${
+        tx.tokenAddress
+      }');
                 `);
 
       await updateUserTotalDonated(user.id);
