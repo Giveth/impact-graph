@@ -2590,7 +2590,7 @@ function createProjectTestCases() {
     );
     assert.equal(
       addProjectResponse.data.errors[0].message,
-      `Eth address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
+      `Address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
     );
   });
   it('should create project when walletAddress of project is a smart contract address', async () => {
@@ -3064,7 +3064,7 @@ function updateProjectTestCases() {
     );
     assert.equal(
       editProjectResult.data.errors[0].message,
-      `Eth address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
+      `Address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
     );
   });
   it('Should update project when sent walletAddress is smartContractAddress', async () => {
@@ -4069,7 +4069,7 @@ function addRecipientAddressToProjectTestCases() {
     );
     assert.equal(
       response.data.errors[0].message,
-      `Eth address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
+      `Address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
     );
   });
   it('Should update project when sent walletAddress is smartContractAddress', async () => {
@@ -5069,7 +5069,7 @@ function walletAddressIsValidTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      `Eth address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
+      `Address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
     );
   });
   it('should return true if walletAddress is smart contract address in mainnet', async () => {
@@ -5124,7 +5124,7 @@ function walletAddressIsValidTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      `Eth address ${upperCaseWalletAddress} is already being used for a project`,
+      `Address ${upperCaseWalletAddress} is already being used for a project`,
     );
   });
   it('should throw error for existing walletAddress - lowerCase', async () => {
@@ -5138,7 +5138,7 @@ function walletAddressIsValidTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      `Eth address ${lowerCaseWalletAddress} is already being used for a project`,
+      `Address ${lowerCaseWalletAddress} is already being used for a project`,
     );
   });
 }

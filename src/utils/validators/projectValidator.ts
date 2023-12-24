@@ -35,7 +35,7 @@ export const validateProjectWalletAddress = async (
   // );
   // if (isSmartContractWallet) {
   //   throw new Error(
-  //     `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+  //     `Address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
   //   );
   // }
   const relatedAddress = await findRelatedAddressByWalletAddress(
@@ -44,7 +44,7 @@ export const validateProjectWalletAddress = async (
   );
   if (relatedAddress && relatedAddress?.project?.id !== projectId) {
     throw new Error(
-      `Eth address ${walletAddress} is already being used for a project`,
+      `Address ${walletAddress} is already being used for a project`,
     );
   }
   return true;
