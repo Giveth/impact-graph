@@ -1,4 +1,6 @@
 import { CustomHelpers, number, ObjectSchema, ValidationResult } from 'joi';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+
 // tslint:disable-next-line:no-var-requires
 const Joi = require('joi');
 import {
@@ -19,6 +21,7 @@ const resourcePerDateRegex = new RegExp(
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
+const solanaTxRegex = /^[A-Za-z0-9]{88}$/; // TODO: Is this enough? We are using the signature to fetch transactions
 const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
@@ -74,18 +77,14 @@ export const resourcePerDateReportValidator = Joi.object({
 export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
   transactionId: Joi.when('safeTransactionId', {
-    is: null || undefined || '',
-    then: Joi.string()
-      .required()
-      .pattern(txHashRegex)
-      .messages({
-        'string.pattern.base': i18n.__(
-          translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-        ),
-      }),
+    is: Joi.any().empty(),
+    then: Joi.alternatives().try(
+      Joi.string().required().pattern(txHashRegex, 'EVM transaction IDs'),
+      Joi.string().required().pattern(solanaTxRegex, 'Solana Transaction ID'),
+    ),
     otherwise: Joi.string()
       .allow(null, '')
-      .pattern(txHashRegex)
+      .pattern(txHashRegex, 'EVM transaction IDs')
       .messages({
         'string.pattern.base': i18n.__(
           translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
@@ -169,7 +168,7 @@ const managingFundsValidator = Joi.object({
       title: Joi.string().required(),
       address: Joi.string().required().pattern(ethereumWalletAddressRegex),
       networkId: Joi.number()?.valid(
-        0, // Solana
+        NETWORK_IDS.SOLANA, // Solana
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,

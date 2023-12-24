@@ -47,7 +47,7 @@ export class Donation extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string;

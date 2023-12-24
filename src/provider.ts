@@ -18,11 +18,7 @@ export const NETWORK_IDS = {
   CELO_ALFAJORES: 44787,
   ETC: 61,
   MORDOR_ETC_TESTNET: 63,
-
-  // SOLANA networks
   SOLANA: 0,
-  // we would get error in test cases if having networkIds with similar value
-  SOLANA_DEV: 1000,
 };
 
 export const NETWORKS_IDS_TO_NAME = {

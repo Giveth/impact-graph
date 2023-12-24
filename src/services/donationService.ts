@@ -33,11 +33,16 @@ import {
 } from './projectViewsService';
 import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
 import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
-import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+import {
+  COINGECKO_TOKEN_IDS,
+  CoingeckoPriceAdapter,
+} from '../adapters/price/CoingeckoPriceAdapter';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
 import { fetchSafeTransactionHash } from './safeServices';
+import { ChainType } from '../types/network';
+import { NETWORK_IDS } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
@@ -49,9 +54,18 @@ export const updateDonationPricesAndValues = async (
   currency: string,
   priceChainId: number,
   amount: string | number,
+  chainType: string = ChainType.EVM,
 ) => {
   try {
-    if (token?.isStableCoin) {
+    if (chainType === ChainType.SOLANA && token) {
+      const coingeckoAdapter = new CoingeckoPriceAdapter();
+      const solanaPriceUsd = await coingeckoAdapter.getTokenPrice({
+        symbol: token.coingeckoId,
+        networkId: NETWORK_IDS.SOLANA,
+      });
+      donation.priceUsd = toFixNumber(solanaPriceUsd, 4);
+      donation.valueUsd = toFixNumber(donation.amount * solanaPriceUsd, 4);
+    } else if (token?.isStableCoin) {
       donation.priceUsd = 1;
       donation.valueUsd = Number(amount);
     } else if (currency === 'GIV') {
