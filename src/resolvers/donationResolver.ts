@@ -539,24 +539,6 @@ export class DonationResolver {
     };
   }
 
-  @Query(returns => [Token], { nullable: true })
-  async tokens() {
-    return getOurTokenList();
-  }
-
-  @Mutation(returns => [Number])
-  async getTokenPrice(
-    @Arg('symbol') symbol: string,
-    @Arg('chainId') chainId: number,
-  ) {
-    const prices = await getMonoSwapTokenPrices(
-      symbol,
-      ['USDT', 'ETH'],
-      Number(chainId),
-    );
-    return prices;
-  }
-
   // TODO I think we can delete this resolver
   @Query(returns => [Donation], { nullable: true })
   async donationsByDonor(@Ctx() ctx: ApolloContext) {
