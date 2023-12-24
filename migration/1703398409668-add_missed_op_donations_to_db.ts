@@ -259,9 +259,10 @@ export class addMissedOpDonationsToDb1703398409668
       await updateUserTotalDonated(user.id);
       await updateUserTotalReceived(project.adminUser?.id);
       await updateTotalDonationsOfProject(tx.projectId as number);
-      await refreshProjectEstimatedMatchingView();
-      await refreshProjectDonationSummaryView();
     }
+
+    await refreshProjectEstimatedMatchingView();
+    await refreshProjectDonationSummaryView();
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
