@@ -30,14 +30,9 @@ export interface TransactionDetailInput {
 export const ONE_HOUR = 60 * 60;
 
 export function validateTransactionWithInputData(
-  transaction: NetworkTransactionInfo | null,
+  transaction: NetworkTransactionInfo,
   input: TransactionDetailInput,
 ): never | void {
-  if (!transaction) {
-    throw new Error(
-      i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
-    );
-  }
   if (transaction.to.toLowerCase() !== input.toAddress.toLowerCase()) {
     throw new Error(
       i18n.__(

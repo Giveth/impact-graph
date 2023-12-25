@@ -29,7 +29,7 @@ abiDecoder.addABI(gnosisSafeL2ABI);
 
 export async function getEvmTransactionInfoFromNetwork(
   input: TransactionDetailInput,
-): Promise<NetworkTransactionInfo | null> {
+): Promise<NetworkTransactionInfo> {
   const { networkId, nonce } = input;
 
   const provider = getProvider(networkId);
@@ -75,6 +75,11 @@ export async function getEvmTransactionInfoFromNetwork(
       i18n.__(
         translationErrorMessagesKeys.TRANSACTION_NOT_FOUND_AND_NONCE_IS_USED,
       ),
+    );
+  }
+  if (!transaction) {
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
     );
   }
   validateTransactionWithInputData(transaction, input);

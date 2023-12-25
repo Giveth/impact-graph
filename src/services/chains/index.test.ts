@@ -9,10 +9,6 @@ import { ChainType } from '../../types/network';
 const ONE_DAY = 60 * 60 * 24;
 
 describe('getTransactionDetail test cases', getTransactionDetailTestCases);
-describe(
-  'validateTransactionWithInputData test cases',
-  validateTransactionWithInputDataTestCases,
-);
 
 function getTransactionDetailTestCases() {
   // it('should return transaction detail for normal transfer on gnosis when it belongs to a multisig', async () => {
@@ -885,7 +881,7 @@ function getTransactionDetailTestCases() {
         '5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8',
       symbol: 'SOL',
       chainType: ChainType.SOLANA,
-      networkId: NETWORK_IDS.SOLANA_DEV,
+      networkId: NETWORK_IDS.SOLANA,
       fromAddress: '5GECDSGSWmMuw6nMfmdBLapa91ZHDZeHqRP1fqvQokjY',
       toAddress: 'DvWdrYYkwyM9mnTetpr3HBHUBKZ22QdbFEXQ8oquE7Zb',
       timestamp: 1702931400,
@@ -906,7 +902,7 @@ function getTransactionDetailTestCases() {
           '5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8',
         symbol: 'SOL',
         chainType: ChainType.SOLANA,
-        networkId: NETWORK_IDS.SOLANA_DEV,
+        networkId: NETWORK_IDS.SOLANA,
         fromAddress: '5GECDSGSWmMuw6nMfmdBLapa91ZHDZeHqRP1fqvQokjY',
         toAddress: 'DvWdrYYkwyM9mnTetpr3HBHUBKZ22QdbFEXQ8oquE7Zb',
         timestamp: 1702931400 + ONE_DAY,

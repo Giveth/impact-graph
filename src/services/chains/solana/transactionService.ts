@@ -6,6 +6,10 @@ import {
   validateTransactionWithInputData,
 } from '../index';
 import { normalizeAmount } from '../../../utils/utils';
+import {
+  i18n,
+  translationErrorMessagesKeys,
+} from '../../../utils/errorMessages';
 
 const SOLANA_NODE_RPC_URL = process.env.SOLANA_NODE_RPC_URL as string;
 const solana = new SolanaWeb3.Connection(SOLANA_NODE_RPC_URL);
@@ -63,7 +67,11 @@ export async function getSolanaTransactionInfoFromNetwork(
   } else {
     txData = await getTransactionDetailForTokenTransfer(input);
   }
-
+  if (!txData) {
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
+    );
+  }
   validateTransactionWithInputData(txData, input);
   return txData;
 }
