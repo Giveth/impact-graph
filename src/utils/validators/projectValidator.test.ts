@@ -91,7 +91,7 @@ function validateProjectWalletAddressTestCases() {
     const project = await saveProjectDirectlyToDb(createProjectData());
     await assertThrowsAsync(async () => {
       await validateProjectWalletAddress(project.walletAddress as string);
-    }, `Eth address ${project.walletAddress} is already being used for a project`);
+    }, `Address ${project.walletAddress} is already being used for a project`);
   });
 
   it('should throw exception when address is repetitive (with difference case, uppercase)', async () => {
@@ -102,7 +102,7 @@ function validateProjectWalletAddressTestCases() {
 
     await assertThrowsAsync(async () => {
       await validateProjectWalletAddress(capitalizedWalletAddress);
-    }, `Eth address ${capitalizedWalletAddress} is already being used for a project`);
+    }, `Address ${capitalizedWalletAddress} is already being used for a project`);
   });
 
   it('should throw exception when address is repetitive (with difference case, lowercase)', async () => {
@@ -111,7 +111,7 @@ function validateProjectWalletAddressTestCases() {
 
     await assertThrowsAsync(async () => {
       await validateProjectWalletAddress(lowercaseAddress);
-    }, `Eth address ${lowercaseAddress} is already being used for a project`);
+    }, `Address ${lowercaseAddress} is already being used for a project`);
   });
 
   it('should throw exception when address is not valid - Ethereum', async () => {

@@ -20,6 +20,7 @@ const resourcePerDateRegex = new RegExp(
 );
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+const solanaWalletAddressRegex = /^[A-Za-z0-9]{43,44}$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
 const solanaTxRegex = /^[A-Za-z0-9]{88}$/; // TODO: Is this enough? We are using the signature to fetch transactions
 const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
@@ -166,7 +167,10 @@ const managingFundsValidator = Joi.object({
   relatedAddresses: Joi.array().items(
     Joi.object({
       title: Joi.string().required(),
-      address: Joi.string().required().pattern(ethereumWalletAddressRegex),
+      address: Joi.alternatives().try(
+        Joi.string().required().pattern(ethereumWalletAddressRegex),
+        Joi.string().required().pattern(solanaWalletAddressRegex),
+      ),
       networkId: Joi.number()?.valid(
         NETWORK_IDS.SOLANA, // Solana
         NETWORK_IDS.MAIN_NET,
