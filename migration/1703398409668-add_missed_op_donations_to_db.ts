@@ -211,6 +211,22 @@ const transactions: Partial<Donation>[] = [
     transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
     createdAt: millisecondTimestampToDate(1703349653000),
   },
+
+  // https://optimistic.etherscan.io/tx/0xead36175c01203d5ed31a056f69d5a10e97084267bab746c1f71e09b6921eeda
+  {
+    fromWalletAddress: '0x77c3db040f79ae46a91529a667c03ab484b37116',
+    toWalletAddress: '0xbec643bd5b7f5e9190617ca4187ef0455950c51c',
+    transactionId:
+      '0xead36175c01203d5ed31a056f69d5a10e97084267bab746c1f71e09b6921eeda',
+    // https://giveth.io/project/itu-blockchain
+    projectId: 2067,
+    currency: 'USDC',
+    tokenAddress: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
+    amount: 67,
+    valueUsd: 67,
+    transactionNetworkId: NETWORK_IDS.OPTIMISTIC,
+    createdAt: millisecondTimestampToDate(1703432955000),
+  },
 ];
 
 export class addMissedOpDonationsToDb1703398409668
