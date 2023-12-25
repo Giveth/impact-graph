@@ -234,28 +234,32 @@ export async function bootstrap() {
     app.use(setI18nLocaleForRequest); // accept-language header
     app.use(cors(corsOptions));
     app.use(bodyParserJson);
-    const limiter = new RateLimit({
-      store: new RedisStore({
-        prefix: 'rate-limit:',
-        client: redis,
-        // see Configuration
-      }),
-      windowMs: 60 * 1000, // 1 minutes
-      max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
-      skip: (req: Request, res: Response) => {
-        const vercelKey = process.env.VERCEL_KEY;
-        if (vercelKey && req.headers.vercel_key === vercelKey) {
-          // Skip rate-limit for Vercel requests because our front is SSR
-          return true;
-        }
-        if (req.url.startsWith('/admin')) {
-          // Bypass AdminJS panel request
-          return true;
-        }
-        return false;
-      },
-    });
-    app.use(limiter);
+
+    if (process.env.DISABLE_SERVER_RATE_LIMITER !== 'true') {
+      const limiter = new RateLimit({
+        store: new RedisStore({
+          prefix: 'rate-limit:',
+          client: redis,
+          // see Configuration
+        }),
+        windowMs: 60 * 1000, // 1 minutes
+        max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
+        skip: (req: Request, res: Response) => {
+          const vercelKey = process.env.VERCEL_KEY;
+          if (vercelKey && req.headers.vercel_key === vercelKey) {
+            // Skip rate-limit for Vercel requests because our front is SSR
+            return true;
+          }
+          if (req.url.startsWith('/admin')) {
+            // Bypass AdminJS panel request
+            return true;
+          }
+          return false;
+        },
+      });
+      app.use(limiter);
+    }
+
     app.use(
       '/graphql',
       json({
