@@ -1373,6 +1373,18 @@ export const SEED_DATA = {
         address: '11111111111111111111111111111111',
         decimals: 9,
       },
+      {
+        name: 'mSOL',
+        symbol: 'mSOL',
+        address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+        decimals: 9,
+      },
+      {
+        name: 'USDC',
+        symbol: 'USDC',
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 9,
+      },
     ],
     goerli: [
       {
