@@ -892,6 +892,25 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
+  it('should return transaction detail for SOL transfer on Solana #2', async () => {
+    // https://explorer.solana.com/tx/3nzHwgxAu7mKw1dhGTVmqzY8Yet3kGWWqP5kr5D2fw1HzqPjqDGDe6xT5PguKXk8nAJcK4GpBEKWw7EzoLykKkCx?cluster=devnet
+    const amount = 1;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '3nzHwgxAu7mKw1dhGTVmqzY8Yet3kGWWqP5kr5D2fw1HzqPjqDGDe6xT5PguKXk8nAJcK4GpBEKWw7EzoLykKkCx',
+      symbol: 'SOL',
+      chainType: ChainType.SOLANA,
+      networkId: NETWORK_IDS.SOLANA,
+      fromAddress: '9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g',
+      toAddress: 'GEhUKKZeENY1TmaavqvLJ5GbbQs9GkzECFSE2bpjzz3k',
+      timestamp: 1701289800,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'SOL');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return error when transaction time is newer than sent timestamp for SOL transfer on Solana', async () => {
     // https://explorer.solana.com/tx/5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8?cluster=devnet
 

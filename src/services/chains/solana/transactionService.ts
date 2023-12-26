@@ -11,21 +11,32 @@ import {
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
 
-const SOLANA_NODE_RPC_URL = process.env.SOLANA_NODE_RPC_URL as string;
-const solana = new SolanaWeb3.Connection(SOLANA_NODE_RPC_URL);
+let solanaProvider;
 
-export const getSolanaTransactionDetailForNormalTransfer = async (params: {
-  txHash: string;
-}): Promise<NetworkTransactionInfo | null> => {
+const getSolanaWebProvider = () => {
+  if (solanaProvider) {
+    return solanaProvider;
+  }
+  const SOLANA_NODE_RPC_URL = process.env.SOLANA_NODE_RPC_URL as string;
+  solanaProvider = new SolanaWeb3.Connection(SOLANA_NODE_RPC_URL);
+  return solanaProvider;
+};
+
+export const getSolanaTransactionDetailForSolanaTransfer = async (
+  params: TransactionDetailInput,
+): Promise<NetworkTransactionInfo | null> => {
   const TRANSFER_INSTRUCTION_TYPE = 'transfer';
   const SOL_CURRENCY_TYPE = 'SOL';
 
   try {
-    const result = await solana.getParsedTransaction(params.txHash);
+    const result = await getSolanaWebProvider().getParsedTransaction(
+      params.txHash,
+    );
     const data = result?.transaction?.message?.instructions?.find(
       instruction =>
-        (instruction as ParsedInstruction)?.parsed?.type ===
-        TRANSFER_INSTRUCTION_TYPE,
+        instruction?.parsed?.type === TRANSFER_INSTRUCTION_TYPE &&
+        instruction?.parsed?.info.source === params.fromAddress &&
+        instruction?.parsed?.info.destination === params.toAddress,
     );
     if (!data) {
       return null;
@@ -54,7 +65,7 @@ export const getSolanaTransactionDetailForNormalTransfer = async (params: {
 function getTransactionDetailForTokenTransfer(
   input: TransactionDetailInput,
 ): Promise<NetworkTransactionInfo> {
-  throw new Error();
+  throw new Error('Not Implemented');
 }
 
 export async function getSolanaTransactionInfoFromNetwork(
@@ -63,7 +74,7 @@ export async function getSolanaTransactionInfoFromNetwork(
   const nativeToken = 'SOL';
   let txData;
   if (nativeToken.toLowerCase() === input.symbol.toLowerCase()) {
-    txData = await getSolanaTransactionDetailForNormalTransfer(input);
+    txData = await getSolanaTransactionDetailForSolanaTransfer(input);
   } else {
     txData = await getTransactionDetailForTokenTransfer(input);
   }
