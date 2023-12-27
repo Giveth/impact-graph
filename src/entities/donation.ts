@@ -13,6 +13,7 @@ import {
 import { Project } from './project';
 import { User } from './user';
 import { QfRound } from './qfRound';
+import { ChainType } from '../types/network';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -46,7 +47,7 @@ export class Donation extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   // It's transactionHash for crypto donation, and trackingCode for fiat donation
   transactionId: string;
@@ -63,6 +64,14 @@ export class Donation extends BaseEntity {
   @Field()
   @Column({ nullable: true })
   safeTransactionId?: string;
+
+  @Field()
+  @Column({
+    type: 'enum',
+    enum: ChainType,
+    default: ChainType.EVM,
+  })
+  chainType: ChainType;
 
   @Field()
   @Column('boolean', { default: false })

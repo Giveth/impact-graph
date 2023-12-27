@@ -28,6 +28,8 @@ import {
 import { MainCategory } from '../src/entities/mainCategory';
 import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
+import { ChainType } from '../src/types/network';
+import { Keypair } from '@solana/web3.js';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -244,6 +246,7 @@ export const saveProjectDirectlyToDb = async (
         isRecipient: true,
         address: projectData.walletAddress,
         networkId,
+        chainType: ChainType.EVM,
       });
     }
   }
@@ -492,6 +495,8 @@ export const SEED_DATA = {
     },
   ],
   DAI_SMART_CONTRACT_ADDRESS: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  MALFORMED_ETHEREUM_ADDRESS: '0x5AC583Feb2b1f288C0A51d6Cdca2e8c814BFE93A', // changed last character
+  MALFORMED_SOLANA_ADDRESS: 'CdLgY2DCG36HXCySCHoBnEb2cXWpar8BKhp8Nbxpnww0', // changed last character
   ORGANIZATIONS: [
     {
       name: 'Giveth',
@@ -1361,6 +1366,14 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
+    solana: [
+      {
+        name: 'Solana native token',
+        symbol: 'SOL',
+        address: '11111111111111111111111111111111',
+        decimals: 9,
+      },
+    ],
     goerli: [
       {
         name: 'Ethereum native token',
@@ -1756,6 +1769,10 @@ export const saveMainCategoryDirectlyToDb = async (
 
 export function generateRandomEtheriumAddress(): string {
   return `0x${generateHexNumber(40)}`;
+}
+
+export function generateRandomSolanaAddress(): string {
+  return Keypair.generate().publicKey.toString();
 }
 
 export function generateRandomTxHash(): string {

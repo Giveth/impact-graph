@@ -76,6 +76,7 @@ export const createProjectQuery = `
           address
           isRecipient
           networkId
+          chainType
         }
         adminUser{
           id
@@ -111,6 +112,7 @@ export const updateProjectQuery = `
         address
         isRecipient
         networkId
+        chainType
       }
       adminUser {
         id
@@ -118,18 +120,13 @@ export const updateProjectQuery = `
         email
         walletAddress
       }
-     addresses {
-      address
-      isRecipient
-      networkId
-    }
     }
   }
  `;
 
 export const addRecipientAddressToProjectQuery = `
-  mutation ($projectId: Float!, $networkId: Float!, $address: String!) {
-    addRecipientAddressToProject(projectId: $projectId, networkId: $networkId, address: $address) {
+  mutation ($projectId: Float!, $networkId: Float!, $address: String!, $chainType: ChainType) {
+    addRecipientAddressToProject(projectId: $projectId, networkId: $networkId, address: $address, chainType: $chainType) {
       id
       title
       description
@@ -152,6 +149,7 @@ export const addRecipientAddressToProjectQuery = `
         address
         isRecipient
         networkId
+        chainType
       }
       adminUser {
         id
@@ -159,11 +157,6 @@ export const addRecipientAddressToProjectQuery = `
         email
         walletAddress
       }
-     addresses {
-      address
-      isRecipient
-      networkId
-    }
     }
   }
  `;
@@ -621,6 +614,7 @@ export const fetchFeaturedProjects = `
           address
           isRecipient
           networkId
+          chainType
         }
         projectPower {
           totalPower
@@ -726,6 +720,7 @@ export const fetchMultiFilterAllProjectsQuery = `
           address
           isRecipient
           networkId
+          chainType
         }
         projectPower {
           totalPower
@@ -927,6 +922,7 @@ export const fetchProjectBySlugQuery = `
           relatedAddresses {
             address
             networkId
+            chainType
             title
           }
         }
@@ -951,6 +947,7 @@ export const fetchProjectBySlugQuery = `
         address
         isRecipient
         networkId
+        chainType
       }
       adminUser {
         id
@@ -1019,6 +1016,7 @@ export const fetchSimilarProjectsBySlugQuery = `
           address
           isRecipient
           networkId
+          chainType
         }
         adminUser {
           id
@@ -1079,6 +1077,7 @@ export const fetchLikedProjectsQuery = `
           address
           isRecipient
           networkId
+          chainType
         }
         adminUser {
           id
@@ -1316,6 +1315,7 @@ export const projectsBySlugsQuery = `
             address
             isRecipient
             networkId
+            chainType
           }
           organization {
             label
@@ -1391,6 +1391,7 @@ export const projectsByUserIdQuery = `
               relatedAddresses {
                 address
                 networkId
+                chainType
                 title
               }
             }
@@ -1409,6 +1410,7 @@ export const projectsByUserIdQuery = `
             address
             isRecipient
             networkId
+            chainType
           }
           organization {
             label
@@ -1453,6 +1455,7 @@ export const projectByIdQuery = `
         address
         isRecipient
         networkId
+        chainType
       }
       organization {
         name
@@ -1487,6 +1490,7 @@ export const getProjectsAcceptTokensQuery = `
       id
       symbol
       networkId
+      chainType
       decimals
       mainnetAddress
       name

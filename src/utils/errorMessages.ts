@@ -137,7 +137,7 @@ export const errorMessages = {
     'Transaction with this nonce is not mined already',
   TO_ADDRESS_OF_DONATION_SHOULD_BE_PROJECT_WALLET_ADDRESS:
     'toAddress of donation should be equal to project wallet address',
-  INVALID_WALLET_ADDRESS: 'Eth address not valid',
+  INVALID_WALLET_ADDRESS: 'Address not valid',
   INVALID_EMAIL: 'Email not valid',
   UN_AUTHORIZED: 'unAuthorized',
   BOTH_FIRST_NAME_AND_LAST_NAME_CANT_BE_EMPTY:

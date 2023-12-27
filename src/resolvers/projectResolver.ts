@@ -109,6 +109,8 @@ import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
+import { ChainType } from '../types/network';
+import { detectAddressChainType } from '../utils/networks';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
 
@@ -177,6 +179,11 @@ registerEnumType(OrderField, {
 registerEnumType(OrderDirection, {
   name: 'OrderDirection',
   description: 'Order direction',
+});
+
+registerEnumType(ChainType, {
+  name: 'ChainType',
+  description: 'Chain type (EVM or SOLANA)',
 });
 
 @InputType()
@@ -482,110 +489,95 @@ export class ProjectResolver {
 
   static addFiltersQuery(
     query: SelectQueryBuilder<Project>,
-    allFiltersArray: FilterField[] = [],
+    filtersArray: FilterField[] = [],
   ) {
-    if (!allFiltersArray || allFiltersArray.length === 0) return query;
-    const networkFiltersArray: FilterField[] = [];
-    const otherFiltersArray: FilterField[] = [];
-    allFiltersArray.forEach(filter => {
-      if (
-        filter === FilterField.AcceptFundOnGnosis ||
-        filter === FilterField.AcceptFundOnCelo ||
-        filter === FilterField.AcceptFundOnPolygon ||
-        filter === FilterField.AcceptFundOnMainnet ||
-        filter === FilterField.AcceptFundOnETC ||
-        filter === FilterField.AcceptFundOnOptimism
-      ) {
-        networkFiltersArray.push(filter);
-      } else {
-        otherFiltersArray.push(filter);
-      }
-    });
+    if (!filtersArray || filtersArray.length === 0) return query;
+    const networkIds: number[] = [];
+    let acceptFundOnSolanaSeen = false;
 
-    // Other filters
-    if (otherFiltersArray.length > 0) {
-      query = query.andWhere(
-        new Brackets(subQuery => {
-          otherFiltersArray.forEach(filter => {
-            if (filter === FilterField.AcceptGiv) {
-              // only giving Blocks do not accept Giv
-              return subQuery.andWhere(`project.${filter} IS NULL`);
-            }
-
-            if (filter === FilterField.GivingBlock) {
-              return subQuery.andWhere('project.givingBlocksId IS NOT NULL');
-            }
-
-            if (filter === FilterField.BoostedWithGivPower) {
-              return subQuery.andWhere(`projectPower.totalPower > 0`);
-            }
-            if (filter === FilterField.ActiveQfRound) {
-              return subQuery.andWhere(
-                `EXISTS (
+    filtersArray.forEach(filter => {
+      switch (filter) {
+        case FilterField.AcceptGiv:
+          // only giving Blocks do not accept Giv
+          return query.andWhere(`project.${filter} IS NULL`);
+        case FilterField.GivingBlock:
+          return query.andWhere('project.givingBlocksId IS NOT NULL');
+        case FilterField.BoostedWithGivPower:
+          return query.andWhere(`projectPower.totalPower > 0`);
+        case FilterField.ActiveQfRound:
+          return query.andWhere(
+            `EXISTS (
                         SELECT 1
                         FROM project_qf_rounds_qf_round
                         INNER JOIN qf_round on qf_round.id = project_qf_rounds_qf_round."qfRoundId"
                         WHERE project_qf_rounds_qf_round."projectId" = project.id AND qf_round."isActive" = true
                 )`,
-              );
-            }
-            return subQuery.andWhere(`project.${filter} = true`);
-          });
-        }),
-      );
-    }
+          );
+        case FilterField.AcceptFundOnGnosis:
+          networkIds.push(NETWORK_IDS.XDAI);
+          return;
+        case FilterField.AcceptFundOnMainnet:
+          networkIds.push(NETWORK_IDS.MAIN_NET);
 
-    // Network filters
-    if (networkFiltersArray.length > 0) {
-      query = query.andWhere(
+          // Add this to make sure works on Staging
+          networkIds.push(NETWORK_IDS.GOERLI);
+          return;
+        case FilterField.AcceptFundOnCelo:
+          networkIds.push(NETWORK_IDS.CELO);
+
+          // Add this to make sure works on Staging
+          networkIds.push(NETWORK_IDS.CELO_ALFAJORES);
+          return;
+        case FilterField.AcceptFundOnPolygon:
+          networkIds.push(NETWORK_IDS.POLYGON);
+          return;
+        case FilterField.AcceptFundOnOptimism:
+          networkIds.push(NETWORK_IDS.OPTIMISTIC);
+
+          // Add this to make sure works on Staging
+          networkIds.push(NETWORK_IDS.OPTIMISM_GOERLI);
+          return;
+        case FilterField.AcceptFundOnETC:
+          networkIds.push(NETWORK_IDS.ETC);
+
+          // Add this to make sure works on Staging
+          networkIds.push(NETWORK_IDS.MORDOR_ETC_TESTNET);
+          return;
+        case FilterField.AcceptFundOnSolana:
+          acceptFundOnSolanaSeen = true;
+          return;
+
+        default:
+          return query.andWhere(`project.${filter} = true`);
+      }
+    });
+
+    if (networkIds.length > 0 || acceptFundOnSolanaSeen) {
+      // TODO: This logic seems wrong! since only one of the following filters can be true at the same time
+      query.andWhere(
         new Brackets(subQuery => {
-          const networkIds: number[] = [];
-          networkFiltersArray.forEach(filter => {
-            if (filter === FilterField.AcceptFundOnGnosis) {
-              networkIds.push(NETWORK_IDS.XDAI);
-            }
-            if (filter === FilterField.AcceptFundOnMainnet) {
-              networkIds.push(NETWORK_IDS.MAIN_NET);
-
-              // Add this to make sure works on Staging
-              networkIds.push(NETWORK_IDS.GOERLI);
-            }
-
-            if (filter === FilterField.AcceptFundOnCelo) {
-              networkIds.push(NETWORK_IDS.CELO);
-
-              // Add this to make sure works on Staging
-              networkIds.push(NETWORK_IDS.CELO_ALFAJORES);
-            }
-
-            if (filter === FilterField.AcceptFundOnPolygon) {
-              networkIds.push(NETWORK_IDS.POLYGON);
-            }
-
-            if (filter === FilterField.AcceptFundOnOptimism) {
-              networkIds.push(NETWORK_IDS.OPTIMISTIC);
-
-              // Add this to make sure works on Staging
-              networkIds.push(NETWORK_IDS.OPTIMISM_GOERLI);
-            }
-
-            if (filter === FilterField.AcceptFundOnETC) {
-              networkIds.push(NETWORK_IDS.ETC);
-
-              // Add this to make sure works on Staging
-              networkIds.push(NETWORK_IDS.MORDOR_ETC_TESTNET);
-            }
-          });
-
-          return subQuery.andWhere(
-            `EXISTS (
+          if (networkIds.length > 0) {
+            subQuery.orWhere(
+              `EXISTS (
                         SELECT *
                         FROM project_address
-                        WHERE "isRecipient" = true AND "networkId" IN (${networkIds.join(
-                          ', ',
-                        )}) AND "projectId" = project.id
+                        WHERE "isRecipient" = true AND 
+                        "projectId" = project.id AND
+                        "networkId" IN (${networkIds.join(', ')}) 
                       )`,
-          );
+            );
+          }
+          if (acceptFundOnSolanaSeen) {
+            subQuery.orWhere(
+              `EXISTS (
+                        SELECT *
+                        FROM project_address
+                        WHERE "isRecipient" = true AND 
+                        "projectId" = project.id AND
+                        "chainType" = '${ChainType.SOLANA}'
+                      )`,
+            );
+          }
         }),
       );
     }
@@ -1050,6 +1042,7 @@ export class ProjectResolver {
             project,
             user: adminUser,
             address: relatedAddress.address,
+            chainType: relatedAddress.chainType,
             networkId: relatedAddress.networkId,
             isRecipient: true,
           };
@@ -1073,6 +1066,8 @@ export class ProjectResolver {
     @Arg('projectId') projectId: number,
     @Arg('networkId') networkId: number,
     @Arg('address') address: string,
+    @Arg('chainType', type => ChainType, { defaultValue: ChainType.EVM })
+    chainType: ChainType,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     if (!user)
@@ -1091,7 +1086,7 @@ export class ProjectResolver {
       );
     }
 
-    await validateProjectWalletAddress(address, projectId);
+    await validateProjectWalletAddress(address, projectId, chainType);
 
     const adminUser = (await findUserById(Number(project.admin))) as User;
     await addNewProjectAddress({
@@ -1100,6 +1095,7 @@ export class ProjectResolver {
       address,
       networkId,
       isRecipient: true,
+      chainType,
     });
 
     project.adminUser = adminUser;
@@ -1305,11 +1301,14 @@ export class ProjectResolver {
     // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
       projectInput?.addresses.map(relatedAddress => {
+        const { networkId, address, chainType } = relatedAddress;
         return {
           project,
           user,
-          address: relatedAddress.address.toLowerCase(),
-          networkId: relatedAddress.networkId,
+          address:
+            chainType === ChainType.EVM ? address.toLowerCase() : address,
+          chainType,
+          networkId,
           isRecipient: true,
         };
       }),

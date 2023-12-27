@@ -64,6 +64,8 @@ import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import { ethers } from 'ethers';
 import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
 import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
+import { detectAddressChainType } from '../utils/networks';
+import { ChainType } from '../types/network';
 
 @ObjectType()
 class PaginateDonations {
@@ -515,9 +517,7 @@ export class DonationResolver {
               searchTerm: `%${searchTerm}%`,
             });
 
-          // WalletAddresses are translanted to huge integers
-          // this breaks postgresql query integer limit
-          if (!ethers.utils.isAddress(searchTerm)) {
+          if (detectAddressChainType(searchTerm) === undefined) {
             const amount = Number(searchTerm);
 
             qb.orWhere('donation.amount = :number', {
@@ -537,24 +537,6 @@ export class DonationResolver {
       totalCount: donationsCount,
       totalUsdBalance: project.totalDonations,
     };
-  }
-
-  @Query(returns => [Token], { nullable: true })
-  async tokens() {
-    return getOurTokenList();
-  }
-
-  @Mutation(returns => [Number])
-  async getTokenPrice(
-    @Arg('symbol') symbol: string,
-    @Arg('chainId') chainId: number,
-  ) {
-    const prices = await getMonoSwapTokenPrices(
-      symbol,
-      ['USDT', 'ETH'],
-      Number(chainId),
-    );
-    return prices;
   }
 
   // TODO I think we can delete this resolver
@@ -631,40 +613,34 @@ export class DonationResolver {
       if (!donorUser) {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
-      validateWithJoiSchema(
-        {
-          amount,
-          transactionId,
-          transactionNetworkId,
-          anonymous,
-          tokenAddress,
-          token,
-          projectId,
-          nonce,
-          transakId,
-          referrerId,
-          safeTransactionId,
-        },
-        createDonationQueryValidator,
-      );
+      const chainType = detectAddressChainType(donorUser.walletAddress!);
 
-      let priceChainId: number;
-      switch (transactionNetworkId) {
-        case NETWORK_IDS.ROPSTEN:
-          priceChainId = NETWORK_IDS.MAIN_NET;
-          break;
-        case NETWORK_IDS.GOERLI:
-          priceChainId = NETWORK_IDS.MAIN_NET;
-          break;
-        case NETWORK_IDS.OPTIMISM_GOERLI:
-          priceChainId = NETWORK_IDS.OPTIMISTIC;
-          break;
-        case NETWORK_IDS.MORDOR_ETC_TESTNET:
-          priceChainId = NETWORK_IDS.ETC;
-          break;
-        default:
-          priceChainId = transactionNetworkId;
-          break;
+      try {
+        validateWithJoiSchema(
+          {
+            amount,
+            transactionId,
+            transactionNetworkId,
+            anonymous,
+            tokenAddress,
+            token,
+            projectId,
+            nonce,
+            transakId,
+            referrerId,
+            safeTransactionId,
+          },
+          createDonationQueryValidator,
+        );
+      } catch (e) {
+        // Joi alternatives does not handle custom errors, have to catch them.
+        if (e.message.includes('does not match any of the allowed types')) {
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.INVALID_TRANSACTION_ID),
+          );
+        } else {
+          throw e; // Rethrow the original error
+        }
       }
 
       const project = await findProjectById(projectId);
@@ -716,11 +692,20 @@ export class DonationResolver {
           ),
         );
       }
-      const toAddress = projectRelatedAddress?.address.toLowerCase() as string;
-      const fromAddress = donorUser.walletAddress?.toLowerCase() as string;
+      let toAddress = projectRelatedAddress?.address;
+      let fromAddress = donorUser.walletAddress!;
+      let transactionTx = transactionId;
+
+      // Keep the flow the same as before if it's EVM
+      if (chainType === ChainType.EVM) {
+        toAddress = toAddress?.toLowerCase();
+        fromAddress = fromAddress?.toLowerCase();
+        transactionTx = transactionId?.toLowerCase() as string;
+      }
+
       const donation = await Donation.create({
         amount: Number(amount),
-        transactionId: transactionId?.toLowerCase() || transakId,
+        transactionId: transactionTx,
         isFiat: Boolean(transakId),
         transactionNetworkId: Number(transactionNetworkId),
         currency: token,
@@ -733,10 +718,11 @@ export class DonationResolver {
         isProjectVerified: project.verified,
         createdAt: new Date(),
         segmentNotified: false,
-        toWalletAddress: toAddress.toString().toLowerCase(),
-        fromWalletAddress: fromAddress.toString().toLowerCase(),
+        toWalletAddress: toAddress,
+        fromWalletAddress: fromAddress,
         anonymous: Boolean(anonymous),
         safeTransactionId,
+        chainType: chainType as ChainType,
       });
       if (referrerId) {
         // Fill referrer data if referrerId is valid
@@ -771,6 +757,30 @@ export class DonationResolver {
       }
       await donation.save();
 
+      let priceChainId =
+        transactionNetworkId === NETWORK_IDS.ROPSTEN ||
+        transactionNetworkId === NETWORK_IDS.GOERLI
+          ? NETWORK_IDS.MAIN_NET
+          : transactionNetworkId;
+
+      switch (transactionNetworkId) {
+        case NETWORK_IDS.ROPSTEN:
+          priceChainId = NETWORK_IDS.MAIN_NET;
+          break;
+        case NETWORK_IDS.GOERLI:
+          priceChainId = NETWORK_IDS.MAIN_NET;
+          break;
+        case NETWORK_IDS.OPTIMISM_GOERLI:
+          priceChainId = NETWORK_IDS.OPTIMISTIC;
+          break;
+        case NETWORK_IDS.MORDOR_ETC_TESTNET:
+          priceChainId = NETWORK_IDS.ETC;
+          break;
+        default:
+          priceChainId = transactionNetworkId;
+          break;
+      }
+
       await updateDonationPricesAndValues(
         donation,
         project,
@@ -778,6 +788,7 @@ export class DonationResolver {
         token,
         priceChainId,
         amount,
+        chainType!,
       );
 
       return donation.id;

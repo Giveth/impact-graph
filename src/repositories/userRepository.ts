@@ -3,7 +3,9 @@ import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsS
 import { Donation } from '../entities/donation';
 import { Reaction } from '../entities/reaction';
 import { PowerBoosting } from '../entities/powerBoosting';
+import { ethers } from 'ethers';
 import { Project, ProjStatus, ReviewStatus } from '../entities/project';
+import { isEvmAddress } from '../utils/networks';
 
 export const findAdminUserByEmail = async (
   email: string,
@@ -96,10 +98,13 @@ export const findAllUsers = async (params: {
 };
 
 export const createUserWithPublicAddress = async (
-  walletAddress: string,
+  _walletAddress: string,
 ): Promise<User> => {
+  const walletAddress = isEvmAddress(_walletAddress)
+    ? _walletAddress.toLocaleLowerCase()
+    : _walletAddress;
   const user = await User.create({
-    walletAddress: walletAddress.toLowerCase(),
+    walletAddress,
     loginType: 'wallet',
     segmentIdentified: true,
   }).save();

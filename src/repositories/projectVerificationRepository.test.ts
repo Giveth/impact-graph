@@ -9,6 +9,7 @@ import {
 import {
   createProjectData,
   generateRandomEtheriumAddress,
+  generateRandomSolanaAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
@@ -28,6 +29,8 @@ import {
   verifyMultipleForms,
 } from './projectVerificationRepository';
 import { assert } from 'chai';
+import { ChainType } from '../types/network';
+import { ProjectAddress } from '../entities/projectAddress';
 
 describe(
   'createProjectVerificationForm test cases',
@@ -274,6 +277,12 @@ function updateManagingFundsOfProjectVerificationTestCases() {
           address: generateRandomEtheriumAddress(),
           networkId: 100,
         },
+        {
+          title: 'thirdAddress',
+          address: generateRandomSolanaAddress(),
+          networkId: 0,
+          chainType: ChainType.SOLANA,
+        },
       ],
     };
     const updatedProjectVerification =
@@ -281,14 +290,7 @@ function updateManagingFundsOfProjectVerificationTestCases() {
         projectVerificationId: projectVerificationForm.id,
         managingFunds,
       });
-    assert.equal(
-      updatedProjectVerification?.managingFunds.relatedAddresses.length,
-      managingFunds.relatedAddresses.length,
-    );
-    assert.equal(
-      updatedProjectVerification?.managingFunds.description,
-      managingFunds.description,
-    );
+    assert.deepEqual(updatedProjectVerification?.managingFunds, managingFunds);
   });
 }
 
