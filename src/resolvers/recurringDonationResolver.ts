@@ -45,7 +45,7 @@ export class RecurringDonationResolver {
     if (!currentAnchorProjectAddress) {
       throw new Error(
         i18n.__(
-          translationErrorMessagesKeys.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
+          translationErrorMessagesKeys.THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
         ),
       );
     }
