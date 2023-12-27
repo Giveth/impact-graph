@@ -149,7 +149,50 @@ function addAnchorContractAddressTestCases() {
     assert.isNull(result.data.data.addAnchorContractAddress);
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT,
+      errorMessages.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
+    );
+  });
+
+  it('should return error when project already has anchor contract address and creator is the project owner', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    await addNewAnchorAddress({
+      address: generateRandomEtheriumAddress(),
+      project,
+      creator: projectOwner,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      owner: projectOwner,
+      txHash: generateRandomTxHash(),
+    });
+
+    const accessToken = await generateTestAccessToken(projectOwner.id);
+    const contractAddress = generateRandomEtheriumAddress();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createAnchorContractAddressQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          address: contractAddress,
+          txHash: generateRandomTxHash(),
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isNull(result.data.data.addAnchorContractAddress);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
     );
   });
 

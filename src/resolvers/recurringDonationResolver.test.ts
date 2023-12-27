@@ -163,7 +163,7 @@ function createRecurringDonationTestCases() {
     assert.isNull(result.data.data.createRecurringDonation);
     assert.equal(
       result.data.errors[0].message,
-      errorMessages.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT,
+      errorMessages.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
     );
   });
 }

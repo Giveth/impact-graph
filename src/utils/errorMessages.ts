@@ -96,8 +96,8 @@ export const errorMessages = {
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'You dont have access to deactivate this project',
   PROJECT_NOT_FOUND: 'Project not found.',
-  THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT:
-    'There is already an anchor address for this project, only project owner can change it',
+  THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
+    'There is already an anchor address for this project',
   PROJECT_DOESNT_HAVE_ANY_ADDRESS_ON_THIS_NETWORK_FOR_RECURRING_DONATION:
     'Project doesnt have any address on this network for recurring donation',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
@@ -262,8 +262,8 @@ export const translationErrorMessagesKeys = {
   PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
-  THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT:
-    'There is already an anchor address for this project, only project owner can change it',
+  THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
+    'There is already an anchor address for this project',
   PROJECT_DOESNT_HAVE_ANY_ADDRESS_ON_THIS_NETWORK_FOR_RECURRING_DONATION:
     'Project doesnt have any address on this network for recurring donation',
   PROJECT_IS_NOT_ACTIVE: 'PROJECT_IS_NOT_ACTIVE',

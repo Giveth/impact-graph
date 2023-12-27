@@ -15,7 +15,6 @@ import {
 } from '../repositories/anchorContractAddressRepository';
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
-import { Donation } from '../entities/donation';
 
 @Resolver(of => AnchorContractAddress)
 export class AnchorContractAddressResolver {
@@ -41,13 +40,10 @@ export class AnchorContractAddressResolver {
       networkId,
     });
 
-    if (
-      currentAnchorProjectAddress &&
-      project.adminUser.id !== creatorUser.id
-    ) {
+    if (currentAnchorProjectAddress) {
       throw new Error(
         i18n.__(
-          translationErrorMessagesKeys.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT_ONLY_ADMIN_CAN_CHANGE_IT,
+          translationErrorMessagesKeys.THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
         ),
       );
     }
