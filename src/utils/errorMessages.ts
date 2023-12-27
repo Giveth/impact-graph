@@ -98,6 +98,8 @@ export const errorMessages = {
   PROJECT_NOT_FOUND: 'Project not found.',
   THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
     'There is already an anchor address for this project',
+  THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:
+    'There is not anchor address for this project',
   PROJECT_DOESNT_HAVE_ANY_ADDRESS_ON_THIS_NETWORK_FOR_RECURRING_DONATION:
     'Project doesnt have any address on this network for recurring donation',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
