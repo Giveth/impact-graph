@@ -13,6 +13,7 @@ import {
 import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
+import { ChainType } from '../types/network';
 
 @Entity()
 @ObjectType()
@@ -30,6 +31,14 @@ export class ProjectAddress extends BaseEntity {
   @Field()
   @Column()
   networkId: number;
+
+  @Field(type => String)
+  @Column({
+    type: 'enum',
+    enum: ChainType,
+    default: ChainType.EVM,
+  })
+  chainType: ChainType;
 
   @Index()
   @Field()

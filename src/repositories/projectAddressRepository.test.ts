@@ -12,6 +12,7 @@ import {
 import {
   createProjectData,
   generateRandomEtheriumAddress,
+  generateRandomSolanaAddress,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
@@ -19,6 +20,7 @@ import { assert } from 'chai';
 import { NETWORK_IDS } from '../provider';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjStatus } from '../entities/project';
+import { ChainType } from '../types/network';
 
 describe('getPurpleListAddresses test cases', getPurpleListAddressesTestCases);
 describe(
@@ -148,6 +150,7 @@ function addNewProjectAddressTestCases() {
       networkId: NETWORK_IDS.XDAI,
       project,
       user,
+      chainType: ChainType.EVM,
     });
     assert.isOk(newRelatedAddress);
     assert.equal(newRelatedAddress.address, newAddress),
@@ -203,6 +206,7 @@ function addBulkNewProjectAddressTestCases() {
       {
         address: newAddress,
         networkId: NETWORK_IDS.XDAI,
+        chainType: ChainType.EVM,
         project,
         user,
       },
@@ -225,16 +229,26 @@ function addBulkNewProjectAddressTestCases() {
     });
     const newAddress1 = generateRandomEtheriumAddress();
     const newAddress2 = generateRandomEtheriumAddress();
+    const newAddress3 = generateRandomSolanaAddress();
     await addBulkNewProjectAddress([
       {
         address: newAddress1,
         networkId: NETWORK_IDS.XDAI,
+        chainType: ChainType.EVM,
         project,
         user,
       },
       {
         address: newAddress2,
         networkId: NETWORK_IDS.XDAI,
+        chainType: ChainType.EVM,
+        project,
+        user,
+      },
+      {
+        address: newAddress3,
+        networkId: 0,
+        chainType: ChainType.SOLANA,
         project,
         user,
       },

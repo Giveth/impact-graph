@@ -16,6 +16,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { SocialProfile } from './socialProfile';
+import { ChainType } from '../types/network';
 
 export enum PROJECT_VERIFICATION_STATUSES {
   VERIFIED = 'verified',
@@ -96,6 +97,8 @@ export class FormRelatedAddress {
   address: string;
   @Field({ nullable: true })
   networkId: number;
+  @Field(type => ChainType, { defaultValue: ChainType.EVM })
+  chainType?: ChainType;
 }
 
 @ObjectType()
