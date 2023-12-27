@@ -12,7 +12,6 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { getTransactionInfoFromNetwork } from './transactionService';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice, fetchGivPrice } from './givPriceService';
@@ -44,6 +43,7 @@ import { getPowerRound } from '../repositories/powerRoundRepository';
 import { fetchSafeTransactionHash } from './safeServices';
 import { ChainType } from '../types/network';
 import { NETWORK_IDS } from '../provider';
+import { getTransactionInfoFromNetwork } from './chains';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 

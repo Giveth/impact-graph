@@ -65,6 +65,7 @@ jobs:
           CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
           MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
           ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
+          SOLANA_NODE_RPC_URL: ${{ secrets.SOLANA_NODE_RPC_URL }}
 
   publish:
     needs: test

@@ -1,100 +1,14 @@
+import { NETWORK_IDS } from '../../provider';
 import { assert } from 'chai';
-import 'mocha';
-import {
-  getDisperseTransactions,
-  getTransactionInfoFromNetwork,
-} from './transactionService';
-import { assertThrowsAsync } from '../../test/testUtils';
-import { errorMessages } from '../utils/errorMessages';
-import { NETWORK_IDS } from '../provider';
+import { assertThrowsAsync } from '../../../test/testUtils';
+import { errorMessages } from '../../utils/errorMessages';
 import moment from 'moment';
+import { getTransactionInfoFromNetwork } from './index';
+import { ChainType } from '../../types/network';
+
 const ONE_DAY = 60 * 60 * 24;
+
 describe('getTransactionDetail test cases', getTransactionDetailTestCases);
-describe(
-  'getDisperseTransactions test cases',
-  getDisperseTransactionsTestCases,
-);
-
-function getDisperseTransactionsTestCases() {
-  it('Should return transactions, for disperseEther on xdai', async () => {
-    // https://blockscout.com/xdai/mainnet/tx/0xfef76283e0ed4d58e0e7982b5f4ccc6867e7d4ef85b9dc78f37ee202064fd1df
-    const transactions = await getDisperseTransactions(
-      '0xfef76283e0ed4d58e0e7982b5f4ccc6867e7d4ef85b9dc78f37ee202064fd1df',
-      NETWORK_IDS.XDAI,
-    );
-    assert.isArray(transactions);
-    assert.equal(transactions.length, 7);
-    assert.equal(
-      transactions[0].from,
-      '0x839395e20bbb182fa440d08f850e6c7a8f6f0780',
-    );
-    assert.equal(
-      transactions[6].to,
-      '0xf2f03516e4bf21dadffc69a4c8e858497fe4edbc',
-    );
-    assert.equal(transactions[1].amount, 1760);
-    assert.equal(transactions[3].currency, 'XDAI');
-  });
-  it('Should return transactions, for disperseToken USDC on xdai', async () => {
-    // https://blockscout.com/xdai/mainnet/tx/0x44efb6052ac0496ee96aa6d3dae5e99b5c3896b8db90cad866fc25e8958173a9
-    const transactions = await getDisperseTransactions(
-      '0x44efb6052ac0496ee96aa6d3dae5e99b5c3896b8db90cad866fc25e8958173a9',
-      NETWORK_IDS.XDAI,
-    );
-    assert.isArray(transactions);
-    assert.equal(transactions.length, 9);
-    assert.equal(
-      transactions[0].from,
-      '0x7da9a33d15413f499299687cc9d81de84684e28e',
-    );
-    assert.equal(
-      transactions[8].to,
-      '0xa8243199049357763784ca3411090dcf3c0cc14d',
-    );
-    assert.equal(transactions[2].amount, 7.17);
-    assert.equal(transactions[3].currency, 'USDC');
-  });
-
-  // it('Should return transactions, for disperseEther on mainnet', async () => {
-  //   // https://etherscan.io/tx/0x716a32c18bd487ea75db1838e7d778a95dfc602dca651beeae65b801cb975c99
-  //   const transactions = await getDisperseTransactions(
-  //     '0x716a32c18bd487ea75db1838e7d778a95dfc602dca651beeae65b801cb975c99',
-  //     NETWORK_IDS.MAIN_NET,
-  //   );
-  //   assert.isArray(transactions);
-  //   assert.equal(transactions.length, 2);
-  //   assert.equal(
-  //     transactions[0].from,
-  //     '0x9adb3bbc174c73c7539cbadc7e33a83ef7bdcb31',
-  //   );
-  //   assert.equal(
-  //     transactions[0].to,
-  //     '0x669dee1a14dca82b917ab2e51110791b9253900f',
-  //   );
-  //   assert.equal(transactions[0].amount, 0.2);
-  //   assert.equal(transactions[1].currency, 'ETH');
-  // });
-
-  // it('Should return transactions, for disperseToken USDC on mainnet', async () => {
-  //   // https://etherscan.io/tx/0x613ab48576971933f8745e867d38fe9ac468e4b893bdd0c71cdaac34c474d18c
-  //   const transactions = await getDisperseTransactions(
-  //     '0x613ab48576971933f8745e867d38fe9ac468e4b893bdd0c71cdaac34c474d18c',
-  //     NETWORK_IDS.MAIN_NET,
-  //   );
-  //   assert.isArray(transactions);
-  //   assert.equal(transactions.length, 4);
-  //   assert.equal(
-  //     transactions[0].from,
-  //     '0xf0fbaaa7ece80ac41508e442929b81a4c8c8543b',
-  //   );
-  //   assert.equal(
-  //     transactions[0].to,
-  //     '0x24dababee6bf5f221b64890e424609ff43d6e148',
-  //   );
-  //   assert.equal(transactions[2].amount, 1000);
-  //   assert.equal(transactions[3].currency, 'USDC');
-  // });
-}
 
 function getTransactionDetailTestCases() {
   // it('should return transaction detail for normal transfer on gnosis when it belongs to a multisig', async () => {
@@ -957,4 +871,66 @@ function getTransactionDetailTestCases() {
   //   assert.equal(transactionInfo.currency, 'HNY');
   //   assert.equal(transactionInfo.amount, amount);
   // });
+
+  /// SOLANA
+  it('should return transaction detail for SOL transfer on Solana ', async () => {
+    // https://explorer.solana.com/tx/5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8?cluster=devnet
+    const amount = 0.001;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8',
+      symbol: 'SOL',
+      chainType: ChainType.SOLANA,
+      networkId: NETWORK_IDS.SOLANA,
+      fromAddress: '5GECDSGSWmMuw6nMfmdBLapa91ZHDZeHqRP1fqvQokjY',
+      toAddress: 'DvWdrYYkwyM9mnTetpr3HBHUBKZ22QdbFEXQ8oquE7Zb',
+      timestamp: 1702931400,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'SOL');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for SOL transfer on Solana #2', async () => {
+    // https://explorer.solana.com/tx/3nzHwgxAu7mKw1dhGTVmqzY8Yet3kGWWqP5kr5D2fw1HzqPjqDGDe6xT5PguKXk8nAJcK4GpBEKWw7EzoLykKkCx?cluster=devnet
+    const amount = 1;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '3nzHwgxAu7mKw1dhGTVmqzY8Yet3kGWWqP5kr5D2fw1HzqPjqDGDe6xT5PguKXk8nAJcK4GpBEKWw7EzoLykKkCx',
+      symbol: 'SOL',
+      chainType: ChainType.SOLANA,
+      networkId: NETWORK_IDS.SOLANA,
+      fromAddress: '9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g',
+      toAddress: 'GEhUKKZeENY1TmaavqvLJ5GbbQs9GkzECFSE2bpjzz3k',
+      timestamp: 1701289800,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'SOL');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return error when transaction time is newer than sent timestamp for SOL transfer on Solana', async () => {
+    // https://explorer.solana.com/tx/5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8?cluster=devnet
+
+    const amount = 0.001;
+    const badFunc = async () => {
+      await getTransactionInfoFromNetwork({
+        txHash:
+          '5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8',
+        symbol: 'SOL',
+        chainType: ChainType.SOLANA,
+        networkId: NETWORK_IDS.SOLANA,
+        fromAddress: '5GECDSGSWmMuw6nMfmdBLapa91ZHDZeHqRP1fqvQokjY',
+        toAddress: 'DvWdrYYkwyM9mnTetpr3HBHUBKZ22QdbFEXQ8oquE7Zb',
+        timestamp: 1702931400 + ONE_DAY,
+        amount,
+      });
+    };
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
+    );
+  });
 }
