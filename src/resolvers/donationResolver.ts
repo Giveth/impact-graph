@@ -624,6 +624,23 @@ export class DonationResolver {
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
   ): Promise<Number> {
+    const logData = {
+      amount,
+      transactionId,
+      transactionNetworkId,
+      tokenAddress,
+      anonymous,
+      token,
+      projectId,
+      nonce,
+      transakId,
+      referrerId,
+      userId: ctx?.req?.user?.userId,
+    };
+    logger.info(
+      'createDonation() resolver has been called with this data',
+      logData,
+    );
     try {
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);
@@ -780,7 +797,10 @@ export class DonationResolver {
       return donation.id;
     } catch (e) {
       SentryLogger.captureException(e);
-      logger.error('createDonation() error', e);
+      logger.error('createDonation() error', {
+        error: e,
+        inputData: logData,
+      });
       throw e;
     }
   }
