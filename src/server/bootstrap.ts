@@ -67,8 +67,7 @@ import {
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
-import { runSyncIdrissTwitterDonations } from '../services/cronJobs/syncIdrissTwitterDonations';
-import { getTwitterDonations } from '../services/Idriss/contractDonations';
+import { dappCors } from './cors';
 
 Resource.validate = validate;
 
@@ -197,42 +196,14 @@ export async function bootstrap() {
 
     // Express Server
     const app = express();
-    const whitelistHostnames: string[] = (
-      config.get('HOSTNAME_WHITELIST') as string
-    ).split(',');
-    const corsOptions = {
-      origin(origin, callback) {
-        if (!origin) {
-          // allow requests with no origin (like mobile apps, Curl, ...)
-          return callback(null, true);
-        }
-
-        // removing http:// , https://, and :port
-        const formattedOrigin = origin
-          .replace('https://', '')
-          .replace('http://', '')
-          .split(':')[0];
-
-        for (const allowedOrigin of whitelistHostnames) {
-          // passing all subdomains of whitelist hosts, for instance x.vercel.app, x.giveth.io,...
-          if (
-            formattedOrigin === allowedOrigin ||
-            formattedOrigin.endsWith(`.${allowedOrigin}`)
-          ) {
-            return callback(null, true);
-          }
-        }
-
-        logger.error('CORS error', { whitelistHostnames, origin });
-        callback(new Error('Not allowed by CORS'));
-      },
-    };
     const bodyParserJson = bodyParser.json({
       limit: (config.get('UPLOAD_FILE_MAX_SIZE') as number) || '5mb',
     });
 
     app.use(setI18nLocaleForRequest); // accept-language header
-    app.use(cors(corsOptions));
+    if (process.env.DISABLE_SERVER_CORS !== 'true') {
+      app.use(cors(dappCors));
+    }
     app.use(bodyParserJson);
 
     if (process.env.DISABLE_SERVER_RATE_LIMITER !== 'true') {
