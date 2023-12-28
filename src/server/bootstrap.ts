@@ -67,7 +67,7 @@ import {
 import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
-import { dappCors } from './cors';
+import { corsOptions } from './cors';
 
 Resource.validate = validate;
 
@@ -202,7 +202,7 @@ export async function bootstrap() {
 
     app.use(setI18nLocaleForRequest); // accept-language header
     if (process.env.DISABLE_SERVER_CORS !== 'true') {
-      app.use(cors(dappCors));
+      app.use(cors(corsOptions));
     }
     app.use(bodyParserJson);
 

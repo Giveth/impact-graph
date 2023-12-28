@@ -5,7 +5,7 @@ const whitelistHostnames: string[] = (
   config.get('HOSTNAME_WHITELIST') as string
 ).split(',');
 
-export const dappCors = {
+export const corsOptions = {
   origin(origin, callback) {
     if (!origin) {
       // allow requests with no origin (like mobile apps, Curl, ...)
