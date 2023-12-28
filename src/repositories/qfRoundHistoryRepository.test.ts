@@ -39,6 +39,7 @@ function fillQfRoundHistoryTestCases() {
       name: 'test',
       allocatedFund: 100,
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     });
@@ -336,6 +337,7 @@ function getQfRoundHistoriesThatDontHaveRelatedDonationsTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 8,
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),

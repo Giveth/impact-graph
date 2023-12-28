@@ -7,18 +7,25 @@ import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificati
 import { findProjectById } from '../../repositories/projectRepository';
 import { titleWithoutSpecialCharacters } from '../utils';
 import { ethers } from 'ethers';
+import { ChainType } from '../../types/network';
+import { detectAddressChainType } from '../networks';
 
-export function isWalletAddressValid(address) {
-  return Boolean(
-    address && address.length === 42 && ethers.utils.isAddress(address),
-  );
+export function isWalletAddressValid(address, chainType?: ChainType) {
+  if (!address) {
+    return false;
+  }
+  const detectedChainType = detectAddressChainType(address);
+  return chainType === undefined
+    ? detectedChainType !== undefined
+    : chainType === detectedChainType;
 }
 
 export const validateProjectWalletAddress = async (
   walletAddress: string,
   projectId?: number,
+  chainType?: ChainType,
 ): Promise<boolean> => {
-  if (!isWalletAddressValid(walletAddress)) {
+  if (!isWalletAddressValid(walletAddress, chainType)) {
     throw new Error(
       i18n.__(translationErrorMessagesKeys.INVALID_WALLET_ADDRESS),
     );
@@ -28,13 +35,16 @@ export const validateProjectWalletAddress = async (
   // );
   // if (isSmartContractWallet) {
   //   throw new Error(
-  //     `Eth address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
+  //     `Address ${walletAddress} is a smart contract. We do not support smart contract wallets at this time because we use multiple blockchains, and there is a risk of your losing donations.`,
   //   );
   // }
-  const relatedAddress = await findRelatedAddressByWalletAddress(walletAddress);
+  const relatedAddress = await findRelatedAddressByWalletAddress(
+    walletAddress,
+    chainType,
+  );
   if (relatedAddress && relatedAddress?.project?.id !== projectId) {
     throw new Error(
-      `Eth address ${walletAddress} is already being used for a project`,
+      `Address ${walletAddress} is already being used for a project`,
     );
   }
   return true;
@@ -49,7 +59,11 @@ export const validateProjectRelatedAddresses = async (
     );
   }
   for (const relateAddress of relatedAddresses) {
-    await validateProjectWalletAddress(relateAddress.address, projectId);
+    await validateProjectWalletAddress(
+      relateAddress.address,
+      projectId,
+      relateAddress.chainType,
+    );
   }
 };
 

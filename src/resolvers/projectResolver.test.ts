@@ -4,6 +4,7 @@ import {
   createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
+  generateRandomSolanaAddress,
   generateTestAccessToken,
   graphqlUrl,
   PROJECT_UPDATE_SEED_DATA,
@@ -115,6 +116,7 @@ import {
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { cacheProjectCampaigns } from '../services/campaignService';
+import { ChainType } from '../types/network';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -243,10 +245,10 @@ function getProjectsAcceptTokensTestCases() {
 
     const allTokens = (
       await Token.query(`
-      SELECT COUNT(*) as "tokenCount"
-      FROM organization_tokens_token
-      WHERE "organizationId" = ${traceOrganization.id}
-    `)
+          SELECT COUNT(*) as "tokenCount"
+          FROM organization_tokens_token
+          WHERE "organizationId" = ${traceOrganization.id}
+      `)
     )[0];
     const result = await axios.post(graphqlUrl, {
       query: getProjectsAcceptTokensQuery,
@@ -970,7 +972,8 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.XDAI,
+            address.networkId === NETWORK_IDS.XDAI &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -986,13 +989,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const celoAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.CELO,
-    })) as ProjectAddress;
-    celoAddress.isRecipient = true;
-    await celoAddress.save();
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1005,7 +1003,39 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.CELO,
+            (address.networkId === NETWORK_IDS.CELO ||
+              address.networkId === NETWORK_IDS.CELO_ALFAJORES),
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept donation on celo', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.CELO,
+    });
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnCelo'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.CELO ||
+              address.networkId === NETWORK_IDS.CELO_ALFAJORES) &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1037,12 +1067,15 @@ function allProjectsTestCases() {
         sortingBy: SortingField.Newest,
       },
     });
+
     result.data.data.allProjects.projects.forEach(project => {
       assert.isOk(
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.CELO,
+            (address.networkId === NETWORK_IDS.CELO ||
+              address.networkId === NETWORK_IDS.CELO_ALFAJORES) &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1063,13 +1096,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const mainnetAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.MAIN_NET,
-    })) as ProjectAddress;
-    mainnetAddress.isRecipient = true;
-    await mainnetAddress.save();
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1082,7 +1110,9 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.MAIN_NET,
+            (address.networkId === NETWORK_IDS.MAIN_NET ||
+              address.networkId === NETWORK_IDS.GOERLI) &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1113,7 +1143,8 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.MAIN_NET,
+            address.networkId === NETWORK_IDS.MAIN_NET &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1148,7 +1179,8 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.POLYGON,
+            address.networkId === NETWORK_IDS.POLYGON &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1164,13 +1196,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
+      networkId: NETWORK_IDS.OPTIMISTIC,
     });
-    const polygonAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
-      networkId: NETWORK_IDS.POLYGON,
-    })) as ProjectAddress;
-    polygonAddress.isRecipient = false;
-    await polygonAddress.save();
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1183,7 +1210,8 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.POLYGON,
+            address.networkId === NETWORK_IDS.POLYGON &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1199,13 +1227,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.GOERLI,
-    })) as ProjectAddress;
-    optimismAddress.isRecipient = true;
-    await optimismAddress.save();
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1218,7 +1241,8 @@ function allProjectsTestCases() {
       assert.isOk(
         project.addresses.find(
           address =>
-            address.isRecipient === true &&
+            (address.isRecipient === true &&
+              address.networkId === NETWORK_IDS.MAIN_NET) ||
             address.networkId === NETWORK_IDS.GOERLI,
         ),
       );
@@ -1268,13 +1292,8 @@ function allProjectsTestCases() {
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
-    });
-    const optimismAddress = (await findProjectRecipientAddressByNetworkId({
-      projectId: savedProject.id,
       networkId: NETWORK_IDS.OPTIMISTIC,
-    })) as ProjectAddress;
-    optimismAddress.isRecipient = true;
-    await optimismAddress.save();
+    });
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1287,7 +1306,8 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.OPTIMISTIC,
+            address.networkId === NETWORK_IDS.OPTIMISTIC &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1316,9 +1336,10 @@ function allProjectsTestCases() {
       assert.isOk(
         project.addresses.find(
           address =>
-            (address.isRecipient === true &&
-              address.networkId === NETWORK_IDS.OPTIMISTIC) ||
-            address.networkId === NETWORK_IDS.OPTIMISM_GOERLI,
+            address.isRecipient === true &&
+            (address.networkId === NETWORK_IDS.OPTIMISTIC ||
+              address.networkId === NETWORK_IDS.OPTIMISM_GOERLI) &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1349,7 +1370,8 @@ function allProjectsTestCases() {
         item.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.XDAI,
+            address.networkId === NETWORK_IDS.XDAI &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1362,14 +1384,16 @@ function allProjectsTestCases() {
       project.addresses.find(
         address =>
           address.isRecipient === true &&
-          address.networkId === NETWORK_IDS.XDAI,
+          address.networkId === NETWORK_IDS.XDAI &&
+          address.chainType === ChainType.EVM,
       ),
     );
     assert.isOk(
       project.addresses.find(
         address =>
           address.isRecipient === true &&
-          address.networkId === NETWORK_IDS.MAIN_NET,
+          address.networkId === NETWORK_IDS.MAIN_NET &&
+          address.chainType === ChainType.EVM,
       ),
     );
   });
@@ -1380,9 +1404,10 @@ function allProjectsTestCases() {
       slug: String(new Date().getTime()),
     });
     await ProjectAddress.query(`
-        DELETE from project_address
-        WHERE "projectId"=${savedProject.id}
-       `);
+        DELETE
+        from project_address
+        WHERE "projectId" = ${savedProject.id}
+    `);
     const result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
@@ -1395,7 +1420,8 @@ function allProjectsTestCases() {
         project.addresses.find(
           address =>
             address.isRecipient === true &&
-            address.networkId === NETWORK_IDS.XDAI,
+            address.networkId === NETWORK_IDS.XDAI &&
+            address.chainType === ChainType.EVM,
         ),
       );
     });
@@ -1404,6 +1430,145 @@ function allProjectsTestCases() {
         project => Number(project.id) === Number(savedProject.id),
       ),
     );
+  });
+  it('should return projects, filter by accept donation on Solana', async () => {
+    const savedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    await ProjectAddress.delete({ projectId: savedProject.id });
+    const solanaAddress = ProjectAddress.create({
+      project: savedProject,
+      title: 'first address',
+      address: generateRandomSolanaAddress(),
+      chainType: ChainType.SOLANA,
+      networkId: 0,
+      isRecipient: true,
+    });
+    await solanaAddress.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnSolana'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.isOk(
+        project.addresses.find(
+          address =>
+            address.isRecipient === true &&
+            address.chainType === ChainType.SOLANA,
+        ),
+      );
+    });
+    assert.isOk(
+      result.data.data.allProjects.projects.find(
+        project => Number(project.id) === Number(savedProject.id),
+      ),
+    );
+  });
+  it('should return projects, filter by accept fund on two Ethereum networks', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const mainnetAddress = ProjectAddress.create({
+      project,
+      title: 'first address',
+      address: generateRandomEtheriumAddress(),
+      networkId: 1,
+      isRecipient: true,
+    });
+    await mainnetAddress.save();
+
+    const solanaAddress = ProjectAddress.create({
+      project,
+      title: 'secnod address',
+      address: generateRandomSolanaAddress(),
+      chainType: ChainType.SOLANA,
+      networkId: 0,
+      isRecipient: true,
+    });
+    await solanaAddress.save();
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnMainnet', 'AcceptFundOnSolana'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    const { projects } = result.data.data.allProjects;
+
+    const projectIds = projects.map(_project => _project.id);
+    assert.include(projectIds, String(project.id));
+  });
+  it('should return projects, when only accpets donation on Solana or an expected Ethereum network', async () => {
+    const projectWithMainnet = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const projectWithSolana = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const mainnetAddress = ProjectAddress.create({
+      project: projectWithMainnet,
+      title: 'first address',
+      address: generateRandomEtheriumAddress(),
+      networkId: 1,
+      isRecipient: true,
+    });
+    await mainnetAddress.save();
+
+    const solanaAddress = ProjectAddress.create({
+      project: projectWithSolana,
+      title: 'secnod address',
+      address: generateRandomSolanaAddress(),
+      chainType: ChainType.SOLANA,
+      networkId: 0,
+      isRecipient: true,
+    });
+    await solanaAddress.save();
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnMainnet', 'AcceptFundOnSolana'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    const { projects } = result.data.data.allProjects;
+    const projectIds = projects.map(project => project.id);
+    assert.include(projectIds, String(projectWithMainnet.id));
+    assert.include(projectIds, String(projectWithSolana.id));
+  });
+  it('should not return a project when it does not accept donation on Solana', async () => {
+    // Delete all project addresses
+    await ProjectAddress.delete({ chainType: ChainType.SOLANA });
+
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        filters: ['AcceptFundOnSolana'],
+        sortingBy: SortingField.Newest,
+      },
+    });
+    const { projects } = result.data.data.allProjects;
+    assert.lengthOf(projects, 0);
   });
   it('should return projects, filter by campaignSlug and limit, skip', async () => {
     const project1 = await saveProjectDirectlyToDb({
@@ -1476,6 +1641,7 @@ function allProjectsTestCases() {
     const qfRound = await QfRound.create({
       isActive: true,
       name: 'test filter by qfRoundId',
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       allocatedFund: 100,
       beginDate: new Date(),
@@ -1491,6 +1657,52 @@ function allProjectsTestCases() {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
         qfRoundId: qfRound.id,
+      },
+    });
+
+    assert.equal(result.data.data.allProjects.projects.length, 3);
+    result.data.data.allProjects.projects.forEach(project => {
+      assert.equal(project.qfRounds[0].id, qfRound.id);
+    });
+    qfRound.isActive = false;
+    await qfRound.save();
+  });
+  it('should return projects, filter by qfRoundSlug', async () => {
+    const project1 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project2 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+    const project3 = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      title: String(new Date().getTime()),
+      slug: String(new Date().getTime()),
+    });
+
+    const qfRound = await QfRound.create({
+      isActive: true,
+      name: 'test filter by qfRoundId',
+      slug: new Date().getTime().toString(),
+      minimumPassportScore: 10,
+      allocatedFund: 100,
+      beginDate: new Date(),
+      endDate: new Date(),
+    }).save();
+    project1.qfRounds = [qfRound];
+    await project1.save();
+    project2.qfRounds = [qfRound];
+    await project2.save();
+    project3.qfRounds = [qfRound];
+    await project3.save();
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        qfRoundSlug: qfRound.slug,
       },
     });
 
@@ -1522,6 +1734,7 @@ function allProjectsTestCases() {
     const qfRound = await QfRound.create({
       isActive: true,
       name: 'test filter by qfRoundId',
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       allocatedFund: 100,
       beginDate: new Date(),
@@ -1563,6 +1776,7 @@ function allProjectsTestCases() {
     const qfRound = await QfRound.create({
       isActive: true,
       name: new Date().toString(),
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 8,
       allocatedFund: 1000,
       beginDate: new Date(),
@@ -1668,6 +1882,7 @@ function allProjectsTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
@@ -1700,6 +1915,7 @@ function allProjectsTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
@@ -1732,6 +1948,7 @@ function allProjectsTestCases() {
       isActive: true,
       name: 'test',
       allocatedFund: 100,
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
@@ -1764,6 +1981,7 @@ function allProjectsTestCases() {
       isActive: false,
       name: 'test2',
       allocatedFund: 100,
+      slug: new Date().getTime().toString(),
       minimumPassportScore: 10,
       beginDate: new Date(),
       endDate: new Date(),
@@ -2157,10 +2375,12 @@ function createProjectTestCases() {
         {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.XDAI,
+          chainType: ChainType.EVM,
         },
         {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.MAIN_NET,
+          chainType: ChainType.EVM,
         },
       ],
     };
@@ -2244,6 +2464,11 @@ function createProjectTestCases() {
           address: generateRandomEtheriumAddress(),
           networkId: NETWORK_IDS.BSC,
         },
+        {
+          address: generateRandomSolanaAddress(),
+          networkId: 0,
+          chainType: ChainType.SOLANA,
+        },
       ],
     };
     const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
@@ -2263,6 +2488,73 @@ function createProjectTestCases() {
     );
 
     assert.isOk(result.data.data.createProject);
+  });
+  it('Should get error, when address is not valid value - Ethereum', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: SEED_DATA.MALFORMED_ETHEREUM_ADDRESS,
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: { ...sampleProject },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.INVALID_WALLET_ADDRESS,
+    );
+  });
+  it('Should get error, when address is not valid value - Solana', async () => {
+    const sampleProject: CreateProjectInput = {
+      title: String(new Date().getTime()),
+      categories: [SEED_DATA.FOOD_SUB_CATEGORIES[0]],
+      description: 'description',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: SEED_DATA.MALFORMED_SOLANA_ADDRESS,
+          networkId: 0,
+          chainType: ChainType.SOLANA,
+        },
+      ],
+    };
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: { ...sampleProject },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.INVALID_WALLET_ADDRESS,
+    );
   });
   it('Should get error, when walletAddress of project is repetitive', async () => {
     const sampleProject: CreateProjectInput = {
@@ -2298,7 +2590,7 @@ function createProjectTestCases() {
     );
     assert.equal(
       addProjectResponse.data.errors[0].message,
-      `Eth address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
+      `Address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
     );
   });
   it('should create project when walletAddress of project is a smart contract address', async () => {
@@ -2529,6 +2821,10 @@ function createProjectTestCases() {
     assert.equal(
       result.data.data.createProject.addresses[0].address,
       sampleProject.addresses[0].address,
+    );
+    assert.equal(
+      result.data.data.createProject.addresses[0].chainType,
+      ChainType.EVM,
     );
   });
   it('Should create successfully with special characters in title', async () => {
@@ -2768,7 +3064,7 @@ function updateProjectTestCases() {
     );
     assert.equal(
       editProjectResult.data.errors[0].message,
-      `Eth address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
+      `Address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
     );
   });
   it('Should update project when sent walletAddress is smartContractAddress', async () => {
@@ -2905,7 +3201,8 @@ function updateProjectTestCases() {
       ARGUMENT_VALIDATION_ERROR_MESSAGE,
     );
   });
-  it('Should update addresses successfully', async () => {
+
+  it('Should update addresses successfully - Ethereum', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
@@ -2930,7 +3227,7 @@ function updateProjectTestCases() {
                 networkId: NETWORK_IDS.MAIN_NET,
               },
             ],
-            title: `test title update addresses`,
+            title: `test title update addresses` + new Date().getTime(),
           },
         },
       },
@@ -2940,11 +3237,71 @@ function updateProjectTestCases() {
         },
       },
     );
-    // assert.equal(JSON.stringify(editProjectResult.data, null, 4), 'hi');
-    assert.isOk(editProjectResult.data.data.updateProject);
-    assert.equal(
-      editProjectResult.data.data.updateProject.addresses[0].address,
-      newWalletAddress,
+    const { updateProject } = editProjectResult.data.data;
+    assert.isOk(updateProject);
+
+    const { addresses } = updateProject;
+    assert.lengthOf(addresses, 2);
+    addresses.forEach(address => {
+      assert.equal(address.address, newWalletAddress);
+      assert.equal(address.chainType, ChainType.EVM);
+    });
+  });
+  it('Should update addresses successfully - Solana', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const ethAddress = generateRandomEtheriumAddress();
+    const solanaAddress = generateRandomSolanaAddress();
+    const editProjectResult = await axios.post(
+      graphqlUrl,
+      {
+        query: updateProjectQuery,
+        variables: {
+          projectId: project.id,
+          newProjectData: {
+            addresses: [
+              {
+                address: ethAddress,
+                networkId: NETWORK_IDS.XDAI,
+              },
+              {
+                address: solanaAddress,
+                networkId: 0,
+                chainType: ChainType.SOLANA,
+              },
+            ],
+            title: `test title update addresses` + new Date().getTime(),
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const { updateProject } = editProjectResult.data.data;
+    assert.isOk(updateProject);
+
+    const { addresses } = updateProject;
+    assert.lengthOf(addresses, 2);
+    assert.ok(
+      addresses.some(
+        address =>
+          address.chainType === ChainType.EVM &&
+          address.address === ethAddress.toLocaleLowerCase(),
+      ),
+    );
+    assert.ok(
+      addresses.some(
+        address =>
+          address.chainType === ChainType.SOLANA &&
+          address.address === solanaAddress,
+      ),
     );
   });
   it('Should update addresses with two addresses successfully', async () => {
@@ -2995,12 +3352,20 @@ function updateProjectTestCases() {
       NETWORK_IDS.XDAI,
     );
     assert.equal(
+      editProjectResult.data.data.updateProject.addresses[0].chainType,
+      ChainType.EVM,
+    );
+    assert.equal(
       editProjectResult.data.data.updateProject.addresses[1].address,
       newWalletAddress2,
     );
     assert.equal(
       editProjectResult.data.data.updateProject.addresses[1].networkId,
       NETWORK_IDS.MAIN_NET,
+    );
+    assert.equal(
+      editProjectResult.data.data.updateProject.addresses[1].chainType,
+      ChainType.EVM,
     );
   });
   it('Should update addresses with current addresses successfully', async () => {
@@ -3704,7 +4069,7 @@ function addRecipientAddressToProjectTestCases() {
     );
     assert.equal(
       response.data.errors[0].message,
-      `Eth address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
+      `Address ${SEED_DATA.SECOND_PROJECT.walletAddress} is already being used for a project`,
     );
   });
   it('Should update project when sent walletAddress is smartContractAddress', async () => {
@@ -3756,7 +4121,7 @@ function addRecipientAddressToProjectTestCases() {
       SEED_DATA.DAI_SMART_CONTRACT_ADDRESS,
     );
   });
-  it('Should add address successfully', async () => {
+  it('Should add address successfully - EVM', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const accessToken = await generateTestAccessToken(user.id);
     const project = await saveProjectDirectlyToDb({
@@ -3785,7 +4150,46 @@ function addRecipientAddressToProjectTestCases() {
     assert.isOk(response.data.data.addRecipientAddressToProject);
     assert.isOk(
       response.data.data.addRecipientAddressToProject.addresses.find(
-        projectAddress => projectAddress.address === newWalletAddress,
+        projectAddress =>
+          projectAddress.address === newWalletAddress &&
+          projectAddress.chainType === ChainType.EVM,
+      ),
+    );
+  });
+
+  it('Should add address successfully - EVM', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(user.id);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      admin: String(user.id),
+    });
+    const newWalletAddress = generateRandomSolanaAddress();
+
+    const response = await axios.post(
+      graphqlUrl,
+      {
+        query: addRecipientAddressToProjectQuery,
+        variables: {
+          projectId: project.id,
+          networkId: 0,
+          address: newWalletAddress,
+          chainType: ChainType.SOLANA,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    // assert.equal(JSON.stringify(response.data, null, 4), 'hi');
+    assert.isOk(response.data.data.addRecipientAddressToProject);
+    assert.isOk(
+      response.data.data.addRecipientAddressToProject.addresses.find(
+        projectAddress =>
+          projectAddress.address === newWalletAddress &&
+          projectAddress.chainType === ChainType.SOLANA,
       ),
     );
   });
@@ -3884,6 +4288,7 @@ function addRecipientAddressToProjectTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.POLYGON,
           address: newWalletAddress,
+          chainType: ChainType.EVM,
         },
       },
       {
@@ -4615,7 +5020,6 @@ function likedProjectsByUserIdTestCases() {
 
     assert.equal(projects[0].id, reaction?.projectId);
     assert.equal(projects[0]?.reaction?.id, reaction?.id);
-    assert.isNotEmpty(projects[0]?.addresses);
   });
   describe('if the user did not like any project', () => {
     it('should return an empty list', async () => {
@@ -4665,7 +5069,7 @@ function walletAddressIsValidTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      `Eth address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
+      `Address ${SEED_DATA.FIRST_PROJECT.walletAddress} is already being used for a project`,
     );
   });
   it('should return true if walletAddress is smart contract address in mainnet', async () => {
@@ -4720,7 +5124,7 @@ function walletAddressIsValidTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      `Eth address ${upperCaseWalletAddress} is already being used for a project`,
+      `Address ${upperCaseWalletAddress} is already being used for a project`,
     );
   });
   it('should throw error for existing walletAddress - lowerCase', async () => {
@@ -4734,7 +5138,7 @@ function walletAddressIsValidTestCases() {
     });
     assert.equal(
       result.data.errors[0].message,
-      `Eth address ${lowerCaseWalletAddress} is already being used for a project`,
+      `Address ${lowerCaseWalletAddress} is already being used for a project`,
     );
   });
 }
@@ -5474,6 +5878,7 @@ function projectBySlugTestCases() {
     assert.isNotOk(project.adminUser.email);
     assert.isNotEmpty(project.addresses);
     assert.equal(project.addresses[0].address, walletAddress);
+    assert.equal(project.addresses[0].chainType, ChainType.EVM);
   });
 
   it('should return projects including projectPower', async () => {

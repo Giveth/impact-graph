@@ -32,7 +32,7 @@ export class addFieldsToQfRoundHistory1701689359018
             "matchingFundPriceUsd" = 1, 
             "matchingFundCurrency" = 'WXDAI'
         WHERE 
-            id = 2 AND "matchingFund" IS NOT NULL;
+            "qfRoundId" = 2 AND "matchingFund" IS NOT NULL;
 
     `);
 
@@ -44,7 +44,7 @@ export class addFieldsToQfRoundHistory1701689359018
             "matchingFundPriceUsd" = 1, 
             "matchingFundCurrency" = 'DAI'
         WHERE 
-            id = 4 AND "matchingFund" IS NOT NULL;
+            "qfRoundId"  = 4 AND "matchingFund" IS NOT NULL;
 
     `);
   }

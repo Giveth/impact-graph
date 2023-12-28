@@ -12,6 +12,7 @@ import {
   createDonationData,
   saveUserDirectlyToDb,
   generateUserIdLessAccessToken,
+  generateRandomSolanaAddress,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
@@ -54,6 +55,7 @@ import { QfRound } from '../entities/qfRound';
 import { findProjectById } from '../repositories/projectRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
+import { ChainType } from '../types/network';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -221,6 +223,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -260,6 +263,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -299,6 +303,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -338,6 +343,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -377,6 +383,7 @@ function doesDonatedToProjectInQfRoundTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: moment().add(10, 'days').toDate(),
     }).save();
@@ -752,6 +759,7 @@ function createDonationTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -811,12 +819,55 @@ function createDonationTestCases() {
     await qfRound.save();
   });
 
+  it('should create a solana donation succesfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    await project.save();
+
+    const user = await User.create({
+      walletAddress: generateRandomSolanaAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const transactionId =
+      '5GAnyapzrTdjhc3xNH6Nsf61xcu1vGRBd7MDXZbx8waKEznSjMtqdgTwHBhrBcrkqTfusHAzeoV3kAVpr6aFXU6j';
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.SOLANA,
+          transactionId,
+          nonce: 1,
+          amount: 10,
+          token: 'SOL',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.equal(donation?.transactionId, transactionId);
+    assert.equal(donation?.chainType, ChainType.SOLANA);
+  });
+
   it('should create a donation in an active qfRound when qfround has network eligiblity on XDAI', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       eligibleNetworks: [100], // accepts ONLY xdai to mark as part of QFround
       beginDate: new Date(),
@@ -912,6 +963,7 @@ function createDonationTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -978,6 +1030,7 @@ function createDonationTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -1819,6 +1872,44 @@ function createDonationTestCases() {
     assert.isTrue(donation?.isTokenEligibleForGivback);
   });
 
+  it('should create donation with safeTransactionId successfully', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const safeTransactionHash = 'xxxxxxx';
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          nonce: 4,
+          amount: 10,
+          token: 'GIV',
+          safeTransactionId: safeTransactionHash,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.equal(donation?.userId, user.id);
+    assert.equal(donation?.safeTransactionId, safeTransactionHash);
+  });
+
   it('should fill usd value of when creating GIV donation', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
@@ -2233,7 +2324,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 420, 56, 42220, 44787, 61, 63]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 420, 56, 42220, 44787, 61, 63, 0]',
     );
   });
   it('should throw exception when currency is not valid when currency contain characters', async () => {
@@ -2418,6 +2509,7 @@ function donationsByProjectIdTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -2465,6 +2557,7 @@ function donationsByProjectIdTestCases() {
       isActive: true,
       name: new Date().toString(),
       minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
       allocatedFund: 100,
       beginDate: new Date(),
       endDate: moment().add(2, 'day'),
@@ -3521,6 +3614,7 @@ function donationsByUserIdTestCases() {
       name: new Date().toString(),
       allocatedFund: 100,
       minimumPassportScore: 12,
+      slug: new Date().getTime().toString(),
       beginDate: new Date(),
       endDate: new Date(),
     }).save();

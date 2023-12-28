@@ -9,6 +9,7 @@ import {
   RelationId,
   UpdateDateColumn,
   CreateDateColumn,
+  Index,
 } from 'typeorm';
 import { Project } from './project';
 import { MainCategory } from './mainCategory';
@@ -23,6 +24,11 @@ export class QfRound extends BaseEntity {
   @Field({ nullable: true })
   @Column('text', { nullable: true })
   name: string;
+
+  @Field()
+  @Index({ unique: true })
+  @Column('text')
+  slug: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })

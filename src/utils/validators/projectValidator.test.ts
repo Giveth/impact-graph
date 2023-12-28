@@ -9,6 +9,7 @@ import {
   assertThrowsAsync,
   createProjectData,
   generateRandomEtheriumAddress,
+  generateRandomSolanaAddress,
   saveProjectDirectlyToDb,
   SEED_DATA,
 } from '../../../test/testUtils';
@@ -17,6 +18,7 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../errorMessages';
+import { ChainType } from '../../types/network';
 
 describe('isWalletAddressValid() test cases', isWalletAddressValidTestCases);
 
@@ -89,7 +91,7 @@ function validateProjectWalletAddressTestCases() {
     const project = await saveProjectDirectlyToDb(createProjectData());
     await assertThrowsAsync(async () => {
       await validateProjectWalletAddress(project.walletAddress as string);
-    }, `Eth address ${project.walletAddress} is already being used for a project`);
+    }, `Address ${project.walletAddress} is already being used for a project`);
   });
 
   it('should throw exception when address is repetitive (with difference case, uppercase)', async () => {
@@ -100,7 +102,7 @@ function validateProjectWalletAddressTestCases() {
 
     await assertThrowsAsync(async () => {
       await validateProjectWalletAddress(capitalizedWalletAddress);
-    }, `Eth address ${capitalizedWalletAddress} is already being used for a project`);
+    }, `Address ${capitalizedWalletAddress} is already being used for a project`);
   });
 
   it('should throw exception when address is repetitive (with difference case, lowercase)', async () => {
@@ -109,7 +111,46 @@ function validateProjectWalletAddressTestCases() {
 
     await assertThrowsAsync(async () => {
       await validateProjectWalletAddress(lowercaseAddress);
-    }, `Eth address ${lowercaseAddress} is already being used for a project`);
+    }, `Address ${lowercaseAddress} is already being used for a project`);
+  });
+
+  it('should throw exception when address is not valid - Ethereum', async () => {
+    await assertThrowsAsync(async () => {
+      await validateProjectWalletAddress('0x34234234f');
+    }, errorMessages.INVALID_WALLET_ADDRESS);
+    await assertThrowsAsync(async () => {
+      await validateProjectWalletAddress(SEED_DATA.MALFORMED_ETHEREUM_ADDRESS);
+    }, errorMessages.INVALID_WALLET_ADDRESS);
+    const project = await saveProjectDirectlyToDb(createProjectData());
+  });
+  it('should throw exception when address is not valid - Solana', async () => {
+    await assertThrowsAsync(async () => {
+      await validateProjectWalletAddress(SEED_DATA.MALFORMED_SOLANA_ADDRESS);
+    }, errorMessages.INVALID_WALLET_ADDRESS);
+
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await assertThrowsAsync(async () => {
+      await validateProjectWalletAddress(
+        SEED_DATA.MALFORMED_SOLANA_ADDRESS,
+        project.id,
+        ChainType.SOLANA,
+      );
+    }, errorMessages.INVALID_WALLET_ADDRESS);
+  });
+
+  it('should return true for valid address - Ethereum', async () => {
+    const valid = await validateProjectWalletAddress(
+      generateRandomEtheriumAddress(),
+    );
+    assert.isTrue(valid);
+  });
+
+  it('should return true for valid address - Solana', async () => {
+    const valid = await validateProjectWalletAddress(
+      generateRandomSolanaAddress(),
+    );
+    assert.isTrue(valid);
   });
 }
 function isWalletAddressValidTestCases() {
@@ -118,10 +159,47 @@ function isWalletAddressValidTestCases() {
       isWalletAddressValid('0x5AC583Feb2b1f288C0A51d6Cdca2e8c814BFE93B'),
     );
   });
+  it('should return true for valid address - chainType defined', () => {
+    assert.isTrue(
+      isWalletAddressValid(
+        '0x5AC583Feb2b1f288C0A51d6Cdca2e8c814BFE93B',
+        ChainType.EVM,
+      ),
+    );
+  });
+  it('should return false for valid Ethereum address when chainType is wrong', () => {
+    assert.isFalse(
+      isWalletAddressValid(
+        '0x5AC583Feb2b1f288C0A51d6Cdca2e8c814BFE93B',
+        ChainType.SOLANA,
+      ),
+    );
+  });
+  it('should return false for valid Solana address when chainType is wrong', () => {
+    assert.isFalse(
+      isWalletAddressValid(
+        'ALuY9D3XDhNgJvKQavNcLS6qZ9oGP4mUWRvnerWXxgML',
+        ChainType.EVM,
+      ),
+    );
+  });
   it('should return false for invalid address', () => {
     assert.isFalse(isWalletAddressValid('0x5AC583Feb2b1f288C0A51B'));
   });
   it('should return false for undefined', () => {
     assert.isFalse(isWalletAddressValid(undefined));
+  });
+  it('should return true for valid solana address', () => {
+    assert.isTrue(
+      isWalletAddressValid('7Qg4Nj7y6YV1iRQ6jQZn7hLQ7L4r1L7Xb1Y7JZrR9Q7g'),
+    );
+  });
+  it('should return true for valid solana address - chainType defined', () => {
+    assert.isTrue(
+      isWalletAddressValid(
+        '7Qg4Nj7y6YV1iRQ6jQZn7hLQ7L4r1L7Xb1Y7JZrR9Q7g',
+        ChainType.SOLANA,
+      ),
+    );
   });
 }

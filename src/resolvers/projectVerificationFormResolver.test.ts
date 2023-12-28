@@ -4,6 +4,7 @@ import {
   createProjectData,
   generateConfirmationEmailToken,
   generateRandomEtheriumAddress,
+  generateRandomSolanaAddress,
   generateTestAccessToken,
   graphqlUrl,
   saveProjectDirectlyToDb,
@@ -38,6 +39,7 @@ import { NETWORK_IDS } from '../provider';
 import { countriesList, generateRandomString } from '../utils/utils';
 import { createSocialProfile } from '../repositories/socialProfileRepository';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
+import { ChainType } from '../types/network';
 
 describe(
   'createProjectVerification test cases',
@@ -318,6 +320,13 @@ function updateProjectVerificationFormMutationTestCases() {
         address: generateRandomEtheriumAddress(),
         networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
         title: 'test title',
+        chainType: ChainType.EVM,
+      },
+      {
+        address: generateRandomSolanaAddress(),
+        networkId: NETWORK_IDS.SOLANA,
+        title: 'test title',
+        chainType: ChainType.SOLANA,
       },
     ],
   };
