@@ -18,7 +18,7 @@ const resourcePerDateRegex = new RegExp(
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
-const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
+// const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/;
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
   const validationResult = schema.validate(data);
@@ -84,15 +84,14 @@ export const createDonationQueryValidator = Joi.object({
     .required()
     .valid(...Object.values(NETWORK_IDS)),
   tokenAddress: Joi.string().pattern(ethereumWalletAddressRegex),
-  token: Joi.string()
-    .required()
-    .pattern(tokenSymbolRegex)
-    .messages({
-      'string.pattern.base': i18n.__(
-        translationErrorMessagesKeys.CURRENCY_IS_INVALID,
-      ),
-      'string.base': i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID),
-    }),
+  token: Joi.string().required(),
+  // .pattern(tokenSymbolRegex)
+  // .messages({
+  //   'string.pattern.base': i18n.__(
+  //     translationErrorMessagesKeys.CURRENCY_IS_INVALID,
+  //   ),
+  //   'string.base': i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID), }),
+
   projectId: Joi.number().integer().min(0).required(),
   nonce: Joi.number().integer().min(0).required(),
   anonymous: Joi.boolean(),
