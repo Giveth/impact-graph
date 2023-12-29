@@ -45,6 +45,9 @@ export const mainCategoryTab = {
       banner: {
         isVisible: true,
       },
+      isActive: {
+        isVisible: true,
+      },
       slug: {
         isVisible: true,
       },
