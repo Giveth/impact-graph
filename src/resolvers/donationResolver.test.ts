@@ -843,6 +843,7 @@ function createDonationTestCases() {
           nonce: 1,
           amount: 10,
           token: 'SOL',
+          tokenAddress: '11111111111111111111111111111111',
         },
       },
       {
