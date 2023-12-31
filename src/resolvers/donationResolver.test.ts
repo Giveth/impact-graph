@@ -862,6 +862,50 @@ function createDonationTestCases() {
     assert.equal(donation?.chainType, ChainType.SOLANA);
   });
 
+  it('should create a solana donation succesfully - 2', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    await project.save();
+
+    const user = await User.create({
+      walletAddress: generateRandomSolanaAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    // transction id with 87 characters in encoding format
+    const transactionId =
+      'Z5ZmUhg3bavaX7SMTqapCMNUAJEHWRpvZn884QgHHdbgN1vQ29cxKwoZfprMFdPqNYKScrEpJcXf3br82nDwawR';
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.SOLANA,
+          transactionId,
+          nonce: 0,
+          amount: 100,
+          token: 'SOL',
+          tokenAddress: '11111111111111111111111111111111',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
+      },
+    });
+    assert.equal(donation?.transactionId, transactionId);
+    assert.equal(donation?.chainType, ChainType.SOLANA);
+  });
+
   it('should create a donation in an active qfRound when qfround has network eligiblity on XDAI', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const qfRound = await QfRound.create({
