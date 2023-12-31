@@ -26,6 +26,7 @@ const solanaProgramIdRegex =
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
 const solanaTxRegex = /^[A-Za-z0-9]{86,88}$/; // TODO: Is this enough? We are using the signature to fetch transactions
 const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
+// const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/;
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
   const validationResult = schema.validate(data);
@@ -102,15 +103,13 @@ export const createDonationQueryValidator = Joi.object({
     then: Joi.string().pattern(solanaProgramIdRegex),
     otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
   }),
-  token: Joi.string()
-    .required()
-    .pattern(tokenSymbolRegex)
-    .messages({
-      'string.pattern.base': i18n.__(
-        translationErrorMessagesKeys.CURRENCY_IS_INVALID,
-      ),
-      'string.base': i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID),
-    }),
+  token: Joi.string().required(),
+  // .pattern(tokenSymbolRegex)
+  // .messages({
+  //   'string.pattern.base': i18n.__(
+  //     translationErrorMessagesKeys.CURRENCY_IS_INVALID,
+  //   ),
+  //   'string.base': i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID), }),
   projectId: Joi.number().integer().min(0).required(),
   nonce: Joi.number().integer().min(0).allow(null),
   anonymous: Joi.boolean(),

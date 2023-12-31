@@ -2372,7 +2372,7 @@ function createDonationTestCases() {
       '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 420, 56, 42220, 44787, 61, 63, 0]',
     );
   });
-  it('should throw exception when currency is not valid when currency contain characters', async () => {
+  it('should not throw exception when currency is not valid when currency is USDC.e', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
@@ -2399,42 +2399,13 @@ function createDonationTestCases() {
         },
       },
     );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.CURRENCY_IS_INVALID,
-    );
-  });
-  it('should throw exception when currency is not valid when currency length more than 10', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await User.create({
-      walletAddress: generateRandomEtheriumAddress(),
-      loginType: 'wallet',
-      firstName: 'fatemeTest',
-    }).save();
-    const accessToken = await generateTestAccessToken(user.id);
-    const saveDonationResponse = await axios.post(
-      graphqlUrl,
-      {
-        query: createDonationMutation,
-        variables: {
-          projectId: project.id,
-          transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
-          nonce: 10,
-          amount: 10,
-          token: 'GIVGIVGIVGIV',
-        },
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const donation = await Donation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDonation,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-    assert.equal(
-      saveDonationResponse.data.errors[0].message,
-      errorMessages.CURRENCY_IS_INVALID,
-    );
+    });
+    assert.isOk(donation);
   });
 }
 
