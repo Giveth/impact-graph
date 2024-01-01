@@ -1,4 +1,7 @@
+import { COINGECKO_TOKEN_IDS } from '../../src/adapters/price/CoingeckoPriceAdapter';
 import { NETWORK_IDS } from '../../src/provider';
+import { ChainType } from '../../src/types/network';
+import { SOLANA_SYSTEM_PROGRAM } from '../../src/utils/networks';
 
 interface ITokenData {
   name: string;
@@ -8,6 +11,8 @@ interface ITokenData {
   isGivbackEligible?: boolean;
   decimals: number;
   networkId: number;
+  chainType?: ChainType;
+  coingeckoId?: string;
 }
 const seedTokens: ITokenData[] = [
   // Mainnet tokens
@@ -1243,6 +1248,16 @@ const seedTokens: ITokenData[] = [
     address: '0x3B2e50b6CBe03AcA7578Da058eFe2Acc56dd386e',
     decimals: 18,
     networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
+  },
+  // TODO: Add solana token
+  {
+    name: 'Solana native token',
+    symbol: 'SOL',
+    address: SOLANA_SYSTEM_PROGRAM,
+    decimals: 9,
+    networkId: NETWORK_IDS.SOLANA,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
   },
 ];
 

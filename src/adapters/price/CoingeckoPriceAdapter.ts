@@ -9,6 +9,10 @@ import { logger } from '../../utils/logger';
 const coingeckoCacheExpirationInSeconds =
   Number(process.env.COINGECKO_CACHE_EXPIRATION_IN_SECONDS) || 60 * 60 * 24; // 1 hour
 
+export const COINGECKO_TOKEN_IDS = {
+  SOLANA: 'solana',
+};
+
 export class CoingeckoPriceAdapter implements PriceAdapterInterface {
   redisCachePrefix = 'cache-price-cryptocompare-';
 

@@ -12,7 +12,6 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
-import { getTransactionInfoFromNetwork } from './transactionService';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
 import { fetchGivHistoricPrice, fetchGivPrice } from './givPriceService';
@@ -34,10 +33,17 @@ import {
 } from './projectViewsService';
 import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
 import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
-import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
+import {
+  COINGECKO_TOKEN_IDS,
+  CoingeckoPriceAdapter,
+} from '../adapters/price/CoingeckoPriceAdapter';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
+import { fetchSafeTransactionHash } from './safeServices';
+import { ChainType } from '../types/network';
+import { NETWORK_IDS } from '../provider';
+import { getTransactionInfoFromNetwork } from './chains';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -48,9 +54,18 @@ export const updateDonationPricesAndValues = async (
   currency: string,
   priceChainId: number,
   amount: string | number,
+  chainType: string = ChainType.EVM,
 ) => {
   try {
-    if (token?.isStableCoin) {
+    if (chainType === ChainType.SOLANA && token) {
+      const coingeckoAdapter = new CoingeckoPriceAdapter();
+      const solanaPriceUsd = await coingeckoAdapter.getTokenPrice({
+        symbol: token.coingeckoId,
+        networkId: NETWORK_IDS.SOLANA,
+      });
+      donation.priceUsd = toFixNumber(solanaPriceUsd, 4);
+      donation.valueUsd = toFixNumber(donation.amount * solanaPriceUsd, 4);
+    } else if (token?.isStableCoin) {
       donation.priceUsd = 1;
       donation.valueUsd = Number(amount);
     } else if (currency === 'GIV') {
@@ -324,6 +339,22 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
   if (!donation) {
     throw new Error(i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND));
   }
+
+  // fetch the transactionId from the safeTransaction Approval
+  if (!donation.transactionId && donation.safeTransactionId) {
+    const safeTransactionHash = await fetchSafeTransactionHash(
+      donation.safeTransactionId,
+      donation.transactionNetworkId,
+    );
+    if (safeTransactionHash) {
+      donation.transactionId = safeTransactionHash;
+      await donation.save();
+    } else {
+      // Donation is not ready in the multisig
+      throw new Error(i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND));
+    }
+  }
+
   logger.debug('syncDonationStatusWithBlockchainNetwork() has been called', {
     donationId,
     fetchDonationId: donation.id,
@@ -338,6 +369,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       amount: donation.amount,
       symbol: donation.currency,
       txHash: donation.transactionId,
+      safeTxHash: donation.safeTransactionId,
       timestamp: donation.createdAt.getTime() / 1000,
     });
     donation.status = DONATION_STATUS.VERIFIED;
@@ -506,9 +538,9 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             NOW()
         FROM
             "qf_round_history" q
-            LEFT JOIN "project" p ON q."projectId" = p."id"
-            LEFT JOIN "user" u ON u."id" = ${user.id}
-            LEFT JOIN "project_address" pa ON pa."projectId" = p."id" AND pa."networkId" = CAST(q."distributedFundNetwork" AS INTEGER)
+            INNER JOIN "project" p ON q."projectId" = p."id"
+            INNER JOIN "user" u ON u."id" = ${user.id}
+            INNER JOIN "project_address" pa ON pa."projectId" = p."id" AND pa."networkId" = CAST(q."distributedFundNetwork" AS INTEGER)
         WHERE
             q."distributedFundTxHash" IS NOT NULL AND
             q."matchingFundAmount" IS NOT NULL AND

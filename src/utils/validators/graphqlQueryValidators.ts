@@ -1,4 +1,6 @@
 import { CustomHelpers, number, ObjectSchema, ValidationResult } from 'joi';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+
 // tslint:disable-next-line:no-var-requires
 const Joi = require('joi');
 import {
@@ -10,6 +12,7 @@ import { NETWORK_IDS } from '../../provider';
 import { DONATION_STATUS } from '../../entities/donation';
 import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
 import { countriesList } from '../utils';
+import { ChainType } from '../../types/network';
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 const resourcePerDateRegex = new RegExp(
@@ -17,7 +20,12 @@ const resourcePerDateRegex = new RegExp(
 );
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+const solanaWalletAddressRegex = /^[A-Za-z0-9]{43,44}$/;
+const solanaProgramIdRegex =
+  /^(11111111111111111111111111111111|[1-9A-HJ-NP-Za-km-z]{43,44})$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
+const solanaTxRegex = /^[A-Za-z0-9]{86,88}$/; // TODO: Is this enough? We are using the signature to fetch transactions
+const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
 // const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/;
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
@@ -72,18 +80,29 @@ export const resourcePerDateReportValidator = Joi.object({
 
 export const createDonationQueryValidator = Joi.object({
   amount: Joi.number()?.greater(0).required(),
-  transactionId: Joi.string()
-    .required()
-    .pattern(txHashRegex)
-    .messages({
-      'string.pattern.base': i18n.__(
-        translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
-      ),
-    }),
+  transactionId: Joi.when('safeTransactionId', {
+    is: Joi.any().empty(),
+    then: Joi.alternatives().try(
+      Joi.string().required().pattern(txHashRegex, 'EVM transaction IDs'),
+      Joi.string().required().pattern(solanaTxRegex, 'Solana Transaction ID'),
+    ),
+    otherwise: Joi.string()
+      .allow(null, '')
+      .pattern(txHashRegex, 'EVM transaction IDs')
+      .messages({
+        'string.pattern.base': i18n.__(
+          translationErrorMessagesKeys.INVALID_TRANSACTION_ID,
+        ),
+      }),
+  }),
   transactionNetworkId: Joi.string()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
-  tokenAddress: Joi.string().pattern(ethereumWalletAddressRegex),
+  tokenAddress: Joi.when('transactionNetworkId', {
+    is: 0, // if its solana network
+    then: Joi.string().pattern(solanaProgramIdRegex),
+    otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
+  }),
   token: Joi.string().required(),
   // .pattern(tokenSymbolRegex)
   // .messages({
@@ -91,12 +110,12 @@ export const createDonationQueryValidator = Joi.object({
   //     translationErrorMessagesKeys.CURRENCY_IS_INVALID,
   //   ),
   //   'string.base': i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID), }),
-
   projectId: Joi.number().integer().min(0).required(),
-  nonce: Joi.number().integer().min(0).required(),
+  nonce: Joi.number().integer().min(0).allow(null),
   anonymous: Joi.boolean(),
   transakId: Joi.string(),
   referrerId: Joi.string().allow(null, ''),
+  safeTransactionId: Joi.string().allow(null, ''),
 });
 
 export const updateDonationQueryValidator = Joi.object({
@@ -153,8 +172,12 @@ const managingFundsValidator = Joi.object({
   relatedAddresses: Joi.array().items(
     Joi.object({
       title: Joi.string().required(),
-      address: Joi.string().required().pattern(ethereumWalletAddressRegex),
+      address: Joi.alternatives().try(
+        Joi.string().required().pattern(ethereumWalletAddressRegex),
+        Joi.string().required().pattern(solanaWalletAddressRegex),
+      ),
       networkId: Joi.number()?.valid(
+        NETWORK_IDS.SOLANA, // Solana
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,
@@ -167,6 +190,9 @@ const managingFundsValidator = Joi.object({
         NETWORK_IDS.ETC,
         NETWORK_IDS.MORDOR_ETC_TESTNET,
       ),
+      chainType: Joi.string()
+        .valid(ChainType.EVM, ChainType.SOLANA)
+        .default(ChainType.EVM),
     }),
   ),
 });

@@ -100,7 +100,10 @@ jobs:
           OPTIMISTIC_SCAN_API_KEY: ${{ secrets.OPTIMISTIC_SCAN_API_KEY }}
           CELO_SCAN_API_KEY: ${{ secrets.CELO_SCAN_API_KEY }}
           CELO_ALFAJORES_SCAN_API_KEY: ${{ secrets.CELO_ALFAJORES_SCAN_API_KEY }}
+          MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
+          ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
           DROP_DATABASE: ${{ secrets.DROP_DATABASE }}
+          SOLANA_NODE_RPC_URL: ${{ secrets.SOLANA_NODE_RPC_URL }}
 
   publish:
     needs: test
