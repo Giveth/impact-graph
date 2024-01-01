@@ -51,8 +51,14 @@ export const categoryTab = {
       value: {
         isVisible: true,
       },
-      mainCategory: {
-        isVisible: true,
+      mainCategoryId: {
+        isVisible: {
+          list: true,
+          filter: true,
+          show: true,
+          edit: true,
+          new: true,
+        },
       },
     },
   },
