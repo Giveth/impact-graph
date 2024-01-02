@@ -369,6 +369,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       amount: donation.amount,
       symbol: donation.currency,
       txHash: donation.transactionId,
+      chainType: donation.chainType,
       safeTxHash: donation.safeTransactionId,
       timestamp: donation.createdAt.getTime() / 1000,
     });
