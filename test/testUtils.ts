@@ -1366,7 +1366,29 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
-    solana: [
+    solana_mainnet: [
+      {
+        name: 'Solana native token',
+        symbol: 'SOL',
+        address: '11111111111111111111111111111111',
+        decimals: 9,
+      },
+    ],
+    solana_devnet: [
+      {
+        name: 'Solana native token',
+        symbol: 'SOL',
+        address: '11111111111111111111111111111111',
+        decimals: 9,
+      },
+      {
+        name: 'TEST-SPL-TOKEN',
+        symbol: 'TEST-SPL-TOKEN',
+        address: 'BrEahxkTrCKfjVy36pLD2gvVoMCUMEb1PinrAFtvJqPX',
+        decimals: 9,
+      },
+    ],
+    solana_testnet: [
       {
         name: 'Solana native token',
         symbol: 'SOL',

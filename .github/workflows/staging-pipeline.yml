@@ -103,7 +103,9 @@ jobs:
           MORDOR_ETC_TESTNET: ${{ secrets.MORDOR_ETC_TESTNET }}
           ETC_NODE_HTTP_URL: ${{ secrets.ETC_NODE_HTTP_URL }}
           DROP_DATABASE: ${{ secrets.DROP_DATABASE }}
-          SOLANA_NODE_RPC_URL: ${{ secrets.SOLANA_NODE_RPC_URL }}
+          SOLANA_TEST_NODE_RPC_URL: ${{ secrets.SOLANA_TEST_NODE_RPC_URL }}
+          SOLANA_DEVNET_NODE_RPC_URL: ${{ secrets.SOLANA_DEVNET_NODE_RPC_URL }}
+          SOLANA_MAINNET_NODE_RPC_URL: ${{ secrets.SOLANA_MAINNET_NODE_RPC_URL }}
 
   publish:
     needs: test

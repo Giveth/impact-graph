@@ -838,7 +838,7 @@ function createDonationTestCases() {
         query: createDonationMutation,
         variables: {
           projectId: project.id,
-          transactionNetworkId: NETWORK_IDS.SOLANA,
+          transactionNetworkId: NETWORK_IDS.SOLANA_MAINNET,
           transactionId,
           nonce: 1,
           amount: 10,
@@ -882,7 +882,7 @@ function createDonationTestCases() {
         query: createDonationMutation,
         variables: {
           projectId: project.id,
-          transactionNetworkId: NETWORK_IDS.SOLANA,
+          transactionNetworkId: NETWORK_IDS.SOLANA_MAINNET,
           transactionId,
           nonce: 0,
           amount: 100,

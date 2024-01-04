@@ -177,7 +177,7 @@ const managingFundsValidator = Joi.object({
         Joi.string().required().pattern(solanaWalletAddressRegex),
       ),
       networkId: Joi.number()?.valid(
-        NETWORK_IDS.SOLANA, // Solana
+        NETWORK_IDS.SOLANA_MAINNET, // Solana
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,
