@@ -881,7 +881,7 @@ function getTransactionDetailTestCases() {
         '5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8',
       symbol: 'SOL',
       chainType: ChainType.SOLANA,
-      networkId: NETWORK_IDS.SOLANA_MAINNET,
+      networkId: NETWORK_IDS.SOLANA_DEVNET,
       fromAddress: '5GECDSGSWmMuw6nMfmdBLapa91ZHDZeHqRP1fqvQokjY',
       toAddress: 'DvWdrYYkwyM9mnTetpr3HBHUBKZ22QdbFEXQ8oquE7Zb',
       timestamp: 1702931400,
