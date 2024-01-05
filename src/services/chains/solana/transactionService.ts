@@ -33,7 +33,7 @@ const getSolanaWebProvider = (chainId: number) => {
   } else {
     // DEVNET
     solanaProviders[chainId] = new SolanaWeb3.Connection(
-      process.env.SOLANA_MAINNET_NODE_RPC_URL as string,
+      process.env.SOLANA_DEVNET_NODE_RPC_URL as string,
     );
   }
   return solanaProviders[chainId];
