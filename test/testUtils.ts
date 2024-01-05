@@ -1373,6 +1373,54 @@ export const SEED_DATA = {
         address: '11111111111111111111111111111111',
         decimals: 9,
       },
+      {
+        name: 'Marinade staked SOL',
+        symbol: 'mSOL',
+        address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+        decimals: 9,
+      },
+      {
+        name: 'USDC',
+        symbol: 'USDC',
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+      {
+        name: 'Tether',
+        symbol: 'USDCT',
+        address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+        decimals: 6,
+      },
+      {
+        name: 'Raydium',
+        symbol: 'RAY',
+        address: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R',
+        decimals: 6,
+      },
+      {
+        name: 'BlazeStake Staked SOL',
+        symbol: 'BSOL',
+        address: 'bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1',
+        decimals: 9,
+      },
+      {
+        name: 'Audius (Wormhole)',
+        symbol: 'AUDIO',
+        address: '9LzCMqDgTKYz9Drzqnpgee3SGa89up3a247ypMj2xrqM',
+        decimals: 8,
+      },
+      {
+        name: 'Mango',
+        symbol: 'MANGO',
+        address: 'MangoCzJ36AjZyKwVj3VnYU4GTonjfVEnJmvvWaxLac',
+        decimals: 6,
+      },
+      {
+        name: 'Coin98',
+        symbol: 'C98',
+        address: 'C98A4nkJXhpVZNAZdHUA95RpTF3T4whtQubL3YobiUX9',
+        decimals: 6,
+      },
     ],
     solana_devnet: [
       {
