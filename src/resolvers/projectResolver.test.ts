@@ -262,6 +262,59 @@ function getProjectsAcceptTokensTestCases() {
       Number(allTokens.tokenCount),
     );
   });
+  it('should return just Gnosis tokens when project just have Gnosis recipient address', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.TRACE,
+      networkId: NETWORK_IDS.XDAI,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isNotEmpty(result.data.data.getProjectAcceptTokens);
+    result.data.data.getProjectAcceptTokens.forEach(token => {
+      assert.equal(token.networkId, NETWORK_IDS.XDAI);
+    });
+  });
+  it('should return just Ropsten tokens when project just have Ropsten recipient address', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.TRACE,
+      networkId: NETWORK_IDS.ROPSTEN,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isNotEmpty(result.data.data.getProjectAcceptTokens);
+    result.data.data.getProjectAcceptTokens.forEach(token => {
+      assert.equal(token.networkId, NETWORK_IDS.ROPSTEN);
+    });
+  });
+  it('should no tokens when there is not any recipient address', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.TRACE,
+      networkId: NETWORK_IDS.ROPSTEN,
+    });
+    await removeRecipientAddressOfProject({ project });
+
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isEmpty(result.data.data.getProjectAcceptTokens);
+  });
+
   it('should just return ETH token for givingBlock projects', async () => {
     const project = await saveProjectDirectlyToDb({
       ...createProjectData(),
