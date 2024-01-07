@@ -646,6 +646,7 @@ export class DonationResolver {
             transakId,
             referrerId,
             safeTransactionId,
+            chainType,
           },
           createDonationQueryValidator,
         );
