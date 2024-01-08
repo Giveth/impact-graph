@@ -22,19 +22,22 @@ const getSolanaWebProvider = (chainId: number) => {
   if (solanaProviders.has(chainId)) {
     return solanaProviders.get(chainId);
   }
-  if (chainId === NETWORK_IDS.SOLANA_MAINNET) {
-    solanaProviders[chainId] = new SolanaWeb3.Connection(
-      process.env.SOLANA_MAINNET_NODE_RPC_URL as string,
-    );
-  } else if (chainId === NETWORK_IDS.SOLANA_TESTNET) {
-    solanaProviders[chainId] = new SolanaWeb3.Connection(
-      process.env.SOLANA_TEST_NODE_RPC_URL as string,
-    );
-  } else {
-    // DEVNET
-    solanaProviders[chainId] = new SolanaWeb3.Connection(
-      process.env.SOLANA_DEVNET_NODE_RPC_URL as string,
-    );
+  switch (chainId) {
+    case NETWORK_IDS.SOLANA_MAINNET:
+      solanaProviders[chainId] = new SolanaWeb3.Connection(
+        process.env.SOLANA_MAINNET_NODE_RPC_URL as string,
+      );
+      break;
+    case NETWORK_IDS.SOLANA_TESTNET:
+      solanaProviders[chainId] = new SolanaWeb3.Connection(
+        process.env.SOLANA_TEST_NODE_RPC_URL as string,
+      );
+      break;
+    default:
+      // DEVNET
+      solanaProviders[chainId] = new SolanaWeb3.Connection(
+        process.env.SOLANA_DEVNET_NODE_RPC_URL as string,
+      );
   }
   return solanaProviders[chainId];
 };
