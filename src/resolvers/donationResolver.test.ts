@@ -6,13 +6,14 @@ import {
   DONATION_SEED_DATA,
   saveProjectDirectlyToDb,
   createProjectData,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   generateRandomEtheriumAddress,
   saveDonationDirectlyToDb,
   createDonationData,
   saveUserDirectlyToDb,
   generateUserIdLessAccessToken,
   generateRandomSolanaAddress,
+  generateRandomSolanaTxHash,
 } from '../../test/testUtils';
 import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
@@ -678,7 +679,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -729,7 +730,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -794,7 +795,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -839,6 +840,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.SOLANA_MAINNET,
+          chainType: ChainType.SOLANA,
           transactionId,
           nonce: 1,
           amount: 10,
@@ -883,6 +885,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.SOLANA_MAINNET,
+          chainType: ChainType.SOLANA,
           transactionId,
           nonce: 0,
           amount: 100,
@@ -949,7 +952,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -979,7 +982,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.CELO,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -1045,7 +1048,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -1112,7 +1115,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -1151,7 +1154,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -1187,7 +1190,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount,
           token: 'WXDAI',
@@ -1224,7 +1227,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount,
           token: 'USDT',
@@ -1297,7 +1300,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -1337,7 +1340,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           anonymous: false,
           nonce: 3,
           amount: 10,
@@ -1376,7 +1379,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 4,
           amount: 10,
           token: 'ABCD',
@@ -1414,7 +1417,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 5,
           amount: 10,
           token: 'GIV',
@@ -1470,7 +1473,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 10,
           amount: 10,
           token: 'DOGE',
@@ -1509,7 +1512,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           amount: 10,
           nonce: 11,
           // custom token
@@ -1549,7 +1552,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 12,
           amount: 10,
           token: 'GIV',
@@ -1587,7 +1590,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 11,
           amount: 10,
           token: 'GIV',
@@ -1622,7 +1625,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 13,
           amount: 10,
           token: 'GIV',
@@ -1654,7 +1657,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.ROPSTEN,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           amount: 10,
           nonce: 11,
           token: 'ETH',
@@ -1682,7 +1685,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.GOERLI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           amount: 10,
           nonce: 11,
           token: 'ETH',
@@ -1711,7 +1714,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 13,
           amount: 10,
           token: 'ETH',
@@ -1740,7 +1743,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 14,
           amount: 10,
           token: 'DAI',
@@ -1772,7 +1775,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           amount: 10,
           nonce: 13,
           token: 'XDAI',
@@ -1807,7 +1810,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.MAIN_NET,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 15,
           amount: 10,
           token: 'ETH',
@@ -1834,7 +1837,7 @@ function createDonationTestCases() {
       variables: {
         projectId: project.id,
         transactionNetworkId: NETWORK_IDS.XDAI,
-        transactionId: generateRandomTxHash(),
+        transactionId: generateRandomEvmTxHash(),
         nonce: 3,
         amount: 10,
         token: 'GIV',
@@ -1860,7 +1863,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 3,
           amount: 10,
           token: 'GIV',
@@ -1893,7 +1896,7 @@ function createDonationTestCases() {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
           anonymous: true,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 4,
           amount: 10,
           token: 'GIV',
@@ -1970,7 +1973,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 12,
           amount: 10,
           token: 'GIV',
@@ -2008,7 +2011,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           amount: 10,
           nonce: 6,
           token: 'GIV',
@@ -2044,7 +2047,7 @@ function createDonationTestCases() {
         variables: {
           projectId: 999999,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 13,
           amount: 10,
           token: 'GIV',
@@ -2079,7 +2082,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 1,
           amount: 10,
           token: 'GIV',
@@ -2118,7 +2121,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           amount: 10,
           nonce: 11,
           token: 'GIV',
@@ -2157,7 +2160,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 12,
           amount: 10,
           token: 'GIV',
@@ -2192,7 +2195,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           amount: 10,
           nonce: 14,
           token: 'GIV',
@@ -2227,7 +2230,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 15,
           amount: 10,
           token: 'GIV',
@@ -2259,7 +2262,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 11,
           amount: 0,
           token: 'GIV',
@@ -2291,7 +2294,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 11,
           amount: -10,
           token: 'GIV',
@@ -2355,7 +2358,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: 203,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 11,
           amount: 10,
           token: 'GIV',
@@ -2387,7 +2390,7 @@ function createDonationTestCases() {
         variables: {
           projectId: project.id,
           transactionNetworkId: NETWORK_IDS.XDAI,
-          transactionId: generateRandomTxHash(),
+          transactionId: generateRandomEvmTxHash(),
           nonce: 15,
           amount: 10,
           token: 'GIV!!',
@@ -2406,6 +2409,110 @@ function createDonationTestCases() {
       },
     });
     assert.isOk(donation);
+  });
+  it.only('should throw exception when chainType is SOLANA but send EVM tokenAddress', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomSolanaAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const tokenAddress = generateRandomEtheriumAddress();
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.SOLANA_TESTNET,
+          transactionId: generateRandomSolanaTxHash(),
+          tokenAddress,
+          nonce: 11,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.INVALID_TOKEN_ADDRESS,
+    );
+  });
+  it('should throw exception when chainType is EVM but send SOLANA tokenAddress #1', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomEvmTxHash(),
+          // SOLANA token address
+          tokenAddress: '11111111111111111111111111111111',
+          chainType: ChainType.EVM,
+          nonce: 11,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.INVALID_TOKEN_ADDRESS,
+    );
+  });
+  it('should throw exception when chainType is EVM but send SOLANA tokenAddress #2', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.XDAI,
+          transactionId: generateRandomEvmTxHash(),
+          // SOLANA token address
+          tokenAddress: generateRandomSolanaAddress(),
+          chainType: ChainType.EVM,
+          nonce: 11,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      errorMessages.INVALID_TOKEN_ADDRESS,
+    );
   });
 }
 
@@ -3261,7 +3368,7 @@ function donationsByUserIdTestCases() {
     const project = await saveProjectDirectlyToDb(projectData);
 
     const donationData = {
-      transactionId: generateRandomTxHash(),
+      transactionId: generateRandomEvmTxHash(),
       transactionNetworkId: NETWORK_IDS.MAIN_NET,
       toWalletAddress: generateRandomEtheriumAddress(),
       fromWalletAddress: generateRandomEtheriumAddress(),
@@ -3340,7 +3447,7 @@ function donationsByUserIdTestCases() {
     const project = await saveProjectDirectlyToDb(projectData);
 
     const donationDataAnonymous = {
-      transactionId: generateRandomTxHash(),
+      transactionId: generateRandomEvmTxHash(),
       transactionNetworkId: NETWORK_IDS.MAIN_NET,
       toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
       fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
@@ -3355,7 +3462,7 @@ function donationsByUserIdTestCases() {
     };
 
     const donationDataNotAnonymous = {
-      transactionId: generateRandomTxHash(),
+      transactionId: generateRandomEvmTxHash(),
       transactionNetworkId: NETWORK_IDS.MAIN_NET,
       toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
       fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
@@ -4028,7 +4135,7 @@ function updateDonationStatusTestCases() {
   // });
   it('should donation status remain pending after calling without sending status (we assume its not mined so far)', async () => {
     const transactionInfo = {
-      txHash: generateRandomTxHash(),
+      txHash: generateRandomEvmTxHash(),
       networkId: NETWORK_IDS.XDAI,
       amount: 1,
       fromAddress: generateRandomEtheriumAddress(),
@@ -4198,7 +4305,7 @@ function updateDonationStatusTestCases() {
   });
   it('should update donation status to failed, tx is not mined and donor says it failed', async () => {
     const transactionInfo = {
-      txHash: generateRandomTxHash(),
+      txHash: generateRandomEvmTxHash(),
       networkId: NETWORK_IDS.XDAI,
       amount: 1,
       fromAddress: generateRandomEtheriumAddress(),

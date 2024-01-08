@@ -84,8 +84,6 @@ async function getTransactionDetailForSplTokenTransfer(
 ): Promise<NetworkTransactionInfo | null> {
   try {
     const SPL_TOKEN_TRANSFER_INSTRUCTION_TYPE = 'spl-token';
-    const TRANSFER_CHECK_TYPE = 'transferChecked';
-
     const result = await getSolanaWebProvider(
       params.networkId,
     ).getParsedTransaction(params.txHash);
@@ -97,17 +95,22 @@ async function getTransactionDetailForSplTokenTransfer(
     const data = result?.transaction?.message?.instructions?.find(
       instruction =>
         instruction?.program === SPL_TOKEN_TRANSFER_INSTRUCTION_TYPE &&
-        instruction?.parsed?.type === TRANSFER_CHECK_TYPE &&
-        instruction?.parsed?.info.authority === params.fromAddress &&
-        instruction?.parsed?.info.mint === token?.address,
+        instruction?.parsed?.info.authority === params.fromAddress,
     );
-    const toAddressBalance = result?.meta?.postTokenBalances?.find(
+    const toAddressPostBalance = result?.meta?.postTokenBalances?.find(
       balance =>
         balance.owner === params.toAddress && balance.mint === token?.address,
     );
-    if (!data || !toAddressBalance) {
+    const toAddressPreBalance = result?.meta?.preTokenBalances?.find(
+      balance =>
+        balance.owner === params.toAddress && balance.mint === token?.address,
+    );
+    if (!data || !toAddressPostBalance || !toAddressPreBalance) {
       return null;
     }
+    const amount =
+      toAddressPostBalance.uiTokenAmount?.uiAmount -
+      toAddressPreBalance.uiTokenAmount?.uiAmount;
     const parsedData = data as ParsedInstruction;
 
     const txInfo = parsedData.parsed.info;
@@ -118,8 +121,8 @@ async function getTransactionDetailForSplTokenTransfer(
       from: txInfo.authority,
 
       // we already check toAddressBalance.owner === params.toAddress
-      to: toAddressBalance?.owner,
-      amount: txInfo.tokenAmount?.uiAmount,
+      to: toAddressPostBalance?.owner,
+      amount,
       currency: params.symbol,
       timestamp: result!.blockTime as number,
       hash: params.txHash,

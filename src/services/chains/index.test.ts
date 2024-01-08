@@ -873,7 +873,7 @@ function getTransactionDetailTestCases() {
   // });
 
   /// SOLANA
-  it('should return transaction detail for SOL transfer on Solana ', async () => {
+  it('should return transaction detail for SOL transfer on Solana #1', async () => {
     // https://explorer.solana.com/tx/5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8?cluster=devnet
     const amount = 0.001;
     const transactionInfo = await getTransactionInfoFromNetwork({
@@ -934,7 +934,7 @@ function getTransactionDetailTestCases() {
     );
   });
 
-  it('should return transaction detail for spl-token transfer on Solana', async () => {
+  it('should return transaction detail for spl-token transfer on Solana #1', async () => {
     // https://solscan.io/tx/2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16?cluster=devnet
     const amount = 7;
     const transactionInfo = await getTransactionInfoFromNetwork({
@@ -950,6 +950,25 @@ function getTransactionDetailTestCases() {
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'TEST-SPL-TOKEN');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for spl-token transfer on Solana #2', async () => {
+    // https://solscan.io/tx/3m6f1g2YK6jtbfVfuYsfDbhVzNAqozF8JJyjp1VuFDduecojqeCVK4htKnLTSk3qBwSqYUvgLpBTVpeLJRvNmeTg?cluster=devnet
+    const amount = 0.00000005;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '3m6f1g2YK6jtbfVfuYsfDbhVzNAqozF8JJyjp1VuFDduecojqeCVK4htKnLTSk3qBwSqYUvgLpBTVpeLJRvNmeTg',
+      symbol: 'TEST-SPL-TOKEN2',
+      chainType: ChainType.SOLANA,
+      networkId: NETWORK_IDS.SOLANA_DEVNET,
+      fromAddress: '26Aks2rN6mfqxdYRXKZbn8CS4GBv6fCMGFYfGWvfFfcx',
+      toAddress: '7TJgw4hDHh5wdKep3EsBkGMSvtf9LsxdXf89LA48uHoq',
+      timestamp: 1704699701,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'TEST-SPL-TOKEN2');
     assert.equal(transactionInfo.amount, amount);
   });
 

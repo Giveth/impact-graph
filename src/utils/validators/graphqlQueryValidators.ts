@@ -19,7 +19,6 @@ const resourcePerDateRegex = new RegExp(
   '((?:19|20)\\d\\d)-(0?[1-9]|1[012])-([12][0-9]|3[01]|0?[1-9])',
 );
 
-const chainTypeRegex = /^SOLANA$/;
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const solanaWalletAddressRegex = /^[A-Za-z0-9]{43,44}$/;
 const solanaProgramIdRegex =
@@ -99,10 +98,18 @@ export const createDonationQueryValidator = Joi.object({
   transactionNetworkId: Joi.string()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
+
   tokenAddress: Joi.when('chainType', {
-    is: Joi.string().pattern(chainTypeRegex),
+    is: ChainType.SOLANA,
     then: Joi.string().pattern(solanaProgramIdRegex),
-    otherwise: Joi.string().pattern(ethereumWalletAddressRegex), // default case
+    otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
+  }).messages({
+    'string.pattern.base': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
+    'string.disallow': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
   }),
   token: Joi.string().required(),
   // .pattern(tokenSymbolRegex)

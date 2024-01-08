@@ -303,7 +303,7 @@ export const createDonationData = (params?: {
   qfRoundId?: number;
 }): CreateDonationData => {
   return {
-    transactionId: generateRandomTxHash(),
+    transactionId: generateRandomEvmTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
@@ -1435,6 +1435,12 @@ export const SEED_DATA = {
         address: 'BrEahxkTrCKfjVy36pLD2gvVoMCUMEb1PinrAFtvJqPX',
         decimals: 9,
       },
+      {
+        name: 'TEST-SPL-TOKEN2',
+        symbol: 'TEST-SPL-TOKEN2',
+        address: '8LDBhHJB7oMAjkJaetXa4njjetUVWDRTqvzkmhFQjgeK',
+        decimals: 9,
+      },
     ],
     solana_testnet: [
       {
@@ -1696,7 +1702,7 @@ export const REACTION_SEED_DATA = {
 export const DONATION_SEED_DATA = {
   FIRST_DONATION: {
     id: 1,
-    transactionId: generateRandomTxHash(),
+    transactionId: generateRandomEvmTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
@@ -1845,7 +1851,7 @@ export function generateRandomSolanaAddress(): string {
   return Keypair.generate().publicKey.toString();
 }
 
-export function generateRandomTxHash(): string {
+export function generateRandomEvmTxHash(): string {
   return `0x${generateHexNumber(64)}`;
 }
 
@@ -1857,4 +1863,21 @@ export function generateHexNumber(len): string {
     output += hex.charAt(Math.floor(Math.random() * hex.length));
   }
   return output;
+}
+
+function generateRandomAlphanumeric(length) {
+  let result = '';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+export function generateRandomSolanaTxHash() {
+  // Random length between 86 and 88
+  const length = Math.floor(Math.random() * 3) + 86;
+  return generateRandomAlphanumeric(length);
 }
