@@ -2410,7 +2410,7 @@ function createDonationTestCases() {
     });
     assert.isOk(donation);
   });
-  it.only('should throw exception when chainType is SOLANA but send EVM tokenAddress', async () => {
+  it('should throw exception when chainType is SOLANA but send EVM tokenAddress', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
       walletAddress: generateRandomSolanaAddress(),
