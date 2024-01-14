@@ -819,7 +819,7 @@ function createDonationTestCases() {
     await qfRound.save();
   });
 
-  it('should create a solana donation succesfully', async () => {
+  it('should create a solana donation successfully', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     await project.save();
 
@@ -862,7 +862,7 @@ function createDonationTestCases() {
     assert.equal(donation?.chainType, ChainType.SOLANA);
   });
 
-  it('should create a solana donation succesfully - 2', async () => {
+  it('should create a solana donation successfully - 2', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     await project.save();
 
@@ -2369,7 +2369,7 @@ function createDonationTestCases() {
     );
     assert.equal(
       saveDonationResponse.data.errors[0].message,
-      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 420, 56, 42220, 44787, 61, 63, 0]',
+      '"transactionNetworkId" must be one of [1, 3, 5, 100, 137, 10, 420, 56, 42220, 44787, 61, 63, 101]',
     );
   });
   it('should not throw exception when currency is not valid when currency is USDC.e', async () => {

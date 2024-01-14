@@ -99,7 +99,7 @@ export const createDonationQueryValidator = Joi.object({
     .required()
     .valid(...Object.values(NETWORK_IDS)),
   tokenAddress: Joi.when('transactionNetworkId', {
-    is: 0, // if its solana network
+    is: NETWORK_IDS.SOLANA, // if its solana network
     then: Joi.string().pattern(solanaProgramIdRegex),
     otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
   }),
