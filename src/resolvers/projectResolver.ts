@@ -1561,11 +1561,7 @@ export class ProjectResolver {
           'project.id = :projectId',
           { projectId },
         )
-        .leftJoinAndSelect(
-          'organization.tokens',
-          'tokens',
-          'tokens.networkId IS NOT NULL',
-        )
+        .leftJoinAndSelect('organization.tokens', 'tokens')
         .leftJoin(
           'project_address',
           'pa',

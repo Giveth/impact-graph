@@ -1,4 +1,4 @@
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import 'mocha';
 import {
   createDonationData,
@@ -296,6 +296,36 @@ function getProjectsAcceptTokensTestCases() {
     assert.isNotEmpty(result.data.data.getProjectAcceptTokens);
     result.data.data.getProjectAcceptTokens.forEach(token => {
       assert.equal(token.networkId, NETWORK_IDS.ROPSTEN);
+    });
+  });
+  it('should return just Solana and Ropsten tokens when project just have Solana and Ropsten recipient address', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      organizationLabel: ORGANIZATION_LABELS.TRACE,
+      networkId: NETWORK_IDS.ROPSTEN,
+    });
+
+    await addNewProjectAddress({
+      project,
+      user: project.adminUser,
+      isRecipient: true,
+      networkId: NETWORK_IDS.SOLANA,
+      address: generateRandomSolanaAddress(),
+      chainType: ChainType.SOLANA,
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: getProjectsAcceptTokensQuery,
+      variables: {
+        projectId: project.id,
+      },
+    });
+    assert.isNotEmpty(result.data.data.getProjectAcceptTokens);
+    result.data.data.getProjectAcceptTokens.forEach(token => {
+      expect(token.networkId).to.satisfy(
+        networkId =>
+          networkId === NETWORK_IDS.SOLANA || networkId === NETWORK_IDS.ROPSTEN,
+      );
     });
   });
   it('should no tokens when there is not any recipient address', async () => {
