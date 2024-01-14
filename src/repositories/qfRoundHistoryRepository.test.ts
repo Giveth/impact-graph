@@ -2,7 +2,7 @@ import {
   createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -402,7 +402,7 @@ function getQfRoundHistoriesThatDontHaveRelatedDonationsTestCases() {
       qfRoundId: qfRound.id,
     });
     assert.isNotNull(qfRoundHistory);
-    qfRoundHistory!.distributedFundTxHash = generateRandomTxHash();
+    qfRoundHistory!.distributedFundTxHash = generateRandomEvmTxHash();
     qfRoundHistory!.distributedFundNetwork = '100';
     qfRoundHistory!.matchingFundAmount = 1000;
     qfRoundHistory!.matchingFundCurrency = 'DAI';
@@ -470,7 +470,7 @@ function getQfRoundHistoriesThatDontHaveRelatedDonationsTestCases() {
       qfRoundId: qfRound.id,
     });
     assert.isNotNull(qfRoundHistory);
-    qfRoundHistory!.distributedFundTxHash = generateRandomTxHash();
+    qfRoundHistory!.distributedFundTxHash = generateRandomEvmTxHash();
     qfRoundHistory!.distributedFundNetwork = '100';
     qfRoundHistory!.matchingFundAmount = 1000;
     qfRoundHistory!.matchingFundCurrency = 'DAI';
@@ -482,7 +482,7 @@ function getQfRoundHistoriesThatDontHaveRelatedDonationsTestCases() {
       qfRoundId: qfRound.id,
     });
     assert.isNotNull(qfRoundHistory);
-    qfRoundHistory2!.distributedFundTxHash = generateRandomTxHash();
+    qfRoundHistory2!.distributedFundTxHash = generateRandomEvmTxHash();
     qfRoundHistory2!.distributedFundNetwork = '100';
     qfRoundHistory2!.matchingFundAmount = 1000;
     qfRoundHistory2!.matchingFundCurrency = 'DAI';

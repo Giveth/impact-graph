@@ -14,7 +14,7 @@ import {
   createProjectData,
   DONATION_SEED_DATA,
   generateRandomEtheriumAddress,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -943,7 +943,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
       qfRoundId: qfRound.id,
     });
     assert.isNotNull(qfRoundHistory);
-    qfRoundHistory!.distributedFundTxHash = generateRandomTxHash();
+    qfRoundHistory!.distributedFundTxHash = generateRandomEvmTxHash();
     qfRoundHistory!.distributedFundNetwork = '100';
     qfRoundHistory!.matchingFundAmount = 1000;
     qfRoundHistory!.matchingFundCurrency = 'DAI';

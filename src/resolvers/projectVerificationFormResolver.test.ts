@@ -324,7 +324,7 @@ function updateProjectVerificationFormMutationTestCases() {
       },
       {
         address: generateRandomSolanaAddress(),
-        networkId: NETWORK_IDS.SOLANA,
+        networkId: NETWORK_IDS.SOLANA_MAINNET,
         title: 'test title',
         chainType: ChainType.SOLANA,
       },
