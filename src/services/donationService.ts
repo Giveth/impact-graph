@@ -256,7 +256,7 @@ export const isTokenAcceptableForProject = async (inputData: {
   }
 };
 
-const toFixNumber = (input: number, digits: number): number => {
+export const toFixNumber = (input: number, digits: number): number => {
   return convertExponentialNumber(Number(input.toFixed(digits)));
 };
 
