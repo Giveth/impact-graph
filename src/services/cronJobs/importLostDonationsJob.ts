@@ -37,7 +37,7 @@ const cronJobTime =
   '0 0 * * 0';
 
 // coma separated txHashes
-const lostDonationsTxHashes = config.get('LOST_DONATIONS_TX_HASHES') as string;
+const lostDonationsTxHashes = process.env.LOST_DONATIONS_TX_HASHES;
 
 export const runSyncLostDonations = () => {
   logger.debug('runSyncLostDonations() has been called');
