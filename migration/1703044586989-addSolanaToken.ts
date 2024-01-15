@@ -4,17 +4,25 @@ import { Token } from '../src/entities/token';
 import seedTokens from './data/seedTokens';
 import { ChainType } from '../src/types/network';
 import { SOLANA_SYSTEM_PROGRAM } from '../src/utils/networks';
+import { ENVIRONMENTS } from '../src/utils/utils';
 
 export class addSolanaToken1703044586989 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.manager.save(
-      Token,
-      seedTokens.filter(
+  async up(queryRunner: QueryRunner): Promise<void> {
+    let tokensData;
+    if (process.env.ENVIRONMENT === ENVIRONMENTS.PRODUCTION) {
+      tokensData = seedTokens.filter(
         token =>
-          token.address === SOLANA_SYSTEM_PROGRAM &&
-          token.chainType === ChainType.SOLANA,
-      ),
-    );
+          token.networkId === NETWORK_IDS.SOLANA_MAINNET &&
+          token.address === SOLANA_SYSTEM_PROGRAM,
+      );
+    } else {
+      tokensData = seedTokens.filter(
+        token =>
+          token.networkId === NETWORK_IDS.SOLANA_DEVNET &&
+          token.address === SOLANA_SYSTEM_PROGRAM,
+      );
+    }
+    await queryRunner.manager.save(Token, tokensData);
     const tokens = await queryRunner.query(
       `SELECT * FROM token WHERE "chainType" = $1 AND "address" = $2`,
       [ChainType.SOLANA, SOLANA_SYSTEM_PROGRAM],
@@ -33,7 +41,7 @@ export class addSolanaToken1703044586989 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  async down(queryRunner: QueryRunner): Promise<void> {
     const tokens = await queryRunner.query(
       `SELECT * FROM token WHERE "chainType" = $1 AND "address" = $2`,
       [ChainType.SOLANA, SOLANA_SYSTEM_PROGRAM],

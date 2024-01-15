@@ -1249,7 +1249,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
   },
-  // TODO: Add solana token
+  // SOLANA mainnet
   {
     name: 'Solana native token',
     symbol: 'SOL',
@@ -1330,6 +1330,39 @@ const seedTokens: ITokenData[] = [
     networkId: NETWORK_IDS.SOLANA_MAINNET,
     chainType: ChainType.SOLANA,
     coingeckoId: COINGECKO_TOKEN_IDS.C98,
+  },
+
+
+  // SOLANA devnet
+  {
+    name: 'Solana native token',
+    symbol: 'SOL',
+    address: SOLANA_SYSTEM_PROGRAM,
+    decimals: 9,
+    networkId: NETWORK_IDS.SOLANA_DEVNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
+  },
+
+  {
+    // Mohammad has deployed it on solana devnet, so you can get some tokens from him
+    name: 'Test SPL token',
+    symbol: 'TEST-SPL-TOKEN',
+    address: 'BrEahxkTrCKfjVy36pLD2gvVoMCUMEb1PinrAFtvJqPX',
+    decimals: 9,
+    networkId: NETWORK_IDS.SOLANA_DEVNET,
+    chainType: ChainType.SOLANA,
+  },
+
+  // SOLANA testnet
+  {
+    name: 'Solana native token',
+    symbol: 'SOL',
+    address: SOLANA_SYSTEM_PROGRAM,
+    decimals: 9,
+    networkId: NETWORK_IDS.SOLANA_DEVNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
   },
 ];
 
