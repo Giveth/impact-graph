@@ -1,4 +1,5 @@
 import {
+  GetTokenPriceAtDateParams,
   GetTokenPriceParams,
   PriceAdapterInterface,
 } from './PriceAdapterInterface';
@@ -31,6 +32,28 @@ export class CoingeckoPriceAdapter implements PriceAdapterInterface {
       return null;
     }
     return result.priceUsd;
+  }
+
+  async getTokenPriceAtDate(
+    params: GetTokenPriceAtDateParams,
+  ): Promise<number> {
+    try {
+      const result = await axios.get(
+        // symbol in here means coingecko id for instance for ETC token the coingecko id is ethereum-classic
+        `https://api.coingecko.com/api/v3/coins/${params.symbol}/history?date=${params.date}`,
+      );
+
+      const priceUsd = result?.data?.market_data?.current_price?.usd;
+      if (!priceUsd) {
+        throw new Error(
+          `History Price not found for ${params.symbol} in coingecko`,
+        );
+      }
+      return priceUsd;
+    } catch (e) {
+      logger.error('Error in CoingeckoHistoricPriceAdapter', e);
+      throw e;
+    }
   }
 
   async getTokenPrice(params: GetTokenPriceParams): Promise<number> {
