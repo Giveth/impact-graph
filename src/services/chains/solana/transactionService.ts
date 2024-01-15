@@ -10,16 +10,36 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
+import {
+  findTokenByNetworkAndAddress,
+  findTokenByNetworkAndSymbol,
+} from '../../../utils/tokenUtils';
+import { NETWORK_IDS } from '../../../provider';
 
-let solanaProvider;
+const solanaProviders = new Map<number, SolanaWeb3.Connection>();
 
-const getSolanaWebProvider = () => {
-  if (solanaProvider) {
-    return solanaProvider;
+const getSolanaWebProvider = (chainId: number) => {
+  if (solanaProviders.has(chainId)) {
+    return solanaProviders.get(chainId);
   }
-  const SOLANA_NODE_RPC_URL = process.env.SOLANA_NODE_RPC_URL as string;
-  solanaProvider = new SolanaWeb3.Connection(SOLANA_NODE_RPC_URL);
-  return solanaProvider;
+  switch (chainId) {
+    case NETWORK_IDS.SOLANA_MAINNET:
+      solanaProviders[chainId] = new SolanaWeb3.Connection(
+        process.env.SOLANA_MAINNET_NODE_RPC_URL as string,
+      );
+      break;
+    case NETWORK_IDS.SOLANA_TESTNET:
+      solanaProviders[chainId] = new SolanaWeb3.Connection(
+        process.env.SOLANA_TEST_NODE_RPC_URL as string,
+      );
+      break;
+    default:
+      // DEVNET
+      solanaProviders[chainId] = new SolanaWeb3.Connection(
+        process.env.SOLANA_DEVNET_NODE_RPC_URL as string,
+      );
+  }
+  return solanaProviders[chainId];
 };
 
 export const getSolanaTransactionDetailForSolanaTransfer = async (
@@ -29,9 +49,9 @@ export const getSolanaTransactionDetailForSolanaTransfer = async (
   const SOL_CURRENCY_TYPE = 'SOL';
 
   try {
-    const result = await getSolanaWebProvider().getParsedTransaction(
-      params.txHash,
-    );
+    const result = await getSolanaWebProvider(
+      params.networkId,
+    ).getParsedTransaction(params.txHash);
     const data = result?.transaction?.message?.instructions?.find(
       instruction =>
         instruction?.parsed?.type === TRANSFER_INSTRUCTION_TYPE &&
@@ -62,10 +82,58 @@ export const getSolanaTransactionDetailForSolanaTransfer = async (
   }
 };
 
-function getTransactionDetailForTokenTransfer(
-  input: TransactionDetailInput,
-): Promise<NetworkTransactionInfo> {
-  throw new Error('Not Implemented');
+async function getTransactionDetailForSplTokenTransfer(
+  params: TransactionDetailInput,
+): Promise<NetworkTransactionInfo | null> {
+  try {
+    const SPL_TOKEN_TRANSFER_INSTRUCTION_TYPE = 'spl-token';
+    const result = await getSolanaWebProvider(
+      params.networkId,
+    ).getParsedTransaction(params.txHash);
+    const token = await findTokenByNetworkAndSymbol(
+      params.networkId,
+      params.symbol,
+    );
+
+    const data = result?.transaction?.message?.instructions?.find(
+      instruction =>
+        instruction?.program === SPL_TOKEN_TRANSFER_INSTRUCTION_TYPE &&
+        instruction?.parsed?.info.authority === params.fromAddress,
+    );
+    const toAddressPostBalance = result?.meta?.postTokenBalances?.find(
+      balance =>
+        balance.owner === params.toAddress && balance.mint === token?.address,
+    );
+    const toAddressPreBalance = result?.meta?.preTokenBalances?.find(
+      balance =>
+        balance.owner === params.toAddress && balance.mint === token?.address,
+    );
+    if (!data || !toAddressPostBalance || !toAddressPreBalance) {
+      return null;
+    }
+    const amount =
+      toAddressPostBalance.uiTokenAmount?.uiAmount -
+      toAddressPreBalance.uiTokenAmount?.uiAmount;
+    const parsedData = data as ParsedInstruction;
+
+    const txInfo = parsedData.parsed.info;
+    if (!txInfo) {
+      return null;
+    }
+    return {
+      from: txInfo.authority,
+
+      // we already check toAddressBalance.owner === params.toAddress
+      to: toAddressPostBalance?.owner,
+      amount,
+      currency: params.symbol,
+      timestamp: result!.blockTime as number,
+      hash: params.txHash,
+    };
+  } catch (e) {
+    logger.error('getSolanaTransactionDetailForNormalTransfer error', e);
+    return null;
+  }
 }
 
 export async function getSolanaTransactionInfoFromNetwork(
@@ -76,7 +144,7 @@ export async function getSolanaTransactionInfoFromNetwork(
   if (nativeToken.toLowerCase() === input.symbol.toLowerCase()) {
     txData = await getSolanaTransactionDetailForSolanaTransfer(input);
   } else {
-    txData = await getTransactionDetailForTokenTransfer(input);
+    txData = await getTransactionDetailForSplTokenTransfer(input);
   }
   if (!txData) {
     throw new Error(

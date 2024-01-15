@@ -12,6 +12,14 @@ const coingeckoCacheExpirationInSeconds =
 
 export const COINGECKO_TOKEN_IDS = {
   SOLANA: 'solana',
+  MSOL: 'msol',
+  USDC: 'usd-coin',
+  USDT: 'tether',
+  RAY: 'raydium',
+  BSOL: 'blazestake-staked-sol',
+  AUDIO: 'audius-wormhole',
+  MANGO: 'mango-markets',
+  C98: 'coin98',
 };
 
 export class CoingeckoPriceAdapter implements PriceAdapterInterface {

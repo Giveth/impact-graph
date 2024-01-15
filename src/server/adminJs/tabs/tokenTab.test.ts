@@ -1,4 +1,4 @@
-import { generateRandomTxHash } from '../../../../test/testUtils';
+import { generateRandomEvmTxHash } from '../../../../test/testUtils';
 import { assert } from 'chai';
 import { findTokenByTokenAddress } from '../../../repositories/tokenRepository';
 import {
@@ -114,7 +114,7 @@ function generateOrganizationListTestCases() {
   });
 }
 
-const DRGTTokenAddress = generateRandomTxHash();
+const DRGTTokenAddress = generateRandomEvmTxHash();
 function createTokenTestCases() {
   it('should create token when unique it is unique by network, address', async () => {
     await createToken(

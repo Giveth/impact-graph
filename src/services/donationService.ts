@@ -61,7 +61,7 @@ export const updateDonationPricesAndValues = async (
       const coingeckoAdapter = new CoingeckoPriceAdapter();
       const solanaPriceUsd = await coingeckoAdapter.getTokenPrice({
         symbol: token.coingeckoId,
-        networkId: NETWORK_IDS.SOLANA,
+        networkId: NETWORK_IDS.SOLANA_MAINNET,
       });
       donation.priceUsd = toFixNumber(solanaPriceUsd, 4);
       donation.valueUsd = toFixNumber(donation.amount * solanaPriceUsd, 4);
