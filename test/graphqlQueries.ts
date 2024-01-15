@@ -1799,6 +1799,7 @@ export const updateProjectVerificationFormMutation = `
                     managingFunds {
                       description
                       relatedAddresses {
+                        chainType
                         address
                         networkId
                         title

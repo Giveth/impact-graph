@@ -13,6 +13,8 @@ import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User, publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
+import { ChainType } from '../types/network';
+import { getDefaultSolanaChainId } from '../services/chains';
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
 
@@ -296,7 +298,9 @@ export const updateProjectWithVerificationForm = async (
     await ProjectAddress.create({
       title: relatedAddress.title,
       address: relatedAddress.address,
-      networkId: relatedAddress.networkId,
+
+      // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
+      networkId: relatedAddress.networkId || getDefaultSolanaChainId(),
       projectId: verificationForm.projectId,
       userId: verificationForm.user?.id,
       project,
