@@ -98,10 +98,17 @@ export const createDonationQueryValidator = Joi.object({
   transactionNetworkId: Joi.string()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
-  tokenAddress: Joi.when('transactionNetworkId', {
-    is: NETWORK_IDS.SOLANA, // if its solana network
+  tokenAddress: Joi.when('chainType', {
+    is: ChainType.SOLANA,
     then: Joi.string().pattern(solanaProgramIdRegex),
     otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
+  }).messages({
+    'string.pattern.base': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
+    'string.disallow': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
   }),
   token: Joi.string().required(),
   // .pattern(tokenSymbolRegex)
@@ -116,6 +123,7 @@ export const createDonationQueryValidator = Joi.object({
   transakId: Joi.string(),
   referrerId: Joi.string().allow(null, ''),
   safeTransactionId: Joi.string().allow(null, ''),
+  chainType: Joi.string().required(),
 });
 
 export const updateDonationQueryValidator = Joi.object({
@@ -177,7 +185,9 @@ const managingFundsValidator = Joi.object({
         Joi.string().required().pattern(solanaWalletAddressRegex),
       ),
       networkId: Joi.number()?.valid(
-        NETWORK_IDS.SOLANA, // Solana
+        NETWORK_IDS.SOLANA_MAINNET, // Solana
+        NETWORK_IDS.SOLANA_DEVNET, // Solana
+        NETWORK_IDS.SOLANA_TESTNET, // Solana
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,

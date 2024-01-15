@@ -309,7 +309,7 @@ function getProjectsAcceptTokensTestCases() {
       project,
       user: project.adminUser,
       isRecipient: true,
-      networkId: NETWORK_IDS.SOLANA,
+      networkId: NETWORK_IDS.SOLANA_MAINNET,
       address: generateRandomSolanaAddress(),
       chainType: ChainType.SOLANA,
     });
@@ -324,7 +324,7 @@ function getProjectsAcceptTokensTestCases() {
     result.data.data.getProjectAcceptTokens.forEach(token => {
       expect(token.networkId).to.satisfy(
         networkId =>
-          networkId === NETWORK_IDS.SOLANA || networkId === NETWORK_IDS.ROPSTEN,
+          networkId === NETWORK_IDS.SOLANA_MAINNET || networkId === NETWORK_IDS.ROPSTEN,
       );
     });
   });

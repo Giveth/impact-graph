@@ -18,7 +18,11 @@ export const NETWORK_IDS = {
   CELO_ALFAJORES: 44787,
   ETC: 61,
   MORDOR_ETC_TESTNET: 63,
-  SOLANA: 101,
+
+  // https://docs.particle.network/developers/other-services/node-service/solana-api
+  SOLANA_MAINNET: 101,
+  SOLANA_TESTNET: 102,
+  SOLANA_DEVNET: 103,
 };
 
 export const NETWORKS_IDS_TO_NAME = {

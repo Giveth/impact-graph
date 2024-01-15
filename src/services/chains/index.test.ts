@@ -873,7 +873,7 @@ function getTransactionDetailTestCases() {
   // });
 
   /// SOLANA
-  it('should return transaction detail for SOL transfer on Solana ', async () => {
+  it('should return transaction detail for SOL transfer on Solana #1', async () => {
     // https://explorer.solana.com/tx/5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8?cluster=devnet
     const amount = 0.001;
     const transactionInfo = await getTransactionInfoFromNetwork({
@@ -881,7 +881,7 @@ function getTransactionDetailTestCases() {
         '5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8',
       symbol: 'SOL',
       chainType: ChainType.SOLANA,
-      networkId: NETWORK_IDS.SOLANA,
+      networkId: NETWORK_IDS.SOLANA_DEVNET,
       fromAddress: '5GECDSGSWmMuw6nMfmdBLapa91ZHDZeHqRP1fqvQokjY',
       toAddress: 'DvWdrYYkwyM9mnTetpr3HBHUBKZ22QdbFEXQ8oquE7Zb',
       timestamp: 1702931400,
@@ -900,7 +900,7 @@ function getTransactionDetailTestCases() {
         '3nzHwgxAu7mKw1dhGTVmqzY8Yet3kGWWqP5kr5D2fw1HzqPjqDGDe6xT5PguKXk8nAJcK4GpBEKWw7EzoLykKkCx',
       symbol: 'SOL',
       chainType: ChainType.SOLANA,
-      networkId: NETWORK_IDS.SOLANA,
+      networkId: NETWORK_IDS.SOLANA_DEVNET,
       fromAddress: '9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g',
       toAddress: 'GEhUKKZeENY1TmaavqvLJ5GbbQs9GkzECFSE2bpjzz3k',
       timestamp: 1701289800,
@@ -921,10 +921,71 @@ function getTransactionDetailTestCases() {
           '5GQGAgGfMNypB5GN4Pp2t3mEMky89bbpZwNDaDh1LJXopVm3bgSxFUgEJ4tEjf2NdibxX4NiiA752Ya2hzg2nqj8',
         symbol: 'SOL',
         chainType: ChainType.SOLANA,
-        networkId: NETWORK_IDS.SOLANA,
+        networkId: NETWORK_IDS.SOLANA_DEVNET,
         fromAddress: '5GECDSGSWmMuw6nMfmdBLapa91ZHDZeHqRP1fqvQokjY',
         toAddress: 'DvWdrYYkwyM9mnTetpr3HBHUBKZ22QdbFEXQ8oquE7Zb',
         timestamp: 1702931400 + ONE_DAY,
+        amount,
+      });
+    };
+    await assertThrowsAsync(
+      badFunc,
+      errorMessages.TRANSACTION_CANT_BE_OLDER_THAN_DONATION,
+    );
+  });
+
+  it('should return transaction detail for spl-token transfer on Solana #1', async () => {
+    // https://solscan.io/tx/2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16?cluster=devnet
+    const amount = 7;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16',
+      symbol: 'TEST-SPL-TOKEN',
+      chainType: ChainType.SOLANA,
+      networkId: NETWORK_IDS.SOLANA_DEVNET,
+      fromAddress: 'BxUK9tDLeMT7AkTR2jBTQQYUxGGw6nuWbQqGtiHHfftn',
+      toAddress: 'FAMREy7d73N5jPdoKowQ4QFm6DKPWuYxZh6cwjNAbpkY',
+      timestamp: 1704357745,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'TEST-SPL-TOKEN');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for spl-token transfer on Solana #2', async () => {
+    // https://solscan.io/tx/3m6f1g2YK6jtbfVfuYsfDbhVzNAqozF8JJyjp1VuFDduecojqeCVK4htKnLTSk3qBwSqYUvgLpBTVpeLJRvNmeTg?cluster=devnet
+    const amount = 0.00000005;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '3m6f1g2YK6jtbfVfuYsfDbhVzNAqozF8JJyjp1VuFDduecojqeCVK4htKnLTSk3qBwSqYUvgLpBTVpeLJRvNmeTg',
+      symbol: 'TEST-SPL-TOKEN2',
+      chainType: ChainType.SOLANA,
+      networkId: NETWORK_IDS.SOLANA_DEVNET,
+      fromAddress: '26Aks2rN6mfqxdYRXKZbn8CS4GBv6fCMGFYfGWvfFfcx',
+      toAddress: '7TJgw4hDHh5wdKep3EsBkGMSvtf9LsxdXf89LA48uHoq',
+      timestamp: 1704699701,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'TEST-SPL-TOKEN2');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return error when transaction time is newer than sent timestamp for spl-token transfer on Solana', async () => {
+    // https://explorer.solana.com/tx/2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16?cluster=devnet
+
+    const amount = 7;
+    const badFunc = async () => {
+      await getTransactionInfoFromNetwork({
+        txHash:
+          '2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16',
+        symbol: 'TEST-SPL-TOKEN',
+        chainType: ChainType.SOLANA,
+        networkId: NETWORK_IDS.SOLANA_DEVNET,
+        fromAddress: 'BxUK9tDLeMT7AkTR2jBTQQYUxGGw6nuWbQqGtiHHfftn',
+        toAddress: 'FAMREy7d73N5jPdoKowQ4QFm6DKPWuYxZh6cwjNAbpkY',
+        timestamp: 1704357745 + ONE_DAY,
         amount,
       });
     };
