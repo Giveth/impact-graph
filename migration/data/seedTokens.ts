@@ -1332,7 +1332,6 @@ const seedTokens: ITokenData[] = [
     coingeckoId: COINGECKO_TOKEN_IDS.C98,
   },
 
-
   // SOLANA devnet
   {
     name: 'Solana native token',

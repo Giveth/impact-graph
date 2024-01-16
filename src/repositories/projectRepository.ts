@@ -300,7 +300,11 @@ export const updateProjectWithVerificationForm = async (
       address: relatedAddress.address,
 
       // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
-      networkId: relatedAddress.networkId || getDefaultSolanaChainId(),
+      networkId:
+        relatedAddress.chainType === ChainType.SOLANA
+          ? getDefaultSolanaChainId()
+          : relatedAddress.networkId,
+
       projectId: verificationForm.projectId,
       userId: verificationForm.user?.id,
       project,

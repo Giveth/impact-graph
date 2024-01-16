@@ -18,7 +18,7 @@ import {
 } from '../utils/errorMessages';
 import { User } from '../entities/user';
 import { getDefaultSolanaChainId } from '../services/chains';
-import { add } from 'lodash';
+import { ChainType } from '../types/network';
 
 export const createProjectVerificationForm = async (params: {
   userId: number;
@@ -310,7 +310,11 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   managingFunds.relatedAddresses = managingFunds.relatedAddresses.map(
     address => {
       // because frontend sends 0 for solana addresses
-      address.networkId = address.networkId || getDefaultSolanaChainId();
+      address.networkId =
+        address.chainType === ChainType.SOLANA
+          ? getDefaultSolanaChainId()
+          : address.networkId;
+
       return address;
     },
   );

@@ -1044,7 +1044,11 @@ export class ProjectResolver {
             chainType: relatedAddress.chainType,
 
             // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
-            networkId: relatedAddress.networkId || getDefaultSolanaChainId(),
+            networkId:
+              relatedAddress.chainType === ChainType.SOLANA
+                ? getDefaultSolanaChainId()
+                : relatedAddress.networkId,
+
             isRecipient: true,
           };
         }),
@@ -1309,7 +1313,10 @@ export class ProjectResolver {
           address:
             chainType === ChainType.EVM ? address.toLowerCase() : address,
           chainType,
-          networkId,
+          networkId:
+            chainType === ChainType.SOLANA
+              ? getDefaultSolanaChainId()
+              : networkId,
           isRecipient: true,
         };
       }),
