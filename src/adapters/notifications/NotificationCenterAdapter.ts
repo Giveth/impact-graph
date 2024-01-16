@@ -86,6 +86,8 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     donation: Donation;
     project: Project;
   }): Promise<void> {
+    if (params.donation.valueUsd <= 1) return;
+
     const { project, donation } = params;
     const user = project.adminUser as User;
     await sendProjectRelatedNotificationsQueue.add({
@@ -631,6 +633,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
+  // commenting for now to test load of notification center.
   async projectEdited(params: { project: Project }): Promise<void> {
     return;
     // const { project } = params;
