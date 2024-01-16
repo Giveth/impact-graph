@@ -114,36 +114,37 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
     donor: User;
   }): Promise<void> {
-    const { project, donor, donation } = params;
-    await sendProjectRelatedNotificationsQueue.add({
-      project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.MADE_DONATION,
-      user: {
-        email: donor.email,
-        walletAddress: donor.walletAddress as string,
-      },
-      sendEmail: true,
-      segment: {
-        analyticsUserId: donor.segmentUserId(),
-        anonymousId: donor.segmentUserId(),
-        payload: {
-          ...getSegmentDonationAttributes({
-            donation,
-            project,
-            user: donor,
-          }),
+    return;
+    // const { project, donor, donation } = params;
+    // await sendProjectRelatedNotificationsQueue.add({
+    //   project,
+    //   eventName: projectEdited.MADE_DONATION,
+    //   user: {
+    //     email: donor.email,
+    //     walletAddress: donor.walletAddress as string,
+    //   },
+    //   sendEmail: true,
+    //   segment: {
+    //     analyticsUserId: donor.segmentUserId(),
+    //     anonymousId: donor.segmentUserId(),
+    //     payload: {
+    //       ...getSegmentDonationAttributes({
+    //         donation,
+    //         project,
+    //         user: donor,
+    //       }),
 
-          // We just want this to be donation sent event not made donation, so don put it in getSegmentDonationAttributes()
-          // see https://github.com/Giveth/impact-graph/pull/716
-          fromWalletAddress: donation.fromWalletAddress.toLowerCase(),
-        },
-      },
-      trackId:
-        'donation-sent-' +
-        donation.transactionNetworkId +
-        '-' +
-        donation.transactionId,
-    });
+    //       // We just want this to be donation sent event not made donation, so don put it in getSegmentDonationAttributes()
+    //       // see https://github.com/Giveth/impact-graph/pull/716
+    //       fromWalletAddress: donation.fromWalletAddress.toLowerCase(),
+    //     },
+    //   },
+    //   trackId:
+    //     'donation-sent-' +
+    //     donation.transactionNetworkId +
+    //     '-' +
+    //     donation.transactionId,
+    // });
   }
 
   async projectVerified(params: { project: Project }): Promise<void> {
@@ -406,19 +407,20 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
     userId: number;
   }): Promise<void> {
-    const { project } = params;
-    await sendProjectRelatedNotificationsQueue.add({
-      project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_RECEIVED_HEART,
+    return;
+    // const { project } = params;
+    // await sendProjectRelatedNotificationsQueue.add({
+    //   project,
+    //   eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_RECEIVED_HEART,
 
-      // With adding trackId to notification, notification-center would not create new notification
-      // If there is already a notification with this trackId in DB
-      trackId: generateTrackId({
-        userId: params.userId,
-        projectId: project?.id as number,
-        action: 'likeProject',
-      }),
-    });
+    //   // With adding trackId to notification, notification-center would not create new notification
+    //   // If there is already a notification with this trackId in DB
+    //   trackId: generateTrackId({
+    //     userId: params.userId,
+    //     projectId: project?.id as number,
+    //     action: 'likeProject',
+    //   }),
+    // });
   }
 
   ProfileIsCompleted(params: { user: User }): Promise<void> {
@@ -630,26 +632,27 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async projectEdited(params: { project: Project }): Promise<void> {
-    const { project } = params;
-    const projectOwner = project?.adminUser as User;
-    const now = Date.now();
+    return;
+    // const { project } = params;
+    // const projectOwner = project?.adminUser as User;
+    // const now = Date.now();
 
-    await sendProjectRelatedNotificationsQueue.add({
-      project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED,
+    // await sendProjectRelatedNotificationsQueue.add({
+    //   project,
+    //   eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_EDITED,
 
-      sendEmail: true,
-      segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
-          project,
-        }),
-      },
-      trackId: `project-edited-${
-        project.id
-      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
-    });
+    //   sendEmail: true,
+    //   segment: {
+    //     analyticsUserId: projectOwner.segmentUserId(),
+    //     anonymousId: projectOwner.segmentUserId(),
+    //     payload: getSegmentProjectAttributes({
+    //       project,
+    //     }),
+    //   },
+    //   trackId: `project-edited-${
+    //     project.id
+    //   }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
+    // });
   }
   async projectGotDraftByAdmin(params: { project: Project }): Promise<void> {
     const { project } = params;
@@ -674,26 +677,27 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async projectPublished(params: { project: Project }): Promise<void> {
-    const { project } = params;
-    const projectOwner = project?.adminUser as User;
-    const now = Date.now();
+    return;
+    // const { project } = params;
+    // const projectOwner = project?.adminUser as User;
+    // const now = Date.now();
 
-    await sendProjectRelatedNotificationsQueue.add({
-      project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED,
+    // await sendProjectRelatedNotificationsQueue.add({
+    //   project,
+    //   eventName: NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED,
 
-      sendEmail: true,
-      segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
-          project,
-        }),
-      },
-      trackId: `project-published-${
-        project.id
-      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
-    });
+    //   sendEmail: true,
+    //   segment: {
+    //     analyticsUserId: projectOwner.segmentUserId(),
+    //     anonymousId: projectOwner.segmentUserId(),
+    //     payload: getSegmentProjectAttributes({
+    //       project,
+    //     }),
+    //   },
+    //   trackId: `project-published-${
+    //     project.id
+    //   }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
+    // });
   }
 
   async projectReactivated(params: { project: Project }): Promise<void> {
