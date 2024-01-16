@@ -462,18 +462,10 @@ export const sendSegmentEventForDonation = async (params: {
   }
   const donorUser = await findUserById(donation.userId);
   const projectOwner = project.adminUser;
-  if (projectOwner) {
+  if (projectOwner && donation.valueUsd > 1) {
     await getNotificationAdapter().donationReceived({
       donation,
       project,
-    });
-  }
-
-  if (donorUser) {
-    await getNotificationAdapter().donationSent({
-      donation,
-      project,
-      donor: donorUser,
     });
   }
 };
