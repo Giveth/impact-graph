@@ -213,6 +213,11 @@ export class ReactionResolver {
 
       // commit transaction now:
       await queryRunner.commitTransaction();
+      await getNotificationAdapter().projectReceivedHeartReaction({
+        project,
+        userId: user.userId,
+      });
+
       return reaction;
     } catch (e) {
       logger.error('like project error', e);

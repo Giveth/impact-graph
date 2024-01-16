@@ -1054,6 +1054,10 @@ export class ProjectResolver {
     project.addresses = await findProjectRecipientAddressByProjectId({
       projectId,
     });
+
+    // Edit emails
+    await getNotificationAdapter().projectEdited({ project });
+
     return project;
   }
 
@@ -1325,6 +1329,10 @@ export class ProjectResolver {
 
     if (projectInput.isDraft) {
       await getNotificationAdapter().projectSavedAsDraft({
+        project,
+      });
+    } else {
+      await getNotificationAdapter().projectPublished({
         project,
       });
     }
@@ -1969,7 +1977,11 @@ export class ProjectResolver {
 
       await project.save();
 
-      if (project.prevStatusId !== ProjStatus.drafted) {
+      if (project.prevStatusId === ProjStatus.drafted) {
+        await getNotificationAdapter().projectPublished({
+          project,
+        });
+      } else {
         await getNotificationAdapter().projectReactivated({
           project,
         });

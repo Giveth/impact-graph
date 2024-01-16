@@ -468,6 +468,14 @@ export const sendSegmentEventForDonation = async (params: {
       project,
     });
   }
+
+  if (donorUser) {
+    await getNotificationAdapter().donationSent({
+      donation,
+      project,
+      donor: donorUser,
+    });
+  }
 };
 
 export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
