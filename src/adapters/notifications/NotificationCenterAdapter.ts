@@ -24,6 +24,7 @@ import { buildProjectLink } from './NotificationCenterUtils';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
+const disableNotificationCenter = process.env.DISABLE_NOTIFICATION_CENTER;
 
 const numberOfSendNotificationsConcurrentJob =
   Number(
@@ -697,7 +698,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async projectReactivated(params: { project: Project }): Promise<void> {
     const { project } = params;
-    const projectOwner = project?.adminUser as User;
     const now = Date.now();
     const supporters = await findUsersWhoSupportProject(project.id);
     await sendProjectRelatedNotificationsQueue.addBulk(
@@ -713,23 +713,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         },
       })),
     );
-
-    await sendProjectRelatedNotificationsQueue.add({
-      project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_ACTIVATED,
-
-      sendEmail: true,
-      segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
-          project,
-        }),
-      },
-      trackId: `project-reactivated-${
-        project.id
-      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
-    });
   }
 
   async projectSavedAsDraft(params: { project: Project }): Promise<void> {
@@ -954,11 +937,13 @@ const callSendNotification = async (
   data: SendNotificationBody,
 ): Promise<void> => {
   try {
-    await axios.post(`${notificationCenterBaseUrl}/notifications`, data, {
-      headers: {
-        Authorization: authorizationHeader(),
-      },
-    });
+    if (disableNotificationCenter !== 'true') {
+      await axios.post(`${notificationCenterBaseUrl}/notifications`, data, {
+        headers: {
+          Authorization: authorizationHeader(),
+        },
+      });
+    }
   } catch (e) {
     logger.error('callSendNotification error', {
       errorResponse: e?.response?.data,
@@ -973,11 +958,13 @@ const callBatchNotification = async (
   data: SendBatchNotificationBody,
 ): Promise<void> => {
   try {
-    await axios.post(`${notificationCenterBaseUrl}/notificationsBulk`, data, {
-      headers: {
-        Authorization: authorizationHeader(),
-      },
-    });
+    if (disableNotificationCenter !== 'true') {
+      await axios.post(`${notificationCenterBaseUrl}/notificationsBulk`, data, {
+        headers: {
+          Authorization: authorizationHeader(),
+        },
+      });
+    }
   } catch (e) {
     logger.error('callBatchNotification error', {
       errorResponse: e?.response?.data,
