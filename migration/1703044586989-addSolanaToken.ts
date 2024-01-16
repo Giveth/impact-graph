@@ -1,10 +1,10 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
-import { NETWORK_IDS } from '../src/provider';
-import { Token } from '../src/entities/token';
 import seedTokens from './data/seedTokens';
 import { ChainType } from '../src/types/network';
 import { SOLANA_SYSTEM_PROGRAM } from '../src/utils/networks';
 import { ENVIRONMENTS } from '../src/utils/utils';
+import { MigrationInterface, QueryRunner } from 'typeorm';
+import { NETWORK_IDS } from '../src/provider';
+import { Token } from '../src/entities/token';
 
 export class addSolanaToken1703044586989 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {

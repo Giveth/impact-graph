@@ -6,7 +6,7 @@ import { ChainType } from '../src/types/network';
 import { SOLANA_SYSTEM_PROGRAM } from '../src/utils/networks';
 import { ENVIRONMENTS } from '../src/utils/utils';
 
-export class addSolanaTokens1704487070444 implements MigrationInterface {
+export class addSolanaSplTokens1704487070444 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     let tokensData;
     if (process.env.ENVIRONMENT === ENVIRONMENTS.PRODUCTION) {
