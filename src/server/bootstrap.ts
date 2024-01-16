@@ -68,6 +68,7 @@ import { isTestEnv } from '../utils/utils';
 import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActiveStatusQfRounds';
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { corsOptions } from './cors';
+import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
 
 Resource.validate = validate;
 
@@ -333,6 +334,10 @@ export async function bootstrap() {
     // }
     if ((config.get('POIGN_ART_SERVICE_ACTIVE') as string) === 'true') {
       runSyncPoignArtDonations();
+    }
+
+    if ((config.get('ENABLE_IMPORT_LOST_DONATIONS') as string) === 'true') {
+      runSyncLostDonations();
     }
 
     if (
