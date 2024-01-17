@@ -186,7 +186,11 @@ const managingFundsValidator = Joi.object({
         Joi.string().required().pattern(solanaWalletAddressRegex),
       ),
       networkId: Joi.number()?.valid(
+        0, // frontend may send 0 as a network id for solana, so we should allow it
         NETWORK_IDS.SOLANA_MAINNET, // Solana
+        NETWORK_IDS.SOLANA_DEVNET,
+        NETWORK_IDS.SOLANA_TESTNET,
+
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,

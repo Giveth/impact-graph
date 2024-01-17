@@ -4,7 +4,6 @@ import {
   ArgsType,
   Ctx,
   Field,
-  Float,
   InputType,
   Int,
   Mutation,
@@ -15,7 +14,6 @@ import {
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { getOurTokenList } from '@giveth/monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { ApolloContext } from '../types/ApolloContext';
 import { Project, ProjStatus } from '../entities/project';
@@ -26,7 +24,6 @@ import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
-  getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
@@ -41,7 +38,6 @@ import {
 import { logger } from '../utils/logger';
 import {
   findUserById,
-  isFirstTimeDonor,
   setUserAsReferrer,
 } from '../repositories/userRepository';
 import {
@@ -60,12 +56,14 @@ import { findProjectRecipientAddressByNetworkId } from '../repositories/projectA
 import { MainCategory } from '../entities/mainCategory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
-import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
-import { ethers } from 'ethers';
 import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
 import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
 import { detectAddressChainType } from '../utils/networks';
 import { ChainType } from '../types/network';
+import {
+  getAppropriateNetworkId,
+  getDefaultSolanaChainId,
+} from '../services/chains';
 
 @ObjectType()
 class PaginateDonations {
@@ -631,13 +629,17 @@ export class DonationResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       const chainType = detectAddressChainType(donorUser.walletAddress!);
+      const networkId = getAppropriateNetworkId({
+        networkId: transactionNetworkId,
+        chainType,
+      });
 
       try {
         validateWithJoiSchema(
           {
             amount,
             transactionId,
-            transactionNetworkId,
+            transactionNetworkId: networkId,
             anonymous,
             tokenAddress,
             token,
@@ -701,7 +703,7 @@ export class DonationResolver {
       const projectRelatedAddress =
         await findProjectRecipientAddressByNetworkId({
           projectId,
-          networkId: transactionNetworkId,
+          networkId,
         });
       if (!projectRelatedAddress) {
         throw new Error(
@@ -725,7 +727,7 @@ export class DonationResolver {
         amount: Number(amount),
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
-        transactionNetworkId: Number(transactionNetworkId),
+        transactionNetworkId: networkId,
         currency: token,
         user: donorUser,
         tokenAddress,

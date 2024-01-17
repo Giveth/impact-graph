@@ -22,12 +22,12 @@ import {
 import {
   ManagingFunds,
   Milestones,
+  PersonalInfo,
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
   ProjectContacts,
   ProjectRegistry,
   ProjectVerificationForm,
-  PersonalInfo,
 } from '../entities/projectVerificationForm';
 import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import {
@@ -40,6 +40,7 @@ import { countriesList, generateRandomString } from '../utils/utils';
 import { createSocialProfile } from '../repositories/socialProfileRepository';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
 import { ChainType } from '../types/network';
+import { getDefaultSolanaChainId } from '../services/chains';
 
 describe(
   'createProjectVerification test cases',
@@ -322,9 +323,16 @@ function updateProjectVerificationFormMutationTestCases() {
         title: 'test title',
         chainType: ChainType.EVM,
       },
+      // {
+      //   address: generateRandomSolanaAddress(),
+      //   networkId: NETWORK_IDS.SOLANA_MAINNET,
+      //   title: 'test title',
+      //   chainType: ChainType.SOLANA,
+      // },
       {
         address: generateRandomSolanaAddress(),
-        networkId: NETWORK_IDS.SOLANA_MAINNET,
+        // frontend may not send networkId for solana
+        networkId: 0,
         title: 'test title',
         chainType: ChainType.SOLANA,
       },
@@ -743,6 +751,15 @@ function updateProjectVerificationFormMutationTestCases() {
         .relatedAddresses[0].address,
       managingFunds.relatedAddresses[0].address,
     );
+
+    // Make sure that networkId would be getDefaultSolanaChainId() instead of 0
+    assert.equal(
+      result.data.data.updateProjectVerificationForm.managingFunds.relatedAddresses.find(
+        address => address.chainType === ChainType.SOLANA,
+      ).networkId,
+      getDefaultSolanaChainId(),
+    );
+
     assert.equal(
       result.data.data.updateProjectVerificationForm.lastStep,
       PROJECT_VERIFICATION_STEPS.MANAGING_FUNDS,
