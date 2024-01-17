@@ -217,6 +217,7 @@ export class ReactionResolver {
         project,
         userId: user.userId,
       });
+
       return reaction;
     } catch (e) {
       logger.error('like project error', e);
