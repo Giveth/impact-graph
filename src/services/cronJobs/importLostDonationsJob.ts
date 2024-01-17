@@ -89,7 +89,7 @@ export const importLostDonations = async () => {
 
       // Search for the address in the correct location in the transaction
       const userAddress = erc20Token
-        ? '0x' + receipt?.logs[1]?.topics[1]?.substring(26)
+        ? '0x' + receipt?.logs[0]?.topics[1]?.substring(26)
         : transaction.from;
 
       const dbUser = await User.createQueryBuilder('user')
@@ -149,8 +149,8 @@ export const importLostDonations = async () => {
       const project = await Project.createQueryBuilder('project')
         .leftJoinAndSelect('project.addresses', 'addresses')
         .leftJoinAndSelect('project.adminUser', 'adminUser')
-        .where(`lower(addresses.address) = lower(:address)`, {
-          address: donationParams.to,
+        .where(`lower(addresses.address) = :address`, {
+          address: donationParams?.to?.toLowerCase(),
         })
         .getOne();
 
@@ -254,9 +254,9 @@ async function getDonationDetailForTokenTransfer(
   }
 
   const transactionFrom: string =
-    '0x' + receipt?.logs[1]?.topics[1]?.substring(26);
+    '0x' + receipt?.logs[0]?.topics[1]?.substring(26);
   const transactionTo: string =
-    '0x' + receipt?.logs[1]?.topics[2]?.substring(26);
+    '0x' + receipt?.logs[0]?.topics[2]?.substring(26);
 
   const amount = Number(
     ethers.utils.formatUnits(
