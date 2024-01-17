@@ -60,7 +60,10 @@ import { getChainvineReferralInfoForDonation } from '../services/chainvineReferr
 import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
 import { detectAddressChainType } from '../utils/networks';
 import { ChainType } from '../types/network';
-import { getDefaultSolanaChainId } from '../services/chains';
+import {
+  getAppropriateNetworkId,
+  getDefaultSolanaChainId,
+} from '../services/chains';
 
 @ObjectType()
 class PaginateDonations {
@@ -626,10 +629,10 @@ export class DonationResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       const chainType = detectAddressChainType(donorUser.walletAddress!);
-      const networkId =
-        chainType === ChainType.SOLANA
-          ? getDefaultSolanaChainId()
-          : transactionNetworkId;
+      const networkId = getAppropriateNetworkId({
+        networkId: transactionNetworkId,
+        chainType,
+      });
 
       try {
         validateWithJoiSchema(

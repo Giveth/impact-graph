@@ -1372,7 +1372,7 @@ const seedTokens: ITokenData[] = [
     symbol: 'SOL',
     address: SOLANA_SYSTEM_PROGRAM,
     decimals: 9,
-    networkId: NETWORK_IDS.SOLANA_DEVNET,
+    networkId: NETWORK_IDS.SOLANA_TESTNET,
     chainType: ChainType.SOLANA,
     coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
   },

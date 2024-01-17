@@ -17,7 +17,10 @@ import {
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
 import { User } from '../entities/user';
-import { getDefaultSolanaChainId } from '../services/chains';
+import {
+  getAppropriateNetworkId,
+  getDefaultSolanaChainId,
+} from '../services/chains';
 import { ChainType } from '../types/network';
 
 export const createProjectVerificationForm = async (params: {
@@ -310,10 +313,10 @@ export const updateManagingFundsOfProjectVerification = async (params: {
   managingFunds.relatedAddresses = managingFunds.relatedAddresses.map(
     address => {
       // because frontend sends 0 for solana addresses
-      address.networkId =
-        address.chainType === ChainType.SOLANA
-          ? getDefaultSolanaChainId()
-          : address.networkId;
+      address.networkId = getAppropriateNetworkId({
+        networkId: address.networkId,
+        chainType: address.chainType,
+      });
 
       return address;
     },

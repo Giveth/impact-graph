@@ -90,3 +90,12 @@ export async function getTransactionInfoFromNetwork(
 export function getDefaultSolanaChainId(): number {
   return Number(process.env.SOLANA_CHAIN_ID) || NETWORK_IDS.SOLANA_DEVNET;
 }
+
+export function getAppropriateNetworkId(params: {
+  chainType?: ChainType;
+  networkId: number;
+}): number {
+  return params.chainType === ChainType.SOLANA
+    ? getDefaultSolanaChainId()
+    : params.networkId;
+}

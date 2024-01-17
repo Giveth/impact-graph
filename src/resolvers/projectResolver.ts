@@ -107,7 +107,10 @@ import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
-import { getDefaultSolanaChainId } from '../services/chains';
+import {
+  getAppropriateNetworkId,
+  getDefaultSolanaChainId,
+} from '../services/chains';
 
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
@@ -1044,10 +1047,10 @@ export class ProjectResolver {
             chainType: relatedAddress.chainType,
 
             // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
-            networkId:
-              relatedAddress.chainType === ChainType.SOLANA
-                ? getDefaultSolanaChainId()
-                : relatedAddress.networkId,
+            networkId: getAppropriateNetworkId({
+              networkId: relatedAddress.networkId,
+              chainType: relatedAddress.chainType,
+            }),
 
             isRecipient: true,
           };
@@ -1313,10 +1316,10 @@ export class ProjectResolver {
           address:
             chainType === ChainType.EVM ? address.toLowerCase() : address,
           chainType,
-          networkId:
-            chainType === ChainType.SOLANA
-              ? getDefaultSolanaChainId()
-              : networkId,
+          networkId: getAppropriateNetworkId({
+            networkId,
+            chainType,
+          }),
           isRecipient: true,
         };
       }),
