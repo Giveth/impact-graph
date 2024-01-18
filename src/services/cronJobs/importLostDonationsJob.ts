@@ -158,7 +158,7 @@ export const importLostDonations = async () => {
           .where(`lower(addresses.address) = :address`, {
             address: donationParams?.to?.toLowerCase(),
           })
-          .andWhere(`lower(addresses.address) = :networkId`, { networkId })
+          .andWhere(`addresses.networkId = :networkId`, { networkId })
           .getOne();
 
         if (!project) continue; // project doesn't exist on giveth, skip donation
