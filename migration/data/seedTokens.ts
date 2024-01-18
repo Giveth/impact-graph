@@ -1058,6 +1058,7 @@ const seedTokens: ITokenData[] = [
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    coingeckoId: 'ethereum',
   },
   {
     name: 'OPTIMISM Goerli OP token',
@@ -1065,6 +1066,7 @@ const seedTokens: ITokenData[] = [
     address: '0x4200000000000000000000000000000000000042',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    coingeckoId: 'optimism',
   },
   {
     name: 'Wrapped Ether',
@@ -1072,6 +1074,7 @@ const seedTokens: ITokenData[] = [
     address: '0x4200000000000000000000000000000000000006',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    coingeckoId: 'weth',
   },
   {
     name: 'Dai',
@@ -1079,6 +1082,7 @@ const seedTokens: ITokenData[] = [
     address: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    coingeckoId: 'dai',
   },
 
   // OPTIMISTIC tokens
@@ -1088,6 +1092,7 @@ const seedTokens: ITokenData[] = [
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'ethereum',
   },
   {
     name: 'OPTIMISTIC OP token',
@@ -1095,6 +1100,7 @@ const seedTokens: ITokenData[] = [
     address: '0x4200000000000000000000000000000000000042',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'optimism',
   },
   {
     name: 'Chainlink',
@@ -1102,6 +1108,7 @@ const seedTokens: ITokenData[] = [
     address: '0x350a791bfc2c21f9ed5d10980dad2e2638ffa7f6',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'chainlink',
   },
   {
     name: 'Wrapped Bitcoin',
@@ -1109,6 +1116,7 @@ const seedTokens: ITokenData[] = [
     address: '0x68f180fcce6836688e9084f035309e29bf0a2095',
     decimals: 8,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'wrapped-bitcoin',
   },
   {
     name: 'Synthetix Network',
@@ -1116,6 +1124,7 @@ const seedTokens: ITokenData[] = [
     address: '0x8700daec35af8ff88c16bdf0418774cb3d7599b4',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'havven',
   },
   {
     name: 'Wrapped Ether',
@@ -1123,6 +1132,7 @@ const seedTokens: ITokenData[] = [
     address: '0x4200000000000000000000000000000000000006',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'weth',
   },
   {
     name: 'Tether',
@@ -1130,6 +1140,7 @@ const seedTokens: ITokenData[] = [
     address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     decimals: 6,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'tether',
   },
   {
     name: 'USD Coin',
@@ -1137,6 +1148,7 @@ const seedTokens: ITokenData[] = [
     address: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
     decimals: 6,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'usd-coin',
   },
   {
     name: 'Dai',
@@ -1144,6 +1156,7 @@ const seedTokens: ITokenData[] = [
     address: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'dai',
   },
   // CELO tokens
   {
