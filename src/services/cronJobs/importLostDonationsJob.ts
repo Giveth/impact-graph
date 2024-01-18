@@ -102,6 +102,8 @@ export const importLostDonations = async () => {
 
         if (!dbUser) continue; // User does not exist on giveth, not a UI donation, skip
 
+        logger.info('token address searched: ', erc20Token);
+
         // Check if its an ERC-20 Token
         let tokenInDB = await Token.createQueryBuilder('token')
           .where(`lower(token.address) = :address`, {
@@ -148,12 +150,15 @@ export const importLostDonations = async () => {
           continue; // Not a transaction recognized by our logic
         }
 
+        logger.info('token being searched: ', tokenInDB?.id);
+
         const project = await Project.createQueryBuilder('project')
           .leftJoinAndSelect('project.addresses', 'addresses')
           .leftJoinAndSelect('project.adminUser', 'adminUser')
           .where(`lower(addresses.address) = :address`, {
             address: donationParams?.to?.toLowerCase(),
           })
+          .andWhere(`lower(addresses.address) = :networkId`, { networkId })
           .getOne();
 
         if (!project) continue; // project doesn't exist on giveth, skip donation
@@ -276,7 +281,7 @@ async function getDonationDetailForTokenTransfer(
 
   const amount = Number(
     ethers.utils.formatUnits(
-      ethers.BigNumber.from(receipt?.logs[1].data),
+      ethers.BigNumber.from(receipt?.logs[0]?.data),
       'ether',
     ),
   );
