@@ -88,13 +88,6 @@ export const updateDonationPricesAndValues = async (
         symbol: currency,
         networkId: priceChainId,
       });
-      logger.info('updateDonationPricesAndValues() result', {
-        priceUsd,
-        donationId: donation.id,
-        projectId: project.id,
-        token: token?.symbol,
-        priceChainId,
-      });
       if (priceUsd) {
         donation.priceUsd = Number(priceUsd);
         donation.valueUsd = toFixNumber(Number(amount) * donation.priceUsd, 4);
@@ -127,6 +120,13 @@ export const updateDonationPricesAndValues = async (
       },
     );
   }
+  logger.info('updateDonationPricesAndValues() result', {
+    valueUsd: donation.valueUsd,
+    donationId: donation.id,
+    projectId: project.id,
+    token: token?.symbol,
+    priceChainId,
+  });
   const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
     await calculateGivbackFactor(project.id);
   donation.givbackFactor = givbackFactor;
