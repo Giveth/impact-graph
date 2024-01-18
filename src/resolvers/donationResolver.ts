@@ -680,7 +680,7 @@ export class DonationResolver {
       }
       const tokenInDb = await Token.findOne({
         where: {
-          networkId: transactionNetworkId,
+          networkId,
           symbol: token,
         },
       });
@@ -773,7 +773,7 @@ export class DonationResolver {
       );
       if (
         activeQfRoundForProject &&
-        activeQfRoundForProject.isEligibleNetwork(Number(transactionNetworkId))
+        activeQfRoundForProject.isEligibleNetwork(networkId)
       ) {
         donation.qfRound = activeQfRoundForProject;
       }
