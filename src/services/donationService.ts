@@ -54,18 +54,15 @@ export const updateDonationPricesAndValues = async (
   currency: string,
   priceChainId: number,
   amount: string | number,
-  chainType: string = ChainType.EVM,
 ) => {
+  logger.info('updateDonationPricesAndValues() has been called', {
+    donationId: donation.id,
+    projectId: project.id,
+    token: token?.symbol,
+    priceChainId,
+  });
   try {
-    if (chainType === ChainType.SOLANA && token) {
-      const coingeckoAdapter = new CoingeckoPriceAdapter();
-      const solanaPriceUsd = await coingeckoAdapter.getTokenPrice({
-        symbol: token.coingeckoId,
-        networkId: NETWORK_IDS.SOLANA_MAINNET,
-      });
-      donation.priceUsd = toFixNumber(solanaPriceUsd, 4);
-      donation.valueUsd = toFixNumber(donation.amount * solanaPriceUsd, 4);
-    } else if (token?.isStableCoin) {
+    if (token?.isStableCoin) {
       donation.priceUsd = 1;
       donation.valueUsd = Number(amount);
     } else if (currency === 'GIV') {
@@ -91,14 +88,20 @@ export const updateDonationPricesAndValues = async (
         symbol: currency,
         networkId: priceChainId,
       });
-
+      logger.info('updateDonationPricesAndValues() result', {
+        priceUsd,
+        donationId: donation.id,
+        projectId: project.id,
+        token: token?.symbol,
+        priceChainId,
+      });
       if (priceUsd) {
         donation.priceUsd = Number(priceUsd);
         donation.valueUsd = toFixNumber(Number(amount) * donation.priceUsd, 4);
       }
     }
   } catch (e) {
-    logger.error('Error in getting price from monoswap', {
+    logger.error('Error in getting price from donation', {
       error: e,
       donation,
     });

@@ -808,7 +808,6 @@ export class DonationResolver {
         token,
         priceChainId,
         amount,
-        chainType!,
       );
 
       return donation.id;
