@@ -184,6 +184,7 @@
     "test:poignArt": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/poignArt/api.test.ts",
     "test:bootstrap": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/server/bootstrap.test.ts",
     "test:utils": "NODE_ENV=test mocha ./src/utils/utils.test.ts",
+    "test:donationSaveBackup": "NODE_ENV=test mocha -b -t 30000 src/adapters/donationSaveBackup/*.test.ts",
     "start": "NODE_ENV=development ts-node-dev --project ./tsconfig.json --respawn ./src/index.ts",
     "serve": "pm2 startOrRestart ecosystem.config.js --node-args='--max-old-space-size=8192'",
     "db:migrate:run:test": "NODE_ENV=test npx typeorm-ts-node-esm migration:run -d ./src/ormconfig.ts",
