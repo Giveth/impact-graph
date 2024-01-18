@@ -64,6 +64,7 @@ export const importLostDonations = async () => {
 
     for (const tx of donationTxHashes) {
       try {
+        logger.info('processing txhash: ', tx)
         const donationExists = await Donation.createQueryBuilder('donation')
           .where(`lower(donation.transactionId) = :hash`, {
             hash: tx.toLowerCase(),
