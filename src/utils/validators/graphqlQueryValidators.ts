@@ -95,7 +95,7 @@ export const createDonationQueryValidator = Joi.object({
         ),
       }),
   }),
-  transactionNetworkId: Joi.string()
+  transactionNetworkId: Joi.number()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
 
