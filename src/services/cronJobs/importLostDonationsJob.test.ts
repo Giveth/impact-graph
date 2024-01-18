@@ -41,7 +41,7 @@ function importLostDonationsTestCases() {
     //     admin: String(user2OP.id),
     //     walletAddress: toWalletAddressOP,
     //   });
-    //   await importLostDonations();
+    await importLostDonations();
 
     const createdDonationEth = await Donation.createQueryBuilder('donation')
       .where(`donation."transactionId" = :transactionIdEth`, {
