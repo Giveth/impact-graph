@@ -87,10 +87,10 @@ export const importLostDonations = async () => {
 
         // decode transaction as ERC20 Token
         const transactionData = abiDecoder.decodeMethod(transaction.data);
-        const erc20Token = transactionData?.params[0].value;
+        const erc20Token = receipt?.logs[0]?.address;
 
         // Search for the address in the correct location in the transaction
-        const userAddress = erc20Token
+        const userAddress = transactionData
           ? '0x' + receipt?.logs[0]?.topics[1]?.substring(26)
           : transaction.from;
 
@@ -105,7 +105,7 @@ export const importLostDonations = async () => {
         // Check if its an ERC-20 Token
         let tokenInDB = await Token.createQueryBuilder('token')
           .where(`lower(token.address) = :address`, {
-            address: erc20Token?.toLowerCase(),
+            address: String(erc20Token)?.toLowerCase(),
           })
           .andWhere(`token.networkId = :networkId`, { networkId })
           .getOne();
