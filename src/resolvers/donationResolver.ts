@@ -634,25 +634,27 @@ export class DonationResolver {
         chainType,
       });
 
+      const validaDataInput = {
+        amount,
+        transactionId,
+        transactionNetworkId: networkId,
+        anonymous,
+        tokenAddress,
+        token,
+        projectId,
+        nonce,
+        transakId,
+        referrerId,
+        safeTransactionId,
+        chainType,
+      };
       try {
-        validateWithJoiSchema(
-          {
-            amount,
-            transactionId,
-            transactionNetworkId: networkId,
-            anonymous,
-            tokenAddress,
-            token,
-            projectId,
-            nonce,
-            transakId,
-            referrerId,
-            safeTransactionId,
-            chainType,
-          },
-          createDonationQueryValidator,
-        );
+        validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
       } catch (e) {
+        logger.error(
+          'Error on validating createDonation input',
+          validaDataInput,
+        );
         // Joi alternatives does not handle custom errors, have to catch them.
         if (e.message.includes('does not match any of the allowed types')) {
           throw new Error(
@@ -777,11 +779,7 @@ export class DonationResolver {
       }
       await donation.save();
 
-      let priceChainId =
-        transactionNetworkId === NETWORK_IDS.ROPSTEN ||
-        transactionNetworkId === NETWORK_IDS.GOERLI
-          ? NETWORK_IDS.MAIN_NET
-          : transactionNetworkId;
+      let priceChainId;
 
       switch (transactionNetworkId) {
         case NETWORK_IDS.ROPSTEN:
@@ -797,7 +795,7 @@ export class DonationResolver {
           priceChainId = NETWORK_IDS.ETC;
           break;
         default:
-          priceChainId = transactionNetworkId;
+          priceChainId = networkId;
           break;
       }
 
