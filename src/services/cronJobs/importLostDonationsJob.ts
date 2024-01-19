@@ -111,12 +111,15 @@ export const importLostDonations = async () => {
         logger.info('token address searched: ', erc20Token);
 
         // Check if its an ERC-20 Token
-        let tokenInDB = await Token.createQueryBuilder('token')
-          .where(`lower(token.address) = :address`, {
-            address: String(erc20Token)?.toLowerCase(),
-          })
-          .andWhere(`token.networkId = :networkId`, { networkId })
-          .getOne();
+        let tokenInDB;
+        if (transactionData) {
+          tokenInDB = await Token.createQueryBuilder('token')
+            .where(`lower(token.address) = :address`, {
+              address: String(erc20Token)?.toLowerCase(),
+            })
+            .andWhere(`token.networkId = :networkId`, { networkId })
+            .getOne();
+        }
 
         if (transactionData && tokenInDB) {
           // It's a token transfer donation
@@ -136,10 +139,8 @@ export const importLostDonations = async () => {
           (!transaction?.data || transaction?.data === '0x')
         ) {
           // it's an eth transfer native token
-          const nativeTokenSymbol = 'ETH';
           const nativeToken = await Token.createQueryBuilder('token')
-            .where(`token.symbol = symbol`, { symbol: nativeTokenSymbol })
-            .andWhere(`token."networkId" = :networkId`, { networkId })
+            .where(`token.id = 198`)
             .getOne();
 
           tokenInDB = nativeToken;

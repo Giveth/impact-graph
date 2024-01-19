@@ -1,5 +1,6 @@
 // @ts-check
 import config from '../config';
+import abiDecoder from 'abi-decoder';
 import RateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from '@apollo/server';
@@ -69,6 +70,7 @@ import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActive
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { corsOptions } from './cors';
 import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
+import { getProvider } from '../provider';
 
 Resource.validate = validate;
 
@@ -339,6 +341,24 @@ export async function bootstrap() {
     if ((config.get('ENABLE_IMPORT_LOST_DONATIONS') as string) === 'true') {
       runSyncLostDonations();
     }
+
+    // Just test code
+    // const txHashETH =
+    //   '0x067e91368272dc73bc715a21a2af863a333cde20f410189fa53bceaa9cb8c86b';
+    const txHashOP =
+      '0xeb75e49ffb3d68da9abb386f1c765d0194b2368ff21fcd8a45e0cc3d74f5bad7';
+
+    const transaction = await getProvider(10).getTransaction(txHashOP);
+
+    const receipt = await getProvider(10).getTransactionReceipt(txHashOP);
+
+    const transactionData = abiDecoder.decodeMethod(transaction.data);
+
+    const block = await getProvider(10).getBlock(
+      transaction.blockNumber as number,
+    );
+
+    const x = 1;
 
     if (
       (config.get('FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE') as string) ===

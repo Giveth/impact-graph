@@ -14,9 +14,9 @@ function importLostDonationsTestCases() {
   it('should create a eth simple transfer donation and erc20 token transfer donation', async () => {
     // eth donation
     const transactionIdEth =
-      '0xb017677647418e1a35e59715f8e4e549d0e449d67faf5c73ed20e6d3ce67fb49';
-    const toWalletAddressEth = '0xbf691bdb6c0f32647ebd5b171cce1880c14950bc';
-    const walletAddressEth = '0xb05bc03b85951725e37acb6384c5769605693cb5';
+      '0x33a2b423cddd37b1e67a42ffab35166cdf54a56b2a5dbf59bd22040f047af2a9';
+    const toWalletAddressEth = '0xffbd35255008f86322051f2313d4b343540e0e00';
+    const walletAddressEth = '0xdd8422da958d7b9773b033717eccce0fbb26ce01';
     const walletAddress2Eth = generateRandomEtheriumAddress();
     const userEth = await saveUserDirectlyToDb(walletAddressEth);
     const user2Eth = await saveUserDirectlyToDb(walletAddress2Eth);
