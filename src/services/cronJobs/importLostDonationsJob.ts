@@ -118,7 +118,7 @@ export const importLostDonations = async () => {
           .andWhere(`token.networkId = :networkId`, { networkId })
           .getOne();
 
-        if (tokenInDB) {
+        if (transactionData && tokenInDB) {
           // It's a token transfer donation
           donationParams = await getDonationDetailForTokenTransfer(
             tx,
