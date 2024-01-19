@@ -137,7 +137,7 @@ export const importLostDonations = async () => {
           (!transaction?.data || transaction?.data === '0x')
         ) {
           // it's an eth transfer native token
-          const nativeTokenSymbol = getNetworkNativeToken(networkId);
+          const nativeTokenSymbol = 'ETH';
           const nativeToken = await Token.createQueryBuilder('token')
             .where(`token.symbol = symbol`, { symbol: nativeTokenSymbol })
             .andWhere(`token."networkId" = :networkId`, { networkId })
