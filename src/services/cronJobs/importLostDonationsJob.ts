@@ -131,7 +131,6 @@ export const importLostDonations = async () => {
 
           if (!donationParams) continue; // transaction not mined yet
         } else if (
-          !tokenInDB &&
           transaction?.value &&
           transaction?.value?.gt(0) &&
           (!transaction?.data || transaction?.data === '0x')
