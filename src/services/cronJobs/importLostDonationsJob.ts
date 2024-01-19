@@ -76,6 +76,7 @@ export const importLostDonations = async () => {
         const transaction = await getProvider(networkId).getTransaction(tx);
         if (!transaction) {
           // Transaction not found
+          logger.info('transaction not found for tx: ', tx);
           continue;
         }
 
@@ -83,6 +84,7 @@ export const importLostDonations = async () => {
         if (!receipt) {
           // Transaction is not mined yet
           // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
+          logger.info('receipt not found for tx: ', tx);
           continue;
         }
 
@@ -101,7 +103,10 @@ export const importLostDonations = async () => {
           })
           .getOne();
 
-        if (!dbUser) continue; // User does not exist on giveth, not a UI donation, skip
+        if (!dbUser) {
+          logger.info('user not found for tx: ', tx);
+          continue; // User does not exist on giveth, not a UI donation, skip
+        }
 
         logger.info('token address searched: ', erc20Token);
 
@@ -127,9 +132,9 @@ export const importLostDonations = async () => {
           if (!donationParams) continue; // transaction not mined yet
         } else if (
           !tokenInDB &&
-          transaction.value &&
-          transaction.value.gt(0) &&
-          (!transaction.data || transaction.data === '0x')
+          transaction?.value &&
+          transaction?.value?.gt(0) &&
+          (!transaction?.data || transaction?.data === '0x')
         ) {
           // it's an eth transfer native token
           const nativeTokenSymbol = getNetworkNativeToken(networkId);
@@ -148,10 +153,16 @@ export const importLostDonations = async () => {
             nativeToken!,
           );
         } else {
+          logger.info('transaction type not valid for tx: ', tx);
           continue; // Not a transaction recognized by our logic
         }
 
         logger.info('token being searched: ', tokenInDB?.id);
+
+        if (!donationParams) {
+          logger.info('Params invalid for tx: ', tx);
+          continue;
+        }
 
         const project = await Project.createQueryBuilder('project')
           .leftJoinAndSelect('project.addresses', 'addresses')
@@ -162,7 +173,10 @@ export const importLostDonations = async () => {
           .andWhere(`addresses.networkId = :networkId`, { networkId })
           .getOne();
 
-        if (!project) continue; // project doesn't exist on giveth, skip donation
+        if (!project) {
+          logger.info('Project not found for tx: ', tx);
+          continue; // project doesn't exist on giveth, skip donation
+        }
 
         const donationDate = millisecondTimestampToDate(
           donationParams.timestamp * 1000,
@@ -181,6 +195,7 @@ export const importLostDonations = async () => {
             date: donationDateCoingeckoFormat,
           });
         } catch (e) {
+          logger.info('CoingeckoPrice not found for tx: ', tx);
           logger.error('importLostDonations() coingecko error', e);
         }
 
@@ -192,31 +207,38 @@ export const importLostDonations = async () => {
 
         const { givbackFactor, projectRank, powerRound, bottomRankInRound } =
           await calculateGivbackFactor(project.id as number);
+        try {
+          const dbDonation = Donation.create({
+            fromWalletAddress: donationParams.from.toLowerCase(),
+            toWalletAddress: donationParams.to.toLowerCase(),
+            transactionId: tx.toLowerCase(),
+            projectId: project.id,
+            currency: donationParams.currency,
+            tokenAddress: tokenInDB?.address,
+            amount: donationParams.amount,
+            valueUsd: toFixNumber(
+              ethereumPriceAtDate * donationParams.amount,
+              4,
+            ),
+            transactionNetworkId: networkId,
+            createdAt: donationDateDbFormat,
+            givbackFactor,
+            projectRank,
+            powerRound,
+            bottomRankInRound,
+            status: 'verified',
+            anonymous: false,
+            segmentNotified: true,
+            isTokenEligibleForGivback: tokenInDB?.isGivbackEligible,
+            isProjectVerified: project?.verified,
+            qfRoundId: qfRound?.id,
+          });
 
-        const dbDonation = Donation.create({
-          fromWalletAddress: donationParams.from.toLowerCase(),
-          toWalletAddress: donationParams.to.toLowerCase(),
-          transactionId: tx.toLowerCase(),
-          projectId: project.id,
-          currency: donationParams.currency,
-          tokenAddress: tokenInDB?.address,
-          amount: donationParams.amount,
-          valueUsd: toFixNumber(ethereumPriceAtDate * donationParams.amount, 4),
-          transactionNetworkId: networkId,
-          createdAt: donationDateDbFormat,
-          givbackFactor,
-          projectRank,
-          powerRound,
-          bottomRankInRound,
-          status: 'verified',
-          anonymous: false,
-          segmentNotified: true,
-          isTokenEligibleForGivback: tokenInDB?.isGivbackEligible,
-          isProjectVerified: project.verified,
-          qfRoundId: qfRound?.id,
-        });
-
-        await dbDonation.save();
+          await dbDonation.save();
+        } catch (e) {
+          logger.info('Error saving donation for for tx: ', tx);
+          logger.info('Error saving donation: ', e);
+        }
 
         await updateUserTotalDonated(dbUser.id);
         await updateUserTotalReceived(project.adminUser?.id);
@@ -271,7 +293,7 @@ async function getDonationDetailForTokenTransfer(
   token: Token,
   transactionData?: any,
 ): Promise<NetworkTransactionInfo | null> {
-  if (!receipt.status || !transactionData) {
+  if (!receipt?.status || !transactionData) {
     return null;
   }
 
