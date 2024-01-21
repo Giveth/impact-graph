@@ -1,7 +1,3 @@
-import {
-  getNotImportedDonationsFromBackup,
-  markDonationAsImported,
-} from '../../adapters/donationSaveBackup/donationSaveBackupAdapter';
 import config from '../../config';
 
 import { logger } from '../../utils/logger';
@@ -29,6 +25,8 @@ import { Donation } from '../../entities/donation';
 import { getChainvineReferralInfoForDonation } from '../chainvineReferralService';
 import { relatedActiveQfRoundForProject } from '../qfRoundService';
 import { NETWORK_IDS } from '../../provider';
+import { FetchedSavedFailDonationInterface } from '../../adapters/donationSaveBackup/DonationSaveBackupInterface';
+import { getDonationSaveBackupAdapter } from '../../adapters/adaptersFactory';
 
 const cronJobTime =
   (config.get('DONATION_SAVE_BACKUP_CRONJOB_EXPRESSION') as string) ||
@@ -63,24 +61,36 @@ interface BackupDonationData {
 export const importBackupServiceDonations = async () => {
   const limit = 10;
   let skip = 0;
-  let donations = await getNotImportedDonationsFromBackup(limit, skip);
+  let donations =
+    await getDonationSaveBackupAdapter().getNotImportedDonationsFromBackup({
+      limit,
+      skip,
+    });
   while (donations.length > 0) {
     for (const donation of donations) {
       try {
         await createBackupDonation(donation);
-        await markDonationAsImported(donation._id);
+        await getDonationSaveBackupAdapter().markDonationAsImported(
+          donation._id,
+        );
       } catch (e) {
         logger.error(`donation error with id ${donation._id}: `, e);
-        logger.error('donation error with params: ', JSON.parse(donation));
+        logger.error('donation error with params: ', donation);
       }
     }
     skip += limit;
-    donations = await getNotImportedDonationsFromBackup(limit, skip);
+    donations =
+      await getDonationSaveBackupAdapter().getNotImportedDonationsFromBackup({
+        limit,
+        skip,
+      });
   }
 };
 
 // Same logic as the donationResolver CreateDonation() mutation
-const createBackupDonation = async donationData => {
+const createBackupDonation = async (
+  donationData: FetchedSavedFailDonationInterface,
+) => {
   if (!donationData?.token?.address) return; // test donations
 
   const donorUser = await findUserByWalletAddress(donationData.walletAddress);
@@ -99,9 +109,6 @@ const createBackupDonation = async donationData => {
     token: donationData.symbol,
     projectId: donationData.projectId,
     nonce: donationData.nonce,
-    transakId: null, // TODO: remove this column it's unused
-    referrerId: donationData.chainvineReferred,
-    safeTransactionId: donationData.safeTransactionId,
     chainType,
   };
 
@@ -194,7 +201,13 @@ const createBackupDonation = async donationData => {
 
   // set chain network to fetch price
   await fillDonationCurrencyValues(donation, project, tokenInDb);
-  logger.info(`Donation with Id ${donation.id} has been processed succesfully`);
+  logger.info(
+    `Donation has been processed successfully. imported from mongo db failed donations backup.`,
+    {
+      donationId: donation.id,
+      txHash: donationData.txHash,
+    },
+  );
 };
 
 const fillDonationCurrencyValues = async (
@@ -229,34 +242,6 @@ const fillDonationCurrencyValues = async (
     priceChainId,
     donation.amount,
   );
-};
-
-const setChainvineParamsOnDonation = async (
-  donation: Donation,
-  project: Project,
-  referredId: string,
-) => {
-  try {
-    const {
-      referralStartTimestamp,
-      isReferrerGivbackEligible,
-      referrerWalletAddress,
-    } = await getChainvineReferralInfoForDonation({
-      referrerId: referredId, // like this
-      fromAddress: donation.fromWalletAddress,
-      donorUserId: donation.userId,
-      projectVerified: project.verified,
-    });
-
-    donation.isReferrerGivbackEligible = isReferrerGivbackEligible;
-    donation.referrerWallet = referrerWalletAddress;
-    donation.referralStartTimestamp = referralStartTimestamp;
-    await setUserAsReferrer(referrerWalletAddress);
-
-    await donation.save();
-  } catch (e) {
-    logger.error('get chainvine wallet address error', e);
-  }
 };
 
 const validateProjectRecipientAddress = async (
@@ -317,5 +302,33 @@ const validateJoiSchema = validDataInput => {
     } else {
       throw e; // Rethrow the original error
     }
+  }
+};
+
+const setChainvineParamsOnDonation = async (
+  donation: Donation,
+  project: Project,
+  referredId: string,
+) => {
+  try {
+    const {
+      referralStartTimestamp,
+      isReferrerGivbackEligible,
+      referrerWalletAddress,
+    } = await getChainvineReferralInfoForDonation({
+      referrerId: referredId, // like this
+      fromAddress: donation.fromWalletAddress,
+      donorUserId: donation.userId,
+      projectVerified: project.verified,
+    });
+
+    donation.isReferrerGivbackEligible = isReferrerGivbackEligible;
+    donation.referrerWallet = referrerWalletAddress;
+    donation.referralStartTimestamp = referralStartTimestamp;
+    await setUserAsReferrer(referrerWalletAddress);
+
+    await donation.save();
+  } catch (e) {
+    logger.error('get chainvine wallet address error', e);
   }
 };
