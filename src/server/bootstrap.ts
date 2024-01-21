@@ -69,6 +69,7 @@ import { runCheckActiveStatusOfQfRounds } from '../services/cronJobs/checkActive
 import { runUpdateProjectCampaignsCacheJob } from '../services/cronJobs/updateProjectCampaignsCacheJob';
 import { corsOptions } from './cors';
 import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
+import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 
 Resource.validate = validate;
 
@@ -338,6 +339,10 @@ export async function bootstrap() {
 
     if ((config.get('ENABLE_IMPORT_LOST_DONATIONS') as string) === 'true') {
       runSyncLostDonations();
+    }
+
+    if ((config.get('ENABLE_IMPORT_DONATION_BACKUP') as string) === 'true') {
+      runSyncBackupServiceDonations();
     }
 
     if (
