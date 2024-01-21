@@ -41,6 +41,24 @@ export const runSyncBackupServiceDonations = () => {
   });
 };
 
+// Minimum required params from the backup mongodb
+interface BackupDonationData {
+  _id: string;
+  chainId: number;
+  txHash: string;
+  amount: number;
+  token: {
+    address: number;
+  };
+  projectId: number;
+  anonymous: false;
+  nonce?: string;
+  walletAddress: string;
+  symbol: string;
+  chainvineReferred: string;
+  safeTransactionId?: string;
+}
+
 // Mock Mongo Methods to write a test
 export const importBackupServiceDonations = async () => {
   const limit = 10;
