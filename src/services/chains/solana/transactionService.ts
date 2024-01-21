@@ -95,6 +95,10 @@ async function getTransactionDetailForSplTokenTransfer(
       params.symbol,
     );
 
+    // console.log(
+    //   'getTransactionDetailForSplTokenTransfer result',
+    //   JSON.stringify({ token, result }, null, 2),
+    // );
     const data = result?.transaction?.message?.instructions?.find(
       instruction =>
         instruction?.program === SPL_TOKEN_TRANSFER_INSTRUCTION_TYPE &&
@@ -108,6 +112,14 @@ async function getTransactionDetailForSplTokenTransfer(
       balance =>
         balance.owner === params.toAddress && balance.mint === token?.address,
     );
+    // console.log(
+    //   'getTransactionDetailForSplTokenTransfer result2',
+    //   JSON.stringify(
+    //     { toAddressPreBalance, toAddressPostBalance, data },
+    //     null,
+    //     2,
+    //   ),
+    // );
     if (!data || !toAddressPostBalance || !toAddressPreBalance) {
       return null;
     }
@@ -117,6 +129,10 @@ async function getTransactionDetailForSplTokenTransfer(
     const parsedData = data as ParsedInstruction;
 
     const txInfo = parsedData.parsed.info;
+    // console.log(
+    //   'getTransactionDetailForSplTokenTransfer result3',
+    //   JSON.stringify({ amount, txInfo }, null, 2),
+    // );
     if (!txInfo) {
       return null;
     }

@@ -934,7 +934,7 @@ function getTransactionDetailTestCases() {
     );
   });
 
-  it('should return transaction detail for spl-token transfer on Solana #1', async () => {
+  it('should return transaction detail for spl-token transfer on Solana #1 , token1', async () => {
     // https://solscan.io/tx/2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16?cluster=devnet
     const amount = 7;
     const transactionInfo = await getTransactionInfoFromNetwork({
@@ -952,8 +952,26 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.currency, 'TEST-SPL-TOKEN');
     assert.equal(transactionInfo.amount, amount);
   });
+  it.only('should return transaction detail for spl-token transfer on Solana #2 , token1', async () => {
+    // https://explorer.solana.com/tx/469Mw7AQyJqiRirMCZGQNF9GNPnUAg5EKrWzHGBcM9HyA9c9aYak5xd7RLWqRoXQiT4eMowp4cSS7e4MYwy1d6S6?cluster=devnet
+    const amount = 0.1;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '469Mw7AQyJqiRirMCZGQNF9GNPnUAg5EKrWzHGBcM9HyA9c9aYak5xd7RLWqRoXQiT4eMowp4cSS7e4MYwy1d6S6',
+      symbol: 'TEST-SPL-TOKEN2',
+      chainType: ChainType.SOLANA,
+      networkId: NETWORK_IDS.SOLANA_DEVNET,
+      fromAddress: 'FT9aTwZNY1VbiCG26B6NHsTmi9bivybDbmX8LU7zqpoc',
+      toAddress: 'FT9aTwZNY1VbiCG26B6NHsTmg9bivybDbmX8LU7zqpoc',
+      timestamp: 1705523400,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'TEST-SPL-TOKEN2');
+    assert.equal(transactionInfo.amount, amount);
+  });
 
-  it('should return transaction detail for spl-token transfer on Solana #2', async () => {
+  it('should return transaction detail for spl-token transfer on Solana #3, token2', async () => {
     // https://solscan.io/tx/3m6f1g2YK6jtbfVfuYsfDbhVzNAqozF8JJyjp1VuFDduecojqeCVK4htKnLTSk3qBwSqYUvgLpBTVpeLJRvNmeTg?cluster=devnet
     const amount = 0.00000005;
     const transactionInfo = await getTransactionInfoFromNetwork({
