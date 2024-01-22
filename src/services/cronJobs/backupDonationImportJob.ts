@@ -2,33 +2,15 @@ import config from '../../config';
 
 import { logger } from '../../utils/logger';
 import { schedule } from 'node-cron';
-import { detectAddressChainType } from '../../utils/networks';
-import {
-  createDonationQueryValidator,
-  validateWithJoiSchema,
-} from '../../utils/validators/graphqlQueryValidators';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { findProjectById } from '../../repositories/projectRepository';
-import { ProjStatus, Project } from '../../entities/project';
-import { Token } from '../../entities/token';
-import {
-  isTokenAcceptableForProject,
-  updateDonationPricesAndValues,
-} from '../donationService';
-import { findProjectRecipientAddressByNetworkId } from '../../repositories/projectAddressRepository';
-import {
-  findUserByWalletAddress,
-  setUserAsReferrer,
-} from '../../repositories/userRepository';
-import { ChainType } from '../../types/network';
+import { findUserByWalletAddress } from '../../repositories/userRepository';
 import { Donation } from '../../entities/donation';
-import { getChainvineReferralInfoForDonation } from '../chainvineReferralService';
-import { relatedActiveQfRoundForProject } from '../qfRoundService';
-import { NETWORK_IDS } from '../../provider';
 import { FetchedSavedFailDonationInterface } from '../../adapters/donationSaveBackup/DonationSaveBackupInterface';
 import { getDonationSaveBackupAdapter } from '../../adapters/adaptersFactory';
 import { DonationResolver } from '../../resolvers/donationResolver';
 import { ApolloContext } from '../../types/ApolloContext';
+import { findDonationById } from '../../repositories/donationRepository';
+import { getCreatedAtFromMongoObjectId } from '../../utils/utils';
 
 const cronJobTime =
   (config.get('DONATION_SAVE_BACKUP_CRONJOB_EXPRESSION') as string) ||
@@ -90,9 +72,9 @@ export const importBackupServiceDonations = async () => {
 };
 
 // Same logic as the donationResolver CreateDonation() mutation
-const createBackupDonation = async (
+export const createBackupDonation = async (
   donationData: FetchedSavedFailDonationInterface,
-) => {
+): Promise<Donation> => {
   const {
     amount,
     txHash,
@@ -106,15 +88,13 @@ const createBackupDonation = async (
     chainvineReferred,
   } = donationData;
 
-  if (!token?.address) return; // test donations
-
   const donorUser = await findUserByWalletAddress(walletAddress);
   if (!donorUser) {
     throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
   }
 
   const donationResolver = new DonationResolver();
-  donationResolver.createDonation(
+  const donationId = await donationResolver.createDonation(
     amount,
     txHash,
     chainId,
@@ -130,4 +110,8 @@ const createBackupDonation = async (
     chainvineReferred,
     safeTransactionId,
   );
+  const donation = (await findDonationById(Number(donationId))) as Donation;
+  donation!.createdAt = getCreatedAtFromMongoObjectId(donationData._id);
+
+  return donation.save();
 };
