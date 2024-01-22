@@ -212,13 +212,31 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
-  for (const token of SEED_DATA.TOKENS.solana) {
+  for (const token of SEED_DATA.TOKENS.solana_mainnet) {
     const tokenData = {
       ...token,
-      networkId: NETWORK_IDS.SOLANA,
+      networkId: NETWORK_IDS.SOLANA_MAINNET,
       isGivbackEligible: false,
       chainType: ChainType.SOLANA,
       coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
+    };
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.solana_devnet) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.SOLANA_DEVNET,
+      isGivbackEligible: false,
+      chainType: ChainType.SOLANA,
+    };
+    await Token.create(tokenData as Token).save();
+  }
+  for (const token of SEED_DATA.TOKENS.solana_testnet) {
+    const tokenData = {
+      ...token,
+      networkId: NETWORK_IDS.SOLANA_TESTNET,
+      isGivbackEligible: false,
+      chainType: ChainType.SOLANA,
     };
     await Token.create(tokenData as Token).save();
   }

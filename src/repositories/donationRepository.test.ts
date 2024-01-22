@@ -2,7 +2,7 @@ import {
   createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   graphqlUrl,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
@@ -324,7 +324,7 @@ function findDonationsByTransactionIdTestCases() {
   });
   it('should not return donation with invalid txHash ', async () => {
     const fetchedDonation = await findDonationsByTransactionId(
-      generateRandomTxHash(),
+      generateRandomEvmTxHash(),
     );
     assert.isNotOk(fetchedDonation);
   });
