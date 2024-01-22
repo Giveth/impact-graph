@@ -12,7 +12,7 @@ export type FetchedSavedFailDonationInterface = {
   chainId: number;
   projectId: number;
   anonymous: boolean;
-  nonce?: number;
+  nonce: number;
   symbol: string;
   chainvineReferred?: string;
   safeTransactionId?: string;
