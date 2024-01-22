@@ -8,7 +8,6 @@ export class DonationSaveBackupMockAdapter
 {
   async getNotImportedDonationsFromBackup(params: {
     limit: number;
-    skip: number;
   }): Promise<FetchedSavedFailDonationInterface[]> {
     return [];
   }
@@ -31,5 +30,12 @@ export class DonationSaveBackupMockAdapter
     donationMongoId: string,
   ): Promise<FetchedSavedFailDonationInterface | null> {
     return null;
+  }
+
+  markDonationAsImportError(
+    donationMongoId: string,
+    errorMessage,
+  ): Promise<void> {
+    return Promise.resolve(undefined);
   }
 }

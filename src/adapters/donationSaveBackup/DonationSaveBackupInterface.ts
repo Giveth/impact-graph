@@ -1,7 +1,8 @@
 export type FetchedSavedFailDonationInterface = {
   _id: string;
   txHash: string;
-  imported: boolean;
+  imported?: boolean;
+  importError?: string;
   token: {
     symbol: string;
     address: string;
@@ -21,7 +22,6 @@ export type FetchedSavedFailDonationInterface = {
 export interface DonationSaveBackupInterface {
   getNotImportedDonationsFromBackup(params: {
     limit: number;
-    skip: number;
   }): Promise<FetchedSavedFailDonationInterface[]>;
 
   getSingleDonationFromBackupByTxHash(
@@ -35,4 +35,9 @@ export interface DonationSaveBackupInterface {
   getSingleDonationFromBackupById(
     donationMongoId: string,
   ): Promise<FetchedSavedFailDonationInterface | null>;
+
+  markDonationAsImportError(
+    donationMongoId: string,
+    errorMessage,
+  ): Promise<void>;
 }
