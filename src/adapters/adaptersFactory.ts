@@ -21,6 +21,8 @@ import { GitcoinAdapter } from './gitcoin/gitcoinAdapter';
 import { GitcoinMockAdapter } from './gitcoin/gitcoinMockAdapter';
 import { GivPowerBalanceAggregatorAdapter } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapter';
 import { GivPowerBalanceAggregatorAdapterMock } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapterMock';
+import { DonationSaveBackupAdapter } from './donationSaveBackup/donationSaveBackupAdapter';
+import { DonationSaveBackupMockAdapter } from './donationSaveBackup/DonationSaveBackupMockAdapter';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -116,5 +118,19 @@ export const getPowerBalanceAggregatorAdapter = () => {
       return mockPowerBalanceAggregator;
     default:
       return mockPowerBalanceAggregator;
+  }
+};
+
+const donationSaveBackupAdapter = new DonationSaveBackupAdapter();
+const mockDonationSaveBackupAdapter = new DonationSaveBackupMockAdapter();
+
+export const getDonationSaveBackupAdapter = () => {
+  switch (process.env.DONATION_SAVE_BACKUP_ADAPTER) {
+    case 'saveBackup':
+      return donationSaveBackupAdapter;
+    case 'mock':
+      return mockDonationSaveBackupAdapter;
+    default:
+      return mockDonationSaveBackupAdapter;
   }
 };
