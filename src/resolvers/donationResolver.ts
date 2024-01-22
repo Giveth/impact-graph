@@ -192,7 +192,8 @@ class DonationCurrencyStats {
 
 @Resolver(of => User)
 export class DonationResolver {
-  constructor(private readonly donationRepository: Repository<Donation>) {
+  private readonly donationRepository: Repository<Donation>;
+  constructor() {
     this.donationRepository =
       AppDataSource.getDataSource().getRepository(Donation);
   }
