@@ -32,7 +32,6 @@ const baseUrl = DONATION_SAVE_BACKUP_API_URL.endsWith('/')
 export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
   async getNotImportedDonationsFromBackup(params: {
     limit: number;
-    skip: number;
   }): Promise<FetchedSavedFailDonationInterface[]> {
     const result = await axios.post(
       `${baseUrl}find`,
@@ -40,10 +39,10 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
         collection: DONATION_SAVE_BACKUP_COLLECTION,
         database: DONATION_SAVE_BACKUP_DATABASE,
         dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
-        limit: params.limit || 10,
-        skip: params.skip || 0,
+        limit: params.limit,
         filter: {
           imported: { $ne: true },
+          importError: { $ne: true },
         },
         sort: { _id: 1 },
       },
@@ -57,8 +56,8 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
     );
 
     if (result.status !== 200) {
-      logger.error('getDonationsFromBackup error', result.data);
-      throw new Error('getDonationsFromBackup error');
+      logger.error('getNotImportedDonationsFromBackup error', result.data);
+      throw new Error('getNotImportedDonationsFromBackup error');
     }
     return result.data.documents;
   }
@@ -86,8 +85,8 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
     );
 
     if (result.status !== 200) {
-      logger.error('getDonationsFromBackup error', result.data);
-      throw new Error('getDonationsFromBackup error');
+      logger.error('getSingleDonationFromBackupByTxHash error', result.data);
+      throw new Error('getSingleDonationFromBackupByTxHash error');
     }
     return result.data.document;
   }
@@ -118,8 +117,42 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
     );
 
     if (result.status !== 200) {
-      logger.error('getDonationsFromBackup error', result.data);
-      throw new Error('getDonationsFromBackup error');
+      logger.error('markDonationAsImported error', result.data);
+      throw new Error('markDonationAsImported error');
+    }
+  }
+
+  async markDonationAsImportError(
+    donationMongoId: string,
+    errorMessage,
+  ): Promise<void> {
+    const result = await axios.post(
+      `${baseUrl}updateOne`,
+      {
+        collection: DONATION_SAVE_BACKUP_COLLECTION,
+        database: DONATION_SAVE_BACKUP_DATABASE,
+        dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
+        filter: {
+          _id: { $oid: donationMongoId },
+        },
+        update: {
+          $set: {
+            importError: errorMessage,
+          },
+        },
+      },
+      {
+        headers: {
+          'api-key': DONATION_SAVE_BACKUP_API_SECRET,
+          'Content-Type': 'application/json',
+          'Access-Control-Request-Headers': '*',
+        },
+      },
+    );
+
+    if (result.status !== 200) {
+      logger.error('markDonationAsImportError error', result.data);
+      throw new Error('markDonationAsImportError error');
     }
   }
 
@@ -146,8 +179,8 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
     );
 
     if (result.status !== 200) {
-      logger.error('getDonationsFromBackup error', result.data);
-      throw new Error('getDonationsFromBackup error');
+      logger.error('getSingleDonationFromBackupById error', result.data);
+      throw new Error('getSingleDonationFromBackupById error');
     }
     return result.data.document;
   }
@@ -178,8 +211,8 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
     );
 
     if (result.status !== 200) {
-      logger.error('getDonationsFromBackup error', result.data);
-      throw new Error('getDonationsFromBackup error');
+      logger.error('unmarkDonationAsImported error', result.data);
+      throw new Error('unmarkDonationAsImported error');
     }
   }
 }

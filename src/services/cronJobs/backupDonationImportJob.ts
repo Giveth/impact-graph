@@ -23,32 +23,12 @@ export const runSyncBackupServiceDonations = () => {
   });
 };
 
-// Minimum required params from the backup mongodb
-interface BackupDonationData {
-  _id: string;
-  chainId: number;
-  txHash: string;
-  amount: number;
-  token: {
-    address: number;
-  };
-  projectId: number;
-  anonymous: false;
-  nonce: string;
-  walletAddress: string;
-  symbol: string;
-  chainvineReferred: string;
-  safeTransactionId?: string;
-}
-
 // Mock Mongo Methods to write a test
 export const importBackupServiceDonations = async () => {
   const limit = 10;
-  let skip = 0;
   let donations =
     await getDonationSaveBackupAdapter().getNotImportedDonationsFromBackup({
       limit,
-      skip,
     });
   while (donations.length > 0) {
     for (const donation of donations) {
@@ -58,15 +38,17 @@ export const importBackupServiceDonations = async () => {
           donation._id,
         );
       } catch (e) {
+        await getDonationSaveBackupAdapter().markDonationAsImportError(
+          donation._id,
+          e.message,
+        );
         logger.error(`donation error with id ${donation._id}: `, e);
         logger.error('donation error with params: ', donation);
       }
     }
-    skip += limit;
     donations =
       await getDonationSaveBackupAdapter().getNotImportedDonationsFromBackup({
         limit,
-        skip,
       });
   }
 };
