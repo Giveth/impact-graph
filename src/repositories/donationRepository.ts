@@ -387,12 +387,20 @@ export const getPendingDonationsIds = (): Promise<{ id: number }[]> => {
       hours: Number(process.env.DONATION_VERIFICAITON_EXPIRATION_HOURS),
     })
     .toDate();
+
   return Donation.find({
-    where: {
-      status: DONATION_STATUS.PENDING,
-      isFiat: false,
-      createdAt: MoreThan(date),
-    },
+    where: [
+      {
+        status: DONATION_STATUS.PENDING,
+        isFiat: false,
+        createdAt: MoreThan(date),
+      },
+      {
+        status: DONATION_STATUS.PENDING,
+        isFiat: false,
+        importDate: MoreThan(date),
+      },
+    ],
     select: ['id'],
   });
 };

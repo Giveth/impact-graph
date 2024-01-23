@@ -49,7 +49,7 @@ function createBackupDonationTestCases() {
     assert.equal(donation.status, DONATION_STATUS.PENDING);
 
     // should use input createdAt not now time
-    assert.equal(donation.createdAt.getTime(), 1705577862000);
+    assert.equal(donation.importDate.getTime(), 1705577862000);
   });
 
   it('should fail if projectId is invalid', async () => {
