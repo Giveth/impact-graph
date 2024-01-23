@@ -420,3 +420,7 @@ export const dateToTimestampMs = (date: Date | string | number): number => {
 export function normalizeAmount(amount: string, decimals: number): number {
   return Number(amount) / 10 ** decimals;
 }
+
+export function getCreatedAtFromMongoObjectId(objectId: string): Date {
+  return new Date(parseInt(objectId.substring(0, 8), 16) * 1000);
+}

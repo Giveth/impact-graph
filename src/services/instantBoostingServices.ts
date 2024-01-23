@@ -33,7 +33,7 @@ export const updateInstantBoosting = async (): Promise<void> => {
 export const updateInstantPowerBalances = async (
   customGivPowerBalanceAggregator?: IGivPowerBalanceAggregator,
 ): Promise<void> => {
-  logger.info('Update instant power balances...');
+  logger.debug('Update instant power balances...');
   const givPowerSubgraphAdapter =
     customGivPowerBalanceAggregator || getPowerBalanceAggregatorAdapter();
   await fetchUpdatedInstantPowerBalances(givPowerSubgraphAdapter);
@@ -47,7 +47,7 @@ export const updateInstantPowerBalances = async (
 const fetchUpdatedInstantPowerBalances = async (
   givPowerBalanceAggregator: IGivPowerBalanceAggregator,
 ): Promise<void> => {
-  logger.info('1. Fetch updated instant powers');
+  logger.debug('1. Fetch updated instant powers');
   // Let's save it now to sync all balances till this point
   // const [latestSubgraphIndexBlock, latestSyncedBlock] = await Promise.all([
   //   givPowerBalanceAggregator.getLatestIndexedBlockInfo(),
@@ -80,7 +80,7 @@ const fetchUpdatedInstantPowerBalances = async (
     const instances = boosterUsers.map(user => {
       const walletAddress = user.walletAddress!.toLowerCase();
       const { balance, updatedAt } = addressBalanceMap[walletAddress];
-      logger.info(
+      logger.debug(
         `Update user ${user.id} - ${walletAddress} instant power balance to ${balance} - updateAt ${updatedAt}`,
       );
       return {
@@ -162,7 +162,7 @@ const fillMissingInstantPowerBalances = async (
       Partial<InstantPowerBalance>
     >((item): Partial<InstantPowerBalance> => {
       const { balance, updatedAt } = addressBalanceMap[item.walletAddress];
-      logger.info(
+      logger.debug(
         `Update user ${item.id} - ${item.walletAddress} instant power balance to ${balance} - updateAt ${updatedAt}`,
       );
       return {

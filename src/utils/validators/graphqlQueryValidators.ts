@@ -95,13 +95,21 @@ export const createDonationQueryValidator = Joi.object({
         ),
       }),
   }),
-  transactionNetworkId: Joi.string()
+  transactionNetworkId: Joi.number()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
-  tokenAddress: Joi.when('transactionNetworkId', {
-    is: 0, // if its solana network
+
+  tokenAddress: Joi.when('chainType', {
+    is: ChainType.SOLANA,
     then: Joi.string().pattern(solanaProgramIdRegex),
     otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
+  }).messages({
+    'string.pattern.base': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
+    'string.disallow': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
   }),
   token: Joi.string().required(),
   // .pattern(tokenSymbolRegex)
@@ -113,9 +121,10 @@ export const createDonationQueryValidator = Joi.object({
   projectId: Joi.number().integer().min(0).required(),
   nonce: Joi.number().integer().min(0).allow(null),
   anonymous: Joi.boolean(),
-  transakId: Joi.string(),
+  transakId: Joi.string()?.allow(null, ''),
   referrerId: Joi.string().allow(null, ''),
   safeTransactionId: Joi.string().allow(null, ''),
+  chainType: Joi.string().required(),
 });
 
 export const updateDonationQueryValidator = Joi.object({
@@ -177,7 +186,11 @@ const managingFundsValidator = Joi.object({
         Joi.string().required().pattern(solanaWalletAddressRegex),
       ),
       networkId: Joi.number()?.valid(
-        NETWORK_IDS.SOLANA, // Solana
+        0, // frontend may send 0 as a network id for solana, so we should allow it
+        NETWORK_IDS.SOLANA_MAINNET, // Solana
+        NETWORK_IDS.SOLANA_DEVNET,
+        NETWORK_IDS.SOLANA_TESTNET,
+
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,

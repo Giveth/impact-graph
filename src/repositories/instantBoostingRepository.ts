@@ -37,7 +37,7 @@ export const getUsersBoostedWithoutInstanceBalance = async (
   limit = 50,
   offset = 0,
 ): Promise<{ id: number; walletAddress: string }[]> => {
-  logger.info('getUsersBoostedWithoutBalance', { limit, offset });
+  logger.debug('getUsersBoostedWithoutBalance', { limit, offset });
   return await AppDataSource.getDataSource().query(
     `
         SELECT ID, "walletAddress" FROM PUBLIC.USER

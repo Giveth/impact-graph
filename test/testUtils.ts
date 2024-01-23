@@ -303,7 +303,7 @@ export const createDonationData = (params?: {
   qfRoundId?: number;
 }): CreateDonationData => {
   return {
-    transactionId: generateRandomTxHash(),
+    transactionId: generateRandomEvmTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
@@ -1366,7 +1366,83 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
-    solana: [
+    solana_mainnet: [
+      {
+        name: 'Solana native token',
+        symbol: 'SOL',
+        address: '11111111111111111111111111111111',
+        decimals: 9,
+      },
+      {
+        name: 'Marinade staked SOL',
+        symbol: 'mSOL',
+        address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+        decimals: 9,
+      },
+      {
+        name: 'USDC',
+        symbol: 'USDC',
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+      {
+        name: 'Tether',
+        symbol: 'USDCT',
+        address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+        decimals: 6,
+      },
+      {
+        name: 'Raydium',
+        symbol: 'RAY',
+        address: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R',
+        decimals: 6,
+      },
+      {
+        name: 'BlazeStake Staked SOL',
+        symbol: 'BSOL',
+        address: 'bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1',
+        decimals: 9,
+      },
+      {
+        name: 'Audius (Wormhole)',
+        symbol: 'AUDIO',
+        address: '9LzCMqDgTKYz9Drzqnpgee3SGa89up3a247ypMj2xrqM',
+        decimals: 8,
+      },
+      {
+        name: 'Mango',
+        symbol: 'MANGO',
+        address: 'MangoCzJ36AjZyKwVj3VnYU4GTonjfVEnJmvvWaxLac',
+        decimals: 6,
+      },
+      {
+        name: 'Coin98',
+        symbol: 'C98',
+        address: 'C98A4nkJXhpVZNAZdHUA95RpTF3T4whtQubL3YobiUX9',
+        decimals: 6,
+      },
+    ],
+    solana_devnet: [
+      {
+        name: 'Solana native token',
+        symbol: 'SOL',
+        address: '11111111111111111111111111111111',
+        decimals: 9,
+      },
+      {
+        name: 'TEST-SPL-TOKEN',
+        symbol: 'TEST-SPL-TOKEN',
+        address: 'BrEahxkTrCKfjVy36pLD2gvVoMCUMEb1PinrAFtvJqPX',
+        decimals: 9,
+      },
+      {
+        name: 'TEST-SPL-TOKEN2',
+        symbol: 'TEST-SPL-TOKEN2',
+        address: '8LDBhHJB7oMAjkJaetXa4njjetUVWDRTqvzkmhFQjgeK',
+        decimals: 9,
+      },
+    ],
+    solana_testnet: [
       {
         name: 'Solana native token',
         symbol: 'SOL',
@@ -1626,7 +1702,7 @@ export const REACTION_SEED_DATA = {
 export const DONATION_SEED_DATA = {
   FIRST_DONATION: {
     id: 1,
-    transactionId: generateRandomTxHash(),
+    transactionId: generateRandomEvmTxHash(),
     transactionNetworkId: NETWORK_IDS.MAIN_NET,
     toWalletAddress: SEED_DATA.FIRST_PROJECT.walletAddress,
     fromWalletAddress: SEED_DATA.FIRST_USER.walletAddress,
@@ -1775,7 +1851,7 @@ export function generateRandomSolanaAddress(): string {
   return Keypair.generate().publicKey.toString();
 }
 
-export function generateRandomTxHash(): string {
+export function generateRandomEvmTxHash(): string {
   return `0x${generateHexNumber(64)}`;
 }
 
@@ -1787,4 +1863,21 @@ export function generateHexNumber(len): string {
     output += hex.charAt(Math.floor(Math.random() * hex.length));
   }
   return output;
+}
+
+function generateRandomAlphanumeric(length) {
+  let result = '';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+export function generateRandomSolanaTxHash() {
+  // Random length between 86 and 88
+  const length = Math.floor(Math.random() * 3) + 86;
+  return generateRandomAlphanumeric(length);
 }

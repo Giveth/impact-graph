@@ -34,7 +34,7 @@ export async function onramperWebhookHandler(request, response) {
       await createFiatDonationFromOnramper(fiatTransaction);
     }
 
-    logger.info(
+    logger.debug(
       'User Onramper Transaction Arrived',
       JSON.stringify({
         type: fiatTransaction.type,

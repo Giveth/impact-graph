@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.20.0",
+  "version": "1.21.0",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -114,6 +114,7 @@
     "tslint:fix": "tslint -c tslint.json --fix '{src,test,migration}/**/*.ts'",
     "test": "NODE_ENV=test mocha --config ./.mocharc.all-test.json",
     "test:syncProjectsRequiredForListing": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/syncProjectsRequiredForListing.test.ts",
+    "test:backupDonationImport": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/backupDonationImport.test.ts",
     "test:projectEntity": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/entities/project.test.ts",
     "test:projectValidators": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/utils/validators/projectValidator.test.ts",
     "test:onramperWebhook": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/onramper/webhookHandler.test.ts",
