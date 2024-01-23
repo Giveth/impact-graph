@@ -110,7 +110,8 @@ export const createBackupDonation = async (
     safeTransactionId,
   );
   const donation = (await findDonationById(Number(donationId))) as Donation;
-  donation!.importDate = getCreatedAtFromMongoObjectId(donationData._id);
+  donation!.createdAt = getCreatedAtFromMongoObjectId(donationData._id);
+  donation!.importDate = new Date();
 
   return donation.save();
 };
