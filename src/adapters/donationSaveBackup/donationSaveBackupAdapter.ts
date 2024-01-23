@@ -41,8 +41,8 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
         dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
         limit: params.limit,
         filter: {
-          imported: { $ne: true },
-          importError: { $ne: true },
+          imported: { $exists: false },
+          importError: { $exists: false },
         },
         sort: { _id: 1 },
       },
