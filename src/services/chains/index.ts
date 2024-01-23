@@ -3,6 +3,7 @@ import { getSolanaTransactionInfoFromNetwork } from './solana/transactionService
 import { getEvmTransactionInfoFromNetwork } from './evm/transactionService';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
+import { NETWORK_IDS } from '../../provider';
 
 export interface NetworkTransactionInfo {
   hash: string;
@@ -84,4 +85,17 @@ export async function getTransactionInfoFromNetwork(
 
   // If chain is not Solana, it's EVM for sure
   return getEvmTransactionInfoFromNetwork(input);
+}
+
+export function getDefaultSolanaChainId(): number {
+  return Number(process.env.SOLANA_CHAIN_ID) || NETWORK_IDS.SOLANA_DEVNET;
+}
+
+export function getAppropriateNetworkId(params: {
+  chainType?: ChainType;
+  networkId: number;
+}): number {
+  return params.chainType === ChainType.SOLANA
+    ? getDefaultSolanaChainId()
+    : params.networkId;
 }

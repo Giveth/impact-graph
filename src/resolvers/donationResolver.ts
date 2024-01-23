@@ -4,7 +4,6 @@ import {
   ArgsType,
   Ctx,
   Field,
-  Float,
   InputType,
   Int,
   Mutation,
@@ -15,7 +14,6 @@ import {
 } from 'type-graphql';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { getOurTokenList } from '@giveth/monoswap';
 import { Donation, DONATION_STATUS, SortField } from '../entities/donation';
 import { ApolloContext } from '../types/ApolloContext';
 import { Project, ProjStatus } from '../entities/project';
@@ -26,7 +24,6 @@ import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { NETWORK_IDS } from '../provider';
 import {
-  getMonoSwapTokenPrices,
   isTokenAcceptableForProject,
   syncDonationStatusWithBlockchainNetwork,
   updateDonationPricesAndValues,
@@ -41,7 +38,6 @@ import {
 import { logger } from '../utils/logger';
 import {
   findUserById,
-  isFirstTimeDonor,
   setUserAsReferrer,
 } from '../repositories/userRepository';
 import {
@@ -60,12 +56,14 @@ import { findProjectRecipientAddressByNetworkId } from '../repositories/projectA
 import { MainCategory } from '../entities/mainCategory';
 import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
-import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
-import { ethers } from 'ethers';
 import { getChainvineReferralInfoForDonation } from '../services/chainvineReferralService';
 import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
 import { detectAddressChainType } from '../utils/networks';
 import { ChainType } from '../types/network';
+import {
+  getAppropriateNetworkId,
+  getDefaultSolanaChainId,
+} from '../services/chains';
 
 @ObjectType()
 class PaginateDonations {
@@ -631,25 +629,32 @@ export class DonationResolver {
         throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
       }
       const chainType = detectAddressChainType(donorUser.walletAddress!);
+      const networkId = getAppropriateNetworkId({
+        networkId: transactionNetworkId,
+        chainType,
+      });
 
+      const validaDataInput = {
+        amount,
+        transactionId,
+        transactionNetworkId: networkId,
+        anonymous,
+        tokenAddress,
+        token,
+        projectId,
+        nonce,
+        transakId,
+        referrerId,
+        safeTransactionId,
+        chainType,
+      };
       try {
-        validateWithJoiSchema(
-          {
-            amount,
-            transactionId,
-            transactionNetworkId,
-            anonymous,
-            tokenAddress,
-            token,
-            projectId,
-            nonce,
-            transakId,
-            referrerId,
-            safeTransactionId,
-          },
-          createDonationQueryValidator,
-        );
+        validateWithJoiSchema(validaDataInput, createDonationQueryValidator);
       } catch (e) {
+        logger.error(
+          'Error on validating createDonation input',
+          validaDataInput,
+        );
         // Joi alternatives does not handle custom errors, have to catch them.
         if (e.message.includes('does not match any of the allowed types')) {
           throw new Error(
@@ -675,7 +680,7 @@ export class DonationResolver {
       }
       const tokenInDb = await Token.findOne({
         where: {
-          networkId: transactionNetworkId,
+          networkId,
           symbol: token,
         },
       });
@@ -700,7 +705,7 @@ export class DonationResolver {
       const projectRelatedAddress =
         await findProjectRecipientAddressByNetworkId({
           projectId,
-          networkId: transactionNetworkId,
+          networkId,
         });
       if (!projectRelatedAddress) {
         throw new Error(
@@ -724,7 +729,7 @@ export class DonationResolver {
         amount: Number(amount),
         transactionId: transactionTx,
         isFiat: Boolean(transakId),
-        transactionNetworkId: Number(transactionNetworkId),
+        transactionNetworkId: networkId,
         currency: token,
         user: donorUser,
         tokenAddress,
@@ -768,17 +773,13 @@ export class DonationResolver {
       );
       if (
         activeQfRoundForProject &&
-        activeQfRoundForProject.isEligibleNetwork(Number(transactionNetworkId))
+        activeQfRoundForProject.isEligibleNetwork(networkId)
       ) {
         donation.qfRound = activeQfRoundForProject;
       }
       await donation.save();
 
-      let priceChainId =
-        transactionNetworkId === NETWORK_IDS.ROPSTEN ||
-        transactionNetworkId === NETWORK_IDS.GOERLI
-          ? NETWORK_IDS.MAIN_NET
-          : transactionNetworkId;
+      let priceChainId;
 
       switch (transactionNetworkId) {
         case NETWORK_IDS.ROPSTEN:
@@ -794,7 +795,7 @@ export class DonationResolver {
           priceChainId = NETWORK_IDS.ETC;
           break;
         default:
-          priceChainId = transactionNetworkId;
+          priceChainId = networkId;
           break;
       }
 
@@ -805,7 +806,6 @@ export class DonationResolver {
         token,
         priceChainId,
         amount,
-        chainType!,
       );
 
       return donation.id;
