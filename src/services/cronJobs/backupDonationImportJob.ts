@@ -17,7 +17,7 @@ const cronJobTime =
   '0 0 * * 0';
 
 export const runSyncBackupServiceDonations = () => {
-  logger.debug('importBackupServiceDonations() has been called');
+  logger.debug('runSyncBackupServiceDonations() has been called');
   schedule(cronJobTime, async () => {
     await importBackupServiceDonations();
   });
@@ -32,7 +32,7 @@ export const importBackupServiceDonations = async () => {
       limit,
     });
   logger.info(
-    'importBackupServiceDonations() donations.length: ',
+    'importBackupServiceDonations() donations.length:',
     donations.length,
   );
   while (donations.length > 0) {
@@ -52,8 +52,11 @@ export const importBackupServiceDonations = async () => {
           donation._id,
           e.message,
         );
-        logger.error(`donation error with id ${donation._id}: `, e);
-        logger.error('donation error with params: ', donation);
+        logger.error(
+          `Import failed donation error with id ${donation._id}: `,
+          e,
+        );
+        logger.error('Import failed  donation error with params: ', donation);
       }
     }
     donations =

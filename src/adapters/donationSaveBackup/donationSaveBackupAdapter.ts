@@ -33,33 +33,40 @@ export class DonationSaveBackupAdapter implements DonationSaveBackupInterface {
   async getNotImportedDonationsFromBackup(params: {
     limit: number;
   }): Promise<FetchedSavedFailDonationInterface[]> {
-    const result = await axios.post(
-      `${baseUrl}find`,
-      {
-        collection: DONATION_SAVE_BACKUP_COLLECTION,
-        database: DONATION_SAVE_BACKUP_DATABASE,
-        dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
-        limit: params.limit,
-        filter: {
-          imported: { $exists: false },
-          importError: { $exists: false },
+    try {
+      const result = await axios.post(
+        `${baseUrl}find`,
+        {
+          collection: DONATION_SAVE_BACKUP_COLLECTION,
+          database: DONATION_SAVE_BACKUP_DATABASE,
+          dataSource: DONATION_SAVE_BACKUP_DATA_SOURCE,
+          limit: params.limit,
+          filter: {
+            imported: { $exists: false },
+            importError: { $exists: false },
+          },
+          sort: { _id: 1 },
         },
-        sort: { _id: 1 },
-      },
-      {
-        headers: {
-          'api-key': DONATION_SAVE_BACKUP_API_SECRET,
-          'Content-Type': 'application/json',
-          'Access-Control-Request-Headers': '*',
+        {
+          headers: {
+            'api-key': DONATION_SAVE_BACKUP_API_SECRET,
+            'Content-Type': 'application/json',
+            'Access-Control-Request-Headers': '*',
+          },
         },
-      },
-    );
+      );
 
-    if (result.status !== 200) {
-      logger.error('getNotImportedDonationsFromBackup error', result.data);
-      throw new Error('getNotImportedDonationsFromBackup error');
+      if (result.status !== 200) {
+        logger.error('getNotImportedDonationsFromBackup error', result.data);
+        throw new Error(
+          'getNotImportedDonationsFromBackup error, status: ' + result.status,
+        );
+      }
+      return result.data.documents;
+    } catch (e) {
+      logger.error('getNotImportedDonationsFromBackup error', e);
+      throw e;
     }
-    return result.data.documents;
   }
 
   async getSingleDonationFromBackupByTxHash(
