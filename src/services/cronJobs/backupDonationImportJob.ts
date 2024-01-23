@@ -77,7 +77,6 @@ export const createBackupDonation = async (
   const {
     amount,
     txHash,
-    chainId,
     token,
     anonymous,
     walletAddress,
@@ -86,6 +85,8 @@ export const createBackupDonation = async (
     safeTransactionId,
     chainvineReferred,
   } = donationData;
+
+  const chainId = donationData?.chainId || donationData.token.networkId;
 
   const donorUser = await findUserByWalletAddress(walletAddress);
   if (!donorUser) {
