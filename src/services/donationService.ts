@@ -55,7 +55,7 @@ export const updateDonationPricesAndValues = async (
   priceChainId: number,
   amount: string | number,
 ) => {
-  logger.info('updateDonationPricesAndValues() has been called', {
+  logger.debug('updateDonationPricesAndValues() has been called', {
     donationId: donation.id,
     projectId: project.id,
     token: token?.symbol,
@@ -120,7 +120,7 @@ export const updateDonationPricesAndValues = async (
       },
     );
   }
-  logger.info('updateDonationPricesAndValues() result', {
+  logger.debug('updateDonationPricesAndValues() result', {
     valueUsd: donation.valueUsd,
     donationId: donation.id,
     projectId: project.id,
@@ -401,7 +401,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
 
     // send chainvine the referral as last step to not interrupt previous
     if (donation.referrerWallet && donation.isReferrerGivbackEligible) {
-      logger.info(
+      logger.debug(
         'sending chainvine params: ',
         JSON.stringify({
           fromWalletAddress: donation.fromWalletAddress,

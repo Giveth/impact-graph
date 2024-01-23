@@ -91,7 +91,7 @@ export const getTwitterDonations = async () => {
       try {
         // Check if recipient is a relevant Giveth recipient
         if (relevantRecipients.includes(event.recipientAddress.toLowerCase())) {
-          logger.info(
+          logger.debug(
             'Creating Donation from Idriss' +
               event.recipientAddress.toLowerCase(),
           );

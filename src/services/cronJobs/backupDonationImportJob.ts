@@ -25,13 +25,13 @@ export const runSyncBackupServiceDonations = () => {
 
 // Mock Mongo Methods to write a test
 export const importBackupServiceDonations = async () => {
-  logger.info('importBackupServiceDonations() has been called');
+  logger.debug('importBackupServiceDonations() has been called');
   const limit = 10;
   let donations =
     await getDonationSaveBackupAdapter().getNotImportedDonationsFromBackup({
       limit,
     });
-  logger.info(
+  logger.debug(
     'importBackupServiceDonations() donations.length:',
     donations.length,
   );
@@ -42,7 +42,7 @@ export const importBackupServiceDonations = async () => {
         await getDonationSaveBackupAdapter().markDonationAsImported(
           donation._id,
         );
-        logger.info('Failed donation has imported successfully', {
+        logger.debug('Failed donation has imported successfully', {
           donationId: donation._id,
           txHash: donation.txHash,
           networkId: donation.chainId,
@@ -63,7 +63,7 @@ export const importBackupServiceDonations = async () => {
       await getDonationSaveBackupAdapter().getNotImportedDonationsFromBackup({
         limit,
       });
-    logger.info('importBackupServiceDonations() inside loop ', {
+    logger.debug('importBackupServiceDonations() inside loop ', {
       donationsLength: donations.length,
       limit,
     });

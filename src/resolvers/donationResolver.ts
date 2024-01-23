@@ -619,7 +619,7 @@ export class DonationResolver {
       referrerId,
       userId: ctx?.req?.user?.userId,
     };
-    logger.info(
+    logger.debug(
       'createDonation() resolver has been called with this data',
       logData,
     );

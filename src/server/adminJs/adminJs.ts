@@ -163,7 +163,7 @@ const getResources = async (): Promise<AdminJsResources> => {
       params,
     };
 
-    logger.info('AdminJs Log', JSON.stringify(log, null, 2));
+    logger.debug('AdminJs Log', JSON.stringify(log, null, 2));
 
     return response;
   };

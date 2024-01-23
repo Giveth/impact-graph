@@ -64,7 +64,7 @@ export const importLostDonations = async () => {
 
     for (const tx of donationTxHashes) {
       try {
-        logger.info('processing txhash: ', tx);
+        logger.debug('processing txhash: ', tx);
         const donationExists = await Donation.createQueryBuilder('donation')
           .where(`lower(donation.transactionId) = :hash`, {
             hash: tx.toLowerCase(),
@@ -76,7 +76,7 @@ export const importLostDonations = async () => {
         const transaction = await getProvider(networkId).getTransaction(tx);
         if (!transaction) {
           // Transaction not found
-          logger.info('transaction not found for tx: ', tx);
+          logger.debug('transaction not found for tx: ', tx);
           continue;
         }
 
@@ -84,7 +84,7 @@ export const importLostDonations = async () => {
         if (!receipt) {
           // Transaction is not mined yet
           // https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html#gettransactionreceipt
-          logger.info('receipt not found for tx: ', tx);
+          logger.debug('receipt not found for tx: ', tx);
           continue;
         }
 
@@ -104,11 +104,11 @@ export const importLostDonations = async () => {
           .getOne();
 
         if (!dbUser) {
-          logger.info('user not found for tx: ', tx);
+          logger.debug('user not found for tx: ', tx);
           continue; // User does not exist on giveth, not a UI donation, skip
         }
 
-        logger.info('token address searched: ', erc20Token);
+        logger.debug('token address searched: ', erc20Token);
 
         // Check if its an ERC-20 Token
         let tokenInDB;
@@ -153,14 +153,14 @@ export const importLostDonations = async () => {
             nativeToken!,
           );
         } else {
-          logger.info('transaction type not valid for tx: ', tx);
+          logger.debug('transaction type not valid for tx: ', tx);
           continue; // Not a transaction recognized by our logic
         }
 
-        logger.info('token being searched: ', tokenInDB?.id);
+        logger.debug('token being searched: ', tokenInDB?.id);
 
         if (!donationParams) {
-          logger.info('Params invalid for tx: ', tx);
+          logger.debug('Params invalid for tx: ', tx);
           continue;
         }
 
@@ -174,7 +174,7 @@ export const importLostDonations = async () => {
           .getOne();
 
         if (!project) {
-          logger.info('Project not found for tx: ', tx);
+          logger.debug('Project not found for tx: ', tx);
           continue; // project doesn't exist on giveth, skip donation
         }
 
@@ -195,7 +195,7 @@ export const importLostDonations = async () => {
             date: donationDateCoingeckoFormat,
           });
         } catch (e) {
-          logger.info('CoingeckoPrice not found for tx: ', tx);
+          logger.debug('CoingeckoPrice not found for tx: ', tx);
           logger.error('importLostDonations() coingecko error', e);
         }
 
@@ -236,8 +236,8 @@ export const importLostDonations = async () => {
 
           await dbDonation.save();
         } catch (e) {
-          logger.info('Error saving donation for for tx: ', tx);
-          logger.info('Error saving donation: ', e);
+          logger.debug('Error saving donation for for tx: ', tx);
+          logger.debug('Error saving donation: ', e);
         }
 
         await updateUserTotalDonated(dbUser.id);
