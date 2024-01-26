@@ -735,6 +735,7 @@ export const fetchMultiFilterAllProjectsQuery = `
           name
           isActive
           id
+          maximumReward
         }
         totalReactions
         totalDonations
