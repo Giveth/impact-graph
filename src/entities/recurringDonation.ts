@@ -44,6 +44,9 @@ export class RecurringDonation extends BaseEntity {
   @Column({ nullable: true })
   projectId: number;
 
+  @Column({ nullable: true })
+  finished: boolean;
+
   @Index()
   @Field(type => AnchorContractAddress)
   @ManyToOne(type => AnchorContractAddress)

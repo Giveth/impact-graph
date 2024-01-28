@@ -14,6 +14,7 @@ export class createRecurringDonationTable1702445735585
                 donor_id INT,
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                finished BOOLEAN, 
                 CONSTRAINT fk_project
                     FOREIGN KEY(project_id) 
                     REFERENCES projects(id),
