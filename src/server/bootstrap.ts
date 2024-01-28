@@ -1,6 +1,6 @@
 // @ts-check
 import config from '../config';
-import RateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
@@ -209,7 +209,7 @@ export async function bootstrap() {
     app.use(bodyParserJson);
 
     if (process.env.DISABLE_SERVER_RATE_LIMITER !== 'true') {
-      const limiter = new RateLimit({
+      const limiter = rateLimit({
         store: new RedisStore({
           prefix: 'rate-limit:',
           client: redis,
