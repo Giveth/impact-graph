@@ -25,52 +25,48 @@ export const runSyncBackupServiceDonations = () => {
 
 // Mock Mongo Methods to write a test
 export const importBackupServiceDonations = async () => {
-  try {
-    logger.debug('importBackupServiceDonations() has been called');
-    const limit = 10;
-    let donations =
+  logger.debug('importBackupServiceDonations() has been called');
+  const limit = 10;
+  let donations =
+    await getDonationSaveBackupAdapter().getNotImportedDonationsFromBackup({
+      limit,
+    });
+  logger.debug(
+    'importBackupServiceDonations() donations.length:',
+    donations.length,
+  );
+  while (donations.length > 0) {
+    for (const donation of donations) {
+      try {
+        await createBackupDonation(donation);
+        await getDonationSaveBackupAdapter().markDonationAsImported(
+          donation._id,
+        );
+        logger.debug('Failed donation has imported successfully', {
+          donationId: donation._id,
+          txHash: donation.txHash,
+          networkId: donation.chainId,
+        });
+      } catch (e) {
+        await getDonationSaveBackupAdapter().markDonationAsImportError(
+          donation._id,
+          e.message,
+        );
+        logger.error(
+          `Import failed donation error with id ${donation._id}: `,
+          e,
+        );
+        logger.error('Import failed  donation error with params: ', donation);
+      }
+    }
+    donations =
       await getDonationSaveBackupAdapter().getNotImportedDonationsFromBackup({
         limit,
       });
-    logger.debug(
-      'importBackupServiceDonations() donations.length:',
-      donations.length,
-    );
-    while (donations.length > 0) {
-      for (const donation of donations) {
-        try {
-          await createBackupDonation(donation);
-          await getDonationSaveBackupAdapter().markDonationAsImported(
-            donation._id,
-          );
-          logger.debug('Failed donation has imported successfully', {
-            donationId: donation._id,
-            txHash: donation.txHash,
-            networkId: donation.chainId,
-          });
-        } catch (e) {
-          await getDonationSaveBackupAdapter().markDonationAsImportError(
-            donation._id,
-            e.message,
-          );
-          logger.error(
-            `Import failed donation error with id ${donation._id}: `,
-            e,
-          );
-          logger.error('Import failed  donation error with params: ', donation);
-        }
-      }
-      donations =
-        await getDonationSaveBackupAdapter().getNotImportedDonationsFromBackup({
-          limit,
-        });
-      logger.debug('importBackupServiceDonations() inside loop ', {
-        donationsLength: donations.length,
-        limit,
-      });
-    }
-  } catch (e) {
-    logger.error('importBackupServiceDonations() error: ', e);
+    logger.debug('importBackupServiceDonations() inside loop ', {
+      donationsLength: donations.length,
+      limit,
+    });
   }
 };
 
@@ -81,7 +77,6 @@ export const createBackupDonation = async (
   const {
     amount,
     txHash,
-    chainId,
     token,
     anonymous,
     walletAddress,
@@ -90,6 +85,8 @@ export const createBackupDonation = async (
     safeTransactionId,
     chainvineReferred,
   } = donationData;
+
+  const chainId = donationData?.chainId || donationData.token.networkId;
 
   const donorUser = await findUserByWalletAddress(walletAddress);
   if (!donorUser) {

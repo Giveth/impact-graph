@@ -10,7 +10,7 @@ export type FetchedSavedFailDonationInterface = {
   };
   walletAddress: string;
   amount: number;
-  chainId: number;
+  chainId?: number;
   projectId: number;
   anonymous: boolean;
   nonce: number;
