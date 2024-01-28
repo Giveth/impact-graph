@@ -54,7 +54,7 @@ const addJobToCheckPendingDonationsWithNetwork = async () => {
         donationId: donation.id,
       },
       {
-        jobId: `verify-donation-id-${donation.id}`,
+        // jobId: `verify-donation-id-${donation.id}`,
       },
     );
   });
