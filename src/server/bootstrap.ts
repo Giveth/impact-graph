@@ -1,7 +1,7 @@
 // @ts-check
 import config from '../config';
-import RateLimit from 'express-rate-limit';
-import RedisStore from 'rate-limit-redis';
+import { rateLimit } from 'express-rate-limit';
+import { RedisStore } from 'rate-limit-redis';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
@@ -209,11 +209,11 @@ export async function bootstrap() {
     app.use(bodyParserJson);
 
     if (process.env.DISABLE_SERVER_RATE_LIMITER !== 'true') {
-      const limiter = new RateLimit({
+      const limiter = rateLimit({
         store: new RedisStore({
           prefix: 'rate-limit:',
-          client: redis,
-          // see Configuration
+          // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+          sendCommand: (...args: string[]) => redis.call(...args), // see Configuration
         }),
         windowMs: 60 * 1000, // 1 minutes
         max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
