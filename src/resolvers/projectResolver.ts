@@ -1573,6 +1573,12 @@ export class ProjectResolver {
           { projectId },
         )
         .leftJoinAndSelect('organization.tokens', 'tokens')
+        .leftJoin(
+          'project_address',
+          'pa',
+          'pa.projectId = project.id AND pa.isRecipient = true',
+        )
+        .andWhere('pa.networkId = tokens.networkId')
         .getOne();
 
       if (!organization) {

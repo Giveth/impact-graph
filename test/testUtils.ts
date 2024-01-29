@@ -140,6 +140,7 @@ export interface CreateProjectData {
   verificationStatus?: string;
   image?: string;
   networkId?: number;
+  chainType?: ChainType;
 }
 
 export const saveUserDirectlyToDb = async (
@@ -235,6 +236,7 @@ export const saveProjectDirectlyToDb = async (
       project,
       user,
       isRecipient: true,
+      chainType: projectData.chainType || ChainType.EVM,
       address: projectData.walletAddress,
       networkId: projectData.networkId,
     });
