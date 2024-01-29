@@ -1,6 +1,10 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
 import { ApolloContext } from '../types/ApolloContext';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import {
   createProjectVerificationRequestValidator,
   getCurrentProjectVerificationRequestValidator,
@@ -324,10 +328,10 @@ export class ProjectVerificationFormResolver {
 
       const verificationForm = await getVerificationFormByProjectId(project.id);
       if (!verificationForm) {
+        // Because frontend use hard coded english error message, we dont translate this error message
+        // otherwise we need to handle all translation in frontend as well https://github.com/Giveth/giveth-dapps-v2/issues/3582#issuecomment-1913614715
         throw new Error(
-          i18n.__(
-            translationErrorMessagesKeys.THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT,
-          ),
+          errorMessages.THERE_IS_NOT_ANY_ONGOING_PROJECT_VERIFICATION_FORM_FOR_THIS_PROJECT,
         );
       }
       return verificationForm;
