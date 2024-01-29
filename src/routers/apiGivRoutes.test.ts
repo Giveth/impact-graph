@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   saveProjectDirectlyToDb,
 } from '../../test/testUtils';
 import axios from 'axios';
@@ -26,7 +26,7 @@ describe('createDonation in apiGiv test cases', () => {
       donationType: 'apiGivProject',
       status: DONATION_STATUS.VERIFIED,
       isFiat: false,
-      transactionId: generateRandomTxHash(),
+      transactionId: generateRandomEvmTxHash(),
     };
     const basicAuthentication = createBasicAuthentication({
       userName: process.env.API_GIV_USERNAME,

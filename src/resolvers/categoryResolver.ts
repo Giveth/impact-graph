@@ -23,7 +23,7 @@ export class CategoryResolver {
     return this.categoryRepository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.mainCategory', 'mainCategory')
-      .where(`"isActive"=true`)
+      .where(`category."isActive"=true`)
       .orderBy({
         'category.name': 'ASC',
       })
@@ -35,8 +35,9 @@ export class CategoryResolver {
       .innerJoinAndSelect(
         'mainCategory.categories',
         'categories',
-        `"isActive"=true`,
+        `categories."isActive"=true`,
       )
+      .where(`"mainCategory"."isActive"=true`)
       .orderBy({
         'mainCategory.title': 'ASC',
         'categories.name': 'ASC',

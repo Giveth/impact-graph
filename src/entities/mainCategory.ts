@@ -32,6 +32,10 @@ export class MainCategory extends BaseEntity {
   // ipfs link
   banner: string;
 
+  @Field()
+  @Column({ default: true })
+  isActive: boolean;
+
   @Field(type => [Category], { nullable: true })
   @OneToMany(type => Category, category => category.mainCategory)
   categories?: Category[];

@@ -36,7 +36,6 @@ import {
   Int,
   Mutation,
   ObjectType,
-  PubSub,
   Query,
   registerEnumType,
   Resolver,
@@ -101,18 +100,21 @@ import { AppDataSource } from '../orm';
 import { creteSlugFromProject } from '../utils/utils';
 import { findCampaignBySlug } from '../repositories/campaignRepository';
 import { Campaign } from '../entities/campaign';
-
-const projectFiltersCacheDuration = Number(
-  process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
-);
 import { FeaturedUpdate } from '../entities/featuredUpdate';
 import { PROJECT_UPDATE_CONTENT_MAX_LENGTH } from '../constants/validators';
 import { calculateGivbackFactor } from '../services/givbackService';
 import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
-import { detectAddressChainType } from '../utils/networks';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
+import {
+  getAppropriateNetworkId,
+  getDefaultSolanaChainId,
+} from '../services/chains';
+
+const projectFiltersCacheDuration = Number(
+  process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
+);
 
 @ObjectType()
 class AllProjects {
@@ -1043,7 +1045,13 @@ export class ProjectResolver {
             user: adminUser,
             address: relatedAddress.address,
             chainType: relatedAddress.chainType,
-            networkId: relatedAddress.networkId,
+
+            // Frontend doesn't send networkId for solana addresses so we set it to default solana chain id
+            networkId: getAppropriateNetworkId({
+              networkId: relatedAddress.networkId,
+              chainType: relatedAddress.chainType,
+            }),
+
             isRecipient: true,
           };
         }),
@@ -1308,7 +1316,10 @@ export class ProjectResolver {
           address:
             chainType === ChainType.EVM ? address.toLowerCase() : address,
           chainType,
-          networkId,
+          networkId: getAppropriateNetworkId({
+            networkId,
+            chainType,
+          }),
           isRecipient: true,
         };
       }),
@@ -1562,6 +1573,12 @@ export class ProjectResolver {
           { projectId },
         )
         .leftJoinAndSelect('organization.tokens', 'tokens')
+        .leftJoin(
+          'project_address',
+          'pa',
+          'pa.projectId = project.id AND pa.isRecipient = true',
+        )
+        .andWhere('pa.networkId = tokens.networkId')
         .getOne();
 
       if (!organization) {

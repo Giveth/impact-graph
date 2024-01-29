@@ -223,6 +223,10 @@ export class Donation extends BaseEntity {
   @Column()
   createdAt: Date;
 
+  @Field(type => Date, { nullable: true })
+  @Column({ nullable: true })
+  importDate: Date;
+
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   donationType?: string;

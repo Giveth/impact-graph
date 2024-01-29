@@ -14,7 +14,7 @@ import {
   createProjectData,
   DONATION_SEED_DATA,
   generateRandomEtheriumAddress,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -781,7 +781,6 @@ function fillOldStableCoinDonationsPriceTestCases() {
       token,
       CHAIN_ID.POLYGON,
       amount,
-      ChainType.EVM,
     );
 
     donation = (await findDonationById(donation.id))!;
@@ -814,7 +813,6 @@ function fillOldStableCoinDonationsPriceTestCases() {
       token,
       CHAIN_ID.CELO,
       amount,
-      ChainType.EVM,
     );
     donation = (await findDonationById(donation.id))!;
     expect(donation.valueUsd).to.gt(0);
@@ -846,7 +844,6 @@ function fillOldStableCoinDonationsPriceTestCases() {
       token,
       CHAIN_ID.ALFAJORES,
       amount,
-      ChainType.EVM,
     );
 
     donation = (await findDonationById(donation.id))!;
@@ -943,7 +940,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
       qfRoundId: qfRound.id,
     });
     assert.isNotNull(qfRoundHistory);
-    qfRoundHistory!.distributedFundTxHash = generateRandomTxHash();
+    qfRoundHistory!.distributedFundTxHash = generateRandomEvmTxHash();
     qfRoundHistory!.distributedFundNetwork = '100';
     qfRoundHistory!.matchingFundAmount = 1000;
     qfRoundHistory!.matchingFundCurrency = 'DAI';

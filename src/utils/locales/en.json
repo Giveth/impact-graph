@@ -102,7 +102,8 @@
 	"ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT": "Number of boosted projects exceeds limit",
 	"REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST": "There is not any category with name registered-non-profits, probably you forgot to run migrations",
 	"PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED": "Content length exceeded",
-	"There is already an anchor address for this project, only project owner can change it": "There is already an anchor address for this project, only project owner can change it",
-	"Project doesnt have recipient address on this network": "Project doesnt have recipient address on this network",
-	"There is already an anchor address for this project": "There is already an anchor address for this project"
+	"INVALID_TOKEN_ADDRESS": "Invalid tokenAddress",
+  "There is already an anchor address for this project, only project owner can change it": "There is already an anchor address for this project, only project owner can change it",
+  "Project doesnt have recipient address on this network": "Project doesnt have recipient address on this network",
+  "There is already an anchor address for this project": "There is already an anchor address for this project"
 }

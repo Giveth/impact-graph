@@ -21,9 +21,12 @@ const resourcePerDateRegex = new RegExp(
 
 const ethereumWalletAddressRegex = /^0x[a-fA-F0-9]{40}$/;
 const solanaWalletAddressRegex = /^[A-Za-z0-9]{43,44}$/;
+const solanaProgramIdRegex =
+  /^(11111111111111111111111111111111|[1-9A-HJ-NP-Za-km-z]{43,44})$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
-const solanaTxRegex = /^[A-Za-z0-9]{88}$/; // TODO: Is this enough? We are using the signature to fetch transactions
+const solanaTxRegex = /^[A-Za-z0-9]{86,88}$/; // TODO: Is this enough? We are using the signature to fetch transactions
 const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
+// const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/;
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
   const validationResult = schema.validate(data);
@@ -92,25 +95,35 @@ export const createDonationQueryValidator = Joi.object({
         ),
       }),
   }),
-  transactionNetworkId: Joi.string()
+  transactionNetworkId: Joi.number()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
-  tokenAddress: Joi.string().pattern(ethereumWalletAddressRegex),
-  token: Joi.string()
-    .required()
-    .pattern(tokenSymbolRegex)
-    .messages({
-      'string.pattern.base': i18n.__(
-        translationErrorMessagesKeys.CURRENCY_IS_INVALID,
-      ),
-      'string.base': i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID),
-    }),
+  tokenAddress: Joi.when('chainType', {
+    is: ChainType.SOLANA,
+    then: Joi.string().pattern(solanaProgramIdRegex),
+    otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
+  }).messages({
+    'string.pattern.base': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
+    'string.disallow': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
+  }),
+  token: Joi.string().required(),
+  // .pattern(tokenSymbolRegex)
+  // .messages({
+  //   'string.pattern.base': i18n.__(
+  //     translationErrorMessagesKeys.CURRENCY_IS_INVALID,
+  //   ),
+  //   'string.base': i18n.__(translationErrorMessagesKeys.CURRENCY_IS_INVALID), }),
   projectId: Joi.number().integer().min(0).required(),
   nonce: Joi.number().integer().min(0).allow(null),
   anonymous: Joi.boolean(),
-  transakId: Joi.string(),
+  transakId: Joi.string()?.allow(null, ''),
   referrerId: Joi.string().allow(null, ''),
   safeTransactionId: Joi.string().allow(null, ''),
+  chainType: Joi.string().required(),
 });
 
 export const updateDonationQueryValidator = Joi.object({
@@ -172,7 +185,10 @@ const managingFundsValidator = Joi.object({
         Joi.string().required().pattern(solanaWalletAddressRegex),
       ),
       networkId: Joi.number()?.valid(
-        NETWORK_IDS.SOLANA, // Solana
+        0, // frontend may send 0 as a network id for solana, so we should allow it
+        NETWORK_IDS.SOLANA_MAINNET, // Solana
+        NETWORK_IDS.SOLANA_DEVNET, // Solana
+        NETWORK_IDS.SOLANA_TESTNET, // Solana
         NETWORK_IDS.MAIN_NET,
         NETWORK_IDS.ROPSTEN,
         NETWORK_IDS.GOERLI,

@@ -1058,6 +1058,7 @@ const seedTokens: ITokenData[] = [
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    coingeckoId: 'ethereum',
   },
   {
     name: 'OPTIMISM Goerli OP token',
@@ -1065,6 +1066,7 @@ const seedTokens: ITokenData[] = [
     address: '0x4200000000000000000000000000000000000042',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    coingeckoId: 'optimism',
   },
   {
     name: 'Wrapped Ether',
@@ -1072,6 +1074,7 @@ const seedTokens: ITokenData[] = [
     address: '0x4200000000000000000000000000000000000006',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    coingeckoId: 'weth',
   },
   {
     name: 'Dai',
@@ -1079,6 +1082,7 @@ const seedTokens: ITokenData[] = [
     address: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    coingeckoId: 'dai',
   },
 
   // OPTIMISTIC tokens
@@ -1088,6 +1092,7 @@ const seedTokens: ITokenData[] = [
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'ethereum',
   },
   {
     name: 'OPTIMISTIC OP token',
@@ -1095,6 +1100,7 @@ const seedTokens: ITokenData[] = [
     address: '0x4200000000000000000000000000000000000042',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'optimism',
   },
   {
     name: 'Chainlink',
@@ -1102,6 +1108,7 @@ const seedTokens: ITokenData[] = [
     address: '0x350a791bfc2c21f9ed5d10980dad2e2638ffa7f6',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'chainlink',
   },
   {
     name: 'Wrapped Bitcoin',
@@ -1109,6 +1116,7 @@ const seedTokens: ITokenData[] = [
     address: '0x68f180fcce6836688e9084f035309e29bf0a2095',
     decimals: 8,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'wrapped-bitcoin',
   },
   {
     name: 'Synthetix Network',
@@ -1116,6 +1124,7 @@ const seedTokens: ITokenData[] = [
     address: '0x8700daec35af8ff88c16bdf0418774cb3d7599b4',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'havven',
   },
   {
     name: 'Wrapped Ether',
@@ -1123,6 +1132,7 @@ const seedTokens: ITokenData[] = [
     address: '0x4200000000000000000000000000000000000006',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'weth',
   },
   {
     name: 'Tether',
@@ -1130,6 +1140,7 @@ const seedTokens: ITokenData[] = [
     address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     decimals: 6,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'tether',
   },
   {
     name: 'USD Coin',
@@ -1137,6 +1148,7 @@ const seedTokens: ITokenData[] = [
     address: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
     decimals: 6,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'usd-coin',
   },
   {
     name: 'Dai',
@@ -1144,6 +1156,7 @@ const seedTokens: ITokenData[] = [
     address: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISTIC,
+    coingeckoId: 'dai',
   },
   // CELO tokens
   {
@@ -1249,13 +1262,117 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
   },
-  // TODO: Add solana token
+  // SOLANA mainnet
   {
     name: 'Solana native token',
     symbol: 'SOL',
     address: SOLANA_SYSTEM_PROGRAM,
     decimals: 9,
-    networkId: NETWORK_IDS.SOLANA,
+    networkId: NETWORK_IDS.SOLANA_MAINNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
+  },
+  {
+    name: 'Marinade staked SOL',
+    symbol: 'mSOL',
+    address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+    decimals: 9,
+    networkId: NETWORK_IDS.SOLANA_MAINNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.MSOL,
+  },
+  {
+    name: 'USDC',
+    symbol: 'USDC',
+    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    decimals: 6,
+    networkId: NETWORK_IDS.SOLANA_MAINNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.USDC,
+  },
+  {
+    name: 'Tether',
+    symbol: 'USDCT',
+    address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+    decimals: 6,
+    networkId: NETWORK_IDS.SOLANA_MAINNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.USDT,
+  },
+  {
+    name: 'Raydium',
+    symbol: 'RAY',
+    address: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R',
+    decimals: 6,
+    networkId: NETWORK_IDS.SOLANA_MAINNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.RAY,
+  },
+  {
+    name: 'BlazeStake Staked SOL',
+    symbol: 'BSOL',
+    address: 'bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1',
+    decimals: 9,
+    networkId: NETWORK_IDS.SOLANA_MAINNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.BSOL,
+  },
+  {
+    name: 'Audius (Wormhole)',
+    symbol: 'AUDIO',
+    address: '9LzCMqDgTKYz9Drzqnpgee3SGa89up3a247ypMj2xrqM',
+    decimals: 8,
+    networkId: NETWORK_IDS.SOLANA_MAINNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.AUDIO,
+  },
+  {
+    name: 'Mango',
+    symbol: 'MANGO',
+    address: 'MangoCzJ36AjZyKwVj3VnYU4GTonjfVEnJmvvWaxLac',
+    decimals: 6,
+    networkId: NETWORK_IDS.SOLANA_MAINNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.MANGO,
+  },
+  {
+    name: 'Coin98',
+    symbol: 'C98',
+    address: 'C98A4nkJXhpVZNAZdHUA95RpTF3T4whtQubL3YobiUX9',
+    decimals: 6,
+    networkId: NETWORK_IDS.SOLANA_MAINNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.C98,
+  },
+
+  // SOLANA devnet
+  {
+    name: 'Solana native token',
+    symbol: 'SOL',
+    address: SOLANA_SYSTEM_PROGRAM,
+    decimals: 9,
+    networkId: NETWORK_IDS.SOLANA_DEVNET,
+    chainType: ChainType.SOLANA,
+    coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
+  },
+
+  {
+    // Mohammad has deployed it on solana devnet, so you can get some tokens from him
+    name: 'Test SPL token',
+    symbol: 'TEST-SPL-TOKEN',
+    address: 'BrEahxkTrCKfjVy36pLD2gvVoMCUMEb1PinrAFtvJqPX',
+    decimals: 9,
+    networkId: NETWORK_IDS.SOLANA_DEVNET,
+    chainType: ChainType.SOLANA,
+  },
+
+  // SOLANA testnet
+  {
+    name: 'Solana native token',
+    symbol: 'SOL',
+    address: SOLANA_SYSTEM_PROGRAM,
+    decimals: 9,
+    networkId: NETWORK_IDS.SOLANA_TESTNET,
     chainType: ChainType.SOLANA,
     coingeckoId: COINGECKO_TOKEN_IDS.SOLANA,
   },
