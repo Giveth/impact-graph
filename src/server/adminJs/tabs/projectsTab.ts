@@ -228,7 +228,7 @@ export const verifyProjects = async (
         projectsBeforeUpdating.find(p => p.id === project.id)?.verified ===
         verificationStatus
       ) {
-        logger.info('verifying/unVerifying project but no changes happened', {
+        logger.debug('verifying/unVerifying project but no changes happened', {
           projectId: project.id,
           verificationStatus,
         });
@@ -334,7 +334,7 @@ export const updateStatusOfProjects = async (
           projectsBeforeUpdating.find(p => p.id === project.id)?.statusId ===
           projectStatus.id
         ) {
-          logger.info('Changing project status but no changes happened', {
+          logger.debug('Changing project status but no changes happened', {
             projectId: project.id,
             projectStatus,
           });
@@ -562,7 +562,7 @@ export const listDelist = async (
         projectsBeforeUpdating.find(p => p.id === project.id)?.reviewStatus ===
         reviewStatus
       ) {
-        logger.info('listing/uListing project but no changes happened', {
+        logger.debug('listing/uListing project but no changes happened', {
           projectId: project.id,
           reviewStatus,
         });

@@ -95,7 +95,7 @@ export const createDonationQueryValidator = Joi.object({
         ),
       }),
   }),
-  transactionNetworkId: Joi.string()
+  transactionNetworkId: Joi.number()
     .required()
     .valid(...Object.values(NETWORK_IDS)),
   tokenAddress: Joi.when('chainType', {
@@ -120,7 +120,7 @@ export const createDonationQueryValidator = Joi.object({
   projectId: Joi.number().integer().min(0).required(),
   nonce: Joi.number().integer().min(0).allow(null),
   anonymous: Joi.boolean(),
-  transakId: Joi.string(),
+  transakId: Joi.string()?.allow(null, ''),
   referrerId: Joi.string().allow(null, ''),
   safeTransactionId: Joi.string().allow(null, ''),
   chainType: Joi.string().required(),
@@ -185,6 +185,7 @@ const managingFundsValidator = Joi.object({
         Joi.string().required().pattern(solanaWalletAddressRegex),
       ),
       networkId: Joi.number()?.valid(
+        0, // frontend may send 0 as a network id for solana, so we should allow it
         NETWORK_IDS.SOLANA_MAINNET, // Solana
         NETWORK_IDS.SOLANA_DEVNET, // Solana
         NETWORK_IDS.SOLANA_TESTNET, // Solana

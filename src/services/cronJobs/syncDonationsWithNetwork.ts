@@ -49,9 +49,16 @@ const addJobToCheckPendingDonationsWithNetwork = async () => {
   logger.debug('Pending donations to be check', donations.length);
   donations.forEach(donation => {
     logger.debug('Add pending donation to queue', { donationId: donation.id });
-    verifyDonationsQueue.add({
-      donationId: donation.id,
-    });
+    verifyDonationsQueue.add(
+      {
+        donationId: donation.id,
+      },
+      {
+        jobId: `verify-donation-id-${donation.id}`,
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
+    );
   });
 };
 

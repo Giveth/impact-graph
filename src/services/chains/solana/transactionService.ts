@@ -108,12 +108,14 @@ async function getTransactionDetailForSplTokenTransfer(
       balance =>
         balance.owner === params.toAddress && balance.mint === token?.address,
     );
-    if (!data || !toAddressPostBalance || !toAddressPreBalance) {
+    if (!data || !toAddressPostBalance) {
       return null;
     }
+
+    // toAddressBalance might be null if this is first time that destination wallet receives this token
     const amount =
       toAddressPostBalance.uiTokenAmount?.uiAmount -
-      toAddressPreBalance.uiTokenAmount?.uiAmount;
+      (toAddressPreBalance?.uiTokenAmount?.uiAmount || 0);
     const parsedData = data as ParsedInstruction;
 
     const txInfo = parsedData.parsed.info;

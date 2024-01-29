@@ -4,7 +4,7 @@ import { logger } from '../utils/logger';
 
 export const fillQfRoundHistory = async (): Promise<void> => {
   try {
-    logger.info('fillQfRoundHistory() has been called');
+    logger.debug('fillQfRoundHistory() has been called');
     await AppDataSource.getDataSource().query(`
         INSERT INTO qf_round_history ("projectId", "qfRoundId", "uniqueDonors", "raisedFundInUsd", "donationsCount", "createdAt", "updatedAt")
         SELECT 
@@ -25,7 +25,7 @@ export const fillQfRoundHistory = async (): Promise<void> => {
         GROUP BY d."projectId", d."qfRoundId"
         ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;
   `);
-    logger.info('fillQfRoundHistory() query executed successfully');
+    logger.debug('fillQfRoundHistory() query executed successfully');
   } catch (e) {
     logger.error('fillQfRoundHistory() error: ', e);
   }

@@ -934,7 +934,7 @@ function getTransactionDetailTestCases() {
     );
   });
 
-  it('should return transaction detail for spl-token transfer on Solana #1', async () => {
+  it('should return transaction detail for spl-token transfer on Solana devnet #1', async () => {
     // https://solscan.io/tx/2tm14GVsDwXpMzxZzpEWyQnfzcUEv1DZQVQb6VdbsHcV8StoMbBtuQTkW1LJ8RhKKrAL18gbm181NgzuusiQfZ16?cluster=devnet
     const amount = 7;
     const transactionInfo = await getTransactionInfoFromNetwork({
@@ -953,7 +953,7 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
-  it('should return transaction detail for spl-token transfer on Solana #2', async () => {
+  it('should return transaction detail for spl-token transfer on Solana devnet #2', async () => {
     // https://solscan.io/tx/3m6f1g2YK6jtbfVfuYsfDbhVzNAqozF8JJyjp1VuFDduecojqeCVK4htKnLTSk3qBwSqYUvgLpBTVpeLJRvNmeTg?cluster=devnet
     const amount = 0.00000005;
     const transactionInfo = await getTransactionInfoFromNetwork({
@@ -969,6 +969,25 @@ function getTransactionDetailTestCases() {
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'TEST-SPL-TOKEN2');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for RAY spl token transfer on Solana mainnet', async () => {
+    // https://solscan.io/tx/4ApdD7usYH5Cp7hsaWGKjnJW3mfyNpRw4S4NJbzwa2CQfnUkjY11sR2G1W3rvXmCzXwu3yNLz2CfkCHY5sQPdWzq
+    const amount = 0.005;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '4ApdD7usYH5Cp7hsaWGKjnJW3mfyNpRw4S4NJbzwa2CQfnUkjY11sR2G1W3rvXmCzXwu3yNLz2CfkCHY5sQPdWzq',
+      symbol: 'RAY',
+      chainType: ChainType.SOLANA,
+      networkId: NETWORK_IDS.SOLANA_MAINNET,
+      fromAddress: 'FAMREy7d73N5jPdoKowQ4QFm6DKPWuYxZh6cwjNAbpkY',
+      toAddress: '6U29tmuvaGsTQqamf9Vt4o15JHTNq5RdJxoRW6NJxRdx',
+      timestamp: 1706429516,
+      amount,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'RAY');
     assert.equal(transactionInfo.amount, amount);
   });
 

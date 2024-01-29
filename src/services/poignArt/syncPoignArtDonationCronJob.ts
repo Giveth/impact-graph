@@ -51,7 +51,7 @@ const importPoignArtDonations = async () => {
       )
       .getOne();
     if (!unchainProject) {
-      logger.info(
+      logger.debug(
         `importPoignArtDonations() There is no project with walletAddress of ${unchainProjectAddress} in our db`,
       );
       return;

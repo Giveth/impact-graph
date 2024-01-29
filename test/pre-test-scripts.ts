@@ -162,6 +162,10 @@ async function seedTokens() {
     };
     if (token.symbol === 'OP') {
       (tokenData as any).order = 2;
+      (tokenData as any).coingeckoId = 'optimism';
+    }
+    if (token.symbol === 'ETH') {
+      (tokenData as any).coingeckoId = 'ethereum';
     }
     await Token.create(tokenData as Token).save();
   }
@@ -173,6 +177,10 @@ async function seedTokens() {
     };
     if (token.symbol === 'OP') {
       (tokenData as any).order = 2;
+      (tokenData as any).coingeckoId = 'optimism';
+    }
+    if (token.symbol === 'ETH') {
+      (tokenData as any).coingeckoId = 'ethereum';
     }
     await Token.create(tokenData as Token).save();
   }

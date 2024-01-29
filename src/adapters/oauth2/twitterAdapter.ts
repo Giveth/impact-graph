@@ -29,11 +29,11 @@ export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
     oauth2Code: string;
   }): Promise<GetUserInfoByOauth2Output> {
     try {
-      logger.info('getUserInfoByOauth2Code code', params.oauth2Code);
+      logger.debug('getUserInfoByOauth2Code code', params.oauth2Code);
       const accessToken = await this.authClient.requestAccessToken(
         params.oauth2Code,
       );
-      logger.info('getUserInfoByOauth2Code accessToken', accessToken);
+      logger.debug('getUserInfoByOauth2Code accessToken', accessToken);
 
       // https://developer.twitter.com/en/docs/twitter-api/users/lookup/api-reference/get-users-me#tab0
       const meResult = await axios.get('https://api.twitter.com/2/users/me', {
@@ -41,7 +41,7 @@ export class TwitterAdapter implements SocialNetworkOauth2AdapterInterface {
           Authorization: `Bearer ${accessToken.token.access_token}`,
         },
       });
-      logger.info('getUserInfoByOauth2Code meResult', meResult.data);
+      logger.debug('getUserInfoByOauth2Code meResult', meResult.data);
       /**
        * sample response
        * {

@@ -23,7 +23,7 @@ const generateDappVerificationUrl = async (params: {
     projectVerificationId,
   );
   const address = `${dappBaseUrl}/verification/${projectVerificationForm?.project?.slug}?success=${success}&message=${message}`;
-  logger.info('generateDappVerificationUrl  ', {
+  logger.debug('generateDappVerificationUrl  ', {
     params,
     address,
   });
@@ -35,7 +35,7 @@ oauth2CallbacksRouter.get(
   async (request: Request, response: Response) => {
     let projectVerificationId;
     try {
-      logger.info('/callback/discord pramas', {
+      logger.debug('/callback/discord pramas', {
         query: request.query,
         url: request.url,
         params: request.params,

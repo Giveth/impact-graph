@@ -57,6 +57,7 @@ import { findProjectById } from '../repositories/projectRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
+import { getDefaultSolanaChainId } from '../services/chains';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -839,7 +840,7 @@ function createDonationTestCases() {
         query: createDonationMutation,
         variables: {
           projectId: project.id,
-          transactionNetworkId: NETWORK_IDS.SOLANA_MAINNET,
+          transactionNetworkId: 0,
           chainType: ChainType.SOLANA,
           transactionId,
           nonce: 1,
@@ -861,6 +862,7 @@ function createDonationTestCases() {
       },
     });
     assert.equal(donation?.transactionId, transactionId);
+    assert.equal(donation?.transactionNetworkId, getDefaultSolanaChainId());
     assert.equal(donation?.chainType, ChainType.SOLANA);
   });
 
@@ -906,6 +908,7 @@ function createDonationTestCases() {
       },
     });
     assert.equal(donation?.transactionId, transactionId);
+    assert.equal(donation?.transactionNetworkId, getDefaultSolanaChainId());
     assert.equal(donation?.chainType, ChainType.SOLANA);
   });
 
