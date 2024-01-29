@@ -1,7 +1,7 @@
 import {
   createProjectData,
   generateRandomEtheriumAddress,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
@@ -34,10 +34,10 @@ function createNewRecurringDonationTestCases() {
       creator,
       address: anchorAddress,
       networkId: NETWORK_IDS.OPTIMISTIC,
-      txHash: generateRandomTxHash(),
+      txHash: generateRandomEvmTxHash(),
     });
     const recurringDonation = await createNewRecurringDonation({
-      txHash: generateRandomTxHash(),
+      txHash: generateRandomEvmTxHash(),
       networkId: NETWORK_IDS.OPTIMISTIC,
       donor: creator,
       anchorContractAddress,

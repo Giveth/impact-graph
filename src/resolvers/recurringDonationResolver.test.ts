@@ -2,7 +2,7 @@ import { NETWORK_IDS } from '../provider';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   generateTestAccessToken,
   graphqlUrl,
   saveProjectDirectlyToDb,
@@ -10,10 +10,7 @@ import {
 } from '../../test/testUtils';
 import { assert } from 'chai';
 import axios from 'axios';
-import {
-  createAnchorContractAddressQuery,
-  createRecurringDonationQuery,
-} from '../../test/graphqlQueries';
+import { createRecurringDonationQuery } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 
@@ -41,7 +38,7 @@ function createRecurringDonationTestCases() {
       creator: contractCreator,
       address: generateRandomEtheriumAddress(),
       networkId: NETWORK_IDS.OPTIMISTIC,
-      txHash: generateRandomTxHash(),
+      txHash: generateRandomEvmTxHash(),
     });
 
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -53,7 +50,7 @@ function createRecurringDonationTestCases() {
         variables: {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
-          txHash: generateRandomTxHash(),
+          txHash: generateRandomEvmTxHash(),
         },
       },
       {
@@ -85,7 +82,7 @@ function createRecurringDonationTestCases() {
       creator: donor,
       address: generateRandomEtheriumAddress(),
       networkId: NETWORK_IDS.OPTIMISTIC,
-      txHash: generateRandomTxHash(),
+      txHash: generateRandomEvmTxHash(),
     });
 
     const result = await axios.post(graphqlUrl, {
@@ -93,7 +90,7 @@ function createRecurringDonationTestCases() {
       variables: {
         projectId: project.id,
         networkId: NETWORK_IDS.OPTIMISTIC,
-        txHash: generateRandomTxHash(),
+        txHash: generateRandomEvmTxHash(),
       },
     });
 
@@ -115,7 +112,7 @@ function createRecurringDonationTestCases() {
         variables: {
           projectId: 99999,
           networkId: NETWORK_IDS.OPTIMISTIC,
-          txHash: generateRandomTxHash(),
+          txHash: generateRandomEvmTxHash(),
         },
       },
       {
@@ -150,7 +147,7 @@ function createRecurringDonationTestCases() {
         variables: {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
-          txHash: generateRandomTxHash(),
+          txHash: generateRandomEvmTxHash(),
         },
       },
       {

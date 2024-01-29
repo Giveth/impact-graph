@@ -2,7 +2,7 @@ import { addNewAnchorAddress } from './anchorContractAddressRepository';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
@@ -30,7 +30,7 @@ function addNewAnchorAddressTestCases() {
       creator,
       address: anchorAddress,
       networkId: NETWORK_IDS.OPTIMISTIC,
-      txHash: generateRandomTxHash(),
+      txHash: generateRandomEvmTxHash(),
     });
 
     assert.isNotNull(anchorContractAddress);

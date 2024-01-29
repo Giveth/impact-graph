@@ -2,7 +2,7 @@ import { NETWORK_IDS } from '../provider';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
-  generateRandomTxHash,
+  generateRandomEvmTxHash,
   generateTestAccessToken,
   graphqlUrl,
   saveProjectDirectlyToDb,
@@ -42,7 +42,7 @@ function addAnchorContractAddressTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
           address: contractAddress,
-          txHash: generateRandomTxHash(),
+          txHash: generateRandomEvmTxHash(),
         },
       },
       {
@@ -69,7 +69,7 @@ function addAnchorContractAddressTestCases() {
         projectId: project.id,
         networkId: NETWORK_IDS.OPTIMISTIC,
         address: contractAddress,
-        txHash: generateRandomTxHash(),
+        txHash: generateRandomEvmTxHash(),
       },
     });
     assert.isNull(result.data.data.addAnchorContractAddress);
@@ -91,7 +91,7 @@ function addAnchorContractAddressTestCases() {
           projectId: 999999,
           networkId: NETWORK_IDS.OPTIMISTIC,
           address: contractAddress,
-          txHash: generateRandomTxHash(),
+          txHash: generateRandomEvmTxHash(),
         },
       },
       {
@@ -121,7 +121,7 @@ function addAnchorContractAddressTestCases() {
       creator: projectOwner,
       networkId: NETWORK_IDS.OPTIMISTIC,
       owner: projectOwner,
-      txHash: generateRandomTxHash(),
+      txHash: generateRandomEvmTxHash(),
     });
     const contractCreator = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
@@ -137,7 +137,7 @@ function addAnchorContractAddressTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
           address: contractAddress,
-          txHash: generateRandomTxHash(),
+          txHash: generateRandomEvmTxHash(),
         },
       },
       {
@@ -167,7 +167,7 @@ function addAnchorContractAddressTestCases() {
       creator: projectOwner,
       networkId: NETWORK_IDS.OPTIMISTIC,
       owner: projectOwner,
-      txHash: generateRandomTxHash(),
+      txHash: generateRandomEvmTxHash(),
     });
 
     const accessToken = await generateTestAccessToken(projectOwner.id);
@@ -180,7 +180,7 @@ function addAnchorContractAddressTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
           address: contractAddress,
-          txHash: generateRandomTxHash(),
+          txHash: generateRandomEvmTxHash(),
         },
       },
       {
@@ -218,7 +218,7 @@ function addAnchorContractAddressTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
           address: contractAddress,
-          txHash: generateRandomTxHash(),
+          txHash: generateRandomEvmTxHash(),
         },
       },
       {

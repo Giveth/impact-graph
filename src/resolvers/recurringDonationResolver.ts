@@ -1,21 +1,11 @@
 import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
 
-import { QfRoundHistory } from '../entities/qfRoundHistory';
-import { getQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findProjectById } from '../repositories/projectRepository';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import {
-  addNewAnchorAddress,
-  findActiveAnchorAddress,
-} from '../repositories/anchorContractAddressRepository';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { findActiveAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
-import { Donation } from '../entities/donation';
 import { RecurringDonation } from '../entities/recurringDonation';
 import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
 

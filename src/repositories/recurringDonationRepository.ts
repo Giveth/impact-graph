@@ -19,3 +19,15 @@ export const createNewRecurringDonation = async (params: {
   });
   return recurringDonation.save();
 };
+
+// TODO Need to write test cases for this function
+export const findActiveRecurringDonations = async (): Promise<
+  RecurringDonation[]
+> => {
+  // Return not finished recurring donations
+  return RecurringDonation.find({
+    where: {
+      finished: false,
+    },
+  });
+};
