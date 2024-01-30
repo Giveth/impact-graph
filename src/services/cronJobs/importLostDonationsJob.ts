@@ -239,6 +239,7 @@ export const importLostDonations = async () => {
         } catch (e) {
           logger.debug('Error saving donation for for tx: ', tx);
           logger.debug('Error saving donation: ', e);
+          continue;
         }
 
         await updateUserTotalDonated(dbUser.id);
@@ -246,6 +247,7 @@ export const importLostDonations = async () => {
         await updateTotalDonationsOfProject(project.id);
       } catch (e) {
         logger.error('importLostDonations() error');
+        continue;
       }
     }
 
