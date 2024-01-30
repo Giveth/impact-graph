@@ -949,6 +949,12 @@ export const fetchProjectBySlugQuery = `
         networkId
         chainType
       }
+      anchorContracts {
+        txHash
+        address
+        networkId
+        isActive
+       } 
       adminUser {
         id
         email
@@ -1457,6 +1463,12 @@ export const projectByIdQuery = `
         networkId
         chainType
       }
+      anchorContracts {
+        txHash
+        address
+        networkId
+        isActive
+       } 
       organization {
         name
         label

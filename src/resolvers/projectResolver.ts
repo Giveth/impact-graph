@@ -883,6 +883,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
