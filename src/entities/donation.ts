@@ -14,6 +14,7 @@ import { Project } from './project';
 import { User } from './user';
 import { QfRound } from './qfRound';
 import { ChainType } from '../types/network';
+import { RecurringDonation } from './recurringDonation';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -200,6 +201,14 @@ export class Donation extends BaseEntity {
   @RelationId((donation: Donation) => donation.user)
   @Column({ nullable: true })
   userId: number;
+
+  @Index()
+  @Field(type => RecurringDonation, { nullable: true })
+  @ManyToOne(type => RecurringDonation, { eager: true, nullable: true })
+  recurringDonation?: RecurringDonation;
+  @RelationId((donation: Donation) => donation.recurringDonation)
+  @Column({ nullable: true })
+  recurringDonationId: number;
 
   @Field(type => String, { nullable: true })
   @Column('text', { nullable: true })

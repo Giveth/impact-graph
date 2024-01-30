@@ -424,3 +424,17 @@ export function normalizeAmount(amount: string, decimals: number): number {
 export function getCreatedAtFromMongoObjectId(objectId: string): Date {
   return new Date(parseInt(objectId.substring(0, 8), 16) * 1000);
 }
+
+export function getCurrentDateFormatted(): string {
+  const date = new Date();
+
+  const year = date.getFullYear();
+  let month: string | number = date.getMonth() + 1; // Months are 0-based
+  let day: string | number = date.getDate();
+
+  // Ensure month and day are two digits
+  month = month < 10 ? '0' + month : month;
+  day = day < 10 ? '0' + day : day;
+
+  return `${year}${month}${day}`;
+}
