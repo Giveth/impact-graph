@@ -214,6 +214,7 @@ export const importLostDonations = async () => {
             toWalletAddress: donationParams.to.toLowerCase(),
             transactionId: tx.toLowerCase(),
             projectId: project.id,
+            userId: dbUser.id,
             currency: donationParams.currency,
             tokenAddress: tokenInDB?.address,
             amount: donationParams.amount,
