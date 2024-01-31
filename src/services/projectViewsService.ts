@@ -42,9 +42,9 @@ export const getQfRoundActualDonationDetails = async (
   await refreshProjectActualMatchingView();
 
   const rows = await QfRound.query(`
-    SELECT *
-    FROM project_actual_matching_view
-    WHERE "qfRoundId" = ${qfRoundId}
+      SELECT *
+      FROM project_actual_matching_view
+      WHERE "qfRoundId" = ${qfRoundId}
   `);
 
   let totalReward = qfRound!.allocatedFund;
