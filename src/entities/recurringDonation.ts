@@ -14,6 +14,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { AnchorContractAddress } from './anchorContractAddress';
+import { DONATION_STATUS } from './donation';
 
 @Entity()
 @ObjectType()
@@ -67,6 +68,14 @@ export class RecurringDonation extends BaseEntity {
   @RelationId((recurringDonation: RecurringDonation) => recurringDonation.donor)
   @Column({ nullable: true })
   donorId: number;
+
+  @Field()
+  @Column('text', { default: DONATION_STATUS.PENDING })
+  status: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  anonymous: boolean;
 
   @UpdateDateColumn()
   updatedAt: Date;
