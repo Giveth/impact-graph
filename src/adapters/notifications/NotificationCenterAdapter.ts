@@ -22,6 +22,7 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
+import { findTokenByTokenAddress } from '../../repositories/tokenRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -98,7 +99,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       segment: {
         analyticsUserId: user.segmentUserId(),
         anonymousId: user.segmentUserId(),
-        payload: getSegmentDonationAttributes({
+        payload: await getSegmentDonationAttributes({
           donation,
           project,
           user,
@@ -868,7 +869,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 }
 
-const getSegmentDonationAttributes = (params: {
+const getSegmentDonationAttributes = async (params: {
   user: User;
   project: Project;
   donation: Donation;
@@ -882,7 +883,7 @@ const getSegmentDonationAttributes = (params: {
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     amount: Number(donation.amount),
-    token: donation.tokenAddress,
+    token: await findTokenByTokenAddress(donation.tokenAddress!),
     transactionId: donation.transactionId.toLowerCase(),
     transactionNetworkId: Number(donation.transactionNetworkId),
     transactionLink: buildTxLink(
