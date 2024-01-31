@@ -21,6 +21,7 @@ import {
   findUsersWhoSupportProject,
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
+import { buildTxLink } from '../../utils/networks';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -879,9 +880,15 @@ const getSegmentDonationAttributes = (params: {
     firstName: user.firstName,
     projectOwnerId: project.admin,
     slug: project.slug,
+    projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     amount: Number(donation.amount),
+    token: donation.tokenAddress,
     transactionId: donation.transactionId.toLowerCase(),
     transactionNetworkId: Number(donation.transactionNetworkId),
+    transactionLink: buildTxLink(
+      donation.transactionId,
+      donation.transactionNetworkId,
+    ),
     currency: donation.currency,
     createdAt: new Date(),
     toWalletAddress: donation.toWalletAddress.toLowerCase(),

@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { ChainType } from '../types/network';
 import { PublicKey } from '@solana/web3.js';
+import networksConfig from '../../config/networks';
 
 export const SOLANA_SYSTEM_PROGRAM = '11111111111111111111111111111111';
 
@@ -28,4 +29,9 @@ export const detectAddressChainType = (
     default:
       return undefined;
   }
+};
+
+export const buildTxLink = (hash: string, chainId: number): string => {
+  const explorerLink = networksConfig[chainId].blockExplorer;
+  return `${explorerLink}/tx/${hash}`;
 };
