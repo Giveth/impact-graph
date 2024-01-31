@@ -14,7 +14,12 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { AnchorContractAddress } from './anchorContractAddress';
-import { DONATION_STATUS } from './donation';
+
+export const RECURRING_DONATION_STATUS = {
+  PENDING: 'pending',
+  VERIFIED: 'verified',
+  FAILED: 'failed',
+};
 
 @Entity()
 @ObjectType()
@@ -70,7 +75,7 @@ export class RecurringDonation extends BaseEntity {
   donorId: number;
 
   @Field()
-  @Column('text', { default: DONATION_STATUS.PENDING })
+  @Column('text', { default: RECURRING_DONATION_STATUS.PENDING })
   status: string;
 
   @Field({ nullable: true })
