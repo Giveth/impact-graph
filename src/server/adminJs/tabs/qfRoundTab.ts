@@ -97,6 +97,9 @@ export const qfRoundTab = {
       isActive: {
         isVisible: true,
       },
+      maximumReward: {
+        isVisible: true,
+      },
       beginDate: {
         isVisible: true,
       },

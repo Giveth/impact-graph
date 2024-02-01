@@ -735,6 +735,7 @@ export const fetchMultiFilterAllProjectsQuery = `
           name
           isActive
           id
+          maximumReward
         }
         totalReactions
         totalDonations
@@ -954,8 +955,6 @@ export const fetchProjectBySlugQuery = `
         address
         networkId
         isActive
-        anonymous
-        status
        } 
       adminUser {
         id
@@ -1470,8 +1469,6 @@ export const projectByIdQuery = `
         address
         networkId
         isActive
-        anonymous
-        status
        } 
       organization {
         name
