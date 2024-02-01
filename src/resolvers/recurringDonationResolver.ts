@@ -21,7 +21,7 @@ import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
 import { RecurringDonation } from '../entities/recurringDonation';
 import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
-import { Donation, SortField } from '../entities/donation';
+import { Donation } from '../entities/donation';
 import { Project } from '../entities/project';
 import { publicSelectionFields } from '../entities/user';
 import { Brackets } from 'typeorm';
@@ -36,6 +36,11 @@ class SortBy {
 
   @Field(type => SortDirection)
   direction: SortDirection;
+}
+
+export enum SortField {
+  CreationDate = 'createdAt',
+  TokenAmount = 'amount',
 }
 
 enum SortDirection {
@@ -153,10 +158,6 @@ export class RecurringDonationResolver {
     @Ctx() ctx: ApolloContext,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Arg('traceable', type => Boolean, { defaultValue: false })
-    traceable: boolean,
-    @Arg('qfRoundId', type => Int, { defaultValue: null, nullable: true })
-    qfRoundId: number,
     @Arg('projectId', type => Int, { nullable: false }) projectId: number,
     @Arg('status', type => String, { nullable: true }) status: string,
     @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
@@ -177,13 +178,12 @@ export class RecurringDonationResolver {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
 
-    const query = RecurringDonation.createQueryBuilder('recurring_donation')
-      .leftJoin('donation.user', 'user')
-      .leftJoinAndSelect('donation.qfRound', 'qfRound')
+    const query = RecurringDonation.createQueryBuilder('recurringDonation')
+      .leftJoin('recurringDonation.user', 'user')
       .addSelect(publicSelectionFields)
-      .where(`donation.projectId = ${projectId}`)
+      .where(`recurringDonation.projectId = ${projectId}`)
       .orderBy(
-        `donation.${orderBy.field}`,
+        `recurringDonation.${orderBy.field}`,
         orderBy.direction,
         nullDirection[orderBy.direction as string],
       );
@@ -194,32 +194,26 @@ export class RecurringDonationResolver {
       });
     }
 
-    if (qfRoundId) {
-      query.andWhere('qfRound.id = :qfRoundId', {
-        qfRoundId,
-      });
-    }
-
     if (searchTerm) {
       query.andWhere(
         new Brackets(qb => {
           qb.where(
-            '(user.name ILIKE :searchTerm AND donation.anonymous = false)',
+            '(user.name ILIKE :searchTerm AND recurringDonation.anonymous = false)',
             {
               searchTerm: `%${searchTerm}%`,
             },
           )
-            .orWhere('donation.toWalletAddress ILIKE :searchTerm', {
+            .orWhere('recurringDonation.toWalletAddress ILIKE :searchTerm', {
               searchTerm: `%${searchTerm}%`,
             })
-            .orWhere('donation.currency ILIKE :searchTerm', {
+            .orWhere('recurringDonation.currency ILIKE :searchTerm', {
               searchTerm: `%${searchTerm}%`,
             });
 
           if (detectAddressChainType(searchTerm) === undefined) {
             const amount = Number(searchTerm);
 
-            qb.orWhere('donation.amount = :number', {
+            qb.orWhere('recurringDonation.amount = :number', {
               number: amount,
             });
           }
