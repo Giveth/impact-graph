@@ -97,7 +97,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
       sendEmail: true,
       emailData: {
-        payload: await getEmailDataAttributes({
+        payload: await getEmailDataDonationAttributes({
           donation,
           project,
           user,
@@ -175,7 +175,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: projectOwner.segmentUserId(),
         anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -247,7 +247,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: user.segmentUserId(),
         anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -270,7 +270,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: user.segmentUserId(),
         anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -292,7 +292,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: user.segmentUserId(),
         anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -315,7 +315,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: user.segmentUserId(),
         anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -337,7 +337,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: user.segmentUserId(),
         anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -373,7 +373,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: user.segmentUserId(),
         anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -395,7 +395,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: user.segmentUserId(),
         anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -460,7 +460,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: projectOwner.segmentUserId(),
         anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -501,7 +501,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         analyticsUserId: projectOwner.segmentUserId(),
         anonymousId: projectOwner.segmentUserId(),
         payload: {
-          ...getSegmentProjectAttributes({
+          ...getEmailDataProjectAttributes({
             project,
           }),
           update,
@@ -539,7 +539,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: projectOwner.segmentUserId(),
         anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -568,7 +568,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: projectOwner.segmentUserId(),
         anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -620,7 +620,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: projectOwner.segmentUserId(),
         anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -666,7 +666,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: projectOwner.segmentUserId(),
         anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -729,9 +729,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
       sendEmail: true,
       emailData: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -761,7 +759,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       emailData: {
         analyticsUserId: projectOwner.segmentUserId(),
         anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -853,7 +851,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         emailData: {
           analyticsUserId: projectOwner.segmentUserId(),
           anonymousId: projectOwner.segmentUserId(),
-          payload: getSegmentProjectAttributes({
+          payload: getEmailDataProjectAttributes({
             project,
           }),
         },
@@ -863,7 +861,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 }
 
-const getEmailDataAttributes = async (params: {
+const getEmailDataDonationAttributes = async (params: {
   user: User;
   project: Project;
   donation: Donation;
@@ -894,13 +892,14 @@ const getEmailDataAttributes = async (params: {
   };
 };
 
-const getSegmentProjectAttributes = (params: { project: Project }) => {
+const getEmailDataProjectAttributes = (params: { project: Project }) => {
   const { project } = params;
   return {
     email: project?.adminUser?.email || '',
     title: project.title,
     lastName: project?.adminUser?.lastName || '',
     firstName: project?.adminUser?.firstName || '',
+    projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     OwnerId: project?.adminUser?.id,
     slug: project.slug,
   };
