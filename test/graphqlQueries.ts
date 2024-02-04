@@ -284,6 +284,43 @@ export const fetchDonationsByProjectIdQuery = `
     }
   }
 `;
+export const fetchRecurringDonationsByProjectIdQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $projectId: Int!
+    $searchTerm: String
+    $status: String
+    $finished: Boolean
+  ) {
+    recurringDonationsByProjectId(
+      take: $take
+      skip: $skip
+      projectId: $projectId
+      searchTerm: $searchTerm
+      status: $status
+      finished: $finished
+    ) {
+      recurringDonations {
+        id
+        txHash
+        networkId
+        amount
+        currency
+        anonymous
+        status
+        donor {
+          id
+          walletAddress
+          firstName
+          email
+        }
+        createdAt
+      }
+      totalCount
+    }
+  }
+`;
 export const donationsFromWallets = `
   query (
     $fromWalletAddresses: [String!]!

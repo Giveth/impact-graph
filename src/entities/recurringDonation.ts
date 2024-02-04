@@ -14,6 +14,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { AnchorContractAddress } from './anchorContractAddress';
+import { NETWORK_IDS } from '../provider';
 
 @Entity()
 @ObjectType()
@@ -25,13 +26,32 @@ export class RecurringDonation extends BaseEntity {
   readonly id: number;
 
   @Field()
-  @Column()
+  @Column({ nullable: false })
   networkId: number;
+
+  @Field()
+  @Column({ nullable: false })
+  amount: number;
+
+  // daily, weekly, monthly, yearly
+  @Field()
+  @Column({ nullable: false })
+  interval: string;
 
   @Index()
   @Field()
-  @Column()
+  @Column({ nullable: false })
   txHash: string;
+
+  @Index()
+  @Field()
+  @Column({ nullable: false })
+  currency: string;
+
+  @Index()
+  @Field()
+  @Column({ nullable: false, default: 'pending' })
+  status: string;
 
   @Index()
   @Field(type => Project)
@@ -44,8 +64,13 @@ export class RecurringDonation extends BaseEntity {
   @Column({ nullable: true })
   projectId: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: false })
+  @Field({ nullable: true })
   finished: boolean;
+
+  @Column({ nullable: true, default: false })
+  @Field({ nullable: true })
+  anonymous: boolean;
 
   @Index()
   @Field(type => AnchorContractAddress)
@@ -69,8 +94,10 @@ export class RecurringDonation extends BaseEntity {
   donorId: number;
 
   @UpdateDateColumn()
+  @Field()
   updatedAt: Date;
 
   @CreateDateColumn()
+  @Field()
   createdAt: Date;
 }

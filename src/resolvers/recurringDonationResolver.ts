@@ -21,8 +21,6 @@ import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
 import { RecurringDonation } from '../entities/recurringDonation';
 import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
-import { Donation } from '../entities/donation';
-import { Project } from '../entities/project';
 import { publicSelectionFields } from '../entities/user';
 import { Brackets } from 'typeorm';
 import { detectAddressChainType } from '../utils/networks';
@@ -30,52 +28,46 @@ import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
 
 @InputType()
-class SortBy {
-  @Field(type => SortField)
-  field: SortField;
+class RecurringDonationSortBy {
+  @Field(type => RecurringDonationSortField)
+  field: RecurringDonationSortField;
 
-  @Field(type => SortDirection)
-  direction: SortDirection;
+  @Field(type => RecurringDonationSortDirection)
+  direction: RecurringDonationSortDirection;
 }
 
-export enum SortField {
-  CreationDate = 'createdAt',
-  TokenAmount = 'amount',
+export enum RecurringDonationSortField {
+  createdAt = 'createdAt',
+  amount = 'amount',
 }
 
-enum SortDirection {
+enum RecurringDonationSortDirection {
   ASC = 'ASC',
   DESC = 'DESC',
 }
 
-const nullDirection = {
+const RecurringDonationNullDirection = {
   ASC: 'NULLS FIRST',
   DESC: 'NULLS LAST',
 };
 
-registerEnumType(SortField, {
-  name: 'SortField',
+registerEnumType(RecurringDonationSortField, {
+  name: 'RecurringDonationSortField',
   description: 'Sort by field',
 });
 
-registerEnumType(SortDirection, {
-  name: 'SortDirection',
+registerEnumType(RecurringDonationSortDirection, {
+  name: 'RecurringDonationSortDirection',
   description: 'Sort direction',
 });
 
 @ObjectType()
-class PaginateDonations {
-  @Field(type => [Donation], { nullable: true })
-  donations: Donation[];
+class PaginateRecurringDonations {
+  @Field(type => [RecurringDonation], { nullable: true })
+  recurringDonations: RecurringDonation[];
 
   @Field(type => Number, { nullable: true })
   totalCount: number;
-
-  @Field(type => Number, { nullable: true })
-  totalUsdBalance: number;
-
-  @Field(type => Number, { nullable: true })
-  totalEthBalance: number;
 }
 
 @Service()
@@ -90,13 +82,13 @@ class UserRecurringDonationsArgs {
   @Max(50)
   take: number;
 
-  @Field(type => SortBy, {
+  @Field(type => RecurringDonationSortBy, {
     defaultValue: {
-      field: SortField.CreationDate,
-      direction: SortDirection.DESC,
+      field: RecurringDonationSortField.createdAt,
+      direction: RecurringDonationSortDirection.DESC,
     },
   })
-  orderBy: SortBy;
+  orderBy: RecurringDonationSortBy;
 
   @Field(type => Int, { nullable: false })
   userId: number;
@@ -153,43 +145,55 @@ export class RecurringDonationResolver {
     });
   }
 
-  @Query(returns => PaginateDonations, { nullable: true })
-  async donationsByProjectId(
+  @Query(returns => PaginateRecurringDonations, { nullable: true })
+  async recurringDonationsByProjectId(
     @Ctx() ctx: ApolloContext,
     @Arg('take', type => Int, { defaultValue: 10 }) take: number,
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Arg('projectId', type => Int, { nullable: false }) projectId: number,
     @Arg('status', type => String, { nullable: true }) status: string,
+    @Arg('finished', type => Boolean, { nullable: true, defaultValue: false })
+    finished: boolean,
     @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
-    @Arg('orderBy', type => SortBy, {
+    @Arg('orderBy', type => RecurringDonationSortBy, {
       defaultValue: {
-        field: SortField.CreationDate,
-        direction: SortDirection.DESC,
+        field: RecurringDonationSortField.createdAt,
+        direction: RecurringDonationSortDirection.DESC,
       },
     })
-    orderBy: SortBy,
+    orderBy: RecurringDonationSortBy,
   ) {
-    const project = await Project.findOne({
-      where: {
-        id: projectId,
-      },
-    });
+    const project = await findProjectById(projectId);
     if (!project) {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
 
     const query = RecurringDonation.createQueryBuilder('recurringDonation')
-      .leftJoin('recurringDonation.user', 'user')
-      .addSelect(publicSelectionFields)
-      .where(`recurringDonation.projectId = ${projectId}`)
+      .leftJoin('recurringDonation.donor', 'donor')
+      .addSelect([
+        'donor.id',
+        'donor.walletAddress',
+        'donor.name',
+        'donor.firstName',
+        'donor.lastName',
+        'donor.url',
+        'donor.avatar',
+        'donor.totalDonated',
+        'donor.totalReceived',
+        'donor.passportScore',
+        'donor.passportStamps',
+      ])
+      .where(`recurringDonation.projectId = ${projectId}`);
+    query
+      .andWhere(`recurringDonation.finished = ${finished}`)
       .orderBy(
         `recurringDonation.${orderBy.field}`,
         orderBy.direction,
-        nullDirection[orderBy.direction as string],
+        RecurringDonationNullDirection[orderBy.direction as string],
       );
 
     if (status) {
-      query.andWhere(`donation.status = :status`, {
+      query.andWhere(`recurringDonation.status = :status`, {
         status,
       });
     }
@@ -198,7 +202,7 @@ export class RecurringDonationResolver {
       query.andWhere(
         new Brackets(qb => {
           qb.where(
-            '(user.name ILIKE :searchTerm AND recurringDonation.anonymous = false)',
+            '(donor.name ILIKE :searchTerm AND recurringDonation.anonymous = false)',
             {
               searchTerm: `%${searchTerm}%`,
             },
@@ -213,57 +217,21 @@ export class RecurringDonationResolver {
           if (detectAddressChainType(searchTerm) === undefined) {
             const amount = Number(searchTerm);
 
-            qb.orWhere('recurringDonation.amount = :number', {
-              number: amount,
+            qb.orWhere('recurringDonation.amount = :amount', {
+              amount,
             });
           }
         }),
       );
     }
 
-    const [donations, donationsCount] = await query
+    const [recurringDonations, donationsCount] = await query
       .take(take)
       .skip(skip)
       .getManyAndCount();
     return {
-      donations,
+      recurringDonations,
       totalCount: donationsCount,
-      totalUsdBalance: project.totalDonations,
-    };
-  }
-
-  @Query(returns => UserDonations, { nullable: true })
-  async donationsByUserId(
-    @Args() { take, skip, orderBy, userId, status }: UserRecurringDonationsArgs,
-    @Ctx() ctx: ApolloContext,
-  ) {
-    const loggedInUserId = ctx?.req?.user?.userId;
-    const query = RecurringDonation.createQueryBuilder('rec')
-      .leftJoinAndSelect('donation.project', 'project')
-      .leftJoinAndSelect('donation.user', 'user')
-      .where(`donation.userId = ${userId}`)
-      .orderBy(
-        `donation.${orderBy.field}`,
-        orderBy.direction,
-        nullDirection[orderBy.direction as string],
-      );
-    if (!loggedInUserId || loggedInUserId !== userId) {
-      query.andWhere(`donation.anonymous = ${false}`);
-    }
-
-    if (status) {
-      query.andWhere(`donation.status = :status`, {
-        status,
-      });
-    }
-
-    const [donations, totalCount] = await query
-      .take(take)
-      .skip(skip)
-      .getManyAndCount();
-    return {
-      donations,
-      totalCount,
     };
   }
 }
