@@ -173,8 +173,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
       sendEmail: true,
       emailData: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -245,8 +243,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED,
       sendEmail: true,
       emailData: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -268,8 +264,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_REMINDER,
       sendEmail: true,
       emailData: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -290,8 +284,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_WARNING,
       sendEmail: true,
       emailData: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -313,8 +305,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_LAST_WARNING,
       sendEmail: true,
       emailData: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -335,8 +325,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_UP_FOR_REVOKING,
       sendEmail: true,
       emailData: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -371,8 +359,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
       sendEmail: true,
       emailData: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -393,8 +379,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_REJECTED,
       sendEmail: true,
       emailData: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -458,8 +442,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
       sendEmail: true,
       emailData: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -498,8 +480,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATE_ADDED_OWNER,
       sendEmail: true,
       emailData: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
         payload: {
           ...getEmailDataProjectAttributes({
             project,
@@ -537,8 +517,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
       sendEmail: true,
       emailData: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -566,8 +544,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       metadata,
       sendEmail: true,
       emailData: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -618,8 +594,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
       sendEmail: true,
       emailData: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -664,8 +638,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN,
       sendEmail: true,
       emailData: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -757,8 +729,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       sendEmail: false,
       emailData: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -849,8 +819,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         eventName,
         sendEmail: true,
         emailData: {
-          analyticsUserId: projectOwner.segmentUserId(),
-          anonymousId: projectOwner.segmentUserId(),
           payload: getEmailDataProjectAttributes({
             project,
           }),
@@ -985,8 +953,6 @@ const callBatchNotification = async (
 
 interface EmailData {
   payload: any;
-  analyticsUserId?: string;
-  anonymousId?: string;
 }
 
 interface ProjectRelatedNotificationsQueue {
