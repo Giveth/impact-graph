@@ -96,7 +96,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: await getEmailDataDonationAttributes({
           donation,
           project,
@@ -172,7 +172,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -242,7 +242,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -263,7 +263,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_REMINDER,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -283,7 +283,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_WARNING,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -304,7 +304,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_LAST_WARNING,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -324,7 +324,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_UP_FOR_REVOKING,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -358,7 +358,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -378,7 +378,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_REJECTED,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -441,7 +441,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -479,7 +479,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATE_ADDED_OWNER,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: {
           ...getEmailDataProjectAttributes({
             project,
@@ -516,7 +516,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -543,7 +543,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
       metadata,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -593,7 +593,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -637,7 +637,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -700,7 +700,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
       sendEmail: true,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -728,7 +728,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         reason,
       },
       sendEmail: false,
-      emailData: {
+      segment: {
         payload: getEmailDataProjectAttributes({
           project,
         }),
@@ -818,7 +818,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         project,
         eventName,
         sendEmail: true,
-        emailData: {
+        segment: {
           payload: getEmailDataProjectAttributes({
             project,
           }),
@@ -901,7 +901,7 @@ const sendProjectRelatedNotification = async (params: {
       projectLink,
       ...metadata,
     },
-    emailData,
+    segment: emailData,
   };
   if (trackId) {
     data.trackId = trackId;
@@ -963,7 +963,7 @@ interface ProjectRelatedNotificationsQueue {
     walletAddress: string;
     email?: string;
   };
-  emailData?: EmailData;
+  segment?: EmailData;
   sendEmail?: boolean;
   trackId?: string;
 }
@@ -1003,7 +1003,7 @@ interface SendNotificationBody {
   metadata?: any;
   projectId: string;
   userWalletAddress: string;
-  emailData?: {
+  segment?: {
     payload: any;
   };
 }
