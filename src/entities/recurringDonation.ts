@@ -98,14 +98,6 @@ export class RecurringDonation extends BaseEntity {
   @Column({ nullable: true })
   donorId: number;
 
-  @Field({ nullable: true })
-  @Column('text', { default: RECURRING_DONATION_STATUS.PENDING })
-  status: string;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  anonymous: boolean;
-
   @UpdateDateColumn()
   @Field()
   updatedAt: Date;
