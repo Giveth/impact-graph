@@ -15,6 +15,12 @@ import { Project } from './project';
 import { User } from './user';
 import { AnchorContractAddress } from './anchorContractAddress';
 
+export const RECURRING_DONATION_STATUS = {
+  PENDING: 'pending',
+  VERIFIED: 'verified',
+  FAILED: 'failed',
+};
+
 @Entity()
 @ObjectType()
 @Unique(['txHash', 'networkId', 'project'])
@@ -91,6 +97,14 @@ export class RecurringDonation extends BaseEntity {
   @RelationId((recurringDonation: RecurringDonation) => recurringDonation.donor)
   @Column({ nullable: true })
   donorId: number;
+
+  @Field({ nullable: true })
+  @Column('text', { default: RECURRING_DONATION_STATUS.PENDING })
+  status: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  anonymous: boolean;
 
   @UpdateDateColumn()
   @Field()
