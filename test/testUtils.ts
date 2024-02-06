@@ -1875,6 +1875,7 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
     ).id;
   return RecurringDonation.create({
     amount: params?.donationData?.amount || 10,
+    status: params?.donationData?.status || 'pending',
     networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_GOERLI,
     currency: params?.donationData?.currency || 'USDT',
     interval: params?.donationData?.interval || 'monthly',

@@ -292,6 +292,9 @@ export const fetchRecurringDonationsByProjectIdQuery = `
     $searchTerm: String
     $status: String
     $finished: Boolean
+    $orderBy: RecurringDonationSortBy
+
+    
   ) {
     recurringDonationsByProjectId(
       take: $take
@@ -300,6 +303,8 @@ export const fetchRecurringDonationsByProjectIdQuery = `
       searchTerm: $searchTerm
       status: $status
       finished: $finished
+      orderBy: $orderBy
+
     ) {
       recurringDonations {
         id
@@ -2140,11 +2145,17 @@ export const createRecurringDonationQuery = `
   mutation ($projectId: Int!,
             $networkId: Int!, 
             $txHash: String!
+            $interval: String!
+            $amount: Int!
+            $currency: String!
             ) {
     createRecurringDonation(
       projectId: $projectId 
       networkId: $networkId
       txHash:$txHash
+      amount:$amount
+      currency:$currency
+      interval:$interval
         ) {
       txHash
       networkId

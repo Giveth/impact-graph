@@ -113,6 +113,9 @@ export class RecurringDonationResolver {
     @Arg('projectId', () => Int) projectId: number,
     @Arg('networkId', () => Int) networkId: number,
     @Arg('txHash', () => String) txHash: string,
+    @Arg('currency', () => String) currency: string,
+    @Arg('interval', () => String) interval: string,
+    @Arg('amount', () => Int) amount: number,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
     const donor = await findUserById(userId);
@@ -142,6 +145,9 @@ export class RecurringDonationResolver {
       anchorContractAddress: currentAnchorProjectAddress,
       networkId,
       txHash,
+      amount,
+      interval,
+      currency,
     });
   }
 
@@ -207,14 +213,17 @@ export class RecurringDonationResolver {
               searchTerm: `%${searchTerm}%`,
             },
           )
-            .orWhere('recurringDonation.toWalletAddress ILIKE :searchTerm', {
+            .orWhere('recurringDonation.status ILIKE :searchTerm', {
               searchTerm: `%${searchTerm}%`,
             })
             .orWhere('recurringDonation.currency ILIKE :searchTerm', {
               searchTerm: `%${searchTerm}%`,
             });
 
-          if (detectAddressChainType(searchTerm) === undefined) {
+          if (
+            detectAddressChainType(searchTerm) === undefined &&
+            Number(searchTerm)
+          ) {
             const amount = Number(searchTerm);
 
             qb.orWhere('recurringDonation.amount = :amount', {

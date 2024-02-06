@@ -62,6 +62,9 @@ function createRecurringDonationTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
+          amount: 100,
+          currency: 'GIV',
+          interval: 'monthly',
         },
       },
       {
@@ -102,6 +105,9 @@ function createRecurringDonationTestCases() {
         projectId: project.id,
         networkId: NETWORK_IDS.OPTIMISTIC,
         txHash: generateRandomEvmTxHash(),
+        amount: 100,
+        currency: 'GIV',
+        interval: 'monthly',
       },
     });
 
@@ -124,6 +130,9 @@ function createRecurringDonationTestCases() {
           projectId: 99999,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
+          amount: 100,
+          currency: 'GIV',
+          interval: 'monthly',
         },
       },
       {
@@ -159,6 +168,9 @@ function createRecurringDonationTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
+          amount: 100,
+          currency: 'GIV',
+          interval: 'monthly',
         },
       },
       {
@@ -198,7 +210,7 @@ function donationsByProjectIdTestCases() {
         variables: {
           projectId: project.id,
           orderBy: {
-            field: 'CreatedAt',
+            field: 'createdAt',
             direction: 'DESC',
           },
         },
@@ -213,15 +225,28 @@ function donationsByProjectIdTestCases() {
       assert.isTrue(donations[i].createdAt >= donations[i + 1].createdAt);
     }
   });
-  it('should sort by createdAt ASC', async () => {
+  it('should sort by the createdAt ASC', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+      },
+    });
+
     const result = await axios.post(
       graphqlUrl,
       {
-        query: fetchDonationsByProjectIdQuery,
+        query: fetchRecurringDonationsByProjectIdQuery,
         variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
+          projectId: project.id,
           orderBy: {
-            field: 'CreationDate',
+            field: 'createdAt',
             direction: 'ASC',
           },
         },
@@ -229,18 +254,75 @@ function donationsByProjectIdTestCases() {
       {},
     );
 
-    const donations = result.data.data.donationsByProjectId.donations;
-    assert.isTrue(donations[1].createdAt >= donations[0].createdAt);
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 2);
+    for (let i = 0; i < donations.length - 1; i++) {
+      assert.isTrue(donations[i].createdAt <= donations[i + 1].createdAt);
+    }
   });
-  it('should sort by amount DESC', async () => {
+  it('should sort by the amount ASC', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        amount: 100,
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        amount: 200,
+      },
+    });
+
     const result = await axios.post(
       graphqlUrl,
       {
-        query: fetchDonationsByProjectIdQuery,
+        query: fetchRecurringDonationsByProjectIdQuery,
         variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
+          projectId: project.id,
           orderBy: {
-            field: 'TokenAmount',
+            field: 'amount',
+            direction: 'ASC',
+          },
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 2);
+    for (let i = 0; i < donations.length - 1; i++) {
+      assert.isTrue(donations[i].amount <= donations[i + 1].amount);
+    }
+  });
+  it('should sort by the amount DESC', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        amount: 100,
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        amount: 200,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          orderBy: {
+            field: 'amount',
             direction: 'DESC',
           },
         },
@@ -248,365 +330,194 @@ function donationsByProjectIdTestCases() {
       {},
     );
 
-    const donations = result.data.data.donationsByProjectId.donations;
-    assert.equal(
-      Number(donations[0].id),
-      DONATION_SEED_DATA.SECOND_DONATION.id,
-    );
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 2);
+    for (let i = 0; i < donations.length - 1; i++) {
+      assert.isTrue(donations[i].amount >= donations[i + 1].amount);
+    }
   });
-  it('should sort by amount ASC', async () => {
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationsByProjectIdQuery,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          orderBy: {
-            field: 'TokenAmount',
-            direction: 'ASC',
-          },
-        },
-      },
-      {},
-    );
-
-    const donations = result.data.data.donationsByProjectId.donations;
-    assert.equal(Number(donations[0].id), DONATION_SEED_DATA.FIFTH_DONATION.id);
-  });
-  it('should sort by valueUsd DESC', async () => {
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationsByProjectIdQuery,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          orderBy: {
-            field: 'UsdAmount',
-            direction: 'DESC',
-          },
-        },
-      },
-      {},
-    );
-
-    const donations = result.data.data.donationsByProjectId.donations;
-    assert.equal(
-      Number(donations[0].id),
-      DONATION_SEED_DATA.SECOND_DONATION.id,
-    );
-  });
-  it('should sort by valueUsd ASC', async () => {
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationsByProjectIdQuery,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          orderBy: {
-            field: 'UsdAmount',
-            direction: 'ASC',
-          },
-        },
-      },
-      {},
-    );
-
-    const donations = result.data.data.donationsByProjectId.donations;
-    assert.equal(Number(donations[0].id), DONATION_SEED_DATA.FIFTH_DONATION.id);
-  });
-  it('should search by user name except anonymous donations', async () => {
-    const anonymousDonation = await saveDonationDirectlyToDb(
-      createDonationData(),
-      SEED_DATA.THIRD_USER.id,
-      SEED_DATA.FIRST_PROJECT.id,
-    );
-
-    anonymousDonation.anonymous = true;
-    await anonymousDonation.save();
-
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationsByProjectIdQuery,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          searchTerm: 'third',
-        },
-      },
-      {},
-    );
-
-    const donations = result.data.data.donationsByProjectId.donations;
-    assert.equal(
-      Number(donations[0]?.id),
-      DONATION_SEED_DATA.FIFTH_DONATION.id,
-    );
-
-    const anonymousDonations = donations.filter(d => d.anonymous === true);
-    assert.isTrue(anonymousDonations.length === 0);
-  });
-
-  // TODO Fix this test case because it sometimes fails
-  // it('should search by donation amount', async () => {
-  //   const donation = await saveDonationDirectlyToDb(
-  //     createDonationData(),
-  //     SEED_DATA.THIRD_USER.id,
-  //     SEED_DATA.FIRST_PROJECT.id,
-  //   );
-  //   donation.status = DONATION_STATUS.VERIFIED;
-  //   donation.amount = 100;
-  //   await donation.save();
-  //   const result = await axios.post(
-  //     graphqlUrl,
-  //     {
-  //       query: fetchDonationsByProjectIdQuery,
-  //       variables: {
-  //         projectId: SEED_DATA.FIRST_PROJECT.id,
-  //         searchTerm: '100',
-  //       },
-  //     },
-  //     {},
-  //   );
-  //   const amountDonationsCount = await Donation.createQueryBuilder('donation')
-  //     .where('donation.amount = :amount', { amount: 100 })
-  //     .getCount();
-  //   const donations = result.data.data.donationsByProjectId.donations;
-  //   assert.equal(donations[0]?.amount, 100);
-  //   assert.equal(donations.length, amountDonationsCount);
-  // });
-
-  it('should search by donation currency', async () => {
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationsByProjectIdQuery,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          searchTerm: DONATION_SEED_DATA.FIRST_DONATION.currency, // GIV
-        },
-      },
-      {},
-    );
-
-    const GivDonationsCount = await Donation.createQueryBuilder('donation')
-      .where('donation.currency = :currency', {
-        currency: DONATION_SEED_DATA.FIRST_DONATION.currency,
-      })
-      .getCount();
-
-    const donations = result.data.data.donationsByProjectId.donations;
-    assert.equal(
-      donations[0]?.currency,
-      DONATION_SEED_DATA.FIRST_DONATION.currency,
-    );
-    assert.equal(donations.length, GivDonationsCount);
-  });
-  it('should search by donation ToWalletAddress', async () => {
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationsByProjectIdQuery,
-        variables: {
-          projectId: SEED_DATA.FIRST_PROJECT.id,
-          searchTerm: DONATION_SEED_DATA.FIRST_DONATION.toWalletAddress,
-        },
-      },
-      {},
-    );
-
-    const donations = result.data.data.donationsByProjectId.donations;
-    donations.forEach(d =>
-      assert.equal(d.toWalletAddress, SEED_DATA.FIRST_PROJECT.walletAddress),
-    );
-
-    assert.isTrue(donations.length > 0);
-  });
-  it('should filter donations by failed status', async () => {
+  it('should search by the currency', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const verifiedDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
-      user.id,
-      project.id,
-    );
-
-    const failedDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.FAILED },
-      user.id,
-      project.id,
-    );
-
-    const pendingDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.PENDING },
-      user.id,
-      project.id,
-    );
-
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationsByProjectIdQuery,
-        variables: {
-          projectId: project.id,
-          status: DONATION_STATUS.FAILED,
-        },
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        currency: 'USDT',
       },
-      {},
-    );
-
-    const donations = result.data.data.donationsByProjectId.donations;
-    donations.forEach(item => {
-      assert.equal(item.status, DONATION_STATUS.FAILED);
     });
-    assert.isOk(
-      donations.find(donation => Number(donation.id) === failedDonation.id),
-    );
-    assert.isNotOk(
-      donations.find(donation => Number(donation.id) === verifiedDonation.id),
-    );
-    assert.isNotOk(
-      donations.find(donation => Number(donation.id) === pendingDonation.id),
-    );
-  });
-  it('should filter donations by pending status', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const verifiedDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
-      user.id,
-      project.id,
-    );
-
-    const failedDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.FAILED },
-      user.id,
-      project.id,
-    );
-
-    const pendingDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.PENDING },
-      user.id,
-      project.id,
-    );
-
-    const result = await axios.post(
-      graphqlUrl,
-      {
-        query: fetchDonationsByProjectIdQuery,
-        variables: {
-          projectId: project.id,
-          status: DONATION_STATUS.PENDING,
-        },
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        currency: 'GIV',
       },
-      {},
-    );
-
-    const donations = result.data.data.donationsByProjectId.donations;
-    donations.forEach(item => {
-      assert.equal(item.status, DONATION_STATUS.PENDING);
     });
-    assert.isNotOk(
-      donations.find(donation => Number(donation.id) === failedDonation.id),
-    );
-    assert.isNotOk(
-      donations.find(donation => Number(donation.id) === verifiedDonation.id),
-    );
-    assert.isOk(
-      donations.find(donation => Number(donation.id) === pendingDonation.id),
-    );
-  });
-  it('should filter donations by verified status', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const verifiedDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
-      user.id,
-      project.id,
-    );
-
-    const failedDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.FAILED },
-      user.id,
-      project.id,
-    );
-
-    const pendingDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.PENDING },
-      user.id,
-      project.id,
-    );
 
     const result = await axios.post(
       graphqlUrl,
       {
-        query: fetchDonationsByProjectIdQuery,
+        query: fetchRecurringDonationsByProjectIdQuery,
         variables: {
           projectId: project.id,
-          status: DONATION_STATUS.VERIFIED,
+          searchTerm: 'GIV',
         },
       },
       {},
     );
 
-    const donations = result.data.data.donationsByProjectId.donations;
-    donations.forEach(item => {
-      assert.equal(item.status, DONATION_STATUS.VERIFIED);
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
+    assert.equal(donations[0].currency, 'GIV');
+  });
+  it('should search by the amount', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        amount: 100,
+      },
     });
-    assert.isNotOk(
-      donations.find(donation => Number(donation.id) === failedDonation.id),
-    );
-    assert.isOk(
-      donations.find(donation => Number(donation.id) === verifiedDonation.id),
-    );
-    assert.isNotOk(
-      donations.find(donation => Number(donation.id) === pendingDonation.id),
-    );
-  });
-  it('should return all donations when not sending status filter', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-
-    const verifiedDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
-      user.id,
-      project.id,
-    );
-
-    const failedDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.FAILED },
-      user.id,
-      project.id,
-    );
-
-    const pendingDonation = await saveDonationDirectlyToDb(
-      { ...createDonationData(), status: DONATION_STATUS.PENDING },
-      user.id,
-      project.id,
-    );
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        amount: 200,
+      },
+    });
 
     const result = await axios.post(
       graphqlUrl,
       {
-        query: fetchDonationsByProjectIdQuery,
+        query: fetchRecurringDonationsByProjectIdQuery,
         variables: {
           projectId: project.id,
+          searchTerm: '100',
         },
       },
       {},
     );
 
-    const donations = result.data.data.donationsByProjectId.donations;
-    assert.isOk(
-      donations.find(donation => Number(donation.id) === failedDonation.id),
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
+    assert.equal(donations[0].amount, '100');
+  });
+  it('should search by the failed status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'failed',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'verified',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'pending',
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          status: 'failed',
+        },
+      },
+      {},
     );
-    assert.isOk(
-      donations.find(donation => Number(donation.id) === verifiedDonation.id),
+
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
+    assert.equal(donations[0].status, 'failed');
+  });
+  it('should search by the pending status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'failed',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'verified',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'pending',
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          status: 'pending',
+        },
+      },
+      {},
     );
-    assert.isOk(
-      donations.find(donation => Number(donation.id) === pendingDonation.id),
+
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
+    assert.equal(donations[0].status, 'pending');
+  });
+  it('should search by the verified status', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'failed',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'verified',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'pending',
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          status: 'verified',
+        },
+      },
+      {},
     );
+
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
+    assert.equal(donations[0].status, 'verified');
   });
 }
