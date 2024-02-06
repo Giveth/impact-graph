@@ -96,7 +96,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.users', 'users')
     .leftJoinAndSelect('project.addresses', 'addresses')
-    .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
+    // We dont need it right now, but I comment it because we may need it later
+    // .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
     .leftJoinAndSelect('project.organization', 'organization')
     .leftJoinAndSelect('project.qfRounds', 'qfRounds')
     // you can alias it as user but it still is mapped as adminUser
