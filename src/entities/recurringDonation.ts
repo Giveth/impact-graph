@@ -14,7 +14,6 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { AnchorContractAddress } from './anchorContractAddress';
-import { NETWORK_IDS } from '../provider';
 
 @Entity()
 @ObjectType()
