@@ -8,7 +8,6 @@ export class ModifyRecurringDonationTable1707045732631
     await queryRunner.query(`
             ALTER TABLE recurring_donation
             ADD COLUMN amount INT NOT NULL DEFAULT 0,
-            ADD COLUMN anonymous BOOLEAN DEFAULT FALSE,
             ADD COLUMN interval VARCHAR(255) NOT NULL DEFAULT 'monthly',
             ADD COLUMN currency VARCHAR(255) NOT NULL DEFAULT 'USD'
         `);
@@ -21,7 +20,6 @@ export class ModifyRecurringDonationTable1707045732631
             DROP COLUMN amount,
             DROP COLUMN interval,
             DROP COLUMN currency
-            DROP COLUMN anonymous
         `);
   }
 }
