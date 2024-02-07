@@ -542,7 +542,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
       metadata,
-      sendEmail: true,
+      sendEmail: false,
       segment: {
         payload: await getEmailDataProjectAttributes({
           project,
@@ -699,7 +699,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
-      sendEmail: true,
+      sendEmail: false,
       segment: {
         payload: await getEmailDataProjectAttributes({
           project,
