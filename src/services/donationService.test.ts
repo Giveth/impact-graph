@@ -818,6 +818,70 @@ function fillOldStableCoinDonationsPriceTestCases() {
     expect(donation.valueUsd).to.gt(0);
   });
 
+  it('should fill price for mpETH donation on the MAINNET network', async () => {
+    const token = 'mpETH';
+    const amount = 2;
+    let donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        currency: token,
+        valueUsd: undefined,
+        valueEth: undefined,
+        amount,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const project = (await Project.findOne({
+      where: { id: SEED_DATA.FIRST_PROJECT.id },
+    })) as Project;
+
+    await updateDonationPricesAndValues(
+      donation,
+      project,
+      null,
+      token,
+      CHAIN_ID.MAINNET,
+      amount,
+    );
+    donation = (await findDonationById(donation.id))!;
+    expect(donation.valueUsd).to.gt(0);
+    expect(donation.priceUsd).to.below(donation.valueUsd);
+  });
+
+  it('should fill price for mpETH donation on the OPTIMISM network', async () => {
+    const token = 'mpETH';
+    const amount = 2;
+    let donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        currency: token,
+        valueUsd: undefined,
+        valueEth: undefined,
+        amount,
+      },
+      SEED_DATA.FIRST_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+
+    const project = (await Project.findOne({
+      where: { id: SEED_DATA.FIRST_PROJECT.id },
+    })) as Project;
+
+    await updateDonationPricesAndValues(
+      donation,
+      project,
+      null,
+      token,
+      CHAIN_ID.OPTIMISM,
+      amount,
+    );
+    donation = (await findDonationById(donation.id))!;
+    expect(donation.valueUsd).to.gt(0);
+    expect(donation.priceUsd).to.below(donation.valueUsd);
+  });
+
   it('should fill price for Celo donation on the CELO Alfajores network', async () => {
     const token = 'CELO';
     const amount = 100;
