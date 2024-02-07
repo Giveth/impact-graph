@@ -97,7 +97,7 @@ export class FormRelatedAddress {
   address: string;
   @Field({ nullable: true })
   networkId: number;
-  @Field(type => ChainType, { defaultValue: ChainType.EVM })
+  @Field(type => ChainType, { defaultValue: ChainType.EVM, nullable: true })
   chainType?: ChainType;
 }
 

@@ -9,6 +9,9 @@ export const createNewRecurringDonation = async (params: {
   anchorContractAddress: AnchorContractAddress;
   networkId: number;
   txHash: string;
+  interval: string;
+  amount: number;
+  currency: string;
 }): Promise<RecurringDonation> => {
   const recurringDonation = await RecurringDonation.create({
     project: params.project,
@@ -16,6 +19,9 @@ export const createNewRecurringDonation = async (params: {
     anchorContractAddress: params.anchorContractAddress,
     networkId: params.networkId,
     txHash: params.txHash,
+    currency: params.currency,
+    interval: params.interval,
+    amount: params.amount,
   });
   return recurringDonation.save();
 };
