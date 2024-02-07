@@ -27,10 +27,10 @@ export class createRecurringDonationTable1702445735585
                 UNIQUE("txHash", "networkId", "projectId")
             );
             
-            CREATE INDEX idx_tx_hash ON recurring_donation(tx_hash);
-            CREATE INDEX idx_project_id ON recurring_donation(project_id);
-            CREATE INDEX idx_anchor_contract_address_id ON recurring_donation(anchor_contract_address_id);
-            CREATE INDEX idx_donor_id ON recurring_donation(donor_id);
+            CREATE INDEX idx_tx_hash ON recurring_donation("txHash");
+            CREATE INDEX idx_project_id ON recurring_donation("projectId");
+            CREATE INDEX idx_anchor_contract_address_id ON recurring_donation("anchorContractAddressId");
+            CREATE INDEX idx_donor_id ON recurring_donation("donorId");
         `);
   }
 
