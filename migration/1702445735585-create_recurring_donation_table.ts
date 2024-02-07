@@ -7,7 +7,7 @@ export class createRecurringDonationTable1702445735585
     await queryRunner.query(`
                 CREATE TABLE recurring_donation (
                 id SERIAL PRIMARY KEY,
-                network_id INT NOT NULL,
+                "networkId" INT NOT NULL,
                 "txHash" text NOT NULL,
                 "projectId" INT,
                 "anchorContractAddressId" INT,
