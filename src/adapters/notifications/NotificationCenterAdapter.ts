@@ -18,6 +18,7 @@ import config from '../../config';
 import { findProjectById } from '../../repositories/projectRepository';
 import {
   findAllUsers,
+  findUserById,
   findUsersWhoSupportProject,
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
@@ -87,11 +88,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async donationReceived(params: {
     donation: Donation;
     project: Project;
+    user: User | null;
   }): Promise<void> {
     if (params.donation.valueUsd <= 1) return;
 
-    const { project, donation } = params;
-    const user = project.adminUser as User;
+    const { project, donation, user } = params;
     await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
@@ -100,7 +101,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         payload: await getEmailDataDonationAttributes({
           donation,
           project,
-          user,
+          user: user as User,
         }),
       },
       trackId:
@@ -173,7 +174,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -243,7 +244,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -264,7 +265,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_REMINDER,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -284,7 +285,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_WARNING,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -305,7 +306,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_LAST_WARNING,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -325,7 +326,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_UP_FOR_REVOKING,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -359,7 +360,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -379,7 +380,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_REJECTED,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -442,7 +443,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -475,15 +476,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     );
 
     const projectOwner = project?.adminUser as User;
+    const emailData = await getEmailDataProjectAttributes({ project });
     await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATE_ADDED_OWNER,
       sendEmail: true,
       segment: {
         payload: {
-          ...getEmailDataProjectAttributes({
-            project,
-          }),
+          ...emailData,
           update,
         },
       },
@@ -517,7 +517,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -544,7 +544,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       metadata,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -594,7 +594,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -638,7 +638,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -701,7 +701,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
       sendEmail: true,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -729,7 +729,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       sendEmail: false,
       segment: {
-        payload: getEmailDataProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -819,7 +819,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         eventName,
         sendEmail: true,
         segment: {
-          payload: getEmailDataProjectAttributes({
+          payload: await getEmailDataProjectAttributes({
             project,
           }),
         },
@@ -860,10 +860,11 @@ const getEmailDataDonationAttributes = async (params: {
   };
 };
 
-const getEmailDataProjectAttributes = (params: { project: Project }) => {
+const getEmailDataProjectAttributes = async (params: { project: Project }) => {
   const { project } = params;
+  const user = await findUserById(project.adminUserId);
   return {
-    email: project?.adminUser?.email || '',
+    email: user?.email,
     title: project.title,
     lastName: project?.adminUser?.lastName || '',
     firstName: project?.adminUser?.firstName || '',
@@ -881,11 +882,11 @@ const sendProjectRelatedNotification = async (params: {
     walletAddress: string;
     email?: string;
   };
-  emailData?: EmailData;
+  segment?: EmailData;
   sendEmail?: boolean;
   trackId?: string;
 }): Promise<void> => {
-  const { project, eventName, metadata, user, emailData, sendEmail, trackId } =
+  const { project, eventName, metadata, user, segment, sendEmail, trackId } =
     params;
   const receivedUser = user || (project.adminUser as User);
   const projectLink = buildProjectLink(eventName, project.slug);
@@ -893,7 +894,7 @@ const sendProjectRelatedNotification = async (params: {
     eventName,
     email: receivedUser.email,
     sendEmail: sendEmail || false,
-    sendSegment: Boolean(emailData),
+    sendSegment: Boolean(segment),
     userWalletAddress: receivedUser.walletAddress as string,
     projectId: String(project.id),
     metadata: {
@@ -901,7 +902,7 @@ const sendProjectRelatedNotification = async (params: {
       projectLink,
       ...metadata,
     },
-    segment: emailData,
+    segment,
   };
   if (trackId) {
     data.trackId = trackId;
