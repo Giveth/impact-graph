@@ -22,15 +22,15 @@ export class createRecurringDonationTable1702445735585
                     FOREIGN KEY("anchorContractAddressId") 
                     REFERENCES anchor_contract_address(id),
                 CONSTRAINT fk_donor
-                    FOREIGN KEY(donor_id) 
+                    FOREIGN KEY("donorId") 
                     REFERENCES "user"(id),
                 UNIQUE("txHash", "networkId", "projectId")
             );
             
-            CREATE INDEX idx_tx_hash ON recurring_donation("txHash");
-            CREATE INDEX idx_project_id ON recurring_donation("projectId");
-            CREATE INDEX idx_anchor_contract_address_id ON recurring_donation("anchorContractAddressId");
-            CREATE INDEX idx_donor_id ON recurring_donation("donorId");
+            CREATE INDEX "idx_txHash" ON recurring_donation("txHash");
+            CREATE INDEX "idx_projectId" ON recurring_donation("projectId");
+            CREATE INDEX "idx_anchorContractAddressId" ON recurring_donation("anchorContractAddressId");
+            CREATE INDEX "donorId" ON recurring_donation("donorId");
         `);
   }
 
