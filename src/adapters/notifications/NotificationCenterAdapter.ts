@@ -831,6 +831,8 @@ const getEmailDataDonationAttributes = async (params: {
   donation: Donation;
 }) => {
   const { user, project, donation } = params;
+  const token = await findTokenByTokenAddress(donation.tokenAddress!);
+  const symbol = token?.symbol;
   return {
     email: user.email,
     title: project.title,
@@ -839,7 +841,7 @@ const getEmailDataDonationAttributes = async (params: {
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     amount: Number(donation.amount),
-    token: await findTokenByTokenAddress(donation.tokenAddress!),
+    token: symbol,
     transactionId: donation.transactionId.toLowerCase(),
     transactionNetworkId: Number(donation.transactionNetworkId),
     transactionLink: buildTxLink(
