@@ -44,6 +44,7 @@ import { QfRoundHistory } from './qfRoundHistory';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { RecurringDonation } from './recurringDonation';
+import { DraftDonation } from './draftDonation';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -59,6 +60,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     FeaturedUpdate,
     Reaction,
     Donation,
+    DraftDonation,
     Token,
     Wallet,
     ProjectStatus,
