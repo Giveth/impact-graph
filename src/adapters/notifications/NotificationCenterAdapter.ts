@@ -649,27 +649,23 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async projectPublished(params: { project: Project }): Promise<void> {
-    return;
-    // const { project } = params;
-    // const projectOwner = project?.adminUser as User;
-    // const now = Date.now();
+    const { project } = params;
+    const projectOwner = project?.adminUser as User;
+    const now = Date.now();
 
-    // await sendProjectRelatedNotificationsQueue.add({
-    //   project,
-    //   eventName: NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED,
-
-    //   sendEmail: true,
-    //   segment: {
-    //     analyticsUserId: projectOwner.segmentUserId(),
-    //     anonymousId: projectOwner.segmentUserId(),
-    //     payload: getSegmentProjectAttributes({
-    //       project,
-    //     }),
-    //   },
-    //   trackId: `project-published-${
-    //     project.id
-    //   }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
-    // });
+    await sendProjectRelatedNotificationsQueue.add({
+      project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED,
+      sendEmail: true,
+      segment: {
+        payload: await getEmailDataProjectAttributes({
+          project,
+        }),
+      },
+      trackId: `project-published-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
+    });
   }
 
   async projectReactivated(params: { project: Project }): Promise<void> {
