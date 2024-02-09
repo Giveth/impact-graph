@@ -32,6 +32,7 @@ abiDecoder.addABI(erc20ABI);
 
 const QF_ROUND_ID = config.get('LOST_DONATIONS_QF_ROUND');
 const NETWORK_ID = config.get('LOST_DONATIONS_NETWORK_ID');
+const NATIVE_NETWORK_TOKEN = config.get('LOST_DONATIONS_NATIVE_NETWORK_TOKEN');
 
 const cronJobTime =
   (config.get('IMPORT_LOST_DONATIONS_CRONJOB_EXPRESSION') as string) ||
@@ -140,7 +141,7 @@ export const importLostDonations = async () => {
         ) {
           // it's an eth transfer native token
           const nativeToken = await Token.createQueryBuilder('token')
-            .where(`token.id = 198`)
+            .where(`token.id = :token`, { token: NATIVE_NETWORK_TOKEN })
             .getOne();
 
           tokenInDB = nativeToken;
@@ -213,6 +214,7 @@ export const importLostDonations = async () => {
             toWalletAddress: donationParams.to.toLowerCase(),
             transactionId: tx.toLowerCase(),
             projectId: project.id,
+            userId: dbUser.id,
             currency: donationParams.currency,
             tokenAddress: tokenInDB?.address,
             amount: donationParams.amount,
@@ -238,6 +240,7 @@ export const importLostDonations = async () => {
         } catch (e) {
           logger.debug('Error saving donation for for tx: ', tx);
           logger.debug('Error saving donation: ', e);
+          continue;
         }
 
         await updateUserTotalDonated(dbUser.id);
@@ -245,6 +248,7 @@ export const importLostDonations = async () => {
         await updateTotalDonationsOfProject(project.id);
       } catch (e) {
         logger.error('importLostDonations() error');
+        continue;
       }
     }
 

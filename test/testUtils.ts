@@ -1265,6 +1265,13 @@ export const SEED_DATA = {
         decimals: 18,
         isStableCoin: true,
       },
+      {
+        name: 'mpETH',
+        symbol: 'mpETH',
+        address: '0x48afbbd342f64ef8a9ab1c143719b63c2ad81710',
+        decimals: 18,
+        isStableCoin: true,
+      },
     ],
     ropsten: [
       {
@@ -1326,6 +1333,13 @@ export const SEED_DATA = {
         name: 'GLO',
         symbol: 'GLO',
         address: '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3',
+        decimals: 18,
+        isStableCoin: true,
+      },
+      {
+        name: 'mpETH',
+        symbol: 'mpETH',
+        address: '0x819845b60a192167ed1139040b4f8eca31834f27',
         decimals: 18,
         isStableCoin: true,
       },
