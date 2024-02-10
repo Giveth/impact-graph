@@ -58,6 +58,7 @@ const envVars = [
   'GIVBACK_MAX_FACTOR',
   'GIVBACK_MIN_FACTOR',
   'DONATION_VERIFICAITON_EXPIRATION_HOURS',
+  'DRAFT_DONATION_MATCH_EXPIRATION_HOURS',
 ];
 
 // tslint:disable-next-line:class-name

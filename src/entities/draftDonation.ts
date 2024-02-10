@@ -5,18 +5,24 @@ import {
   Entity,
   BaseEntity,
   Index,
+  CreateDateColumn,
 } from 'typeorm';
 import { ChainType } from '../types/network';
 
 export const DRAFT_DONATION_STATUS = {
   PENDING: 'pending',
   MATCHED: 'matched',
-  EXPIRED: 'expired',
 };
 
 @Entity()
 @ObjectType()
-@Index(['fromWalletAddress', 'networkId'])
+@Index(
+  ['fromWalletAddress', 'toWalletAddress', 'networkId', 'amount', 'currency'],
+  {
+    where: `status = '${DRAFT_DONATION_STATUS.PENDING}'`,
+    unique: true,
+  },
+)
 export class DraftDonation extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
@@ -82,10 +88,16 @@ export class DraftDonation extends BaseEntity {
 
   @Index()
   @Field(type => Date)
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
 
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   referrerId?: string;
+
+  // Expected call data used only for matching ERC20 transfers
+  // Is calculated and saved once during the matching time, and will be used in next iterations
+  @Field(type => String, { nullable: true })
+  @Column({ nullable: true })
+  expectedCallData?: string;
 }

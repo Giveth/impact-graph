@@ -67,7 +67,7 @@ import {
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
-describe.only('createDonation() test cases', createDonationTestCases);
+describe('createDonation() test cases', createDonationTestCases);
 
 function createDonationTestCases() {
   it('create simple draft donation', async () => {

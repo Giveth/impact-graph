@@ -21,6 +21,8 @@ import { gnosisSafeL2ABI } from '../../../assets/gnosisSafeL2ABI';
 import { NetworkTransactionInfo, TransactionDetailInput } from '../index';
 import { normalizeAmount } from '../../../utils/utils';
 import { ONE_HOUR, validateTransactionWithInputData } from '../index';
+import _ from 'lodash';
+import { ITxInfo } from '../../../types/etherscan';
 
 // tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
@@ -104,27 +106,14 @@ async function findEvmTransactionByNonce(data: {
   logger.debug('findTransactionByNonce called', data);
   const { input, page = 1 } = data;
   const nonce = input.nonce as number;
-  const { userRecentTransactions, isTransactionListEmpty } =
+  const { userRecentTransactions, lastPage } =
     await getListOfTransactionsByAddress({
       address: input.fromAddress,
       page,
       networkId: input.networkId,
     });
-  if (isTransactionListEmpty) {
-    // we know that we reached to end of transactions
-    logger.debug(
-      'findEvmTransactionByNonce, no more found donations for address',
-      {
-        page,
-        address: input.fromAddress,
-      },
-    );
-    throw new Error(
-      i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
-    );
-  }
   const foundTransaction = userRecentTransactions.find(
-    tx => tx.nonce === input.nonce,
+    tx => +tx.nonce === input.nonce,
   );
 
   if (foundTransaction) {
@@ -134,12 +123,26 @@ async function findEvmTransactionByNonce(data: {
     });
   }
 
+  if (lastPage) {
+    // we know that we reached to end of transactions
+    logger.debug(
+      'findEvmTransactionByNonce, no more found donations for address',
+      {
+        lastPage: page,
+        address: input.fromAddress,
+      },
+    );
+    throw new Error(
+      i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
+    );
+  }
+
   // userRecentTransactions just includes the transactions that source is our fromAddress
   // so if the lowest nonce in this array is smaller than the sent nonce we would know that we should not
   // check latest transactions
   const smallestNonce =
     userRecentTransactions.length > 0
-      ? userRecentTransactions[userRecentTransactions.length - 1].nonce
+      ? +userRecentTransactions[userRecentTransactions.length - 1].nonce
       : undefined;
 
   if (smallestNonce !== undefined && smallestNonce < nonce) {
@@ -162,19 +165,16 @@ async function findEvmTransactionByNonce(data: {
   });
 }
 
-async function getListOfTransactionsByAddress(input: {
+export async function getListOfTransactionsByAddress(input: {
   networkId: number;
   address: string;
   page?: number;
   offset?: number;
 }): Promise<{
-  userRecentTransactions: {
-    hash: string;
-    nonce: number;
-  }[];
-  isTransactionListEmpty: boolean;
+  userRecentTransactions: ITxInfo[];
+  lastPage: boolean;
 }> {
-  const { address, page, offset, networkId } = input;
+  const { address, page = 1, offset = 1000, networkId } = input;
   // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
   // https://blockscout.com/xdai/mainnet/api-docs#account
   logger.debug(
@@ -185,26 +185,19 @@ async function getListOfTransactionsByAddress(input: {
     params: {
       module: 'account',
       action: 'txlist',
-      page: page || 1,
-      offset: offset || 1000,
+      page,
+      offset,
       address,
       sort: 'desc',
     },
   });
-  const userRecentTransactions = result.data.result
-    .filter(tx => {
-      return tx.from.toLowerCase() === input.address.toLowerCase();
-    })
-    .map(tx => {
-      // in this case we know it's a token transfer (smart contract call)
-      return {
-        hash: tx.hash,
-        nonce: Number(tx.nonce),
-      };
-    });
+  const userRecentTransactions = result.data.result.filter(tx => {
+    return tx.from.toLowerCase() === input.address.toLowerCase();
+  });
+
   return {
     userRecentTransactions,
-    isTransactionListEmpty: result.data.result.length === 0,
+    lastPage: result.data.result.length < offset,
   };
 }
 

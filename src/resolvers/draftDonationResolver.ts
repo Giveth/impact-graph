@@ -149,14 +149,13 @@ export class DraftDonationResolver {
         fromAddress = fromAddress?.toLowerCase();
       }
 
-      const donation = await DraftDonation.create({
+      const draftDonation = await DraftDonation.create({
         amount: Number(amount),
         networkId: _networkId,
         currency: token,
         userId: donorUser.id,
         tokenAddress,
         projectId,
-        createdAt: new Date(),
         toWalletAddress: toAddress,
         fromWalletAddress: fromAddress,
         anonymous: Boolean(anonymous),
@@ -164,9 +163,9 @@ export class DraftDonationResolver {
         referrerId,
       });
 
-      await donation.save();
+      await draftDonation.save();
 
-      return donation.id;
+      return draftDonation.id;
     } catch (e) {
       SentryLogger.captureException(e);
       logger.error('createDraftDonation() error', {

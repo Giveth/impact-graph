@@ -64,6 +64,7 @@ import {
   getAppropriateNetworkId,
   getDefaultSolanaChainId,
 } from '../services/chains';
+import { markDraftDonationStatusMatched } from '../repositories/draftDonationRepository';
 
 @ObjectType()
 class PaginateDonations {
@@ -808,6 +809,14 @@ export class DonationResolver {
         priceChainId,
         amount,
       );
+
+      await markDraftDonationStatusMatched({
+        fromWalletAddress: fromAddress,
+        toWalletAddress: toAddress,
+        currency: token,
+        amount: Number(amount),
+        networkId,
+      });
 
       return donation.id;
     } catch (e) {
