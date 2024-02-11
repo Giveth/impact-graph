@@ -17,6 +17,7 @@ export const DRAFT_DONATION_STATUS = {
 
 @Entity()
 @ObjectType()
+// To mark the draft donation as matched, when the donation is created in DonationResolver
 @Index(
   ['fromWalletAddress', 'toWalletAddress', 'networkId', 'amount', 'currency'],
   {
@@ -38,7 +39,7 @@ export class DraftDonation extends BaseEntity {
   // @Column({ nullable: true })
   // safeTransactionId?: string;
 
-  @Field()
+  @Field(type => String)
   @Column({
     type: 'enum',
     enum: ChainType,
@@ -85,6 +86,7 @@ export class DraftDonation extends BaseEntity {
 
   @Field()
   @Column({ nullable: true })
+  @Index({ where: `status = '${DRAFT_DONATION_STATUS.PENDING}'` })
   userId: number;
 
   @Index()
