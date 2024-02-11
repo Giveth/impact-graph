@@ -1,10 +1,18 @@
 import _ from 'lodash';
-import { DraftDonation } from '../../../entities/draftDonation';
+import {
+  DRAFT_DONATION_STATUS,
+  DraftDonation,
+} from '../../../entities/draftDonation';
 import { getNetworkNativeToken } from '../../../provider';
 import { getListOfTransactionsByAddress } from './transactionService';
 import { ethers } from 'ethers';
 import { closeTo } from '..';
 import { findTokenByNetworkAndAddress } from '../../../utils/tokenUtils';
+import { ITxInfo } from '../../../types/etherscan';
+import { DONATION_ORIGINS, Donation } from '../../../entities/donation';
+import { DonationResolver } from '../../../resolvers/donationResolver';
+import { ApolloContext } from '../../../types/ApolloContext';
+import { logger } from '../../../utils/logger';
 
 const transferErc20CallData = (to: string, amount: number, decimals = 18) => {
   const iface = new ethers.utils.Interface([
@@ -89,8 +97,7 @@ export async function matchDraftDonations(
                 if (!closeTo(+amount, draftDonation.amount)) {
                   continue;
                 }
-                // TODO: handle making transaction
-                // console.log(`Native transfer tx : ${transaction.hash} matched`);
+                await submitMatchedDraftDonation(draftDonation, transaction);
               } else {
                 // ERC20 transfer
                 let transferCallData = draftDonation.expectedCallData;
@@ -112,7 +119,7 @@ export async function matchDraftDonations(
                   continue;
                 }
 
-                // console.log(`ERC20 transfer tx : ${transaction.hash} matched`);
+                await submitMatchedDraftDonation(draftDonation, transaction);
               }
             }
           }
@@ -123,5 +130,74 @@ export async function matchDraftDonations(
         _page++;
       }
     }
+  }
+}
+
+async function submitMatchedDraftDonation(
+  draftDonation: DraftDonation,
+  tx: ITxInfo,
+) {
+  // Check whether a donation with same networkId and txHash already exists
+  const existingDonation = await Donation.findOne({
+    where: {
+      transactionNetworkId: draftDonation.networkId,
+      transactionId: tx.hash,
+    },
+  });
+
+  if (existingDonation) {
+    draftDonation.status = DRAFT_DONATION_STATUS.FAILED;
+    draftDonation.errorMessage = `Donation with same networkId and txHash with ID ${existingDonation.id} already exists`;
+    await draftDonation.save();
+    return;
+  }
+
+  const donationResolver = new DonationResolver();
+
+  const {
+    amount,
+    networkId,
+    tokenAddress,
+    anonymous,
+    currency,
+    projectId,
+    referrerId,
+  } = draftDonation;
+
+  try {
+    const donationId = await donationResolver.createDonation(
+      amount,
+      tx.hash,
+      networkId,
+      tokenAddress,
+      anonymous,
+      currency,
+      projectId,
+      +tx.nonce,
+      '',
+      {
+        req: { user: { userId: draftDonation.userId }, auth: {} },
+      } as ApolloContext,
+      referrerId,
+      '',
+    );
+
+    await Donation.update(Number(donationId), {
+      origin: DONATION_ORIGINS.DRAFT_DONATION_MATCHING,
+    });
+
+    logger.debug(
+      `Donation with ID ${donationId} has been created for draftDonation with ID ${draftDonation.id}`,
+    );
+    draftDonation.status = DRAFT_DONATION_STATUS.MATCHED;
+  } catch (e) {
+    logger.error(
+      `Error on creating donation for draftDonation with ID ${draftDonation.id}`,
+      e,
+    );
+    draftDonation.status = DRAFT_DONATION_STATUS.FAILED;
+    draftDonation.errorMessage = e.message;
+  } finally {
+    await draftDonation.save();
   }
 }

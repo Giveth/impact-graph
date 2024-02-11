@@ -12,6 +12,7 @@ import { ChainType } from '../types/network';
 export const DRAFT_DONATION_STATUS = {
   PENDING: 'pending',
   MATCHED: 'matched',
+  FAILED: 'failed',
 };
 
 @Entity()
@@ -51,6 +52,7 @@ export class DraftDonation extends BaseEntity {
     enum: DRAFT_DONATION_STATUS,
     default: DRAFT_DONATION_STATUS.PENDING,
   })
+  @Index({ where: `status = '${DRAFT_DONATION_STATUS.PENDING}'` })
   status: string;
 
   @Field()
@@ -59,12 +61,11 @@ export class DraftDonation extends BaseEntity {
 
   @Field()
   @Column()
-  @Index()
   fromWalletAddress: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
-  tokenAddress?: string;
+  tokenAddress: string;
 
   @Field()
   @Column()
@@ -100,4 +101,8 @@ export class DraftDonation extends BaseEntity {
   @Field(type => String, { nullable: true })
   @Column({ nullable: true })
   expectedCallData?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  errorMessage?: string;
 }
