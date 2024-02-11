@@ -23,6 +23,7 @@ export interface NotificationAdapterInterface {
   donationReceived(params: {
     donation: Donation;
     project: Project;
+    user: User | null;
   }): Promise<void>;
 
   donationSent(params: {
