@@ -41,11 +41,10 @@ export class AddDraftDonationTable1707738577647 implements MigrationInterface {
                 TABLESPACE pg_default
                 WHERE status = 'pending'::draft_donation_status_enum;
 
-            CREATE INDEX IF NOT EXISTS "IDX_d99d3f96b27063950d0e601fb7"
+            CREATE INDEX IF NOT EXISTS "IDX_029453ee31e092317f7f96ee3b"
                 ON public.draft_donation USING btree
                 ("createdAt" ASC NULLS LAST)
-                TABLESPACE pg_default
-                WHERE status = 'pending'::draft_donation_status_enum;
+                TABLESPACE pg_default;
 
             CREATE INDEX IF NOT EXISTS "IDX_ff4b8666a0090d059f00c59216"
                 ON public.draft_donation USING btree

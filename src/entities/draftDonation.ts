@@ -89,7 +89,7 @@ export class DraftDonation extends BaseEntity {
   @Index({ where: `status = '${DRAFT_DONATION_STATUS.PENDING}'` })
   userId: number;
 
-  @Index({ where: `status = '${DRAFT_DONATION_STATUS.PENDING}'` })
+  @Index()
   @Field(type => Date)
   @CreateDateColumn()
   createdAt: Date;

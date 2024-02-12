@@ -34,11 +34,17 @@ export async function markDraftDonationStatusMatched(params: {
 }
 
 export async function delecteExpiredDraftDonations(hours: number) {
-  const expiredTime = new Date(Date.now() - hours * 60 * 60 * 1000);
+  try {
+    const expiredTime = new Date(Date.now() - hours * 60 * 60 * 1000);
 
-  // donation is expired if it'screated before expiredTime
-  await DraftDonation.createQueryBuilder()
-    .delete()
-    .where('createdAt < :expiredTime', { expiredTime })
-    .execute();
+    // donation is expired if it'screated before expiredTime
+    const result = await DraftDonation.createQueryBuilder()
+      .delete()
+      .where('createdAt < :expiredTime', { expiredTime })
+      .execute();
+
+    logger.debug(`Expired draft donations removed: ${result.affected}`);
+  } catch (e) {
+    logger.error(`Error in removing expired draft donations, ${e.message}`);
+  }
 }

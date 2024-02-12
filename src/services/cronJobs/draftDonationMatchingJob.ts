@@ -6,6 +6,7 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../../entities/draftDonation';
+import { delecteExpiredDraftDonations } from '../../repositories/draftDonationRepository';
 
 const cronJobTime =
   (config.get('MATCH_DRAFT_DONATION_CRONJOB_EXPRESSION') as string) ||
@@ -20,7 +21,13 @@ const TWO_MINUTES = 1000 * 60 * 2;
 export const runDraftDonationMatchWorkerJob = () => {
   logger.debug('runDraftDonationMatchWorkerJob', cronJobTime);
 
-  schedule(cronJobTime, () => runDraftDonationMatchWorker());
+  schedule(cronJobTime, async () => {
+    const hours = Number(
+      process.env.DRAFT_DONATION_MATCH_EXPIRATION_HOURS || 48,
+    );
+    await delecteExpiredDraftDonations(hours);
+    await runDraftDonationMatchWorker();
+  });
 
   setInterval(async () => {
     const count = await DraftDonation.countBy({
