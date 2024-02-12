@@ -333,21 +333,38 @@ export class ProjectResolver {
     searchTerm?: string,
   ) {
     if (!searchTerm) return query;
+    const SIMILARITY_THRESHOLD = 0.4;
 
     return query.andWhere(
       new Brackets(qb => {
-        qb.where('project.title ILIKE :searchTerm', {
-          searchTerm: `%${searchTerm}%`,
-        })
-          .orWhere('project.description ILIKE :searchTerm', {
+        qb.where(
+          'SIMILARITY(project.title, :searchTerm) > :similarityThreshold',
+          {
             searchTerm: `%${searchTerm}%`,
-          })
-          .orWhere('project.impactLocation ILIKE :searchTerm', {
-            searchTerm: `%${searchTerm}%`,
-          })
-          .orWhere('user.name ILIKE :searchTerm', {
-            searchTerm: `%${searchTerm}%`,
-          });
+            similarityThreshold: SIMILARITY_THRESHOLD,
+          },
+        )
+          .orWhere(
+            'SIMILARITY(project.description, :searchTerm) > :similarityThreshold',
+            {
+              searchTerm: `%${searchTerm}%`,
+              similarityThreshold: SIMILARITY_THRESHOLD,
+            },
+          )
+          .orWhere(
+            'SIMILARITY(project.impactLocation, :searchTerm) > :similarityThreshold',
+            {
+              searchTerm: `%${searchTerm}%`,
+              similarityThreshold: SIMILARITY_THRESHOLD,
+            },
+          )
+          .orWhere(
+            'SIMILARITY(user.name, :searchTerm) > :similarityThreshold',
+            {
+              searchTerm: `%${searchTerm}%`,
+              similarityThreshold: SIMILARITY_THRESHOLD,
+            },
+          );
       }),
     );
   }
