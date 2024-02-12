@@ -66,7 +66,7 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true })
   safeTransactionId?: string;
 
-  @Field()
+  @Field(type => String)
   @Column({
     type: 'enum',
     enum: ChainType,
