@@ -24,7 +24,21 @@ export class AddDraftDonationTable1707738577647 implements MigrationInterface {
 
 		ALTER TYPE public.draft_donation_status_enum
 		    OWNER TO postgres;
-    END$$;`);
+    END$$;
+    `);
+
+    await queryRunner.query(`
+        CREATE SEQUENCE IF NOT EXISTS public.draft_donation_id_seq
+        INCREMENT 1
+        START 1
+        MINVALUE 1
+        MAXVALUE 2147483647
+        CACHE 1
+        OWNED BY draft_donation.id;
+
+        ALTER SEQUENCE public.draft_donation_id_seq
+        OWNER TO postgres;
+    `);
 
     await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS public.draft_donation
