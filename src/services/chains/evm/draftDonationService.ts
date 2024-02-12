@@ -222,7 +222,7 @@ export async function runDraftDonationMatchWorker() {
     pool = Pool(
       () => spawn(new Worker('./../../../workers/draftDonationMatchWorker')),
       {
-        name: 'raftDonationMatchWorker',
+        name: 'draftDonationMatchWorker',
         concurrency: 4,
         size: 2,
       },
