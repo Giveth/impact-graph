@@ -3,6 +3,30 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class AddDraftDonationTable1707738577647 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'draft_donation_chaintype_enum') THEN
+            CREATE TYPE public.draft_donation_chaintype_enum AS ENUM
+            ('EVM', 'SOLANA');
+        END IF;
+
+        ALTER TYPE public.draft_donation_chaintype_enum
+        OWNER TO postgres;
+    END$$;`);
+
+    await queryRunner.query(`
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'draft_donation_status_enum') THEN
+			CREATE TYPE public.draft_donation_status_enum AS ENUM
+    			('pending', 'matched', 'failed');
+ 		END IF;
+
+		ALTER TYPE public.draft_donation_status_enum
+		    OWNER TO postgres;
+    END$$;`);
+
+    await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS public.draft_donation
             (
                 id integer NOT NULL DEFAULT nextval('draft_donation_id_seq'::regclass),
