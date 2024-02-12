@@ -13,6 +13,8 @@ import { DONATION_ORIGINS, Donation } from '../../../entities/donation';
 import { DonationResolver } from '../../../resolvers/donationResolver';
 import { ApolloContext } from '../../../types/ApolloContext';
 import { logger } from '../../../utils/logger';
+import { ModuleThread, Pool, spawn, Worker } from 'threads';
+import { DraftDonationWorker } from '../../../workers/draftDonationMatchWorker';
 
 const transferErc20CallData = (to: string, amount: number, decimals = 18) => {
   const iface = new ethers.utils.Interface([
@@ -51,12 +53,11 @@ export async function matchDraftDonations(
             ? draftDonation.toWalletAddress
             : draftDonation.tokenAddress!;
 
-        if (!targetTxAddrToDraftDonationMap.has(targetAddress)) {
+        const _array = targetTxAddrToDraftDonationMap.get(targetAddress);
+        if (!_array) {
           targetTxAddrToDraftDonationMap.set(targetAddress, [draftDonation]);
         } else {
-          targetTxAddrToDraftDonationMap
-            .get(targetAddress)!
-            .push(draftDonation);
+          _array.push(draftDonation);
         }
 
         if (draftDonation.createdAt.getTime() < minCreatedAt) {
@@ -111,8 +112,10 @@ export async function matchDraftDonations(
                     draftDonation.amount,
                     token.decimals,
                   );
+                  await DraftDonation.update(draftDonation.id, {
+                    expectedCallData: transferCallData,
+                  });
                   draftDonation.expectedCallData = transferCallData;
-                  await draftDonation.save();
                 }
 
                 if (transaction.input.toLowerCase() !== transferCallData) {
@@ -146,9 +149,13 @@ async function submitMatchedDraftDonation(
   });
 
   if (existingDonation) {
-    draftDonation.status = DRAFT_DONATION_STATUS.FAILED;
-    draftDonation.errorMessage = `Donation with same networkId and txHash with ID ${existingDonation.id} already exists`;
-    await draftDonation.save();
+    // Check whether the donation has not been saved during matching procedure
+    await draftDonation.reload();
+    if (draftDonation.status === DRAFT_DONATION_STATUS.PENDING) {
+      draftDonation.status = DRAFT_DONATION_STATUS.FAILED;
+      draftDonation.errorMessage = `Donation with same networkId and txHash with ID ${existingDonation.id} already exists`;
+      await draftDonation.save();
+    }
     return;
   }
 
@@ -199,5 +206,36 @@ async function submitMatchedDraftDonation(
     draftDonation.errorMessage = e.message;
   } finally {
     await draftDonation.save();
+  }
+}
+
+let workerIsIdle = true;
+let pool: Pool<ModuleThread<DraftDonationWorker>>;
+export async function runDraftDonationMatchWorker() {
+  if (!workerIsIdle) {
+    logger.debug('Draft donation matching worker is already running');
+    return;
+  }
+  workerIsIdle = false;
+
+  if (!pool) {
+    pool = Pool(
+      () => spawn(new Worker('./../../../workers/draftDonationMatchWorker')),
+      {
+        name: 'raftDonationMatchWorker',
+        concurrency: 4,
+        size: 2,
+      },
+    );
+  }
+  try {
+    await pool.queue(draftDonationWorker =>
+      draftDonationWorker.matchDraftDonations(),
+    );
+    await pool.settled(true);
+  } catch (e) {
+    logger.error(`error in calling draft match worker: ${e.message}`);
+  } finally {
+    workerIsIdle = true;
   }
 }

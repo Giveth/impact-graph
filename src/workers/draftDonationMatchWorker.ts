@@ -6,22 +6,19 @@ import {
 } from '../entities/draftDonation';
 import { matchDraftDonations } from '../services/chains/evm/draftDonationService';
 import { logger } from '../utils/logger';
-// import { expose } from 'threads';
+import { AppDataSource } from '../orm';
 
 type DraftDonationWorkerFunctions = 'matchDraftDonations';
 
 export type DraftDonationWorker = WorkerModule<DraftDonationWorkerFunctions>;
 
-let isIdle = true;
 const TAKE_USER = 100;
 const TAKE_DRAFT_DONATION = 1000;
 
 const worker: DraftDonationWorker = {
   async matchDraftDonations() {
-    if (!isIdle) {
-      logger.warn('Draft donation matching worker is already running');
-      return;
-    }
+    await AppDataSource.initialize(false);
+    // const dataSource = await AppDataSource.getDataSource();
     try {
       let userIdSkip = 0;
       while (true) {
@@ -36,6 +33,7 @@ const worker: DraftDonationWorker = {
           .getRawMany();
         for (const { userId } of userIds) {
           let draftDonationSkip = 0;
+          logger.debug('match draft donation of user: ', userId);
           const draftDonations = await DraftDonation.find({
             where: {
               userId,
@@ -45,7 +43,12 @@ const worker: DraftDonationWorker = {
             take: TAKE_DRAFT_DONATION,
             skip: draftDonationSkip,
           });
-          await matchDraftDonations({ [userId]: draftDonations });
+
+          if (draftDonations.length === 0) continue;
+
+          await matchDraftDonations({
+            [draftDonations[0].fromWalletAddress]: draftDonations,
+          });
           if (draftDonations.length < TAKE_DRAFT_DONATION) {
             break;
           } else {
@@ -59,8 +62,6 @@ const worker: DraftDonationWorker = {
       }
     } catch (e) {
       logger.error('Error in matchDraftDonations worker', e);
-    } finally {
-      isIdle = true;
     }
   },
 };

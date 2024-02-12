@@ -21,6 +21,8 @@ import { ChainType } from '../types/network';
 import { getAppropriateNetworkId } from '../services/chains';
 import { DraftDonation } from '../entities/draftDonation';
 
+const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
+
 @Resolver(of => User)
 export class DraftDonationResolver {
   private readonly donationRepository: Repository<DraftDonation>;
@@ -52,9 +54,14 @@ export class DraftDonationResolver {
       userId: ctx?.req?.user?.userId,
     };
     logger.debug(
-      'createDonation() resolver has been called with this data',
+      'createDraftDonation() resolver has been called with this data',
       logData,
     );
+    if (!draftDonationEnabled) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.DRAFT_DONATION_DISABLED),
+      );
+    }
     try {
       const userId = ctx?.req?.user?.userId;
       const donorUser = await findUserById(userId);

@@ -24,7 +24,17 @@ describe('draftDonationMatching', draftDonationMatchingTests);
 
 const RandomAddress1 = '0xf3ddeb5022a6f06b61488b48c90315087ca2beef';
 const RandomAddress2 = '0xc42a4791735ae1253c50c6226832e37ede3669f5';
-const draftSaveTimeStampMS = 1707567300 * 1000;
+
+// Native Token Donation Tx exact Time 1707567330
+// 0x0643e7008a76feb3c4aa4d127360982eb130163da57cbd9f11e8ce9d5ef828c0
+const nativeDonationDraftSaveTime = 1707567300 * 1000;
+// Erc20 Donation Tx exact Time 1707567455
+// 0x6fb99692292673e24523d832ac805c4438aa23b753e105ce673bc9ceb96d20d2
+const erc20DonationDraftSaveTime = 1707567400 * 1000; // a point of time between two transactions
+const draftSaveTimeStampMS = Math.min(
+  nativeDonationDraftSaveTime,
+  erc20DonationDraftSaveTime,
+);
 const networkId = NETWORK_IDS.XDAI;
 const anonymous = false;
 
@@ -189,5 +199,47 @@ function draftDonationMatchingTests() {
     await draftDonation.reload();
 
     expect(draftDonation.status).to.equal(DRAFT_DONATION_STATUS.FAILED);
+  });
+
+  it('should not try to match transaction older than minimum created at', async () => {
+    const draftDonation1 = await DraftDonation.create({
+      ...erc20DonationData,
+      createdAt: new Date(),
+    }).save();
+    const draftDonation2 = await DraftDonation.create({
+      ...nativeTokenDonationData,
+      createdAt: new Date(erc20DonationDraftSaveTime),
+    }).save();
+
+    await matchDraftDonations({
+      [RandomAddress1]: [draftDonation1, draftDonation2],
+    });
+
+    const erc20Donation = await Donation.findOne({
+      where: {
+        userId: user.id,
+        tokenAddress: erc20DonationData.tokenAddress,
+        amount: erc20DonationData.amount,
+        currency: erc20DonationData.currency,
+        projectId: project.id,
+        anonymous,
+        transactionNetworkId: networkId,
+      },
+    });
+
+    const donation2 = await Donation.findOne({
+      where: {
+        userId: user.id,
+        tokenAddress: nativeTokenDonationData.tokenAddress,
+        amount: nativeTokenDonationData.amount,
+        currency: nativeTokenDonationData.currency,
+        projectId: project.id,
+        anonymous,
+        transactionNetworkId: networkId,
+      },
+    });
+
+    expect(erc20Donation).to.be.ok;
+    expect(donation2).to.not.be.ok;
   });
 }
