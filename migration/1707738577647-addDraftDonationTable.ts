@@ -30,7 +30,7 @@ export class AddDraftDonationTable1707738577647 implements MigrationInterface {
     await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS public.draft_donation
             (
-                id integer NOT NULL DEFAULT nextval('draft_donation_id_seq'::regclass),
+                "id" SERIAL NOT NULL,
                 "networkId" integer NOT NULL,
                 "chainType" draft_donation_chaintype_enum NOT NULL DEFAULT 'EVM'::draft_donation_chaintype_enum,
                 status draft_donation_status_enum NOT NULL DEFAULT 'pending'::draft_donation_status_enum,
@@ -77,19 +77,6 @@ export class AddDraftDonationTable1707738577647 implements MigrationInterface {
                 TABLESPACE pg_default
                 WHERE status = 'pending'::draft_donation_status_enum;
         `);
-
-    await queryRunner.query(`
-        CREATE SEQUENCE IF NOT EXISTS public.draft_donation_id_seq
-        INCREMENT 1
-        START 1
-        MINVALUE 1
-        MAXVALUE 2147483647
-        CACHE 1
-        OWNED BY draft_donation.id;
-
-        ALTER SEQUENCE public.draft_donation_id_seq
-        OWNER TO postgres;
-    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {}
