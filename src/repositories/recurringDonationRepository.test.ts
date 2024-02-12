@@ -41,6 +41,9 @@ function createNewRecurringDonationTestCases() {
       networkId: NETWORK_IDS.OPTIMISTIC,
       donor: creator,
       anchorContractAddress,
+      amount: 100,
+      currency: 'USD',
+      interval: 'monthly',
       project,
     });
 
