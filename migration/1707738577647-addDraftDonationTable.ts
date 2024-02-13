@@ -9,9 +9,6 @@ export class AddDraftDonationTable1707738577647 implements MigrationInterface {
             CREATE TYPE public.draft_donation_chaintype_enum AS ENUM
             ('EVM', 'SOLANA');
         END IF;
-
-        ALTER TYPE public.draft_donation_chaintype_enum
-        OWNER TO postgres;
     END$$;`);
 
     await queryRunner.query(`
@@ -21,9 +18,6 @@ export class AddDraftDonationTable1707738577647 implements MigrationInterface {
 			CREATE TYPE public.draft_donation_status_enum AS ENUM
     			('pending', 'matched', 'failed');
  		END IF;
-
-		ALTER TYPE public.draft_donation_status_enum
-		    OWNER TO postgres;
     END$$;
     `);
 
@@ -50,9 +44,6 @@ export class AddDraftDonationTable1707738577647 implements MigrationInterface {
             )
 
             TABLESPACE pg_default;
-
-            ALTER TABLE IF EXISTS public.draft_donation
-                OWNER to postgres;
 
             CREATE INDEX IF NOT EXISTS "IDX_287bf9818fca5b436122847223"
                 ON public.draft_donation USING btree
