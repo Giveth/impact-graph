@@ -20,12 +20,26 @@ import { findActiveAnchorAddress } from '../repositories/anchorContractAddressRe
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
 import { RecurringDonation } from '../entities/recurringDonation';
-import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
+import {
+  createNewRecurringDonation,
+  findRecurringDonationById,
+} from '../repositories/recurringDonationRepository';
 import { publicSelectionFields } from '../entities/user';
 import { Brackets } from 'typeorm';
 import { detectAddressChainType } from '../utils/networks';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
+import { Donation, DONATION_STATUS } from '../entities/donation';
+import { findDonationById } from '../repositories/donationRepository';
+import { logger } from '../utils/logger';
+import {
+  updateDonationQueryValidator,
+  validateWithJoiSchema,
+} from '../utils/validators/graphqlQueryValidators';
+import { sleep } from '../utils/utils';
+import { syncDonationStatusWithBlockchainNetwork } from '../services/donationService';
+import SentryLogger from '../sentryLogger';
+import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
 
 @InputType()
 class RecurringDonationSortBy {
@@ -94,10 +108,13 @@ class UserRecurringDonationsArgs {
   userId: number;
   @Field(type => String, { nullable: true })
   status: string;
+
+  @Field(type => Boolean, { nullable: true, defaultValue: false })
+  finished: boolean;
 }
 
 @ObjectType()
-class UserDonations {
+class UserRecurringDonations {
   @Field(type => [RecurringDonation])
   recurringDonations: RecurringDonation[];
 
@@ -242,5 +259,136 @@ export class RecurringDonationResolver {
       recurringDonations,
       totalCount: donationsCount,
     };
+  }
+
+  @Query(returns => UserRecurringDonations, { nullable: true })
+  async recurringDonationsByUserId(
+    @Args()
+    {
+      take,
+      skip,
+      orderBy,
+      userId,
+      status,
+      finished,
+    }: UserRecurringDonationsArgs,
+    @Ctx() ctx: ApolloContext,
+  ) {
+    const loggedInUserId = ctx?.req?.user?.userId;
+    const query = RecurringDonation.createQueryBuilder('recurringDonation')
+      .leftJoinAndSelect('recurringDonation.project', 'project')
+      .leftJoin('recurringDonation.donor', 'donor')
+      .addSelect([
+        'donor.id',
+        'donor.walletAddress',
+        'donor.name',
+        'donor.firstName',
+        'donor.lastName',
+        'donor.url',
+        'donor.avatar',
+        'donor.totalDonated',
+        'donor.totalReceived',
+        'donor.passportScore',
+        'donor.passportStamps',
+      ])
+      .where(`recurringDonation.donorId = ${userId}`)
+      .orderBy(
+        `recurringDonation.${orderBy.field}`,
+        orderBy.direction,
+        RecurringDonationNullDirection[orderBy.direction as string],
+      );
+    if (!loggedInUserId || loggedInUserId !== userId) {
+      query.andWhere(`recurringDonation.anonymous = ${false}`);
+    }
+
+    if (status) {
+      query.andWhere(`donation.status = :status`, {
+        status,
+      });
+    }
+
+    const [recurringDonations, totalCount] = await query
+      .take(take)
+      .skip(skip)
+      .getManyAndCount();
+    return {
+      recurringDonations,
+      totalCount,
+    };
+  }
+
+  @Mutation(returns => RecurringDonation)
+  async updateRecurringDonationStatus(
+    @Arg('donationId') donationId: number,
+    @Arg('status', { nullable: true }) status: string,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<RecurringDonation> {
+    // TODO We should write more test cases once we implement updateRecurringDonationStatusWithNetwork
+
+    try {
+      const userId = ctx?.req?.user?.userId;
+      if (!userId) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+      }
+      const recurringDonation = await findRecurringDonationById(donationId);
+      if (!recurringDonation) {
+        throw new Error(
+          i18n.__(translationErrorMessagesKeys.DONATION_NOT_FOUND),
+        );
+      }
+      if (recurringDonation.donorId !== userId) {
+        logger.error(
+          'updateRecurringDonationStatus error because requester is not owner of recurringDonation',
+          {
+            user: ctx?.req?.user,
+            donationInfo: {
+              id: donationId,
+              userId: recurringDonation.donorId,
+              status: recurringDonation.status,
+              txHash: recurringDonation.txHash,
+            },
+          },
+        );
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.YOU_ARE_NOT_OWNER_OF_THIS_DONATION,
+          ),
+        );
+      }
+      validateWithJoiSchema(
+        {
+          status,
+          donationId,
+        },
+        updateDonationQueryValidator,
+      );
+      if (recurringDonation.status === DONATION_STATUS.VERIFIED) {
+        return recurringDonation;
+      }
+
+      // Sometimes web3 provider doesnt return transactions right after it get mined
+      //  so I put a delay , it might solve our problem
+      await sleep(10_000);
+
+      const updatedRecurringDonation =
+        await updateRecurringDonationStatusWithNetwork({
+          donationId,
+        });
+
+      if (
+        updatedRecurringDonation.status === DONATION_STATUS.PENDING &&
+        status === DONATION_STATUS.FAILED
+      ) {
+        // We just update status of donation with tx status in blockchain network
+        // but if user send failed status, and there were nothing in network we change it to failed
+        updatedRecurringDonation.status = DONATION_STATUS.FAILED;
+        await updatedRecurringDonation.save();
+      }
+      return updatedRecurringDonation;
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('updateRecurringDonationStatus() error', e);
+      throw e;
+    }
   }
 }
