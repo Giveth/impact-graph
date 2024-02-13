@@ -32,6 +32,9 @@ export async function matchDraftDonations(
   for (const user of Object.keys(userDraftDonationsMap)) {
     // group by networkId
     const userDraftDonations = userDraftDonationsMap[user];
+    logger.debug(
+      `Match ${userDraftDonations.length} draft donations for ${user}`,
+    );
     const userDraftDonationsByNetwork: Record<number, DraftDonation[]> =
       _.groupBy(userDraftDonations, 'networkId');
 
@@ -172,6 +175,9 @@ async function submitMatchedDraftDonation(
   } = draftDonation;
 
   try {
+    logger.debug(
+      `Creating donation for draftDonation with ID ${draftDonation.id}`,
+    );
     const donationId = await donationResolver.createDonation(
       amount,
       tx.hash,

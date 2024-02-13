@@ -33,26 +33,29 @@ const worker: DraftDonationWorker = {
           .getRawMany();
         for (const { userId } of userIds) {
           let draftDonationSkip = 0;
+
           logger.debug('match draft donation of user: ', userId);
-          const draftDonations = await DraftDonation.find({
-            where: {
-              userId,
-              status: DRAFT_DONATION_STATUS.PENDING,
-            },
-            order: { networkId: 'ASC' },
-            take: TAKE_DRAFT_DONATION,
-            skip: draftDonationSkip,
-          });
+          while (true) {
+            const draftDonations = await DraftDonation.find({
+              where: {
+                userId,
+                status: DRAFT_DONATION_STATUS.PENDING,
+              },
+              order: { networkId: 'ASC' },
+              take: TAKE_DRAFT_DONATION,
+              skip: draftDonationSkip,
+            });
 
-          if (draftDonations.length === 0) continue;
+            if (draftDonations.length === 0) break;
 
-          await matchDraftDonations({
-            [draftDonations[0].fromWalletAddress]: draftDonations,
-          });
-          if (draftDonations.length < TAKE_DRAFT_DONATION) {
-            break;
-          } else {
-            draftDonationSkip += draftDonations.length;
+            await matchDraftDonations({
+              [draftDonations[0].fromWalletAddress]: draftDonations,
+            });
+            if (draftDonations.length < TAKE_DRAFT_DONATION) {
+              break;
+            } else {
+              draftDonationSkip += draftDonations.length;
+            }
           }
         }
         if (userIds.length < TAKE_USER) {
