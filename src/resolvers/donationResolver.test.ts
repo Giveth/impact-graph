@@ -58,6 +58,10 @@ import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSn
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
 import { getDefaultSolanaChainId } from '../services/chains';
+import {
+  DRAFT_DONATION_STATUS,
+  DraftDonation,
+} from '../entities/draftDonation';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -2516,6 +2520,57 @@ function createDonationTestCases() {
       saveDonationResponse.data.errors[0].message,
       errorMessages.INVALID_TOKEN_ADDRESS,
     );
+  });
+
+  it('should mark draft donation as matched after donation creation', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await User.create({
+      walletAddress: generateRandomEtheriumAddress(),
+      loginType: 'wallet',
+      firstName: 'first name',
+    }).save();
+
+    // clear all draft donations
+    await DraftDonation.clear();
+    // create draft donation
+    const draftDonation = await DraftDonation.create({
+      projectId: project.id,
+      fromWalletAddress: user.walletAddress,
+      toWalletAddress: project.walletAddress,
+      networkId: NETWORK_IDS.MAIN_NET,
+      amount: 10,
+      currency: 'GIV',
+      status: DRAFT_DONATION_STATUS.PENDING,
+    }).save();
+
+    const accessToken = await generateTestAccessToken(user.id);
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDonationMutation,
+        variables: {
+          projectId: project.id,
+          transactionNetworkId: NETWORK_IDS.MAIN_NET,
+          transactionId: generateRandomEvmTxHash(),
+          anonymous: false,
+          nonce: 3,
+          amount: 10,
+          token: 'GIV',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDonation);
+    const updatedDraftDonation = await DraftDonation.findOne({
+      where: {
+        id: draftDonation.id,
+      },
+    });
+    assert.equal(updatedDraftDonation?.status, DRAFT_DONATION_STATUS.MATCHED);
   });
 }
 

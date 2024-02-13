@@ -742,6 +742,7 @@ export class ProjectResolver {
 
     const projectsQuery = filterProjectsQuery(filterQueryParams);
 
+    projectsFiltersThreadPool.completed();
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
       hasher =>
         hasher.hashProjectFilters({

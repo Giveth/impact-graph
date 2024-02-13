@@ -49,7 +49,7 @@ export function validateTransactionWithInputData(
       ),
     );
   }
-  if (Math.abs(transaction.amount - input.amount) > 0.001) {
+  if (!closeTo(transaction.amount, input.amount)) {
     // We ignore small conflicts but for bigger amount we throw exception https://github.com/Giveth/impact-graph/issues/289
     throw new Error(
       i18n.__(
@@ -99,3 +99,8 @@ export function getAppropriateNetworkId(params: {
     ? getDefaultSolanaChainId()
     : params.networkId;
 }
+
+// This function is used to compare two numbers with a delta as a margin of error
+export const closeTo = (a: number, b: number, delta = 0.001) => {
+  return a / b < 1 + delta && a / b > 1 - delta;
+};

@@ -22,8 +22,9 @@ export const DONATION_STATUS = {
   FAILED: 'failed',
 };
 
-export const DONATION_EXTERNAL_SOURCES = {
+export const DONATION_ORIGINS = {
   IDRISS_TWITTER: 'Idriss',
+  DRAFT_DONATION_MATCHING: 'DraftDonationMatching',
 };
 
 export const DONATION_TYPES = {

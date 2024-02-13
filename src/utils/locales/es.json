@@ -102,5 +102,6 @@
   "ERROR_GIV_POWER_BOOSTING_SUM_IS_GREATER_THAN_MAXIMUM": "La suma de aumento de potencia de Giv es mayor que 100",
   "ERROR_GIVPOWER_BOOSTING_MAX_PROJECT_LIMIT": "Número de proyectos impulsados excede el límite",
   "REGISTERED_NON_PROFITS_CATEGORY_DOESNT_EXIST": "No hay ninguna categoría con nombre registrado-sin fines de lucro, probablemente se olvidó de ejecutar las migraciones",
-  "PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED": "El contenido es demasiado largo"
+  "PROJECT_UPDATE_CONTENT_LENGTH_SIZE_EXCEEDED": "El contenido es demasiado largo",
+  "DRAFT_DONATION_DISABLED": "El borrador de donación está deshabilitado"
 }
