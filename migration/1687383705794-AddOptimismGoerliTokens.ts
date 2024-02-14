@@ -18,8 +18,12 @@ export class AddOptimismGoerliTokens1687383705794
       Token,
       seedTokens
         .filter(token => token.networkId === NETWORK_IDS.OPTIMISM_GOERLI)
-        .map(t => {
+        .map(token => {
+          const t = {
+            ...token,
+          };
           t.address = t.address?.toLowerCase();
+          delete t.chainType;
           return t;
         }),
     );
