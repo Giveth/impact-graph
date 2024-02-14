@@ -6,6 +6,7 @@ import { logger } from '../utils/logger';
 
 // mark donation status matched based on fromWalletAddress, toWalletAddress, networkId, tokenAddress and amount
 export async function markDraftDonationStatusMatched(params: {
+  matchedDonationId: number;
   fromWalletAddress: string;
   toWalletAddress: string;
   networkId: number;
@@ -13,8 +14,14 @@ export async function markDraftDonationStatusMatched(params: {
   amount: number;
 }): Promise<void> {
   try {
-    const { fromWalletAddress, toWalletAddress, networkId, currency, amount } =
-      params;
+    const {
+      fromWalletAddress,
+      toWalletAddress,
+      networkId,
+      currency,
+      amount,
+      matchedDonationId,
+    } = params;
     await DraftDonation.update(
       {
         fromWalletAddress,
@@ -24,7 +31,10 @@ export async function markDraftDonationStatusMatched(params: {
         amount,
         status: DRAFT_DONATION_STATUS.PENDING,
       },
-      { status: DRAFT_DONATION_STATUS.MATCHED },
+      {
+        status: DRAFT_DONATION_STATUS.MATCHED,
+        matchedDonationId,
+      },
     );
   } catch (e) {
     logger.error(
