@@ -1,6 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { Token } from '../src/entities/token';
 import seedTokens from './data/seedTokens';
+import { ChainType } from '../src/types/network';
 
 // tslint:disable-next-line:class-name
 export class seedTokes1646303882607 implements MigrationInterface {
@@ -14,8 +15,10 @@ export class seedTokes1646303882607 implements MigrationInterface {
       seedTokens
         // We add goerli tokens in addGoerliTokens migration file
         .filter(token => token.networkId !== 5)
+        .filter(token => !token.chainType || token.chainType === ChainType.EVM)
         .map(t => {
           t.address = t.address?.toLowerCase();
+          delete t.chainType;
           return t;
         }),
     );
