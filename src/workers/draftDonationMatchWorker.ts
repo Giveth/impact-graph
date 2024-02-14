@@ -27,6 +27,10 @@ const worker: DraftDonationWorker = {
           .where('draftDonation.status = :status', {
             status: DRAFT_DONATION_STATUS.PENDING,
           })
+          // has not been created in last minute
+          .andWhere('draftDonation.createdAt < :createdAt', {
+            createdAt: new Date(Date.now() - 60 * 1000),
+          })
           .orderBy('draftDonation.userId')
           .skip(userIdSkip)
           .take(TAKE_USER)

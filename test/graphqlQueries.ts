@@ -35,6 +35,7 @@ export const createDraftDonationMutation = `
     $token: String!
     $projectId: Float!
     $tokenAddress: String
+    $toAddress: String
     $anonymous: Boolean
     $referrerId: String
     $safeTransactionId: String
@@ -45,6 +46,7 @@ export const createDraftDonationMutation = `
       token: $token
       projectId: $projectId
       tokenAddress: $tokenAddress
+      toAddress: $toAddress
       anonymous: $anonymous
       referrerId: $referrerId
       safeTransactionId: $safeTransactionId
