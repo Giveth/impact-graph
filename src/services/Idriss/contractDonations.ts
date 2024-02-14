@@ -5,7 +5,7 @@ import {
   getLatestBlockNumberFromDonations,
   isTransactionHashStored,
 } from '../../repositories/donationRepository';
-import { DONATION_EXTERNAL_SOURCES, Donation } from '../../entities/donation';
+import { DONATION_ORIGINS, Donation } from '../../entities/donation';
 import {
   findProjectByWalletAddress,
   findProjectByWalletAddressAndNetwork,
@@ -220,7 +220,7 @@ export const createIdrissTwitterDonation = async (
       project,
       status: 'verified',
       blockNumber: idrissDonation.blockNumber,
-      origin: DONATION_EXTERNAL_SOURCES.IDRISS_TWITTER,
+      origin: DONATION_ORIGINS.IDRISS_TWITTER,
       isTokenEligibleForGivback,
       isCustomToken: false,
       isProjectVerified: project.verified,

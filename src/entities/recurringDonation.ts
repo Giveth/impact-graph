@@ -31,13 +31,32 @@ export class RecurringDonation extends BaseEntity {
   readonly id: number;
 
   @Field()
-  @Column()
+  @Column({ nullable: false })
   networkId: number;
+
+  @Field()
+  @Column({ nullable: false })
+  amount: number;
+
+  // daily, weekly, monthly, yearly
+  @Field()
+  @Column({ nullable: false })
+  interval: string;
 
   @Index()
   @Field()
-  @Column()
+  @Column({ nullable: false })
   txHash: string;
+
+  @Index()
+  @Field()
+  @Column({ nullable: false })
+  currency: string;
+
+  @Index()
+  @Field()
+  @Column({ nullable: false, default: 'pending' })
+  status: string;
 
   @Index()
   @Field(type => Project)
@@ -50,8 +69,13 @@ export class RecurringDonation extends BaseEntity {
   @Column({ nullable: true })
   projectId: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: false })
+  @Field({ nullable: true })
   finished: boolean;
+
+  @Column({ nullable: true, default: false })
+  @Field({ nullable: true })
+  anonymous: boolean;
 
   @Index()
   @Field(type => AnchorContractAddress)
@@ -74,17 +98,11 @@ export class RecurringDonation extends BaseEntity {
   @Column({ nullable: true })
   donorId: number;
 
-  @Field({ nullable: true })
-  @Column('text', { default: RECURRING_DONATION_STATUS.PENDING })
-  status: string;
-
-  @Field({ nullable: true })
-  @Column({ nullable: true })
-  anonymous: boolean;
-
   @UpdateDateColumn()
+  @Field()
   updatedAt: Date;
 
   @CreateDateColumn()
+  @Field()
   createdAt: Date;
 }

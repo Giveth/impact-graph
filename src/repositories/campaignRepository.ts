@@ -1,7 +1,4 @@
 import { Campaign } from '../entities/campaign';
-import { findProjectBySlug } from './projectRepository';
-import { errorMessages } from '../utils/errorMessages';
-import { Project } from '../entities/project';
 
 export const findAllActiveCampaigns = async (): Promise<Campaign[]> => {
   return Campaign.createQueryBuilder('campaign')

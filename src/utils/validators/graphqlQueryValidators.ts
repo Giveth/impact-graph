@@ -126,6 +126,31 @@ export const createDonationQueryValidator = Joi.object({
   chainType: Joi.string().required(),
 });
 
+export const createDraftDonationQueryValidator = Joi.object({
+  amount: Joi.number()?.greater(0).required(),
+  networkId: Joi.number()
+    .required()
+    .valid(...Object.values(NETWORK_IDS)),
+  tokenAddress: Joi.when('chainType', {
+    is: ChainType.SOLANA,
+    then: Joi.string().pattern(solanaProgramIdRegex),
+    otherwise: Joi.string().pattern(ethereumWalletAddressRegex),
+  }).messages({
+    'string.pattern.base': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
+    'string.disallow': i18n.__(
+      translationErrorMessagesKeys.INVALID_TOKEN_ADDRESS,
+    ),
+  }),
+  token: Joi.string().required(),
+  projectId: Joi.number().integer().min(0).required(),
+  anonymous: Joi.boolean(),
+  referrerId: Joi.string().allow(null, ''),
+  safeTransactionId: Joi.string().allow(null, ''),
+  chainType: Joi.string().required(),
+});
+
 export const updateDonationQueryValidator = Joi.object({
   donationId: Joi.number().integer().min(0).required(),
   status: Joi.string().valid(DONATION_STATUS.VERIFIED, DONATION_STATUS.FAILED),

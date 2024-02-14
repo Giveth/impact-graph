@@ -18,9 +18,12 @@ import config from '../../config';
 import { findProjectById } from '../../repositories/projectRepository';
 import {
   findAllUsers,
+  findUserById,
   findUsersWhoSupportProject,
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
+import { buildTxLink } from '../../utils/networks';
+import { findTokenByTokenAddress } from '../../repositories/tokenRepository';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -85,22 +88,20 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   async donationReceived(params: {
     donation: Donation;
     project: Project;
+    user: User | null;
   }): Promise<void> {
     if (params.donation.valueUsd <= 1) return;
 
-    const { project, donation } = params;
-    const user = project.adminUser as User;
+    const { project, donation, user } = params;
     await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
       sendEmail: true,
       segment: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
-        payload: getSegmentDonationAttributes({
+        payload: await getEmailDataDonationAttributes({
           donation,
           project,
-          user,
+          user: user as User,
         }),
       },
       trackId:
@@ -173,9 +174,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED,
       sendEmail: true,
       segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -245,9 +244,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKED,
       sendEmail: true,
       segment: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -268,9 +265,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_REMINDER,
       sendEmail: true,
       segment: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -290,9 +285,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_WARNING,
       sendEmail: true,
       segment: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -313,9 +306,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_REVOKE_LAST_WARNING,
       sendEmail: true,
       segment: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -335,9 +326,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_BADGE_UP_FOR_REVOKING,
       sendEmail: true,
       segment: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -371,9 +360,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNVERIFIED,
       sendEmail: true,
       segment: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -393,9 +380,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_REJECTED,
       sendEmail: true,
       segment: {
-        analyticsUserId: user.segmentUserId(),
-        anonymousId: user.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -458,9 +443,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CANCELLED,
       sendEmail: true,
       segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -493,17 +476,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     );
 
     const projectOwner = project?.adminUser as User;
+    const emailData = await getEmailDataProjectAttributes({ project });
     await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UPDATE_ADDED_OWNER,
       sendEmail: true,
       segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
         payload: {
-          ...getSegmentProjectAttributes({
-            project,
-          }),
+          ...emailData,
           update,
         },
       },
@@ -535,12 +515,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_UNLISTED,
-
       sendEmail: true,
       segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -565,12 +542,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_DEACTIVATED,
       metadata,
-
-      sendEmail: true,
+      sendEmail: false,
       segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -618,12 +592,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_LISTED,
-
       sendEmail: true,
       segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -667,9 +638,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       eventName: NOTIFICATIONS_EVENT_NAMES.VERIFICATION_FORM_GOT_DRAFT_BY_ADMIN,
       sendEmail: true,
       segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -680,27 +649,23 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async projectPublished(params: { project: Project }): Promise<void> {
-    return;
-    // const { project } = params;
-    // const projectOwner = project?.adminUser as User;
-    // const now = Date.now();
+    const { project } = params;
+    const projectOwner = project?.adminUser as User;
+    const now = Date.now();
 
-    // await sendProjectRelatedNotificationsQueue.add({
-    //   project,
-    //   eventName: NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED,
-
-    //   sendEmail: true,
-    //   segment: {
-    //     analyticsUserId: projectOwner.segmentUserId(),
-    //     anonymousId: projectOwner.segmentUserId(),
-    //     payload: getSegmentProjectAttributes({
-    //       project,
-    //     }),
-    //   },
-    //   trackId: `project-published-${
-    //     project.id
-    //   }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
-    // });
+    await sendProjectRelatedNotificationsQueue.add({
+      project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.DRAFTED_PROJECT_ACTIVATED,
+      sendEmail: true,
+      segment: {
+        payload: await getEmailDataProjectAttributes({
+          project,
+        }),
+      },
+      trackId: `project-published-${
+        project.id
+      }-${projectOwner.walletAddress?.toLowerCase()}-${now}`,
+    });
   }
 
   async projectReactivated(params: { project: Project }): Promise<void> {
@@ -730,12 +695,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.PROJECT_CREATED,
-
-      sendEmail: true,
+      sendEmail: false,
       segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -763,9 +725,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       sendEmail: false,
       segment: {
-        analyticsUserId: projectOwner.segmentUserId(),
-        anonymousId: projectOwner.segmentUserId(),
-        payload: getSegmentProjectAttributes({
+        payload: await getEmailDataProjectAttributes({
           project,
         }),
       },
@@ -855,9 +815,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         eventName,
         sendEmail: true,
         segment: {
-          analyticsUserId: projectOwner.segmentUserId(),
-          anonymousId: projectOwner.segmentUserId(),
-          payload: getSegmentProjectAttributes({
+          payload: await getEmailDataProjectAttributes({
             project,
           }),
         },
@@ -867,21 +825,29 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 }
 
-const getSegmentDonationAttributes = (params: {
+const getEmailDataDonationAttributes = async (params: {
   user: User;
   project: Project;
   donation: Donation;
 }) => {
   const { user, project, donation } = params;
+  const token = await findTokenByTokenAddress(donation.tokenAddress!);
+  const symbol = token?.symbol;
   return {
     email: user.email,
     title: project.title,
     firstName: user.firstName,
     projectOwnerId: project.admin,
     slug: project.slug,
+    projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     amount: Number(donation.amount),
+    token: symbol,
     transactionId: donation.transactionId.toLowerCase(),
     transactionNetworkId: Number(donation.transactionNetworkId),
+    transactionLink: buildTxLink(
+      donation.transactionId,
+      donation.transactionNetworkId,
+    ),
     currency: donation.currency,
     createdAt: new Date(),
     toWalletAddress: donation.toWalletAddress.toLowerCase(),
@@ -892,13 +858,15 @@ const getSegmentDonationAttributes = (params: {
   };
 };
 
-const getSegmentProjectAttributes = (params: { project: Project }) => {
+const getEmailDataProjectAttributes = async (params: { project: Project }) => {
   const { project } = params;
+  const user = await findUserById(project.adminUserId);
   return {
-    email: project?.adminUser?.email || '',
+    email: user?.email,
     title: project.title,
     lastName: project?.adminUser?.lastName || '',
     firstName: project?.adminUser?.firstName || '',
+    projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     OwnerId: project?.adminUser?.id,
     slug: project.slug,
   };
@@ -912,7 +880,7 @@ const sendProjectRelatedNotification = async (params: {
     walletAddress: string;
     email?: string;
   };
-  segment?: SegmentData;
+  segment?: EmailData;
   sendEmail?: boolean;
   trackId?: string;
 }): Promise<void> => {
@@ -982,10 +950,8 @@ const callBatchNotification = async (
   }
 };
 
-interface SegmentData {
+interface EmailData {
   payload: any;
-  analyticsUserId?: string;
-  anonymousId?: string;
 }
 
 interface ProjectRelatedNotificationsQueue {
@@ -996,7 +962,7 @@ interface ProjectRelatedNotificationsQueue {
     walletAddress: string;
     email?: string;
   };
-  segment?: SegmentData;
+  segment?: EmailData;
   sendEmail?: boolean;
   trackId?: string;
 }
@@ -1011,20 +977,12 @@ interface SendBatchNotificationItem {
   email?: string;
   metadata?: any;
   userWalletAddress: string;
-  segment?: {
+  emailData?: {
     payload: any;
-    analyticsUserId?: string;
-    anonymousId?: string;
   };
   trackId: string;
 }
 type SendBatchNotificationBody = { notifications: SendBatchNotificationItem[] };
-
-interface SegmentData {
-  payload: any;
-  analyticsUserId?: string;
-  anonymousId?: string;
-}
 
 const sendProjectRelatedNotificationsQueue =
   new Bull<ProjectRelatedNotificationsQueue>(
@@ -1046,8 +1004,6 @@ interface SendNotificationBody {
   userWalletAddress: string;
   segment?: {
     payload: any;
-    analyticsUserId?: string;
-    anonymousId?: string;
   };
 }
 

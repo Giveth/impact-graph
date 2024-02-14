@@ -474,6 +474,7 @@ export const sendSegmentEventForDonation = async (params: {
     await getNotificationAdapter().donationReceived({
       donation,
       project,
+      user: donorUser,
     });
   }
 

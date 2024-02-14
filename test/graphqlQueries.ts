@@ -28,6 +28,30 @@ export const createDonationMutation = `
   }
 `;
 
+export const createDraftDonationMutation = `
+  mutation (
+    $networkId: Float!
+    $amount: Float!
+    $token: String!
+    $projectId: Float!
+    $tokenAddress: String
+    $anonymous: Boolean
+    $referrerId: String
+    $safeTransactionId: String
+  ) {
+    createDraftDonation(
+      networkId: $networkId
+      amount: $amount
+      token: $token
+      projectId: $projectId
+      tokenAddress: $tokenAddress
+      anonymous: $anonymous
+      referrerId: $referrerId
+      safeTransactionId: $safeTransactionId
+    )
+  }
+`;
+
 export const updateDonationStatusMutation = `
   mutation (
     $status: String
@@ -281,6 +305,48 @@ export const fetchDonationsByProjectIdQuery = `
       }
       totalCount
       totalUsdBalance
+    }
+  }
+`;
+export const fetchRecurringDonationsByProjectIdQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $projectId: Int!
+    $searchTerm: String
+    $status: String
+    $finished: Boolean
+    $orderBy: RecurringDonationSortBy
+
+    
+  ) {
+    recurringDonationsByProjectId(
+      take: $take
+      skip: $skip
+      projectId: $projectId
+      searchTerm: $searchTerm
+      status: $status
+      finished: $finished
+      orderBy: $orderBy
+
+    ) {
+      recurringDonations {
+        id
+        txHash
+        networkId
+        amount
+        currency
+        anonymous
+        status
+        donor {
+          id
+          walletAddress
+          firstName
+          email
+        }
+        createdAt
+      }
+      totalCount
     }
   }
 `;
@@ -2104,11 +2170,17 @@ export const createRecurringDonationQuery = `
   mutation ($projectId: Int!,
             $networkId: Int!, 
             $txHash: String!
+            $interval: String!
+            $amount: Int!
+            $currency: String!
             ) {
     createRecurringDonation(
       projectId: $projectId 
       networkId: $networkId
       txHash:$txHash
+      amount:$amount
+      currency:$currency
+      interval:$interval
         ) {
       txHash
       networkId

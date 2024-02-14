@@ -71,6 +71,7 @@ import { corsOptions } from './cors';
 import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJob';
 import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
+import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
 
 Resource.validate = validate;
 
@@ -344,6 +345,10 @@ export async function bootstrap() {
 
     if (process.env.ENABLE_IMPORT_DONATION_BACKUP === 'true') {
       runSyncBackupServiceDonations();
+    }
+
+    if (process.env.ENABLE_DRAFT_DONATION === 'true') {
+      runDraftDonationMatchWorkerJob();
     }
 
     if (process.env.FILL_POWER_SNAPSHOT_BALANCE_SERVICE_ACTIVE === 'true') {
