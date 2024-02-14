@@ -19,6 +19,7 @@ describe('draftDonationRepository', () => {
 
   it('should mark a draft donation as matched', async () => {
     // Setup
+    const matchedDontionId = 9999;
     const draftDonation = await DraftDonation.create({
       networkId: 1,
       status: DRAFT_DONATION_STATUS.PENDING,
@@ -33,6 +34,7 @@ describe('draftDonationRepository', () => {
     await draftDonation.save();
 
     await markDraftDonationStatusMatched({
+      matchedDonationId: matchedDontionId,
       fromWalletAddress: draftDonation.fromWalletAddress,
       toWalletAddress: draftDonation.toWalletAddress,
       networkId: draftDonation.networkId,
@@ -43,10 +45,12 @@ describe('draftDonationRepository', () => {
     const updatedDraftDonation = await DraftDonation.findOne({
       where: {
         id: draftDonation.id,
+        matchedDonationId: matchedDontionId,
       },
     });
 
     expect(updatedDraftDonation?.status).equal(DRAFT_DONATION_STATUS.MATCHED);
+    expect(updatedDraftDonation?.matchedDonationId).equal(matchedDontionId);
   });
 
   it('should clear expired draft donations', async () => {

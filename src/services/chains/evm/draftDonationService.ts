@@ -202,7 +202,9 @@ async function submitMatchedDraftDonation(
     logger.debug(
       `Donation with ID ${donationId} has been created for draftDonation with ID ${draftDonation.id}`,
     );
-    draftDonation.status = DRAFT_DONATION_STATUS.MATCHED;
+    // donation resolver does it
+    // draftDonation.status = DRAFT_DONATION_STATUS.MATCHED;
+    // draftDonation.matchedDonationId = Number(donationId);
   } catch (e) {
     logger.error(
       `Error on creating donation for draftDonation with ID ${draftDonation.id}`,
@@ -210,7 +212,6 @@ async function submitMatchedDraftDonation(
     );
     draftDonation.status = DRAFT_DONATION_STATUS.FAILED;
     draftDonation.errorMessage = e.message;
-  } finally {
     await draftDonation.save();
   }
 }

@@ -811,6 +811,7 @@ export class DonationResolver {
       );
 
       await markDraftDonationStatusMatched({
+        matchedDonationId: donation.id,
         fromWalletAddress: fromAddress,
         toWalletAddress: toAddress,
         currency: token,

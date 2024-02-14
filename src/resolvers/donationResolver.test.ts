@@ -2571,6 +2571,11 @@ function createDonationTestCases() {
       },
     });
     assert.equal(updatedDraftDonation?.status, DRAFT_DONATION_STATUS.MATCHED);
+    assert.isOk(updatedDraftDonation?.matchedDonationId);
+    assert.equal(
+      updatedDraftDonation?.matchedDonationId,
+      saveDonationResponse.data.data.createDonation,
+    );
   });
 }
 
