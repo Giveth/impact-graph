@@ -43,6 +43,20 @@ export const updateDonationStatusMutation = `
     }
   }
 `;
+export const updateRecurringDonationStatusMutation = `
+  mutation (
+    $status: String
+    $donationId: Float!
+  ) {
+    updateRecurringDonationStatus(
+      status: $status
+      donationId: $donationId
+    ){
+      id
+      status
+    }
+  }
+`;
 
 export const createProjectQuery = `
    mutation ($project: CreateProjectInput!) {

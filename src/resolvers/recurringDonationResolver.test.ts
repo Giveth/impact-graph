@@ -17,13 +17,13 @@ import { assert } from 'chai';
 import axios from 'axios';
 import {
   createRecurringDonationQuery,
-  fetchDonationsByProjectIdQuery,
   fetchRecurringDonationsByProjectIdQuery,
   fetchRecurringDonationsByUserIdQuery,
+  updateRecurringDonationStatusMutation,
 } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
-import { Donation, DONATION_STATUS } from '../entities/donation';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 
 describe(
   'createRecurringDonation test cases',
@@ -37,6 +37,11 @@ describe(
 describe(
   'recurringDonationsByUserId test cases',
   recurringDonationsByUserIdTestCases,
+);
+
+describe(
+  'updateRecurringDonationStatus test cases',
+  updateRecurringDonationStatusTestCases,
 );
 
 function createRecurringDonationTestCases() {
@@ -679,5 +684,105 @@ function recurringDonationsByUserIdTestCases() {
     for (let i = 0; i < donations.length - 1; i++) {
       assert.isTrue(donations[i].amount >= donations[i + 1].amount);
     }
+  });
+}
+function updateRecurringDonationStatusTestCases() {
+  it('should donation status remain pending after calling without sending status (we assume its not mined so far)', async () => {
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+      },
+    });
+    assert.equal(donation.status, RECURRING_DONATION_STATUS.PENDING);
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationStatusMutation,
+        variables: {
+          donationId: donation.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateRecurringDonationStatus.status,
+      RECURRING_DONATION_STATUS.PENDING,
+    );
+  });
+
+  it('should update donation status to failed, tx is not mined and donor says it failed', async () => {
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+      },
+    });
+    assert.equal(donation.status, RECURRING_DONATION_STATUS.PENDING);
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationStatusMutation,
+        variables: {
+          donationId: donation.id,
+          status: RECURRING_DONATION_STATUS.FAILED,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateRecurringDonationStatus.status,
+      RECURRING_DONATION_STATUS.FAILED,
+    );
   });
 }

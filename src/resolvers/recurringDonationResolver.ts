@@ -19,7 +19,10 @@ import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { findActiveAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
-import { RecurringDonation } from '../entities/recurringDonation';
+import {
+  RECURRING_DONATION_STATUS,
+  RecurringDonation,
+} from '../entities/recurringDonation';
 import {
   createNewRecurringDonation,
   findRecurringDonationById,
@@ -29,8 +32,6 @@ import { Brackets } from 'typeorm';
 import { detectAddressChainType } from '../utils/networks';
 import { Service } from 'typedi';
 import { Max, Min } from 'class-validator';
-import { Donation, DONATION_STATUS } from '../entities/donation';
-import { findDonationById } from '../repositories/donationRepository';
 import { logger } from '../utils/logger';
 import {
   updateDonationQueryValidator,
@@ -362,7 +363,7 @@ export class RecurringDonationResolver {
         },
         updateDonationQueryValidator,
       );
-      if (recurringDonation.status === DONATION_STATUS.VERIFIED) {
+      if (recurringDonation.status === RECURRING_DONATION_STATUS.VERIFIED) {
         return recurringDonation;
       }
 
@@ -376,12 +377,12 @@ export class RecurringDonationResolver {
         });
 
       if (
-        updatedRecurringDonation.status === DONATION_STATUS.PENDING &&
-        status === DONATION_STATUS.FAILED
+        updatedRecurringDonation.status === RECURRING_DONATION_STATUS.PENDING &&
+        status === RECURRING_DONATION_STATUS.FAILED
       ) {
         // We just update status of donation with tx status in blockchain network
         // but if user send failed status, and there were nothing in network we change it to failed
-        updatedRecurringDonation.status = DONATION_STATUS.FAILED;
+        updatedRecurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
         await updatedRecurringDonation.save();
       }
       return updatedRecurringDonation;
