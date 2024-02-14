@@ -11,7 +11,7 @@ interface ITokenData {
   isGivbackEligible?: boolean;
   decimals: number;
   networkId: number;
-  chainType: ChainType;
+  chainType?: ChainType;
   coingeckoId?: string;
 }
 const seedTokens: ITokenData[] = [
