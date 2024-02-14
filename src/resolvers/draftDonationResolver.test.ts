@@ -2,63 +2,17 @@ import { assert, expect } from 'chai';
 import {
   generateTestAccessToken,
   graphqlUrl,
-  SEED_DATA,
-  DONATION_SEED_DATA,
   saveProjectDirectlyToDb,
   createProjectData,
   generateRandomEvmTxHash,
   generateRandomEtheriumAddress,
-  saveDonationDirectlyToDb,
-  createDonationData,
-  saveUserDirectlyToDb,
-  generateUserIdLessAccessToken,
-  generateRandomSolanaAddress,
-  generateRandomSolanaTxHash,
 } from '../../test/testUtils';
 import axios from 'axios';
-import { errorMessages } from '../utils/errorMessages';
-import { Donation, DONATION_STATUS } from '../entities/donation';
-import {
-  fetchDonationsByUserIdQuery,
-  fetchDonationsByDonorQuery,
-  fetchDonationsByProjectIdQuery,
-  fetchAllDonationsQuery,
-  donationsToWallets,
-  donationsFromWallets,
-  createDonationMutation,
-  updateDonationStatusMutation,
-  fetchTotalDonationsUsdAmount,
-  fetchTotalDonors,
-  fetchTotalDonationsPerCategoryPerDate,
-  fetchRecentDonations,
-  fetchTotalDonationsNumberPerDateRange,
-  doesDonatedToProjectInQfRoundQuery,
-  createDraftDonationMutation,
-} from '../../test/graphqlQueries';
+import { createDraftDonationMutation } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
-import { Organization, ORGANIZATION_LABELS } from '../entities/organization';
-import { ProjStatus, ReviewStatus } from '../entities/project';
-import { Token } from '../entities/token';
-import {
-  insertSinglePowerBoosting,
-  takePowerBoostingSnapshot,
-} from '../repositories/powerBoostingRepository';
-import { setPowerRound } from '../repositories/powerRoundRepository';
-import { refreshProjectPowerView } from '../repositories/projectPowerViewRepository';
-import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
-import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
-import { AppDataSource } from '../orm';
 import { generateRandomString } from '../utils/utils';
-import { ChainvineMockAdapter } from '../adapters/chainvine/chainvineMockAdapter';
-import { getChainvineAdapter } from '../adapters/adaptersFactory';
-import { firstOrCreateReferredEventByUserId } from '../repositories/referredEventRepository';
-import { QfRound } from '../entities/qfRound';
-import { findProjectById } from '../repositories/projectRepository';
-import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
-import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
-import { getDefaultSolanaChainId } from '../services/chains';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
@@ -70,33 +24,44 @@ const moment = require('moment');
 describe('createDonation() test cases', createDonationTestCases);
 
 function createDonationTestCases() {
-  it('create simple draft donation', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const referrerId = generateRandomString();
+  let project;
+  let referrerId;
+  let user;
+  let tokenAddress;
+  let accessToken;
+  let safeTransactionId;
+  let donationData;
 
-    const user = await User.create({
+  beforeEach(async () => {
+    project = await saveProjectDirectlyToDb(createProjectData());
+    referrerId = generateRandomString();
+
+    user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
 
-    const tokenAddress = generateRandomEtheriumAddress();
-    const accessToken = await generateTestAccessToken(user.id);
-    const safeTransactionId = generateRandomEvmTxHash();
-
+    tokenAddress = generateRandomEtheriumAddress();
+    accessToken = await generateTestAccessToken(user.id);
+    safeTransactionId = generateRandomEvmTxHash();
+    donationData = {
+      projectId: project.id,
+      networkId: NETWORK_IDS.XDAI,
+      amount: 10,
+      token: 'GIV',
+      referrerId,
+      tokenAddress,
+      safeTransactionId,
+      toAddress: project.walletAddress,
+    };
+  });
+  it('create simple draft donation', async () => {
     const saveDonationResponse = await axios.post(
       graphqlUrl,
       {
         query: createDraftDonationMutation,
-        variables: {
-          projectId: project.id,
-          networkId: NETWORK_IDS.XDAI,
-          amount: 10,
-          token: 'GIV',
-          referrerId,
-          tokenAddress,
-          safeTransactionId,
-        },
+        variables: donationData,
       },
       {
         headers: {
@@ -125,5 +90,80 @@ function createDonationTestCases() {
       projectId: project.id,
       userId: user.id,
     });
+  });
+
+  it('should return the same draft donation id if the same donation is created twice', async () => {
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: donationData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDraftDonation);
+
+    const saveDonationResponse2 = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: donationData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse2.data.data.createDraftDonation);
+    expect(saveDonationResponse2.data.data.createDraftDonation).to.be.equal(
+      saveDonationResponse.data.data.createDraftDonation,
+    );
+  });
+
+  it('should create a new draft donation if the first one is matched', async () => {
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: donationData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse.data.data.createDraftDonation);
+
+    const draftDonation = await DraftDonation.findOne({
+      where: {
+        id: saveDonationResponse.data.data.createDraftDonation,
+      },
+    });
+
+    draftDonation!.status = DRAFT_DONATION_STATUS.MATCHED;
+    await draftDonation!.save();
+
+    const saveDonationResponse2 = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftDonationMutation,
+        variables: donationData,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isOk(saveDonationResponse2.data.data.createDraftDonation);
+    expect(saveDonationResponse2.data.data.createDraftDonation).to.be.not.equal(
+      saveDonationResponse.data.data.createDraftDonation,
+    );
   });
 }
