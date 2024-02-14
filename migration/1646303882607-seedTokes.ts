@@ -16,7 +16,10 @@ export class seedTokes1646303882607 implements MigrationInterface {
         // We add goerli tokens in addGoerliTokens migration file
         .filter(token => token.networkId !== 5)
         .filter(token => !token.chainType || token.chainType === ChainType.EVM)
-        .map(t => {
+        .map(token => {
+          const t = {
+            ...token,
+          };
           t.address = t.address?.toLowerCase();
           delete t.chainType;
           return t;
