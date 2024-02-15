@@ -5,6 +5,7 @@ import {
   Entity,
   Index,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   RelationId,
   Unique,
@@ -14,6 +15,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { AnchorContractAddress } from './anchorContractAddress';
+import { Donation } from './donation';
 
 export const RECURRING_DONATION_STATUS = {
   PENDING: 'pending',
@@ -38,7 +40,11 @@ export class RecurringDonation extends BaseEntity {
   @Column({ nullable: false })
   amount: number;
 
-  // daily, weekly, monthly, yearly
+  @Field()
+  @Column({ nullable: false })
+  totalUsd: number;
+
+  // daily, weekly, monthly, yearly (ONLY MONTHLY)
   @Field()
   @Column({ nullable: false })
   interval: string;
@@ -97,6 +103,10 @@ export class RecurringDonation extends BaseEntity {
   @RelationId((recurringDonation: RecurringDonation) => recurringDonation.donor)
   @Column({ nullable: true })
   donorId: number;
+
+  @Field(type => [Donation], { nullable: true })
+  @OneToMany(type => Donation, donation => donation.recurringDonation)
+  donations?: Donation[];
 
   @UpdateDateColumn()
   @Field()

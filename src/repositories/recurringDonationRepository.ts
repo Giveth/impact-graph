@@ -37,3 +37,11 @@ export const findActiveRecurringDonations = async (): Promise<
     },
   });
 };
+
+export const getRecurringDonationById = async (
+  id: number,
+): Promise<RecurringDonation | null> => {
+  return await RecurringDonation.createQueryBuilder('donation')
+    .where(`donation.id = :id`, { id })
+    .getOne();
+};

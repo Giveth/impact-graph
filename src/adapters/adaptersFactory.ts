@@ -23,6 +23,8 @@ import { GivPowerBalanceAggregatorAdapter } from './givPowerBalanceAggregator/gi
 import { GivPowerBalanceAggregatorAdapterMock } from './givPowerBalanceAggregator/givPowerBalanceAggregatorAdapterMock';
 import { DonationSaveBackupAdapter } from './donationSaveBackup/donationSaveBackupAdapter';
 import { DonationSaveBackupMockAdapter } from './donationSaveBackup/DonationSaveBackupMockAdapter';
+import { SuperFluidAdapter } from './superFluid/superFluidAdapter';
+import { SuperFluidMockAdapter } from './superFluid/superFluidMockAdapter';
 
 const discordAdapter = new DiscordAdapter();
 const googleAdapter = new GoogleAdapter();
@@ -132,5 +134,19 @@ export const getDonationSaveBackupAdapter = () => {
       return mockDonationSaveBackupAdapter;
     default:
       return mockDonationSaveBackupAdapter;
+  }
+};
+
+const superFluidAdapter = new SuperFluidAdapter();
+const superFluidMockAdapter = new SuperFluidMockAdapter();
+
+export const getSuperFluidAdapter = () => {
+  switch (process.env.SUPER_FLUID_ADAPTER) {
+    case 'superfluid':
+      return superFluidAdapter;
+    case 'mock':
+      return superFluidMockAdapter;
+    default:
+      return superFluidMockAdapter;
   }
 };

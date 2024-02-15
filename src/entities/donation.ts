@@ -207,6 +207,7 @@ export class Donation extends BaseEntity {
   @Field(type => RecurringDonation, { nullable: true })
   @ManyToOne(type => RecurringDonation, { eager: true, nullable: true })
   recurringDonation?: RecurringDonation;
+
   @RelationId((donation: Donation) => donation.recurringDonation)
   @Column({ nullable: true })
   recurringDonationId: number;

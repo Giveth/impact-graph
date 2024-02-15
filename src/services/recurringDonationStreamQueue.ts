@@ -1,9 +1,14 @@
 import { logger } from '../utils/logger';
-import { findActiveRecurringDonations } from '../repositories/recurringDonationRepository';
+import {
+  findActiveRecurringDonations,
+  getRecurringDonationById,
+} from '../repositories/recurringDonationRepository';
 import Bull from 'bull';
 import { redisConfig } from '../redis';
 import config from '../config';
 import { getCurrentDateFormatted } from '../utils/utils';
+import { SuperFluidAdapter } from '../adapters/superFluid/superFluidAdapter';
+import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
 
 const updateRecurringDonationsStreamQueue = new Bull(
   'update-recurring-donations-stream-queue',
@@ -73,5 +78,13 @@ export const updateRecurringDonationStream = async (params: {
   recurringDonationId: number;
 }) => {
   // TODO Implement this (Get stream from blockchain and update the recurring donations)
+  const recurringDonation = await getRecurringDonationById(
+    params.recurringDonationId,
+  );
+  if (!recurringDonation) return;
+
+  const superFluidAdapter = getSuperFluidAdapter();
+  // const streamData = superFluidAdapter.streamPeriods();
+
   logger.debug('updateRecurringDonationStream() has been called');
 };
