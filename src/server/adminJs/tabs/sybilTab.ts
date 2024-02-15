@@ -113,10 +113,8 @@ export const SybilTab = {
       },
       csvData: {
         type: 'textarea',
-        description: 'Optional, CSV file with sybil data, qfRoundId and userId',
-        // Sample csv file
-        // qfRoundId,userId
-        // 2,2
+        // Csv file columns
+        // qfRoundId,walletAddress
         isVisible: {
           filter: false,
           list: false,
