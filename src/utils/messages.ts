@@ -1,6 +1,9 @@
 export const messages = {
   PROJECT_STATUS_UPDATED_SUCCESSFULLY: 'Project(s) status successfully updated',
   DONATION_CREATED_SUCCESSFULLY: 'Donation(s) successfully created',
+  SYBIL_HAS_BEEN_CREATED_SUCCESSFULLY: 'Sybil successfully created',
+  SYBIL_DATA_IMPORTED_FROM_CSV_SUCCESSFULLY:
+    'Sybil data imported from csv successfully',
   DONATION_EDITED_SUCCESSFULLY: 'Donation successfully Edited',
   PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY:
     'Projects related to active qfRound successfully',

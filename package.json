@@ -41,6 +41,7 @@
     "connect-redis": "^7.1.1",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
+    "csvtojson": "^2.0.10",
     "dotenv": "^8.2.0",
     "eth-sig-util": "^3.0.1",
     "ethers": "^5.7.2",
