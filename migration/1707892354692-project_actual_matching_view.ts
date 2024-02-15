@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class projectActualMatchingView1707343258513
+export class projectActualMatchingView1707892354692
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -55,7 +55,7 @@ export class projectActualMatchingView1707343258513
                 AND p3."statusId" = 5 
                 AND p3."isImported" = false
                 )
-                AND d2."qfRoundUserScore" > 5
+                AND d2."qfRoundUserScore" > 4
                 AND s.id is null OR s."confirmedSybil" = false
             GROUP BY 
                 p2.id,
