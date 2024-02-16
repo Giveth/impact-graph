@@ -52,6 +52,32 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
+  async updateOrttoUser(params: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    personId?: string;
+  }): Promise<{
+    people: {
+      person_id: string;
+      status: string;
+    }[];
+  }> {
+    try {
+      const { firstName, lastName, email, personId } = params;
+      const config = {
+        maxBodyLength: Infinity,
+        headers: {
+          'X-Api-Key': process.env.ORTTO_API_KEY as string,
+          'Content-Type': 'application/json',
+        },
+      };
+      return await axios.post(process.env.ORTTO_PERSON_API!, params, config);
+    } catch (e) {
+      logger.error('updateOrttoUser >> error', e);
+    }
+  }
+
   processSendingNotifications() {
     logger.debug('processSendingNotifications() has been called ', {
       numberOfSendNotificationsConcurrentJob,

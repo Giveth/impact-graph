@@ -20,6 +20,18 @@ export interface ProjectsHaveNewRankingInputParam {
 }
 
 export interface NotificationAdapterInterface {
+  updateOrttoUser(params: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    personId?: string;
+  }): Promise<{
+    people: {
+      person_id: string;
+      status: string;
+    }[];
+  }>;
+
   donationReceived(params: {
     donation: Donation;
     project: Project;
