@@ -26,19 +26,21 @@ export const createProjectFraud = async (
       // Parse the CSV data
       const jsonArray = await csv().fromString(csvData);
 
-      // Validate and extract all unique walletAddresses
+      // Validate and extract all unique slugs
+      // Slugs are project urls that comms team use
       const slugs: string[] = [];
-      for (const obj of jsonArray) {
-        if (!obj.walletAddress || !obj.qfRoundId) {
-          throw new Error('Missing slug for project');
+      jsonArray.forEach((obj, index) => {
+        if (!obj.slug || !obj.qfRoundId) {
+          // Include the row ID in the error message, adding 1 for human readability
+          throw new Error(`Missing data for csv row: ${index + 1}`);
         }
         slugs.push(obj.slug.toLowerCase());
-      }
-      const uniqueWalletAddresses = [...new Set(slugs)];
+      });
+      const uniqueSlugs = [...new Set(slugs)];
 
       // Get projectIds for all slugs
       const projects = await ProjectFraud.query(`
-        SELECT id, slug FROM public.project WHERE lower("slug") IN (${slugs
+        SELECT id, slug FROM public.project WHERE lower("slug") IN (${uniqueSlugs
           .map(slug => `'${slug}'`)
           .join(', ')})
       `);
@@ -50,9 +52,7 @@ export const createProjectFraud = async (
       // Construct values for insertion
       const values = jsonArray
         .map(obj => {
-          const slugProjectId = projectIdsMap.get(
-            obj.walletAddress.toLowerCase(),
-          );
+          const slugProjectId = projectIdsMap.get(obj.slug.toLowerCase());
           return slugProjectId
             ? `(true, ${Number(slugProjectId)}, ${Number(obj.qfRoundId)})`
             : null;
@@ -73,7 +73,7 @@ export const createProjectFraud = async (
       await ProjectFraud.query(query);
     } else {
       const projectFraud = new ProjectFraud();
-      projectFraud.confirmedFraud = true;
+      projectFraud.confirmedFraud = confirmedFraud;
       projectFraud.projectId = projectId;
       projectFraud.qfRoundId = qfRoundId;
       await projectFraud.save();
@@ -116,7 +116,7 @@ export const ProjectFraudTab = {
       csvData: {
         type: 'textarea',
         // Csv file columns
-        // qfRoundId,walletAddress
+        // qfRoundId,Slug
         isVisible: {
           filter: false,
           list: false,
