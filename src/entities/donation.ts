@@ -14,6 +14,7 @@ import { Project } from './project';
 import { User } from './user';
 import { QfRound } from './qfRound';
 import { ChainType } from '../types/network';
+import { RecurringDonation } from './recurringDonation';
 
 export const DONATION_STATUS = {
   PENDING: 'pending',
@@ -21,8 +22,9 @@ export const DONATION_STATUS = {
   FAILED: 'failed',
 };
 
-export const DONATION_EXTERNAL_SOURCES = {
+export const DONATION_ORIGINS = {
   IDRISS_TWITTER: 'Idriss',
+  DRAFT_DONATION_MATCHING: 'DraftDonationMatching',
 };
 
 export const DONATION_TYPES = {
@@ -65,7 +67,7 @@ export class Donation extends BaseEntity {
   @Column({ nullable: true })
   safeTransactionId?: string;
 
-  @Field()
+  @Field(type => String)
   @Column({
     type: 'enum',
     enum: ChainType,
@@ -200,6 +202,14 @@ export class Donation extends BaseEntity {
   @RelationId((donation: Donation) => donation.user)
   @Column({ nullable: true })
   userId: number;
+
+  @Index()
+  @Field(type => RecurringDonation, { nullable: true })
+  @ManyToOne(type => RecurringDonation, { eager: true, nullable: true })
+  recurringDonation?: RecurringDonation;
+  @RelationId((donation: Donation) => donation.recurringDonation)
+  @Column({ nullable: true })
+  recurringDonationId: number;
 
   @Field(type => String, { nullable: true })
   @Column('text', { nullable: true })

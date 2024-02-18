@@ -15,7 +15,8 @@
         "tabWidth": 2,
         "useTabs": false,
         "trailingComma": "all",
-        "jsdoc-format": false
+        "jsdoc-format": false,
+        "endOfLine": "auto"
       }
     ],
     "jsdoc-format": false,

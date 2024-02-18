@@ -42,14 +42,13 @@ export const getQfRoundActualDonationDetails = async (
   await refreshProjectActualMatchingView();
 
   const rows = await QfRound.query(`
-    SELECT *
-    FROM project_actual_matching_view
-    WHERE "qfRoundId" = ${qfRoundId}
+      SELECT *
+      FROM project_actual_matching_view
+      WHERE "qfRoundId" = ${qfRoundId}
   `);
 
   let totalReward = qfRound!.allocatedFund;
-  const qfRoundMaxReward =
-    totalReward * Number(process.env.QF_ROUND_MAX_REWARD_PERCENTAGE || 0.2);
+  const qfRoundMaxReward = totalReward * Number(qfRound?.maximumReward || 0.2);
   let totalWeight = rows.reduce((accumulator, currentRow) => {
     return accumulator + currentRow.donationsSqrtRootSumSquared;
   }, 0);

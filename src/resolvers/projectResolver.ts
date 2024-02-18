@@ -742,6 +742,7 @@ export class ProjectResolver {
 
     const projectsQuery = filterProjectsQuery(filterQueryParams);
 
+    projectsFiltersThreadPool.completed();
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
       hasher =>
         hasher.hashProjectFilters({
@@ -834,6 +835,7 @@ export class ProjectResolver {
       )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
@@ -883,6 +885,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
       .leftJoinAndSelect('project.qfRounds', 'qfRounds')
@@ -1573,6 +1576,12 @@ export class ProjectResolver {
           { projectId },
         )
         .leftJoinAndSelect('organization.tokens', 'tokens')
+        .leftJoin(
+          'project_address',
+          'pa',
+          'pa.projectId = project.id AND pa.isRecipient = true',
+        )
+        .andWhere('pa.networkId = tokens.networkId')
         .getOne();
 
       if (!organization) {
@@ -1652,6 +1661,7 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.organization', 'organization')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection

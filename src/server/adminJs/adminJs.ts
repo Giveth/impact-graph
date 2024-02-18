@@ -25,23 +25,20 @@ import { featuredUpdateTab } from './tabs/featuredUpdateTab';
 import { generateTokenTab } from './tabs/tokenTab';
 import { donationTab } from './tabs/donationTab';
 import { projectVerificationTab } from './tabs/projectVerificationTab';
-import { ResourceActions } from './adminJsPermissions';
 import { qfRoundTab } from './tabs/qfRoundTab';
 import { qfRoundHistoryTab } from './tabs/qfRoundHistoryTab';
-
+import { SybilTab } from './tabs/sybilTab';
+import { ProjectFraudTab } from './tabs/projectFraudTab';
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
-// tslint:disable-next-line:no-var-requires
-const session = require('express-session');
-// tslint:disable-next-line:no-var-requires
-const RedisStore = require('connect-redis')(session);
+const RedisStore = require('connect-redis').default;
+
 // tslint:disable-next-line:no-var-requires
 const cookie = require('cookie');
 // tslint:disable-next-line:no-var-requires
 const cookieParser = require('cookie-parser');
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminJsCookie = 'adminjs';
-
 adminJs.registerAdapter({ Database, Resource });
 
 export const getAdminJsRouter = async () => {
@@ -148,6 +145,8 @@ const getResources = async (): Promise<AdminJsResources> => {
     campaignsTab,
     qfRoundTab,
     qfRoundHistoryTab,
+    SybilTab,
+    ProjectFraudTab,
   ];
 
   const loggingHook = async (response, request, context) => {

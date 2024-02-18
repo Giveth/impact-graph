@@ -19,6 +19,9 @@ import { ChainvineResolver } from './chainvineResolver';
 import { QfRoundResolver } from './qfRoundResolver';
 import { QfRoundHistoryResolver } from './qfRoundHistoryResolver';
 import { ProjectUserInstantPowerViewResolver } from './instantPowerResolver';
+import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
+import { RecurringDonationResolver } from './recurringDonationResolver';
+import { DraftDonationResolver } from './draftDonationResolver';
 
 export const getResolvers = (): Function[] => {
   return [
@@ -33,6 +36,7 @@ export const getResolvers = (): Function[] => {
     UploadResolver,
     CategoryResolver,
     DonationResolver,
+    DraftDonationResolver,
     ReactionResolver,
     ProjectVerificationFormResolver,
     SocialProfilesResolver,
@@ -45,5 +49,8 @@ export const getResolvers = (): Function[] => {
     CampaignResolver,
     QfRoundResolver,
     QfRoundHistoryResolver,
+
+    AnchorContractAddressResolver,
+    RecurringDonationResolver,
   ];
 };

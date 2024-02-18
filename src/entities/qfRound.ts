@@ -39,6 +39,10 @@ export class QfRound extends BaseEntity {
   allocatedFund: number;
 
   @Field(type => Number)
+  @Column('real', { default: 0.2 })
+  maximumReward: number;
+
+  @Field(type => Number)
   @Column()
   minimumPassportScore: number;
 

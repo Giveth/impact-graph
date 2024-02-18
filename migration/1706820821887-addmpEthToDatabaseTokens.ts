@@ -34,7 +34,7 @@ export class addmpEthToDatabaseTokens1706820821887
                 ("address" = '0x48afbbd342f64ef8a9ab1c143719b63c2ad81710' AND "networkId" = ${NETWORK_IDS.MAIN_NET}) OR
                 ("address" = '0x819845b60a192167ed1139040b4f8eca31834f27' AND "networkId" = ${NETWORK_IDS.OPTIMISTIC})
             `);
-    
+
     if (exists && exists.length === 2) {
       return;
     }

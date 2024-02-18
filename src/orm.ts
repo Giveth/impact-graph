@@ -7,9 +7,10 @@ import { redis, redisConfig } from './redis';
 export class AppDataSource {
   private static datasource: DataSource;
 
-  static async initialize() {
+  static async initialize(_overrideDrop?: boolean) {
     if (!AppDataSource.datasource) {
-      const dropSchema = config.get('DROP_DATABASE') === 'true';
+      const dropSchema =
+        _overrideDrop ?? config.get('DROP_DATABASE') === 'true';
       const synchronize = (config.get('ENVIRONMENT') as string) === 'test';
       const entities = getEntities();
       AppDataSource.datasource = new DataSource({

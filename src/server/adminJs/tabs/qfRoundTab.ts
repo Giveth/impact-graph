@@ -31,6 +31,7 @@ export const refreshMaterializedViews = async (
 ): Promise<After<ActionResponse>> => {
   await refreshProjectEstimatedMatchingView();
   await refreshProjectDonationSummaryView();
+  await refreshProjectActualMatchingView();
   return response;
 };
 
@@ -95,6 +96,9 @@ export const qfRoundTab = {
         isVisible: true,
       },
       isActive: {
+        isVisible: true,
+      },
+      maximumReward: {
         isVisible: true,
       },
       beginDate: {
