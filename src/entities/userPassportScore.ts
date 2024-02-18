@@ -20,8 +20,12 @@ export class UserPassportScore extends BaseEntity {
   readonly id: number;
 
   @Field({ nullable: false })
-  @Column('number')
+  @Column()
   passportScore: number;
+
+  @Field({ nullable: false })
+  @Column()
+  passportStamps: number;
 
   @Field(type => User)
   @ManyToOne(type => User, { eager: true })
