@@ -17,10 +17,6 @@ export class ProjectFraud extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field({ nullable: false })
-  @Column('boolean', { nullable: false, default: false })
-  confirmedFraud: boolean;
-
   @Field(type => Project)
   @ManyToOne(type => Project, { eager: true })
   project: Project;
