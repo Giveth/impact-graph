@@ -1,4 +1,3 @@
-import { Sybil } from '../../../entities/sybil';
 import {
   canAccessProjectStatusReasonAction,
   ResourceActions,
@@ -10,87 +9,88 @@ import {
 import { logger } from '../../../utils/logger';
 import csv from 'csvtojson';
 import { messages } from '../../../utils/messages';
+import { ProjectFraud } from '../../../entities/projectFraud';
 
-export const createSybil = async (
+export const createProjectFraud = async (
   request: AdminJsRequestInterface,
   response,
   context: AdminJsContextInterface,
 ) => {
-  let message = messages.SYBIL_HAS_BEEN_CREATED_SUCCESSFULLY;
-  logger.debug('createSybil has been called() ', request.payload);
+  let message = messages.PROJECT_FRAUD_HAS_BEEN_CREATED_SUCCESSFULLY;
+  logger.debug('createProjectFraud has been called() ', request.payload);
 
   let type = 'success';
   try {
-    const { userId, qfRoundId, csvData, confirmedSybil } = request.payload;
+    const { projectId, qfRoundId, csvData, confirmedFraud } = request.payload;
     if (csvData) {
       // Parse the CSV data
       const jsonArray = await csv().fromString(csvData);
 
-      // Validate and extract all unique walletAddresses
-      const walletAddresses: string[] = [];
-      for (const obj of jsonArray) {
-        if (!obj.walletAddress || !obj.qfRoundId) {
-          throw new Error('Missing walletAddress or qfRoundId in CSV row');
+      // Validate and extract all unique slugs
+      // Slugs are project urls that comms team use
+      const slugs: string[] = [];
+      jsonArray.forEach((obj, index) => {
+        if (!obj.slug || !obj.qfRoundId) {
+          // Include the row ID in the error message, adding 1 for human readability
+          throw new Error(`Missing data for csv row: ${index + 1}`);
         }
-        walletAddresses.push(obj.walletAddress.toLowerCase());
-      }
-      const uniqueWalletAddresses = [...new Set(walletAddresses)];
+        slugs.push(obj.slug.toLowerCase());
+      });
+      const uniqueSlugs = [...new Set(slugs)];
 
-      // Get userIds for all walletAddresses
-      const users = await Sybil.query(`
-        SELECT id, "walletAddress" FROM public.user WHERE lower("walletAddress") IN (${uniqueWalletAddresses
-          .map(address => `'${address}'`)
+      // Get projectIds for all slugs
+      const projects = await ProjectFraud.query(`
+        SELECT id, slug FROM public.project WHERE lower("slug") IN (${uniqueSlugs
+          .map(slug => `'${slug}'`)
           .join(', ')})
-    `);
+      `);
 
-      // Map lowercased walletAddress to userId
-      const userIdMap = new Map(
-        users?.map(row => [row.walletAddress.toLowerCase(), row.id]),
+      // Map lowercased slugs to projectId
+      const projectIdsMap = new Map(
+        projects?.map(row => [row.slug.toLowerCase(), row.id]),
       );
       // Construct values for insertion
       const values = jsonArray
         .map(obj => {
-          const walletAddressUserId = userIdMap.get(
-            obj.walletAddress.toLowerCase(),
-          );
-          return walletAddressUserId
-            ? `(true, ${walletAddressUserId}, ${Number(obj.qfRoundId)})`
+          const slugProjectId = projectIdsMap.get(obj.slug.toLowerCase());
+          return slugProjectId
+            ? `(true, ${Number(slugProjectId)}, ${Number(obj.qfRoundId)})`
             : null;
         })
-        // .filter(value => value !== null) // Filter out any rows where userId was not found
         .join(',');
 
       if (!values) {
         throw new Error('No valid entries to insert');
       }
 
-      // Upsert query
-      const upsertQuery = `
-          INSERT INTO sybil ("confirmedSybil", "userId", "qfRoundId")
-          VALUES ${values}
-          ON CONFLICT ("userId", "qfRoundId") 
-          DO UPDATE SET 
-            "confirmedSybil" = EXCLUDED."confirmedSybil";
-     `;
+      // Insert query
+      const query = `
+        INSERT INTO project_fraud ("confirmedFraud", "projectId", "qfRoundId")
+        VALUES ${values};
+    `;
+
       // Execute the query
-      await Sybil.query(upsertQuery);
+      await ProjectFraud.query(query);
     } else {
-      const sybil = new Sybil();
-      sybil.confirmedSybil = true;
-      sybil.userId = userId;
-      sybil.qfRoundId = qfRoundId;
-      await sybil.save();
+      const projectFraud = new ProjectFraud();
+      projectFraud.confirmedFraud = confirmedFraud;
+      projectFraud.projectId = projectId;
+      projectFraud.qfRoundId = qfRoundId;
+      await projectFraud.save();
     }
 
-    logger.debug('Sybil has been created successfully', request.payload);
+    logger.debug(
+      'Project Fraud has been created successfully',
+      request.payload,
+    );
   } catch (e) {
     message = e.message;
     type = 'danger';
-    logger.error('create sybil error', e);
+    logger.error('create project fraud error', e);
   }
 
   response.send({
-    redirectUrl: '/admin/resources/Sybil',
+    redirectUrl: '/admin/resources/ProjectFraud',
     record: {},
     notice: {
       message,
@@ -99,15 +99,15 @@ export const createSybil = async (
   });
 };
 
-export const SybilTab = {
-  resource: Sybil,
+export const ProjectFraudTab = {
+  resource: ProjectFraud,
 
   options: {
     properties: {
-      confirmedSybil: {
+      confirmedFraud: {
         isVisible: true,
       },
-      userId: {
+      projectId: {
         isVisible: true,
       },
       qfRoundId: {
@@ -116,7 +116,7 @@ export const SybilTab = {
       csvData: {
         type: 'textarea',
         // Csv file columns
-        // qfRoundId,walletAddress
+        // qfRoundId,Slug
         isVisible: {
           filter: false,
           list: false,
@@ -129,7 +129,7 @@ export const SybilTab = {
 
     actions: {
       new: {
-        handler: createSybil,
+        handler: createProjectFraud,
 
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectStatusReasonAction(

@@ -6,28 +6,28 @@ import {
   ManyToOne,
   RelationId,
   BaseEntity,
-  Unique,
+  UpdateDateColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { User } from './user';
 import { QfRound } from './qfRound';
 
 @ObjectType()
 @Entity()
-@Unique(['userId', 'qfRoundId'])
-export class Sybil extends BaseEntity {
+export class UserPassportScore extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
   @Field({ nullable: false })
-  @Column('boolean', { nullable: false, default: false })
-  confirmedSybil: boolean;
+  @Column('number')
+  passportScore: number;
 
   @Field(type => User)
   @ManyToOne(type => User, { eager: true })
   user: User;
 
-  @RelationId((sybil: Sybil) => sybil.user)
+  @RelationId((userPassportScore: UserPassportScore) => userPassportScore.user)
   @Column()
   userId: number;
 
@@ -35,7 +35,15 @@ export class Sybil extends BaseEntity {
   @ManyToOne(type => QfRound, { eager: true })
   qfRound: QfRound;
 
-  @RelationId((sybil: Sybil) => sybil.qfRound)
+  @RelationId(
+    (userPassportScore: UserPassportScore) => userPassportScore.qfRound,
+  )
   @Column()
   qfRoundId: number;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

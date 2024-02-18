@@ -6,36 +6,34 @@ import {
   ManyToOne,
   RelationId,
   BaseEntity,
-  Unique,
 } from 'typeorm';
-import { User } from './user';
+import { Project } from './project';
 import { QfRound } from './qfRound';
 
 @ObjectType()
 @Entity()
-@Unique(['userId', 'qfRoundId'])
-export class Sybil extends BaseEntity {
+export class ProjectFraud extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
   @Field({ nullable: false })
   @Column('boolean', { nullable: false, default: false })
-  confirmedSybil: boolean;
+  confirmedFraud: boolean;
 
-  @Field(type => User)
-  @ManyToOne(type => User, { eager: true })
-  user: User;
+  @Field(type => Project)
+  @ManyToOne(type => Project, { eager: true })
+  project: Project;
 
-  @RelationId((sybil: Sybil) => sybil.user)
+  @RelationId((projectFraud: ProjectFraud) => projectFraud.project)
   @Column()
-  userId: number;
+  projectId: number;
 
   @Field(type => QfRound)
   @ManyToOne(type => QfRound, { eager: true })
   qfRound: QfRound;
 
-  @RelationId((sybil: Sybil) => sybil.qfRound)
+  @RelationId((projectFraud: ProjectFraud) => projectFraud.qfRound)
   @Column()
   qfRoundId: number;
 }
