@@ -142,14 +142,14 @@ export const SybilTab = {
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectStatusReasonAction(
             { currentAdmin },
-            ResourceActions.DELETE,
+            ResourceActions.EDIT,
           ),
       },
       bulkDelete: {
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectStatusReasonAction(
             { currentAdmin },
-            ResourceActions.BULK_DELETE,
+            ResourceActions.EDIT,
           ),
       },
     },
