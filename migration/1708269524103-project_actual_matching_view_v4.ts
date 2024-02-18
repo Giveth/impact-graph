@@ -152,7 +152,7 @@ export class ProjectActualMatchingViewV41708269524103
                 )
                 AND d2."qfRoundUserScore" >= qr."minimumPassportScore"
                 AND (s.id IS NULL OR s."confirmedSybil" = false)
-                AND pf.id IS NULL
+                AND (pf.id IS NULL OR pf."confirmedFraud" = false)
             GROUP BY 
                 p2.id,
                 p2.title,

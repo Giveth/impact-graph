@@ -37,11 +37,11 @@ export async function fetchUsersAndRoundsNeedingPassportScore(
 
   const query = `
     SELECT d."userId", d."qfRoundId"
-    FROM Donation d
-    JOIN QfRound qfr ON d."qfRoundId" = qfr.id
-    LEFT JOIN UserPassportScore ups ON d."userId" = ups."userId" AND d."qfRoundId" = ups."qfRoundId"
-    WHERE qfr.endDate < CURRENT_DATE
-      AND qfr.endDate > TIMESTAMP '${startDate}'
+    FROM donation d
+    JOIN qf_round qfr ON d."qfRoundId" = qfr.id
+    LEFT JOIN user_passport_score ups ON d."userId" = ups."userId" AND d."qfRoundId" = ups."qfRoundId"
+    WHERE qfr."endDate" < CURRENT_DATE
+      AND qfr."endDate" > TIMESTAMP '${startDate}'
       AND ups.id IS NULL;
   `;
 

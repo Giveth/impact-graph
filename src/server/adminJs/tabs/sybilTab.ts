@@ -21,7 +21,7 @@ export const createSybil = async (
 
   let type = 'success';
   try {
-    const { userId, qfRoundId, csvData, confirmedSybil } = request.payload;
+    const { userId, qfRoundId, csvData } = request.payload;
     if (csvData) {
       // Parse the CSV data
       const jsonArray = await csv().fromString(csvData);
@@ -54,7 +54,7 @@ export const createSybil = async (
             obj.walletAddress.toLowerCase(),
           );
           return walletAddressUserId
-            ? `(true, ${walletAddressUserId}, ${Number(obj.qfRoundId)})`
+            ? `(${walletAddressUserId}, ${Number(obj.qfRoundId)})`
             : null;
         })
         // .filter(value => value !== null) // Filter out any rows where userId was not found
@@ -66,17 +66,14 @@ export const createSybil = async (
 
       // Upsert query
       const upsertQuery = `
-          INSERT INTO sybil ("confirmedSybil", "userId", "qfRoundId")
+          INSERT INTO sybil ( "userId", "qfRoundId")
           VALUES ${values}
-          ON CONFLICT ("userId", "qfRoundId") 
-          DO UPDATE SET 
-            "confirmedSybil" = EXCLUDED."confirmedSybil";
+          ON CONFLICT ("userId", "qfRoundId") DO UPDATE
      `;
       // Execute the query
       await Sybil.query(upsertQuery);
     } else {
       const sybil = new Sybil();
-      sybil.confirmedSybil = true;
       sybil.userId = userId;
       sybil.qfRoundId = qfRoundId;
       await sybil.save();
@@ -104,9 +101,6 @@ export const SybilTab = {
 
   options: {
     properties: {
-      confirmedSybil: {
-        isVisible: true,
-      },
       userId: {
         isVisible: true,
       },
@@ -145,19 +139,17 @@ export const SybilTab = {
           ),
       },
       delete: {
-        isVisible: false,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectStatusReasonAction(
             { currentAdmin },
-            ResourceActions.DELETE,
+            ResourceActions.EDIT,
           ),
       },
       bulkDelete: {
-        isVisible: false,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectStatusReasonAction(
             { currentAdmin },
-            ResourceActions.BULK_DELETE,
+            ResourceActions.EDIT,
           ),
       },
     },
