@@ -64,14 +64,16 @@ export const createSybil = async (
         throw new Error('No valid entries to insert');
       }
 
-      // Insert query
-      const query = `
-        INSERT INTO sybil ("confirmedSybil", "userId", "qfRoundId")
-        VALUES ${values};
-    `;
-
+      // Upsert query
+      const upsertQuery = `
+          INSERT INTO sybil ("confirmedSybil", "userId", "qfRoundId")
+          VALUES ${values}
+          ON CONFLICT ("userId", "qfRoundId") 
+          DO UPDATE SET 
+            "confirmedSybil" = EXCLUDED."confirmedSybil";
+     `;
       // Execute the query
-      await Sybil.query(query);
+      await Sybil.query(upsertQuery);
     } else {
       const sybil = new Sybil();
       sybil.confirmedSybil = true;
