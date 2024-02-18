@@ -13,18 +13,18 @@ const cronJobTime =
 
 export const runInsertUserPassportScoresJob = () => {
   logger.debug(
-    'runUpdateRecurringDonationStream() has been called, cronJobTime',
+    'runInsertUserPassportScoresJob() has been called, cronJobTime',
     cronJobTime,
   );
   processInsertPassportScoreJobs();
   schedule(cronJobTime, async () => {
-    logger.debug('runUpdateRecurringDonationStream() has been started');
+    logger.debug('runInsertUserPassportScoresJob() has been started');
     try {
       await insertUserPassportScoresForClosedQfRounds();
     } catch (error) {
-      logger.error('runUpdateRecurringDonationStream() error', error);
+      logger.error('runInsertUserPassportScoresJob() error', error);
     }
-    logger.debug('runUpdateRecurringDonationStream() has been finished');
+    logger.debug('runInsertUserPassportScoresJob() has been finished');
   });
 };
 
@@ -38,7 +38,7 @@ const TWO_MINUTES = 1000 * 60 * 2;
 setInterval(async () => {
   const insertUserPassportScoresForClosedQfRoundsQueueCount =
     await insertUserPassportScoresForClosedQfRoundsQueue.count();
-  logger.debug(`Update recurring donations stream job queues count:`, {
+  logger.debug(`Insert userPassport score queues count:`, {
     insertUserPassportScoresForClosedQfRoundsQueueCount,
   });
 }, TWO_MINUTES);
