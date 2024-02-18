@@ -7,10 +7,10 @@ const whitelistHostnames: string[] = (
 
 export const corsOptions = {
   origin(origin, callback) {
-    // if (!origin) {
-    // allow requests with no origin (like mobile apps, Curl, ...)
-    return callback(null, true);
-    // }
+    if (!origin) {
+      // allow requests with no origin (like mobile apps, Curl, ...)
+      return callback(null, true);
+    }
 
     // removing http:// , https://, and :port
     const formattedOrigin = origin

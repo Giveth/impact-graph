@@ -4,7 +4,6 @@ import { Reaction } from '../entities/reaction';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import { isEvmAddress } from '../utils/networks';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 export const findAdminUserByEmail = async (
   email: string,
@@ -102,17 +101,11 @@ export const createUserWithPublicAddress = async (
   const walletAddress = isEvmAddress(_walletAddress)
     ? _walletAddress.toLocaleLowerCase()
     : _walletAddress;
-  const user = await User.create({
+  return await User.create({
     walletAddress,
     loginType: 'wallet',
     segmentIdentified: true,
   }).save();
-
-  await getNotificationAdapter().updateOrttoUser({
-    userId: user.id.toString(),
-  });
-
-  return user;
 };
 
 export const findUsersWhoBoostedProject = async (
