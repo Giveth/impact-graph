@@ -31,6 +31,7 @@ export const refreshMaterializedViews = async (
 ): Promise<After<ActionResponse>> => {
   await refreshProjectEstimatedMatchingView();
   await refreshProjectDonationSummaryView();
+  await refreshProjectActualMatchingView();
   return response;
 };
 
