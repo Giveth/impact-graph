@@ -24,13 +24,8 @@ export interface NotificationAdapterInterface {
     firstName?: string;
     lastName?: string;
     email?: string;
-    personId?: string;
-  }): Promise<{
-    people: {
-      person_id: string;
-      status: string;
-    }[];
-  }>;
+    userId?: string;
+  }): Promise<void>;
 
   donationReceived(params: {
     donation: Donation;

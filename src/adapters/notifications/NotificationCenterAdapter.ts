@@ -46,7 +46,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     if (!isProcessingQueueEventsEnabled) {
       // We send notifications to project owners immediately, but as donors and people
       // who liked project can be thousands or more we enqueue them and send it by that to manage
-      // load on notification-center and make sure all of notifications would arrive
+      // load on notification-center and make sure all notifications would arrive
       this.processSendingNotifications();
       isProcessingQueueEventsEnabled = true;
     }
@@ -56,23 +56,37 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     firstName?: string;
     lastName?: string;
     email?: string;
-    personId?: string;
-  }): Promise<{
-    people: {
-      person_id: string;
-      status: string;
-    }[];
-  }> {
+    userId?: string;
+  }): Promise<void> {
     try {
-      const { firstName, lastName, email, personId } = params;
-      const config = {
+      const { firstName, lastName, email, userId } = params;
+      const data = {
+        people: [
+          {
+            fields: {
+              'str::first': firstName || '',
+              'str::last': lastName || '',
+              'str::email': email || '',
+              'str:cm:user-id': userId,
+            },
+          },
+        ],
+        async: false,
+        merge_by: ['str:cm:user-id'],
+        merge_strategy: 2,
+        find_strategy: 0,
+      };
+      const orttoConfig = {
+        method: 'post',
         maxBodyLength: Infinity,
+        url: process.env.ORTTO_PERSON_API!,
         headers: {
           'X-Api-Key': process.env.ORTTO_API_KEY as string,
           'Content-Type': 'application/json',
         },
+        data,
       };
-      return await axios.post(process.env.ORTTO_PERSON_API!, params, config);
+      await axios.request(orttoConfig);
     } catch (e) {
       logger.error('updateOrttoUser >> error', e);
     }

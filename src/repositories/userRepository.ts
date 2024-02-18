@@ -1,11 +1,10 @@
 import { publicSelectionFields, User, UserRole } from '../entities/user';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 import { Donation } from '../entities/donation';
 import { Reaction } from '../entities/reaction';
 import { PowerBoosting } from '../entities/powerBoosting';
-import { ethers } from 'ethers';
 import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import { isEvmAddress } from '../utils/networks';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 
 export const findAdminUserByEmail = async (
   email: string,
@@ -109,7 +108,9 @@ export const createUserWithPublicAddress = async (
     segmentIdentified: true,
   }).save();
 
-  SegmentAnalyticsSingleton.getInstance().identifyUser(user);
+  await getNotificationAdapter().updateOrttoUser({
+    userId: user.id.toString(),
+  });
 
   return user;
 };
