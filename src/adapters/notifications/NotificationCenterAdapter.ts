@@ -59,7 +59,10 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     userId?: string;
   }): Promise<void> {
     try {
+      // We should update Ortto user profile only on production
+      if (process.env.NODE_ENV !== 'production') return;
       const { firstName, lastName, email, userId } = params;
+      logger.debug('updateOrttoUser has been called', params);
       const data = {
         people: [
           {
