@@ -67,6 +67,7 @@ export const createProjectFraud = async (
       const query = `
         INSERT INTO project_fraud ("projectId", "qfRoundId")
         VALUES ${values};
+        ON CONFLICT ("projectId", "qfRoundId") DO UPDATE
     `;
 
       // Execute the query
