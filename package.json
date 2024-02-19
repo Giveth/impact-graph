@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.21.0",
+  "version": "1.23.2",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -161,6 +161,7 @@
     "test:projectAddressRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/projectAddressRepository.test.ts",
     "test:anchorContractAddressRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/anchorContractAddressRepository.test.ts",
     "test:recurringDonationRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/recurringDonationRepository.test.ts",
+    "test:userPassportScoreRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/userPassportScoreRepository.test.ts",
     "test:dbCronRepository": "NODE_ENV=test mocha -t 90000 ./test/pre-test-scripts.ts  ./src/repositories/dbCronRepository.test.ts",
     "test:powerBoostingResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/powerBoostingResolver.test.ts",
     "test:userProjectPowerResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/userProjectPowerResolver.test.ts",

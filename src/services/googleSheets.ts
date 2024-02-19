@@ -41,6 +41,7 @@ export interface QfRoundDonationRow {
   // We can have 20 donors but after sybils analysis we can have 15 unique donors
   uniqueDonors: number;
   realMatchingFund: number;
+  projectWeight?: number;
 }
 
 interface DonationExport {
@@ -162,6 +163,7 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
       'totalDonors',
       'uniqueDonors',
       'realMatchingFund',
+      'projectWeight',
     ];
     const { rows, qfRoundId } = params;
 
