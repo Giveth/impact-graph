@@ -30,10 +30,10 @@ export const insertNewUserPassportScore = async (params: {
 export async function fetchUsersAndRoundsNeedingPassportScore(
   startTimestampInSeconds?: number,
 ) {
-  const DEFAULT_START_DATE = '2023-12-01 00:00:00';
-  const startDate = startTimestampInSeconds
-    ? moment.unix(startTimestampInSeconds).format('YYYY-MM-DD 00:00:00')
-    : DEFAULT_START_DATE;
+  // const DEFAULT_START_DATE = '2023-12-01 00:00:00';
+  // const startDate = startTimestampInSeconds
+  //   ? moment.unix(startTimestampInSeconds).format('YYYY-MM-DD 00:00:00')
+  //   : DEFAULT_START_DATE;
 
   const query = `
     SELECT d."userId", d."qfRoundId"
@@ -41,7 +41,6 @@ export async function fetchUsersAndRoundsNeedingPassportScore(
     JOIN qf_round qfr ON d."qfRoundId" = qfr.id
     LEFT JOIN user_passport_score ups ON d."userId" = ups."userId" AND d."qfRoundId" = ups."qfRoundId"
     WHERE qfr."endDate" < CURRENT_DATE
-      AND qfr."endDate" > TIMESTAMP '${startDate}'
       AND ups.id IS NULL;
   `;
 
