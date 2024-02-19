@@ -53,7 +53,7 @@ const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
 ]).message;
 
 // search and filters
-describe.only('all projects test cases --->', allProjectsTestCases);
+describe('all projects test cases --->', allProjectsTestCases);
 
 function allProjectsTestCases() {
   it('should return projects search by owner', async () => {
