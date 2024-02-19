@@ -2,7 +2,7 @@ import { assert, expect } from 'chai';
 import {
   isTokenAcceptableForProject,
   updateOldStableCoinDonationsPrice,
-  sendSegmentEventForDonation,
+  sendNotificationForDonation,
   syncDonationStatusWithBlockchainNetwork,
   updateTotalDonationsOfProject,
   updateDonationPricesAndValues,
@@ -77,7 +77,7 @@ function sendSegmentEventForDonationTestCases() {
       SEED_DATA.FIRST_USER.id,
       SEED_DATA.FIRST_PROJECT.id,
     );
-    await sendSegmentEventForDonation({
+    await sendNotificationForDonation({
       donation,
     });
     const updatedDonation = await findDonationById(donation.id);

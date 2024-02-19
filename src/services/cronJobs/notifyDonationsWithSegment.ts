@@ -5,7 +5,7 @@ import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import { sleep } from '../../utils/utils';
 import config from '../../config';
-import { sendSegmentEventForDonation } from '../donationService';
+import { sendNotificationForDonation } from '../donationService';
 
 const cronJobTime =
   (config.get(
@@ -33,7 +33,7 @@ export const notifyMissingDonationsWithSegment = async () => {
       'notifyMissingDonationsWithSegment() sending notification for donation id',
       donation.id,
     );
-    await sendSegmentEventForDonation({
+    await sendNotificationForDonation({
       donation,
     });
     // await enough for segment limit to regen
