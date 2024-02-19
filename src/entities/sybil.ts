@@ -19,10 +19,6 @@ export class Sybil extends BaseEntity {
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field({ nullable: false })
-  @Column('boolean', { nullable: false, default: false })
-  confirmedSybil: boolean;
-
   @Field(type => User)
   @ManyToOne(type => User, { eager: true })
   user: User;
