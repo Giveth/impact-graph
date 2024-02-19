@@ -25,6 +25,12 @@ export interface NotificationAdapterInterface {
     lastName?: string;
     email?: string;
     userId?: string;
+    totalDonated?: number;
+    donationsCount?: number;
+    lastDonationDate?: Date | null;
+    GIVbacksRound?: number;
+    QFRound?: string;
+    donationChain?: string;
   }): Promise<void>;
 
   donationReceived(params: {
