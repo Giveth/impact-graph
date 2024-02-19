@@ -26,7 +26,7 @@ export const updateUserTotalDonated = async (userId: number) => {
 
 interface DonationStats {
   totalDonated: number;
-  donationsCount: number;
+  donationsCount: string;
   lastDonationDate: Date | null;
 }
 

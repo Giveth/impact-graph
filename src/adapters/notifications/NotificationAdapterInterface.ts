@@ -26,7 +26,7 @@ export interface NotificationAdapterInterface {
     email?: string;
     userId?: string;
     totalDonated?: number;
-    donationsCount?: number;
+    donationsCount?: string;
     lastDonationDate?: Date | null;
     GIVbacksRound?: number;
     QFRound?: string;
