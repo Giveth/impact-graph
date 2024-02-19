@@ -21,7 +21,7 @@ export const createProjectFraud = async (
 
   let type = 'success';
   try {
-    const { projectId, qfRoundId, csvData, confirmedFraud } = request.payload;
+    const { projectId, qfRoundId, csvData } = request.payload;
     if (csvData) {
       // Parse the CSV data
       const jsonArray = await csv().fromString(csvData);
@@ -54,7 +54,7 @@ export const createProjectFraud = async (
         .map(obj => {
           const slugProjectId = projectIdsMap.get(obj.slug.toLowerCase());
           return slugProjectId
-            ? `(true, ${Number(slugProjectId)}, ${Number(obj.qfRoundId)})`
+            ? `(${Number(slugProjectId)}, ${Number(obj.qfRoundId)})`
             : null;
         })
         .join(',');
@@ -65,15 +65,15 @@ export const createProjectFraud = async (
 
       // Insert query
       const query = `
-        INSERT INTO project_fraud ("confirmedFraud", "projectId", "qfRoundId")
+        INSERT INTO project_fraud ("projectId", "qfRoundId")
         VALUES ${values};
+        ON CONFLICT ("projectId", "qfRoundId") DO UPDATE
     `;
 
       // Execute the query
       await ProjectFraud.query(query);
     } else {
       const projectFraud = new ProjectFraud();
-      projectFraud.confirmedFraud = confirmedFraud;
       projectFraud.projectId = projectId;
       projectFraud.qfRoundId = qfRoundId;
       await projectFraud.save();
@@ -104,9 +104,6 @@ export const ProjectFraudTab = {
 
   options: {
     properties: {
-      confirmedFraud: {
-        isVisible: true,
-      },
       projectId: {
         isVisible: true,
       },
@@ -145,19 +142,17 @@ export const ProjectFraudTab = {
           ),
       },
       delete: {
-        isVisible: false,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectStatusReasonAction(
             { currentAdmin },
-            ResourceActions.DELETE,
+            ResourceActions.EDIT,
           ),
       },
       bulkDelete: {
-        isVisible: false,
         isAccessible: ({ currentAdmin }) =>
           canAccessProjectStatusReasonAction(
             { currentAdmin },
-            ResourceActions.BULK_DELETE,
+            ResourceActions.EDIT,
           ),
       },
     },

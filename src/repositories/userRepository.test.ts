@@ -439,7 +439,7 @@ function findUserByIdTestCases() {
 }
 
 function findAllUsersTestCases() {
-  it('should return all users, count sould work fine', async () => {
+  it('should return all users, count should work fine', async () => {
     const { count, users } = await findAllUsers({ take: 7, skip: 0 });
     assert.equal(users.length, 7);
     const newUser = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
