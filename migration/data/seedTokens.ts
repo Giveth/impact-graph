@@ -1477,7 +1477,7 @@ const seedTokens: ITokenData[] = [
     address: '0x4D15a3A2286D883AF0AA1B3f21367843FAc63E07',
     decimals: 18,
     networkId: NETWORK_IDS.ARBITRUM_MAINNET,
-    coingeckoId: 'trueusd',
+    coingeckoId: 'true-usd',
     // isStableCoin: true,
   },
   {
