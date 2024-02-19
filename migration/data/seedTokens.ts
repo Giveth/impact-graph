@@ -13,6 +13,7 @@ interface ITokenData {
   networkId: number;
   chainType?: ChainType;
   coingeckoId?: string;
+  isStableCoin?: boolean;
 }
 const seedTokens: ITokenData[] = [
   // Mainnet tokens
@@ -1387,6 +1388,14 @@ const seedTokens: ITokenData[] = [
     coingeckoId: 'ethereum',
   },
   {
+    name: 'Chromatic test Eth',
+    symbol: 'cETH',
+    address: '0x93252009E644138b906aE1a28792229E577239B9',
+    decimals: 18,
+    networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
+    coingeckoId: 'weth',
+  },
+  {
     name: 'Arbitrum ETH',
     symbol: 'ETH',
     address: '0x0000000000000000000000000000000000000000',
@@ -1401,6 +1410,7 @@ const seedTokens: ITokenData[] = [
     decimals: 6,
     networkId: NETWORK_IDS.ARBITRUM_MAINNET,
     coingeckoId: 'tether',
+    // isStableCoin: true,
   },
   {
     name: 'USDC',
@@ -1409,6 +1419,7 @@ const seedTokens: ITokenData[] = [
     decimals: 6,
     networkId: NETWORK_IDS.ARBITRUM_MAINNET,
     coingeckoId: 'usd-coin',
+    // isStableCoin: true,
   },
   {
     name: 'Chainlink',
@@ -1425,6 +1436,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.ARBITRUM_MAINNET,
     coingeckoId: 'dai',
+    // isStableCoin: true,
   },
   {
     name: 'Uniswap',
@@ -1457,6 +1469,7 @@ const seedTokens: ITokenData[] = [
     decimals: 6,
     networkId: NETWORK_IDS.ARBITRUM_MAINNET,
     coingeckoId: 'usd-coin',
+    // isStableCoin: true,
   },
   {
     name: 'TrueUSD',
@@ -1465,6 +1478,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.ARBITRUM_MAINNET,
     coingeckoId: 'trueusd',
+    // isStableCoin: true,
   },
   {
     name: 'The Graph',
@@ -1489,6 +1503,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.ARBITRUM_MAINNET,
     coingeckoId: 'usdd',
+    // isStableCoin: true,
   },
   {
     name: 'WOO',
