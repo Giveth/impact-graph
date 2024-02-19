@@ -26,7 +26,11 @@ import {
 import { calculateGivbackFactor } from './givbackService';
 import { getTokenPrices } from '@giveth/monoswap';
 import SentryLogger from '../sentryLogger';
-import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
+import {
+  getUserDonationStats,
+  updateUserTotalDonated,
+  updateUserTotalReceived,
+} from './userService';
 import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
@@ -42,7 +46,7 @@ import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories
 import { getPowerRound } from '../repositories/powerRoundRepository';
 import { fetchSafeTransactionHash } from './safeServices';
 import { ChainType } from '../types/network';
-import { NETWORK_IDS } from '../provider';
+import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
 import { fetchMpEthPrice } from './mpEthPriceService';
 
@@ -201,7 +205,7 @@ export const updateDonationByTransakData = async (
   }
 
   if (TRANSAK_COMPLETED_STATUS === donation.transakStatus) {
-    await sendSegmentEventForDonation({
+    await sendNotificationForDonation({
       donation,
     });
     if (donationProjectIsValid) {
@@ -396,13 +400,28 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await updateTotalDonationsOfProject(donation.projectId);
     const project = await findProjectById(donation.projectId);
     await updateUserTotalReceived(project!.adminUser.id);
-    await sendSegmentEventForDonation({
+    await sendNotificationForDonation({
       donation,
     });
 
     // Update materialized view for project and qfRound data
     await refreshProjectEstimatedMatchingView();
     await refreshProjectDonationSummaryView();
+
+    const donor = await getUserDonationStats(donation.userId);
+
+    await getNotificationAdapter().updateOrttoUser({
+      userId: donation.userId.toString(),
+      firstName: donation.user?.firstName,
+      lastName: donation.user?.lastName,
+      email: donation.user?.email,
+      totalDonated: donor?.totalDonated,
+      donationsCount: donor?.donationsCount,
+      lastDonationDate: donor?.lastDonationDate,
+      GIVbacksRound: donation.powerRound,
+      QFRound: donation.qfRound?.name,
+      donationChain: NETWORKS_IDS_TO_NAME[donation.transactionNetworkId],
+    });
 
     // send chainvine the referral as last step to not interrupt previous
     if (donation.referrerWallet && donation.isReferrerGivbackEligible) {
@@ -450,7 +469,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
   }
 };
 
-export const sendSegmentEventForDonation = async (params: {
+export const sendNotificationForDonation = async (params: {
   donation: Donation;
 }): Promise<void> => {
   const { donation } = params;
@@ -463,7 +482,7 @@ export const sendSegmentEventForDonation = async (params: {
   const project = await findProjectById(donation.projectId);
   if (!project) {
     logger.error(
-      'sendSegmentEventForDonation project not found for sending segment event donationId',
+      'sendEventForDonation project not found for sending segment event donationId',
       donation.id,
     );
     return;
