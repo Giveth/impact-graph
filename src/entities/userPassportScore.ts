@@ -20,7 +20,7 @@ export class UserPassportScore extends BaseEntity {
   readonly id: number;
 
   @Field({ nullable: false })
-  @Column()
+  @Column({ type: 'real' })
   passportScore: number;
 
   @Field({ nullable: false })
