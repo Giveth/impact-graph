@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class projectActualMatchingView1707892354692
+export class projectActualMatchingViewV21707892354692
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {

@@ -74,6 +74,7 @@ export const getQfRoundActualDonationDetails = async (
       totalDonors: row.totalDonors,
       uniqueDonors: row.uniqueDonors,
       realMatchingFund: row.actualMatching,
+      projectWeight: row.donationsSqrtRootSumSquared,
     };
   });
 

@@ -383,6 +383,10 @@ export class Project extends BaseEntity {
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
 
+  // @Field(type => Boolean, { nullable: true })
+  // @Column({ type: 'boolean', default: false })
+  // tunnableQf?: boolean;
+
   @Field(type => String)
   @Column({
     type: 'enum',
