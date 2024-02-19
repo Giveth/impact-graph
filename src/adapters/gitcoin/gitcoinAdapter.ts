@@ -132,6 +132,9 @@ export class GitcoinAdapter implements GitcoinAdapterInterface {
           },
         },
       );
+      logger.debug('getPassportStamps() has successfully returned data', {
+        walletAddress: address,
+      });
       return result.data;
     } catch (e) {
       logger.error('getPassportStamps error', e);

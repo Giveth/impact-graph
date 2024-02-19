@@ -7,8 +7,8 @@ export const findPassportScoreByUserIdAndQfRoundId = async (params: {
 }): Promise<UserPassportScore | null> => {
   const { userId, qfRoundId } = params;
   return UserPassportScore.createQueryBuilder()
-    .where(`userId = :userId`, { userId })
-    .andWhere(`qfRoundId = :qfRoundId`, { qfRoundId })
+    .where(`"userId" = :userId`, { userId })
+    .andWhere(`"qfRoundId" = :qfRoundId`, { qfRoundId })
     .getOne();
 };
 
