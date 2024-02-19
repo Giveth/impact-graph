@@ -9,7 +9,7 @@ export class ChangeTypeOfFieldInUserPassportScore1708341627263
       `);
     await queryRunner.query(`
                 ALTER TABLE user_passport_score
-                ALTER COLUMN "passportScore" TYPE FLOAT USING "passportScore"::FLOAT;
+                ALTER COLUMN "passportScore" TYPE REAL USING "passportScore"::REAL;
         `);
 
     // Use cprevious migration file to create view again
