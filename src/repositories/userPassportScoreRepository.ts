@@ -1,6 +1,5 @@
 import { UserPassportScore } from '../entities/userPassportScore';
 import { AppDataSource } from '../orm';
-import moment from 'moment';
 
 export const findPassportScoreByUserIdAndQfRoundId = async (params: {
   userId: number;
@@ -9,7 +8,7 @@ export const findPassportScoreByUserIdAndQfRoundId = async (params: {
   const { userId, qfRoundId } = params;
   return UserPassportScore.createQueryBuilder()
     .where(`userId = :userId`, { userId })
-    .andWhere(`qfRoundI = :qfRoundI`, { qfRoundId })
+    .andWhere(`qfRoundId = :qfRoundId`, { qfRoundId })
     .getOne();
 };
 
