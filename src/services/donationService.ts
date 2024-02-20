@@ -408,16 +408,17 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     await refreshProjectEstimatedMatchingView();
     await refreshProjectDonationSummaryView();
 
-    const donor = await getUserDonationStats(donation.userId);
+    const donationStats = await getUserDonationStats(donation.userId);
+    const donor = await findUserById(donation.userId);
 
     await getNotificationAdapter().updateOrttoUser({
       userId: donation.userId.toString(),
-      firstName: donation.user?.firstName,
-      lastName: donation.user?.lastName,
-      email: donation.user?.email,
-      totalDonated: donor?.totalDonated,
-      donationsCount: donor?.donationsCount,
-      lastDonationDate: donor?.lastDonationDate,
+      firstName: donor?.firstName,
+      lastName: donor?.lastName,
+      email: donor?.email,
+      totalDonated: donationStats?.totalDonated,
+      donationsCount: donationStats?.donationsCount,
+      lastDonationDate: donationStats?.lastDonationDate,
       GIVbacksRound: donation.powerRound,
       QFRound: donation.qfRound?.name,
       donationChain: NETWORKS_IDS_TO_NAME[donation.transactionNetworkId],
