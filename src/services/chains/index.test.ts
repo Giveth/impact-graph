@@ -629,7 +629,7 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
-  it('should return transaction detail for normal transfer on CELO Alfajores', async () => {
+  it('should return transaction detail for normal transfer on Arbitrum Sepolia', async () => {
     // https://sepolia.arbiscan.io/tx/0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c
 
     const amount = 0.0069;
