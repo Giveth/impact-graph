@@ -44,6 +44,10 @@ import { QfRoundHistory } from './qfRoundHistory';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { RecurringDonation } from './recurringDonation';
+import { Sybil } from './sybil';
+import { DraftDonation } from './draftDonation';
+import { ProjectFraud } from './projectFraud';
+import { UserPassportScore } from './userPassportScore';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -59,6 +63,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     FeaturedUpdate,
     Reaction,
     Donation,
+    DraftDonation,
     Token,
     Wallet,
     ProjectStatus,
@@ -101,8 +106,12 @@ export const getEntities = (): DataSourceOptions['entities'] => {
 
     QfRound,
     QfRoundHistory,
+    Sybil,
+    ProjectFraud,
 
     AnchorContractAddress,
     RecurringDonation,
+
+    UserPassportScore,
   ];
 };

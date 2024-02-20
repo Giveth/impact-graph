@@ -22,6 +22,7 @@ export const findTokenByNetworkAndSymbol = async (
       symbol,
       networkId,
     },
+    cache: { id: `token_${networkId}_${symbol}`, milliseconds: 1000 * 60 * 60 },
   });
   if (!token) {
     throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
@@ -51,6 +52,7 @@ export const findTokenByNetworkAndAddress = async (
       address,
       networkId,
     })
+    .cache(`token_${networkId}_${address}`, 1000 * 60 * 60)
     .getOne();
   if (!token) {
     throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));

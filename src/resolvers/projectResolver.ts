@@ -759,6 +759,7 @@ export class ProjectResolver {
 
     const projectsQuery = filterProjectsQuery(filterQueryParams);
 
+    projectsFiltersThreadPool.completed();
     const projectsQueryCacheKey = await projectsFiltersThreadPool.queue(
       hasher =>
         hasher.hashProjectFilters({
@@ -1677,6 +1678,7 @@ export class ProjectResolver {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.status', 'status')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.organization', 'organization')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection

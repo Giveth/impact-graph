@@ -44,6 +44,7 @@ import { fetchSafeTransactionHash } from './safeServices';
 import { ChainType } from '../types/network';
 import { NETWORK_IDS } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
+import { fetchMpEthPrice } from './mpEthPriceService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -65,6 +66,10 @@ export const updateDonationPricesAndValues = async (
     if (token?.isStableCoin) {
       donation.priceUsd = 1;
       donation.valueUsd = Number(amount);
+    } else if (currency === 'mpETH') {
+      const mpEthPriceInUsd = await fetchMpEthPrice();
+      donation.priceUsd = toFixNumber(mpEthPriceInUsd, 4);
+      donation.valueUsd = toFixNumber(donation.amount * mpEthPriceInUsd, 4);
     } else if (currency === 'GIV') {
       const { givPriceInUsd } = await fetchGivPrice();
       donation.priceUsd = toFixNumber(givPriceInUsd, 4);
@@ -469,6 +474,7 @@ export const sendSegmentEventForDonation = async (params: {
     await getNotificationAdapter().donationReceived({
       donation,
       project,
+      user: donorUser,
     });
   }
 

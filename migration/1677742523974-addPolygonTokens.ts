@@ -11,8 +11,12 @@ export class addGoerliTokens1677742523974 implements MigrationInterface {
       Token,
       seedTokens
         .filter(token => token.networkId === NETWORK_IDS.POLYGON)
-        .map(t => {
+        .map(token => {
+          const t = {
+            ...token,
+          };
           t.address = t.address?.toLowerCase();
+          delete t.chainType;
           return t;
         }),
     );
