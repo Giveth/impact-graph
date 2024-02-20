@@ -83,7 +83,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         'str::last': lastName || '',
         'str::email': email || '',
       };
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env.ENVIRONMENT === 'production') {
         // On production, we should update Ortto user profile based on user-id to avoid touching real users data
         fields['str:cm:user-id'] = userId;
       }
