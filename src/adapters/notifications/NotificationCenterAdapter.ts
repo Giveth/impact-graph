@@ -57,21 +57,59 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     lastName?: string;
     email?: string;
     userId?: string;
+    totalDonated?: number;
+    donationsCount?: string;
+    lastDonationDate?: Date | null;
+    GIVbacksRound?: number;
+    QFRound?: string;
+    donationChain?: string;
   }): Promise<void> {
     try {
       // We should update Ortto user profile only on production
-      if (process.env.NODE_ENV !== 'production') return;
-      const { firstName, lastName, email, userId } = params;
+      // if (process.env.NODE_ENV !== 'production') return;
+      const {
+        firstName,
+        lastName,
+        email,
+        userId,
+        totalDonated,
+        donationsCount,
+        lastDonationDate,
+        GIVbacksRound,
+        QFRound,
+        donationChain,
+      } = params;
       logger.debug('updateOrttoUser has been called', params);
+      const fields = {
+        'str::first': firstName || '',
+        'str::last': lastName || '',
+        'str::email': email || '',
+        'str:cm:user-id': userId,
+      };
+      if (donationsCount) {
+        fields['int:cm:number-of-donations'] = Number(donationsCount) * 1000;
+      }
+      if (totalDonated) {
+        fields['int:cm:total-donations-value'] = totalDonated * 1000;
+      }
+      if (lastDonationDate) {
+        fields['dtz:cm:lastdonationdate'] = lastDonationDate;
+      }
+      const tags: string[] = [];
+      if (GIVbacksRound) {
+        tags.push(`GIVbacks ${GIVbacksRound}`);
+      }
+      if (QFRound) {
+        tags.push(`QF Donor ${QFRound}`);
+      }
+      if (donationChain) {
+        tags.push(`Donated on ${donationChain}`);
+      }
       const data = {
         people: [
           {
-            fields: {
-              'str::first': firstName || '',
-              'str::last': lastName || '',
-              'str::email': email || '',
-              'str:cm:user-id': userId,
-            },
+            fields,
+            tags,
           },
         ],
         async: false,
