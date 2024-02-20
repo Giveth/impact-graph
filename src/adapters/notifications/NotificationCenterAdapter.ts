@@ -66,7 +66,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }): Promise<void> {
     try {
       // We should update Ortto user profile only on production
-      // if (process.env.NODE_ENV !== 'production') return;
+      if (process.env.NODE_ENV !== 'production') return;
       const {
         firstName,
         lastName,
@@ -87,8 +87,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         'str:cm:user-id': userId,
       };
       if (donationsCount) {
-        // Ortto automatically adds three decimal points to integers
-        fields['int:cm:number-of-donations'] = Number(donationsCount) * 1000;
+        fields['int:cm:number-of-donations'] = Number(donationsCount);
       }
       if (totalDonated) {
         // Ortto automatically adds three decimal points to integers
