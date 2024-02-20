@@ -65,8 +65,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     donationChain?: string;
   }): Promise<void> {
     try {
-      // We should update Ortto user profile only on production
-      if (process.env.NODE_ENV !== 'production') return;
       const {
         firstName,
         lastName,
@@ -84,8 +82,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         'str::first': firstName || '',
         'str::last': lastName || '',
         'str::email': email || '',
-        'str:cm:user-id': userId,
       };
+      if (process.env.NODE_ENV === 'production') {
+        // On production, we should update Ortto user profile based on user-id to avoid touching real users data
+        fields['str:cm:user-id'] = userId;
+      }
       if (donationsCount) {
         fields['int:cm:number-of-donations'] = Number(donationsCount);
       }
@@ -115,9 +116,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           },
         ],
         async: false,
-        merge_by: ['str:cm:user-id'],
-        merge_strategy: 2,
-        find_strategy: 0,
       };
       const orttoConfig = {
         method: 'post',
