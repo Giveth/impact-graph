@@ -2,6 +2,7 @@ import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { RecurringDonation } from '../entities/recurringDonation';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
+import { Donation } from '../entities/donation';
 
 export const createNewRecurringDonation = async (params: {
   project: Project;
@@ -36,4 +37,15 @@ export const findActiveRecurringDonations = async (): Promise<
       finished: false,
     },
   });
+};
+
+export const findRecurringDonationById = async (
+  donationId: number,
+): Promise<RecurringDonation | null> => {
+  return RecurringDonation.createQueryBuilder('recurringDonation')
+    .where(`recurringDonation.id = :donationId`, {
+      donationId,
+    })
+    .leftJoinAndSelect('recurringDonation.project', 'project')
+    .getOne();
 };

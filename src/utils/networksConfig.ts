@@ -35,6 +35,8 @@ const networksConfig = {
   '44787': {
     blockExplorer: 'https://explorer.celo.org/alfajores/',
   },
+  '42161': { blockExplorer: 'https://arbiscan.io/' },
+  '421614': { blockExplorer: 'https://sepolia.arbiscan.io/' },
 };
 
 export default networksConfig;
