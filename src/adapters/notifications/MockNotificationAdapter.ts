@@ -9,6 +9,21 @@ import { User } from '../../entities/user';
 import { logger } from '../../utils/logger';
 
 export class MockNotificationAdapter implements NotificationAdapterInterface {
+  async updateOrttoUser(params: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userId?: string;
+  }): Promise<void> {
+    logger.debug('MockNotificationAdapter updateOrttoUser', {
+      firstName: params.firstName,
+      lastName: params.lastName,
+      email: params.email,
+      userId: params.userId,
+    });
+    return Promise.resolve(undefined);
+  }
+
   donationReceived(params: {
     donation: Donation;
     project: Project;
