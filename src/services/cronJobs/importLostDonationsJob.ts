@@ -249,16 +249,16 @@ export const importLostDonations = async () => {
         await updateUserTotalReceived(project.adminUser?.id);
         await updateTotalDonationsOfProject(project.id);
 
-        const donor = await getUserDonationStats(dbUser.id);
+        const donationStats = await getUserDonationStats(dbUser.id);
 
         await getNotificationAdapter().updateOrttoUser({
-          userId: dbDonation.userId.toString(),
-          firstName: dbDonation.user?.firstName,
-          lastName: dbDonation.user?.lastName,
-          email: dbDonation.user?.email,
-          totalDonated: donor?.totalDonated,
-          donationsCount: donor?.donationsCount,
-          lastDonationDate: donor?.lastDonationDate,
+          userId: dbUser.id.toString(),
+          firstName: dbUser?.firstName,
+          lastName: dbUser?.lastName,
+          email: dbUser?.email,
+          totalDonated: donationStats?.totalDonated,
+          donationsCount: donationStats?.donationsCount,
+          lastDonationDate: donationStats?.lastDonationDate,
           GIVbacksRound: dbDonation.powerRound,
           QFRound: dbDonation.qfRound?.name,
           donationChain: NETWORKS_IDS_TO_NAME[dbDonation.transactionNetworkId],

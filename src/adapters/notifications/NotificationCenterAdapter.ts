@@ -87,10 +87,13 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         'str:cm:user-id': userId,
       };
       if (donationsCount) {
+        // Ortto automatically adds three decimal points to integers
         fields['int:cm:number-of-donations'] = Number(donationsCount) * 1000;
       }
       if (totalDonated) {
-        fields['int:cm:total-donations-value'] = totalDonated * 1000;
+        // Ortto automatically adds three decimal points to integers
+        fields['int:cm:total-donations-value'] =
+          Number(totalDonated?.toFixed(3)) * 1000;
       }
       if (lastDonationDate) {
         fields['dtz:cm:lastdonationdate'] = lastDonationDate;
