@@ -494,7 +494,7 @@ export const sendNotificationForDonation = async (params: {
     await getNotificationAdapter().donationReceived({
       donation,
       project,
-      user: donorUser,
+      user: projectOwner,
     });
   }
 
