@@ -1,20 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ChangeTypeOfFieldInUserPassportScore1708341627263
+export class ProjectActualMatchingV61708511332373
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-        DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
-      `);
-    await queryRunner.query(`
-                ALTER TABLE user_passport_score
-                ALTER COLUMN "passportScore" TYPE REAL USING "passportScore"::REAL;
-        `);
-
-    // Use cprevious migration file to create view again
-    await queryRunner.query(`
-             DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
+            DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
             
             CREATE MATERIALIZED VIEW project_actual_matching_view AS
             WITH DonationsBeforeAnalysis AS (
@@ -56,7 +47,6 @@ export class ChangeTypeOfFieldInUserPassportScore1708341627263
                     INNER JOIN project p2 ON p2.id = d2."projectId"
                     INNER JOIN qf_round qr ON qr.id = d2."qfRoundId"
                     INNER JOIN project_address pa ON pa."projectId" = p2.id AND pa."networkId" = ANY(qr."eligibleNetworks")
-                    LEFT JOIN user_passport_score ups ON ups."userId" = d2."userId" AND ups."qfRoundId" = qr.id
                     LEFT JOIN "sybil" s ON s."userId" = d2."userId" AND s."qfRoundId" = qr.id
                     LEFT JOIN project_fraud pf ON pf."projectId" = p2.id AND pf."qfRoundId" = qr.id
                 WHERE 
@@ -69,7 +59,7 @@ export class ChangeTypeOfFieldInUserPassportScore1708341627263
                         AND p3."statusId" = 5 
                         AND p3."isImported" = false
                     )
-                    AND (ups."passportScore" IS NULL OR ups."passportScore" >= qr."minimumPassportScore")
+                    AND d2."qfRoundUserScore" >= qr."minimumPassportScore"
                     AND s.id IS NULL
                     AND pf.id IS NULL
                 GROUP BY 
@@ -96,13 +86,10 @@ export class ChangeTypeOfFieldInUserPassportScore1708341627263
             
             CREATE INDEX idx_project_actual_matching_project_id ON project_actual_matching_view USING hash ("projectId");
             CREATE INDEX idx_project_actual_matching_qf_round_id ON project_actual_matching_view USING hash ("qfRoundId");
-      
-      `);
+        `);
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-                ALTER TABLE user_passport_score
-                ALTER COLUMN "passportScore" TYPE INTEGER USING "passportScore"::INTEGER;`);
+    //
   }
 }
