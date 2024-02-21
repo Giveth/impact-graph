@@ -27,9 +27,7 @@ function uploadTestCases() {
   const IpfsHash = 'MockIpfsHash';
   before(() => {
     sinon.stub(pinataUtils, 'pinFile').resolves({
-      data: {
-        IpfsHash,
-      },
+      IpfsHash,
     });
   });
 
@@ -108,9 +106,7 @@ function traceImageUpload() {
   before(() => {
     sinon.stub(pinataUtils, 'pinFileDataBase64').returns(
       Promise.resolve({
-        data: {
-          IpfsHash,
-        },
+        IpfsHash,
       }),
     );
   });

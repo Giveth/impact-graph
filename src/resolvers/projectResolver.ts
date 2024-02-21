@@ -1134,7 +1134,7 @@ export class ProjectResolver {
           filename,
           encoding,
         );
-        url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.data.IpfsHash}`;
+        url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.IpfsHash}`;
 
         const projectImage = this.projectImageRepository.create({
           url,
