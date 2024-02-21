@@ -490,11 +490,12 @@ export const sendNotificationForDonation = async (params: {
   }
   const donorUser = await findUserById(donation.userId);
   const projectOwner = project.adminUser;
+  const projectOwnerWithEmailAddress = await findUserById(project.adminUser.id);
   if (projectOwner) {
     await getNotificationAdapter().donationReceived({
       donation,
       project,
-      user: projectOwner,
+      user: projectOwnerWithEmailAddress,
     });
   }
 
