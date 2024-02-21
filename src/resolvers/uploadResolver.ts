@@ -74,7 +74,7 @@ export class UploadResolver {
 
     try {
       const response = await pinFile(createReadStream(), filename, encoding);
-      return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.data.IpfsHash}`;
+      return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.IpfsHash}`;
     } catch (e) {
       logger.error('upload() error', e);
       throw Error(
@@ -111,7 +111,7 @@ export class UploadResolver {
         undefined,
         'base64',
       );
-      return `/ipfs/${response.data.IpfsHash}`;
+      return `/ipfs/${response.IpfsHash}`;
     } catch (e) {
       logger.error('upload() error', e);
       throw Error(

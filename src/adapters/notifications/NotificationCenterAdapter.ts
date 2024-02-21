@@ -65,8 +65,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     donationChain?: string;
   }): Promise<void> {
     try {
-      // We should update Ortto user profile only on production
-      // if (process.env.NODE_ENV !== 'production') return;
       const {
         firstName,
         lastName,
@@ -84,13 +82,18 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         'str::first': firstName || '',
         'str::last': lastName || '',
         'str::email': email || '',
-        'str:cm:user-id': userId,
       };
+      if (process.env.ENVIRONMENT === 'production') {
+        // On production, we should update Ortto user profile based on user-id to avoid touching real users data
+        fields['str:cm:user-id'] = userId;
+      }
       if (donationsCount) {
-        fields['int:cm:number-of-donations'] = Number(donationsCount) * 1000;
+        fields['int:cm:number-of-donations'] = Number(donationsCount);
       }
       if (totalDonated) {
-        fields['int:cm:total-donations-value'] = totalDonated * 1000;
+        // Ortto automatically adds three decimal points to integers
+        fields['int:cm:total-donations-value'] =
+          Number(totalDonated?.toFixed(3)) * 1000;
       }
       if (lastDonationDate) {
         fields['dtz:cm:lastdonationdate'] = lastDonationDate;
@@ -113,9 +116,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           },
         ],
         async: false,
-        merge_by: ['str:cm:user-id'],
-        merge_strategy: 2,
-        find_strategy: 0,
       };
       const orttoConfig = {
         method: 'post',
@@ -918,6 +918,7 @@ const getEmailDataDonationAttributes = async (params: {
     email: user.email,
     title: project.title,
     firstName: user.firstName,
+    userId: user.id,
     projectOwnerId: project.admin,
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
@@ -947,6 +948,7 @@ const getEmailDataProjectAttributes = async (params: { project: Project }) => {
     title: project.title,
     lastName: project?.adminUser?.lastName || '',
     firstName: project?.adminUser?.firstName || '',
+    userId: user?.id,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     OwnerId: project?.adminUser?.id,
     slug: project.slug,
