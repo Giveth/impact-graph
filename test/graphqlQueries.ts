@@ -1478,6 +1478,10 @@ export const projectsByUserIdQuery = `
           listed
           reviewStatus
           givingBlocksId
+          qfRounds {
+            name
+            id
+          }
           projectVerificationForm {
             id
             isTermAndConditionsAccepted

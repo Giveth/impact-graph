@@ -104,6 +104,7 @@ import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSn
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { cacheProjectCampaigns } from '../services/campaignService';
 import { ChainType } from '../types/network';
+import { QfRound } from '../entities/qfRound';
 
 const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
   { property: '' },
@@ -434,6 +435,41 @@ function projectsByUserIdTestCases() {
       assert.isOk(project.adminUser.firstName);
       assert.isNotOk(project.adminUser.email);
     });
+  });
+  it.only('should return projects with qfRound', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData(), user);
+    const qfRound = QfRound.create({
+      isActive: false,
+      name: generateRandomString(10),
+      slug: generateRandomString(10),
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+    project.qfRounds = [qfRound];
+    await project.save();
+    const accessToken = await generateTestAccessToken(user!.id);
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: projectsByUserIdQuery,
+        variables: {
+          userId: user.id,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    // We have created user just in this test case so this will have only one project
+    const fetchedProject = result.data.data.projectsByUserId.projects[0];
+    assert.equal(fetchedProject.qfRounds[0].id, qfRound.id);
   });
 
   it('should not return draft projects', async () => {

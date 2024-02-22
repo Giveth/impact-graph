@@ -1669,6 +1669,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 
