@@ -400,7 +400,7 @@ export const addProjectsToQfRound = async (
     if (activeQfRound) {
       await relateManyProjectsToQfRound({
         projectIds,
-        qfRoundId: activeQfRound.id,
+        qfRound: activeQfRound,
         add,
       });
 
@@ -437,7 +437,7 @@ export const addSingleProjectToQfRound = async (
     if (activeQfRound) {
       await relateManyProjectsToQfRound({
         projectIds: [projectId],
-        qfRoundId: activeQfRound.id,
+        qfRound: activeQfRound,
         add,
       });
 
