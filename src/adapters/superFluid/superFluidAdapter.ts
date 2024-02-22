@@ -1,6 +1,7 @@
 import { logger } from '../../utils/logger';
 import Axios from 'axios';
 import { isTestEnv } from '../../utils/utils';
+import { SuperFluidAdapterInterface } from './superFluidAdapterInterface';
 
 const superFluidGraphqlUrl =
   'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet';
@@ -70,7 +71,7 @@ const accountQuery = `
     ]
   },
 */
-export class SuperFluidAdapter {
+export class SuperFluidAdapter implements SuperFluidAdapterInterface {
   async streamPeriods(params: {
     address: string;
     chain: number;
@@ -79,7 +80,6 @@ export class SuperFluidAdapter {
     priceGranularity: string;
     virtualization: string;
     currency: string;
-    counterParties?: string[];
   }) {
     const {
       address,

@@ -41,7 +41,13 @@ export const findActiveRecurringDonations = async (): Promise<
 export const getRecurringDonationById = async (
   id: number,
 ): Promise<RecurringDonation | null> => {
-  return await RecurringDonation.createQueryBuilder('donation')
-    .where(`donation.id = :id`, { id })
+  return await RecurringDonation.createQueryBuilder('recurringDonation')
+    .innerJoinAndSelect(
+      `recurringDonation.anchorContractAddress`,
+      'anchorContractAddress',
+    )
+    .innerJoinAndSelect(`recurringDonation.donations`, 'donations')
+    .where(`recurringDonation.id = :id`, { id })
+    .andWhere(`recurringDonation.finished = false`)
     .getOne();
 };

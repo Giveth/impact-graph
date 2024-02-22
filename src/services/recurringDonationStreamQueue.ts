@@ -9,6 +9,12 @@ import config from '../config';
 import { getCurrentDateFormatted } from '../utils/utils';
 import { SuperFluidAdapter } from '../adapters/superFluid/superFluidAdapter';
 import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
+import { RecurringDonation } from '../entities/recurringDonation';
+import {
+  createRelatedDonationsToStream,
+  fetchStreamTableStartDate,
+  validateDonorSuperTokenBalance,
+} from './recurringDonationService';
 
 const updateRecurringDonationsStreamQueue = new Bull(
   'update-recurring-donations-stream-queue',
@@ -77,14 +83,15 @@ const numberOfUpdateRecurringDonationsStreamConcurrentJob =
 export const updateRecurringDonationStream = async (params: {
   recurringDonationId: number;
 }) => {
-  // TODO Implement this (Get stream from blockchain and update the recurring donations)
+  logger.debug(
+    'updateRecurringDonationStream() has been called for id',
+    params.recurringDonationId,
+  );
   const recurringDonation = await getRecurringDonationById(
     params.recurringDonationId,
   );
+
   if (!recurringDonation) return;
-
-  const superFluidAdapter = getSuperFluidAdapter();
-  // const streamData = superFluidAdapter.streamPeriods();
-
-  logger.debug('updateRecurringDonationStream() has been called');
+  await createRelatedDonationsToStream(recurringDonation);
+  await validateDonorSuperTokenBalance(recurringDonation);
 };
