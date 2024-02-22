@@ -395,7 +395,6 @@ export const donationTab = {
       nonce: {
         isVisible: false,
       },
-
       isCustomToken: {
         isVisible: false,
       },
