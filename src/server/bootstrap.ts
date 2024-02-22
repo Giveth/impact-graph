@@ -72,7 +72,6 @@ import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJo
 import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
-import { runInsertUserPassportScoresJob } from '../services/cronJobs/insertUserPassportScoresJob';
 
 Resource.validate = validate;
 
@@ -377,9 +376,6 @@ export async function bootstrap() {
     }
     if (process.env.ENABLE_UPDATE_RECURRING_DONATION_STREAM === 'true') {
       runUpdateRecurringDonationStream();
-    }
-    if (process.env.ENABLE_INSERT_USER_PASSPORT_SCORES === 'true') {
-      runInsertUserPassportScoresJob();
     }
     await runCheckActiveStatusOfQfRounds();
     await runUpdateProjectCampaignsCacheJob();
