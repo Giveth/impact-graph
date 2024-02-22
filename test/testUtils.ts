@@ -252,6 +252,7 @@ export const saveProjectDirectlyToDb = async (
     categories,
     users: [user],
     adminUser: user,
+    admin: String(user.id),
   }).save();
 
   if (projectData.networkId) {
