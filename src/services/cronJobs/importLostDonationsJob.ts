@@ -25,6 +25,7 @@ import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapte
 import { QfRound } from '../../entities/qfRound';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
 
 // tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
@@ -251,7 +252,7 @@ export const importLostDonations = async () => {
 
         const donationStats = await getUserDonationStats(dbUser.id);
 
-        await getNotificationAdapter().updateOrttoUser({
+        const orttoPerson = getOrttoPersonAttributes({
           userId: dbUser.id.toString(),
           firstName: dbUser?.firstName,
           lastName: dbUser?.lastName,
@@ -260,9 +261,10 @@ export const importLostDonations = async () => {
           donationsCount: donationStats?.donationsCount,
           lastDonationDate: donationStats?.lastDonationDate,
           GIVbacksRound: dbDonation.powerRound,
-          QFRound: dbDonation.qfRound?.name,
+          QFDonor: dbDonation.qfRound?.name,
           donationChain: NETWORKS_IDS_TO_NAME[dbDonation.transactionNetworkId],
         });
+        await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
       } catch (e) {
         logger.error('importLostDonations() error');
         continue;

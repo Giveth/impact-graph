@@ -2,6 +2,7 @@ import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
 import exp from 'constants';
+import s from 'connect-redis';
 
 export interface BroadCastNotificationInputParams {
   broadCastNotificationId: number;
@@ -19,19 +20,21 @@ export interface ProjectsHaveNewRankingInputParam {
   newBottomRank: number;
 }
 
+export interface OrttoPerson {
+  fields: {
+    'str::first': string;
+    'str::last': string;
+    'str::email': string;
+    'str:cm:user-id'?: string;
+    'int:cm:number-of-donations'?: number;
+    'int:cm:total-donations-value'?: number;
+    'dtz:cm:lastdonationdate'?: Date;
+  };
+  tags: string[];
+}
+
 export interface NotificationAdapterInterface {
-  updateOrttoUser(params: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    userId?: string;
-    totalDonated?: number;
-    donationsCount?: string;
-    lastDonationDate?: Date | null;
-    GIVbacksRound?: number;
-    QFRound?: string;
-    donationChain?: string;
-  }): Promise<void>;
+  updateOrttoPeople(params: OrttoPerson[]): Promise<void>;
 
   donationReceived(params: {
     donation: Donation;
