@@ -136,7 +136,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
             },
     */
   // Optimism works
-  async accountBalance(accountId: number, network: string) {
+  async accountBalance(accountId: string) {
     try {
       const response = await Axios({
         url: !isTestEnv ? superFluidGraphqlUrl : superFluidTestGraphUrl,

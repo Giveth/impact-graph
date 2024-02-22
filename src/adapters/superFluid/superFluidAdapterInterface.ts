@@ -8,5 +8,5 @@ export interface SuperFluidAdapterInterface {
     virtualization: string;
     currency: string;
   }): Promise<any>;
-  accountBalance(accountId: number, network: string): Promise<any>;
+  accountBalance(accountId: string): Promise<any>;
 }

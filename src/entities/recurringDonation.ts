@@ -20,6 +20,7 @@ import { Donation } from './donation';
 export const RECURRING_DONATION_STATUS = {
   PENDING: 'pending',
   VERIFIED: 'verified',
+  STOPPED: 'stopped',
   FAILED: 'failed',
 };
 

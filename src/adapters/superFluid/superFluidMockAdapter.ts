@@ -13,7 +13,7 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
     return;
   }
 
-  async accountBalance(accountId: number, network: string) {
+  async accountBalance(accountId: string) {
     return;
   }
 }

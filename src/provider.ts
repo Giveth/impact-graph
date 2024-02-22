@@ -25,6 +25,30 @@ export const NETWORK_IDS = {
   SOLANA_DEVNET: 103,
 };
 
+export const superTokensToToken = {
+  ETHx: 'ETH',
+  USDCx: 'USDC',
+  DAIx: 'DAI',
+  OPx: 'OP',
+  GIVx: 'GIV',
+};
+
+export const superTokensToAddress = {
+  ETHx: '0x4ac8bd1bdae47beef2d1c6aa62229509b962aa0d',
+  USDCx: '0x8430f084b939208e2eded1584889c9a66b90562f',
+  DAIx: '0x7d342726b69c28d942ad8bfe6ac81b972349d524',
+  OPx: '0x1828bff08bd244f7990eddcd9b19cc654b33cdb4',
+  GIVx: '0x4cab5b9930210e2edc6a905b9c75d615872a1a7e',
+};
+
+export const addressToSuperTokens = {
+  '0x4ac8bd1bdae47beef2d1c6aa62229509b962aa0d': 'ETHx',
+  '0x8430f084b939208e2eded1584889c9a66b90562f': 'USDCx',
+  '0x7d342726b69c28d942ad8bfe6ac81b972349d524': 'DAIx',
+  '0x1828bff08bd244f7990eddcd9b19cc654b33cdb4': 'OPx',
+  '0x4cab5b9930210e2edc6a905b9c75d615872a1a7e': 'GIVx',
+};
+
 export const NETWORKS_IDS_TO_NAME = {
   1: 'MAIN_NET',
   3: 'ROPSTEN',
