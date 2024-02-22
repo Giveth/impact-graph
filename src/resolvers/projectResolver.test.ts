@@ -436,6 +436,7 @@ function projectsByUserIdTestCases() {
       assert.isNotOk(project.adminUser.email);
     });
   });
+
   it('should return projects with qfRound', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb(createProjectData(), user);
