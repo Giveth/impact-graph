@@ -29,6 +29,7 @@ import { qfRoundTab } from './tabs/qfRoundTab';
 import { qfRoundHistoryTab } from './tabs/qfRoundHistoryTab';
 import { SybilTab } from './tabs/sybilTab';
 import { ProjectFraudTab } from './tabs/projectFraudTab';
+import { RecurringDonationTab } from './tabs/recurringDonationTab';
 // use redis for session data instead of in-memory storage
 // tslint:disable-next-line:no-var-requires
 const RedisStore = require('connect-redis').default;
@@ -147,6 +148,7 @@ const getResources = async (): Promise<AdminJsResources> => {
     qfRoundHistoryTab,
     SybilTab,
     ProjectFraudTab,
+    RecurringDonationTab,
   ];
 
   const loggingHook = async (response, request, context) => {
