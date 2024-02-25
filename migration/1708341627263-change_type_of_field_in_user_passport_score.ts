@@ -1,11 +1,20 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectActualMatchingViewV51708280336872
+export class ChangeTypeOfFieldInUserPassportScore1708341627263
   implements MigrationInterface
 {
-  public async up(queryRunner: QueryRunner): Promise<void> {
+  async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
+        DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
+      `);
+    await queryRunner.query(`
+                ALTER TABLE user_passport_score
+                ALTER COLUMN "passportScore" TYPE REAL USING "passportScore"::REAL;
+        `);
+
+    // Use cprevious migration file to create view again
+    await queryRunner.query(`
+             DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
             
             CREATE MATERIALIZED VIEW project_actual_matching_view AS
             WITH DonationsBeforeAnalysis AS (
@@ -87,10 +96,13 @@ export class ProjectActualMatchingViewV51708280336872
             
             CREATE INDEX idx_project_actual_matching_project_id ON project_actual_matching_view USING hash ("projectId");
             CREATE INDEX idx_project_actual_matching_qf_round_id ON project_actual_matching_view USING hash ("qfRoundId");
-        `);
+      
+      `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    //
+  async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+                ALTER TABLE user_passport_score
+                ALTER COLUMN "passportScore" TYPE INTEGER USING "passportScore"::INTEGER;`);
   }
 }

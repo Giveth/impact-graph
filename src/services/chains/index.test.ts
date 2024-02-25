@@ -610,6 +610,44 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
+  it('should return transaction detail for normal transfer on Arbitrum Mainnet', async () => {
+    // https://arbiscan.io/tx/0xdaca7d68e784a60a6975fa9937abb6b287d7fe992ff806f8c375cb4c3b2152f3
+
+    const amount = 0.0038;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xdaca7d68e784a60a6975fa9937abb6b287d7fe992ff806f8c375cb4c3b2152f3',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.ARBITRUM_MAINNET,
+      fromAddress: '0x015e6fbce5119c32db66e7c544365749bb26cf8b',
+      toAddress: '0x5c66fef6ea22f37e7c1f7eee49e4e116d3fbfc68',
+      amount,
+      timestamp: 1708342629,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on Arbitrum Sepolia', async () => {
+    // https://sepolia.arbiscan.io/tx/0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c
+
+    const amount = 0.0069;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
+      fromAddress: '0xefc58dbf0e606c327868b55334998aacb27f9ef2',
+      toAddress: '0xc11c479473cd06618fc75816dd6b56be4ac80efd',
+      amount,
+      timestamp: 1708344659,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
   it('should return transaction detail for OP token transfer on optimistic', async () => {
     // https://optimistic.etherscan.io/tx/0xf11be189d967831bb8a76656882eeeac944a799bd222acbd556f2156fdc02db4
     const amount = 0.453549908802477308;

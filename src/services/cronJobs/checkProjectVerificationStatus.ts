@@ -1,11 +1,5 @@
 import { schedule } from 'node-cron';
-import {
-  Project,
-  ProjStatus,
-  ProjectUpdate,
-  RevokeSteps,
-} from '../../entities/project';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
+import { Project, RevokeSteps } from '../../entities/project';
 import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
 import { User } from '../../entities/user';
 import config from '../../config';
@@ -14,11 +8,7 @@ import moment = require('moment');
 import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 
-import {
-  makeFormDraft,
-  updateProjectVerificationFormStatusOnly,
-} from '../../repositories/projectVerificationRepository';
-import { SegmentAnalyticsSingleton } from '../segment/segmentAnalyticsSingleton';
+import { makeFormDraft } from '../../repositories/projectVerificationRepository';
 import { sleep } from '../../utils/utils';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';

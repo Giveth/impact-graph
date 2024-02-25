@@ -11,7 +11,7 @@ import { registerEnumType, Field, ID, ObjectType } from 'type-graphql';
 import config from '../config';
 import SentryLogger from '../sentryLogger';
 import { findUserByWalletAddress } from '../repositories/userRepository';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
+import { getNotificationAdapter } from '../adapters/adaptersFactory';
 // tslint:disable-next-line:no-var-requires
 const sigUtil = require('eth-sig-util');
 
@@ -231,8 +231,6 @@ export class LoginResolver {
           segmentIdentified: true,
         }).save();
         logger.debug(`analytics.identifyUser -> New user`);
-
-        SegmentAnalyticsSingleton.getInstance().identifyUser(user);
       } else {
         let modified = false;
         const updateUserIfNeeded = (field, value) => {
@@ -250,12 +248,19 @@ export class LoginResolver {
         updateUserIfNeeded('walletAddress', publicAddressLowerCase);
         if (user.segmentIdentified === false) {
           logger.debug(`analytics.identifyUser -> User was already logged in`);
-          SegmentAnalyticsSingleton.getInstance().identifyUser(user);
           user.segmentIdentified = true;
           modified = true;
         }
         if (modified) await user.save();
       }
+
+      await getNotificationAdapter().updateOrttoUser({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        userId: user.id.toString(),
+      });
+
       const response = new LoginResponse();
 
       response.token = this.createToken({

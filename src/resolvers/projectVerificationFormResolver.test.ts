@@ -314,6 +314,16 @@ function updateProjectVerificationFormMutationTestCases() {
       },
       {
         address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.ARBITRUM_MAINNET,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
         networkId: NETWORK_IDS.ETC,
         title: 'test title',
       },

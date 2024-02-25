@@ -1,11 +1,7 @@
 import { SocialNetworkOauth2AdapterInterface } from './oauth2/SocialNetworkOauth2AdapterInterface';
 import { DiscordAdapter } from './oauth2/discordAdapter';
 import { SOCIAL_NETWORKS } from '../entities/socialProfile';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { GoogleAdapter } from './oauth2/googleAdapter';
 import { LinkedinAdapter } from './oauth2/linkedinAdapter';
 import { TwitterAdapter } from './oauth2/twitterAdapter';

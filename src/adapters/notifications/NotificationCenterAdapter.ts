@@ -46,9 +46,90 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     if (!isProcessingQueueEventsEnabled) {
       // We send notifications to project owners immediately, but as donors and people
       // who liked project can be thousands or more we enqueue them and send it by that to manage
-      // load on notification-center and make sure all of notifications would arrive
+      // load on notification-center and make sure all notifications would arrive
       this.processSendingNotifications();
       isProcessingQueueEventsEnabled = true;
+    }
+  }
+
+  async updateOrttoUser(params: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userId?: string;
+    totalDonated?: number;
+    donationsCount?: string;
+    lastDonationDate?: Date | null;
+    GIVbacksRound?: number;
+    QFRound?: string;
+    donationChain?: string;
+  }): Promise<void> {
+    try {
+      const {
+        firstName,
+        lastName,
+        email,
+        userId,
+        totalDonated,
+        donationsCount,
+        lastDonationDate,
+        GIVbacksRound,
+        QFRound,
+        donationChain,
+      } = params;
+      logger.debug('updateOrttoUser has been called', params);
+      const fields = {
+        'str::first': firstName || '',
+        'str::last': lastName || '',
+        'str::email': email || '',
+      };
+      if (process.env.ENVIRONMENT === 'production') {
+        // On production, we should update Ortto user profile based on user-id to avoid touching real users data
+        fields['str:cm:user-id'] = userId;
+      }
+      if (donationsCount) {
+        fields['int:cm:number-of-donations'] = Number(donationsCount);
+      }
+      if (totalDonated) {
+        // Ortto automatically adds three decimal points to integers
+        fields['int:cm:total-donations-value'] =
+          Number(totalDonated?.toFixed(3)) * 1000;
+      }
+      if (lastDonationDate) {
+        fields['dtz:cm:lastdonationdate'] = lastDonationDate;
+      }
+      const tags: string[] = [];
+      if (GIVbacksRound) {
+        tags.push(`GIVbacks ${GIVbacksRound}`);
+      }
+      if (QFRound) {
+        tags.push(`QF Donor ${QFRound}`);
+      }
+      if (donationChain) {
+        tags.push(`Donated on ${donationChain}`);
+      }
+      const data = {
+        people: [
+          {
+            fields,
+            tags,
+          },
+        ],
+        async: false,
+      };
+      const orttoConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: process.env.ORTTO_PERSON_API!,
+        headers: {
+          'X-Api-Key': process.env.ORTTO_API_KEY as string,
+          'Content-Type': 'application/json',
+        },
+        data,
+      };
+      await axios.request(orttoConfig);
+    } catch (e) {
+      logger.error('updateOrttoUser >> error', e);
     }
   }
 
@@ -837,6 +918,7 @@ const getEmailDataDonationAttributes = async (params: {
     email: user.email,
     title: project.title,
     firstName: user.firstName,
+    userId: user.id,
     projectOwnerId: project.admin,
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
@@ -866,6 +948,7 @@ const getEmailDataProjectAttributes = async (params: { project: Project }) => {
     title: project.title,
     lastName: project?.adminUser?.lastName || '',
     firstName: project?.adminUser?.firstName || '',
+    userId: user?.id,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     OwnerId: project?.adminUser?.id,
     slug: project.slug,

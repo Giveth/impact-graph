@@ -395,7 +395,6 @@ export const donationTab = {
       nonce: {
         isVisible: false,
       },
-
       isCustomToken: {
         isVisible: false,
       },
@@ -604,6 +603,8 @@ export const donationTab = {
           { value: NETWORK_IDS.POLYGON, label: 'Polygon' },
           { value: NETWORK_IDS.CELO, label: 'Celo' },
           { value: NETWORK_IDS.CELO_ALFAJORES, label: 'Alfajores' },
+          { value: NETWORK_IDS.ARBITRUM_MAINNET, label: 'Arbitrum' },
+          { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'Arbitrum Sepolia' },
         ],
         isVisible: {
           list: true,

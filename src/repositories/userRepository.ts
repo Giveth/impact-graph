@@ -1,9 +1,7 @@
 import { publicSelectionFields, User, UserRole } from '../entities/user';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 import { Donation } from '../entities/donation';
 import { Reaction } from '../entities/reaction';
 import { PowerBoosting } from '../entities/powerBoosting';
-import { ethers } from 'ethers';
 import { Project, ProjStatus, ReviewStatus } from '../entities/project';
 import { isEvmAddress } from '../utils/networks';
 
@@ -103,15 +101,11 @@ export const createUserWithPublicAddress = async (
   const walletAddress = isEvmAddress(_walletAddress)
     ? _walletAddress.toLocaleLowerCase()
     : _walletAddress;
-  const user = await User.create({
+  return await User.create({
     walletAddress,
     loginType: 'wallet',
     segmentIdentified: true,
   }).save();
-
-  SegmentAnalyticsSingleton.getInstance().identifyUser(user);
-
-  return user;
 };
 
 export const findUsersWhoBoostedProject = async (
