@@ -7,6 +7,7 @@ import {
   getExpiredActiveQfRounds,
 } from '../../repositories/qfRoundRepository';
 import {
+  refreshProjectActualMatchingView,
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../projectViewsService';
@@ -37,8 +38,9 @@ export const runCheckActiveStatusOfQfRounds = () => {
       await deactivateExpiredQfRounds();
       await refreshProjectEstimatedMatchingView();
       await refreshProjectDonationSummaryView();
-      await fillQfRoundHistory();
       await fillQfRoundDonationsUserScores();
+      await refreshProjectActualMatchingView();
+      await fillQfRoundHistory();
     }
   });
 };

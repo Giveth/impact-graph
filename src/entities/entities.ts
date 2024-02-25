@@ -47,7 +47,6 @@ import { RecurringDonation } from './recurringDonation';
 import { Sybil } from './sybil';
 import { DraftDonation } from './draftDonation';
 import { ProjectFraud } from './projectFraud';
-import { UserPassportScore } from './userPassportScore';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -111,7 +110,5 @@ export const getEntities = (): DataSourceOptions['entities'] => {
 
     AnchorContractAddress,
     RecurringDonation,
-
-    UserPassportScore,
   ];
 };
