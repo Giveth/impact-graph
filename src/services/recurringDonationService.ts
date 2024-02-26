@@ -194,7 +194,7 @@ export const validateDonorSuperTokenBalance = async (
       Object.keys(addressToSuperTokens).includes(tokenBalance.token.id) &&
       tokenBalance.maybeCriticalAtTimestamp
     ) {
-      // Notify user their super token is running out
+      // Notify user their super token is running out  
     }
   }
 };

@@ -1,7 +1,7 @@
 import { logger } from '../utils/logger';
 import {
   findActiveRecurringDonations,
-  getRecurringDonationById,
+  findRecurringDonationById,
 } from '../repositories/recurringDonationRepository';
 import Bull from 'bull';
 import { redisConfig } from '../redis';
@@ -87,7 +87,7 @@ export const updateRecurringDonationStream = async (params: {
     'updateRecurringDonationStream() has been called for id',
     params.recurringDonationId,
   );
-  const recurringDonation = await getRecurringDonationById(
+  const recurringDonation = await findRecurringDonationById(
     params.recurringDonationId,
   );
 

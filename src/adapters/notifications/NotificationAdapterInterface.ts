@@ -50,6 +50,11 @@ export interface NotificationAdapterInterface {
     userId: number;
   }): Promise<void>;
 
+  userSuperTokensLowBalance(params: {
+    userId: number;
+    superTokenSymbol: string;
+  }): Promise<void>;
+
   projectVerified(params: { project: Project }): Promise<void>;
   projectBoosted(params: { projectId: number; userId: number }): Promise<void>;
   projectBoostedBatch(params: {
