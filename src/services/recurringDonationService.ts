@@ -1,12 +1,24 @@
 import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
-import { Donation } from '../entities/donation';
+import { DONATION_STATUS, Donation } from '../entities/donation';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
 } from '../entities/recurringDonation';
-import { addressToSuperTokens } from '../provider';
+import { Token } from '../entities/token';
+import {
+  NETWORK_IDS,
+  addressToSuperTokens,
+  superTokensToToken,
+} from '../provider';
+import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import { findUserById } from '../repositories/userRepository';
+import { ChainType } from '../types/network';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { isTestEnv } from '../utils/utils';
+import { isTokenAcceptableForProject } from './donationService';
+import { calculateGivbackFactor } from './givbackService';
+import { relatedActiveQfRoundForProject } from './qfRoundService';
 
 // Initially it will only be monthly data
 const priceDisplay = 'month';
@@ -47,7 +59,11 @@ export const createRelatedDonationsToStream = async (
   }
 
   const project = await findProjectById(recurringDonation.projectId);
-  const user = await findUserById(recurringDonation.donorId);
+  const donorUser = await findUserById(recurringDonation.donorId);
+
+  if (!project) return;
+  if (!donorUser) return;
+
   const uniquePeriods: any[] = [];
 
   for (const period of streamData.virtualPeriods) {
@@ -67,10 +83,102 @@ export const createRelatedDonationsToStream = async (
       });
     }
   }
-
-  // Create ONLY non existant virtual period donations
+  // create donation if any virtual period is missing
   if (uniquePeriods.length === 0) return;
+
+  for (const streamPeriod of uniquePeriods) {
+    const networkId = isTestEnv
+      ? NETWORK_IDS.OPTIMISTIC
+      : NETWORK_IDS.OPTIMISM_GOERLI; // CHANGE TO SEPOLIA
+    const tokenInDb = await Token.findOne({
+      where: {
+        networkId,
+        symbol: superTokensToToken[streamData.token.symbol],
+      },
+    });
+    const isCustomToken = !Boolean(tokenInDb);
+    let isTokenEligibleForGivback = false;
+    if (isCustomToken && !project!.organization.supportCustomTokens) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
+    } else if (tokenInDb) {
+      const acceptsToken = await isTokenAcceptableForProject({
+        projectId: project!.id,
+        tokenId: tokenInDb.id,
+      });
+      if (!acceptsToken && !project!.organization.supportCustomTokens) {
+        throw new Error(
+          i18n.__(
+            translationErrorMessagesKeys.PROJECT_DOES_NOT_SUPPORT_THIS_TOKEN,
+          ),
+        );
+      }
+      isTokenEligibleForGivback = tokenInDb.isGivbackEligible;
+    }
+    const projectRelatedAddress = await findProjectRecipientAddressByNetworkId({
+      projectId: project.id,
+      networkId,
+    });
+    if (!projectRelatedAddress) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.THERE_IS_NO_RECIPIENT_ADDRESS_FOR_THIS_NETWORK_ID_AND_PROJECT,
+        ),
+      );
+    }
+
+    const toAddress = projectRelatedAddress?.address?.toLowerCase();
+    const fromAddress = donorUser.walletAddress?.toLowerCase();
+    const transactionTx = streamData.id?.toLowerCase() as string;
+
+    const donation = await Donation.create({
+      amount: normalizeNegativeAmount(streamPeriod.amount, tokenInDb!.decimals),
+      valueUsd: Math.abs(Number(streamData.amountFiat)),
+      transactionId: transactionTx,
+      isFiat: false,
+      transactionNetworkId: networkId,
+      currency: tokenInDb?.symbol,
+      user: donorUser,
+      tokenAddress: tokenInDb?.address,
+      project,
+      status: DONATION_STATUS.VERIFIED,
+      isTokenEligibleForGivback,
+      isCustomToken,
+      isProjectVerified: project.verified,
+      createdAt: new Date(),
+      segmentNotified: false,
+      toWalletAddress: toAddress,
+      fromWalletAddress: fromAddress,
+      anonymous: Boolean(recurringDonation.anonymous),
+      chainType: ChainType.EVM,
+    });
+
+    const activeQfRoundForProject = await relatedActiveQfRoundForProject(
+      project.id,
+    );
+    if (
+      activeQfRoundForProject &&
+      activeQfRoundForProject.isEligibleNetwork(networkId)
+    ) {
+      donation.qfRound = activeQfRoundForProject;
+    }
+
+    const { givbackFactor, projectRank, bottomRankInRound, powerRound } =
+      await calculateGivbackFactor(project.id);
+    donation.givbackFactor = givbackFactor;
+    donation.projectRank = projectRank;
+    donation.bottomRankInRound = bottomRankInRound;
+    donation.powerRound = powerRound;
+
+    await donation.save();
+  }
 };
+
+export function normalizeNegativeAmount(
+  amount: string,
+  decimals: number,
+): number {
+  return Math.abs(Number(amount)) / 10 ** decimals;
+}
 
 export const validateDonorSuperTokenBalance = async (
   recurringDonation: RecurringDonation,
