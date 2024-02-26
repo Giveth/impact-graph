@@ -9,6 +9,10 @@ describe(
   'getDisperseTransactions test cases',
   getDisperseTransactionsTestCases,
 );
+describe(
+  'getTransactionTimeFromBlockchain test cases',
+  // getTransactionTimeFromBlockchainTestCases,
+);
 
 function getDisperseTransactionsTestCases() {
   it('Should return transactions, for disperseEther on xdai', async () => {
