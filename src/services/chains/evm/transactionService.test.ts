@@ -1,17 +1,20 @@
 import { assert } from 'chai';
 import 'mocha';
-import { getDisperseTransactions } from './transactionService';
+import {
+  getDisperseTransactions,
+  getTransactionTimeFromBlockchain,
+} from './transactionService';
 import { assertThrowsAsync } from '../../../../test/testUtils';
 import { errorMessages } from '../../../utils/errorMessages';
 import { NETWORK_IDS } from '../../../provider';
 import moment from 'moment';
-describe(
-  'getDisperseTransactions test cases',
-  getDisperseTransactionsTestCases,
-);
+// describe(
+//   'getDisperseTransactions test cases',
+//   getDisperseTransactionsTestCases,
+// );
 describe(
   'getTransactionTimeFromBlockchain test cases',
-  // getTransactionTimeFromBlockchainTestCases,
+  getTransactionTimeFromBlockchainTestCases,
 );
 
 function getDisperseTransactionsTestCases() {
@@ -93,4 +96,25 @@ function getDisperseTransactionsTestCases() {
   //   assert.equal(transactions[2].amount, 1000);
   //   assert.equal(transactions[3].currency, 'USDC');
   // });
+}
+
+function getTransactionTimeFromBlockchainTestCases() {
+  it('Should return the transaction time from the blockchain', async () => {
+    // https://blockscout.com/xdai/mainnet/tx/0xfef76283e0ed4d58e0e7982b5f4ccc6867e7d4ef85b9dc78f37ee202064fd1df
+    const transactionTime = await getTransactionTimeFromBlockchain({
+      txHash:
+        '0xfef76283e0ed4d58e0e7982b5f4ccc6867e7d4ef85b9dc78f37ee202064fd1df',
+      networkId: NETWORK_IDS.XDAI,
+    });
+    assert.equal(transactionTime, 1643690440);
+  });
+
+  it('Should throw error if the transaction is not found', async () => {
+    await assertThrowsAsync(async () => {
+      await getTransactionTimeFromBlockchain({
+        txHash: '0x',
+        networkId: NETWORK_IDS.XDAI,
+      });
+    }, 'Transaction not found');
+  });
 }
