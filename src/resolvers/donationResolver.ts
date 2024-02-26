@@ -488,7 +488,9 @@ export class DonationResolver {
       .leftJoin('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .addSelect(publicSelectionFields)
-      .where(`donation.projectId = ${projectId}`)
+      .where(
+        `donation.projectId = ${projectId} AND donation.recurringDonationId IS NULL`,
+      )
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,
@@ -555,6 +557,7 @@ export class DonationResolver {
     return this.donationRepository
       .createQueryBuilder('donation')
       .where({ userId: ctx.req.user.userId })
+      .andWhere(`donation.recurringDonationId IS NULL`)
       .leftJoin('donation.user', 'user')
       .addSelect(publicSelectionFields)
       .leftJoinAndSelect('donation.project', 'project')
@@ -573,6 +576,7 @@ export class DonationResolver {
       .leftJoinAndSelect('donation.user', 'user')
       .leftJoinAndSelect('donation.qfRound', 'qfRound')
       .where(`donation.userId = ${userId}`)
+      .andWhere(`donation.recurringDonationId IS NULL`)
       .orderBy(
         `donation.${orderBy.field}`,
         orderBy.direction,

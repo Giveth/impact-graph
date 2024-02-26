@@ -50,7 +50,7 @@ export interface NotificationAdapterInterface {
     userId: number;
   }): Promise<void>;
 
-  userSuperTokensLowBalance(params: {
+  userSuperTokensCritical(params: {
     userId: number;
     superTokenSymbol: string;
   }): Promise<void>;

@@ -1,4 +1,7 @@
-import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
+import {
+  getNotificationAdapter,
+  getSuperFluidAdapter,
+} from '../adapters/adaptersFactory';
 import { DONATION_STATUS, Donation } from '../entities/donation';
 import {
   RECURRING_DONATION_STATUS,
@@ -8,6 +11,7 @@ import { Token } from '../entities/token';
 import {
   NETWORK_IDS,
   addressToSuperTokens,
+  superTokensToAddress,
   superTokensToToken,
 } from '../provider';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -17,9 +21,13 @@ import { findUserById } from '../repositories/userRepository';
 import { ChainType } from '../types/network';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { isTestEnv } from '../utils/utils';
-import { isTokenAcceptableForProject } from './donationService';
+import {
+  isTokenAcceptableForProject,
+  updateTotalDonationsOfProject,
+} from './donationService';
 import { calculateGivbackFactor } from './givbackService';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
+import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 
 // Initially it will only be monthly data
 const priceDisplay = 'month';
@@ -53,11 +61,6 @@ export const createRelatedDonationsToStream = async (
     virtualization: priceDisplay,
     currency: recurringDonation.currency,
   });
-
-  if (streamData.stoppedAtTimestamp) {
-    recurringDonation.finished = true;
-    recurringDonation.save();
-  }
 
   const project = await findProjectById(recurringDonation.projectId);
   const donorUser = await findUserById(recurringDonation.donorId);
@@ -151,6 +154,9 @@ export const createRelatedDonationsToStream = async (
       fromWalletAddress: fromAddress,
       anonymous: Boolean(recurringDonation.anonymous),
       chainType: ChainType.EVM,
+      recurringDonation,
+      virtualPeriodStart: streamPeriod.startTime,
+      virtualPeriodEnd: streamPeriod.endTime,
     });
 
     const activeQfRoundForProject = await relatedActiveQfRoundForProject(
@@ -171,6 +177,17 @@ export const createRelatedDonationsToStream = async (
     donation.powerRound = powerRound;
 
     await donation.save();
+
+    await updateUserTotalDonated(donation.userId);
+
+    // After updating price we update totalDonations
+    await updateTotalDonationsOfProject(donation.projectId);
+    await updateUserTotalReceived(project!.adminUser.id);
+  }
+
+  if (streamData.stoppedAtTimestamp) {
+    recurringDonation.finished = true;
+    await recurringDonation.save();
   }
 };
 
@@ -195,7 +212,11 @@ export const validateDonorSuperTokenBalance = async (
       Object.keys(addressToSuperTokens).includes(tokenBalance.token.id) &&
       tokenBalance.maybeCriticalAtTimestamp
     ) {
-      // Notify user their super token is running out  
+      // Notify user their super token is running out
+      await getNotificationAdapter().userSuperTokensCritical({
+        userId: user!.id,
+        superTokenSymbol: superTokensToAddress[tokenBalance.token.symbol],
+      });
     }
   }
 };
@@ -208,4 +229,3 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
     params.donationId,
   )) as RecurringDonation;
 };
-

@@ -52,6 +52,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
+  async userSuperTokensCritical(params: {
+    userId: number;
+    superTokenSymbol: string;
+  }): Promise<void> {
+    // Add ortto email logic
+    return;
+  }
+
   async updateOrttoUser(params: {
     firstName?: string;
     lastName?: string;
