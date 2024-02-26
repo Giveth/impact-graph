@@ -12,6 +12,7 @@ import {
 } from '../provider';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { findProjectById } from '../repositories/projectRepository';
+import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
 import { findUserById } from '../repositories/userRepository';
 import { ChainType } from '../types/network';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -198,3 +199,13 @@ export const validateDonorSuperTokenBalance = async (
     }
   }
 };
+
+export const updateRecurringDonationStatusWithNetwork = async (params: {
+  donationId: number;
+}): Promise<RecurringDonation> => {
+  // TODO Should implement it
+  return (await findRecurringDonationById(
+    params.donationId,
+  )) as RecurringDonation;
+};
+
