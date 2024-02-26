@@ -40,8 +40,6 @@ import {
   getQfRoundHistory,
 } from '../repositories/qfRoundHistoryRepository';
 import { User } from '../entities/user';
-import { QfRoundHistory } from '../entities/qfRoundHistory';
-import { ChainType } from '../types/network';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -1127,7 +1125,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
   });
 
   it('should return correct value for single project', async () => {
-    // First call it to make sure there isnt any thing in DB to make conflicts in our test cases
+    // First call it to make sure there isn't any thing in DB to make conflicts in our test cases
     await insertDonationsFromQfRoundHistory();
 
     const usersDonations: number[][] = [
@@ -1180,7 +1178,9 @@ function insertDonationsFromQfRoundHistoryTestCases() {
       qfRoundId: qfRound.id,
     });
     assert.isNotNull(qfRoundHistory);
-    qfRoundHistory!.distributedFundTxHash = generateRandomEvmTxHash();
+    // https://blockscout.com/xdai/mainnet/tx/0x42c0f15029557ec35e61515a89366297fc239a334e3ba22fab15a3f1d04ad53f
+    qfRoundHistory!.distributedFundTxHash =
+      '0x42c0f15029557ec35e61515a89366297fc239a334e3ba22fab15a3f1d04ad53f';
     qfRoundHistory!.distributedFundNetwork = '100';
     qfRoundHistory!.matchingFundAmount = 1000;
     qfRoundHistory!.matchingFundCurrency = 'DAI';
@@ -1228,6 +1228,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
     });
     assert.equal(donations.length, 1);
     assert.equal(donations[0].distributedFundQfRoundId, qfRound.id);
+    assert.equal(donations[0].qfRoundId, qfRound.id);
     assert.equal(donations[0].projectId, firstProject.id);
     assert.equal(donations[0].valueUsd, qfRoundHistory?.matchingFund);
     assert.equal(donations[0].currency, qfRoundHistory?.matchingFundCurrency);
@@ -1240,6 +1241,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
       donations[0].transactionId,
       qfRoundHistory?.distributedFundTxHash,
     );
+    assert.equal(donations[0].createdAt.getTime(), 1702091620);
 
     const updatedProject = await findProjectById(firstProject.id);
     assert.equal(

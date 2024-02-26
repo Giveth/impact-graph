@@ -525,7 +525,7 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
   );
 
   for (const qfRoundHistory of qfRoundHistories) {
-    if (qfRoundHistory.distributedFundTxHash) {
+    if (qfRoundHistory.distributedFundTxDate) {
       continue;
     }
     // get transaction time from blockchain
@@ -581,7 +581,7 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             q."qfRoundId",
             true,
             ${user.id},
-            q."distributedFundTxDate",
+            q."distributedFundTxDate"
         FROM
             "qf_round_history" q
             INNER JOIN "project" p ON q."projectId" = p."id"
