@@ -1061,6 +1061,13 @@ const seedTokens: ITokenData[] = [
     networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
     coingeckoId: 'ethereum',
   },
+  {
+    name: 'Optimism Sepolia GIV test token',
+    symbol: 'GIV',
+    address: '0x2f2c819210191750F2E11F7CfC5664a0eB4fd5e6',
+    decimals: 18,
+    networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+  }
   // OPTIMISTIC tokens
   {
     name: 'OPTIMISTIC native token',
