@@ -1,7 +1,4 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { Token } from '../src/entities/token';
-import seedTokens from './data/seedTokens';
-import { NETWORK_IDS } from '../src/provider';
 
 export class AddCryptoCompareIdAndCoingeckoIdToTokenTable1696421249294
   implements MigrationInterface

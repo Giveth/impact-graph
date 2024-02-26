@@ -18,8 +18,12 @@ export class addCeloTokens1680014857601 implements MigrationInterface {
       Token,
       seedTokens
         .filter(token => token.networkId === networkId)
-        .map(t => {
+        .map(token => {
+          const t = {
+            ...token,
+          };
           t.address = t.address?.toLowerCase();
+          delete t.chainType;
           return t;
         }),
     );

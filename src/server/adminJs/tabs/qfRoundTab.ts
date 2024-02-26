@@ -31,6 +31,7 @@ export const refreshMaterializedViews = async (
 ): Promise<After<ActionResponse>> => {
   await refreshProjectEstimatedMatchingView();
   await refreshProjectDonationSummaryView();
+  await refreshProjectActualMatchingView();
   return response;
 };
 
@@ -121,12 +122,19 @@ export const qfRoundTab = {
           { value: NETWORK_IDS.GOERLI, label: 'GOERLI' },
           { value: NETWORK_IDS.POLYGON, label: 'POLYGON' },
           { value: NETWORK_IDS.OPTIMISTIC, label: 'OPTIMISTIC' },
+          { value: NETWORK_IDS.ETC, label: 'ETC' },
+          {
+            value: NETWORK_IDS.MORDOR_ETC_TESTNET,
+            label: 'MORDOR ETC TESTNET',
+          },
           { value: NETWORK_IDS.OPTIMISM_GOERLI, label: 'OPTIMISM GOERLI' },
           { value: NETWORK_IDS.CELO, label: 'CELO' },
           {
             value: NETWORK_IDS.CELO_ALFAJORES,
             label: 'ALFAJORES (Test CELO)',
           },
+          { value: NETWORK_IDS.ARBITRUM_MAINNET, label: 'ARBITRUM MAINNET' },
+          { value: NETWORK_IDS.ARBITRUM_SEPOLIA, label: 'ARBITRUM SEPOLIA' },
           { value: NETWORK_IDS.XDAI, label: 'XDAI' },
           { value: NETWORK_IDS.BSC, label: 'BSC' },
         ],

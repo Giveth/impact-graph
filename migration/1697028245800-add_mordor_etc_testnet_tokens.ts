@@ -17,8 +17,12 @@ export class addMordorEtcTestnetTokens1697028245800
       Token,
       seedTokens
         .filter(token => token.networkId === NETWORK_IDS.MORDOR_ETC_TESTNET)
-        .map(t => {
+        .map(token => {
+          const t = {
+            ...token,
+          };
           t.address = t.address?.toLowerCase();
+          delete t.chainType;
           return t;
         }),
     );

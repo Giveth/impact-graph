@@ -343,6 +343,33 @@ function findDonationByIdTestCases() {
     assert.isOk(fetchedDonation?.project);
     assert.equal(fetchedDonation?.project.id, SEED_DATA.FIRST_PROJECT.id);
   });
+  it('should return donation with id, join with qfRound ', async () => {
+    const qfRound = QfRound.create({
+      isActive: false,
+      name: new Date().getTime().toString(),
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+    await qfRound.save();
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donation = await saveDonationDirectlyToDb(
+      createDonationData(),
+      user.id,
+      project.id,
+    );
+    donation.qfRound = qfRound;
+    await donation.save();
+    const fetchedDonation = await findDonationById(donation.id);
+    assert.isOk(fetchedDonation);
+    assert.equal(fetchedDonation?.id, donation.id);
+    assert.isOk(fetchedDonation?.project);
+    assert.equal(fetchedDonation?.project.id, project.id);
+    assert.equal(fetchedDonation?.qfRound.id, qfRound.id);
+  });
   it('should not return donation with invalid id ', async () => {
     const fetchedDonation = await findDonationById(10000000);
     assert.isNotOk(fetchedDonation);

@@ -9,8 +9,12 @@ export class AddETCTokens1696421249294 implements MigrationInterface {
       Token,
       seedTokens
         .filter(token => token.networkId === NETWORK_IDS.ETC)
-        .map(t => {
+        .map(token => {
+          const t = {
+            ...token,
+          };
           t.address = t.address?.toLowerCase();
+          delete t.chainType;
           return t;
         }),
     );

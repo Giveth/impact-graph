@@ -65,6 +65,12 @@ import {
   getDefaultSolanaChainId,
 } from '../services/chains';
 import { markDraftDonationStatusMatched } from '../repositories/draftDonationRepository';
+import {
+  DRAFT_DONATION_STATUS,
+  DraftDonation,
+} from '../entities/draftDonation';
+
+const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
 @ObjectType()
 class PaginateDonations {
@@ -606,6 +612,7 @@ export class DonationResolver {
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
+    @Arg('draftDonationId', { nullable: true }) draftDonationId?: number,
   ): Promise<Number> {
     const logData = {
       amount,
@@ -779,6 +786,15 @@ export class DonationResolver {
       ) {
         donation.qfRound = activeQfRoundForProject;
       }
+      if (draftDonationEnabled && draftDonationId) {
+        const draftDonation = await DraftDonation.findOne({
+          where: { id: draftDonationId, status: DRAFT_DONATION_STATUS.MATCHED },
+          select: ['matchedDonationId'],
+        });
+        if (draftDonation?.matchedDonationId) {
+          return draftDonation.matchedDonationId;
+        }
+      }
       await donation.save();
 
       let priceChainId;
@@ -810,13 +826,16 @@ export class DonationResolver {
         amount,
       );
 
-      await markDraftDonationStatusMatched({
-        fromWalletAddress: fromAddress,
-        toWalletAddress: toAddress,
-        currency: token,
-        amount: Number(amount),
-        networkId,
-      });
+      if (chainType === ChainType.EVM) {
+        await markDraftDonationStatusMatched({
+          matchedDonationId: donation.id,
+          fromWalletAddress: fromAddress,
+          toWalletAddress: toAddress,
+          currency: token,
+          amount: Number(amount),
+          networkId,
+        });
+      }
 
       return donation.id;
     } catch (e) {

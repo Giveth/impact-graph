@@ -35,6 +35,7 @@ export const createDraftDonationMutation = `
     $token: String!
     $projectId: Float!
     $tokenAddress: String
+    $toAddress: String
     $anonymous: Boolean
     $referrerId: String
     $safeTransactionId: String
@@ -45,6 +46,7 @@ export const createDraftDonationMutation = `
       token: $token
       projectId: $projectId
       tokenAddress: $tokenAddress
+      toAddress: $toAddress
       anonymous: $anonymous
       referrerId: $referrerId
       safeTransactionId: $safeTransactionId
@@ -64,6 +66,20 @@ export const updateDonationStatusMutation = `
       id
       status
       verifyErrorMessage
+    }
+  }
+`;
+export const updateRecurringDonationStatusMutation = `
+  mutation (
+    $status: String
+    $donationId: Float!
+  ) {
+    updateRecurringDonationStatus(
+      status: $status
+      donationId: $donationId
+    ){
+      id
+      status
     }
   }
 `;
@@ -350,6 +366,45 @@ export const fetchRecurringDonationsByProjectIdQuery = `
     }
   }
 `;
+
+export const fetchRecurringDonationsByUserIdQuery = `
+  query (
+    $take: Int
+    $skip: Int
+    $status: String
+    $orderBy: RecurringDonationSortBy
+    $finished: Boolean
+    $userId: Int!
+  ) {
+    recurringDonationsByUserId(
+      take: $take
+      skip: $skip
+      orderBy: $orderBy
+      userId: $userId
+      status: $status
+      finished: $finished
+    ) {
+      recurringDonations {
+        id
+        txHash
+        networkId 
+        amount
+        currency
+        anonymous
+        status
+        donor {
+          id
+          walletAddress
+          firstName
+          email
+        }
+        createdAt
+      }
+      totalCount
+    }
+  }
+`;
+
 export const donationsFromWallets = `
   query (
     $fromWalletAddresses: [String!]!
@@ -1423,6 +1478,10 @@ export const projectsByUserIdQuery = `
           listed
           reviewStatus
           givingBlocksId
+          qfRounds {
+            name
+            id
+          }
           projectVerificationForm {
             id
             isTermAndConditionsAccepted

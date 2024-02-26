@@ -252,6 +252,7 @@ export const saveProjectDirectlyToDb = async (
     categories,
     users: [user],
     adminUser: user,
+    admin: String(user.id),
   }).save();
 
   if (projectData.networkId) {
@@ -1690,6 +1691,38 @@ export const SEED_DATA = {
         name: 'Celo Brazilian Real',
         address: '0xE4D517785D091D3c54818832dB6094bcc2744545',
         decimals: 18,
+      },
+    ],
+    arbitrum_mainnet: [
+      {
+        name: 'Arbitrum ETH',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+      {
+        name: 'usdt',
+        symbol: 'USDT',
+        address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+        decimals: 6,
+        coingeckoId: 'tether',
+      },
+    ],
+    arbitrum_sepolia: [
+      {
+        name: 'Arbitrum Sepolia native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+      {
+        name: 'Chromatic test Eth',
+        symbol: 'cETH',
+        address: '0x93252009E644138b906aE1a28792229E577239B9',
+        decimals: 18,
+        coingeckoId: 'weth',
       },
     ],
   },

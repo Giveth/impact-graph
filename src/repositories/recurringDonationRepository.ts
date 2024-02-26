@@ -2,6 +2,7 @@ import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { RecurringDonation } from '../entities/recurringDonation';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
+import { Donation } from '../entities/donation';
 
 export const createNewRecurringDonation = async (params: {
   project: Project;
@@ -47,6 +48,7 @@ export const getRecurringDonationById = async (
       'anchorContractAddress',
     )
     .innerJoinAndSelect(`recurringDonation.donations`, 'donations')
+    .leftJoinAndSelect('recurringDonation.project', 'project')
     .where(`recurringDonation.id = :id`, { id })
     .andWhere(`recurringDonation.finished = false`)
     .getOne();

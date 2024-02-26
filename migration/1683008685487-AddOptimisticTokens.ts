@@ -14,8 +14,12 @@ export class AddOptimisticTokens1683008685487 implements MigrationInterface {
             token.symbol !== 'ETH' &&
             token.symbol !== 'OP',
         )
-        .map(t => {
+        .map(token => {
+          const t = {
+            ...token,
+          };
           t.address = t.address?.toLowerCase();
+          delete t.chainType;
           return t;
         }),
     );

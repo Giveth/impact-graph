@@ -107,4 +107,8 @@ export class DraftDonation extends BaseEntity {
   @Field({ nullable: true })
   @Column({ nullable: true })
   errorMessage?: string;
+
+  @Field()
+  @Column({ nullable: true })
+  matchedDonationId?: number;
 }
