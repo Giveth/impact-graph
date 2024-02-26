@@ -1253,7 +1253,7 @@ function allProjectsTestCases() {
           address =>
             address.isRecipient === true &&
             (address.networkId === NETWORK_IDS.OPTIMISTIC ||
-              address.networkId === NETWORK_IDS.OPTIMISM_GOERLI) &&
+              address.networkId === NETWORK_IDS.OPTIMISM_SEPOLIA) &&
             address.chainType === ChainType.EVM,
         ),
       );

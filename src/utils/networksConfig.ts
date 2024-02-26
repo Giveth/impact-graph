@@ -26,8 +26,8 @@ const networksConfig = {
   '137': {
     blockExplorer: 'https://polygonscan.com/',
   },
-  '420': {
-    blockExplorer: 'https://goerli-optimism.etherscan.io/',
+  '11155420': {
+    blockExplorer: 'https://sepolia-optimism.etherscan.io/',
   },
   '42220': {
     blockExplorer: 'https://explorer.celo.org/mainnet/',

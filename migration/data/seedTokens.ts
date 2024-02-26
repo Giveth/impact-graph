@@ -1052,40 +1052,15 @@ const seedTokens: ITokenData[] = [
     networkId: NETWORK_IDS.POLYGON,
   },
 
-  // OPTIMISM Goerli tokens
+  // OPTIMISM Sepolia tokens
   {
-    name: 'OPTIMISM Goerli native token',
+    name: 'OPTIMISM Sepolia native token',
     symbol: 'ETH',
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
-    networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+    networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
     coingeckoId: 'ethereum',
   },
-  {
-    name: 'OPTIMISM Goerli OP token',
-    symbol: 'OP',
-    address: '0x4200000000000000000000000000000000000042',
-    decimals: 18,
-    networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-    coingeckoId: 'optimism',
-  },
-  {
-    name: 'Wrapped Ether',
-    symbol: 'WETH',
-    address: '0x4200000000000000000000000000000000000006',
-    decimals: 18,
-    networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-    coingeckoId: 'weth',
-  },
-  {
-    name: 'Dai',
-    symbol: 'DAI',
-    address: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
-    decimals: 18,
-    networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-    coingeckoId: 'dai',
-  },
-
   // OPTIMISTIC tokens
   {
     name: 'OPTIMISTIC native token',
