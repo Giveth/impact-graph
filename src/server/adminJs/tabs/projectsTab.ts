@@ -53,16 +53,14 @@ import {
   makeFormVerified,
 } from '../../../repositories/projectVerificationRepository';
 import { FeaturedUpdate } from '../../../entities/featuredUpdate';
-import {
-  findActiveQfRound,
-  relateManyProjectsToQfRound,
-} from '../../../repositories/qfRoundRepository';
+import { findActiveQfRound } from '../../../repositories/qfRoundRepository';
 import { User } from '../../../entities/user';
 import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../../../services/projectViewsService';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
