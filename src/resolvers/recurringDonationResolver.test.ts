@@ -22,7 +22,11 @@ import {
   updateRecurringDonationQuery,
   updateRecurringDonationStatusMutation,
 } from '../../test/graphqlQueries';
-import { errorMessages } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 
