@@ -2,7 +2,7 @@ import { assert, expect } from 'chai';
 import {
   isTokenAcceptableForProject,
   updateOldStableCoinDonationsPrice,
-  sendSegmentEventForDonation,
+  sendNotificationForDonation,
   syncDonationStatusWithBlockchainNetwork,
   updateTotalDonationsOfProject,
   updateDonationPricesAndValues,
@@ -77,7 +77,7 @@ function sendSegmentEventForDonationTestCases() {
       SEED_DATA.FIRST_USER.id,
       SEED_DATA.FIRST_PROJECT.id,
     );
-    await sendSegmentEventForDonation({
+    await sendNotificationForDonation({
       donation,
     });
     const updatedDonation = await findDonationById(donation.id);
@@ -230,6 +230,182 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.isTrue(updateDonation.segmentNotified);
     assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
   });
+  it('should verify a Arbitrum donation', async () => {
+    // https://arbiscan.io/tx/0xdaca7d68e784a60a6975fa9937abb6b287d7fe992ff806f8c375cb4c3b2152f3
+
+    const amount = 0.0038;
+
+    const transactionInfo = {
+      txHash:
+        '0xdaca7d68e784a60a6975fa9937abb6b287d7fe992ff806f8c375cb4c3b2152f3',
+      currency: 'ETH',
+      networkId: NETWORK_IDS.ARBITRUM_MAINNET,
+      fromAddress: '0x015e6fbce5119c32db66e7c544365749bb26cf8b',
+      toAddress: '0x5c66fef6ea22f37e7c1f7eee49e4e116d3fbfc68',
+      amount,
+      timestamp: 1708342629,
+    };
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 100,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+      donationId: donation.id,
+    });
+    assert.isOk(updateDonation);
+    assert.equal(updateDonation.id, donation.id);
+    assert.isTrue(updateDonation.segmentNotified);
+    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+  });
+  it('should verify a erc20 Arbitrum donation', async () => {
+    // https://arbiscan.io/tx/0xd7ba5a5d8149432217a161559e357904965620b58e776c4482b8b501e092e495
+
+    const amount = 999.2;
+
+    const transactionInfo = {
+      txHash:
+        '0xd7ba5a5d8149432217a161559e357904965620b58e776c4482b8b501e092e495',
+      currency: 'USDT',
+      networkId: NETWORK_IDS.ARBITRUM_MAINNET,
+      fromAddress: '0x62383739d68dd0f844103db8dfb05a7eded5bbe6',
+      toAddress: '0x513b8c84fb6e36512b641b67de55a18704118fe7',
+      amount,
+      timestamp: 1708343905,
+    };
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 1000,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+      donationId: donation.id,
+    });
+    assert.isOk(updateDonation);
+    assert.equal(updateDonation.id, donation.id);
+    assert.isTrue(updateDonation.segmentNotified);
+    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+  });
+  it('should verify a Arbitrum Sepolia donation', async () => {
+    // https://sepolia.arbiscan.io/tx/0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c
+
+    const amount = 0.0069;
+
+    const transactionInfo = {
+      txHash:
+        '0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c',
+      currency: 'ETH',
+      networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
+      fromAddress: '0xefc58dbf0e606c327868b55334998aacb27f9ef2',
+      toAddress: '0xc11c479473cd06618fc75816dd6b56be4ac80efd',
+      amount,
+      timestamp: 1708344659,
+    };
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 100,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+      donationId: donation.id,
+    });
+    assert.isOk(updateDonation);
+    assert.equal(updateDonation.id, donation.id);
+    assert.isTrue(updateDonation.segmentNotified);
+    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+  });
+  it('should verify a erc20 Arbitrum Sepolia donation', async () => {
+    // https://sepolia.arbiscan.io/tx/0x5bcce1bac54ee92ff28e9913e8a002e6e8efc8e8632fdb8e6ebaa16d8c6fd4cb
+
+    const amount = 100;
+
+    const transactionInfo = {
+      txHash:
+        '0x5bcce1bac54ee92ff28e9913e8a002e6e8efc8e8632fdb8e6ebaa16d8c6fd4cb',
+      currency: 'cETH',
+      networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
+      fromAddress: '0x6a446d9d0d153aa07811de2ac8096b87baad305b',
+      toAddress: '0xf888186663aae1600282c6fb23b764a61937b913',
+      amount,
+      timestamp: 1708344801,
+    };
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donation = await saveDonationDirectlyToDb(
+      {
+        amount: transactionInfo.amount,
+        transactionNetworkId: transactionInfo.networkId,
+        transactionId: transactionInfo.txHash,
+        currency: transactionInfo.currency,
+        fromWalletAddress: transactionInfo.fromAddress,
+        toWalletAddress: transactionInfo.toAddress,
+        valueUsd: 1000,
+        anonymous: false,
+        createdAt: new Date(transactionInfo.timestamp),
+        status: DONATION_STATUS.PENDING,
+      },
+      user.id,
+      project.id,
+    );
+    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
+      donationId: donation.id,
+    });
+    assert.isOk(updateDonation);
+    assert.equal(updateDonation.id, donation.id);
+    assert.isTrue(updateDonation.segmentNotified);
+    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
+  });
   it('should verify a Optimistic donation', async () => {
     // https://optimistic.etherscan.io/tx/0xc645bd4ebcb1cb249be4b3e4dad46075c973fd30649a39f27f5328ded15074e7
 
@@ -275,19 +451,19 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.isTrue(updateDonation.segmentNotified);
   });
 
-  it('should verify a Optimism Goerli donation', async () => {
-    // https://goerli-optimism.etherscan.io/tx/0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3
-    const amount = 0.011;
+  it('should verify a Optimism Sepolia donation', async () => {
+    // https://sepolia-optimism.etherscan.io/tx/0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809
+    const amount = 0.01;
 
     const transactionInfo = {
       txHash:
-        '0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3',
+        '0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809',
       currency: 'ETH',
-      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-      fromAddress: '0x317bbc1927be411cd05615d2ffdf8d320c6c4052',
-      toAddress: '0x00d18ca9782be1caef611017c2fbc1a39779a57c',
+      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+      fromAddress: '0x625bcc1142e97796173104a6e817ee46c593b3c5',
+      toAddress: '0x73f9b3f48ebc96ac55cb76c11053b068669a8a67',
       amount,
-      timestamp: 1679484540,
+      timestamp: 1708954960,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({

@@ -13,7 +13,6 @@ import { User } from '../entities/user';
 import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { validateEmail } from '../utils/validators/commonValidators';
 import {
@@ -22,12 +21,15 @@ import {
 } from '../repositories/userRepository';
 import { createNewAccountVerification } from '../repositories/accountVerificationRepository';
 import { UserByAddressResponse } from './types/userResolver';
-import { SegmentAnalyticsSingleton } from '../services/segment/segmentAnalyticsSingleton';
 import { AppDataSource } from '../orm';
-import { getGitcoinAdapter } from '../adapters/adaptersFactory';
+import {
+  getGitcoinAdapter,
+  getNotificationAdapter,
+} from '../adapters/adaptersFactory';
 import { logger } from '../utils/logger';
 import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
 import { addressHasDonated } from '../repositories/donationRepository';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -170,21 +172,13 @@ export class UserResolver {
     dbUser.name = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim();
     await dbUser.save();
 
-    const segmentUpdateProfile = {
+    const orttoPerson = getOrttoPersonAttributes({
       firstName: dbUser.firstName,
       lastName: dbUser.lastName,
-      location: dbUser.location,
       email: dbUser.email,
-      url: dbUser.url,
-    };
-
-    SegmentAnalyticsSingleton.getInstance().identifyUser(dbUser);
-    SegmentAnalyticsSingleton.getInstance().track(
-      NOTIFICATIONS_EVENT_NAMES.UPDATED_PROFILE,
-      dbUser.segmentUserId(),
-      segmentUpdateProfile,
-      null,
-    );
+      userId: dbUser.id.toString(),
+    });
+    await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
 
     return true;
   }

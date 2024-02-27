@@ -12,12 +12,15 @@ export const NETWORK_IDS = {
   XDAI: 100,
   POLYGON: 137,
   OPTIMISTIC: 10,
-  OPTIMISM_GOERLI: 420,
+  OPTIMISM_SEPOLIA: 11155420,
   BSC: 56,
   CELO: 42220,
   CELO_ALFAJORES: 44787,
   ETC: 61,
   MORDOR_ETC_TESTNET: 63,
+
+  ARBITRUM_MAINNET: 42161,
+  ARBITRUM_SEPOLIA: 421614,
 
   // https://docs.particle.network/developers/other-services/node-service/solana-api
   SOLANA_MAINNET: 101,
@@ -35,9 +38,11 @@ export const NETWORKS_IDS_TO_NAME = {
   42220: 'CELO',
   44787: 'CELO_ALFAJORES',
   10: 'OPTIMISTIC',
-  420: 'OPTIMISM_GOERLI',
+  11155420: 'OPTIMISM_SEPOLIA',
   61: 'ETC',
   63: 'MORDOR_ETC_TESTNET',
+  42161: 'ARBITRUM_MAINNET',
+  421614: 'ARBITRUM_SEPOLIA',
 };
 
 const NETWORK_NAMES = {
@@ -48,11 +53,13 @@ const NETWORK_NAMES = {
   GOERLI: 'goerli',
   POLYGON: 'polygon-mainnet',
   OPTIMISTIC: 'optimistic-mainnet',
-  OPTIMISM_GOERLI: 'optimism-goerli-testnet',
+  OPTIMISM_SEPOLIA: 'optimism-sepolia-testnet',
   CELO: 'Celo',
   CELO_ALFAJORES: 'Celo Alfajores',
   ETC: 'Ethereum Classic',
   MORDOR_ETC_TESTNET: 'Ethereum Classic Testnet',
+  ARBITRUM_MAINNET: 'Arbitrum Mainnet',
+  ARBITRUM_SEPOLIA: 'Arbitrum Sepolia',
 };
 
 const NETWORK_NATIVE_TOKENS = {
@@ -63,11 +70,13 @@ const NETWORK_NATIVE_TOKENS = {
   GOERLI: 'ETH',
   POLYGON: 'MATIC',
   OPTIMISTIC: 'ETH',
-  OPTIMISM_GOERLI: 'ETH',
+  OPTIMISM_SEPOLIA: 'ETH',
   CELO: 'CELO',
   CELO_ALFAJORES: 'CELO',
   ETC: 'ETC',
   MORDOR_ETC_TESTNET: 'mETC',
+  ARBITRUM_MAINNET: 'ETH',
+  ARBITRUM_SEPOLIA: 'ETH',
 };
 
 const networkNativeTokensList = [
@@ -107,9 +116,9 @@ const networkNativeTokensList = [
     nativeToken: NETWORK_NATIVE_TOKENS.OPTIMISTIC,
   },
   {
-    networkName: NETWORK_NAMES.OPTIMISM_GOERLI,
-    networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-    nativeToken: NETWORK_NATIVE_TOKENS.OPTIMISM_GOERLI,
+    networkName: NETWORK_NAMES.OPTIMISM_SEPOLIA,
+    networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+    nativeToken: NETWORK_NATIVE_TOKENS.OPTIMISM_SEPOLIA,
   },
   {
     networkName: NETWORK_NAMES.CELO,
@@ -130,6 +139,16 @@ const networkNativeTokensList = [
     networkName: NETWORK_NAMES.MORDOR_ETC_TESTNET,
     networkId: NETWORK_IDS.MORDOR_ETC_TESTNET,
     nativeToken: NETWORK_NATIVE_TOKENS.MORDOR_ETC_TESTNET,
+  },
+  {
+    networkName: NETWORK_NAMES.ARBITRUM_MAINNET,
+    networkId: NETWORK_IDS.ARBITRUM_MAINNET,
+    nativeToken: NETWORK_NATIVE_TOKENS.ARBITRUM_MAINNET,
+  },
+  {
+    networkName: NETWORK_NAMES.ARBITRUM_SEPOLIA,
+    networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
+    nativeToken: NETWORK_NATIVE_TOKENS.ARBITRUM_SEPOLIA,
   },
 ];
 
@@ -180,8 +199,20 @@ export function getProvider(networkId: number) {
         `https://celo-alfajores.infura.io/v3/${INFURA_ID}`;
       break;
 
-    case NETWORK_IDS.OPTIMISM_GOERLI:
-      url = `https://optimism-goerli.infura.io/v3/${INFURA_ID}`;
+    case NETWORK_IDS.OPTIMISM_SEPOLIA:
+      url = `https://optimism-sepolia.infura.io/v3/${INFURA_ID}`;
+      break;
+
+    case NETWORK_IDS.ARBITRUM_MAINNET:
+      url =
+        (process.env.ARBITRUM_MAINNET_NODE_HTTP_URL as string) ||
+        `https://arbitrum-mainnet.infura.io/v3/${INFURA_ID}`;
+      break;
+
+    case NETWORK_IDS.ARBITRUM_SEPOLIA:
+      url =
+        (process.env.ARBITRUM_SEPOLIA_NODE_HTTP_URL as string) ||
+        `https://arbitrum-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
     default: {
@@ -245,8 +276,8 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
       apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
       break;
-    case NETWORK_IDS.OPTIMISM_GOERLI:
-      apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
+    case NETWORK_IDS.OPTIMISM_SEPOLIA:
+      apiUrl = config.get('OPTIMISTIC_SEPOLIA_SCAN_API_URL');
       apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
       break;
     case NETWORK_IDS.ETC:
@@ -255,6 +286,14 @@ export function getBlockExplorerApiUrl(networkId: number): string {
     case NETWORK_IDS.MORDOR_ETC_TESTNET:
       // ETC network doesn't need API key
       return config.get('MORDOR_ETC_TESTNET_SCAN_API_URL') as string;
+    case NETWORK_IDS.ARBITRUM_MAINNET:
+      apiUrl = config.get('ARBITRUM_SCAN_API_URL');
+      apiKey = config.get('ARBITRUM_SCAN_API_KEY');
+      break;
+    case NETWORK_IDS.ARBITRUM_SEPOLIA:
+      apiUrl = config.get('ARBITRUM_SEPOLIA_SCAN_API_URL');
+      apiKey = config.get('ARBITRUM_SEPOLIA_SCAN_API_KEY');
+      break;
     default:
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
   }

@@ -547,6 +547,12 @@ export class ProjectResolver {
           // Add this to make sure works on Staging
           networkIds.push(NETWORK_IDS.CELO_ALFAJORES);
           return;
+
+        case FilterField.AcceptFundOnArbitrum:
+          networkIds.push(NETWORK_IDS.ARBITRUM_MAINNET);
+          networkIds.push(NETWORK_IDS.ARBITRUM_SEPOLIA);
+          return;
+
         case FilterField.AcceptFundOnPolygon:
           networkIds.push(NETWORK_IDS.POLYGON);
           return;
@@ -554,7 +560,7 @@ export class ProjectResolver {
           networkIds.push(NETWORK_IDS.OPTIMISTIC);
 
           // Add this to make sure works on Staging
-          networkIds.push(NETWORK_IDS.OPTIMISM_GOERLI);
+          networkIds.push(NETWORK_IDS.OPTIMISM_SEPOLIA);
           return;
         case FilterField.AcceptFundOnETC:
           networkIds.push(NETWORK_IDS.ETC);
@@ -1151,7 +1157,7 @@ export class ProjectResolver {
           filename,
           encoding,
         );
-        url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.data.IpfsHash}`;
+        url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.IpfsHash}`;
 
         const projectImage = this.projectImageRepository.create({
           url,
@@ -1680,6 +1686,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('project.addresses', 'addresses')
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.organization', 'organization')
+      .leftJoinAndSelect('project.qfRounds', 'qfRounds')
       .innerJoin('project.adminUser', 'user')
       .addSelect(publicSelectionFields); // aliased selection
 

@@ -26,8 +26,8 @@ const networksConfig = {
   '137': {
     blockExplorer: 'https://polygonscan.com/',
   },
-  '420': {
-    blockExplorer: 'https://goerli-optimism.etherscan.io/',
+  '11155420': {
+    blockExplorer: 'https://sepolia-optimism.etherscan.io/',
   },
   '42220': {
     blockExplorer: 'https://explorer.celo.org/mainnet/',
@@ -35,6 +35,8 @@ const networksConfig = {
   '44787': {
     blockExplorer: 'https://explorer.celo.org/alfajores/',
   },
+  '42161': { blockExplorer: 'https://arbiscan.io/' },
+  '421614': { blockExplorer: 'https://sepolia.arbiscan.io/' },
 };
 
 export default networksConfig;

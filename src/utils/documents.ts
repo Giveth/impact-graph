@@ -45,7 +45,7 @@ export async function changeBase64ToIpfsImageInHTML(
 
     const base64 = match[1];
     const pinResponse = await pinFileDataBase64(base64, undefined, 'base64');
-    const url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.data.IpfsHash}`;
+    const url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.IpfsHash}`;
 
     const startIndex = match.index + '<img src="'.length;
     const endIndex = startIndex + base64.length;

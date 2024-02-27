@@ -175,7 +175,7 @@ export const saveAnchorContractDirectlyToDb = async (params: {
     projectId: params.projectId,
     creatorId: params.creatorId,
     address: params.contractAddress || generateRandomEtheriumAddress(),
-    networkId: params.networkId || NETWORK_IDS.OPTIMISM_GOERLI,
+    networkId: params.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     txHash: params.txHash || generateRandomEtheriumAddress(),
     ownerId: projectOwnerId,
   }).save();
@@ -252,6 +252,7 @@ export const saveProjectDirectlyToDb = async (
     categories,
     users: [user],
     adminUser: user,
+    admin: String(user.id),
   }).save();
 
   if (projectData.networkId) {
@@ -1391,17 +1392,11 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
-    optimism_goerli: [
+    optimism_sepolia: [
       {
         name: 'OPTIMISM native token',
         symbol: 'ETH',
         address: '0x0000000000000000000000000000000000000000',
-        decimals: 18,
-      },
-      {
-        name: 'OPTIMISM OP token',
-        symbol: 'OP',
-        address: '0x4200000000000000000000000000000000000042',
         decimals: 18,
       },
     ],
@@ -1692,6 +1687,38 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
+    arbitrum_mainnet: [
+      {
+        name: 'Arbitrum ETH',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+      {
+        name: 'usdt',
+        symbol: 'USDT',
+        address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+        decimals: 6,
+        coingeckoId: 'tether',
+      },
+    ],
+    arbitrum_sepolia: [
+      {
+        name: 'Arbitrum Sepolia native token',
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        coingeckoId: 'ethereum',
+      },
+      {
+        name: 'Chromatic test Eth',
+        symbol: 'cETH',
+        address: '0x93252009E644138b906aE1a28792229E577239B9',
+        decimals: 18,
+        coingeckoId: 'weth',
+      },
+    ],
   },
 };
 
@@ -1890,7 +1917,7 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
   return RecurringDonation.create({
     amount: params?.donationData?.amount || 10,
     status: params?.donationData?.status || 'pending',
-    networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_GOERLI,
+    networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     currency: params?.donationData?.currency || 'USDT',
     interval: params?.donationData?.interval || 'monthly',
     txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),

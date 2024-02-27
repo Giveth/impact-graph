@@ -553,19 +553,19 @@ function getTransactionDetailTestCases() {
     assert.equal(transactionInfo.amount, amount);
   });
 
-  it('should return transaction detail for normal transfer on optimism-goerli', async () => {
-    // https://goerli-optimism.etherscan.io/tx/0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3
+  it('should return transaction detail for normal transfer on optimism-sepolia', async () => {
+    // https://sepolia-optimism.etherscan.io/tx/0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809
 
-    const amount = 0.011;
+    const amount = 0.01;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:
-        '0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3',
+        '0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809',
       symbol: 'ETH',
-      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-      fromAddress: '0x317bbc1927be411cd05615d2ffdf8d320c6c4052',
-      toAddress: '0x00d18ca9782be1caef611017c2fbc1a39779a57c',
+      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+      fromAddress: '0x625bcc1142e97796173104a6e817ee46c593b3c5',
+      toAddress: '0x73f9b3f48ebc96ac55cb76c11053b068669a8a67',
       amount,
-      timestamp: 167740007,
+      timestamp: 1708954960,
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'ETH');
@@ -607,6 +607,44 @@ function getTransactionDetailTestCases() {
     });
     assert.isOk(transactionInfo);
     assert.equal(transactionInfo.currency, 'CELO');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on Arbitrum Mainnet', async () => {
+    // https://arbiscan.io/tx/0xdaca7d68e784a60a6975fa9937abb6b287d7fe992ff806f8c375cb4c3b2152f3
+
+    const amount = 0.0038;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0xdaca7d68e784a60a6975fa9937abb6b287d7fe992ff806f8c375cb4c3b2152f3',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.ARBITRUM_MAINNET,
+      fromAddress: '0x015e6fbce5119c32db66e7c544365749bb26cf8b',
+      toAddress: '0x5c66fef6ea22f37e7c1f7eee49e4e116d3fbfc68',
+      amount,
+      timestamp: 1708342629,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
+    assert.equal(transactionInfo.amount, amount);
+  });
+
+  it('should return transaction detail for normal transfer on Arbitrum Sepolia', async () => {
+    // https://sepolia.arbiscan.io/tx/0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c
+
+    const amount = 0.0069;
+    const transactionInfo = await getTransactionInfoFromNetwork({
+      txHash:
+        '0x25f17541ccb7248d931f2a1e11058a51ffb4db4968ed3e1d4a019ddc2d44802c',
+      symbol: 'ETH',
+      networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
+      fromAddress: '0xefc58dbf0e606c327868b55334998aacb27f9ef2',
+      toAddress: '0xc11c479473cd06618fc75816dd6b56be4ac80efd',
+      amount,
+      timestamp: 1708344659,
+    });
+    assert.isOk(transactionInfo);
+    assert.equal(transactionInfo.currency, 'ETH');
     assert.equal(transactionInfo.amount, amount);
   });
 

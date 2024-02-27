@@ -1,4 +1,3 @@
-import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { logger } from '../utils/logger';
@@ -22,6 +21,28 @@ export const updateUserTotalDonated = async (userId: number) => {
     );
   } catch (e) {
     logger.error('updateUserTotalDonated() error', e);
+  }
+};
+
+interface DonationStats {
+  totalDonated: number;
+  donationsCount: string;
+  lastDonationDate: Date | null;
+}
+
+export const getUserDonationStats = async (
+  userId: number,
+): Promise<DonationStats | void> => {
+  try {
+    return await Donation.createQueryBuilder('donation')
+      .select('SUM(donation.valueUsd)', 'totalDonated')
+      .addSelect('COUNT(donation.id)', 'donationsCount')
+      .addSelect('MAX(donation.createdAt)', 'lastDonationDate')
+      .where('donation.userId = :userId', { userId })
+      .andWhere('donation.status = :status', { status: 'verified' })
+      .getRawOne();
+  } catch (e) {
+    logger.error('getUserDonationStats() error', e);
   }
 };
 

@@ -3,17 +3,16 @@ import abiDecoder from 'abi-decoder';
 import { Donation } from '../../entities/donation';
 import { logger } from '../../utils/logger';
 import { schedule } from 'node-cron';
-import { normalizeAmount } from '../../utils/utils';
 import { NetworkTransactionInfo } from '../chains';
-import { getNetworkNativeToken, getProvider } from '../../provider';
+import { getProvider, NETWORKS_IDS_TO_NAME } from '../../provider';
 import { erc20ABI } from '../../assets/erc20ABI';
-import { gnosisSafeL2ABI } from '../../assets/gnosisSafeL2ABI';
 import { User } from '../../entities/user';
 import { Token } from '../../entities/token';
 import { Project } from '../../entities/project';
 import { calculateGivbackFactor } from '../givbackService';
 import moment from 'moment';
 import {
+  getUserDonationStats,
   updateUserTotalDonated,
   updateUserTotalReceived,
 } from '../userService';
@@ -25,6 +24,8 @@ import {
 import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapter';
 import { QfRound } from '../../entities/qfRound';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
+import { getNotificationAdapter } from '../../adapters/adaptersFactory';
+import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
 
 // tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
@@ -208,8 +209,10 @@ export const importLostDonations = async () => {
 
         const { givbackFactor, projectRank, powerRound, bottomRankInRound } =
           await calculateGivbackFactor(project.id as number);
+
+        let dbDonation: Donation;
         try {
-          const dbDonation = Donation.create({
+          dbDonation = Donation.create({
             fromWalletAddress: donationParams.from.toLowerCase(),
             toWalletAddress: donationParams.to.toLowerCase(),
             transactionId: tx.toLowerCase(),
@@ -246,6 +249,22 @@ export const importLostDonations = async () => {
         await updateUserTotalDonated(dbUser.id);
         await updateUserTotalReceived(project.adminUser?.id);
         await updateTotalDonationsOfProject(project.id);
+
+        const donationStats = await getUserDonationStats(dbUser.id);
+
+        const orttoPerson = getOrttoPersonAttributes({
+          userId: dbUser.id.toString(),
+          firstName: dbUser?.firstName,
+          lastName: dbUser?.lastName,
+          email: dbUser?.email,
+          totalDonated: donationStats?.totalDonated,
+          donationsCount: donationStats?.donationsCount,
+          lastDonationDate: donationStats?.lastDonationDate,
+          GIVbacksRound: dbDonation.powerRound,
+          QFDonor: dbDonation.qfRound?.name,
+          donationChain: NETWORKS_IDS_TO_NAME[dbDonation.transactionNetworkId],
+        });
+        await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
       } catch (e) {
         logger.error('importLostDonations() error');
         continue;

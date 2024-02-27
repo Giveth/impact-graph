@@ -294,7 +294,7 @@ function updateProjectVerificationFormMutationTestCases() {
       },
       {
         address: generateRandomEtheriumAddress(),
-        networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+        networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
         title: 'test title',
       },
       {
@@ -310,6 +310,16 @@ function updateProjectVerificationFormMutationTestCases() {
       {
         address: generateRandomEtheriumAddress(),
         networkId: NETWORK_IDS.CELO,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.ARBITRUM_MAINNET,
+        title: 'test title',
+      },
+      {
+        address: generateRandomEtheriumAddress(),
+        networkId: NETWORK_IDS.ARBITRUM_SEPOLIA,
         title: 'test title',
       },
       {
