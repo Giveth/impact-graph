@@ -454,6 +454,41 @@ function allProjectsTestCases() {
     });
   });
 
+  it('should return projects with a typo in the end of searchTerm', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        // Typo in the title
+        searchTerm: SEED_DATA.SECOND_PROJECT.title.slice(0, -1) + 'a',
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    const projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, limit);
+  });
+
+  it('should return projects with the project title inverted in the searchTerm', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        searchTerm: SEED_DATA.SECOND_PROJECT.title.split('').reverse().join(''),
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    const projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, limit);
+  });
+
   it('should return projects, sort by creationDate, DESC', async () => {
     const firstProject = await saveProjectDirectlyToDb({
       ...createProjectData(),

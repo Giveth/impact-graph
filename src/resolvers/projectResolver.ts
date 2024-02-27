@@ -331,38 +331,38 @@ export class ProjectResolver {
   static addSearchQuery(
     query: SelectQueryBuilder<Project>,
     searchTerm?: string,
+    similarityThreshold = 0.4,
   ) {
     if (!searchTerm) return query;
-    const SIMILARITY_THRESHOLD = 0.4;
 
     return query.andWhere(
       new Brackets(qb => {
         qb.where(
-          'SIMILARITY(project.title, :searchTerm) > :similarityThreshold',
+          'WORD_SIMILARITY(project.title, :searchTerm) > :similarityThreshold',
           {
             searchTerm: `%${searchTerm}%`,
-            similarityThreshold: SIMILARITY_THRESHOLD,
+            similarityThreshold,
           },
         )
           .orWhere(
-            'SIMILARITY(project.description, :searchTerm) > :similarityThreshold',
+            'WORD_SIMILARITY(project.description, :searchTerm) > :similarityThreshold',
             {
               searchTerm: `%${searchTerm}%`,
-              similarityThreshold: SIMILARITY_THRESHOLD,
+              similarityThreshold,
             },
           )
           .orWhere(
-            'SIMILARITY(project.impactLocation, :searchTerm) > :similarityThreshold',
+            'WORD_SIMILARITY(project.impactLocation, :searchTerm) > :similarityThreshold',
             {
               searchTerm: `%${searchTerm}%`,
-              similarityThreshold: SIMILARITY_THRESHOLD,
+              similarityThreshold,
             },
           )
           .orWhere(
-            'SIMILARITY(user.name, :searchTerm) > :similarityThreshold',
+            'WORD_SIMILARITY(user.name, :searchTerm) > :similarityThreshold',
             {
               searchTerm: `%${searchTerm}%`,
-              similarityThreshold: SIMILARITY_THRESHOLD,
+              similarityThreshold,
             },
           );
       }),
