@@ -19,6 +19,7 @@ import {
   createRecurringDonationQuery,
   fetchRecurringDonationsByProjectIdQuery,
   fetchRecurringDonationsByUserIdQuery,
+  updateRecurringDonationQuery,
   updateRecurringDonationStatusMutation,
 } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
@@ -28,6 +29,10 @@ import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 describe(
   'createRecurringDonation test cases',
   createRecurringDonationTestCases,
+);
+describe(
+  'updateRecurringDonation test cases',
+  updateRecurringDonationTestCases,
 );
 describe(
   'recurringDonationsByProjectId test cases',
@@ -249,6 +254,193 @@ function createRecurringDonationTestCases() {
     assert.equal(
       result.data.errors[0].message,
       errorMessages.THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
+    );
+  });
+}
+
+function updateRecurringDonationTestCases() {
+  it('should update recurring donation successfully', async () => {
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await addNewAnchorAddress({
+      project,
+      owner: project.adminUser,
+      creator: donor,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        projectId: project.id,
+        amount: 300,
+      },
+    });
+
+    assert.equal(donation.amount, 300);
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const amount = 201;
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          walletAddress: donor.walletAddress,
+          amount,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          txHash: generateRandomEvmTxHash(),
+          currency: 'GIV',
+          interval: 'monthly',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(result.data.data.updateRecurringDonationParams.amount, amount);
+  });
+
+  it('should get error when someone wants to update someone else recurring donation', async () => {
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        projectId: project.id,
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+      },
+    });
+    assert.equal(donation.status, RECURRING_DONATION_STATUS.PENDING);
+    const anotherUser = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const accessToken = await generateTestAccessToken(anotherUser.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationQuery,
+        variables: {
+          walletAddress: anotherUser.walletAddress,
+          projectId: project.id,
+          amount: 10,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          txHash: generateRandomEvmTxHash(),
+          currency: 'GIV',
+          interval: 'monthly',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.RECURRING_DONATION_NOT_FOUND,
+    );
+  });
+
+  it('should return unAuthorized error when not sending JWT', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: donor,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: createRecurringDonationQuery,
+      variables: {
+        projectId: project.id,
+        networkId: NETWORK_IDS.OPTIMISTIC,
+        txHash: generateRandomEvmTxHash(),
+        amount: 100,
+        currency: 'GIV',
+        interval: 'monthly',
+      },
+    });
+
+    assert.isNull(result.data.data.createRecurringDonation);
+    assert.equal(result.data.errors[0].message, errorMessages.UN_AUTHORIZED);
+  });
+
+  it('should return unAuthorized error when project not found', async () => {
+    const contractCreator = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const accessToken = await generateTestAccessToken(contractCreator.id);
+    const contractAddress = generateRandomEtheriumAddress();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createRecurringDonationQuery,
+        variables: {
+          projectId: 99999,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          txHash: generateRandomEvmTxHash(),
+          amount: 100,
+          currency: 'GIV',
+          interval: 'monthly',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isNull(result.data.data.createRecurringDonation);
+    assert.equal(
+      result.data.errors[0].message,
+      errorMessages.PROJECT_NOT_FOUND,
     );
   });
 }

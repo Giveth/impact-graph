@@ -2249,3 +2249,31 @@ export const createRecurringDonationQuery = `
     }
   }
 `;
+
+export const updateRecurringDonationQuery = `
+       mutation ($projectId: Int!,
+        $networkId: Int!,
+        $txHash: String!
+        $interval: String!
+        $amount: Int!
+        $currency: String!
+        $walletAddress: String!
+        ) {
+          updateRecurringDonationParams(
+            projectId: $projectId
+          networkId: $networkId
+          txHash:$txHash
+          amount:$amount
+          currency:$currency
+          interval:$interval
+          walletAddress:$walletAddress
+        ) {
+            txHash
+            networkId
+            amount
+            currency
+            interval
+            anonymous
+          }
+      }
+`;
