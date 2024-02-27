@@ -1,5 +1,5 @@
 export interface NetworksInputParams {
-  networks?: string; // comma separated sample: 100,420
+  networks?: string; // comma separated sample: 100,11155420
   network?: string | number; // comma separated sample: 100
 }
 

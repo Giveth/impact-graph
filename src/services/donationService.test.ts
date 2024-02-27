@@ -451,19 +451,19 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.isTrue(updateDonation.segmentNotified);
   });
 
-  it('should verify a Optimism Goerli donation', async () => {
-    // https://goerli-optimism.etherscan.io/tx/0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3
-    const amount = 0.011;
+  it('should verify a Optimism Sepolia donation', async () => {
+    // https://sepolia-optimism.etherscan.io/tx/0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809
+    const amount = 0.01;
 
     const transactionInfo = {
       txHash:
-        '0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3',
+        '0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809',
       currency: 'ETH',
-      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-      fromAddress: '0x317bbc1927be411cd05615d2ffdf8d320c6c4052',
-      toAddress: '0x00d18ca9782be1caef611017c2fbc1a39779a57c',
+      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+      fromAddress: '0x625bcc1142e97796173104a6e817ee46c593b3c5',
+      toAddress: '0x73f9b3f48ebc96ac55cb76c11053b068669a8a67',
       amount,
-      timestamp: 1679484540,
+      timestamp: 1708954960,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({

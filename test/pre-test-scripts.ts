@@ -197,10 +197,10 @@ async function seedTokens() {
     }
     await Token.create(tokenData as Token).save();
   }
-  for (const token of SEED_DATA.TOKENS.optimism_goerli) {
+  for (const token of SEED_DATA.TOKENS.optimism_sepolia) {
     const tokenData = {
       ...token,
-      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
       isGivbackEligible: true,
     };
     if (token.symbol === 'OP') {
