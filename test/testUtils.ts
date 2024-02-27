@@ -30,6 +30,9 @@ import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 import { ChainType } from '../src/types/network';
 import { Keypair } from '@solana/web3.js';
+import { RecurringDonation } from '../src/entities/recurringDonation';
+import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
+import { findProjectById } from '../src/repositories/projectRepository';
 
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
@@ -155,6 +158,26 @@ export const saveUserDirectlyToDb = async (
     walletAddress,
     firstName: `testUser-${walletAddress}`,
     email: `testEmail-${walletAddress}@giveth.io`,
+  }).save();
+};
+
+export const saveAnchorContractDirectlyToDb = async (params: {
+  projectId: number;
+  creatorId: number;
+  contractAddress?: string;
+  txHash?: string;
+  networkId?: number;
+  chainType?: ChainType;
+}): Promise<AnchorContractAddress> => {
+  const projectOwnerId = (await findProjectById(params.projectId))?.adminUser
+    ?.id;
+  return AnchorContractAddress.create({
+    projectId: params.projectId,
+    creatorId: params.creatorId,
+    address: params.contractAddress || generateRandomEtheriumAddress(),
+    networkId: params.networkId || NETWORK_IDS.OPTIMISM_GOERLI,
+    txHash: params.txHash || generateRandomEtheriumAddress(),
+    ownerId: projectOwnerId,
   }).save();
 };
 
@@ -1267,6 +1290,13 @@ export const SEED_DATA = {
         decimals: 18,
         isStableCoin: true,
       },
+      {
+        name: 'mpETH',
+        symbol: 'mpETH',
+        address: '0x48afbbd342f64ef8a9ab1c143719b63c2ad81710',
+        decimals: 18,
+        isStableCoin: true,
+      },
     ],
     ropsten: [
       {
@@ -1328,6 +1358,13 @@ export const SEED_DATA = {
         name: 'GLO',
         symbol: 'GLO',
         address: '0x4f604735c1cf31399c6e711d5962b2b3e0225ad3',
+        decimals: 18,
+        isStableCoin: true,
+      },
+      {
+        name: 'mpETH',
+        symbol: 'mpETH',
+        address: '0x819845b60a192167ed1139040b4f8eca31834f27',
         decimals: 18,
         isStableCoin: true,
       },
@@ -1830,6 +1867,36 @@ export const saveDonationDirectlyToDb = async (
     ...donationData,
     userId,
     projectId,
+  }).save();
+};
+
+export const saveRecurringDonationDirectlyToDb = async (params?: {
+  donationData?: Partial<RecurringDonation>;
+}): Promise<RecurringDonation> => {
+  const projectId =
+    params?.donationData?.projectId ||
+    (await saveProjectDirectlyToDb(createProjectData())).id;
+  const donorId =
+    params?.donationData?.donorId ||
+    (await saveUserDirectlyToDb(generateRandomEtheriumAddress())).id;
+  const anchorContractAddressId =
+    params?.donationData?.anchorContractAddressId ||
+    (
+      await saveAnchorContractDirectlyToDb({
+        creatorId: donorId,
+        projectId,
+      })
+    ).id;
+  return RecurringDonation.create({
+    amount: params?.donationData?.amount || 10,
+    status: params?.donationData?.status || 'pending',
+    networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_GOERLI,
+    currency: params?.donationData?.currency || 'USDT',
+    interval: params?.donationData?.interval || 'monthly',
+    txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),
+    donorId,
+    projectId,
+    anchorContractAddressId,
   }).save();
 };
 

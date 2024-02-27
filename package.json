@@ -1,6 +1,6 @@
 {
   "name": "giveth-graphql-api",
-  "version": "1.21.0",
+  "version": "1.23.2",
   "description": "Backend GraphQL server for Giveth originally forked from Topia",
   "main": "./dist/index.js",
   "dependencies": {
@@ -41,6 +41,7 @@
     "connect-redis": "^7.1.1",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
+    "csvtojson": "^2.0.10",
     "dotenv": "^8.2.0",
     "eth-sig-util": "^3.0.1",
     "ethers": "^5.7.2",
@@ -161,7 +162,8 @@
     "test:projectAddressRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/projectAddressRepository.test.ts",
     "test:anchorContractAddressRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/anchorContractAddressRepository.test.ts",
     "test:recurringDonationRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/recurringDonationRepository.test.ts",
-    "test:dbCronRepository": "NODE_ENV=test mocha  -t 90000 ./test/pre-test-scripts.ts  ./src/repositories/dbCronRepository.test.ts",
+    "test:userPassportScoreRepository": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/repositories/userPassportScoreRepository.test.ts",
+    "test:dbCronRepository": "NODE_ENV=test mocha -t 90000 ./test/pre-test-scripts.ts  ./src/repositories/dbCronRepository.test.ts",
     "test:powerBoostingResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/powerBoostingResolver.test.ts",
     "test:userProjectPowerResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/userProjectPowerResolver.test.ts",
     "test:projectPowerResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/projectPowerResolver.test.ts",
@@ -170,6 +172,7 @@
     "test:recurringDonationResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/recurringDonationResolver.test.ts",
     "test:fillSnapshotBalance": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/fillSnapshotBalances.test.ts",
     "test:donationService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/repositories/qfRoundHistoryRepository.test.ts  ./src/services/donationService.test.ts",
+    "test:draftDonationService": "NODE_ENV=test mocha -t 99999 ./test/pre-test-scripts.ts  src/services/chains/evm/draftDonationService.test.ts src/repositories/draftDonationRepository.test.ts src/workers/draftDonationMatchWorker.test.ts src/resolvers/draftDonationResolver.test.ts",
     "test:userService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/userService.test.ts",
     "test:lostDonations": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/cronJobs/importLostDonationsJob.test.ts",
     "test:reactionsService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/reactionsService.test.ts",

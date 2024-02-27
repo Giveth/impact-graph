@@ -2,6 +2,7 @@ import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { RecurringDonation } from '../entities/recurringDonation';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
+import { Donation } from '../entities/donation';
 
 export const createNewRecurringDonation = async (params: {
   project: Project;
@@ -9,6 +10,9 @@ export const createNewRecurringDonation = async (params: {
   anchorContractAddress: AnchorContractAddress;
   networkId: number;
   txHash: string;
+  interval: string;
+  amount: number;
+  currency: string;
 }): Promise<RecurringDonation> => {
   const recurringDonation = await RecurringDonation.create({
     project: params.project,
@@ -16,6 +20,9 @@ export const createNewRecurringDonation = async (params: {
     anchorContractAddress: params.anchorContractAddress,
     networkId: params.networkId,
     txHash: params.txHash,
+    currency: params.currency,
+    interval: params.interval,
+    amount: params.amount,
   });
   return recurringDonation.save();
 };
@@ -30,4 +37,15 @@ export const findActiveRecurringDonations = async (): Promise<
       finished: false,
     },
   });
+};
+
+export const findRecurringDonationById = async (
+  donationId: number,
+): Promise<RecurringDonation | null> => {
+  return RecurringDonation.createQueryBuilder('recurringDonation')
+    .where(`recurringDonation.id = :donationId`, {
+      donationId,
+    })
+    .leftJoinAndSelect('recurringDonation.project', 'project')
+    .getOne();
 };

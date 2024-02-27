@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class projectActualMatchingView1699542566835
+export class projectActualMatchingViewV21707892354692
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -43,7 +43,8 @@ export class projectActualMatchingView1699542566835
                 INNER JOIN project p2 ON p2.id = d2."projectId"
                 INNER JOIN qf_round qr on qr.id = d2."qfRoundId"
                 inner join project_address pa on pa."projectId" = p2.id AND pa."networkId" = ANY(qr."eligibleNetworks")
-                inner join "user" u on u.id = d2."userId" and u."knownAsSybilAddress" = false
+                inner join "user" u on u.id = d2."userId"
+                left join "sybil" s on s."userId" = u.id AND s."qfRoundId" = qr.id
             WHERE 
                 p2."statusId" = 5 
                 AND LOWER(d2."fromWalletAddress") NOT IN (
@@ -53,8 +54,9 @@ export class projectActualMatchingView1699542566835
                 AND p3."verified" = true 
                 AND p3."statusId" = 5 
                 AND p3."isImported" = false
-                ) 
-                AND d2."qfRoundUserScore" > 5
+                )
+                AND d2."qfRoundUserScore" > 4
+                AND s.id is null OR s."confirmedSybil" = false
             GROUP BY 
                 p2.id,
                 p2.title,

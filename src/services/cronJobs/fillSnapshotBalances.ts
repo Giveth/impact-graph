@@ -9,7 +9,6 @@ import {
   GetPowerBoostingSnapshotWithoutBalanceOutput,
 } from '../../repositories/powerSnapshotRepository';
 import { addOrUpdatePowerSnapshotBalances } from '../../repositories/powerBalanceSnapshotRepository';
-import { convertTimeStampToSeconds } from '../../utils/utils';
 import _ from 'lodash';
 
 // Constants
