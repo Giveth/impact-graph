@@ -2232,6 +2232,7 @@ export const createRecurringDonationQuery = `
             $interval: String!
             $amount: Int!
             $currency: String!
+            $anonymous: Boolean
             ) {
     createRecurringDonation(
       projectId: $projectId 
@@ -2240,9 +2241,11 @@ export const createRecurringDonationQuery = `
       amount:$amount
       currency:$currency
       interval:$interval
+      anonymous:$anonymous
         ) {
       txHash
       networkId
+      anonymous
     }
   }
 `;

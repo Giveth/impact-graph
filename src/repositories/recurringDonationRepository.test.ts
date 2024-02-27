@@ -45,6 +45,7 @@ function createNewRecurringDonationTestCases() {
       currency: 'USD',
       interval: 'monthly',
       project,
+      anonymous: false,
     });
 
     assert.isNotNull(recurringDonation);
