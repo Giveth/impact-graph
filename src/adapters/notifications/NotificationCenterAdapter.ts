@@ -60,7 +60,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         people,
         async: false,
       };
-      logger.debug('updateOrttoPeople has been called:', data);
+      logger.debug('updateOrttoPeople has been called:', people);
       const orttoConfig = {
         method: 'post',
         maxBodyLength: Infinity,
@@ -909,7 +909,8 @@ export const getOrttoPersonAttributes = (params: {
   lastDonationDate?: Date | null;
   GIVbacksRound?: number;
   QFDonor?: string;
-  QFProjectOwner?: string;
+  QFProjectOwnerAdded?: string;
+  QFProjectOwnerRemoved?: string;
   donationChain?: string;
 }): OrttoPerson => {
   const {
@@ -922,7 +923,8 @@ export const getOrttoPersonAttributes = (params: {
     lastDonationDate,
     GIVbacksRound,
     QFDonor,
-    QFProjectOwner,
+    QFProjectOwnerAdded,
+    QFProjectOwnerRemoved,
     donationChain,
   } = params;
   const fields = {
@@ -946,21 +948,26 @@ export const getOrttoPersonAttributes = (params: {
     fields['dtz:cm:lastdonationdate'] = lastDonationDate;
   }
   const tags: string[] = [];
+  const unsetTags: string[] = [];
   if (GIVbacksRound) {
     tags.push(`GIVbacks ${GIVbacksRound}`);
   }
   if (QFDonor) {
     tags.push(`QF Donor ${QFDonor}`);
   }
-  if (QFProjectOwner) {
-    tags.push(`QF Project Owner ${QFProjectOwner}`);
+  if (QFProjectOwnerAdded) {
+    tags.push(`QF Project Owner ${QFProjectOwnerAdded}`);
   }
   if (donationChain) {
     tags.push(`Donated on ${donationChain}`);
   }
+  if (QFProjectOwnerRemoved) {
+    unsetTags.push(`QF Project Owner ${QFProjectOwnerRemoved}`);
+  }
   return {
     fields,
     tags,
+    unset_tags: unsetTags,
   };
 };
 
