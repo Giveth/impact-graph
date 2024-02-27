@@ -1,13 +1,5 @@
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
-import { logger } from '../utils/logger';
-import { Field } from 'type-graphql';
-import {
-  getOrttoPersonAttributes,
-  NotificationCenterAdapter,
-} from '../adapters/notifications/NotificationCenterAdapter';
-import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { findProjectById } from './projectRepository';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -35,41 +27,6 @@ export const findQfRoundBySlug = async (
   return QfRound.createQueryBuilder('qf_round')
     .where(`slug = '${slug}'`)
     .getOne();
-};
-
-export const relateManyProjectsToQfRound = async (params: {
-  projectIds: number[];
-  qfRound: QfRound;
-  add: boolean;
-}) => {
-  const values = params.projectIds
-    .map(projectId => `(${projectId}, ${params.qfRound.id})`)
-    .join(', ');
-
-  let query;
-
-  if (params.add) {
-    query = `
-      INSERT INTO project_qf_rounds_qf_round ("projectId", "qfRoundId") 
-      VALUES ${values}
-      ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;`;
-    const projects = await Promise.all(params.projectIds.map(findProjectById));
-    const orttoPeople = projects.map(project =>
-      getOrttoPersonAttributes({
-        userId: project?.adminUser.id?.toString(),
-        QFProjectOwner: params.qfRound.name,
-      }),
-    );
-    await getNotificationAdapter().updateOrttoPeople(orttoPeople);
-  } else {
-    const projectIds = params.projectIds.join(',');
-    query = `
-      DELETE FROM project_qf_rounds_qf_round
-      WHERE "qfRoundId" = ${params.qfRound.id}
-        AND "projectId" IN (${projectIds});`;
-  }
-
-  return QfRound.query(query);
 };
 
 export async function getProjectDonationsSqrtRootSum(
