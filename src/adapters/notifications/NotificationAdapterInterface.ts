@@ -31,6 +31,7 @@ export interface OrttoPerson {
     'dtz:cm:lastdonationdate'?: Date;
   };
   tags: string[];
+  unset_tags: string[];
 }
 
 export interface NotificationAdapterInterface {
