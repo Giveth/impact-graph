@@ -1,7 +1,5 @@
 import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
-import { logger } from '../utils/logger';
-import { Field } from 'type-graphql';
 
 const qfRoundEstimatedMatchingParamsCacheDuration = Number(
   process.env.QF_ROUND_ESTIMATED_MATCHING_CACHE_DURATION || 60000,
@@ -29,33 +27,6 @@ export const findQfRoundBySlug = async (
   return QfRound.createQueryBuilder('qf_round')
     .where(`slug = '${slug}'`)
     .getOne();
-};
-
-export const relateManyProjectsToQfRound = async (params: {
-  projectIds: number[];
-  qfRoundId: number;
-  add: boolean;
-}) => {
-  const values = params.projectIds
-    .map(projectId => `(${projectId}, ${params.qfRoundId})`)
-    .join(', ');
-
-  let query;
-
-  if (params.add) {
-    query = `
-      INSERT INTO project_qf_rounds_qf_round ("projectId", "qfRoundId") 
-      VALUES ${values}
-      ON CONFLICT ("projectId", "qfRoundId") DO NOTHING;`;
-  } else {
-    const projectIds = params.projectIds.join(',');
-    query = `
-      DELETE FROM project_qf_rounds_qf_round
-      WHERE "qfRoundId" = ${params.qfRoundId}
-        AND "projectId" IN (${projectIds});`;
-  }
-
-  return QfRound.query(query);
 };
 
 export async function getProjectDonationsSqrtRootSum(
