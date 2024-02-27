@@ -54,6 +54,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {
+    // TODO we should me this to notification-center, it's not good that we call Ortto directly
     try {
       const data = {
         people,
