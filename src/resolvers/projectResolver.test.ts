@@ -470,6 +470,9 @@ function allProjectsTestCases() {
 
     const projects = result.data.data.allProjects.projects;
     assert.equal(projects.length, limit);
+    assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
+    assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
+    assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
   });
 
   it('should return projects with the project title inverted in the searchTerm', async () => {
@@ -480,13 +483,19 @@ function allProjectsTestCases() {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
         limit,
-        searchTerm: SEED_DATA.SECOND_PROJECT.title.split('').reverse().join(''),
+        searchTerm: SEED_DATA.SECOND_PROJECT.title
+          .split(' ')
+          .reverse()
+          .join(' '),
         connectedWalletUserId: USER_DATA.id,
       },
     });
 
     const projects = result.data.data.allProjects.projects;
     assert.equal(projects.length, limit);
+    assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
+    assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
+    assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
   });
 
   it('should return projects, sort by creationDate, DESC', async () => {
