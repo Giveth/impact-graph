@@ -543,7 +543,7 @@ export class ProjectResolver {
           networkIds.push(NETWORK_IDS.OPTIMISTIC);
 
           // Add this to make sure works on Staging
-          networkIds.push(NETWORK_IDS.OPTIMISM_GOERLI);
+          networkIds.push(NETWORK_IDS.OPTIMISM_SEPOLIA);
           return;
         case FilterField.AcceptFundOnETC:
           networkIds.push(NETWORK_IDS.ETC);
