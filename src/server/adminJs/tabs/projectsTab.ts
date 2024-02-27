@@ -388,7 +388,7 @@ export const addProjectsToQfRound = async (
   request: AdminJsRequestInterface,
   add: boolean = true,
 ) => {
-  const { records, currentAdmin } = context;
+  const { records } = context;
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
   try {
     const projectIds = request?.query?.recordIds
