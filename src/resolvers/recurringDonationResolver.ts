@@ -134,6 +134,8 @@ export class RecurringDonationResolver {
     @Arg('currency', () => String) currency: string,
     @Arg('interval', () => String) interval: string,
     @Arg('amount', () => Int) amount: number,
+    @Arg('anonymous', () => Boolean, { defaultValue: false })
+    anonymous: boolean,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
     const donor = await findUserById(userId);
@@ -166,6 +168,7 @@ export class RecurringDonationResolver {
       amount,
       interval,
       currency,
+      anonymous,
     });
   }
 
