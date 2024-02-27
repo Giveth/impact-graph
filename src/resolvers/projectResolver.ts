@@ -21,6 +21,7 @@ import { ProjectImage } from '../entities/projectImage';
 import { ApolloContext } from '../types/ApolloContext';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
+import config from '../config';
 import { Context } from '../context';
 import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
@@ -331,9 +332,10 @@ export class ProjectResolver {
   static addSearchQuery(
     query: SelectQueryBuilder<Project>,
     searchTerm?: string,
-    similarityThreshold = 0.4,
   ) {
     if (!searchTerm) return query;
+    const similarityThreshold =
+      Number(config.get('PROJECT_SEARCH_SIMILARITY_THRESHOLD')) || 0.4;
 
     return query.andWhere(
       new Brackets(qb => {
