@@ -1068,20 +1068,7 @@ const seedTokens: ITokenData[] = [
     decimals: 18,
     networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
   },
-  {
-    name: 'Super Giveth Token',
-    symbol: 'GIVx',
-    address: '0xdFD824F6928B9776c031F7eaD948090e2824cE8B',
-    decimals: 18,
-    networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
-  },
-  {
-    name: 'Super ETH',
-    symbol: 'ETHx',
-    address: '0x0043d7c85C8b96a49A72A92C0B48CdC4720437d7',
-    decimals: 18,
-    networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
-  },
+
   // OPTIMISTIC tokens
   {
     name: 'OPTIMISTIC native token',
