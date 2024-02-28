@@ -32,6 +32,7 @@ function checkProjectVerificationStatusTestCases() {
       verified: true,
       updatedAt: moment().subtract(46, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(46, 'days').endOf('day'),
+      verificationStatus: RevokeSteps.Reminder,
     });
     const nonRevokableProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
