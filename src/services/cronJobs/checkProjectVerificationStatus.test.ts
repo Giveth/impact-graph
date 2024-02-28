@@ -61,6 +61,7 @@ function checkProjectVerificationStatusTestCases() {
       verified: true,
       updatedAt: moment().subtract(91, 'days').endOf('day').toDate(),
       projectUpdateCreationDate: moment().subtract(91, 'days').endOf('day'),
+      verificationStatus: RevokeSteps.Warning,
     });
 
     await checkProjectVerificationStatus();
