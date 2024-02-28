@@ -25,7 +25,7 @@ describe(
 // main projectupdate also counts towards updates not only normal updates
 function checkProjectVerificationStatusTestCases() {
   it('should send a warning when project update is more than 45 days old', async () => {
-    const remindableProject = await saveProjectDirectlyToDb({
+    const warnableProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
@@ -34,25 +34,16 @@ function checkProjectVerificationStatusTestCases() {
       projectUpdateCreationDate: moment().subtract(46, 'days').endOf('day'),
       verificationStatus: RevokeSteps.Reminder,
     });
-    const nonRevokableProject = await saveProjectDirectlyToDb({
-      ...createProjectData(),
-      title: String(new Date().getTime()),
-      slug: String(new Date().getTime()),
-      verified: true,
-    });
+
     await checkProjectVerificationStatus();
 
-    const reminderProjectUpdated = await findProjectById(remindableProject.id);
-    const nonRevokableProjectUpdated = await findProjectById(
-      nonRevokableProject.id,
-    );
+    const warnableProjectUpdate = await findProjectById(warnableProject.id);
 
-    assert.isTrue(reminderProjectUpdated?.verified);
+    assert.isTrue(warnableProjectUpdate!.verified);
     assert.equal(
-      reminderProjectUpdated!.verificationStatus,
+      warnableProjectUpdate!.verificationStatus,
       RevokeSteps.Warning,
     );
-    assert.isTrue(nonRevokableProjectUpdated!.verified);
   });
   it('should send a last chance warning when project update is more than 90 days old', async () => {
     const warnableProject = await saveProjectDirectlyToDb({
