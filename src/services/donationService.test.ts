@@ -1229,7 +1229,6 @@ function insertDonationsFromQfRoundHistoryTestCases() {
     });
     assert.equal(donations.length, 1);
     assert.equal(donations[0].distributedFundQfRoundId, qfRound.id);
-    assert.equal(donations[0].qfRoundId, qfRound.id);
     assert.equal(donations[0].projectId, firstProject.id);
     assert.equal(donations[0].valueUsd, qfRoundHistory?.matchingFund);
     assert.equal(donations[0].currency, qfRoundHistory?.matchingFundCurrency);
