@@ -233,7 +233,7 @@ export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
       'project.projectVerificationForm',
       'projectVerificationForm',
     )
-    .leftJoin('project.adminUser', 'user')
+    .leftJoinAndSelect('project.adminUser', 'user')
     .where('project.isImported = false')
     .andWhere('project.verified = true')
     .andWhere('project.updatedAt < :badgeRevokingDate', {
