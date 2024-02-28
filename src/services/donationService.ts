@@ -560,7 +560,6 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             "powerRound",
             "projectId",
             "distributedFundQfRoundId",
-            "qfRoundId",
             "segmentNotified",
             "userId",
             "createdAt"
@@ -577,7 +576,6 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             q."matchingFundPriceUsd",
             ${powerRound},
             q."projectId",
-            q."qfRoundId",
             q."qfRoundId",
             true,
             ${user.id},

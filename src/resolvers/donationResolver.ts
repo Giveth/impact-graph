@@ -505,9 +505,6 @@ export class DonationResolver {
       query.andWhere('qfRound.id = :qfRoundId', {
         qfRoundId,
       });
-      // sent matching fund should not be shown in the qfRound donations list
-      // https://github.com/Giveth/giveth-dapps-v2/issues/3456
-      query.andWhere('distributedFundQfRoundId IS NULL');
     }
 
     if (searchTerm) {
