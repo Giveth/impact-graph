@@ -1,7 +1,6 @@
 import { schedule } from 'node-cron';
 import { Project, RevokeSteps } from '../../entities/project';
 import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
-import { User } from '../../entities/user';
 import config from '../../config';
 import { logger } from '../../utils/logger';
 import moment = require('moment');
@@ -17,9 +16,6 @@ import {
   refreshProjectPowerView,
 } from '../../repositories/projectPowerViewRepository';
 
-// Every 3 months if no project verification was added, the project
-// Verification status will be revoked
-// Every other month an email will be sent to notify owners to do updates
 const cronJobTime =
   (config.get(
     'CHECK_PROJECT_VERIFICATION_STATUS_CRONJOB_EXPRESSION',
@@ -116,6 +112,7 @@ export const checkProjectVerificationStatus = async () => {
 };
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
+  // We don't revoke verification badge for any projects.
   logger.debug('remindUpdatesOrRevokeVerification() has been called', {
     projectId: project.id,
     projectSlug: project.slug,
@@ -192,6 +189,7 @@ const sendProperNotification = (
         project,
       });
     case RevokeSteps.UpForRevoking:
+      // No email or notification for UpForRevoking
       return;
     // case RevokeSteps.Revoked:
     //   return getNotificationAdapter().projectBadgeRevoked({ project });
