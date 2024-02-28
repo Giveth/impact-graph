@@ -335,7 +335,7 @@ export class ProjectResolver {
   ) {
     if (!searchTerm) return query;
     const similarityThreshold =
-      Number(config.get('PROJECT_SEARCH_SIMILARITY_THRESHOLD')) || 0.4;
+      Number(config.get('PROJECT_SEARCH_SIMILARITY_THRESHOLD')) || 0.6;
 
     return query.andWhere(
       new Brackets(qb => {
