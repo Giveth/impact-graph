@@ -24,14 +24,14 @@ describe(
 // set days to 60 for test env
 // main projectupdate also counts towards updates not only normal updates
 function checkProjectVerificationStatusTestCases() {
-  it('should send a reminder when project update is more than 45 days old', async () => {
+  it('should send a warning when project update is more than 45 days old', async () => {
     const remindableProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
       verified: true,
-      updatedAt: moment().subtract(45, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment().subtract(45, 'days').endOf('day'),
+      updatedAt: moment().subtract(46, 'days').endOf('day').toDate(),
+      projectUpdateCreationDate: moment().subtract(46, 'days').endOf('day'),
     });
     const nonRevokableProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
@@ -53,7 +53,7 @@ function checkProjectVerificationStatusTestCases() {
     );
     assert.isTrue(nonRevokableProjectUpdated!.verified);
   });
-  it('should send a warning when project update is more than 90 days old', async () => {
+  it('should send a last chance warning when project update is more than 90 days old', async () => {
     const warnableProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
