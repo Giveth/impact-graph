@@ -40,6 +40,7 @@ import {
   getQfRoundHistory,
 } from '../repositories/qfRoundHistoryRepository';
 import { User } from '../entities/user';
+import { QfRoundHistory } from '../entities/qfRoundHistory';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -1126,7 +1127,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
 
   it('should return correct value for single project', async () => {
     // First call it to make sure there isn't any thing in DB to make conflicts in our test cases
-    await insertDonationsFromQfRoundHistory();
+    await QfRoundHistory.clear();
 
     const usersDonations: number[][] = [
       [1, 3], // 4
