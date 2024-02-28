@@ -175,7 +175,7 @@ export const saveAnchorContractDirectlyToDb = async (params: {
     projectId: params.projectId,
     creatorId: params.creatorId,
     address: params.contractAddress || generateRandomEtheriumAddress(),
-    networkId: params.networkId || NETWORK_IDS.OPTIMISM_GOERLI,
+    networkId: params.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     txHash: params.txHash || generateRandomEtheriumAddress(),
     ownerId: projectOwnerId,
   }).save();
@@ -1392,17 +1392,11 @@ export const SEED_DATA = {
         decimals: 18,
       },
     ],
-    optimism_goerli: [
+    optimism_sepolia: [
       {
         name: 'OPTIMISM native token',
         symbol: 'ETH',
         address: '0x0000000000000000000000000000000000000000',
-        decimals: 18,
-      },
-      {
-        name: 'OPTIMISM OP token',
-        symbol: 'OP',
-        address: '0x4200000000000000000000000000000000000042',
         decimals: 18,
       },
     ],
@@ -1923,7 +1917,7 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
   return RecurringDonation.create({
     amount: params?.donationData?.amount || 10,
     status: params?.donationData?.status || 'pending',
-    networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_GOERLI,
+    networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     currency: params?.donationData?.currency || 'USDT',
     interval: params?.donationData?.interval || 'monthly',
     txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),

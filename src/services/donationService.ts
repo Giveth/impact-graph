@@ -50,6 +50,7 @@ import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
 import { fetchMpEthPrice } from './mpEthPriceService';
 import { getTransactionTimeFromBlockchain } from './chains/evm/transactionService';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
@@ -412,7 +413,7 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
     const donationStats = await getUserDonationStats(donation.userId);
     const donor = await findUserById(donation.userId);
 
-    await getNotificationAdapter().updateOrttoUser({
+    const orttoPerson = getOrttoPersonAttributes({
       userId: donation.userId.toString(),
       firstName: donor?.firstName,
       lastName: donor?.lastName,
@@ -421,9 +422,10 @@ export const syncDonationStatusWithBlockchainNetwork = async (params: {
       donationsCount: donationStats?.donationsCount,
       lastDonationDate: donationStats?.lastDonationDate,
       GIVbacksRound: donation.powerRound,
-      QFRound: donation.qfRound?.name,
+      QFDonor: donation.qfRound?.name,
       donationChain: NETWORKS_IDS_TO_NAME[donation.transactionNetworkId],
     });
+    await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
 
     // send chainvine the referral as last step to not interrupt previous
     if (donation.referrerWallet && donation.isReferrerGivbackEligible) {

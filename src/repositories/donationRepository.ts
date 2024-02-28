@@ -131,7 +131,7 @@ export const findDonationById = async (
       donationId,
     })
     .leftJoinAndSelect('donation.project', 'project')
-    .leftJoinAndSelect('donation."qfRound"', '"qfRound"')
+    .leftJoinAndSelect('donation.qfRound', 'qfRound')
     .getOne();
 };
 

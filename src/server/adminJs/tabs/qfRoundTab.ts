@@ -127,7 +127,7 @@ export const qfRoundTab = {
             value: NETWORK_IDS.MORDOR_ETC_TESTNET,
             label: 'MORDOR ETC TESTNET',
           },
-          { value: NETWORK_IDS.OPTIMISM_GOERLI, label: 'OPTIMISM GOERLI' },
+          { value: NETWORK_IDS.OPTIMISM_SEPOLIA, label: 'OPTIMISM SEPOLIA' },
           { value: NETWORK_IDS.CELO, label: 'CELO' },
           {
             value: NETWORK_IDS.CELO_ALFAJORES,
