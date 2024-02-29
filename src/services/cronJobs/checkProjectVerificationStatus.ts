@@ -1,7 +1,6 @@
 import { schedule } from 'node-cron';
 import { Project, RevokeSteps } from '../../entities/project';
 import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
-import { User } from '../../entities/user';
 import config from '../../config';
 import { logger } from '../../utils/logger';
 import moment = require('moment');
@@ -17,9 +16,6 @@ import {
   refreshProjectPowerView,
 } from '../../repositories/projectPowerViewRepository';
 
-// Every 3 months if no project verification was added, the project
-// Verification status will be revoked
-// Every other month an email will be sent to notify owners to do updates
 const cronJobTime =
   (config.get(
     'CHECK_PROJECT_VERIFICATION_STATUS_CRONJOB_EXPRESSION',
@@ -30,7 +26,7 @@ const projectUpdatesReminderDays = Number(
 );
 
 const projectUpdatesWarningDays = Number(
-  config.get('PROJECT_UPDATES_VERIFIED_WARNING_DAYS') || 60,
+  config.get('PROJECT_UPDATES_VERIFIED_WARNING_DAYS') || 45,
 );
 
 const projectUpdatesLastWarningDays = Number(
@@ -77,13 +73,20 @@ export const runCheckProjectVerificationStatus = () => {
 };
 
 export const checkProjectVerificationStatus = async () => {
-  // all projects with last update created at 30+ days
+  // all projects with last update created at +45 days
   const projects = await projectsWithoutUpdateAfterTimeFrame(
-    maxDaysForSendingUpdateReminder,
+    maxDaysForSendingUpdateWarning,
   );
   logger.debug('checkProjectVerificationStatus()', {
-    maxDaysForSendingUpdateReminder,
-    foundProjectsCount: projects?.length,
+    maxDaysForSendingUpdateWarning,
+    foundProjectsCount: projects.length,
+    projects: projects.map(p => {
+      return {
+        slug: p.slug,
+        updatedAt: p.updatedAt,
+        verificationStatus: p.verificationStatus,
+      };
+    }),
   });
 
   for (const project of projects) {
@@ -109,63 +112,43 @@ export const checkProjectVerificationStatus = async () => {
 };
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
+  // We don't revoke verification badge for any projects.
   logger.debug('remindUpdatesOrRevokeVerification() has been called', {
     projectId: project.id,
     projectSlug: project.slug,
     projectVerificationStatus: project.verificationStatus,
   });
-  // Projects up for revoking when 30 days are done after feature release
+  const { verificationStatus, updatedAt } = project;
+  let newVerificationStatus = verificationStatus?.slice();
   if (
-    new Date() >= new Date(projectUpdatesFirstRevokeBatchDate) &&
-    project.verificationStatus === RevokeSteps.UpForRevoking
+    (!verificationStatus || verificationStatus === RevokeSteps.Reminder) &&
+    updatedAt <= maxDaysForSendingUpdateWarning
   ) {
-    project.verificationStatus = RevokeSteps.Revoked;
-    project.verified = false;
+    newVerificationStatus = RevokeSteps.Warning;
   } else if (
-    // Projects that already expired verification are given a last chance
-    // for this feature
-    project.updatedAt <= maxDaysForSendingUpdateLastWarning &&
-    project.verificationStatus === null
+    updatedAt <= maxDaysForSendingUpdateLastWarning &&
+    verificationStatus === RevokeSteps.Warning
   ) {
-    project.verificationStatus = RevokeSteps.UpForRevoking;
+    newVerificationStatus = RevokeSteps.LastChance;
   } else if (
-    // Projects that had the last chance and failed to add an update are revoked
-    project.updatedAt <= maxDaysForRevokingBadge &&
-    project.verificationStatus === RevokeSteps.LastChance
+    updatedAt <= maxDaysForRevokingBadge &&
+    verificationStatus === RevokeSteps.LastChance
   ) {
-    project.verificationStatus = RevokeSteps.Revoked;
-    project.verified = false;
-  } else if (
-    // projects that were warned are sent a last chance warning
-    project.updatedAt <= maxDaysForSendingUpdateLastWarning &&
-    project.updatedAt > maxDaysForRevokingBadge &&
-    project.verificationStatus === RevokeSteps.Warning
-  ) {
-    project.verificationStatus = RevokeSteps.LastChance;
-  } else if (
-    // After reminder at 60/75 days
-    project.updatedAt <= maxDaysForSendingUpdateWarning &&
-    project.updatedAt > maxDaysForSendingUpdateLastWarning &&
-    project.verificationStatus !== RevokeSteps.Warning
-  ) {
-    project.verificationStatus = RevokeSteps.Warning;
-  } else if (
-    // First email for reminding to add an update
-    project.updatedAt <= maxDaysForSendingUpdateReminder &&
-    project.updatedAt > maxDaysForSendingUpdateWarning &&
-    project.verificationStatus !== RevokeSteps.Reminder
-  ) {
-    project.verificationStatus = RevokeSteps.Reminder;
+    newVerificationStatus = RevokeSteps.UpForRevoking;
   }
 
-  await project.save();
-  logger.debug('remindUpdatesOrRevokeVerification() save project', {
-    projectId: project.id,
-    slug: project.slug,
-    verificationStatus: project.verificationStatus,
-  });
+  if (project.verificationStatus !== newVerificationStatus) {
+    project.verificationStatus = newVerificationStatus?.slice();
+    await project.save();
+    await sendProperNotification(project, project.verificationStatus as string);
+    logger.debug('remindUpdatesOrRevokeVerification() save project', {
+      projectId: project.id,
+      slug: project.slug,
+      verificationStatus: project.verificationStatus,
+    });
+  }
 
-  // draft the verification form to allow reapply
+  // draft the verification form to allow to reapply
   if (
     project.projectVerificationForm &&
     project.verificationStatus === RevokeSteps.Revoked
@@ -184,9 +167,6 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
     });
   }
 
-  const user = await User.findOne({ where: { id: Number(project.admin) } });
-
-  await sendProperNotification(project, project.verificationStatus as string);
   await sleep(300);
 };
 
@@ -200,18 +180,19 @@ const sendProperNotification = (
     verificationStatus: project.verificationStatus,
   });
   switch (projectVerificationStatus) {
-    case RevokeSteps.Reminder:
-      return getNotificationAdapter().projectBadgeRevokeReminder({ project });
+    // case RevokeSteps.Reminder:
+    //   return getNotificationAdapter().projectBadgeRevokeReminder({ project });
     case RevokeSteps.Warning:
       return getNotificationAdapter().projectBadgeRevokeWarning({ project });
     case RevokeSteps.LastChance:
       return getNotificationAdapter().projectBadgeRevokeLastWarning({
         project,
       });
-    case RevokeSteps.Revoked:
-      return getNotificationAdapter().projectBadgeRevoked({ project });
     case RevokeSteps.UpForRevoking:
-      return getNotificationAdapter().projectBadgeUpForRevoking({ project });
+      // No email or notification for UpForRevoking
+      return;
+    // case RevokeSteps.Revoked:
+    //   return getNotificationAdapter().projectBadgeRevoked({ project });
 
     default:
       throw new Error(
