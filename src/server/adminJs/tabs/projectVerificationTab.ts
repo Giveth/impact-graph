@@ -242,10 +242,6 @@ export const verifyVerificationForms = async (
     });
     const projects = await verifyMultipleProjects({ verified, projectsIds });
 
-    const segmentEvent = verified
-      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
-      : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
-    // TODO send appropriate notification
     const projectIds = projects.raw.map(project => {
       return project.id;
     });
@@ -255,6 +251,7 @@ export const verifyVerificationForms = async (
       'projectVerificationForm',
     )
       .innerJoinAndSelect('projectVerificationForm.project', 'project')
+      .leftJoinAndSelect('project.adminUser', 'adminUser')
       .where('"projectId" IN (:...ids)')
       .setParameter('ids', projectIds)
       .getMany();
@@ -264,6 +261,16 @@ export const verifyVerificationForms = async (
         verificationForm,
         verificationForm.project,
       );
+      const { project } = verificationForm;
+      if (verified) {
+        await getNotificationAdapter().projectVerified({
+          project,
+        });
+      } else {
+        await getNotificationAdapter().verificationFormRejected({
+          project,
+        });
+      }
     }
     responseMessage = `Project(s) successfully ${
       verified ? 'verified' : 'rejected'

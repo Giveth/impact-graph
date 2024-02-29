@@ -92,6 +92,57 @@ function createRecurringDonationTestCases() {
       result.data.data.createRecurringDonation.networkId,
       NETWORK_IDS.OPTIMISTIC,
     );
+    assert.equal(result.data.data.createRecurringDonation.anonymous, false);
+  });
+  it('should create recurringDonation successfully with anonymous true', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const contractCreator = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: contractCreator,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          txHash: generateRandomEvmTxHash(),
+          amount: 100,
+          currency: 'GIV',
+          interval: 'monthly',
+          anonymous: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isNotNull(result.data.data.createRecurringDonation);
+    assert.equal(
+      result.data.data.createRecurringDonation.networkId,
+      NETWORK_IDS.OPTIMISTIC,
+    );
+    assert.equal(result.data.data.createRecurringDonation.anonymous, true);
   });
 
   it('should return unAuthorized error when not sending JWT', async () => {

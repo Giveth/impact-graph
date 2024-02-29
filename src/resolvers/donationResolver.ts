@@ -810,7 +810,7 @@ export class DonationResolver {
         case NETWORK_IDS.GOERLI:
           priceChainId = NETWORK_IDS.MAIN_NET;
           break;
-        case NETWORK_IDS.OPTIMISM_GOERLI:
+        case NETWORK_IDS.OPTIMISM_SEPOLIA:
           priceChainId = NETWORK_IDS.OPTIMISTIC;
           break;
         case NETWORK_IDS.MORDOR_ETC_TESTNET:

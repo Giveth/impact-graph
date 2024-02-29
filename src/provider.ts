@@ -12,7 +12,7 @@ export const NETWORK_IDS = {
   XDAI: 100,
   POLYGON: 137,
   OPTIMISTIC: 10,
-  OPTIMISM_GOERLI: 420,
+  OPTIMISM_SEPOLIA: 11155420,
   BSC: 56,
   CELO: 42220,
   CELO_ALFAJORES: 44787,
@@ -62,7 +62,7 @@ export const NETWORKS_IDS_TO_NAME = {
   42220: 'CELO',
   44787: 'CELO_ALFAJORES',
   10: 'OPTIMISTIC',
-  420: 'OPTIMISM_GOERLI',
+  11155420: 'OPTIMISM_SEPOLIA',
   61: 'ETC',
   63: 'MORDOR_ETC_TESTNET',
   42161: 'ARBITRUM_MAINNET',
@@ -77,7 +77,7 @@ const NETWORK_NAMES = {
   GOERLI: 'goerli',
   POLYGON: 'polygon-mainnet',
   OPTIMISTIC: 'optimistic-mainnet',
-  OPTIMISM_GOERLI: 'optimism-goerli-testnet',
+  OPTIMISM_SEPOLIA: 'optimism-sepolia-testnet',
   CELO: 'Celo',
   CELO_ALFAJORES: 'Celo Alfajores',
   ETC: 'Ethereum Classic',
@@ -94,7 +94,7 @@ const NETWORK_NATIVE_TOKENS = {
   GOERLI: 'ETH',
   POLYGON: 'MATIC',
   OPTIMISTIC: 'ETH',
-  OPTIMISM_GOERLI: 'ETH',
+  OPTIMISM_SEPOLIA: 'ETH',
   CELO: 'CELO',
   CELO_ALFAJORES: 'CELO',
   ETC: 'ETC',
@@ -140,9 +140,9 @@ const networkNativeTokensList = [
     nativeToken: NETWORK_NATIVE_TOKENS.OPTIMISTIC,
   },
   {
-    networkName: NETWORK_NAMES.OPTIMISM_GOERLI,
-    networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-    nativeToken: NETWORK_NATIVE_TOKENS.OPTIMISM_GOERLI,
+    networkName: NETWORK_NAMES.OPTIMISM_SEPOLIA,
+    networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+    nativeToken: NETWORK_NATIVE_TOKENS.OPTIMISM_SEPOLIA,
   },
   {
     networkName: NETWORK_NAMES.CELO,
@@ -223,8 +223,8 @@ export function getProvider(networkId: number) {
         `https://celo-alfajores.infura.io/v3/${INFURA_ID}`;
       break;
 
-    case NETWORK_IDS.OPTIMISM_GOERLI:
-      url = `https://optimism-goerli.infura.io/v3/${INFURA_ID}`;
+    case NETWORK_IDS.OPTIMISM_SEPOLIA:
+      url = `https://optimism-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
     case NETWORK_IDS.ARBITRUM_MAINNET:
@@ -300,8 +300,8 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
       apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
       break;
-    case NETWORK_IDS.OPTIMISM_GOERLI:
-      apiUrl = config.get('OPTIMISTIC_SCAN_API_URL');
+    case NETWORK_IDS.OPTIMISM_SEPOLIA:
+      apiUrl = config.get('OPTIMISTIC_SEPOLIA_SCAN_API_URL');
       apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
       break;
     case NETWORK_IDS.ETC:

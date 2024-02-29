@@ -1,6 +1,7 @@
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
+  OrttoPerson,
   ProjectsHaveNewRankingInputParam,
 } from './NotificationAdapterInterface';
 import { Donation } from '../../entities/donation';
@@ -9,18 +10,8 @@ import { User } from '../../entities/user';
 import { logger } from '../../utils/logger';
 
 export class MockNotificationAdapter implements NotificationAdapterInterface {
-  async updateOrttoUser(params: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    userId?: string;
-  }): Promise<void> {
-    logger.debug('MockNotificationAdapter updateOrttoUser', {
-      firstName: params.firstName,
-      lastName: params.lastName,
-      email: params.email,
-      userId: params.userId,
-    });
+  async updateOrttoPeople(params: OrttoPerson[]): Promise<void> {
+    logger.debug('MockNotificationAdapter updateOrttoPeople', params);
     return Promise.resolve(undefined);
   }
 
