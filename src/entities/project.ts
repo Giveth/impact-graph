@@ -54,6 +54,7 @@ import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
+import { ProjectSocialMedia } from './projectSocialMedia';
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
@@ -280,6 +281,16 @@ export class Project extends BaseEntity {
     eager: true,
   })
   addresses?: ProjectAddress[];
+
+  @Field(type => [ProjectSocialMedia], { nullable: true })
+  @OneToMany(
+    type => ProjectSocialMedia,
+    projectAddress => projectAddress.project,
+    {
+      eager: true,
+    },
+  )
+  socialMedia?: ProjectSocialMedia[];
 
   @Field(type => [AnchorContractAddress], { nullable: true })
   @OneToMany(
