@@ -12,7 +12,8 @@ import config from '../config';
 import SentryLogger from '../sentryLogger';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
-import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+
+import { getOrttoPersonAttributes } from '../utils/utils';
 // tslint:disable-next-line:no-var-requires
 const sigUtil = require('eth-sig-util');
 

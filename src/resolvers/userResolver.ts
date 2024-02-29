@@ -29,7 +29,8 @@ import {
 import { logger } from '../utils/logger';
 import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
 import { addressHasDonated } from '../repositories/donationRepository';
-import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+
+import { getOrttoPersonAttributes } from '../utils/utils';
 
 @ObjectType()
 class UserRelatedAddressResponse {

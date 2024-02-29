@@ -13,7 +13,10 @@ import {
   translationErrorMessagesKeys,
 } from '../utils/errorMessages';
 import { findProjectById } from '../repositories/projectRepository';
-import { convertExponentialNumber } from '../utils/utils';
+import {
+  convertExponentialNumber,
+  getOrttoPersonAttributes,
+} from '../utils/utils';
 import { fetchGivHistoricPrice, fetchGivPrice } from './givPriceService';
 import {
   findDonationById,
@@ -49,7 +52,6 @@ import { ChainType } from '../types/network';
 import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
 import { fetchMpEthPrice } from './mpEthPriceService';
-import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
