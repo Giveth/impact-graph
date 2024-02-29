@@ -24,7 +24,6 @@ import {
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
 import { findTokenByTokenAddress } from '../../repositories/tokenRepository';
-
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -897,6 +896,78 @@ const getEmailDataProjectAttributes = async (params: { project: Project }) => {
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
     OwnerId: project?.adminUser?.id,
     slug: project.slug,
+  };
+};
+
+export const getOrttoPersonAttributes = (params: {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  userId?: string;
+  totalDonated?: number;
+  donationsCount?: string;
+  lastDonationDate?: Date | null;
+  GIVbacksRound?: number;
+  QFDonor?: string;
+  QFProjectOwnerAdded?: string;
+  QFProjectOwnerRemoved?: string;
+  donationChain?: string;
+}): OrttoPerson => {
+  const {
+    firstName,
+    lastName,
+    email,
+    userId,
+    totalDonated,
+    donationsCount,
+    lastDonationDate,
+    GIVbacksRound,
+    QFDonor,
+    QFProjectOwnerAdded,
+    QFProjectOwnerRemoved,
+    donationChain,
+  } = params;
+  const fields = {
+    'str::first': firstName || '',
+    'str::last': lastName || '',
+    'str::email': email || '',
+  };
+  if (process.env.ENVIRONMENT === 'production') {
+    // On production, we should update Ortto user profile based on user-id to avoid touching real users data
+    fields['str:cm:user-id'] = userId;
+  }
+  if (donationsCount) {
+    fields['int:cm:number-of-donations'] = Number(donationsCount);
+  }
+  if (totalDonated) {
+    // Ortto automatically adds three decimal points to integers
+    fields['int:cm:total-donations-value'] =
+      Number(totalDonated?.toFixed(3)) * 1000;
+  }
+  if (lastDonationDate) {
+    fields['dtz:cm:lastdonationdate'] = lastDonationDate;
+  }
+  const tags: string[] = [];
+  const unsetTags: string[] = [];
+  if (GIVbacksRound) {
+    tags.push(`GIVbacks ${GIVbacksRound}`);
+  }
+  if (QFDonor) {
+    tags.push(`QF Donor ${QFDonor}`);
+  }
+  if (QFProjectOwnerAdded) {
+    tags.push(`QF Project Owner ${QFProjectOwnerAdded}`);
+  }
+  if (donationChain) {
+    tags.push(`Donated on ${donationChain}`);
+  }
+  if (QFProjectOwnerRemoved) {
+    unsetTags.push(`QF Project Owner ${QFProjectOwnerRemoved}`);
+  }
+  return {
+    fields,
+    tags,
+    unset_tags: unsetTags,
   };
 };
 

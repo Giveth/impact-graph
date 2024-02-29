@@ -1,9 +1,9 @@
 import { QfRound } from '../entities/qfRound';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { AppDataSource } from '../orm';
 import { Project } from '../entities/project';
 import { OrttoPerson } from '../adapters/notifications/NotificationAdapterInterface';
-import { getOrttoPersonAttributes } from '../utils/utils';
 
 // The repository functions that uses Project entity should be here
 export const relateManyProjectsToQfRound = async (params: {

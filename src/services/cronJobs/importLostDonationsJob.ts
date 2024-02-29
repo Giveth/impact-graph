@@ -25,8 +25,7 @@ import { CoingeckoPriceAdapter } from '../../adapters/price/CoingeckoPriceAdapte
 import { QfRound } from '../../entities/qfRound';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
-
-import { getOrttoPersonAttributes } from '../../utils/utils';
+import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
 
 // tslint:disable-next-line:no-var-requires
 const ethers = require('ethers');
