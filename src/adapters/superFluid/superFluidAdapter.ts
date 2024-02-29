@@ -16,6 +16,7 @@ const accountQuery = `
         token {
           id
           name
+          symbol
         }
         maybeCriticalAtTimestamp 
       }

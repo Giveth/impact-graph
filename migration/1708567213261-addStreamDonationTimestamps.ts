@@ -1,40 +1,49 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  TableColumn,
+  TableForeignKey,
+} from 'typeorm';
 
 export class addStreamDonationTimestamps1708567213261
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-      ALTER TABLE donation 
-      ADD COLUMN IF NOT EXISTS "recurringDonationId" integer,
-      ADD COLUMN IF NOT EXISTS "virtualPeriodStart" INTEGER,
-      ADD COLUMN IF NOT EXISTS "virtualPeriodEnd" INTEGER,
-      ADD CONSTRAINT IF NOT EXISTS fk_recurring_donation
-      FOREIGN KEY ("recurringDonationId") 
-      REFERENCES recurring_donations(id)
-      ON DELETE SET NULL;
-    `);
+    await queryRunner.addColumns('donation', [
+      new TableColumn({
+        name: 'virtualPeriodStart',
+        type: 'integer',
+        isNullable: true,
+      }),
+      new TableColumn({
+        name: 'virtualPeriodEnd',
+        type: 'integer',
+        isNullable: true,
+      }),
+    ]);
 
-    await queryRunner.query(`
-      ALTER TABLE recurring_donation
-      ADD COLUMN IF NOT EXISTS "amountStreamed" TYPE real DEFAULT 0
-      ADD COLUMN IF NOT EXISTS "totalUsdStreamed" TYPE real DEFAULT 0
-    `);
+    // Add columns to "recurring_donation" table
+    await queryRunner.addColumns('recurring_donation', [
+      new TableColumn({
+        name: 'amountStreamed',
+        type: 'real',
+        default: 0,
+      }),
+      new TableColumn({
+        name: 'totalUsdStreamed',
+        type: 'real',
+        default: 0,
+      }),
+    ]);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-      ALTER TABLE donation 
-      DROP CONSTRAINT IF EXISTS fk_recurring_donation,
-      DROP COLUMN IF EXISTS "recurringDonationId",
-      DROP COLUMN IF EXISTS "virtualPeriodStart",
-      DROP COLUMN IF EXISTS "virtualPeriodEnd";
-    `);
+    // Remove columns from "donation"
+    await queryRunner.dropColumn('donation', 'virtualPeriodEnd');
+    await queryRunner.dropColumn('donation', 'virtualPeriodStart');
 
-    await queryRunner.query(`
-      ALTER TABLE recurring_donation
-      DROP COLUMN IF EXISTS "amountStreamed"
-      DROP COLUMN IF EXISTS "totalUsdStreamed"
-    `);
+    // Remove columns from "recurring_donation"
+    await queryRunner.dropColumn('recurring_donation', 'totalUsdStreamed');
+    await queryRunner.dropColumn('recurring_donation', 'amountStreamed');
   }
 }

@@ -8,12 +8,7 @@ import {
   RecurringDonation,
 } from '../entities/recurringDonation';
 import { Token } from '../entities/token';
-import {
-  NETWORK_IDS,
-  addressToSuperTokens,
-  superTokensToAddress,
-  superTokensToToken,
-} from '../provider';
+import { NETWORK_IDS, superTokensToToken } from '../provider';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
@@ -226,13 +221,13 @@ export const validateDonorSuperTokenBalance = async (
   );
   for (const tokenBalance of accountBalances.accountTokenSnapshots) {
     if (
-      Object.keys(addressToSuperTokens).includes(tokenBalance.token.id) &&
+      Object.keys(superTokensToToken).includes(tokenBalance.token.symbol) &&
       tokenBalance.maybeCriticalAtTimestamp
     ) {
       // Notify user their super token is running out
       await getNotificationAdapter().userSuperTokensCritical({
         userId: user!.id,
-        superTokenSymbol: superTokensToAddress[tokenBalance.token.symbol],
+        superTokenSymbol: tokenBalance.token.symbol,
       });
     }
   }

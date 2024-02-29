@@ -274,12 +274,12 @@ export class Donation extends BaseEntity {
   @Field({ nullable: true })
   @Column('integer', { nullable: true })
   // To match the superFluid Virtual Period
-  virtualPeriodStart: number;
+  virtualPeriodStart?: number;
 
   @Field({ nullable: true })
   @Column('integer', { nullable: true })
   // To match the superFluid Virtual Period
-  virtualPeriodEnd: number;
+  virtualPeriodEnd?: number;
 
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')

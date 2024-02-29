@@ -42,12 +42,12 @@ export class RecurringDonation extends BaseEntity {
   amount: number;
 
   @Field()
-  @Column({ nullable: false, default: 0 })
-  amountStreamed: number;
+  @Column({ nullable: true, default: 0 })
+  amountStreamed?: number;
 
   @Field()
-  @Column({ nullable: false, default: 0 })
-  totalUsdStreamed: number;
+  @Column({ nullable: true, default: 0 })
+  totalUsdStreamed?: number;
 
   // daily, weekly, monthly, yearly (ONLY MONTHLY)
   @Field()

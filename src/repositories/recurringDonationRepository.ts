@@ -76,7 +76,7 @@ export const findRecurringDonationById = async (
       `recurringDonation.anchorContractAddress`,
       'anchorContractAddress',
     )
-    .innerJoinAndSelect(`recurringDonation.donations`, 'donations')
+    .leftJoinAndSelect(`recurringDonation.donations`, 'donations')
     .leftJoinAndSelect('recurringDonation.project', 'project')
     .where(`recurringDonation.id = :id`, { id })
     .andWhere(`recurringDonation.finished = false`)
