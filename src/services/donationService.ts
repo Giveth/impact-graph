@@ -70,10 +70,10 @@ export const updateDonationPricesAndValues = async (
     if (token?.isStableCoin) {
       donation.priceUsd = 1;
       donation.valueUsd = Number(amount);
-    } else if (currency === 'mpETH') {
-      const mpEthPriceInUsd = await fetchMpEthPrice();
-      donation.priceUsd = toFixNumber(mpEthPriceInUsd, 4);
-      donation.valueUsd = toFixNumber(donation.amount * mpEthPriceInUsd, 4);
+      // } else if (currency === 'mpETH') {
+      //   const mpEthPriceInUsd = await fetchMpEthPrice();
+      //   donation.priceUsd = toFixNumber(mpEthPriceInUsd, 4);
+      //   donation.valueUsd = toFixNumber(donation.amount * mpEthPriceInUsd, 4);
     } else if (currency === 'GIV') {
       const { givPriceInUsd } = await fetchGivPrice();
       donation.priceUsd = toFixNumber(givPriceInUsd, 4);
