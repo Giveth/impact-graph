@@ -995,12 +995,16 @@ function fillOldStableCoinDonationsPriceTestCases() {
   });
 
   it('should fill price for mpETH donation on the MAINNET network', async () => {
-    const token = 'mpETH';
+    const currency = 'mpETH';
+    const tokenAddress = '0x48afbbd342f64ef8a9ab1c143719b63c2ad81710';
     const amount = 2;
+    const transactionNetworkId = NETWORK_IDS.MAIN_NET;
     let donation = await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
-        currency: token,
+        tokenAddress,
+        transactionNetworkId,
+        currency,
         valueUsd: undefined,
         valueEth: undefined,
         amount,
@@ -1013,11 +1017,16 @@ function fillOldStableCoinDonationsPriceTestCases() {
       where: { id: SEED_DATA.FIRST_PROJECT.id },
     })) as Project;
 
+    const token = await Token.findOneBy({
+      networkId: transactionNetworkId,
+      address: tokenAddress,
+    });
+
     await updateDonationPricesAndValues(
       donation,
       project,
-      null,
       token,
+      currency,
       CHAIN_ID.MAINNET,
       amount,
     );
