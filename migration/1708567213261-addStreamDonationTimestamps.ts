@@ -14,6 +14,12 @@ export class addStreamDonationTimestamps1708567213261
       REFERENCES recurring_donations(id)
       ON DELETE SET NULL;
     `);
+
+    await queryRunner.query(`
+      ALTER TABLE recurring_donation
+      ADD COLUMN IF NOT EXISTS "amountStreamed" TYPE real DEFAULT 0
+      ADD COLUMN IF NOT EXISTS "totalUsdStreamed" TYPE real DEFAULT 0
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -23,6 +29,12 @@ export class addStreamDonationTimestamps1708567213261
       DROP COLUMN IF EXISTS "recurringDonationId",
       DROP COLUMN IF EXISTS "virtualPeriodStart",
       DROP COLUMN IF EXISTS "virtualPeriodEnd";
+    `);
+
+    await queryRunner.query(`
+      ALTER TABLE recurring_donation
+      DROP COLUMN IF EXISTS "amountStreamed"
+      DROP COLUMN IF EXISTS "totalUsdStreamed"
     `);
   }
 }
