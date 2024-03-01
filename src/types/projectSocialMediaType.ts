@@ -1,3 +1,5 @@
+import { registerEnumType } from 'type-graphql';
+
 export enum ProjectSocialMediaType {
   FACEBOOK = 'FACEBOOK',
   X = 'X',
@@ -10,3 +12,8 @@ export enum ProjectSocialMediaType {
   LENS = 'LENS',
   WEBSITE = 'WEBSITE',
 }
+
+registerEnumType(ProjectSocialMediaType, {
+  name: 'ProjectSocialMediaType',
+  description: 'The social media platform types',
+});

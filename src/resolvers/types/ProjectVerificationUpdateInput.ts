@@ -1,7 +1,6 @@
 import { Field, InputType } from 'type-graphql';
-import { ProjectContacts } from '../../entities/projectVerificationForm';
-import { Column } from 'typeorm';
 import { ChainType } from '../../types/network';
+import { ProjectSocialMediaType } from '../../types/projectSocialMediaType';
 
 @InputType()
 class ProjectPersonalInfoInputType {
@@ -49,6 +48,15 @@ export class RelatedAddressInputType {
   networkId: number;
   @Field(type => ChainType, { defaultValue: ChainType.EVM })
   chainType?: ChainType;
+}
+
+@InputType()
+export class ProjectSocialMediaInput {
+  @Field(type => ProjectSocialMediaType)
+  type: ProjectSocialMediaType;
+
+  @Field()
+  link: string;
 }
 
 @InputType()
