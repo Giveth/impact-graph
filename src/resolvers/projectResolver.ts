@@ -107,10 +107,12 @@ import { ProjectBySlugResponse } from './types/projectResolver';
 import { ChainType } from '../types/network';
 import { findActiveQfRound } from '../repositories/qfRoundRepository';
 import { getAllProjectsRelatedToActiveCampaigns } from '../services/campaignService';
+import { getAppropriateNetworkId } from '../services/chains';
 import {
-  getAppropriateNetworkId,
-  getDefaultSolanaChainId,
-} from '../services/chains';
+  addBulkProjectSocialMedia,
+  removeProjectSocialMedia,
+} from '../repositories/projectSocialMediaRepository';
+import { isEqual } from 'lodash';
 
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
@@ -841,6 +843,7 @@ export class ProjectResolver {
       )
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoin('project.adminUser', 'user')
@@ -891,6 +894,7 @@ export class ProjectResolver {
       .leftJoinAndSelect('categories.mainCategory', 'mainCategory')
       .leftJoinAndSelect('project.organization', 'organization')
       .leftJoinAndSelect('project.addresses', 'addresses')
+      .leftJoinAndSelect('project.socialMedia', 'socialMedia')
       .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoinAndSelect('project.projectPower', 'projectPower')
       .leftJoinAndSelect('project.projectInstantPower', 'projectInstantPower')
@@ -1043,6 +1047,25 @@ export class ProjectResolver {
 
     await project.save();
     await project.reload();
+
+    if (
+      !isEqual(newProjectData.socialMedia?.sort(), project.socialMedia?.sort())
+    ) {
+      await removeProjectSocialMedia(projectId);
+      if (newProjectData.socialMedia && newProjectData.socialMedia.length > 0) {
+        const socialMediaEntities = newProjectData.socialMedia.map(
+          socialMediaInput => {
+            return {
+              type: socialMediaInput.type,
+              link: socialMediaInput.link,
+              projectId,
+              userId: user.userId,
+            };
+          },
+        );
+        await addBulkProjectSocialMedia(socialMediaEntities);
+      }
+    }
 
     const adminUser = (await findUserById(Number(project.admin))) as User;
     if (newProjectData.addresses) {
@@ -1314,6 +1337,21 @@ export class ProjectResolver {
     });
 
     await project.save();
+
+    if (projectInput.socialMedia && projectInput.socialMedia.length > 0) {
+      const socialMediaEntities = projectInput.socialMedia.map(
+        socialMediaInput => {
+          return {
+            type: socialMediaInput.type,
+            link: socialMediaInput.link,
+            projectId: project.id,
+            userId: ctx.req.user.userId,
+          };
+        },
+      );
+      await addBulkProjectSocialMedia(socialMediaEntities);
+    }
+
     // const adminUser = (await findUserById(Number(newProject.admin))) as User;
     // newProject.adminUser = adminUser;
     await addBulkNewProjectAddress(
