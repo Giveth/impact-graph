@@ -283,13 +283,9 @@ export class Project extends BaseEntity {
   addresses?: ProjectAddress[];
 
   @Field(type => [ProjectSocialMedia], { nullable: true })
-  @OneToMany(
-    type => ProjectSocialMedia,
-    projectAddress => projectAddress.project,
-    {
-      eager: true,
-    },
-  )
+  @OneToMany(type => ProjectSocialMedia, socialMedia => socialMedia.project, {
+    eager: true,
+  })
   socialMedia?: ProjectSocialMedia[];
 
   @Field(type => [AnchorContractAddress], { nullable: true })
