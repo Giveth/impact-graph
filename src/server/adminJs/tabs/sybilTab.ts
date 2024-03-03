@@ -57,7 +57,7 @@ export const createSybil = async (
             ? `(${walletAddressUserId}, ${Number(obj.qfRoundId)})`
             : null;
         })
-        // .filter(value => value !== null) // Filter out any rows where userId was not found
+        .filter(value => value !== null) // Filter out any rows where userId was not found
         .join(',');
 
       if (!values) {
@@ -68,7 +68,7 @@ export const createSybil = async (
       const upsertQuery = `
           INSERT INTO sybil ( "userId", "qfRoundId")
           VALUES ${values}
-          ON CONFLICT ("userId", "qfRoundId") DO UPDATE
+          ON CONFLICT ("userId", "qfRoundId") DO NOTHING
      `;
       // Execute the query
       await Sybil.query(upsertQuery);
