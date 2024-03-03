@@ -1,18 +1,22 @@
 import {
+  createProjectData,
   generateRandomEtheriumAddress,
+  saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../../../test/testUtils';
 import { QfRound } from '../../../entities/qfRound';
 import moment from 'moment';
 import { createSybil } from './sybilTab';
 import { assert } from 'chai';
+import { createProjectFraud } from './projectFraudTab';
 import { errorMessages } from '../../../utils/errorMessages';
 
 describe('createSybil test cases', createSybilTestCases);
 
 function createSybilTestCases() {
-  it('Should create a new sybil with single user data', async () => {
+  it('Should create a new projectFraud with single project', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData(), user1);
     const qfRound = await QfRound.create({
       isActive: false,
       name: 'test',
@@ -23,24 +27,29 @@ function createSybilTestCases() {
       endDate: moment().add(10, 'days').toDate(),
     }).save();
 
-    await createSybil(
+    await createProjectFraud(
       {
         payload: {
-          userId: user1.id,
+          projectId: project.id,
           qfRoundId: qfRound.id,
         },
       },
       {
         send: response => {
           assert.equal(response.notice.type, 'success');
-          assert.equal(response.notice.message, 'Sybil successfully created');
+          assert.equal(
+            response.notice.message,
+            'Project Fraud successfully created',
+          );
         },
       },
     );
   });
-  it('Should create sybils with csv for exising users', async () => {
+  it('Should create projectFrauds with csv for exising projects', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData(), user1);
+    const project2 = await saveProjectDirectlyToDb(createProjectData(), user1);
+
     const qfRound = await QfRound.create({
       isActive: false,
       name: 'test',
@@ -51,8 +60,8 @@ function createSybilTestCases() {
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     // convert json to csv
-    const csvData = `qfRoundId,walletAddress\n${qfRound.id},${user1.walletAddress}\n${qfRound.id},${user2.walletAddress}`;
-    await createSybil(
+    const csvData = `qfRoundId,slug\n${qfRound.id},${project1.slug}\n${qfRound.id},${project2.slug}`;
+    await createProjectFraud(
       {
         payload: {
           csvData,
@@ -61,12 +70,15 @@ function createSybilTestCases() {
       {
         send: response => {
           assert.equal(response.notice.type, 'success');
-          assert.equal(response.notice.message, 'Sybil successfully created');
+          assert.equal(
+            response.notice.message,
+            'Project Fraud successfully created',
+          );
         },
       },
     );
   });
-  it('Should not create sybils with csv for non-exising users', async () => {
+  it('Should not create project_fraud with csv for non-exising users', async () => {
     const qfRound = await QfRound.create({
       isActive: false,
       name: 'test',
@@ -77,12 +89,10 @@ function createSybilTestCases() {
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     // convert json to csv
-    const csvData = `qfRoundId,walletAddress\n${
+    const csvData = `qfRoundId,slug\n${qfRound.id},${new Date().getTime()}\n${
       qfRound.id
-    },${generateRandomEtheriumAddress()}\n${
-      qfRound.id
-    },${generateRandomEtheriumAddress()}`;
-    await createSybil(
+    },${new Date().getTime()}`;
+    await createProjectFraud(
       {
         payload: {
           csvData,
@@ -93,15 +103,18 @@ function createSybilTestCases() {
           assert.equal(response.notice.type, 'danger');
           assert.equal(
             response.notice.message,
-            errorMessages.NONE_OF_WALLET_ADDRESSES_FOUND_IN_DB,
+            errorMessages.NO_VALID_PROJECTS_FOUND,
           );
         },
       },
     );
   });
-  it('Should create sybils with csv for exising users when there is some user that doesnt exist as well', async () => {
+  it('Should create project_frauds with csv for exising projects when there is some projects that doesnt exist', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project1 = await saveProjectDirectlyToDb(createProjectData(), user1);
+    const project2 = await saveProjectDirectlyToDb(createProjectData(), user2);
+
     const qfRound = await QfRound.create({
       isActive: false,
       name: 'test',
@@ -112,12 +125,10 @@ function createSybilTestCases() {
       endDate: moment().add(10, 'days').toDate(),
     }).save();
     // convert json to csv
-    const csvData = `qfRoundId,walletAddress\n${qfRound.id},${
-      user1.walletAddress
-    }\n${qfRound.id},${user2.walletAddress}\n${
+    const csvData = `qfRoundId,slug\n${qfRound.id},${project1.slug}\n${
       qfRound.id
-    },${generateRandomEtheriumAddress()}`;
-    await createSybil(
+    },${project2.slug}\n${qfRound.id},${new Date().getTime()}`;
+    await createProjectFraud(
       {
         payload: {
           csvData,
@@ -126,7 +137,10 @@ function createSybilTestCases() {
       {
         send: response => {
           assert.equal(response.notice.type, 'success');
-          assert.equal(response.notice.message, 'Sybil successfully created');
+          assert.equal(
+            response.notice.message,
+            'Project Fraud successfully created',
+          );
         },
       },
     );

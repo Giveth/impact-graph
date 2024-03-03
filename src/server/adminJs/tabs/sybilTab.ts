@@ -10,6 +10,7 @@ import {
 import { logger } from '../../../utils/logger';
 import csv from 'csvtojson';
 import { messages } from '../../../utils/messages';
+import { errorMessages } from '../../../utils/errorMessages';
 
 export const createSybil = async (
   request: AdminJsRequestInterface,
@@ -61,7 +62,7 @@ export const createSybil = async (
         .join(',');
 
       if (!values) {
-        throw new Error('No valid entries to insert');
+        throw new Error(errorMessages.NONE_OF_WALLET_ADDRESSES_FOUND_IN_DB);
       }
 
       // Upsert query
