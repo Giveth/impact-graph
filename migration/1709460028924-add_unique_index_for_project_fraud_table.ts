@@ -10,7 +10,7 @@ export class AddUniqueIndexForProjectFraudTable1709460028924
       DELETE FROM project_fraud
       WHERE id NOT IN (
         SELECT MIN(id)
-        FROM sybil
+        FROM project_fraud
         GROUP BY "projectId", "qfRoundId"
       );
     `);
