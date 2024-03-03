@@ -14,7 +14,7 @@ import { messages } from '../../../utils/messages';
 export const createSybil = async (
   request: AdminJsRequestInterface,
   response,
-  context: AdminJsContextInterface,
+  context?: AdminJsContextInterface,
 ) => {
   let message = messages.SYBIL_HAS_BEEN_CREATED_SUCCESSFULLY;
   logger.debug('createSybil has been called() ', request.payload);
