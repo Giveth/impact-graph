@@ -97,7 +97,7 @@ import { ResourcePerDateRange } from './donationResolver';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { AppDataSource } from '../orm';
-import { creteSlugFromProject } from '../utils/utils';
+import { creteSlugFromProject, isSocialMediaEqual } from '../utils/utils';
 import { findCampaignBySlug } from '../repositories/campaignRepository';
 import { Campaign } from '../entities/campaign';
 import { FeaturedUpdate } from '../entities/featuredUpdate';
@@ -970,7 +970,7 @@ export class ProjectResolver {
       );
 
     for (const field in newProjectData) {
-      if (field === 'addresses') {
+      if (field === 'addresses' || field === 'socialMedia') {
         // We will take care of addresses and relations manually
         continue;
       }
@@ -1048,9 +1048,7 @@ export class ProjectResolver {
     await project.save();
     await project.reload();
 
-    if (
-      !isEqual(newProjectData.socialMedia?.sort(), project.socialMedia?.sort())
-    ) {
+    if (!isSocialMediaEqual(project.socialMedia, newProjectData.socialMedia)) {
       await removeProjectSocialMedia(projectId);
       if (newProjectData.socialMedia && newProjectData.socialMedia.length > 0) {
         const socialMediaEntities = newProjectData.socialMedia.map(
