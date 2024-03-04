@@ -408,6 +408,7 @@ export class Project extends BaseEntity {
   projectUpdate?: any;
 
   @Field(type => [ProjectUpdate], { nullable: true })
+  @OneToMany(() => ProjectUpdate, projectUpdate => projectUpdate.project)
   projectUpdates?: ProjectUpdate[];
 
   @Field(type => String, { nullable: true })
@@ -639,6 +640,7 @@ export class ProjectUpdate extends BaseEntity {
 
   // Project oneToOne as virtual attribute as relation was not set properly
   @Field(type => Project, { nullable: true })
+  @ManyToOne(() => Project, project => project.projectUpdates)
   project?: Project;
 
   @Field()
