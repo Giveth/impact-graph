@@ -348,7 +348,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
         id
         txHash
         networkId
-        amount
+        flowRate
         currency
         anonymous
         status
