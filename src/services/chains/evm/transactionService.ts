@@ -4,6 +4,7 @@ import {
   findTokenByNetworkAndSymbol,
 } from '../../../utils/tokenUtils';
 import {
+  errorMessages,
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
@@ -199,6 +200,30 @@ export async function getListOfTransactionsByAddress(input: {
     userRecentTransactions,
     lastPage: result.data.result.length < offset,
   };
+}
+
+export async function getEvmTransactionTimestamp(input: {
+  txHash: string;
+  networkId: number;
+}): Promise<number> {
+  try {
+    const { txHash, networkId } = input;
+    logger.debug(
+      'NODE RPC request count - getTransactionTimeFromBlockchain  provider.getTransaction txHash:',
+      input.txHash,
+    );
+    const transaction = await getProvider(networkId).getTransaction(txHash);
+    if (!transaction) {
+      throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
+    }
+    const block = await getProvider(networkId).getBlock(
+      transaction.blockNumber as number,
+    );
+    return block.timestamp as number;
+  } catch (e) {
+    logger.error('getTransactionTimeFromBlockchain error', e);
+    throw new Error(errorMessages.TRANSACTION_NOT_FOUND);
+  }
 }
 
 async function getTransactionDetailForNormalTransfer(
