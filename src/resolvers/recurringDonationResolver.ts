@@ -53,7 +53,7 @@ class RecurringDonationSortBy {
 
 export enum RecurringDonationSortField {
   createdAt = 'createdAt',
-  amount = 'amount',
+  flowRate = 'flowRate',
 }
 
 enum RecurringDonationSortDirection {
@@ -132,8 +132,7 @@ export class RecurringDonationResolver {
     @Arg('networkId', () => Int) networkId: number,
     @Arg('txHash', () => String) txHash: string,
     @Arg('currency', () => String) currency: string,
-    @Arg('interval', () => String) interval: string,
-    @Arg('amount', () => Int) amount: number,
+    @Arg('flowRate', () => String) flowRate: string,
     @Arg('anonymous', () => Boolean, { defaultValue: false })
     anonymous: boolean,
   ): Promise<RecurringDonation> {
@@ -165,8 +164,7 @@ export class RecurringDonationResolver {
       anchorContractAddress: currentAnchorProjectAddress,
       networkId,
       txHash,
-      amount,
-      interval,
+      flowRate,
       currency,
       anonymous,
     });
@@ -245,16 +243,13 @@ export class RecurringDonationResolver {
             detectAddressChainType(searchTerm) === undefined &&
             Number(searchTerm)
           ) {
-            const amount = Number(searchTerm);
-
-            qb.orWhere('recurringDonation.amount = :amount', {
-              amount,
+            qb.orWhere('recurringDonation.flowRate = :searchTerm', {
+              searchTerm,
             });
           }
         }),
       );
     }
-
     const [recurringDonations, donationsCount] = await query
       .take(take)
       .skip(skip)

@@ -36,4 +36,46 @@ You can add/remove a project to existing active QF Round with these two buttons
 And also you can see related qfRound of a project in this page
 
 
+## Mark users as sybil for qfRound
+
+### Add single item
+If you want to just add a single item , you just choose a user from drop down menu and use a qfRound as well, leave the
+**Csv Data** blank then click on Save button, this user will be marked as sybil for that round
+
+### Add bulk
+If you want to add multiple item at once, leave the **User Id** and **Qf Round Id** blank and just put a
+csv content in the **Csv Data** text box, the csv data format should be like this
+
+```
+qfRoundId, walletAddress
+1, 0x...
+2, 0...
+```
+![Screen shot](./img/admin-panel-sybil-page.png)
+
+## Mark projects as fraud for qfRound
+
+### Add single item
+If you want to just add a single item , you just choose a project from drop down menu and use a qfRound as well, leave the
+**Csv Data** blank then click on Save button, this project will be marked as fraud for that round
+
+### Add bulk
+If you want to add multiple item at once, leave the **Project Id** and **Qf Round Id** blank and just put a
+csv content in the **Csv Data** text box, the csv data format should be like this
+
+![Screen shot](./img/admin-panel-project-fraud-page.png)
+
+```
+qfRoundId, slug
+1, test
+1, giveth
+2, common-stack
+```
+
+
+
+
+
+
+
 

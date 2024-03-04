@@ -1297,6 +1297,7 @@ export const SEED_DATA = {
         address: '0x48afbbd342f64ef8a9ab1c143719b63c2ad81710',
         decimals: 18,
         isStableCoin: true,
+        coingeckoId: 'mpeth',
       },
     ],
     ropsten: [
@@ -1368,6 +1369,7 @@ export const SEED_DATA = {
         address: '0x819845b60a192167ed1139040b4f8eca31834f27',
         decimals: 18,
         isStableCoin: true,
+        coingeckoId: 'mpeth',
       },
     ],
     etc: [
@@ -1866,6 +1868,7 @@ export interface CreateDonationData {
   status?: string;
   verified?: string;
   qfRoundId?: number;
+  tokenAddress?: string;
 }
 
 export interface CategoryData {
@@ -1915,11 +1918,10 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
       })
     ).id;
   return RecurringDonation.create({
-    amount: params?.donationData?.amount || 10,
+    flowRate: params?.donationData?.flowRate || '10',
     status: params?.donationData?.status || 'pending',
     networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     currency: params?.donationData?.currency || 'USDT',
-    interval: params?.donationData?.interval || 'monthly',
     txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),
     donorId,
     projectId,

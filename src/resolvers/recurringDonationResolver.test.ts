@@ -76,9 +76,8 @@ function createRecurringDonationTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
-          amount: 100,
+          flowRate: '100',
           currency: 'GIV',
-          interval: 'monthly',
         },
       },
       {
@@ -125,9 +124,8 @@ function createRecurringDonationTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
-          amount: 100,
+          flowRate: '100',
           currency: 'GIV',
-          interval: 'monthly',
           anonymous: true,
         },
       },
@@ -170,9 +168,8 @@ function createRecurringDonationTestCases() {
         projectId: project.id,
         networkId: NETWORK_IDS.OPTIMISTIC,
         txHash: generateRandomEvmTxHash(),
-        amount: 100,
+        flowRate: '100',
         currency: 'GIV',
-        interval: 'monthly',
       },
     });
 
@@ -195,9 +192,8 @@ function createRecurringDonationTestCases() {
           projectId: 99999,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
-          amount: 100,
+          flowRate: '100',
           currency: 'GIV',
-          interval: 'monthly',
         },
       },
       {
@@ -233,9 +229,8 @@ function createRecurringDonationTestCases() {
           projectId: project.id,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
-          amount: 100,
+          flowRate: '100',
           currency: 'GIV',
-          interval: 'monthly',
         },
       },
       {
@@ -326,19 +321,19 @@ function recurringDonationsByProjectIdTestCases() {
       assert.isTrue(donations[i].createdAt <= donations[i + 1].createdAt);
     }
   });
-  it('should sort by the amount ASC', async () => {
+  it('should sort by the flowRate ASC', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
 
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         projectId: project.id,
-        amount: 100,
+        flowRate: '1000',
       },
     });
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         projectId: project.id,
-        amount: 200,
+        flowRate: '2000',
       },
     });
 
@@ -349,7 +344,7 @@ function recurringDonationsByProjectIdTestCases() {
         variables: {
           projectId: project.id,
           orderBy: {
-            field: 'amount',
+            field: 'flowRate',
             direction: 'ASC',
           },
         },
@@ -361,22 +356,25 @@ function recurringDonationsByProjectIdTestCases() {
       result.data.data.recurringDonationsByProjectId.recurringDonations;
     assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 2);
     for (let i = 0; i < donations.length - 1; i++) {
-      assert.isTrue(donations[i].amount <= donations[i + 1].amount);
+      // assertion flor big int of flowRates
+      assert.isTrue(
+        BigInt(donations[i].flowRate) <= BigInt(donations[i + 1].flowRate),
+      );
     }
   });
-  it('should sort by the amount DESC', async () => {
+  it('should sort by the flowRate DESC', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
 
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         projectId: project.id,
-        amount: 100,
+        flowRate: '100',
       },
     });
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         projectId: project.id,
-        amount: 200,
+        flowRate: '2000',
       },
     });
 
@@ -387,7 +385,7 @@ function recurringDonationsByProjectIdTestCases() {
         variables: {
           projectId: project.id,
           orderBy: {
-            field: 'amount',
+            field: 'flowRate',
             direction: 'DESC',
           },
         },
@@ -399,7 +397,9 @@ function recurringDonationsByProjectIdTestCases() {
       result.data.data.recurringDonationsByProjectId.recurringDonations;
     assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 2);
     for (let i = 0; i < donations.length - 1; i++) {
-      assert.isTrue(donations[i].amount >= donations[i + 1].amount);
+      assert.isTrue(
+        BigInt(donations[i].flowRate) >= BigInt(donations[i + 1].flowRate),
+      );
     }
   });
   it('should search by the currency', async () => {
@@ -435,19 +435,19 @@ function recurringDonationsByProjectIdTestCases() {
     assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
     assert.equal(donations[0].currency, 'GIV');
   });
-  it('should search by the amount', async () => {
+  it('should search by the flowRate', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
 
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         projectId: project.id,
-        amount: 100,
+        flowRate: '100',
       },
     });
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         projectId: project.id,
-        amount: 200,
+        flowRate: '200',
       },
     });
 
@@ -466,7 +466,7 @@ function recurringDonationsByProjectIdTestCases() {
     const donations =
       result.data.data.recurringDonationsByProjectId.recurringDonations;
     assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
-    assert.equal(donations[0].amount, '100');
+    assert.equal(donations[0].flowRate, '100');
   });
   it('should search by the failed status', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
@@ -658,20 +658,20 @@ function recurringDonationsByUserIdTestCases() {
       assert.isTrue(donations[i].createdAt <= donations[i + 1].createdAt);
     }
   });
-  it('should sort by the amount ASC', async () => {
+  it('should sort by the flowRate ASC', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
-        amount: 100,
+        flowRate: '100',
       },
     });
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
-        amount: 200,
+        flowRate: '200',
       },
     });
 
@@ -682,7 +682,7 @@ function recurringDonationsByUserIdTestCases() {
         variables: {
           userId: donor.id,
           orderBy: {
-            field: 'amount',
+            field: 'flowRate',
             direction: 'ASC',
           },
         },
@@ -694,23 +694,25 @@ function recurringDonationsByUserIdTestCases() {
       result.data.data.recurringDonationsByUserId.recurringDonations;
     assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 2);
     for (let i = 0; i < donations.length - 1; i++) {
-      assert.isTrue(donations[i].amount <= donations[i + 1].amount);
+      assert.isTrue(
+        BigInt(donations[i].flowRate) <= BigInt(donations[i + 1].flowRate),
+      );
     }
   });
-  it('should sort by the amount DESC', async () => {
+  it('should sort by the flowRate DESC', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
-        amount: 100,
+        flowRate: '100',
       },
     });
     await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
-        amount: 200,
+        flowRate: '200',
       },
     });
 
@@ -721,7 +723,7 @@ function recurringDonationsByUserIdTestCases() {
         variables: {
           userId: donor.id,
           orderBy: {
-            field: 'amount',
+            field: 'flowRate',
             direction: 'DESC',
           },
         },
@@ -733,7 +735,9 @@ function recurringDonationsByUserIdTestCases() {
       result.data.data.recurringDonationsByUserId.recurringDonations;
     assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 2);
     for (let i = 0; i < donations.length - 1; i++) {
-      assert.isTrue(donations[i].amount >= donations[i + 1].amount);
+      assert.isTrue(
+        BigInt(donations[i].flowRate) >= BigInt(donations[i + 1].flowRate),
+      );
     }
   });
 }
@@ -742,7 +746,7 @@ function updateRecurringDonationStatusTestCases() {
     const transactionInfo = {
       txHash: generateRandomEvmTxHash(),
       networkId: NETWORK_IDS.XDAI,
-      amount: 1,
+      flowRate: '1000',
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',
@@ -791,7 +795,7 @@ function updateRecurringDonationStatusTestCases() {
     const transactionInfo = {
       txHash: generateRandomEvmTxHash(),
       networkId: NETWORK_IDS.XDAI,
-      amount: 1,
+      flowRate: '200',
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
       currency: 'GIV',

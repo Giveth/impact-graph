@@ -13,6 +13,7 @@ import { User } from '../entities/user';
 import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { validateEmail } from '../utils/validators/commonValidators';
 import {
