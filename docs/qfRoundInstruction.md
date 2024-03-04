@@ -66,10 +66,10 @@ csv content in the **Csv Data** text box, the csv data format should be like thi
 ![Screen shot](./img/admin-panel-project-fraud-page.png)
 
 ```
-qfRoundId, projectId
-1, 2
-1, 3
-2, 2
+qfRoundId, slug
+1, test
+1, giveth
+2, common-stack
 ```
 
 
