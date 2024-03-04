@@ -50,14 +50,7 @@ export class ProjectActualMatchingV61709468854359
                     LEFT JOIN "sybil" s ON s."userId" = d2."userId" AND s."qfRoundId" = qr.id
                     LEFT JOIN project_fraud pf ON pf."projectId" = p2.id AND pf."qfRoundId" = qr.id
                 WHERE 
-                    p2."statusId" = 5 
-                    AND LOWER(d2."fromWalletAddress") NOT IN (
-                        SELECT DISTINCT LOWER(pa.address)
-                        FROM public.project_address pa
-                        JOIN public.project p3 ON p3.id = pa."projectId"
-                        WHERE p3."verified" = true
-                        AND p3."listed" = true
-                    )
+                    p2."statusId" = 5
                     AND NOT EXISTS (
                         SELECT 1
                         FROM public.project_address pa
