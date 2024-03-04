@@ -112,7 +112,6 @@ import {
   addBulkProjectSocialMedia,
   removeProjectSocialMedia,
 } from '../repositories/projectSocialMediaRepository';
-import { isEqual } from 'lodash';
 
 const projectFiltersCacheDuration = Number(
   process.env.PROJECT_FILTERS_THREADS_POOL_DURATION || 60000,
