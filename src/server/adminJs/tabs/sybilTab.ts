@@ -10,11 +10,12 @@ import {
 import { logger } from '../../../utils/logger';
 import csv from 'csvtojson';
 import { messages } from '../../../utils/messages';
+import { errorMessages } from '../../../utils/errorMessages';
 
 export const createSybil = async (
   request: AdminJsRequestInterface,
   response,
-  context: AdminJsContextInterface,
+  context?: AdminJsContextInterface,
 ) => {
   let message = messages.SYBIL_HAS_BEEN_CREATED_SUCCESSFULLY;
   logger.debug('createSybil has been called() ', request.payload);
@@ -57,18 +58,18 @@ export const createSybil = async (
             ? `(${walletAddressUserId}, ${Number(obj.qfRoundId)})`
             : null;
         })
-        // .filter(value => value !== null) // Filter out any rows where userId was not found
+        .filter(value => value !== null) // Filter out any rows where userId was not found
         .join(',');
 
       if (!values) {
-        throw new Error('No valid entries to insert');
+        throw new Error(errorMessages.NONE_OF_WALLET_ADDRESSES_FOUND_IN_DB);
       }
 
       // Upsert query
       const upsertQuery = `
           INSERT INTO sybil ( "userId", "qfRoundId")
           VALUES ${values}
-          ON CONFLICT ("userId", "qfRoundId") DO UPDATE
+          ON CONFLICT ("userId", "qfRoundId") DO NOTHING
      `;
       // Execute the query
       await Sybil.query(upsertQuery);

@@ -31,7 +31,7 @@ export const fetchMpEthPrice = async () => {
     });
     return Number(result.data.data.tokens[0].lastPriceUSD);
   } catch (e) {
-    logger.error('fetching Giv Price fetchGivPrice() err', e);
+    logger.error('fetching MpEth Price fetchMpEthPrice() err', e);
     throw e;
   }
 };

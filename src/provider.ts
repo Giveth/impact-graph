@@ -215,6 +215,18 @@ export function getProvider(networkId: number) {
         `https://arbitrum-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
+    case NETWORK_IDS.ARBITRUM_MAINNET:
+      url =
+        (process.env.ARBITRUM_MAINNET_NODE_HTTP_URL as string) ||
+        `https://arbitrum-mainnet.infura.io/v3/${INFURA_ID}`;
+      break;
+
+    case NETWORK_IDS.ARBITRUM_SEPOLIA:
+      url =
+        (process.env.ARBITRUM_SEPOLIA_NODE_HTTP_URL as string) ||
+        `https://arbitrum-sepolia.infura.io/v3/${INFURA_ID}`;
+      break;
+
     default: {
       // Use infura
       const connectionInfo = ethers.providers.InfuraProvider.getUrl(
