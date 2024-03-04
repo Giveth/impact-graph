@@ -49,7 +49,7 @@ import { ChainType } from '../types/network';
 import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
 import { fetchMpEthPrice } from './mpEthPriceService';
-import { getTransactionTimeFromBlockchain } from './chains/evm/transactionService';
+import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
@@ -531,7 +531,7 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
       continue;
     }
     // get transaction time from blockchain
-    const txTimestamp = await getTransactionTimeFromBlockchain({
+    const txTimestamp = await getEvmTransactionTimestamp({
       txHash: qfRoundHistory.distributedFundTxHash,
       networkId: Number(qfRoundHistory.distributedFundNetwork),
     });

@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import 'mocha';
 import {
   getDisperseTransactions,
-  getTransactionTimeFromBlockchain,
+  getEvmTransactionTimestamp,
 } from './transactionService';
 import { assertThrowsAsync } from '../../../../test/testUtils';
 import { NETWORK_IDS } from '../../../provider';
@@ -11,8 +11,8 @@ describe(
   getDisperseTransactionsTestCases,
 );
 describe(
-  'getTransactionTimeFromBlockchain test cases',
-  getTransactionTimeFromBlockchainTestCases,
+  'getEvmTransactionTimestamp test cases',
+  getEvmTransactionTimestampTestCases,
 );
 
 function getDisperseTransactionsTestCases() {
@@ -96,10 +96,10 @@ function getDisperseTransactionsTestCases() {
   // });
 }
 
-function getTransactionTimeFromBlockchainTestCases() {
+function getEvmTransactionTimestampTestCases() {
   it('Should return the transaction time from the blockchain', async () => {
     // https://blockscout.com/xdai/mainnet/tx/0x42c0f15029557ec35e61515a89366297fc239a334e3ba22fab15a3f1d04ad53f
-    const transactionTime = await getTransactionTimeFromBlockchain({
+    const transactionTime = await getEvmTransactionTimestamp({
       txHash:
         '0x42c0f15029557ec35e61515a89366297fc239a334e3ba22fab15a3f1d04ad53f',
       networkId: NETWORK_IDS.XDAI,
@@ -109,7 +109,7 @@ function getTransactionTimeFromBlockchainTestCases() {
 
   it('Should throw error if the transaction is not found', async () => {
     await assertThrowsAsync(async () => {
-      await getTransactionTimeFromBlockchain({
+      await getEvmTransactionTimestamp({
         txHash: '0x',
         networkId: NETWORK_IDS.XDAI,
       });

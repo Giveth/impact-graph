@@ -202,7 +202,7 @@ export async function getListOfTransactionsByAddress(input: {
   };
 }
 
-export async function getTransactionTimeFromBlockchain(input: {
+export async function getEvmTransactionTimestamp(input: {
   txHash: string;
   networkId: number;
 }): Promise<number> {
