@@ -6,12 +6,14 @@ import {
   ManyToOne,
   RelationId,
   BaseEntity,
+  Unique,
 } from 'typeorm';
 import { Project } from './project';
 import { QfRound } from './qfRound';
 
 @ObjectType()
 @Entity()
+@Unique(['projectId', 'qfRoundId'])
 export class ProjectFraud extends BaseEntity {
   @Field(type => ID)
   @PrimaryGeneratedColumn()

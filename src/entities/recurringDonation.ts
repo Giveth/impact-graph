@@ -36,12 +36,8 @@ export class RecurringDonation extends BaseEntity {
 
   @Field()
   @Column({ nullable: false })
-  amount: number;
-
-  // daily, weekly, monthly, yearly
-  @Field()
-  @Column({ nullable: false })
-  interval: string;
+  // per second
+  flowRate: string;
 
   @Index()
   @Field()

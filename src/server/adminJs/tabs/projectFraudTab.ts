@@ -10,11 +10,12 @@ import { logger } from '../../../utils/logger';
 import csv from 'csvtojson';
 import { messages } from '../../../utils/messages';
 import { ProjectFraud } from '../../../entities/projectFraud';
+import { errorMessages } from '../../../utils/errorMessages';
 
 export const createProjectFraud = async (
   request: AdminJsRequestInterface,
   response,
-  context: AdminJsContextInterface,
+  context?: AdminJsContextInterface,
 ) => {
   let message = messages.PROJECT_FRAUD_HAS_BEEN_CREATED_SUCCESSFULLY;
   logger.debug('createProjectFraud has been called() ', request.payload);
@@ -40,8 +41,8 @@ export const createProjectFraud = async (
 
       // Get projectIds for all slugs
       const projects = await ProjectFraud.query(`
-        SELECT id, slug FROM public.project WHERE lower("slug") IN (${uniqueSlugs
-          .map(slug => `'${slug}'`)
+        SELECT id, slug FROM public.project WHERE lower("slug") IN (${slugs
+          .map(slug => `'${slug.toLowerCase()}'`)
           .join(', ')})
       `);
 
@@ -57,17 +58,18 @@ export const createProjectFraud = async (
             ? `(${Number(slugProjectId)}, ${Number(obj.qfRoundId)})`
             : null;
         })
+        .filter(value => value !== null) // Filter out any rows where userId was not found
         .join(',');
 
       if (!values) {
-        throw new Error('No valid entries to insert');
+        throw new Error(errorMessages.NO_VALID_PROJECTS_FOUND);
       }
 
       // Insert query
       const query = `
         INSERT INTO project_fraud ("projectId", "qfRoundId")
-        VALUES ${values};
-        ON CONFLICT ("projectId", "qfRoundId") DO UPDATE
+        VALUES ${values}
+        ON CONFLICT ("projectId", "qfRoundId") DO NOTHING
     `;
 
       // Execute the query
