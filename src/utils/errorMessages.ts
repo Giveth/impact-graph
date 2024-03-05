@@ -133,7 +133,8 @@ export const errorMessages = {
   TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY:
     'Smart contract address is not equal to transaction.to',
   USER_NOT_FOUND: 'User not found.',
-  SYBIL_RECORD_IS_IN_DB_ALREADY: 'Sybil item for this user and qfRound is in the DB already.',
+  SYBIL_RECORD_IS_IN_DB_ALREADY:
+    'Sybil item for this user and qfRound is in the DB already.',
   INVALID_NETWORK_ID: 'Network Id is invalid',
   INVALID_TOKEN_SYMBOL: 'Token symbol is invalid',
   TOKEN_SYMBOL_IS_REQUIRED: 'Token symbol is required',
