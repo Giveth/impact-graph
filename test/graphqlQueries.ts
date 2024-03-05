@@ -2247,28 +2247,24 @@ export const createRecurringDonationQuery = `
 `;
 
 export const updateRecurringDonationQuery = `
-       mutation ($projectId: Int!,
+       mutation (
+        $projectId: Int!,
         $networkId: Int!,
         $txHash: String!
-        $interval: String!
-        $amount: Int!
-        $currency: String!
-        $walletAddress: String!
+        $flowRate: String!
+        $anonymous: Boolean!
         ) {
           updateRecurringDonationParams(
             projectId: $projectId
-          networkId: $networkId
-          txHash:$txHash
-          amount:$amount
-          currency:$currency
-          interval:$interval
-          walletAddress:$walletAddress
+            networkId: $networkId
+            txHash:$txHash
+            anonymous:$anonymous
+            flowRate:$flowRate
         ) {
             txHash
             networkId
-            amount
             currency
-            interval
+            flowRate
             anonymous
           }
       }

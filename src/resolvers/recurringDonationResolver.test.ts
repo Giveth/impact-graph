@@ -287,26 +287,25 @@ function updateRecurringDonationTestCases() {
       donationData: {
         donorId: donor.id,
         projectId: project.id,
-        amount: 300,
+        flowRate: '300',
+        anonymous: false,
       },
     });
 
-    assert.equal(donation.amount, 300);
+    assert.equal(donation.flowRate, '300');
 
     const accessToken = await generateTestAccessToken(donor.id);
-    const amount = 201;
+    const flowRate = '201';
     const result = await axios.post(
       graphqlUrl,
       {
         query: updateRecurringDonationQuery,
         variables: {
           projectId: project.id,
-          walletAddress: donor.walletAddress,
-          amount,
+          flowRate,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
-          currency: 'GIV',
-          interval: 'monthly',
+          anonymous: true,
         },
       },
       {
@@ -315,7 +314,11 @@ function updateRecurringDonationTestCases() {
         },
       },
     );
-    assert.equal(result.data.data.updateRecurringDonationParams.amount, amount);
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.flowRate,
+      flowRate,
+    );
+    assert.isTrue(result.data.data.updateRecurringDonationParams.anonymous);
   });
 
   it('should get error when someone wants to update someone else recurring donation', async () => {
@@ -354,13 +357,11 @@ function updateRecurringDonationTestCases() {
       {
         query: updateRecurringDonationQuery,
         variables: {
-          walletAddress: anotherUser.walletAddress,
           projectId: project.id,
-          amount: 10,
+          flowRate: '10',
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
-          currency: 'GIV',
-          interval: 'monthly',
+          anonymous: false,
         },
       },
       {
@@ -395,18 +396,17 @@ function updateRecurringDonationTestCases() {
     });
 
     const result = await axios.post(graphqlUrl, {
-      query: createRecurringDonationQuery,
+      query: updateRecurringDonationQuery,
       variables: {
         projectId: project.id,
         networkId: NETWORK_IDS.OPTIMISTIC,
         txHash: generateRandomEvmTxHash(),
-        amount: 100,
-        currency: 'GIV',
-        interval: 'monthly',
+        flowRate: '100',
+        anonymous: true,
       },
     });
 
-    assert.isNull(result.data.data.createRecurringDonation);
+    assert.isNull(result.data.data.updateRecurringDonationParams);
     assert.equal(result.data.errors[0].message, errorMessages.UN_AUTHORIZED);
   });
 
@@ -416,18 +416,16 @@ function updateRecurringDonationTestCases() {
     );
 
     const accessToken = await generateTestAccessToken(contractCreator.id);
-    const contractAddress = generateRandomEtheriumAddress();
     const result = await axios.post(
       graphqlUrl,
       {
-        query: createRecurringDonationQuery,
+        query: updateRecurringDonationQuery,
         variables: {
           projectId: 99999,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
-          amount: 100,
-          currency: 'GIV',
-          interval: 'monthly',
+          flowRate: '100',
+          anonymous: true,
         },
       },
       {
@@ -436,7 +434,7 @@ function updateRecurringDonationTestCases() {
         },
       },
     );
-    assert.isNull(result.data.data.createRecurringDonation);
+    assert.isNull(result.data.data.updateRecurringDonationParams);
     assert.equal(
       result.data.errors[0].message,
       errorMessages.PROJECT_NOT_FOUND,

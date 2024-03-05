@@ -178,11 +178,8 @@ export class RecurringDonationResolver {
     @Arg('projectId', () => Int) projectId: number,
     @Arg('networkId', () => Int) networkId: number,
     @Arg('txHash', () => String) txHash: string,
-    @Arg('currency', () => String) currency: string,
-    @Arg('interval', () => String) interval: string,
-    @Arg('walletAddress', () => String) walletAddress: string,
-    @Arg('amount', () => Int) amount: number,
-    anonymous: boolean,
+    @Arg('flowRate', () => String) flowRate: string,
+    @Arg('anonymous', () => Boolean) anonymous: boolean,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
     const donor = await findUserById(userId);
@@ -218,14 +215,8 @@ export class RecurringDonationResolver {
 
     return updateRecurringDonation({
       recurringDonation,
-      donor,
-      project,
-      anchorContractAddress: currentAnchorProjectAddress,
-      networkId,
       txHash,
-      amount,
-      interval,
-      currency,
+      flowRate,
       anonymous,
     });
   }
