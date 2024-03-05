@@ -22,6 +22,7 @@ export const findProjectById = (projectId: number): Promise<Project | null> => {
     .leftJoinAndSelect('project.status', 'status')
     .leftJoinAndSelect('project.organization', 'organization')
     .leftJoinAndSelect('project.addresses', 'addresses')
+    .leftJoinAndSelect('project.socialMedia', 'socialMedia')
     .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
     .leftJoinAndSelect('project.qfRounds', 'qfRounds')
     .leftJoin('project.adminUser', 'user')

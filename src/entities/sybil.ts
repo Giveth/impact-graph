@@ -34,4 +34,7 @@ export class Sybil extends BaseEntity {
   @RelationId((sybil: Sybil) => sybil.qfRound)
   @Column()
   qfRoundId: number;
+
+  @Column()
+  walletAddress: string;
 }
