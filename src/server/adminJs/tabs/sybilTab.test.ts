@@ -52,6 +52,7 @@ function createSybilTestCases() {
     }).save();
     const sybil = new Sybil();
     sybil.userId = user1.id;
+    sybil.walletAddress = user1.walletAddress as string;
     sybil.qfRoundId = qfRound.id;
     await sybil.save();
     await createSybil(
