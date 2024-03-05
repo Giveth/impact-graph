@@ -117,14 +117,7 @@ export const SybilTab = {
   options: {
     properties: {
       walletAddress: {
-        type: 'textarea',
-        isVisible: {
-          filter: false,
-          list: false,
-          show: false,
-          new: true,
-          edit: true,
-        },
+        isVisible: true,
       },
 
       qfRoundId: {
