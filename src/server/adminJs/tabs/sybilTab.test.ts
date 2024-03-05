@@ -26,7 +26,7 @@ function createSybilTestCases() {
     await createSybil(
       {
         payload: {
-          userId: user1.id,
+          walletAddress: user1.walletAddress,
           qfRoundId: qfRound.id,
         },
       },
@@ -34,6 +34,32 @@ function createSybilTestCases() {
         send: response => {
           assert.equal(response.notice.type, 'success');
           assert.equal(response.notice.message, 'Sybil successfully created');
+        },
+      },
+    );
+  });
+  it('Should not create a new sybil with wrong wallet address', async () => {
+    const qfRound = await QfRound.create({
+      isActive: false,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      slug: new Date().getTime().toString(),
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    }).save();
+
+    await createSybil(
+      {
+        payload: {
+          walletAddress: generateRandomEtheriumAddress(),
+          qfRoundId: qfRound.id,
+        },
+      },
+      {
+        send: response => {
+          assert.equal(response.notice.type, 'danger');
+          assert.equal(response.notice.message, errorMessages.USER_NOT_FOUND);
         },
       },
     );
