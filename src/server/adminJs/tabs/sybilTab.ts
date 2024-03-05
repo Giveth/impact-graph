@@ -11,6 +11,7 @@ import { logger } from '../../../utils/logger';
 import csv from 'csvtojson';
 import { messages } from '../../../utils/messages';
 import { errorMessages } from '../../../utils/errorMessages';
+import { findUserByWalletAddress } from '../../../repositories/userRepository';
 
 export const createSybil = async (
   request: AdminJsRequestInterface,
@@ -22,7 +23,7 @@ export const createSybil = async (
 
   let type = 'success';
   try {
-    const { userId, qfRoundId, csvData } = request.payload;
+    const { walletAddress, qfRoundId, csvData } = request.payload;
     if (csvData) {
       // Parse the CSV data
       const jsonArray = await csv().fromString(csvData);
@@ -74,8 +75,21 @@ export const createSybil = async (
       // Execute the query
       await Sybil.query(upsertQuery);
     } else {
+      const user = await findUserByWalletAddress(walletAddress);
+      if (!user) {
+        throw new Error(errorMessages.USER_NOT_FOUND);
+      }
+      const currentSybil = await Sybil.findOne({
+        where: {
+          userId: user.id,
+          qfRoundId,
+        },
+      });
+      if (currentSybil) {
+        throw new Error(errorMessages.SYBIL_RECORD_IS_IN_DB_ALREADY);
+      }
       const sybil = new Sybil();
-      sybil.userId = userId;
+      sybil.userId = user.id;
       sybil.qfRoundId = qfRoundId;
       await sybil.save();
     }
@@ -102,11 +116,28 @@ export const SybilTab = {
 
   options: {
     properties: {
-      userId: {
-        isVisible: true,
+      walletAddress: {
+        type: 'textarea',
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: true,
+          edit: true,
+        },
       },
+
       qfRoundId: {
         isVisible: true,
+      },
+      userId: {
+        isVisible: {
+          filter: true,
+          list: true,
+          show: true,
+          new: false,
+          edit: false,
+        },
       },
       csvData: {
         type: 'textarea',
