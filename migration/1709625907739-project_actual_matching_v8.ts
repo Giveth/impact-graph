@@ -24,7 +24,7 @@ export class ProjectActualMatchingV81709625907739 implements MigrationInterface 
                     LEFT JOIN project_fraud pf ON pf."projectId" = p.id AND pf."qfRoundId" = qr.id
                 WHERE
                     pf.id IS NULL
-                    AND d."valueUsd" >= 0.65
+                    AND d."valueUsd" >= qr."minimumValidUsdValue"
                     AND d."status" = 'verified'
                     AND d."qfRoundUserScore" > qr."minimumPassportScore"
                 GROUP BY
@@ -43,7 +43,7 @@ export class ProjectActualMatchingV81709625907739 implements MigrationInterface 
                     public.donation d2
                     INNER JOIN qf_round qr ON qr.id = d2."qfRoundId"
                 WHERE
-                    d2."valueUsd" >= 0.65
+                    d2."valueUsd" >= qr."minimumValidUsdValue"
                     AND d2."status" = 'verified'
                     AND d2."qfRoundUserScore" > qr."minimumPassportScore"
                 GROUP BY
@@ -109,6 +109,6 @@ export class ProjectActualMatchingV81709625907739 implements MigrationInterface 
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    // Logic to revert the changes made by the up method, if necessary
+    //
   }
 }

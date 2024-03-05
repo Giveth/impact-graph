@@ -113,6 +113,9 @@ export const qfRoundTab = {
       minimumPassportScore: {
         isVisible: true,
       },
+      minimumValidUsdValue: {
+        isVisible: true,
+      },
       eligibleNetworks: {
         isVisible: true,
         type: 'array',
