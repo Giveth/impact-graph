@@ -79,6 +79,15 @@ export const createSybil = async (
       if (!user) {
         throw new Error(errorMessages.USER_NOT_FOUND);
       }
+      const currentSybil = await Sybil.findOne({
+        where: {
+          userId: user.id,
+          qfRoundId,
+        },
+      });
+      if (currentSybil) {
+        throw new Error(errorMessages.SYBIL_RECORD_IS_IN_DB_ALREADY);
+      }
       const sybil = new Sybil();
       sybil.userId = user.id;
       sybil.qfRoundId = qfRoundId;
