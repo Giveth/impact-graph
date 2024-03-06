@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AdjustedProjectActualMatchingViewMigration implements MigrationInterface {
+export class ProjectActualMatchingV81709625907739
+  implements MigrationInterface
+{
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
         DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
@@ -62,6 +64,7 @@ export class AdjustedProjectActualMatchingViewMigration implements MigrationInte
                       upd."totalValueUsd",
                       upd."userDonationIds",
                       upd."qfRoundUserScore"
+
                   FROM
                       UserProjectDonations upd
                     INNER JOIN qf_round qr ON qr.id = upd."qfRoundId"
@@ -94,6 +97,16 @@ export class AdjustedProjectActualMatchingViewMigration implements MigrationInte
                           AND p4."listed" = true
                       )
             ),
+            DonationIDsAggregated AS (
+                  SELECT
+                      qud."projectId",
+                      qud."qfRoundId",
+                      ARRAY_AGG(DISTINCT unnested_ids) AS uniqueDonationIds
+                  FROM
+                      QualifiedUserDonations qud,
+                      LATERAL UNNEST(qud."userDonationIds") AS unnested_ids
+                  GROUP BY qud."projectId", qud."qfRoundId"
+              ),
         DonationsAfterAnalysis AS (
                 SELECT
                     p.id,
@@ -101,20 +114,23 @@ export class AdjustedProjectActualMatchingViewMigration implements MigrationInte
                     p.title,
                     qr.id as "qfId",
                     COALESCE(SUM(qud."totalValueUsd"), 0) AS "allUsdReceivedAfterSybilsAnalysis",
-                    COUNT(DISTINCT d."fromWalletAddress") AS "uniqueQualifiedDonors",
+                    COUNT(DISTINCT qud."fromWalletAddress") AS "uniqueQualifiedDonors",
                     SUM(SQRT(qud."totalValueUsd")) AS "donationsSqrtRootSum",
                     POWER(SUM(SQRT(qud."totalValueUsd")), 2) as "donationsSqrtRootSumSquared",
-                    ARRAY_AGG(d.id) AS "donationIdsAfterAnalysis"
+                     dia.uniqueDonationIds AS "donationIdsAfterAnalysis",
+                    ARRAY_AGG(DISTINCT qud."userId") AS "uniqueUserIdsAfterAnalysis", 
+                    ARRAY_AGG(qud."totalValueUsd") AS "totalValuesOfUserDonationsAfterAnalysis"
                 FROM
                     QualifiedUserDonations qud
                     INNER JOIN project p ON p.id = qud."projectId"
                     INNER JOIN qf_round qr ON qr.id = qud."qfRoundId"
-                    INNER JOIN donation d ON d."userId" = qud."userId" AND d."projectId" = qud."projectId" AND d."qfRoundId" = qud."qfRoundId"
+                    LEFT JOIN DonationIDsAggregated dia ON dia."projectId" = qud."projectId" AND dia."qfRoundId" = qud."qfRoundId"
                 GROUP BY
                     p.id,
                     p.title,
                     p.slug,
-                    qr.id
+                    qr.id,
+                    dia.uniqueDonationIds
             )
             SELECT
                 d1.id AS "projectId",
@@ -128,7 +144,9 @@ export class AdjustedProjectActualMatchingViewMigration implements MigrationInte
                 daa."allUsdReceivedAfterSybilsAnalysis",
                 daa."uniqueQualifiedDonors",
                 daa."donationsSqrtRootSum",
-                daa."donationsSqrtRootSumSquared"
+                daa."donationsSqrtRootSumSquared",
+                daa."uniqueUserIdsAfterAnalysis",
+                daa."totalValuesOfUserDonationsAfterAnalysis"
             FROM
                 DonationsBeforeAnalysis d1
                 INNER JOIN DonationsAfterAnalysis daa ON d1.id = daa.id AND d1.slug = daa.slug AND d1."qfId" = daa."qfId";
