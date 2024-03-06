@@ -162,7 +162,7 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
 
     const headers = [
       'projectName',
-      // 'addresses',
+      'addresses',
       'link',
       'allUsdReceived',
       'allUsdReceivedAfterSybilsAnalysis',
