@@ -21,6 +21,7 @@ import { ProjectImage } from '../entities/projectImage';
 import { ApolloContext } from '../types/ApolloContext';
 import { Max, Min } from 'class-validator';
 import { publicSelectionFields, User } from '../entities/user';
+import config from '../config';
 import { Context } from '../context';
 import { Brackets, Repository } from 'typeorm';
 import { Service } from 'typedi';
@@ -334,21 +335,39 @@ export class ProjectResolver {
     searchTerm?: string,
   ) {
     if (!searchTerm) return query;
+    const similarityThreshold =
+      Number(config.get('PROJECT_SEARCH_SIMILARITY_THRESHOLD')) || 0.4;
 
     return query.andWhere(
       new Brackets(qb => {
-        qb.where('project.title ILIKE :searchTerm', {
-          searchTerm: `%${searchTerm}%`,
-        })
-          .orWhere('project.description ILIKE :searchTerm', {
+        qb.where(
+          'WORD_SIMILARITY(project.title, :searchTerm) > :similarityThreshold',
+          {
             searchTerm: `%${searchTerm}%`,
-          })
-          .orWhere('project.impactLocation ILIKE :searchTerm', {
-            searchTerm: `%${searchTerm}%`,
-          })
-          .orWhere('user.name ILIKE :searchTerm', {
-            searchTerm: `%${searchTerm}%`,
-          });
+            similarityThreshold,
+          },
+        )
+          .orWhere(
+            'WORD_SIMILARITY(project.description, :searchTerm) > :similarityThreshold',
+            {
+              searchTerm: `%${searchTerm}%`,
+              similarityThreshold,
+            },
+          )
+          .orWhere(
+            'WORD_SIMILARITY(project.impactLocation, :searchTerm) > :similarityThreshold',
+            {
+              searchTerm: `%${searchTerm}%`,
+              similarityThreshold,
+            },
+          )
+          .orWhere(
+            'WORD_SIMILARITY(user.name, :searchTerm) > :similarityThreshold',
+            {
+              searchTerm: `%${searchTerm}%`,
+              similarityThreshold,
+            },
+          );
       }),
     );
   }
