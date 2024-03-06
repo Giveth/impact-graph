@@ -84,6 +84,10 @@ export class ProjectActualMatchingView extends BaseEntity {
   @Column()
   title: string;
 
+  @ViewColumn()
+  @Column()
+  networkAddresses: string;
+
   // We fill it ourself before sending data to google sheet, it's not a DB column
   actualMatching: number;
 }

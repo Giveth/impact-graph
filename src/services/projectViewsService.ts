@@ -67,6 +67,7 @@ export const getQfRoundActualDonationDetails = async (
   const qfRoundDonationsRows = rows.map(row => {
     return {
       projectName: row.title,
+      addresses: row.networkAddresses,
       link: process.env.GIVETH_IO_DAPP_BASE_URL + '/' + row.slug,
       allUsdReceived: row.allUsdReceived,
       allUsdReceivedAfterSybilsAnalysis: row.allUsdReceivedAfterSybilsAnalysis,
