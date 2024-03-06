@@ -243,9 +243,12 @@ export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
   return await Project.createQueryBuilder('project')
     .where('project.isImported = false')
     .andWhere('project.verified = true')
-    .andWhere('project.verificationStatus NOT IN (:...statuses)', {
-      statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
-    })
+    .andWhere(
+      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
+      {
+        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
+      },
+    )
     .andWhereInIds(validProjectIds)
     .leftJoinAndSelect(
       'project.projectVerificationForm',
