@@ -81,7 +81,7 @@ export const getQfRoundActualDonationDetails = async (
       uniqueUserIdsAfterAnalysis: row.uniqueUserIdsAfterAnalysis.join('-'),
     };
   });
-  logger.info(
+  logger.debug(
     'Data that we should upload to googlesheet',
     qfRoundDonationsRows,
   );
