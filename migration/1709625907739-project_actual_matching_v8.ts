@@ -1,86 +1,115 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectActualMatchingV81709625907739 implements MigrationInterface {
+export class AdjustedProjectActualMatchingViewMigration implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
+        DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
+        CREATE MATERIALIZED VIEW project_actual_matching_view AS
+          
+        WITH DonationsBeforeAnalysis AS (
+            SELECT
+                p.id,
+                p.slug,
+                p.title,
+                qr.id as "qfId",
+                qr."minimumPassportScore" as "minimumPassportScore",
+                SUM(d."valueUsd") AS "allUsdReceived",
+                COUNT(DISTINCT d."fromWalletAddress") AS "totalDonors",
+                ARRAY_AGG(d.id) AS "donationIdsBeforeAnalysis"
+            FROM
+                public.donation d
+                INNER JOIN project p ON p.id = d."projectId"
+                INNER JOIN qf_round qr ON qr.id = d."qfRoundId"
+            WHERE
+                d."status" = 'verified'
+                AND d."transactionNetworkId" = ANY(qr."eligibleNetworks")
+            GROUP BY
+                p.id,
+                p.title,
+                p.slug,
+                qr.id
+        ),
+        UserProjectDonations AS (
+            SELECT
+                d2."userId",
+                d2."projectId",
+                d2."qfRoundId",
+                d2."fromWalletAddress",
+                d2."qfRoundUserScore",
+                SUM(d2."valueUsd") AS "totalValueUsd",
+                ARRAY_AGG(DISTINCT d2.id) AS "userDonationIds"
+            FROM
+                public.donation d2
+                INNER JOIN qf_round qr ON qr.id = d2."qfRoundId"
+                INNER JOIN project p ON p.id = d2."projectId"
 
-            CREATE MATERIALIZED VIEW project_actual_matching_view AS
-            WITH DonationsBeforeAnalysis AS (
-                SELECT
-                    p.id,
-                    p.slug,
-                    p.title,
-                    qr.id as "qfId",
-                    qr."minimumPassportScore" as "minimumPassportScore",
-                    STRING_AGG(DISTINCT pa."networkId" || '-' || pa."address", ', ') AS "networkAddresses",
-                    COALESCE(SUM(d."valueUsd"), 0) AS "allUsdReceived",
-                    COUNT(DISTINCT d."fromWalletAddress") AS "totalDonors"
-                FROM
-                    public.donation d
-                    INNER JOIN project p ON p.id = d."projectId"
-                    INNER JOIN qf_round qr ON qr.id = d."qfRoundId"
-                    INNER JOIN project_address pa ON pa."projectId" = p.id AND pa."networkId" = ANY(qr."eligibleNetworks")
-                    LEFT JOIN project_fraud pf ON pf."projectId" = p.id AND pf."qfRoundId" = qr.id
-                WHERE
-                    pf.id IS NULL
-                    AND d."valueUsd" >= qr."minimumValidUsdValue"
-                    AND d."status" = 'verified'
-                    AND d."qfRoundUserScore" > qr."minimumPassportScore"
-                GROUP BY
-                    p.id,
-                    p.title,
-                    p.slug,
-                    qr.id
-            ),
-            UserProjectDonations AS (
-                SELECT
-                    d2."userId",
-                    d2."projectId",
-                    d2."qfRoundId",
-                    SUM(d2."valueUsd") AS "totalValueUsd"
-                FROM
-                    public.donation d2
-                    INNER JOIN qf_round qr ON qr.id = d2."qfRoundId"
-                WHERE
-                    d2."valueUsd" >= qr."minimumValidUsdValue"
-                    AND d2."status" = 'verified'
-                    AND d2."qfRoundUserScore" > qr."minimumPassportScore"
-                GROUP BY
-                    d2."userId",
-                    d2."projectId",
-                    d2."qfRoundId"
-            ),
-            DonationsAfterAnalysis AS (
-                SELECT
-                    p.id,
-                    p.slug,
-                    p.title,
-                    qr.id as "qfId",
-                    COALESCE(SUM(upd."totalValueUsd"), 0) AS "allUsdReceivedAfterSybilsAnalysis",
-                    COUNT(DISTINCT d."fromWalletAddress") AS "uniqueDonors",
-                    SUM(SQRT(upd."totalValueUsd")) AS "donationsSqrtRootSum",
-                    POWER(SUM(SQRT(upd."totalValueUsd")), 2) as "donationsSqrtRootSumSquared"
-                FROM
-                    UserProjectDonations upd
-                    INNER JOIN project p ON p.id = upd."projectId"
+            WHERE
+                d2."status" = 'verified'
+                AND d2."transactionNetworkId" = ANY(qr."eligibleNetworks")
+            GROUP BY
+                d2."userId",
+                d2."fromWalletAddress",
+                d2."qfRoundUserScore",
+                d2."projectId",
+                d2."qfRoundId"
+        ),
+        QualifiedUserDonations AS (
+                  SELECT
+                      upd."userId",
+                      upd."fromWalletAddress",
+                      upd."projectId",
+                      upd."qfRoundId",
+                      upd."totalValueUsd",
+                      upd."userDonationIds",
+                      upd."qfRoundUserScore"
+                  FROM
+                      UserProjectDonations upd
                     INNER JOIN qf_round qr ON qr.id = upd."qfRoundId"
-                    INNER JOIN project_address pa ON pa."projectId" = upd."projectId" AND pa."networkId" = ANY(qr."eligibleNetworks")
-                    LEFT JOIN "sybil" s ON s."userId" = upd."userId" AND s."qfRoundId" = qr.id
-                    LEFT JOIN project_fraud pf ON pf."projectId" = upd."projectId" AND pf."qfRoundId" = qr.id
-                    INNER JOIN donation d ON d."userId" = upd."userId" AND d."projectId" = upd."projectId" AND d."qfRoundId" = qr.id
+                    INNER JOIN project p ON p.id = upd."projectId"
+                    LEFT JOIN project_fraud pf ON pf."projectId" = p.id AND pf."qfRoundId" = qr.id
+                    LEFT JOIN sybil s ON s."userId" = upd."userId" AND s."qfRoundId" =  qr.id
+    
+    
                 WHERE
-                    p."statusId" = 5
-                    AND NOT EXISTS (
-                        SELECT 1
-                        FROM public.project_address pa2
-                        JOIN public.project p4 ON p4.id = pa2."projectId"
-                        WHERE LOWER(pa2.address) = LOWER(d."fromWalletAddress")
-                        AND p4."verified" = true
-                        AND p4."listed" = true
-                    )
-                    AND s.id IS NULL
-                    AND pf.id IS NULL
+                     upd."totalValueUsd" >= qr."minimumValidUsdValue"
+                     AND upd."qfRoundUserScore" >= qr."minimumPassportScore"
+                     AND NOT EXISTS (
+                          SELECT 1 FROM
+                          project_fraud pf
+                          WHERE pf."projectId" = p.id 
+                          AND pf."qfRoundId" = qr.id
+                      )
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM sybil s  
+                          WHERE s."userId" = upd."userId"
+                          AND s."qfRoundId" = qr.id
+                      )
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM public.project_address pa2
+                          JOIN public.project p4 ON p4.id = pa2."projectId"
+                          WHERE LOWER(pa2.address) = LOWER(upd."fromWalletAddress")
+                          AND p4."verified" = true
+                          AND p4."listed" = true
+                      )
+            ),
+        DonationsAfterAnalysis AS (
+                SELECT
+                    p.id,
+                    p.slug,
+                    p.title,
+                    qr.id as "qfId",
+                    COALESCE(SUM(qud."totalValueUsd"), 0) AS "allUsdReceivedAfterSybilsAnalysis",
+                    COUNT(DISTINCT d."fromWalletAddress") AS "uniqueQualifiedDonors",
+                    SUM(SQRT(qud."totalValueUsd")) AS "donationsSqrtRootSum",
+                    POWER(SUM(SQRT(qud."totalValueUsd")), 2) as "donationsSqrtRootSumSquared",
+                    ARRAY_AGG(d.id) AS "donationIdsAfterAnalysis"
+                FROM
+                    QualifiedUserDonations qud
+                    INNER JOIN project p ON p.id = qud."projectId"
+                    INNER JOIN qf_round qr ON qr.id = qud."qfRoundId"
+                    INNER JOIN donation d ON d."userId" = qud."userId" AND d."projectId" = qud."projectId" AND d."qfRoundId" = qud."qfRoundId"
                 GROUP BY
                     p.id,
                     p.title,
@@ -91,24 +120,25 @@ export class ProjectActualMatchingV81709625907739 implements MigrationInterface 
                 d1.id AS "projectId",
                 d1.title,
                 d1.slug,
-                d1."networkAddresses",
                 d1."qfId" AS "qfRoundId",
+                d1."donationIdsBeforeAnalysis",
                 d1."allUsdReceived",
                 d1."totalDonors",
-                d2."allUsdReceivedAfterSybilsAnalysis",
-                d2."uniqueDonors",
-                d2."donationsSqrtRootSum",
-                d2."donationsSqrtRootSumSquared"
+                daa."donationIdsAfterAnalysis",
+                daa."allUsdReceivedAfterSybilsAnalysis",
+                daa."uniqueQualifiedDonors",
+                daa."donationsSqrtRootSum",
+                daa."donationsSqrtRootSumSquared"
             FROM
                 DonationsBeforeAnalysis d1
-                INNER JOIN DonationsAfterAnalysis d2 ON d1.id = d2.id AND d1.slug = d2.slug AND d1."qfId" = d2."qfId";
-
-            CREATE INDEX idx_project_actual_matching_project_id ON project_actual_matching_view USING hash ("projectId");
-            CREATE INDEX idx_project_actual_matching_qf_round_id ON project_actual_matching_view USING hash ("qfRoundId");
+                INNER JOIN DonationsAfterAnalysis daa ON d1.id = daa.id AND d1.slug = daa.slug AND d1."qfId" = daa."qfId";
+              
+        CREATE INDEX idx_project_actual_matching_project_id ON project_actual_matching_view USING hash ("projectId");
+        CREATE INDEX idx_project_actual_matching_qf_round_id ON project_actual_matching_view USING hash ("qfRoundId");
         `);
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    //
+    // Logic to revert the changes made by the up method, if necessary
   }
 }

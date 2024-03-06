@@ -428,6 +428,15 @@ export const donationTab = {
           new: false,
         },
       },
+      qfRoundUserScore: {
+        isVisible: {
+          list: false,
+          filter: false,
+          show: true,
+          edit: false,
+          new: false,
+        },
+      },
       givbackFactor: {
         isVisible: false,
       },
