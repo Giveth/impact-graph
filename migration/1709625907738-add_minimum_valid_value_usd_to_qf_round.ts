@@ -6,7 +6,7 @@ export class AddMinimumValidValueUsdToQfRound1709625907738
   async up(queryRunner: QueryRunner): Promise<void> {
     // Add the new column with a default value of NULL
     await queryRunner.query(`
-      ALTER TABLE qf_round ADD COLUMN IF NOT EXISTS "minimumValidUsdValue" FLOAT;
+      ALTER TABLE qf_round ADD COLUMN IF NOT EXISTS "minimumValidUsdValue" FLOAT DEFAULT 1;
     `);
 
     // Update existing records to set the value to 0.65
