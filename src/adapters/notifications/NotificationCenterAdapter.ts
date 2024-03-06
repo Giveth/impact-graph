@@ -889,7 +889,12 @@ const getEmailDataDonationAttributes = async (params: {
 
 const getEmailDataProjectAttributes = async (params: { project: Project }) => {
   const { project } = params;
-  const user = await findUserById(project.adminUserId);
+  let user: User | null;
+  if (project.adminUser?.email) {
+    user = project.adminUser;
+  } else {
+    user = await findUserById(project.adminUserId);
+  }
   return {
     email: user?.email,
     title: project.title,

@@ -225,7 +225,9 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   return query.take(limit).skip(skip);
 };
 
-export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
+export const projectsWithoutUpdateAfterTimeFrame = async (
+  date: Date,
+): Promise<Project[]> => {
   const projectsWithLatestUpdateBeforeCutOff = await Project.createQueryBuilder(
     'project',
   )
@@ -240,7 +242,7 @@ export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
     item => item.projectId,
   );
 
-  return await Project.createQueryBuilder('project')
+  const projects = await Project.createQueryBuilder('project')
     .where('project.isImported = false')
     .andWhere('project.verified = true')
     .andWhere(
@@ -255,7 +257,16 @@ export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
       'projectVerificationForm',
     )
     .leftJoinAndSelect('project.adminUser', 'user')
+    .leftJoinAndSelect('project.projectUpdates', 'projectUpdates')
     .getMany();
+
+  projects.forEach(project => {
+    project.projectUpdates?.sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  });
+
+  return projects;
 };
 
 export const findProjectBySlug = (slug: string): Promise<Project | null> => {
