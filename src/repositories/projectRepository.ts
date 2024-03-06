@@ -224,7 +224,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         .addOrderBy(`project.verified`, OrderDirection.DESC);
       break;
   }
-
   return query.take(limit).skip(skip);
 };
 
