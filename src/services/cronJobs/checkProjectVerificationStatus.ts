@@ -77,7 +77,7 @@ export const checkProjectVerificationStatus = async () => {
   const projects = await projectsWithoutUpdateAfterTimeFrame(
     maxDaysForSendingUpdateWarning,
   );
-  logger.debug('checkProjectVerificationStatus()', {
+  logger.debug('checkProjectVerificationStatus() has been called', {
     maxDaysForSendingUpdateWarning,
     foundProjectsCount: projects.length,
     projects: projects.map(p => {
@@ -118,7 +118,7 @@ const remindUpdatesOrRevokeVerification = async (project: Project) => {
     projectId: project.id,
     projectSlug: project.slug,
     projectVerificationStatus: project.verificationStatus,
-    projectLatestUpdate: latestUpdate,
+    latestUpdate,
   });
   const { verificationStatus } = project;
   let newVerificationStatus = verificationStatus?.slice();
