@@ -2,22 +2,19 @@ import { UpdateResult } from 'typeorm';
 import {
   FilterField,
   Project,
-  ProjectUpdate,
   ProjStatus,
   ReviewStatus,
+  RevokeSteps,
   SortingField,
 } from '../entities/project';
 import { ProjectVerificationForm } from '../entities/projectVerificationForm';
 import { ProjectAddress } from '../entities/projectAddress';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { User, publicSelectionFields } from '../entities/user';
+import { publicSelectionFields } from '../entities/user';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
 import { OrderDirection, ProjectResolver } from '../resolvers/projectResolver';
-import { ChainType } from '../types/network';
-import {
-  getAppropriateNetworkId,
-  getDefaultSolanaChainId,
-} from '../services/chains';
+import { getAppropriateNetworkId } from '../services/chains';
+
 export const findProjectById = (projectId: number): Promise<Project | null> => {
   // return Project.findOne({ id: projectId });
 
@@ -229,17 +226,35 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
 };
 
 export const projectsWithoutUpdateAfterTimeFrame = async (date: Date) => {
-  return Project.createQueryBuilder('project')
+  const projectsWithLatestUpdateBeforeCutOff = await Project.createQueryBuilder(
+    'project',
+  )
+    .leftJoin('project.projectUpdates', 'projectUpdates')
+    .select('project.id', 'projectId')
+    .addSelect('MAX(projectUpdates.createdAt)', 'latestUpdate')
+    .groupBy('project.id')
+    .having('MAX(projectUpdates.createdAt) < :date', { date })
+    .getRawMany();
+
+  const validProjectIds = projectsWithLatestUpdateBeforeCutOff.map(
+    item => item.projectId,
+  );
+
+  return await Project.createQueryBuilder('project')
+    .where('project.isImported = false')
+    .andWhere('project.verified = true')
+    .andWhere(
+      '(project.verificationStatus NOT IN (:...statuses) OR project.verificationStatus IS NULL)',
+      {
+        statuses: [RevokeSteps.UpForRevoking, RevokeSteps.Revoked],
+      },
+    )
+    .andWhereInIds(validProjectIds)
     .leftJoinAndSelect(
       'project.projectVerificationForm',
       'projectVerificationForm',
     )
     .leftJoinAndSelect('project.adminUser', 'user')
-    .where('project.isImported = false')
-    .andWhere('project.verified = true')
-    .andWhere('project.updatedAt < :badgeRevokingDate', {
-      badgeRevokingDate: date,
-    })
     .getMany();
 };
 

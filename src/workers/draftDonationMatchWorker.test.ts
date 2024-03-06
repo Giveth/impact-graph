@@ -2,7 +2,7 @@ import {
   DraftDonation,
   DRAFT_DONATION_STATUS,
 } from '../entities/draftDonation';
-import { Project } from '../entities/project';
+import { Project, ProjectUpdate } from '../entities/project';
 import { NETWORK_IDS } from '../provider';
 import { runDraftDonationMatchWorker } from '../services/chains/evm/draftDonationService';
 import {
@@ -48,6 +48,7 @@ describe('draftDonationMatchWorker', () => {
     });
     if (projectAddress) {
       await ProjectAddress.delete({ address: RandomAddress2 });
+      await ProjectUpdate.delete({ projectId: projectAddress.projectId });
       await Project.delete(projectAddress.projectId);
     }
 
