@@ -11,6 +11,7 @@ import { logger } from '../../../utils/logger';
 import csv from 'csvtojson';
 import { messages } from '../../../utils/messages';
 import { errorMessages } from '../../../utils/errorMessages';
+import { findUserByWalletAddress } from '../../../repositories/userRepository';
 
 export const createSybil = async (
   request: AdminJsRequestInterface,
@@ -22,7 +23,7 @@ export const createSybil = async (
 
   let type = 'success';
   try {
-    const { userId, qfRoundId, csvData } = request.payload;
+    const { walletAddress, qfRoundId, csvData } = request.payload;
     if (csvData) {
       // Parse the CSV data
       const jsonArray = await csv().fromString(csvData);
@@ -55,7 +56,9 @@ export const createSybil = async (
             obj.walletAddress.toLowerCase(),
           );
           return walletAddressUserId
-            ? `(${walletAddressUserId}, ${Number(obj.qfRoundId)})`
+            ? `(${walletAddressUserId}, ${Number(obj.qfRoundId)}, '${
+                obj.walletAddress
+              }')`
             : null;
         })
         .filter(value => value !== null) // Filter out any rows where userId was not found
@@ -67,16 +70,30 @@ export const createSybil = async (
 
       // Upsert query
       const upsertQuery = `
-          INSERT INTO sybil ( "userId", "qfRoundId")
+          INSERT INTO sybil ( "userId", "qfRoundId", "walletAddress")
           VALUES ${values}
           ON CONFLICT ("userId", "qfRoundId") DO NOTHING
      `;
       // Execute the query
       await Sybil.query(upsertQuery);
     } else {
+      const user = await findUserByWalletAddress(walletAddress);
+      if (!user) {
+        throw new Error(errorMessages.USER_NOT_FOUND);
+      }
+      const currentSybil = await Sybil.findOne({
+        where: {
+          userId: user.id,
+          qfRoundId,
+        },
+      });
+      if (currentSybil) {
+        throw new Error(errorMessages.SYBIL_RECORD_IS_IN_DB_ALREADY);
+      }
       const sybil = new Sybil();
-      sybil.userId = userId;
+      sybil.userId = user.id;
       sybil.qfRoundId = qfRoundId;
+      sybil.walletAddress = walletAddress;
       await sybil.save();
     }
 
@@ -102,11 +119,21 @@ export const SybilTab = {
 
   options: {
     properties: {
-      userId: {
+      walletAddress: {
         isVisible: true,
       },
+
       qfRoundId: {
         isVisible: true,
+      },
+      userId: {
+        isVisible: {
+          filter: true,
+          list: true,
+          show: true,
+          new: false,
+          edit: false,
+        },
       },
       csvData: {
         type: 'textarea',
