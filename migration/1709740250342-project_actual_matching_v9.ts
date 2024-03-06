@@ -23,6 +23,7 @@ export class projectActualMatchingV91709740250342
                 public.donation d
                 INNER JOIN project p ON p.id = d."projectId"
                 INNER JOIN qf_round qr ON qr.id = d."qfRoundId"
+                INNER JOIN project_address pa ON pa."projectId" = p.id AND pa."networkId" = ANY(qr."eligibleNetworks")
             WHERE
                 d."status" = 'verified'
                 AND d."transactionNetworkId" = ANY(qr."eligibleNetworks")
