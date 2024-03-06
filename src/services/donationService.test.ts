@@ -993,8 +993,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
     expect(donation.valueUsd).to.gt(0);
   });
 
-  // As fetchMpEthPrice is not working, this test is skipped
-  it.skip('should fill price for mpETH donation on the MAINNET network', async () => {
+  it('should fill price for mpETH donation on the MAINNET network', async () => {
     const currency = 'mpETH';
     const tokenAddress = '0x48afbbd342f64ef8a9ab1c143719b63c2ad81710';
     const amount = 2;
@@ -1035,8 +1034,7 @@ function fillOldStableCoinDonationsPriceTestCases() {
     expect(donation.priceUsd).to.below(donation.valueUsd);
   });
 
-  // As fetchMpEthPrice is not working, this test is skipped
-  it.skip('should fill price for mpETH donation on the OPTIMISM network', async () => {
+  it('should fill price for mpETH donation on the OPTIMISM network', async () => {
     const currency = 'mpETH';
     const tokenAddress = '0x819845b60a192167ed1139040b4f8eca31834f27';
     const amount = 2;

@@ -46,6 +46,10 @@ export class QfRound extends BaseEntity {
   @Column()
   minimumPassportScore: number;
 
+  @Field(type => Number)
+  @Column('real')
+  minimumValidUsdValue: number;
+
   @Field(type => [Int], { nullable: true }) // Define the new field as an array of integers
   @Column('integer', { array: true, default: [] })
   eligibleNetworks: number[];

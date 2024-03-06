@@ -48,6 +48,7 @@ import { Sybil } from './sybil';
 import { DraftDonation } from './draftDonation';
 import { ProjectFraud } from './projectFraud';
 import { ProjectSocialMedia } from './projectSocialMedia';
+import { ProjectActualMatchingView } from './ProjectActualMatchingView';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -91,6 +92,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ProjectInstantPowerView,
     ProjectUserInstantPowerView,
     ProjectEstimatedMatchingView,
+    ProjectActualMatchingView,
 
     // historic snapshots
     PowerSnapshotHistory,
