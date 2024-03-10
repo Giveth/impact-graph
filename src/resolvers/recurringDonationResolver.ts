@@ -26,6 +26,8 @@ import {
 import {
   createNewRecurringDonation,
   findRecurringDonationById,
+  findRecurringDonationByProjectIdAndUserId,
+  updateRecurringDonation,
 } from '../repositories/recurringDonationRepository';
 import { publicSelectionFields } from '../entities/user';
 import { Brackets } from 'typeorm';
@@ -166,6 +168,55 @@ export class RecurringDonationResolver {
       txHash,
       flowRate,
       currency,
+      anonymous,
+    });
+  }
+
+  @Mutation(returns => RecurringDonation, { nullable: true })
+  async updateRecurringDonationParams(
+    @Ctx() ctx: ApolloContext,
+    @Arg('projectId', () => Int) projectId: number,
+    @Arg('networkId', () => Int) networkId: number,
+    @Arg('txHash', () => String) txHash: string,
+    @Arg('flowRate', () => String) flowRate: string,
+    @Arg('anonymous', () => Boolean) anonymous: boolean,
+  ): Promise<RecurringDonation> {
+    const userId = ctx?.req?.user?.userId;
+    const donor = await findUserById(userId);
+    if (!donor) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+    }
+    const project = await findProjectById(projectId);
+    if (!project) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+    const recurringDonation = await findRecurringDonationByProjectIdAndUserId({
+      projectId: project.id,
+      userId: donor.id,
+    });
+    if (!recurringDonation) {
+      // TODO set proper error message
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.RECURRING_DONATION_NOT_FOUND),
+      );
+    }
+    const currentAnchorProjectAddress = await findActiveAnchorAddress({
+      projectId,
+      networkId,
+    });
+
+    if (!currentAnchorProjectAddress) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
+        ),
+      );
+    }
+
+    return updateRecurringDonation({
+      recurringDonation,
+      txHash,
+      flowRate,
       anonymous,
     });
   }
