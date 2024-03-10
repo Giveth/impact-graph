@@ -15,7 +15,11 @@ import {
 
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findProjectById } from '../repositories/projectRepository';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { findActiveAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
@@ -199,9 +203,7 @@ export class RecurringDonationResolver {
       });
     if (!recurringDonation) {
       // TODO set proper error message
-      throw new Error(
-        i18n.__(translationErrorMessagesKeys.RECURRING_DONATION_NOT_FOUND),
-      );
+      throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
     }
     const currentAnchorProjectAddress = await findActiveAnchorAddress({
       projectId,
