@@ -188,6 +188,7 @@ export class RecurringDonationResolver {
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
     const donor = await findUserById(userId);
+
     if (!donor) {
       throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
     }
@@ -299,7 +300,7 @@ export class RecurringDonationResolver {
             detectAddressChainType(searchTerm) === undefined &&
             Number(searchTerm)
           ) {
-            qb.orWhere('recurringDonation.flowRate = :searchTerm', {
+            qb.orWhere('recurringDonation.flowRate =  :searchTerm', {
               searchTerm,
             });
           }
