@@ -54,6 +54,7 @@ import { EstimatedMatching } from '../types/qfTypes';
 import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
+import { ProjectSocialMedia } from './projectSocialMedia';
 // tslint:disable-next-line:no-var-requires
 const moment = require('moment');
 
@@ -281,6 +282,12 @@ export class Project extends BaseEntity {
   })
   addresses?: ProjectAddress[];
 
+  @Field(type => [ProjectSocialMedia], { nullable: true })
+  @OneToMany(type => ProjectSocialMedia, socialMedia => socialMedia.project, {
+    eager: true,
+  })
+  socialMedia?: ProjectSocialMedia[];
+
   @Field(type => [AnchorContractAddress], { nullable: true })
   @OneToMany(
     type => AnchorContractAddress,
@@ -408,6 +415,7 @@ export class Project extends BaseEntity {
   projectUpdate?: any;
 
   @Field(type => [ProjectUpdate], { nullable: true })
+  @OneToMany(() => ProjectUpdate, projectUpdate => projectUpdate.project)
   projectUpdates?: ProjectUpdate[];
 
   @Field(type => String, { nullable: true })
@@ -639,6 +647,7 @@ export class ProjectUpdate extends BaseEntity {
 
   // Project oneToOne as virtual attribute as relation was not set properly
   @Field(type => Project, { nullable: true })
+  @ManyToOne(() => Project, project => project.projectUpdates)
   project?: Project;
 
   @Field()

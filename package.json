@@ -190,6 +190,8 @@
     "test:apiGive": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/routers/apiGivRoutes.test.ts",
     "test:adminJs": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/server/adminJs/**/*.test.ts ",
     "test:donationTab": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/server/adminJs/tabs/donationTab.test.ts ",
+    "test:sybilTab": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/server/adminJs/tabs/sybilTab.test.ts ",
+    "test:projectFraudTab": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/server/adminJs/tabs/projectFraudTab.test.ts",
     "test:poignArt": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/poignArt/api.test.ts",
     "test:bootstrap": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/server/bootstrap.test.ts",
     "test:utils": "NODE_ENV=test mocha ./src/utils/utils.test.ts",

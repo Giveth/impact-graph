@@ -49,6 +49,7 @@ import { ChainType } from '../types/network';
 import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
 import { fetchMpEthPrice } from './mpEthPriceService';
+import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
@@ -525,6 +526,18 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
     `insertDonationsFromQfRoundHistory Filling ${qfRoundHistories.length} qfRoundHistory info ...`,
   );
 
+  for (const qfRoundHistory of qfRoundHistories) {
+    if (qfRoundHistory.distributedFundTxDate) {
+      continue;
+    }
+    // get transaction time from blockchain
+    const txTimestamp = await getEvmTransactionTimestamp({
+      txHash: qfRoundHistory.distributedFundTxHash,
+      networkId: Number(qfRoundHistory.distributedFundNetwork),
+    });
+    qfRoundHistory.distributedFundTxDate = new Date(txTimestamp);
+    await qfRoundHistory.save();
+  }
   const matchingFundFromAddress =
     (process.env.MATCHING_FUND_DONATIONS_FROM_ADDRESS as string) ||
     donationDotEthAddress;
@@ -568,7 +581,7 @@ export const insertDonationsFromQfRoundHistory = async (): Promise<void> => {
             q."qfRoundId",
             true,
             ${user.id},
-            NOW()
+            q."distributedFundTxDate"
         FROM
             "qf_round_history" q
             INNER JOIN "project" p ON q."projectId" = p."id"

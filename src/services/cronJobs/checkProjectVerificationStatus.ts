@@ -77,13 +77,12 @@ export const checkProjectVerificationStatus = async () => {
   const projects = await projectsWithoutUpdateAfterTimeFrame(
     maxDaysForSendingUpdateWarning,
   );
-  logger.debug('checkProjectVerificationStatus()', {
+  logger.debug('checkProjectVerificationStatus() has been called', {
     maxDaysForSendingUpdateWarning,
     foundProjectsCount: projects.length,
     projects: projects.map(p => {
       return {
         slug: p.slug,
-        updatedAt: p.updatedAt,
         verificationStatus: p.verificationStatus,
       };
     }),
@@ -113,25 +112,28 @@ export const checkProjectVerificationStatus = async () => {
 
 const remindUpdatesOrRevokeVerification = async (project: Project) => {
   // We don't revoke verification badge for any projects.
+  const latestUpdate =
+    project.projectUpdates?.[0].createdAt || project.updatedAt;
   logger.debug('remindUpdatesOrRevokeVerification() has been called', {
     projectId: project.id,
     projectSlug: project.slug,
     projectVerificationStatus: project.verificationStatus,
+    latestUpdate,
   });
-  const { verificationStatus, updatedAt } = project;
+  const { verificationStatus } = project;
   let newVerificationStatus = verificationStatus?.slice();
   if (
     (!verificationStatus || verificationStatus === RevokeSteps.Reminder) &&
-    updatedAt <= maxDaysForSendingUpdateWarning
+    latestUpdate <= maxDaysForSendingUpdateWarning
   ) {
     newVerificationStatus = RevokeSteps.Warning;
   } else if (
-    updatedAt <= maxDaysForSendingUpdateLastWarning &&
+    latestUpdate <= maxDaysForSendingUpdateLastWarning &&
     verificationStatus === RevokeSteps.Warning
   ) {
     newVerificationStatus = RevokeSteps.LastChance;
   } else if (
-    updatedAt <= maxDaysForRevokingBadge &&
+    latestUpdate <= maxDaysForRevokingBadge &&
     verificationStatus === RevokeSteps.LastChance
   ) {
     newVerificationStatus = RevokeSteps.UpForRevoking;

@@ -22,6 +22,9 @@ export const setI18nLocaleForRequest = async (req, res, next) => {
 export const errorMessages = {
   FIAT_DONATION_ALREADY_EXISTS: 'Onramper donation already exists',
   CAMPAIGN_NOT_FOUND: 'Campaign not found',
+  NONE_OF_WALLET_ADDRESSES_FOUND_IN_DB:
+    'None of the wallet addresses were found in the database',
+  NO_VALID_PROJECTS_FOUND: 'No valid project slug found in the CSV',
   THERE_IS_NOT_ANY_FEATURED_CAMPAIGN: 'There is not any featured campaign',
   CHAINVINE_REFERRER_NOT_FOUND: 'Chainvine referrer not found',
   ONRAMPER_SIGNATURE_INVALID: 'Onramper signature invalid',
@@ -130,6 +133,8 @@ export const errorMessages = {
   TRANSACTION_SMART_CONTRACT_CONFLICTS_WITH_CURRENCY:
     'Smart contract address is not equal to transaction.to',
   USER_NOT_FOUND: 'User not found.',
+  SYBIL_RECORD_IS_IN_DB_ALREADY:
+    'Sybil item for this user and qfRound is in the DB already.',
   INVALID_NETWORK_ID: 'Network Id is invalid',
   INVALID_TOKEN_SYMBOL: 'Token symbol is invalid',
   TOKEN_SYMBOL_IS_REQUIRED: 'Token symbol is required',

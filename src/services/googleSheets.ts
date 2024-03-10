@@ -32,7 +32,7 @@ interface ProjectExport {
 export interface QfRoundDonationRow {
   projectName: string;
   // Pattern is networkId-projectAddress,... Example: 1-0x123...456,10,ETH,0x123...456
-  addresses: string;
+  addresses?: string;
   link: string;
   allUsdReceived?: number;
   allUsdReceivedAfterSybilsAnalysis?: number;
@@ -42,6 +42,11 @@ export interface QfRoundDonationRow {
   uniqueDonors: number;
   realMatchingFund: number;
   projectWeight?: number;
+
+  donationIdsBeforeAnalysis: string;
+  donationIdsAfterAnalysis: string;
+  totalValuesOfUserDonationsAfterAnalysis: string;
+  uniqueUserIdsAfterAnalysis: string;
 }
 
 interface DonationExport {
@@ -154,6 +159,7 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
     const spreadSheet = await initQfRoundDonationsSpreadsheet();
 
     const currentDate = moment().toDate();
+
     const headers = [
       'projectName',
       'addresses',
@@ -164,6 +170,10 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
       'uniqueDonors',
       'realMatchingFund',
       'projectWeight',
+      'donationIdsBeforeAnalysis',
+      'donationIdsAfterAnalysis',
+      'totalValuesOfUserDonationsAfterAnalysis',
+      'uniqueUserIdsAfterAnalysis',
     ];
     const { rows, qfRoundId } = params;
 

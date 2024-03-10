@@ -2,6 +2,7 @@ import { QfRound } from '../entities/qfRound';
 import { AppDataSource } from '../orm';
 import { logger } from '../utils/logger';
 import { QfRoundDonationRow } from './googleSheets';
+import { ProjectActualMatchingView } from '../entities/ProjectActualMatchingView';
 
 export const refreshProjectEstimatedMatchingView = async (): Promise<void> => {
   logger.debug('Refresh project_estimated_matching_view materialized view');
@@ -41,12 +42,11 @@ export const getQfRoundActualDonationDetails = async (
 
   await refreshProjectActualMatchingView();
 
-  const rows = await QfRound.query(`
+  const rows = (await ProjectActualMatchingView.query(`
       SELECT *
       FROM project_actual_matching_view
       WHERE "qfRoundId" = ${qfRoundId}
-  `);
-
+  `)) as ProjectActualMatchingView[];
   let totalReward = qfRound!.allocatedFund;
   const qfRoundMaxReward = totalReward * Number(qfRound?.maximumReward || 0.2);
   let totalWeight = rows.reduce((accumulator, currentRow) => {
@@ -72,11 +72,20 @@ export const getQfRoundActualDonationDetails = async (
       allUsdReceived: row.allUsdReceived,
       allUsdReceivedAfterSybilsAnalysis: row.allUsdReceivedAfterSybilsAnalysis,
       totalDonors: row.totalDonors,
-      uniqueDonors: row.uniqueDonors,
+      uniqueDonors: row.uniqueQualifiedDonors,
       realMatchingFund: row.actualMatching,
       projectWeight: row.donationsSqrtRootSumSquared,
+      donationIdsBeforeAnalysis: row.donationIdsBeforeAnalysis.join('-'),
+      donationIdsAfterAnalysis: row.donationIdsAfterAnalysis.join('-'),
+      totalValuesOfUserDonationsAfterAnalysis:
+        row.totalValuesOfUserDonationsAfterAnalysis.join('-'),
+      uniqueUserIdsAfterAnalysis: row.uniqueUserIdsAfterAnalysis.join('-'),
     };
   });
+  logger.debug(
+    'Data that we should upload to googlesheet',
+    qfRoundDonationsRows,
+  );
 
   return qfRoundDonationsRows;
 };

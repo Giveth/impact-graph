@@ -23,7 +23,7 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
-import { findTokenByTokenAddress } from '../../repositories/tokenRepository';
+import { findTokenByNetworkAndAddress } from '../../utils/tokenUtils';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -865,7 +865,10 @@ const getEmailDataDonationAttributes = async (params: {
   donation: Donation;
 }) => {
   const { user, project, donation } = params;
-  const token = await findTokenByTokenAddress(donation.tokenAddress!);
+  const token = await findTokenByNetworkAndAddress(
+    donation.transactionNetworkId,
+    donation.tokenAddress!,
+  );
   const symbol = token?.symbol;
   return {
     email: user.email,
@@ -895,7 +898,12 @@ const getEmailDataDonationAttributes = async (params: {
 
 const getEmailDataProjectAttributes = async (params: { project: Project }) => {
   const { project } = params;
-  const user = await findUserById(project.adminUserId);
+  let user: User | null;
+  if (project.adminUser?.email) {
+    user = project.adminUser;
+  } else {
+    user = await findUserById(project.adminUserId);
+  }
   return {
     email: user?.email,
     title: project.title,
