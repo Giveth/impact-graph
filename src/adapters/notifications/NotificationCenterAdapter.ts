@@ -55,10 +55,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async userSuperTokensCritical(params: {
     userId: number;
-    superTokenSymbol: string;
+    email: string;
+    criticalDate: string;
+    tokensymbol: string;
   }): Promise<void> {
-    // Add ortto email logic
-    return;
+    return; // implement it on another branch
   }
 
   async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {

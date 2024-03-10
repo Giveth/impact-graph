@@ -7,14 +7,7 @@ import Bull from 'bull';
 import { redisConfig } from '../redis';
 import config from '../config';
 import { getCurrentDateFormatted } from '../utils/utils';
-import { SuperFluidAdapter } from '../adapters/superFluid/superFluidAdapter';
-import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
-import { RecurringDonation } from '../entities/recurringDonation';
-import {
-  createRelatedDonationsToStream,
-  fetchStreamTableStartDate,
-  validateDonorSuperTokenBalance,
-} from './recurringDonationService';
+import { createRelatedDonationsToStream } from './recurringDonationService';
 
 const updateRecurringDonationsStreamQueue = new Bull(
   'update-recurring-donations-stream-queue',
@@ -93,5 +86,4 @@ export const updateRecurringDonationStream = async (params: {
 
   if (!recurringDonation) return;
   await createRelatedDonationsToStream(recurringDonation);
-  await validateDonorSuperTokenBalance(recurringDonation);
 };

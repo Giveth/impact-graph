@@ -140,7 +140,7 @@ export const createRelatedDonationsToStream = async (
       const fromAddress = donorUser.walletAddress?.toLowerCase();
       const transactionTx = streamData.id?.toLowerCase() as string;
 
-      const donation = await Donation.create({
+      const donation = Donation.create({
         amount: normalizeNegativeAmount(
           streamPeriod.amount,
           tokenInDb!.decimals,
@@ -161,12 +161,14 @@ export const createRelatedDonationsToStream = async (
         segmentNotified: false,
         toWalletAddress: toAddress,
         fromWalletAddress: fromAddress,
+        recurringDonation,
         anonymous: Boolean(recurringDonation.anonymous),
         chainType: ChainType.EVM,
-        recurringDonation,
         virtualPeriodStart: streamPeriod.startTime,
         virtualPeriodEnd: streamPeriod.endTime,
       });
+
+      await donation.save();
 
       const activeQfRoundForProject = await relatedActiveQfRoundForProject(
         project.id,
@@ -209,29 +211,6 @@ export function normalizeNegativeAmount(
 ): number {
   return Math.abs(Number(amount)) / 10 ** decimals;
 }
-
-export const validateDonorSuperTokenBalance = async (
-  recurringDonation: RecurringDonation,
-) => {
-  const superFluidAdapter = getSuperFluidAdapter();
-  const user = await findUserById(recurringDonation.donorId);
-
-  const accountBalances = await superFluidAdapter.accountBalance(
-    user!.walletAddress!,
-  );
-  for (const tokenBalance of accountBalances.accountTokenSnapshots) {
-    if (
-      Object.keys(superTokensToToken).includes(tokenBalance.token.symbol) &&
-      tokenBalance.maybeCriticalAtTimestamp
-    ) {
-      // Notify user their super token is running out
-      await getNotificationAdapter().userSuperTokensCritical({
-        userId: user!.id,
-        superTokenSymbol: tokenBalance.token.symbol,
-      });
-    }
-  }
-};
 
 export const updateRecurringDonationStatusWithNetwork = async (params: {
   donationId: number;

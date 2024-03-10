@@ -17,7 +17,9 @@ export class MockNotificationAdapter implements NotificationAdapterInterface {
 
   userSuperTokensCritical(params: {
     userId: number;
-    superTokenSymbol: string;
+    email: string;
+    criticalDate: string;
+    tokensymbol: string;
   }): Promise<void> {
     return Promise.resolve(undefined);
   }

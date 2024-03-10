@@ -90,7 +90,7 @@ export class RecurringDonation extends BaseEntity {
 
   @Index()
   @Field(type => AnchorContractAddress)
-  @ManyToOne(type => AnchorContractAddress)
+  @ManyToOne(type => AnchorContractAddress, { eager: true })
   anchorContractAddress: AnchorContractAddress;
 
   @RelationId(
