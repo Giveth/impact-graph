@@ -26,6 +26,7 @@ export const DONATION_STATUS = {
 export const DONATION_ORIGINS = {
   IDRISS_TWITTER: 'Idriss',
   DRAFT_DONATION_MATCHING: 'DraftDonationMatching',
+  SUPER_FLUID: 'SuperFluid',
 };
 
 export const DONATION_TYPES = {
@@ -208,6 +209,7 @@ export class Donation extends BaseEntity {
   @Field(type => RecurringDonation, { nullable: true })
   @ManyToOne(type => RecurringDonation, { eager: true, nullable: true })
   recurringDonation?: RecurringDonation;
+
   @RelationId((donation: Donation) => donation.recurringDonation)
   @Column({ nullable: true })
   recurringDonationId: number;
@@ -268,6 +270,16 @@ export class Donation extends BaseEntity {
   @Field(type => Boolean, { nullable: true })
   @Column({ nullable: true, default: false })
   isTokenEligibleForGivback: boolean;
+
+  @Field({ nullable: true })
+  @Column('integer', { nullable: true })
+  // To match the superFluid Virtual Period
+  virtualPeriodStart?: number;
+
+  @Field({ nullable: true })
+  @Column('integer', { nullable: true })
+  // To match the superFluid Virtual Period
+  virtualPeriodEnd?: number;
 
   static async findXdaiGivDonationsWithoutPrice() {
     return this.createQueryBuilder('donation')

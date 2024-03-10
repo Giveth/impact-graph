@@ -5,6 +5,7 @@ import {
   Entity,
   Index,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   RelationId,
   Unique,
@@ -14,10 +15,12 @@ import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
 import { User } from './user';
 import { AnchorContractAddress } from './anchorContractAddress';
+import { Donation } from './donation';
 
 export const RECURRING_DONATION_STATUS = {
   PENDING: 'pending',
   VERIFIED: 'verified',
+  STOPPED: 'stopped',
   FAILED: 'failed',
 };
 
@@ -35,8 +38,16 @@ export class RecurringDonation extends BaseEntity {
   networkId: number;
 
   @Field()
-  @Column({ nullable: false })
+  @Column({ nullable: true, default: 0 })
+  amountStreamed?: number;
+
+  @Field()
+  @Column({ nullable: true, default: 0 })
+  totalUsdStreamed?: number;
+
   // per second
+  @Field()
+  @Column({ nullable: false })
   flowRate: string;
 
   @Index()
@@ -75,7 +86,7 @@ export class RecurringDonation extends BaseEntity {
 
   @Index()
   @Field(type => AnchorContractAddress)
-  @ManyToOne(type => AnchorContractAddress)
+  @ManyToOne(type => AnchorContractAddress, { eager: true })
   anchorContractAddress: AnchorContractAddress;
 
   @RelationId(
@@ -93,6 +104,10 @@ export class RecurringDonation extends BaseEntity {
   @RelationId((recurringDonation: RecurringDonation) => recurringDonation.donor)
   @Column({ nullable: true })
   donorId: number;
+
+  @Field(type => [Donation], { nullable: true })
+  @OneToMany(type => Donation, donation => donation.recurringDonation)
+  donations?: Donation[];
 
   @UpdateDateColumn()
   @Field()
