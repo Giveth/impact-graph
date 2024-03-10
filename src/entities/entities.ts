@@ -47,8 +47,8 @@ import { RecurringDonation } from './recurringDonation';
 import { Sybil } from './sybil';
 import { DraftDonation } from './draftDonation';
 import { ProjectFraud } from './projectFraud';
-import { ProjectSocialMedia } from './projectSocialMedia';
 import { ProjectActualMatchingView } from './ProjectActualMatchingView';
+import { ProjectSocialMedia } from './projectSocialMedia';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
