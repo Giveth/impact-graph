@@ -109,6 +109,7 @@ export const errorMessages = {
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
   PROJECT_IS_NOT_ACTIVE: 'Project is not active.',
+  RECURRING_DONATION_NOT_FOUND: 'Recurring donation not found.',
   INVALID_FUNCTION: 'Invalid function name of transaction',
   PROJECT_UPDATE_NOT_FOUND: 'Project update not found.',
   DONATION_NOT_FOUND: 'donation not found',
@@ -270,6 +271,7 @@ export const translationErrorMessagesKeys = {
   YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT:
     'YOU_DONT_HAVE_ACCESS_TO_DEACTIVATE_THIS_PROJECT',
   PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
+  RECURRING_DONATION_NOT_FOUND: 'Recurring donation not found.',
   PROJECT_DOESNT_HAVE_RECIPIENT_ADDRESS_ON_THIS_NETWORK:
     'Project doesnt have recipient address on this network',
   THERE_IS_AN_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT:

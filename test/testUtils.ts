@@ -1909,6 +1909,7 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
   const donorId =
     params?.donationData?.donorId ||
     (await saveUserDirectlyToDb(generateRandomEtheriumAddress())).id;
+  const anonymous = params?.donationData?.anonymous || false;
   const anchorContractAddressId =
     params?.donationData?.anchorContractAddressId ||
     (
@@ -1923,6 +1924,7 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
     networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     currency: params?.donationData?.currency || 'USDT',
     txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),
+    anonymous,
     donorId,
     projectId,
     anchorContractAddressId,

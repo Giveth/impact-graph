@@ -27,6 +27,18 @@ export const createNewRecurringDonation = async (params: {
   });
   return recurringDonation.save();
 };
+export const updateRecurringDonation = async (params: {
+  recurringDonation: RecurringDonation;
+  txHash: string;
+  flowRate: string;
+  anonymous: boolean;
+}): Promise<RecurringDonation> => {
+  const { recurringDonation, txHash, anonymous, flowRate } = params;
+  recurringDonation.txHash = txHash;
+  recurringDonation.flowRate = flowRate;
+  recurringDonation.anonymous = anonymous;
+  return recurringDonation.save();
+};
 
 // TODO Need to write test cases for this function
 export const findActiveRecurringDonations = async (): Promise<
@@ -80,3 +92,23 @@ export const findRecurringDonationById = async (
     .andWhere(`recurringDonation.finished = false`)
     .getOne();
 };
+
+export const findRecurringDonationByProjectIdAndUserIdAndCurrency =
+  async (params: {
+    projectId: number;
+    userId: number;
+    currency: string;
+  }): Promise<RecurringDonation | null> => {
+    return RecurringDonation.createQueryBuilder('recurringDonation')
+      .where(`recurringDonation.projectId = :projectId`, {
+        projectId: params.projectId,
+      })
+      .andWhere(`recurringDonation.donorId = :userId`, {
+        userId: params.userId,
+      })
+      .andWhere(`recurringDonation.currency = :currency`, {
+        currency: params.currency,
+      })
+      .leftJoinAndSelect('recurringDonation.project', 'project')
+      .getOne();
+  };
