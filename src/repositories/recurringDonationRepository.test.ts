@@ -10,7 +10,7 @@ import { assert } from 'chai';
 import { addNewAnchorAddress } from './anchorContractAddressRepository';
 import {
   createNewRecurringDonation,
-  findRecurringDonationByProjectIdAndUserId,
+  findRecurringDonationByProjectIdAndUserIdAndCurrency,
 } from './recurringDonationRepository';
 
 describe(
@@ -85,20 +85,22 @@ function findRecurringDonationByProjectIdAndUserIdTestCases() {
       networkId: NETWORK_IDS.OPTIMISTIC,
       txHash: generateRandomEvmTxHash(),
     });
+    const currency = 'USD';
     const recurringDonation = await createNewRecurringDonation({
       txHash: generateRandomEvmTxHash(),
       networkId: NETWORK_IDS.OPTIMISTIC,
       donor: creator,
       anchorContractAddress,
       flowRate: '100',
-      currency: 'USD',
+      currency,
       project,
       anonymous: false,
     });
     const foundRecurringDonation =
-      await findRecurringDonationByProjectIdAndUserId({
+      await findRecurringDonationByProjectIdAndUserIdAndCurrency({
         projectId: project.id,
         userId: creator.id,
+        currency,
       });
     assert.equal(foundRecurringDonation?.id, recurringDonation.id);
   });

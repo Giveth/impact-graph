@@ -259,13 +259,14 @@ function createRecurringDonationTestCases() {
 
 function updateRecurringDonationTestCases() {
   it('should update recurring donation successfully', async () => {
+    const currency = 'GIV';
     const transactionInfo = {
       txHash: generateRandomEvmTxHash(),
       networkId: NETWORK_IDS.XDAI,
       amount: 1,
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
-      currency: 'GIV',
+      currency,
       timestamp: 1647069070,
     };
     const project = await saveProjectDirectlyToDb({
@@ -289,6 +290,7 @@ function updateRecurringDonationTestCases() {
         projectId: project.id,
         flowRate: '300',
         anonymous: false,
+        currency,
       },
     });
 
@@ -303,6 +305,7 @@ function updateRecurringDonationTestCases() {
         variables: {
           projectId: project.id,
           flowRate,
+          currency,
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
           anonymous: true,
@@ -322,13 +325,14 @@ function updateRecurringDonationTestCases() {
   });
 
   it('should get error when someone wants to update someone else recurring donation', async () => {
+    const currency = 'GIV';
     const transactionInfo = {
       txHash: generateRandomEvmTxHash(),
       networkId: NETWORK_IDS.XDAI,
       amount: 1,
       fromAddress: generateRandomEtheriumAddress(),
       toAddress: generateRandomEtheriumAddress(),
-      currency: 'GIV',
+      currency,
       timestamp: 1647069070,
     };
     const project = await saveProjectDirectlyToDb({
@@ -362,6 +366,7 @@ function updateRecurringDonationTestCases() {
           networkId: NETWORK_IDS.OPTIMISTIC,
           txHash: generateRandomEvmTxHash(),
           anonymous: false,
+          currency,
         },
       },
       {
@@ -403,6 +408,7 @@ function updateRecurringDonationTestCases() {
         txHash: generateRandomEvmTxHash(),
         flowRate: '100',
         anonymous: true,
+        currency: 'GIV',
       },
     });
 
@@ -426,6 +432,7 @@ function updateRecurringDonationTestCases() {
           txHash: generateRandomEvmTxHash(),
           flowRate: '100',
           anonymous: true,
+          currency: 'GIV',
         },
       },
       {

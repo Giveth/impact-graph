@@ -62,17 +62,22 @@ export const findRecurringDonationById = async (
     .getOne();
 };
 
-export const findRecurringDonationByProjectIdAndUserId = async (params: {
-  projectId: number;
-  userId: number;
-}): Promise<RecurringDonation | null> => {
-  return RecurringDonation.createQueryBuilder('recurringDonation')
-    .where(`recurringDonation.projectId = :projectId`, {
-      projectId: params.projectId,
-    })
-    .andWhere(`recurringDonation.donorId = :userId`, {
-      userId: params.userId,
-    })
-    .leftJoinAndSelect('recurringDonation.project', 'project')
-    .getOne();
-};
+export const findRecurringDonationByProjectIdAndUserIdAndCurrency =
+  async (params: {
+    projectId: number;
+    userId: number;
+    currency: string;
+  }): Promise<RecurringDonation | null> => {
+    return RecurringDonation.createQueryBuilder('recurringDonation')
+      .where(`recurringDonation.projectId = :projectId`, {
+        projectId: params.projectId,
+      })
+      .andWhere(`recurringDonation.donorId = :userId`, {
+        userId: params.userId,
+      })
+      .andWhere(`recurringDonation.currency = :currency`, {
+        currency: params.currency,
+      })
+      .leftJoinAndSelect('recurringDonation.project', 'project')
+      .getOne();
+  };

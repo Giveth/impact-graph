@@ -26,7 +26,7 @@ import {
 import {
   createNewRecurringDonation,
   findRecurringDonationById,
-  findRecurringDonationByProjectIdAndUserId,
+  findRecurringDonationByProjectIdAndUserIdAndCurrency,
   updateRecurringDonation,
 } from '../repositories/recurringDonationRepository';
 import { publicSelectionFields } from '../entities/user';
@@ -179,6 +179,7 @@ export class RecurringDonationResolver {
     @Arg('networkId', () => Int) networkId: number,
     @Arg('txHash', () => String) txHash: string,
     @Arg('flowRate', () => String) flowRate: string,
+    @Arg('currency', () => String) currency: string,
     @Arg('anonymous', () => Boolean) anonymous: boolean,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
@@ -190,10 +191,12 @@ export class RecurringDonationResolver {
     if (!project) {
       throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
     }
-    const recurringDonation = await findRecurringDonationByProjectIdAndUserId({
-      projectId: project.id,
-      userId: donor.id,
-    });
+    const recurringDonation =
+      await findRecurringDonationByProjectIdAndUserIdAndCurrency({
+        projectId: project.id,
+        userId: donor.id,
+        currency,
+      });
     if (!recurringDonation) {
       // TODO set proper error message
       throw new Error(

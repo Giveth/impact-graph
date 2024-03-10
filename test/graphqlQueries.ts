@@ -2252,6 +2252,7 @@ export const updateRecurringDonationQuery = `
         $networkId: Int!,
         $txHash: String!
         $flowRate: String!
+        $currency: String!
         $anonymous: Boolean!
         ) {
           updateRecurringDonationParams(
@@ -2260,6 +2261,7 @@ export const updateRecurringDonationQuery = `
             txHash:$txHash
             anonymous:$anonymous
             flowRate:$flowRate
+            currency:$currency
         ) {
             txHash
             networkId
