@@ -28,6 +28,14 @@ export const NETWORK_IDS = {
   SOLANA_DEVNET: 103,
 };
 
+export const superTokensToToken = {
+  ETHx: 'ETH',
+  USDCx: 'USDC',
+  DAIx: 'DAI',
+  OPx: 'OP',
+  GIVx: 'GIV',
+};
+
 export const NETWORKS_IDS_TO_NAME = {
   1: 'MAIN_NET',
   3: 'ROPSTEN',

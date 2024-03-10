@@ -3,6 +3,7 @@ import { User } from '../entities/user';
 import { RecurringDonation } from '../entities/recurringDonation';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { Donation } from '../entities/donation';
+import { logger } from '../utils/logger';
 
 export const createNewRecurringDonation = async (params: {
   project: Project;
@@ -51,14 +52,44 @@ export const findActiveRecurringDonations = async (): Promise<
   });
 };
 
+export const updateRecurringDonationFromTheStreamDonations = async (
+  recurringDonationId: number,
+) => {
+  try {
+    await RecurringDonation.query(
+      `
+      UPDATE "recurring_donation"
+      SET "totalUsdStreamed" = (
+        SELECT COALESCE(SUM(d."valueUsd"), 0)
+        FROM donation as d
+        WHERE d.recurringDonationId = $1
+      ),
+      "amountStreamed" = (
+        SELECT COALESCE(SUM(d."amount"), 0)
+        FROM donation as d
+        WHERE d.recurringDonationId = $1
+      )
+      WHERE "id" = $1
+    `,
+      [recurringDonationId],
+    );
+  } catch (e) {
+    logger.error('updateRecurringDonationFromTheStreamDonations() error', e);
+  }
+};
+
 export const findRecurringDonationById = async (
-  donationId: number,
+  id: number,
 ): Promise<RecurringDonation | null> => {
-  return RecurringDonation.createQueryBuilder('recurringDonation')
-    .where(`recurringDonation.id = :donationId`, {
-      donationId,
-    })
+  return await RecurringDonation.createQueryBuilder('recurringDonation')
+    .innerJoinAndSelect(
+      `recurringDonation.anchorContractAddress`,
+      'anchorContractAddress',
+    )
+    .leftJoinAndSelect(`recurringDonation.donations`, 'donations')
     .leftJoinAndSelect('recurringDonation.project', 'project')
+    .where(`recurringDonation.id = :id`, { id })
+    .andWhere(`recurringDonation.finished = false`)
     .getOne();
 };
 

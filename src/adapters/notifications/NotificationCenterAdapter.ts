@@ -53,6 +53,15 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
+  async userSuperTokensCritical(params: {
+    userId: number;
+    email: string;
+    criticalDate: string;
+    tokensymbol: string;
+  }): Promise<void> {
+    return; // implement it on another branch
+  }
+
   async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {
     // TODO we should me this to notification-center, it's not good that we call Ortto directly
     try {

@@ -54,6 +54,13 @@ export interface NotificationAdapterInterface {
     userId: number;
   }): Promise<void>;
 
+  userSuperTokensCritical(params: {
+    userId: number;
+    email: string;
+    criticalDate: string;
+    tokensymbol: string;
+  }): Promise<void>;
+
   projectVerified(params: { project: Project }): Promise<void>;
   projectBoosted(params: { projectId: number; userId: number }): Promise<void>;
   projectBoostedBatch(params: {
