@@ -49,6 +49,7 @@ import {
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
+  RevokeSteps,
 } from '../entities/project';
 import { Category } from '../entities/category';
 import { Reaction } from '../entities/reaction';
@@ -5206,6 +5207,36 @@ function addProjectUpdateTestCases() {
       'testProjectUpdateFateme',
     );
   });
+
+  it('should change verificationStatus to null after adding update', async () => {
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verificationStatus: RevokeSteps.UpForRevoking,
+    });
+    const accessTokenUser1 = await generateTestAccessToken(project.adminUserId);
+
+    await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectUpdateQuery,
+        variables: {
+          projectId: project.id,
+          content: 'Test Project Update content',
+          title: 'test Project Update title',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessTokenUser1}`,
+        },
+      },
+    );
+    const _project = await Project.findOne({
+      where: { id: project.id },
+    });
+    assert.equal(_project?.verificationStatus, null);
+  });
+
   it('should can not add project update because of ownerShip ', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
