@@ -1460,15 +1460,9 @@ export class ProjectResolver {
       isMain: false,
     });
 
-    const projectUpdateInfo = {
-      title: project.title,
-      email: owner.email,
-      slug: project.slug,
-      update: title,
-      projectId: project.id,
-      firstName: owner.firstName,
-    };
     const save = await ProjectUpdate.save(update);
+    project.verificationStatus = null;
+    await project.save();
 
     await updateTotalProjectUpdatesOfAProject(update.projectId);
 
