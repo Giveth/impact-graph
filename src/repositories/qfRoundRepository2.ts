@@ -41,7 +41,29 @@ export const relateManyProjectsToQfRound = async (params: {
       DELETE FROM project_qf_rounds_qf_round
       WHERE "qfRoundId" = ${params.qfRound.id}
         AND "projectId" IN (${projectIds});`;
-    orttoPeople = projects.map(project =>
+
+    const qfRoundProjects = await Project.createQueryBuilder('project')
+      .leftJoin('project.qfRounds', 'qfRound')
+      .where('qfRound.id = :qfRoundId', { qfRoundId: params.qfRound.id })
+      .leftJoinAndSelect('project.adminUser', 'adminUser')
+      .getMany();
+
+    const projectsAdminIds = projects.map(project => project?.adminUser.id);
+    const projectsUniqueAdminIds = [...new Set(projectsAdminIds)];
+    const projectsToRemoveFromOrtto: Project[] = [];
+    projectsUniqueAdminIds.forEach(id => {
+      const toRemoveProjects = projects.filter(
+        project => project?.adminUser.id === id,
+      );
+      const userQFRoundProjectsCount = qfRoundProjects.filter(
+        project => project.adminUser.id === id,
+      ).length;
+      if (toRemoveProjects.length === userQFRoundProjectsCount) {
+        projectsToRemoveFromOrtto.push(toRemoveProjects[0]!);
+      }
+    });
+    // We should remove the tag only if user has no other projects in the round
+    orttoPeople = projectsToRemoveFromOrtto.map(project =>
       getOrttoPersonAttributes({
         firstName: project?.adminUser?.firstName,
         lastName: project?.adminUser?.lastName,
@@ -51,6 +73,8 @@ export const relateManyProjectsToQfRound = async (params: {
       }),
     );
   }
-  await getNotificationAdapter().updateOrttoPeople(orttoPeople);
+  if (orttoPeople.length > 0) {
+    await getNotificationAdapter().updateOrttoPeople(orttoPeople);
+  }
   return AppDataSource.getDataSource().query(query);
 };
