@@ -6,6 +6,7 @@ import {
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
+  RevokeSteps,
   SortingField,
 } from '../entities/project';
 import { ProjectStatus } from '../entities/projectStatus';
@@ -1451,7 +1452,7 @@ export class ProjectResolver {
         i18n.__(translationErrorMessagesKeys.YOU_ARE_NOT_THE_OWNER_OF_PROJECT),
       );
 
-    const update = await ProjectUpdate.create({
+    const update = ProjectUpdate.create({
       userId: user.userId,
       projectId: project.id,
       content,
@@ -1461,8 +1462,10 @@ export class ProjectResolver {
     });
 
     const save = await ProjectUpdate.save(update);
-    project.verificationStatus = null;
-    await project.save();
+    if (project.verificationStatus !== RevokeSteps.Revoked) {
+      project.verificationStatus = null;
+      await project.save();
+    }
 
     await updateTotalProjectUpdatesOfAProject(update.projectId);
 
