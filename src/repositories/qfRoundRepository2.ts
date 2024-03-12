@@ -4,7 +4,6 @@ import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { AppDataSource } from '../orm';
 import { Project } from '../entities/project';
 import { OrttoPerson } from '../adapters/notifications/NotificationAdapterInterface';
-
 // The repository functions that uses Project entity should be here
 export const relateManyProjectsToQfRound = async (params: {
   projectIds: number[];
