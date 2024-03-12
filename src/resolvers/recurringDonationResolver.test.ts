@@ -941,6 +941,47 @@ function recurringDonationsByUserIdTestCases() {
       );
     }
   });
+  it('should filter by two tokens', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const d1 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'DAI',
+      },
+    });
+    const d2 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'USDC',
+      },
+    });
+    const d3 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'USDT',
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          filteredTokens: ['DAI', 'USDC'],
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 2);
+    assert.isOk(donations.find(d => Number(d.id) === d1.id));
+    assert.isOk(donations.find(d => Number(d.id) === d2.id));
+  });
 }
 function updateRecurringDonationStatusTestCases() {
   it('should donation status remain pending after calling without sending status (we assume its not mined so far)', async () => {

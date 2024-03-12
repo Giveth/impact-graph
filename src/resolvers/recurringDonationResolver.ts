@@ -118,6 +118,9 @@ class UserRecurringDonationsArgs {
 
   @Field(type => Boolean, { nullable: true, defaultValue: false })
   finished: boolean;
+
+  @Field(type => [String], { nullable: true, defaultValue: [] })
+  filteredTokens: string[];
 }
 
 @ObjectType()
@@ -327,6 +330,7 @@ export class RecurringDonationResolver {
       userId,
       status,
       finished,
+      filteredTokens,
     }: UserRecurringDonationsArgs,
     @Ctx() ctx: ApolloContext,
   ) {
@@ -360,6 +364,12 @@ export class RecurringDonationResolver {
     if (status) {
       query.andWhere(`donation.status = :status`, {
         status,
+      });
+    }
+
+    if (filteredTokens && filteredTokens.length > 0) {
+      query.andWhere(`recurringDonation.currency IN (:...filteredTokens)`, {
+        filteredTokens,
       });
     }
 

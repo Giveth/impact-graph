@@ -373,6 +373,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
     $orderBy: RecurringDonationSortBy
     $finished: Boolean
     $userId: Int!
+    $filteredTokens: [String!]
   ) {
     recurringDonationsByUserId(
       take: $take
@@ -381,6 +382,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
       userId: $userId
       status: $status
       finished: $finished
+      filteredTokens: $filteredTokens
     ) {
       recurringDonations {
         id
