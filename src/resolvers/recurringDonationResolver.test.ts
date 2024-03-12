@@ -823,7 +823,6 @@ function recurringDonationsByUserIdTestCases() {
     }
   });
   it('should sort by the createdAt ASC', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveRecurringDonationDirectlyToDb({
@@ -860,7 +859,6 @@ function recurringDonationsByUserIdTestCases() {
     }
   });
   it('should sort by the flowRate ASC', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveRecurringDonationDirectlyToDb({
@@ -901,7 +899,6 @@ function recurringDonationsByUserIdTestCases() {
     }
   });
   it('should sort by the flowRate DESC', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     await saveRecurringDonationDirectlyToDb({
@@ -940,6 +937,256 @@ function recurringDonationsByUserIdTestCases() {
         BigInt(donations[i].flowRate) >= BigInt(donations[i + 1].flowRate),
       );
     }
+  });
+  it('should filter by two tokens', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const d1 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'DAI',
+      },
+    });
+    const d2 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'USDC',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'USDT',
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          filteredTokens: ['DAI', 'USDC'],
+        },
+      },
+      {},
+    );
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 2);
+    assert.isOk(donations.find(d => Number(d.id) === d1.id));
+    assert.isOk(donations.find(d => Number(d.id) === d2.id));
+  });
+  it('should filter by one token', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const d1 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'DAI',
+      },
+    });
+    const d2 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'USDT',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'USDT',
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          filteredTokens: ['DAI'],
+        },
+      },
+      {},
+    );
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.isOk(donations.find(d => Number(d.id) === d1.id));
+  });
+  it('should not filter if filteredTokens is not passing', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const d1 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'DAI',
+      },
+    });
+    const d2 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'USDC',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        currency: 'USDT',
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+        },
+      },
+      {},
+    );
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 3);
+    assert.isOk(donations.find(d => Number(d.id) === d1.id));
+  });
+  it('should filter by finishStatus filter both true and false', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const d1 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        finished: true,
+      },
+    });
+    const d2 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        finished: false,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          finishStatus: [true, false],
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 2);
+    assert.isOk(donations.find(d => Number(d.id) === d1.id));
+    assert.isOk(donations.find(d => Number(d.id) === d2.id));
+  });
+  it('should return just not finished recurring donations when not passing finishStatus', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const d1 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        finished: true,
+      },
+    });
+    const d2 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        finished: false,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.isNotOk(donations.find(d => Number(d.id) === d1.id));
+    assert.isOk(donations.find(d => Number(d.id) === d2.id));
+  });
+  it('should filter by finishStatus filter just true', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const d1 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        finished: true,
+      },
+    });
+    const d2 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        finished: false,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          finishStatus: [true],
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.isOk(donations.find(d => Number(d.id) === d1.id));
+    assert.isNotOk(donations.find(d => Number(d.id) === d2.id));
+  });
+  it('should filter by finishStatus filter just false', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const d1 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        finished: true,
+      },
+    });
+    const d2 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        finished: false,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          finishStatus: [false],
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.isNotOk(donations.find(d => Number(d.id) === d1.id));
+    assert.isOk(donations.find(d => Number(d.id) === d2.id));
   });
 }
 function updateRecurringDonationStatusTestCases() {
