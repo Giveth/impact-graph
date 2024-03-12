@@ -116,8 +116,8 @@ class UserRecurringDonationsArgs {
   @Field(type => String, { nullable: true })
   status: string;
 
-  @Field(type => Boolean, { nullable: true, defaultValue: false })
-  finished: boolean;
+  @Field(type => [Boolean], { nullable: true, defaultValue: [false] })
+  finishStatus: boolean[];
 
   @Field(type => [String], { nullable: true, defaultValue: [] })
   filteredTokens: string[];
@@ -237,8 +237,11 @@ export class RecurringDonationResolver {
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Arg('projectId', type => Int, { nullable: false }) projectId: number,
     @Arg('status', type => String, { nullable: true }) status: string,
-    @Arg('finished', type => Boolean, { nullable: true, defaultValue: false })
-    finished: boolean,
+    @Arg('finishStatus', type => [Boolean], {
+      nullable: true,
+      defaultValue: [false],
+    })
+    finishStatus: boolean[],
     @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
     @Arg('orderBy', type => RecurringDonationSortBy, {
       defaultValue: {
@@ -269,13 +272,17 @@ export class RecurringDonationResolver {
         'donor.passportStamps',
       ])
       .where(`recurringDonation.projectId = ${projectId}`);
-    query
-      .andWhere(`recurringDonation.finished = ${finished}`)
-      .orderBy(
-        `recurringDonation.${orderBy.field}`,
-        orderBy.direction,
-        RecurringDonationNullDirection[orderBy.direction as string],
-      );
+    query.orderBy(
+      `recurringDonation.${orderBy.field}`,
+      orderBy.direction,
+      RecurringDonationNullDirection[orderBy.direction as string],
+    );
+
+    if (finishStatus && finishStatus.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
+        finishStatus,
+      });
+    }
 
     if (status) {
       query.andWhere(`recurringDonation.status = :status`, {
@@ -329,7 +336,7 @@ export class RecurringDonationResolver {
       orderBy,
       userId,
       status,
-      finished,
+      finishStatus,
       filteredTokens,
     }: UserRecurringDonationsArgs,
     @Ctx() ctx: ApolloContext,
@@ -364,6 +371,12 @@ export class RecurringDonationResolver {
     if (status) {
       query.andWhere(`donation.status = :status`, {
         status,
+      });
+    }
+
+    if (finishStatus && finishStatus.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
+        finishStatus,
       });
     }
 
