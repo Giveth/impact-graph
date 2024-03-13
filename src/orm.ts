@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import config from './config';
 import { CronJob } from './entities/CronJob';
 import { getEntities } from './entities/entities';
-import { redis, redisConfig } from './redis';
+import { redisConfig } from './redis';
 
 export class AppDataSource {
   private static datasource: DataSource;

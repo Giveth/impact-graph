@@ -2,7 +2,6 @@ import config from './config';
 import { ethers } from 'ethers';
 import { i18n, translationErrorMessagesKeys } from './utils/errorMessages';
 
-const INFURA_API_KEY = config.get('INFURA_API_KEY');
 const INFURA_ID = config.get('INFURA_ID');
 
 export const NETWORK_IDS = {
@@ -209,18 +208,6 @@ export function getProvider(networkId: number) {
 
     case NETWORK_IDS.OPTIMISM_SEPOLIA:
       url = `https://optimism-sepolia.infura.io/v3/${INFURA_ID}`;
-      break;
-
-    case NETWORK_IDS.ARBITRUM_MAINNET:
-      url =
-        (process.env.ARBITRUM_MAINNET_NODE_HTTP_URL as string) ||
-        `https://arbitrum-mainnet.infura.io/v3/${INFURA_ID}`;
-      break;
-
-    case NETWORK_IDS.ARBITRUM_SEPOLIA:
-      url =
-        (process.env.ARBITRUM_SEPOLIA_NODE_HTTP_URL as string) ||
-        `https://arbitrum-sepolia.infura.io/v3/${INFURA_ID}`;
       break;
 
     case NETWORK_IDS.ARBITRUM_MAINNET:
