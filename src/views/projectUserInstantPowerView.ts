@@ -6,7 +6,7 @@ import {
   Column,
   ManyToOne,
 } from 'typeorm';
-import { Field, Float, Int, ObjectType } from 'type-graphql';
+import { Field, Float, ObjectType } from 'type-graphql';
 import { ColumnNumericTransformer } from '../utils/entities';
 import { User } from '../entities/user';
 

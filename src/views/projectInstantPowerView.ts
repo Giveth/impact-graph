@@ -9,7 +9,7 @@ import {
   Column,
 } from 'typeorm';
 import { Project } from '../entities/project';
-import { Field, Float, Int, ObjectType } from 'type-graphql';
+import { Field, Float, ObjectType } from 'type-graphql';
 import { ColumnNumericTransformer } from '../utils/entities';
 
 @ViewEntity('project_instant_power_view', { synchronize: false })
