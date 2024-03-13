@@ -100,18 +100,64 @@ function getActualMatchingFundTests() {
         },
       }),
     );
+    assert.isNotNull(actualMatchingFund);
+    assert.equal(actualMatchingFund?.projectId, project.id);
+    assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis.length, 1);
+    assert.equal(actualMatchingFund?.donationIdsAfterAnalysis.length, 1);
+    assert.equal(actualMatchingFund?.allUsdReceived, 100);
+    assert.equal(actualMatchingFund?.allUsdReceivedAfterSybilsAnalysis, 100);
+
+    // qfRound has 4 networks so we just recipient addresses for those networks
+    assert.equal(actualMatchingFund?.networkAddresses?.split(',').length, 4);
+  });
+  it('should ignore all donations from purple list (verified projects recipients)', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.passportScore = 10;
+    await user.save();
+    await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: user.walletAddress as string,
+      listed: true,
+      verified: true,
+    });
+    const donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: 100,
+        qfRoundId: qfRound.id,
+        qfRoundUserScore: user.passportScore,
+      },
+      user.id,
+      project.id,
+    );
+    await refreshProjectActualMatchingView();
+
+    const actualMatchingFund = await ProjectActualMatchingView.findOne({
+      where: {
+        projectId: project.id,
+        qfRoundId: qfRound.id,
+      },
+    });
+
+    // tslint:disable-next-line:no-console
+    console.log(
+      'actualMatchingView** single purple list',
+      await ProjectActualMatchingView.findOne({
+        where: {
+          projectId: project.id,
+          qfRoundId: qfRound.id,
+        },
+      }),
+    );
     assert.equal(actualMatchingFund?.projectId, project.id);
     assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis.length, 1);
     assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis[0], donation.id);
-    assert.equal(actualMatchingFund?.donationIdsAfterAnalysis.length, 1);
-    assert.equal(actualMatchingFund?.donationIdsAfterAnalysis[0], donation.id);
+    assert.equal(actualMatchingFund?.donationIdsAfterAnalysis.length, 0);
     assert.equal(actualMatchingFund?.allUsdReceived, donation.valueUsd);
-    assert.equal(actualMatchingFund?.uniqueQualifiedDonors, 1);
+    assert.equal(actualMatchingFund?.allUsdReceivedAfterSybilsAnalysis, 0);
+    assert.equal(actualMatchingFund?.uniqueQualifiedDonors, 0);
     assert.equal(actualMatchingFund?.totalDonors, 1);
-    assert.equal(
-      actualMatchingFund?.allUsdReceivedAfterSybilsAnalysis,
-      donation.valueUsd,
-    );
 
     // qfRound has 4 networks so we just recipient addresses for those networks
     assert.equal(actualMatchingFund?.networkAddresses?.split(',').length, 4);
@@ -344,5 +390,18 @@ function getActualMatchingFundTests() {
     );
     assert.equal(actualMatchingFund?.donationIdsAfterAnalysis.length, 8);
     assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis.length, 10);
+  });
+  it('Should include donations to non verified projects', async () => {
+    throw new Error('Not implemented');
+  });
+
+  it('Should include donations to not listed projects', async () => {
+    throw new Error('Not implemented');
+  });
+  it('Should exclude donations from sybil users', async () => {
+    throw new Error('Not implemented');
+  });
+  it('Should exclude donations to fraud projects', async () => {
+    throw new Error('Not implemented');
   });
 }
