@@ -1574,7 +1574,7 @@ export class AddCoingeckoId1709204568033 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(_queryRunner: QueryRunner): Promise<void> {
     //
   }
 }

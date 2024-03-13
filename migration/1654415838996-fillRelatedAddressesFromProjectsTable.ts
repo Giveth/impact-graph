@@ -19,7 +19,7 @@ const insertRelatedAddress = async (params: {
               `,
   );
 };
-// tslint:disable-next-line:class-name
+
 export class fillRelatedAddressesFromProjectsTable1654415838996
   implements MigrationInterface
 {
@@ -101,7 +101,7 @@ export class fillRelatedAddressesFromProjectsTable1654415838996
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  async down(_queryRunner: QueryRunner): Promise<void> {
     //
   }
 }

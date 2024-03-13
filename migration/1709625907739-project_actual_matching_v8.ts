@@ -156,7 +156,7 @@ export class ProjectActualMatchingV81709625907739
         `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {
+  async down(_queryRunner: QueryRunner): Promise<void> {
     // Logic to revert the changes made by the up method, if necessary
   }
 }

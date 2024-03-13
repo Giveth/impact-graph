@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class relateExistingProjectsToOrganizations1646306281286
   implements MigrationInterface
 {

@@ -24,5 +24,5 @@ export class SetProjectReviewStatus1677073819672 implements MigrationInterface {
     `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

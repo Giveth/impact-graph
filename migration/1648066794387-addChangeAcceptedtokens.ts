@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import config from '../src/config';
 
-// tslint:disable-next-line:class-name
 export class addChangeAcceptedtokens1648066794387
   implements MigrationInterface
 {
@@ -43,5 +42,5 @@ export class addChangeAcceptedtokens1648066794387
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

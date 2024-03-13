@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class createPowerBoostingTable1662877385300
   implements MigrationInterface
 {
@@ -53,7 +52,6 @@ export class createPowerBoostingTable1662877385300
     );
   }
 
-  // tslint:disable-next-line:no-empty
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS power_boosting CASCADE`);
   }

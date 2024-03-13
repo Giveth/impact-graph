@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class relateExistinTokensToOrganizations1646307744677
   implements MigrationInterface
 {

@@ -5,9 +5,10 @@ import { changeBase64ToIpfsImageInHTML } from '../src/utils/documents';
 export class TransformBase64ImagesToIpfs1680539882510
   implements MigrationInterface
 {
-  async up(queryRunner: QueryRunner): Promise<void> {
+  async up(_queryRunner: QueryRunner): Promise<void> {
     // paginate through project updates
     let skip = 0;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const [projectUpdates, count] = await ProjectUpdate.findAndCount({
         where: { content: Like('%;base64%') },
@@ -34,6 +35,7 @@ export class TransformBase64ImagesToIpfs1680539882510
     }
 
     skip = 0;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const [projects, count] = await Project.findAndCount({
         where: { description: Like('%;base64%') },
@@ -58,5 +60,5 @@ export class TransformBase64ImagesToIpfs1680539882510
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

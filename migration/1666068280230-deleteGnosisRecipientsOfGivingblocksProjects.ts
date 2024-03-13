@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class deleteGnosisRecipientsOfGivingblocksProjects1666068280230
   implements MigrationInterface
 {
@@ -24,5 +23,5 @@ export class deleteGnosisRecipientsOfGivingblocksProjects1666068280230
         `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }
