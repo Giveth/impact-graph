@@ -1,18 +1,16 @@
 // tslint:disable-next-line:no-var-requires
 import { logger } from '../../utils/logger';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcryptjs');
-import { Resolver, Query, Mutation, Arg, UseMiddleware } from 'type-graphql';
+import { Resolver, Mutation, Arg } from 'type-graphql';
 
 import { User } from '../../entities/user';
-import { RegisterWalletInput } from './RegisterWalletInput';
 import { RegisterInput } from './RegisterInput';
 // import { isAuth } from '../../middleware/isAuth'
 // import { logger } from '../../middleware/logger'
 import { sendEmail } from '../../utils/sendEmail';
 import { createConfirmationUrl } from '../../utils/createConfirmationUrl';
-import { Repository, getRepository } from 'typeorm';
 
 @Resolver()
 export class RegisterResolver {

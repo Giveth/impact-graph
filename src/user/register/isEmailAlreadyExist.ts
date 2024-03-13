@@ -5,7 +5,6 @@ import {
   ValidatorConstraintInterface,
 } from 'class-validator';
 
-import { User } from '../../entities/user';
 import { findAdminUserByEmail } from '../../repositories/userRepository';
 
 @ValidatorConstraint({ async: true })
