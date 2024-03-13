@@ -1,0 +1,59 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["unused-imports"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-console": "error",
+    "unused-imports/no-unused-imports": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error", { "argsIgnorePattern": "^_" }],
+    "prettier/prettier": [
+      "error",
+      {
+        "arrowParens": "avoid",
+        "singleQuote": true,
+        "semi": true,
+        "tabWidth": 2,
+        "useTabs": false,
+        "trailingComma": "all",
+        "jsdoc-format": false,
+        "endOfLine": "auto"
+      }
+    ],
+    "@typescript-eslint/member-ordering": [
+      "error",
+      {
+        "default": [
+          "public-static-field",
+          "protected-static-field",
+          "private-static-field",
+          "public-instance-field",
+          "protected-instance-field",
+          "private-instance-field",
+          "public-static-method",
+          "protected-static-method",
+          "private-static-method",
+          "public-constructor",
+          "protected-constructor",
+          "private-constructor",
+          "public-instance-method",
+          "protected-instance-method",
+          "private-instance-method"
+        ]
+      }
+    ],
+    "unified-signatures": 0,
+    "ordered-imports": 0,
+    "no-unused-expression": 0,
+    "callable-types": 0,
+    "jsdoc-format": 0,
+    "no-namespace": 0,
+    "object-literal-sort-keys": 0,
+    "max-classes-per-file": 0
+  }
+}
