@@ -1,13 +1,11 @@
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
-  graphqlUrl,
   saveProjectDirectlyToDb,
   saveRecurringDonationDirectlyToDb,
   saveUserDirectlyToDb,
-  sleep,
 } from '../../test/testUtils';
 import { createRelatedDonationsToStream } from './recurringDonationService';
 import { Donation } from '../entities/donation';
@@ -56,7 +54,7 @@ function createRelatedDonationsToStreamTestCases() {
 
     await createRelatedDonationsToStream(recurringDonationWithAnchorContract!);
 
-    const donations = await Donation.createQueryBuilder('donation')
+    await Donation.createQueryBuilder('donation')
       .where(`donation.recurringDonationId = :recurringDonationId`, {
         recurringDonationId: recurringDonationWithAnchorContract!.id,
       })

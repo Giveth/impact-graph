@@ -88,6 +88,7 @@ function getTransactionDetailTestCases() {
   });
   it('should return transaction detail for DAI transfer on ethereum classic', async () => {
     // https://etc.blockscout.com/tx/0x48e0c03ed99996fac3a7ecaaf05a1582a9191d8e37b6ebdbdd630b83350faf63
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
     const amount = 4492.059297640078891631;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:

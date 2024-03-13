@@ -37,18 +37,13 @@ import {
 } from './projectViewsService';
 import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
 import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
-import {
-  COINGECKO_TOKEN_IDS,
-  CoingeckoPriceAdapter,
-} from '../adapters/price/CoingeckoPriceAdapter';
+import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
 import { fetchSafeTransactionHash } from './safeServices';
-import { ChainType } from '../types/network';
-import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../provider';
+import { NETWORKS_IDS_TO_NAME } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
-import { fetchMpEthPrice } from './mpEthPriceService';
 import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 

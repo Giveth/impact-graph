@@ -1,7 +1,4 @@
-import {
-  getNotificationAdapter,
-  getSuperFluidAdapter,
-} from '../adapters/adaptersFactory';
+import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
 import { DONATION_STATUS, Donation } from '../entities/donation';
 import {
   RECURRING_DONATION_STATUS,
@@ -105,7 +102,7 @@ export const createRelatedDonationsToStream = async (
           symbol: superTokensToToken[recurringDonation.currency],
         },
       });
-      const isCustomToken = !Boolean(tokenInDb);
+      const isCustomToken = !tokenInDb;
       let isTokenEligibleForGivback = false;
       if (isCustomToken && !project!.organization.supportCustomTokens) {
         throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));

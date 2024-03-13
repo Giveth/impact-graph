@@ -7,7 +7,6 @@ import { FilterField, Project, SortingField } from '../entities/project';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
 import { ModuleThread, Pool } from 'threads';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
-import { QueryBuilder } from 'typeorm/query-builder/QueryBuilder';
 import { findAllActiveCampaigns } from '../repositories/campaignRepository';
 import { logger } from '../utils/logger';
 import { getRedisObject, setObjectInRedis } from '../redis';

@@ -27,7 +27,7 @@ import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 

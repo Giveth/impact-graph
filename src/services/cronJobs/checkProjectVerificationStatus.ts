@@ -21,10 +21,6 @@ const cronJobTime =
     'CHECK_PROJECT_VERIFICATION_STATUS_CRONJOB_EXPRESSION',
   ) as string) || '0 0 * * 0';
 
-const projectUpdatesReminderDays = Number(
-  config.get('PROJECT_UPDATES_VERIFIED_REMINDER_DAYS') || 30,
-);
-
 const projectUpdatesWarningDays = Number(
   config.get('PROJECT_UPDATES_VERIFIED_WARNING_DAYS') || 45,
 );
@@ -36,19 +32,6 @@ const projectUpdatesLastWarningDays = Number(
 const projectUpdatesRevokeVerificationDays = Number(
   config.get('PROJECT_UPDATES_VERIFIED_REVOKE_DAYS') || 104,
 );
-
-const projectUpdatesExpiredRevokeAdditionalDays = Number(
-  config.get('PROJECT_UPDATES_EXPIRED_ADDITIONAL_REVOKE_DAYS') || 30,
-);
-
-const projectUpdatesFirstRevokeBatchDate = String(
-  config.get('PROJECT_UPDATES_FIRST_REVOKE_BATCH_DATE') || '2022-10-22',
-);
-
-const maxDaysForSendingUpdateReminder = moment()
-  .subtract(projectUpdatesReminderDays, 'days')
-  .endOf('day')
-  .toDate();
 
 const maxDaysForSendingUpdateWarning = moment()
   .subtract(projectUpdatesWarningDays, 'days')

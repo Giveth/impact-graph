@@ -14,7 +14,6 @@ import {
   fetchOrganizationById,
   GivingBlockProject,
 } from './api';
-
 import config from '../../config';
 import slugify from 'slugify';
 import { ProjectStatus } from '../../entities/projectStatus';
@@ -22,11 +21,7 @@ import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';
 import { Organization, ORGANIZATION_LABELS } from '../../entities/organization';
 import { findUserById } from '../../repositories/userRepository';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 
 // Every week once on sunday at 0 hours
 const cronJobTime =

@@ -14,7 +14,6 @@ import {
   createProjectData,
   DONATION_SEED_DATA,
   generateRandomEtheriumAddress,
-  generateRandomEvmTxHash,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,

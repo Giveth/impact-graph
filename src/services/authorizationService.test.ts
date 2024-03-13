@@ -13,7 +13,7 @@ import { findUserByWalletAddress } from '../repositories/userRepository';
 
 describe('authorizationHandler() test cases', authorizationHandlerTestCases);
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const siwe = require('siwe');
 
 const domain = 'localhost';

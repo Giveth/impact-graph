@@ -1,8 +1,5 @@
-import { Project, RevokeSteps } from '../../entities/project';
-import {
-  ProjectStatusHistory,
-  HISTORY_DESCRIPTIONS,
-} from '../../entities/projectStatusHistory';
+import { RevokeSteps } from '../../entities/project';
+
 import { assert } from 'chai';
 import { checkProjectVerificationStatus } from './checkProjectVerificationStatus';
 import {
@@ -10,10 +7,8 @@ import {
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
 import { findProjectById } from '../../repositories/projectRepository';
-import { createProjectVerificationForm } from '../../repositories/projectVerificationRepository';
-import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 describe(

@@ -15,7 +15,6 @@ import { PowerSnapshot } from '../../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../../entities/powerBoostingSnapshot';
 import { AppDataSource } from '../../orm';
 import { PowerBalanceSnapshot } from '../../entities/powerBalanceSnapshot';
-import { logger } from '../../utils/logger';
 import sinon from 'sinon';
 import { getPowerBalanceAggregatorAdapter } from '../../adapters/adaptersFactory';
 import { convertTimeStampToSeconds } from '../../utils/utils';

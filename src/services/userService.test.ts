@@ -1,8 +1,7 @@
-import { assert, use } from 'chai';
+import { assert } from 'chai';
 import 'mocha';
 import { User, UserRole } from '../entities/user';
-import { Project } from '../entities/project';
-import { Donation, DONATION_STATUS } from '../entities/donation';
+import { DONATION_STATUS } from '../entities/donation';
 import {
   createDonationData,
   createProjectData,
@@ -10,16 +9,15 @@ import {
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
-  SEED_DATA,
 } from '../../test/testUtils';
 import {
   fetchAdminAndValidatePassword,
   updateUserTotalDonated,
   updateUserTotalReceived,
-} from '../services/userService';
+} from './userService';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { generateRandomString } from '../utils/utils';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcrypt');
 import { findUserById } from '../repositories/userRepository';
 
@@ -42,7 +40,7 @@ function updateUserTotalDonatedTestCases() {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const project = await saveProjectDirectlyToDb(createProjectData());
     const valueUsd = 100;
-    const donation = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
         status: DONATION_STATUS.VERIFIED,
@@ -54,7 +52,7 @@ function updateUserTotalDonatedTestCases() {
 
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const donation2 = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       {
         ...createDonationData(),
         status: DONATION_STATUS.FAILED,
@@ -82,7 +80,7 @@ function updateUserTotalReceivedTestCases() {
       loginType: 'wallet',
       firstName: 'test name',
     }).save();
-    const project = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       admin: String(user.id),
       organizationLabel: ORGANIZATION_LABELS.GIVING_BLOCK,

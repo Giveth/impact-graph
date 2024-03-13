@@ -22,10 +22,9 @@ import { gnosisSafeL2ABI } from '../../../assets/gnosisSafeL2ABI';
 import { NetworkTransactionInfo, TransactionDetailInput } from '../index';
 import { normalizeAmount } from '../../../utils/utils';
 import { ONE_HOUR, validateTransactionWithInputData } from '../index';
-import _ from 'lodash';
 import { ITxInfo } from '../../../types/etherscan';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 abiDecoder.addABI(gnosisSafeL2ABI);
@@ -273,7 +272,7 @@ async function getTransactionDetailForNormalTransfer(
     const events = decodedLogs[0].events;
 
     transactionTo = events[0]?.value?.toLowerCase();
-    transactionFrom = decodedLogs[0]?.address!;
+    transactionFrom = decodedLogs[0]?.address;
     amount = normalizeAmount(events[1]?.value, token.decimals);
 
     if (!transactionTo || !transactionFrom) {

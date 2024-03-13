@@ -2,7 +2,6 @@ import {
   findInCompletePowerSnapShots,
   updatePowerSnapShots,
 } from '../repositories/powerSnapshotRepository';
-import { getTimestampInSeconds } from '../utils/utils';
 import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 import { logger } from '../utils/logger';
 

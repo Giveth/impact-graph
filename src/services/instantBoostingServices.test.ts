@@ -10,8 +10,6 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { mockPowerBalanceAggregator } from '../adapters/adaptersFactory';
-import { BalanceResponse } from '../types/GivPowerBalanceAggregator';
 
 describe(
   'updateInstancePowerBalances test cases',
@@ -23,11 +21,11 @@ const SampleStagingGivPowerUsers = [
   '0x05a1ff0a32bc24265bcb39499d0c5d9a6cb2011c',
 ];
 
-const getLastUpdatedUsers = async (): Promise<BalanceResponse[]> => {
-  return mockPowerBalanceAggregator.getBalancesUpdatedAfterDate({
-    date: 0,
-  });
-};
+// const getLastUpdatedUsers = async (): Promise<BalanceResponse[]> => {
+//   return mockPowerBalanceAggregator.getBalancesUpdatedAfterDate({
+//     date: 0,
+//   });
+// };
 
 function updateInstancePowerBalancesTestCase() {
   beforeEach(async () => {

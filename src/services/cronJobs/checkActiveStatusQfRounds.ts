@@ -1,7 +1,7 @@
 import config from '../../config';
 import { logger } from '../../utils/logger';
 import { schedule } from 'node-cron';
-import { isTestEnv, sleep } from '../../utils/utils';
+import { isTestEnv } from '../../utils/utils';
 import {
   deactivateExpiredQfRounds,
   getExpiredActiveQfRounds,

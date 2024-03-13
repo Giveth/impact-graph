@@ -1,15 +1,7 @@
-// import ethers..
-
 import { ethers } from 'ethers';
-import {
-  getLatestBlockNumberFromDonations,
-  isTransactionHashStored,
-} from '../../repositories/donationRepository';
+import { isTransactionHashStored } from '../../repositories/donationRepository';
 import { DONATION_ORIGINS, Donation } from '../../entities/donation';
-import {
-  findProjectByWalletAddress,
-  findProjectByWalletAddressAndNetwork,
-} from '../../repositories/projectRepository';
+import { findProjectByWalletAddressAndNetwork } from '../../repositories/projectRepository';
 import { NETWORK_IDS } from '../../provider';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { ProjStatus } from '../../entities/project';
@@ -209,7 +201,7 @@ export const createIdrissTwitterDonation = async (
       }
     }
 
-    const donation = await Donation.create({
+    const donation = Donation.create({
       amount: Number(idrissDonation.amount),
       transactionId: idrissDonation?.txHash?.toLowerCase(),
       isFiat: false,

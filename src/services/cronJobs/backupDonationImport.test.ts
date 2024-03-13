@@ -4,8 +4,6 @@ import {
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
-  generateTestAccessToken,
-  graphqlUrl,
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
 import { User } from '../../entities/user';

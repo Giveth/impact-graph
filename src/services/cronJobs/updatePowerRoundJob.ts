@@ -14,7 +14,6 @@ import {
 import { refreshUserProjectPowerView } from '../../repositories/userProjectPowerViewRepository';
 import {
   copyProjectRanksToPreviousRoundRankTable,
-  deleteAllPreviousRoundRanks,
   projectsThatTheirRanksHaveChanged,
 } from '../../repositories/previousRoundRankRepository';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
