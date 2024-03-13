@@ -23,7 +23,7 @@ import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
 import { RecurringDonationResolver } from './recurringDonationResolver';
 import { DraftDonationResolver } from './draftDonationResolver';
 
-export const getResolvers = (): Function[] => {
+export const getResolvers = (): (new (...args: any[]) => void)[] => {
   return [
     UserResolver,
     ProjectResolver,

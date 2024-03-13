@@ -36,6 +36,7 @@ export async function generatePDFDocument(
 export async function changeBase64ToIpfsImageInHTML(
   html: string,
 ): Promise<string> {
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     // Find image with base64
     const regex = /<img\ssrc="(data:image\/[^;]+;base64,[^"]+)"/g;

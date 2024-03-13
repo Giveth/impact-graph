@@ -191,7 +191,7 @@ export const qfRoundTab = {
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
         before: async (
           request: AdminJsRequestInterface,
-          response,
+          _response,
           _context: AdminJsContextInterface,
         ) => {
           // https://docs.adminjs.co/basics/action#using-before-and-after-hooks

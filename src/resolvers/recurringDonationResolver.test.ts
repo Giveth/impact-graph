@@ -184,7 +184,6 @@ function createRecurringDonationTestCases() {
     );
 
     const accessToken = await generateTestAccessToken(contractCreator.id);
-    const contractAddress = generateRandomEtheriumAddress();
     const result = await axios.post(
       graphqlUrl,
       {

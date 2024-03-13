@@ -33,7 +33,6 @@ import {
   ArgsType,
   Ctx,
   Field,
-  ID,
   InputType,
   Int,
   Mutation,
@@ -277,13 +276,6 @@ class GetProjectsArgs {
 
   @Field(type => String, { nullable: true })
   qfRoundSlug?: string;
-}
-
-@Service()
-@ArgsType()
-class GetProjectArgs {
-  @Field(type => ID!, { defaultValue: 0 })
-  id: number;
 }
 
 @ObjectType()

@@ -1,3 +1,4 @@
+/* eslint-disable no-irregular-whitespace */
 import { getCreatedAtFromMongoObjectId, getHtmlTextSummary } from './utils';
 import { assert } from 'chai';
 import { SUMMARY_LENGTH } from '../constants/summary';

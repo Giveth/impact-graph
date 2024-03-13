@@ -89,7 +89,7 @@ export class UploadResolver {
     if (!process.env.TRACE_FILE_UPLOADER_PASSWORD) {
       errorMessage = `No password is defined for trace file uploader `;
     } else if (password !== process.env.TRACE_FILE_UPLOADER_PASSWORD) {
-      // @ts-ignore
+      // @ts-expect-error ip is not null
       errorMessage = `Invalid password to upload trace image from ip ${ctx?.req?.ip}`;
     }
 

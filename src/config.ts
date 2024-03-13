@@ -59,7 +59,6 @@ const envVars = [
   'DONATION_VERIFICAITON_EXPIRATION_HOURS',
 ];
 
-// tslint:disable-next-line:class-name
 interface requiredEnv {
   JWT_SECRET: string;
   JWT_MAX_AGE: string;

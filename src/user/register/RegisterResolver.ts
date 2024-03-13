@@ -1,4 +1,3 @@
-// tslint:disable-next-line:no-var-requires
 import { logger } from '../../utils/logger';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

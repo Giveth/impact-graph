@@ -476,8 +476,6 @@ async function runMigrations() {
       queryRunner,
     );
     await new createDonationethUser1701756190381().up(queryRunner);
-  } catch (e) {
-    throw e;
   } finally {
     await queryRunner.release();
   }

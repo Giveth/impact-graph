@@ -3,10 +3,7 @@ import {
   canAccessProjectStatusReasonAction,
   ResourceActions,
 } from '../adminJsPermissions';
-import {
-  AdminJsContextInterface,
-  AdminJsRequestInterface,
-} from '../adminJs-types';
+import { AdminJsRequestInterface } from '../adminJs-types';
 import { logger } from '../../../utils/logger';
 import csv from 'csvtojson';
 import { messages } from '../../../utils/messages';
@@ -16,7 +13,6 @@ import { findUserByWalletAddress } from '../../../repositories/userRepository';
 export const createSybil = async (
   request: AdminJsRequestInterface,
   response,
-  context?: AdminJsContextInterface,
 ) => {
   let message = messages.SYBIL_HAS_BEEN_CREATED_SUCCESSFULLY;
   logger.debug('createSybil has been called() ', request.payload);

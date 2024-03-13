@@ -5083,7 +5083,7 @@ function similarProjectsBySlugTestCases() {
     });
 
     const c = await Category.findOne({ where: { name: 'food8' } });
-    const [_, relatedCount] = await Project.createQueryBuilder('project')
+    const [, relatedCount] = await Project.createQueryBuilder('project')
       .innerJoinAndSelect('project.categories', 'categories')
       .where('categories.id IN (:...ids)', { ids: [c?.id] })
       .andWhere('project.id != :id', { id: viewedProject.id })
@@ -5128,7 +5128,7 @@ function similarProjectsBySlugTestCases() {
     });
     const totalCount = result.data.data.similarProjectsBySlug.totalCount;
 
-    const [_, relatedCount] = await Project.createQueryBuilder('project')
+    const [, relatedCount] = await Project.createQueryBuilder('project')
       .innerJoinAndSelect('project.categories', 'categories')
       .where('project.id != :id', { id: viewedProject?.id })
       .andWhere('project.admin = :ownerId', {

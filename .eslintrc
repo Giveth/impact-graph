@@ -46,14 +46,6 @@
           "private-instance-method"
         ]
       }
-    ],
-    "unified-signatures": 0,
-    "ordered-imports": 0,
-    "no-unused-expression": 0,
-    "callable-types": 0,
-    "jsdoc-format": 0,
-    "no-namespace": 0,
-    "object-literal-sort-keys": 0,
-    "max-classes-per-file": 0
+    ]
   }
 }
