@@ -6,7 +6,7 @@ export class createUserTable1662877385100 implements MigrationInterface {
     const userTableExists = await queryRunner.hasTable('public.user');
 
     if (userTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('user table already exists');
       return;
     }

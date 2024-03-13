@@ -317,7 +317,7 @@ export class addSomeDonationsToDb1680507337701 implements MigrationInterface {
     const environment = config.get('ENVIRONMENT') as string;
 
     if (environment !== 'production') {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('We want to create these donations in production DB');
       return;
     }
@@ -347,7 +347,7 @@ export class addSomeDonationsToDb1680507337701 implements MigrationInterface {
            VALUES ('${tx.toWalletAddress}', ${tx.projectId}, '${tx.fromWalletAddress}', ${user.id}, ${tx.amount}, '${tx.currency}', '${tx.transactionId}', ${tx.transactionNetworkId}, false, ${tx.valueUsd}, 'verified', true, false, false, '${createdAt}');
                 `);
       } catch (e) {
-        // tslint:disable-next-line:no-console
+        // eslint-disable-next-line no-console
         console.log('Couldnt create donation error: ', e.message);
       }
     }

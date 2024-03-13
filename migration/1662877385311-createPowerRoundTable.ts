@@ -6,7 +6,7 @@ export class createPowerRoundTable1662877385311 implements MigrationInterface {
     const powerRoundTableExists = await queryRunner.hasTable('power_round');
 
     if (powerRoundTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('createPowerRoundTable power_round table exists');
       return;
     }

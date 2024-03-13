@@ -19,7 +19,7 @@ export class TransformBase64ImagesToIpfs1680539882510
       // transform base64 images to ipfs
       await Promise.all(
         projectUpdates.map(async ({ id, content }) => {
-          // tslint:disable-next-line:no-console
+          // eslint-disable-next-line no-console
           console.log(
             'Transforming base64 images to ipfs for project update',
             id,
@@ -46,7 +46,7 @@ export class TransformBase64ImagesToIpfs1680539882510
       await Promise.all(
         projects.map(async ({ id, description }) => {
           if (!description) return;
-          // tslint:disable-next-line:no-console
+          // eslint-disable-next-line no-console
           console.log('Transforming base64 images to ipfs for project', id);
           description = await changeBase64ToIpfsImageInHTML(description);
           return Project.update(id, { description });

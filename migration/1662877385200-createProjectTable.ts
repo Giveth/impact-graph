@@ -6,7 +6,7 @@ export class createProjectTable1662877385200 implements MigrationInterface {
     const projectTableExists = await queryRunner.hasTable('project');
 
     if (projectTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Project table already exists');
       return;
     }

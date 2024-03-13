@@ -6,11 +6,10 @@ export class deleteGnosisRecipientsOfGivingblocksProjects1666068280230
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     const projectTableExists = await queryRunner.hasTable('project');
-    const projectAddressTableExists = await queryRunner.hasTable(
-      'project_address',
-    );
+    const projectAddressTableExists =
+      await queryRunner.hasTable('project_address');
     if (!projectTableExists || !projectAddressTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('The project table or project_Address table doesnt exist', {
         projectAddressTableExists,
         projectTableExists,

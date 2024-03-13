@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { Token } from '../src/entities/token';
 import seedTokens from './data/seedTokens';
-import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 
 // tslint:disable-next-line:class-name

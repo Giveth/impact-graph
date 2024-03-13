@@ -12,9 +12,8 @@ export class AddReferredTableRelation1683764388981
 {
   async up(queryRunner: QueryRunner): Promise<void> {
     // Create referred_event table
-    const referredEventTableExists = await queryRunner.hasTable(
-      'referred_event',
-    );
+    const referredEventTableExists =
+      await queryRunner.hasTable('referred_event');
 
     if (!referredEventTableExists) {
       await queryRunner.createTable(

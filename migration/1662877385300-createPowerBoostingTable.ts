@@ -5,12 +5,11 @@ export class createPowerBoostingTable1662877385300
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
-    const powerBoostingTableExists = await queryRunner.hasTable(
-      'power_boosting',
-    );
+    const powerBoostingTableExists =
+      await queryRunner.hasTable('power_boosting');
 
     if (powerBoostingTableExists) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('createPowerBoostingTable power_boosting table exists');
       return;
     }

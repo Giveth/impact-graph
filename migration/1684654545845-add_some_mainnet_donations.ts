@@ -232,7 +232,7 @@ export class addSomeMainnetDonations1684654545845
     const environment = config.get('ENVIRONMENT') as string;
 
     if (environment !== 'production') {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('We want to create these donations in production DB');
       return;
     }
