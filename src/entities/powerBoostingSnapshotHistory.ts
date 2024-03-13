@@ -1,16 +1,6 @@
-import {
-  BaseEntity,
-  Column,
-  Entity,
-  Index,
-  ManyToOne,
-  PrimaryColumn,
-  RelationId,
-} from 'typeorm';
+import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
-import { User } from './user';
 import { ColumnNumericTransformer } from '../utils/entities';
-import { PowerSnapshotHistory } from './powerSnapshotHistory';
 
 @Entity()
 @ObjectType()

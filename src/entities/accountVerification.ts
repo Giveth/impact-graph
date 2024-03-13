@@ -5,7 +5,6 @@ import {
   Entity,
   BaseEntity,
   ManyToOne,
-  ColumnOptions,
   RelationId,
   Index,
   CreateDateColumn,

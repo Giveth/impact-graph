@@ -7,9 +7,6 @@ import {
   ManyToOne,
   RelationId,
   Index,
-  Unique,
-  Brackets,
-  JoinTable,
 } from 'typeorm';
 import { Project } from './project';
 import { User } from './user';

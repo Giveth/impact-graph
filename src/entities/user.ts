@@ -10,8 +10,6 @@ import {
   CreateDateColumn,
   JoinTable,
   OneToOne,
-  JoinColumn,
-  RelationId,
 } from 'typeorm';
 import { Project, ProjStatus, ReviewStatus } from './project';
 import { Donation, DONATION_STATUS } from './donation';

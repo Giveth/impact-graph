@@ -1,10 +1,9 @@
-import { ObjectType, Field, ID } from 'type-graphql';
+import { Field } from 'type-graphql';
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   RelationId,

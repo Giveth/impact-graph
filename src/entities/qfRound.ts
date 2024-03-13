@@ -5,14 +5,11 @@ import {
   Entity,
   BaseEntity,
   ManyToMany,
-  ManyToOne,
-  RelationId,
   UpdateDateColumn,
   CreateDateColumn,
   Index,
 } from 'typeorm';
 import { Project } from './project';
-import { MainCategory } from './mainCategory';
 
 @Entity()
 @ObjectType()
@@ -72,7 +69,7 @@ export class QfRound extends BaseEntity {
   projects: Project[];
 
   // only projects with status active can be listed automatically
-  isEligibleNetwork(donationNetworkId: number): Boolean {
+  isEligibleNetwork(donationNetworkId: number): boolean {
     // when not specified, all are valid
     if (this.eligibleNetworks.length === 0) return true;
 

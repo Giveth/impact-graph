@@ -1,18 +1,14 @@
 import { Field, ObjectType } from 'type-graphql';
 import {
-  Entity,
   Column,
-  Index,
   PrimaryColumn,
   BaseEntity,
   ViewEntity,
   ManyToOne,
-  RelationId,
   ViewColumn,
   JoinColumn,
 } from 'typeorm';
 import { Project } from './project';
-import { string } from 'joi';
 
 @ViewEntity('project_actual_matching_view', { synchronize: false })
 @ObjectType()

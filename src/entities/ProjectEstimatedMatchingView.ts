@@ -1,13 +1,11 @@
 import { Field, ObjectType } from 'type-graphql';
 import {
-  Entity,
   Column,
   Index,
   PrimaryColumn,
   BaseEntity,
   ViewEntity,
   ManyToOne,
-  RelationId,
   ViewColumn,
   JoinColumn,
 } from 'typeorm';

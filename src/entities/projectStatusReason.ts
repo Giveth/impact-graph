@@ -4,12 +4,9 @@ import {
   Column,
   Entity,
   BaseEntity,
-  OneToMany,
-  Index,
   ManyToOne,
   RelationId,
 } from 'typeorm';
-import { Project } from './project';
 import { ProjectStatus } from './projectStatus';
 
 @Entity()

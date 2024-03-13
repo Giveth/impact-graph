@@ -1,7 +1,6 @@
 import {
   BaseEntity,
   Column,
-  CreateDateColumn,
   Entity,
   Index,
   ManyToOne,

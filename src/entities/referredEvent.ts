@@ -5,14 +5,11 @@ import {
   Column,
   BaseEntity,
   RelationId,
-  ManyToOne,
-  Index,
   OneToOne,
   UpdateDateColumn,
   CreateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { Project, ProjectUpdate } from './project';
 import { User } from './user';
 
 @Entity()

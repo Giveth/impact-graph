@@ -12,7 +12,6 @@ import {
 } from 'typeorm';
 import { Field, ID, ObjectType } from 'type-graphql';
 import { Project } from './project';
-import { User } from './user';
 
 @Entity()
 @ObjectType()

@@ -55,7 +55,7 @@ import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 export enum ProjStatus {
@@ -429,7 +429,7 @@ export class Project extends BaseEntity {
   campaigns: Campaign[];
 
   // only projects with status active can be listed automatically
-  static pendingReviewSince(maximumDaysForListing: Number) {
+  static pendingReviewSince(maximumDaysForListing: number) {
     const maxDaysForListing = moment()
       .subtract(maximumDaysForListing, 'days')
       .endOf('day');

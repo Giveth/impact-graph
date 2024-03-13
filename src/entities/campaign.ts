@@ -4,16 +4,10 @@ import {
   Column,
   Entity,
   BaseEntity,
-  ManyToMany,
   UpdateDateColumn,
   CreateDateColumn,
-  JoinTable,
-  Index,
-  ManyToOne,
-  RelationId,
 } from 'typeorm';
 import { Project } from './project';
-import { User } from './user';
 
 // Copied from projects enums
 export enum CampaignSortingField {

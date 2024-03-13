@@ -74,7 +74,7 @@ export class ProjectContacts {
 @ObjectType()
 export class Milestones {
   @Field(type => String, { nullable: true })
-  foundationDate?: String;
+  foundationDate?: string;
   @Field({ nullable: true })
   mission?: string;
   @Field({ nullable: true })
