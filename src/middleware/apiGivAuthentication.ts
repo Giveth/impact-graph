@@ -1,13 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import {
-  createBasicAuthentication,
-  decodeBasicAuthentication,
-} from '../utils/utils';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { decodeBasicAuthentication } from '../utils/utils';
 import { logger } from '../utils/logger';
 import {
   ApiGivStandardError,

@@ -6,7 +6,7 @@ export const isAuth: MiddlewareFn<ApolloContext> = async (
   { context },
   next,
 ) => {
-  // @ts-ignore
+  // @ts-expect-error just skip error
   if (!context?.req?.session?.userId) {
     throw new Error('not authenticated');
   }
