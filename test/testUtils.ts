@@ -34,7 +34,7 @@ import { RecurringDonation } from '../src/entities/recurringDonation';
 import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
 import { findProjectById } from '../src/repositories/projectRepository';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
@@ -290,8 +290,8 @@ export const saveProjectDirectlyToDb = async (
       "userId","projectId",content,title,"createdAt","isMain"
     ) VALUES (
       ${user.id}, ${project.id}, '', '', '${
-    projectUpdateCreatedAt.toISOString().split('T')[0]
-  }', true
+        projectUpdateCreatedAt.toISOString().split('T')[0]
+      }', true
     )`);
   return project;
 };
