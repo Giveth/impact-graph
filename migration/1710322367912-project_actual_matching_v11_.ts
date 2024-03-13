@@ -8,17 +8,24 @@ export class ProjectActualMatchingV11_1710322367912
         DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
         CREATE MATERIALIZED VIEW project_actual_matching_view AS
           
-   WITH ProjectsAndRounds AS (
+          
+     WITH ProjectsAndRounds AS (
             SELECT
                 p.id AS "projectId",
                 p.slug,
                 p.title,
                 qr.id as "qfId",
                 qr."minimumPassportScore",
-                qr."eligibleNetworks"
+                qr."eligibleNetworks",
+                 STRING_AGG(DISTINCT CONCAT(pa."networkId", '-', pa."address"), ', ') AS "networkAddresses"
             FROM
                 public.project p
                 CROSS JOIN public.qf_round qr
+                LEFT JOIN project_address pa ON pa."projectId" = p.id AND pa."networkId" = ANY(qr."eligibleNetworks") AND pa."isRecipient" = true
+        group by
+        p.id,
+        qr.id
+
         ),
         DonationsBeforeAnalysis AS (
             SELECT
@@ -26,18 +33,19 @@ export class ProjectActualMatchingV11_1710322367912
                 par.slug,
                 par.title,
                 par."qfId",
+                par."networkAddresses",
                 par."minimumPassportScore" as "minimumPassportScore",
                 COALESCE(SUM(d."valueUsd"), 0) AS "allUsdReceived",
-                STRING_AGG(DISTINCT CONCAT(pa."networkId", '-', pa."address"), ', ') FILTER (WHERE pa."networkId" IS NOT NULL) AS "networkAddresses",
-                COUNT(DISTINCT d."fromWalletAddress") FILTER (WHERE d."fromWalletAddress" IS NOT NULL) AS "totalDonors",
+                COUNT(DISTINCT CASE WHEN d."fromWalletAddress" IS NOT NULL THEN d."fromWalletAddress" END) AS "totalDonors",
+
                 ARRAY_AGG(DISTINCT d.id) FILTER (WHERE d.id IS NOT NULL) AS "donationIdsBeforeAnalysis"
             FROM
                 ProjectsAndRounds par
                 LEFT JOIN public.donation d ON d."projectId" = par."projectId" AND d."qfRoundId" = par."qfId" AND d."status" = 'verified' AND d."transactionNetworkId" = ANY(par."eligibleNetworks")
-                LEFT JOIN project_address pa ON pa."projectId" = par."projectId" AND pa."networkId" = ANY(par."eligibleNetworks") AND pa."isRecipient" = true
             GROUP BY
                 par."projectId",
                 par.title,
+                par."networkAddresses",
                 par.slug,
                 par."qfId",
                 par."minimumPassportScore"
@@ -120,14 +128,15 @@ export class ProjectActualMatchingV11_1710322367912
                 da.slug,
                 da.title,
                 da."qfId",
-                dia."uniquedonationids"
+                dia."uniquedonationids",
+                da."networkAddresses"
         )
                
         SELECT
             da."projectId",
-            da."networkAddresses",
             da.title,
             da.slug,
+            da."networkAddresses",
             da."qfId" AS "qfRoundId",
             da."donationIdsBeforeAnalysis",
             da."allUsdReceived",
@@ -142,8 +151,6 @@ export class ProjectActualMatchingV11_1710322367912
         FROM
             DonationsBeforeAnalysis da
             INNER JOIN DonationsAfterAnalysis daa ON da."projectId" = daa."projectId" AND da."qfId" = daa."qfId";
-    
-                
                 
         CREATE INDEX idx_project_actual_matching_project_id ON project_actual_matching_view USING hash ("projectId");
         CREATE INDEX idx_project_actual_matching_qf_round_id ON project_actual_matching_view USING hash ("qfRoundId");
