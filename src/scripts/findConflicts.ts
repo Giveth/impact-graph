@@ -21,7 +21,6 @@ import { Project } from '../entities/project';
 import { sleep } from '../utils/utils';
 import { writeFileSync } from 'fs';
 import { findTokenByNetworkAndSymbol } from '../utils/tokenUtils';
-import { isWalletAddressSmartContract } from '../utils/validators/projectValidator';
 import { fetchGivHistoricPrice } from '../services/givPriceService';
 
 const EXCLUDED_FROM_ADDRESSES = ['0x0000000000000000000000000000000000000000'];
@@ -54,12 +53,12 @@ setupDb().then(async () => {
     `./src/scripts/transaction${new Date()}.json`,
     JSON.stringify(missedDonations, null, 4),
   );
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log('missedDonations ', missedDonations);
 });
 
 async function setupDb() {
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log('setupDb connections', {
     host: process.env.TYPEORM_DATABASE_HOST,
   });
@@ -88,7 +87,7 @@ async function findMissedDonations() {
   const walletAddresses = projects.map(project => {
     return project.walletAddress;
   });
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log(
     'findMissedDonations walletAddresses.length',
     walletAddresses.length,
@@ -97,7 +96,7 @@ async function findMissedDonations() {
   let i = 0;
   for (const project of projects) {
     i++;
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log('project ', {
       id: project.id,
       index: i,
@@ -107,7 +106,7 @@ async function findMissedDonations() {
       networkId: NETWORK_IDS.XDAI,
       project,
     });
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log('xdaiWalletTransactions', xdaiWalletTransactions);
     transactions = transactions.concat(xdaiWalletTransactions);
 
@@ -120,7 +119,7 @@ async function findMissedDonations() {
       './src/scripts/transaction.json',
       JSON.stringify(transactions, null, 4),
     );
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log('missed transactions length', transactions.length);
   }
   return transactions;
@@ -143,7 +142,7 @@ async function getTokenTransfers(input: {
       offset,
       networkId,
     });
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log('getListOfERC20TokenTransfers result', {
       transactions: userTransactions.walletTransactions.length,
       walletAddress,
@@ -198,7 +197,7 @@ async function checkTransactionWithOurDonations(
       };
     } else if (transaction.timestamp > endTimestamp) {
       const message = `Token is not is newer than time range ${transaction.tokenSymbol}  ${transaction.hash}`;
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('checkTransactionWithOurDonations() message', message);
       // token is not in time range
       return { message };
@@ -206,7 +205,7 @@ async function checkTransactionWithOurDonations(
       !findTokenByNetworkAndSymbol(networkId, transaction.tokenSymbol)
     ) {
       const message = `Token is not whitelisted ${transaction.timestamp}  ${transaction.hash}`;
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('checkTransactionWithOurDonations() message', message);
       // token is not whitelisted
       return { message };
@@ -227,7 +226,7 @@ async function checkTransactionWithOurDonations(
       },
     });
     if (!correspondingDonation) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Transaction is not in our DB ', {
         hash: transaction.hash,
         walletAddress: transaction.to,
@@ -236,7 +235,7 @@ async function checkTransactionWithOurDonations(
       });
       return { transaction };
     } else if (correspondingDonation.status !== 'verified') {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Transaction is  in our DB, but not verified status ', {
         hash: transaction.hash,
         statusInOurDb: correspondingDonation.status,
@@ -253,7 +252,7 @@ async function checkTransactionWithOurDonations(
       };
     }
   } catch (e) {
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log('checkTransactionWithOurDonations error', e.message);
     return {
       message: e.message,
@@ -325,7 +324,7 @@ async function getListOfERC20TokenTransfers(input: {
       isTransactionListEmpty: result.data.result.length === 0,
     };
   } catch (e) {
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log('getListOfERC20TokenTransfers() error', {
       error: e.message,
       input,
