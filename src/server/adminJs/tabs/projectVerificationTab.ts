@@ -7,7 +7,6 @@ import {
   canAccessProjectVerificationFormAction,
   ResourceActions,
 } from '../adminJsPermissions';
-
 import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
