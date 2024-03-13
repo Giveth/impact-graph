@@ -18,9 +18,6 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 
-// tslint:disable-next-line:no-var-requires
-const moment = require('moment');
-
 describe('createDonation() test cases', createDonationTestCases);
 
 function createDonationTestCases() {

@@ -34,7 +34,6 @@ import { AppDataSource } from '../orm';
 import { redis } from '../redis';
 import { Campaign, CampaignType } from '../entities/campaign';
 import { generateRandomString, getHtmlTextSummary } from '../utils/utils';
-import { ArgumentValidationError } from 'type-graphql';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
 import { updateInstantBoosting } from '../services/instantBoostingServices';
@@ -47,10 +46,6 @@ import {
 import { addOrUpdatePowerSnapshotBalances } from '../repositories/powerBalanceSnapshotRepository';
 import { findPowerSnapshots } from '../repositories/powerSnapshotRepository';
 import { ChainType } from '../types/network';
-
-const ARGUMENT_VALIDATION_ERROR_MESSAGE = new ArgumentValidationError([
-  { property: '' },
-]).message;
 
 // search and filters
 describe('all projects test cases --->', allProjectsTestCases);
@@ -181,7 +176,7 @@ function allProjectsTestCases() {
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
     });
-    const secondProject = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),
@@ -465,9 +460,7 @@ function allProjectsTestCases() {
       ...createProjectData(),
       verified: false,
     }); // Not boosted -Not verified project
-    const project5 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
-
-    const roundNumber = project3.id * 10;
+    await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
 
     await Promise.all(
       [
@@ -562,11 +555,11 @@ function allProjectsTestCases() {
     const project1 = await saveProjectDirectlyToDb(createProjectData());
     const project2 = await saveProjectDirectlyToDb(createProjectData());
     const project3 = await saveProjectDirectlyToDb(createProjectData());
-    const project4 = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       verified: false,
     }); // Not boosted -Not verified project
-    const project5 = await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
+    await saveProjectDirectlyToDb(createProjectData()); // Not boosted project
 
     const roundNumber = project3.id * 10;
 
@@ -1472,7 +1465,7 @@ function allProjectsTestCases() {
     // Delete all project addresses
     await ProjectAddress.delete({ chainType: ChainType.SOLANA });
 
-    const project = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       title: String(new Date().getTime()),
       slug: String(new Date().getTime()),

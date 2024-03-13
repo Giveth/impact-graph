@@ -1,14 +1,8 @@
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Int, Mutation, Resolver } from 'type-graphql';
 
-import { QfRoundHistory } from '../entities/qfRoundHistory';
-import { getQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findProjectById } from '../repositories/projectRepository';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import {
   addNewAnchorAddress,
   findActiveAnchorAddress,

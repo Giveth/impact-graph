@@ -1168,18 +1168,13 @@ export class ProjectResolver {
     @Arg('imageUpload') imageUpload: ImageUpload,
     @Ctx() ctx: ApolloContext,
   ): Promise<ImageResponse> {
-    const user = await getLoggedInUser(ctx);
     let url = '';
 
     if (imageUpload.image) {
-      const { filename, createReadStream, encoding } = await imageUpload.image;
+      const { filename, createReadStream } = await imageUpload.image;
 
       try {
-        const pinResponse = await pinFile(
-          createReadStream(),
-          filename,
-          encoding,
-        );
+        const pinResponse = await pinFile(createReadStream(), filename);
         url = `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${pinResponse.IpfsHash}`;
 
         const projectImage = this.projectImageRepository.create({
@@ -1524,7 +1519,7 @@ export class ProjectResolver {
   async deleteProjectUpdate(
     @Arg('updateId') updateId: number,
     @Ctx() { req: { user } }: ApolloContext,
-  ): Promise<Boolean> {
+  ): Promise<boolean> {
     if (!user)
       throw new Error(
         i18n.__(translationErrorMessagesKeys.AUTHENTICATION_REQUIRED),
@@ -1597,7 +1592,7 @@ export class ProjectResolver {
   // TODO after finalizing getPurpleList and when Ashley filled that table we can remove this query and then change
   // givback-calculation script to use  getPurpleList query
   @Query(returns => [String])
-  async getProjectsRecipients(): Promise<String[]> {
+  async getProjectsRecipients(): Promise<string[]> {
     const recipients = await Project.query(
       `
             SELECT "walletAddress" FROM project
@@ -1608,7 +1603,7 @@ export class ProjectResolver {
   }
 
   @Query(returns => [String])
-  async getPurpleList(): Promise<String[]> {
+  async getPurpleList(): Promise<string[]> {
     const relatedAddresses = await getPurpleListAddresses();
     return relatedAddresses.map(({ projectAddress }) => projectAddress);
   }
@@ -1616,7 +1611,7 @@ export class ProjectResolver {
   @Query(returns => Boolean)
   async walletAddressIsPurpleListed(
     @Arg('address') address: string,
-  ): Promise<Boolean> {
+  ): Promise<boolean> {
     return isWalletAddressInPurpleList(address);
   }
 
@@ -2014,7 +2009,7 @@ export class ProjectResolver {
     @Arg('projectId') projectId: number,
     @Ctx() ctx: ApolloContext,
     @Arg('reasonId', { nullable: true }) reasonId?: number,
-  ): Promise<Boolean> {
+  ): Promise<boolean> {
     try {
       const user = await getLoggedInUser(ctx);
       const project = await this.updateProjectStatus({
@@ -2042,7 +2037,7 @@ export class ProjectResolver {
   async activateProject(
     @Arg('projectId') projectId: number,
     @Ctx() ctx: ApolloContext,
-  ): Promise<Boolean> {
+  ): Promise<boolean> {
     try {
       const user = await getLoggedInUser(ctx);
       const project = await this.updateProjectStatus({

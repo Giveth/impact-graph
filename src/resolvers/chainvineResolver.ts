@@ -1,19 +1,6 @@
-import {
-  Arg,
-  Ctx,
-  Field,
-  Int,
-  Mutation,
-  Query,
-  registerEnumType,
-  Resolver,
-} from 'type-graphql';
+import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { ApolloContext } from '../types/ApolloContext';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User } from '../entities/user';
 import {
   findUserById,

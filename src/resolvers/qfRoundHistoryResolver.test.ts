@@ -13,10 +13,7 @@ import { QfRound } from '../entities/qfRound';
 import moment from 'moment';
 import { fillQfRoundHistory } from '../repositories/qfRoundHistoryRepository';
 import axios from 'axios';
-import {
-  fetchProjectBySlugQuery,
-  getQfRoundHistoryQuery,
-} from '../../test/graphqlQueries';
+import { getQfRoundHistoryQuery } from '../../test/graphqlQueries';
 
 describe('Fetch getQfRoundHistory test cases', getQfRoundHistoryTestCases);
 

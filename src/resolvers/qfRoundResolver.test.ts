@@ -15,12 +15,8 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../services/projectViewsService';
-import { getProjectDonationsSqrtRootSum } from '../repositories/qfRoundRepository';
 import axios from 'axios';
-import {
-  fetchProjectBySlugQuery,
-  qfRoundStatsQuery,
-} from '../../test/graphqlQueries';
+import { qfRoundStatsQuery } from '../../test/graphqlQueries';
 import { generateRandomString } from '../utils/utils';
 
 describe('Fetch estimatedMatching test cases', fetchEstimatedMatchingTestCases);

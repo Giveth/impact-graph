@@ -10,15 +10,10 @@ import {
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import { FileUpload } from 'graphql-upload/Upload.js';
 import { ApolloContext } from '../types/ApolloContext';
-
 import { pinFile, pinFileDataBase64 } from '../middleware/pinataUtils';
 import { logger } from '../utils/logger';
 import { getLoggedInUser } from '../services/authorizationServices';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import SentryLogger from '../sentryLogger';
 
 @InputType()
@@ -65,15 +60,15 @@ export class UploadResolver {
   async upload(
     @Arg('fileUpload') fileUpload: FileUploadInputType,
     @Ctx() ctx: ApolloContext,
-  ): Promise<String> {
+  ): Promise<string> {
     await getLoggedInUser(ctx);
     // if (!fileUpload.image) {
     //   throw Error('Upload file failed');
     // }
-    const { filename, createReadStream, encoding } = await fileUpload.image;
+    const { filename, createReadStream } = await fileUpload.image;
 
     try {
-      const response = await pinFile(createReadStream(), filename, encoding);
+      const response = await pinFile(createReadStream(), filename);
       return `${process.env.PINATA_GATEWAY_ADDRESS}/ipfs/${response.IpfsHash}`;
     } catch (e) {
       logger.error('upload() error', e);
@@ -87,8 +82,8 @@ export class UploadResolver {
   async traceImageUpload(
     @Arg('traceFileUpload') traceFileUpload: TraceFileUploadInputType,
     @Ctx() ctx: ApolloContext,
-  ): Promise<String> {
-    const { fileDataBase64, user, imageOwnerType, password } = traceFileUpload;
+  ): Promise<string> {
+    const { fileDataBase64, password } = traceFileUpload;
 
     let errorMessage;
     if (!process.env.TRACE_FILE_UPLOADER_PASSWORD) {
@@ -106,11 +101,7 @@ export class UploadResolver {
     }
 
     try {
-      const response = await pinFileDataBase64(
-        fileDataBase64,
-        undefined,
-        'base64',
-      );
+      const response = await pinFileDataBase64(fileDataBase64, undefined);
       return `/ipfs/${response.IpfsHash}`;
     } catch (e) {
       logger.error('upload() error', e);

@@ -28,7 +28,6 @@ import {
 } from '../entities/projectVerificationForm';
 import { updateProjectVerificationFormByUser } from '../services/projectVerificationFormService';
 import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdateInput';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import * as jwt from 'jsonwebtoken';
 import config from '../config';
 import { countriesList } from '../utils/utils';

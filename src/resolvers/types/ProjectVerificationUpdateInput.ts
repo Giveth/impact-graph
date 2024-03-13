@@ -15,7 +15,7 @@ class ProjectPersonalInfoInputType {
 @InputType()
 class MilestonesInputType {
   @Field(type => String, { nullable: true })
-  foundationDate?: String;
+  foundationDate?: string;
   @Field({ nullable: true })
   mission?: string;
   @Field({ nullable: true })

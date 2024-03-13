@@ -10,10 +10,8 @@ import {
 import { Repository } from 'typeorm';
 
 import { User } from '../entities/user';
-import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
-import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { validateEmail } from '../utils/validators/commonValidators';
 import {
@@ -47,9 +45,9 @@ export class UserResolver {
     this.userRepository = AppDataSource.getDataSource().getRepository(User);
   }
 
-  async create(@Arg('data', () => RegisterInput) data: any) {
-    // return User.create(data).save();
-  }
+  // async create(@Arg('data', () => RegisterInput) data: any) {
+  // return User.create(data).save();
+  // }
 
   @Query(returns => UserRelatedAddressResponse)
   async walletAddressUsed(@Arg('address') address: string) {
@@ -97,9 +95,8 @@ export class UserResolver {
       const passportScore = await getGitcoinAdapter().submitPassport({
         address,
       });
-      const passportStamps = await getGitcoinAdapter().getPassportStamps(
-        address,
-      );
+      const passportStamps =
+        await getGitcoinAdapter().getPassportStamps(address);
 
       if (passportScore && passportScore?.score) {
         const score = Number(passportScore.score);

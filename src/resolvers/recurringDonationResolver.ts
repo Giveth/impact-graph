@@ -33,7 +33,6 @@ import {
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
   updateRecurringDonation,
 } from '../repositories/recurringDonationRepository';
-import { publicSelectionFields } from '../entities/user';
 import { Brackets } from 'typeorm';
 import { detectAddressChainType } from '../utils/networks';
 import { Service } from 'typedi';
@@ -44,7 +43,6 @@ import {
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { sleep } from '../utils/utils';
-import { syncDonationStatusWithBlockchainNetwork } from '../services/donationService';
 import SentryLogger from '../sentryLogger';
 import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
 

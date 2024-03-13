@@ -769,9 +769,7 @@ function getPowerBoostingTestCases() {
     });
   });
   it('should get list of power with 1000 boostings filter by projectId', async () => {
-    const firstUser = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
+    await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const project = await saveProjectDirectlyToDb(createProjectData());
     for (let i = 0; i < 1000; i++) {

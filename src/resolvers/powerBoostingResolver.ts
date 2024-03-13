@@ -14,11 +14,7 @@ import {
   Resolver,
 } from 'type-graphql';
 import { ApolloContext } from '../types/ApolloContext';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 import {
   setMultipleBoosting,
@@ -185,7 +181,7 @@ export class PowerBoostingResolver {
   }
 
   @Query(returns => Number)
-  async getTopPowerRank(): Promise<Number> {
+  async getTopPowerRank(): Promise<number> {
     return getBottomRank();
   }
 }

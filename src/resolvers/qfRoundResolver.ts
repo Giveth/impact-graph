@@ -1,5 +1,4 @@
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
-import { Repository } from 'typeorm';
 
 import { User } from '../entities/user';
 import {

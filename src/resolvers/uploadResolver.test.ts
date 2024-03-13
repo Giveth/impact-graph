@@ -14,9 +14,9 @@ import * as pinataUtils from '../middleware/pinataUtils';
 import { createReadStream, readFileSync } from 'fs';
 import { errorMessages } from '../utils/errorMessages';
 import { TraceImageOwnerType } from './uploadResolver';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const FormData = require('form-data');
 
 // test cases

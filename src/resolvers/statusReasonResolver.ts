@@ -1,4 +1,4 @@
-import { Arg, Int, Query, Resolver } from 'type-graphql';
+import { Arg, Query, Resolver } from 'type-graphql';
 import { ProjectStatusReason } from '../entities/projectStatusReason';
 import {
   findAllStatusReasons,

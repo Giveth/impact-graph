@@ -1,14 +1,9 @@
-import { Arg, Ctx, Float, Int, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Int, Mutation, Resolver } from 'type-graphql';
 import { SocialProfile } from '../entities/socialProfile';
 import { ApolloContext } from '../types/ApolloContext';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { findProjectVerificationFormById } from '../repositories/projectVerificationRepository';
 import {
-  createSocialProfile,
   findSocialProfileById,
   removeSocialProfileById,
 } from '../repositories/socialProfileRepository';

@@ -6,7 +6,6 @@ import {
   generateRandomSolanaAddress,
   generateTestAccessToken,
   graphqlUrl,
-  PROJECT_UPDATE_SEED_DATA,
   saveFeaturedProjectDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -178,11 +177,11 @@ describe('projectsPerDate() test cases --->', projectsPerDateTestCases);
 
 function projectsPerDateTestCases() {
   it('should projects created in a time range', async () => {
-    const project = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       creationDate: moment().add(10, 'days').toDate(),
     });
-    const project2 = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       creationDate: moment().add(44, 'days').toDate(),
     });
@@ -1766,10 +1765,6 @@ function updateProjectTestCases() {
     });
     const newWalletAddress = project.walletAddress;
 
-    const queriedAddress0 = await findAllRelatedAddressByWalletAddress(
-      walletAddress,
-    );
-
     const editProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -1830,7 +1825,6 @@ function updateProjectTestCases() {
       admin: String(user.id),
     });
     const newWalletAddress = generateRandomEtheriumAddress();
-    const newWalletAddress2 = generateRandomEtheriumAddress();
     const editProjectResult = await axios.post(
       graphqlUrl,
       {
@@ -3986,7 +3980,7 @@ function featuredProjectUpdateTestCases() {
       isMain: false,
     }).save();
 
-    const featuredProject = await saveFeaturedProjectDirectlyToDb(
+    await saveFeaturedProjectDirectlyToDb(
       Number(project.id),
       Number(projectUpdate.id),
     );
@@ -4219,14 +4213,14 @@ function getProjectUpdatesTestCases() {
       },
     });
     assert.isOk(result);
-    const projectUpdates: ProjectUpdate[] = result.data.data.getProjectUpdates;
+    // const projectUpdates: ProjectUpdate[] = result.data.data.getProjectUpdates;
 
-    const likedProject = projectUpdates.find(
-      pu => +pu.id === PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
-    );
-    const noLikedProject = projectUpdates.find(
-      pu => +pu.id !== PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
-    );
+    // const likedProject = projectUpdates.find(
+    //   pu => +pu.id === PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
+    // );
+    // const noLikedProject = projectUpdates.find(
+    //   pu => +pu.id !== PROJECT_UPDATE_SEED_DATA.FIRST_PROJECT_UPDATE.id,
+    // );
 
     // assert.equal(
     //   likedProject?.reaction?.id,

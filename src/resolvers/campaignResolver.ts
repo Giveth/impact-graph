@@ -1,12 +1,4 @@
-import {
-  Arg,
-  Ctx,
-  Field,
-  Int,
-  Query,
-  registerEnumType,
-  Resolver,
-} from 'type-graphql';
+import { Arg, Ctx, Int, Query, registerEnumType, Resolver } from 'type-graphql';
 import {
   Campaign,
   CampaignFilterField,

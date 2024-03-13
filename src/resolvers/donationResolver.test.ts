@@ -61,7 +61,7 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 // TODO Write test cases
@@ -134,9 +134,9 @@ function totalDonationsNumberPerDateTestCases() {
 
 function donorsCountPerDateTestCases() {
   it('should return not return data if the date is not yyyy-mm-dd', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
-    const user = await saveUserDirectlyToDb(walletAddress);
+    await saveUserDirectlyToDb(walletAddress);
     const donationsResponse = await axios.post(graphqlUrl, {
       query: fetchTotalDonors,
       variables: {
@@ -155,8 +155,8 @@ function donorsCountPerDateTestCases() {
     const project = await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
     const user = await saveUserDirectlyToDb(walletAddress);
-    // should count as 1 as its the same user
-    const donation = await saveDonationDirectlyToDb(
+    // should count as 1 as it's the same user
+    await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         createdAt: moment().add(50, 'days').toDate(),
@@ -165,7 +165,7 @@ function donorsCountPerDateTestCases() {
       user.id,
       project.id,
     );
-    const donation2 = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         createdAt: moment().add(50, 'days').toDate(),
@@ -176,7 +176,7 @@ function donorsCountPerDateTestCases() {
     );
 
     // anonymous donations count as separate
-    const anonymousDonation1 = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         createdAt: moment().add(50, 'days').toDate(),
@@ -186,7 +186,7 @@ function donorsCountPerDateTestCases() {
       undefined,
       project.id,
     );
-    const anonymousDonation2 = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         createdAt: moment().add(50, 'days').toDate(),
@@ -780,7 +780,7 @@ function createDonationTestCases() {
       firstName: 'first name',
     }).save();
 
-    const user2 = await User.create({
+    await User.create({
       walletAddress: referrerWalletAddress,
       loginType: 'wallet',
       firstName: 'first name',
@@ -938,7 +938,7 @@ function createDonationTestCases() {
       firstName: 'first name',
     }).save();
 
-    const user2 = await User.create({
+    await User.create({
       walletAddress: referrerWalletAddress,
       loginType: 'wallet',
       firstName: 'first name',
@@ -1102,7 +1102,7 @@ function createDonationTestCases() {
       firstName: 'first name',
     }).save();
 
-    const user2 = await User.create({
+    await User.create({
       walletAddress: referrerWalletAddress,
       loginType: 'wallet',
       firstName: 'first name',
@@ -2038,7 +2038,7 @@ function createDonationTestCases() {
     assert.isFalse(donation?.segmentNotified);
   });
   it('should throw exception when send invalid projectId', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
     const user = await User.create({
       walletAddress: generateRandomEtheriumAddress(),
       loginType: 'wallet',
@@ -2710,13 +2710,13 @@ function donationsByProjectIdTestCases() {
       firstName: 'first name',
     }).save();
 
-    const user2 = await User.create({
+    await User.create({
       walletAddress: referrerWalletAddress,
       loginType: 'wallet',
       firstName: 'first name',
     }).save();
 
-    const donation1 = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         qfRoundId: qfRound.id,
@@ -2725,7 +2725,7 @@ function donationsByProjectIdTestCases() {
       project.id,
     );
 
-    const donation2 = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         qfRoundId: qfRound.id,
@@ -2749,7 +2749,7 @@ function donationsByProjectIdTestCases() {
     project.qfRounds = [qfRound2];
     await project.save();
 
-    const donation3 = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         qfRoundId: qfRound2.id,
@@ -2758,7 +2758,7 @@ function donationsByProjectIdTestCases() {
       project.id,
     );
 
-    const donation4 = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         qfRoundId: qfRound2.id,
@@ -4438,7 +4438,7 @@ async function recentDonationsTestCases() {
     const user = await saveUserDirectlyToDb(walletAddress);
     const user2 = await saveUserDirectlyToDb(walletAddress2);
     const user3 = await saveUserDirectlyToDb(walletAddress3);
-    const donation1 = await saveDonationDirectlyToDb(
+    await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         createdAt: new Date(1000),

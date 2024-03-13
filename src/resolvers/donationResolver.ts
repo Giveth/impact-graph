@@ -60,10 +60,7 @@ import { getChainvineReferralInfoForDonation } from '../services/chainvineReferr
 import { relatedActiveQfRoundForProject } from '../services/qfRoundService';
 import { detectAddressChainType } from '../utils/networks';
 import { ChainType } from '../types/network';
-import {
-  getAppropriateNetworkId,
-  getDefaultSolanaChainId,
-} from '../services/chains';
+import { getAppropriateNetworkId } from '../services/chains';
 import { markDraftDonationStatusMatched } from '../repositories/draftDonationRepository';
 import {
   DRAFT_DONATION_STATUS,
@@ -91,16 +88,16 @@ class PaginateDonations {
 @ObjectType()
 export class ResourcesTotalPerMonthAndYear {
   @Field(type => Number, { nullable: true })
-  total?: Number;
+  total?: number;
 
   @Field(type => String, { nullable: true })
-  date?: String;
+  date?: string;
 }
 
 @ObjectType()
 export class ResourcePerDateRange {
   @Field(type => Number, { nullable: true })
-  total?: Number;
+  total?: number;
 
   @Field(type => [ResourcesTotalPerMonthAndYear], { nullable: true })
   totalPerMonthAndYear?: ResourcesTotalPerMonthAndYear[];
@@ -188,13 +185,13 @@ class MainCategoryDonations {
 @ObjectType()
 class DonationCurrencyStats {
   @Field(type => String, { nullable: true })
-  currency?: String;
+  currency?: string;
 
   @Field(type => Int, { nullable: true })
   uniqueDonorCount?: number;
 
   @Field(type => Number, { nullable: true })
-  currencyPercentage?: Number;
+  currencyPercentage?: number;
 }
 
 @Resolver(of => User)
@@ -617,7 +614,7 @@ export class DonationResolver {
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
     @Arg('draftDonationId', { nullable: true }) draftDonationId?: number,
-  ): Promise<Number> {
+  ): Promise<number> {
     const logData = {
       amount,
       transactionId,
@@ -697,7 +694,7 @@ export class DonationResolver {
           symbol: token,
         },
       });
-      const isCustomToken = !Boolean(tokenInDb);
+      const isCustomToken = !tokenInDb;
       let isTokenEligibleForGivback = false;
       if (isCustomToken && !project.organization.supportCustomTokens) {
         throw new Error(i18n.__(translationErrorMessagesKeys.TOKEN_NOT_FOUND));
@@ -781,9 +778,8 @@ export class DonationResolver {
           logger.error('get chainvine wallet address error', e);
         }
       }
-      const activeQfRoundForProject = await relatedActiveQfRoundForProject(
-        projectId,
-      );
+      const activeQfRoundForProject =
+        await relatedActiveQfRoundForProject(projectId);
       if (
         activeQfRoundForProject &&
         activeQfRoundForProject.isEligibleNetwork(networkId)
@@ -931,7 +927,7 @@ export class DonationResolver {
     @Arg('projectId', _ => Int) projectId: number,
     @Arg('qfRoundId', _ => Int) qfRoundId: number,
     @Arg('userId', _ => Int) userId: number,
-  ): Promise<Boolean> {
+  ): Promise<boolean> {
     return isVerifiedDonationExistsInQfRound({
       projectId,
       qfRoundId,
