@@ -1,9 +1,7 @@
 import {
   BalancesAtTimestampInputParams,
   BalanceResponse,
-  BalanceUpdatedAfterDateInputParams,
   LatestBalanceInputParams,
-  NetworksInputParams,
   IGivPowerBalanceAggregator,
 } from '../../types/GivPowerBalanceAggregator';
 import { convertTimeStampToSeconds } from '../../utils/utils';
@@ -47,9 +45,7 @@ export class GivPowerBalanceAggregatorAdapterMock
     });
   }
 
-  async getBalancesUpdatedAfterDate(
-    params: BalanceUpdatedAfterDateInputParams,
-  ): Promise<BalanceResponse[]> {
+  async getBalancesUpdatedAfterDate(): Promise<BalanceResponse[]> {
     // Mocked data
     return [
       {
@@ -67,9 +63,7 @@ export class GivPowerBalanceAggregatorAdapterMock
     ];
   }
 
-  async getLeastIndexedBlockTimeStamp(
-    params: NetworksInputParams,
-  ): Promise<number> {
+  async getLeastIndexedBlockTimeStamp(): Promise<number> {
     // Mocked data
     return convertTimeStampToSeconds(new Date().getTime());
   }

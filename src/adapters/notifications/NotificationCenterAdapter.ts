@@ -53,12 +53,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
-  async userSuperTokensCritical(params: {
-    userId: number;
-    email: string;
-    criticalDate: string;
-    tokensymbol: string;
-  }): Promise<void> {
+  async userSuperTokensCritical(): Promise<void> {
     return; // implement it on another branch
   }
 
@@ -146,11 +141,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  async donationSent(params: {
-    donation: Donation;
-    project: Project;
-    donor: User;
-  }): Promise<void> {
+  async donationSent(): Promise<void> {
     return;
     // const { project, donor, donation } = params;
     // await sendProjectRelatedNotificationsQueue.add({
@@ -424,10 +415,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     });
   }
 
-  async projectReceivedHeartReaction(params: {
-    project: Project;
-    userId: number;
-  }): Promise<void> {
+  async projectReceivedHeartReaction(): Promise<void> {
     return;
     // const { project } = params;
     // await sendProjectRelatedNotificationsQueue.add({
@@ -444,11 +432,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     // });
   }
 
-  ProfileIsCompleted(params: { user: User }): Promise<void> {
+  ProfileIsCompleted(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
-  ProfileNeedToBeCompleted(params: { user: User }): Promise<void> {
+  ProfileNeedToBeCompleted(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
@@ -639,7 +627,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   // commenting for now to test load of notification center.
-  async projectEdited(params: { project: Project }): Promise<void> {
+  async projectEdited(): Promise<void> {
     return;
     // const { project } = params;
     // const projectOwner = project?.adminUser as User;
@@ -747,7 +735,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }): Promise<void> {
     const { project, donationInfo } = params;
     const { txLink, reason } = donationInfo;
-    const projectOwner = project?.adminUser as User;
     const now = Date.now();
 
     await sendProjectRelatedNotificationsQueue.add({
@@ -819,7 +806,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       if (!project) {
         continue;
       }
-      const projectOwner = project.adminUser;
       let eventName;
 
       // https://github.com/Giveth/impact-graph/issues/774#issuecomment-1542337083
