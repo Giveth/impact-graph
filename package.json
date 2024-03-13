@@ -183,6 +183,7 @@
     "test:transactionsService:solana": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  src/services/chains/solana/transactionService.test.ts",
     "test:projectUpdatesService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/projectUpdatesService.test.ts",
     "test:powerBoostingService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/powerBoostingService.test.ts",
+    "test:actualMatchingFundView": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/services/actualMatchingFundView.test.ts",
     "test:blockByDateService": "NODE_ENV=test mocha ./src/services/blockByDateService.test.ts",
     "test:instantPowerBoostingService": "NODE_ENV=test mocha ./test/pre-test-scripts.ts ./src/services/instantBoostingServices.test.ts",
     "test:categoryResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/categoryResolver.test.ts",

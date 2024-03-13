@@ -1869,6 +1869,7 @@ export interface CreateDonationData {
   verified?: string;
   qfRoundId?: number;
   tokenAddress?: string;
+  qfRoundUserScore?: number;
 }
 
 export interface CategoryData {
