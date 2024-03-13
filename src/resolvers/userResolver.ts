@@ -32,14 +32,14 @@ import { getOrttoPersonAttributes } from '../adapters/notifications/Notification
 
 @ObjectType()
 class UserRelatedAddressResponse {
-  @Field(type => Boolean, { nullable: false })
+  @Field(_type => Boolean, { nullable: false })
   hasRelatedProject: boolean;
 
-  @Field(type => Boolean, { nullable: false })
+  @Field(_type => Boolean, { nullable: false })
   hasDonated: boolean;
 }
 
-@Resolver(of => User)
+@Resolver(_of => User)
 export class UserResolver {
   constructor(private readonly userRepository: Repository<User>) {
     this.userRepository = AppDataSource.getDataSource().getRepository(User);
@@ -49,7 +49,7 @@ export class UserResolver {
   // return User.create(data).save();
   // }
 
-  @Query(returns => UserRelatedAddressResponse)
+  @Query(_returns => UserRelatedAddressResponse)
   async walletAddressUsed(@Arg('address') address: string) {
     return {
       hasRelatedProject: await isWalletAddressInPurpleList(address),
@@ -57,9 +57,9 @@ export class UserResolver {
     };
   }
 
-  @Query(returns => UserByAddressResponse, { nullable: true })
+  @Query(_returns => UserByAddressResponse, { nullable: true })
   async userByAddress(
-    @Arg('address', type => String) address: string,
+    @Arg('address', _type => String) address: string,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     const includeSensitiveFields =
@@ -77,9 +77,9 @@ export class UserResolver {
     };
   }
 
-  @Query(returns => User, { nullable: true })
+  @Query(_returns => User, { nullable: true })
   async refreshUserScores(
-    @Arg('address', type => String) address: string,
+    @Arg('address', _type => String) address: string,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     const includeSensitiveFields =
@@ -112,7 +112,7 @@ export class UserResolver {
     return foundUser;
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async updateUser(
     @Arg('firstName', { nullable: true }) firstName: string,
     @Arg('lastName', { nullable: true }) lastName: string,
@@ -185,10 +185,10 @@ export class UserResolver {
   }
 
   // Sets the current account verification and creates related verifications
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async addUserVerification(
     @Arg('dId', { nullable: true }) dId: string,
-    @Arg('verifications', type => [AccountVerificationInput])
+    @Arg('verifications', _type => [AccountVerificationInput])
     verificationsInput: AccountVerificationInput[],
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {

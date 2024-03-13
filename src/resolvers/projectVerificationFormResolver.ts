@@ -35,12 +35,10 @@ import { Country } from '../entities/Country';
 import { sendMailConfirmationEmail } from '../services/mailerService';
 import moment from 'moment';
 
-const dappUrl = process.env.FRONTEND_URL as string;
-
-@Resolver(of => ProjectVerificationForm)
+@Resolver(_of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {
   // https://github.com/Giveth/impact-graph/pull/519#issuecomment-1136845612
-  @Mutation(returns => ProjectVerificationForm)
+  @Mutation(_returns => ProjectVerificationForm)
   async projectVerificationConfirmEmail(
     @Arg('emailConfirmationToken') emailConfirmationToken: string,
   ): Promise<ProjectVerificationForm> {
@@ -113,7 +111,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Mutation(returns => ProjectVerificationForm)
+  @Mutation(_returns => ProjectVerificationForm)
   async projectVerificationSendEmailConfirmation(
     @Arg('projectVerificationFormId')
     projectVerificationFormId: number,
@@ -193,7 +191,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Mutation(returns => ProjectVerificationForm)
+  @Mutation(_returns => ProjectVerificationForm)
   async createProjectVerificationForm(
     @Arg('slug') slug: string,
     @Ctx() { req: { user } }: ApolloContext,
@@ -246,7 +244,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Mutation(returns => ProjectVerificationForm)
+  @Mutation(_returns => ProjectVerificationForm)
   async updateProjectVerificationForm(
     @Arg('projectVerificationUpdateInput')
     projectVerificationUpdateInput: ProjectVerificationUpdateInput,
@@ -295,7 +293,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Query(returns => ProjectVerificationForm)
+  @Query(_returns => ProjectVerificationForm)
   async getCurrentProjectVerificationForm(
     @Arg('slug') slug: string,
     @Ctx() { req: { user } }: ApolloContext,
@@ -340,7 +338,7 @@ export class ProjectVerificationFormResolver {
     }
   }
 
-  @Query(returns => [Country])
+  @Query(_returns => [Country])
   getAllowedCountries(): Country[] {
     return countriesList;
   }

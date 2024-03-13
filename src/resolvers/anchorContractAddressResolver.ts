@@ -10,9 +10,9 @@ import {
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
 
-@Resolver(of => AnchorContractAddress)
+@Resolver(_of => AnchorContractAddress)
 export class AnchorContractAddressResolver {
-  @Mutation(returns => AnchorContractAddress, { nullable: true })
+  @Mutation(_returns => AnchorContractAddress, { nullable: true })
   async addAnchorContractAddress(
     @Ctx() ctx: ApolloContext,
     @Arg('projectId', () => Int) projectId: number,

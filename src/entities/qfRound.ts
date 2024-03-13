@@ -14,7 +14,7 @@ import { Project } from './project';
 @Entity()
 @ObjectType()
 export class QfRound extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -31,31 +31,31 @@ export class QfRound extends BaseEntity {
   @Column({ nullable: true })
   isActive: boolean;
 
-  @Field(type => Number)
+  @Field(_type => Number)
   @Column()
   allocatedFund: number;
 
-  @Field(type => Number)
+  @Field(_type => Number)
   @Column('real', { default: 0.2 })
   maximumReward: number;
 
-  @Field(type => Number)
+  @Field(_type => Number)
   @Column()
   minimumPassportScore: number;
 
-  @Field(type => Number)
+  @Field(_type => Number)
   @Column('real', { default: 1 })
   minimumValidUsdValue: number;
 
-  @Field(type => [Int], { nullable: true }) // Define the new field as an array of integers
+  @Field(_type => [Int], { nullable: true }) // Define the new field as an array of integers
   @Column('integer', { array: true, default: [] })
   eligibleNetworks: number[];
 
-  @Field(type => Date)
+  @Field(_type => Date)
   @Column()
   beginDate: Date;
 
-  @Field(type => Date)
+  @Field(_type => Date)
   @Column()
   endDate: Date;
 
@@ -65,7 +65,7 @@ export class QfRound extends BaseEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToMany(type => Project, project => project.qfRounds)
+  @ManyToMany(_type => Project, project => project.qfRounds)
   projects: Project[];
 
   // only projects with status active can be listed automatically

@@ -15,7 +15,7 @@ import { User } from './user';
 @Entity()
 @ObjectType()
 export class AccountVerification extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -41,8 +41,8 @@ export class AccountVerification extends BaseEntity {
   attestation?: string;
 
   @Index()
-  @Field(type => User)
-  @ManyToOne(type => User, { eager: true })
+  @Field(_type => User)
+  @ManyToOne(_type => User, { eager: true })
   user: User;
 
   @RelationId(

@@ -4,7 +4,7 @@ import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @ObjectType()
 @Entity()
 export class BankAccount extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -49,7 +49,7 @@ export class BankAccount extends BaseEntity {
 @ObjectType()
 @Entity()
 export class StripeTransaction extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -82,7 +82,7 @@ export class StripeTransaction extends BaseEntity {
   createdAt: Date;
 
   @Column({ type: 'float', nullable: true })
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   amount: number;
 
   @Column({ nullable: true })

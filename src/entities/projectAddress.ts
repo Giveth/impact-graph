@@ -19,7 +19,7 @@ import { ChainType } from '../types/network';
 @ObjectType()
 @Unique(['address', 'networkId', 'project'])
 export class ProjectAddress extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -32,7 +32,7 @@ export class ProjectAddress extends BaseEntity {
   @Column()
   networkId: number;
 
-  @Field(type => String)
+  @Field(_type => String)
   @Column({
     type: 'enum',
     enum: ChainType,
@@ -46,8 +46,8 @@ export class ProjectAddress extends BaseEntity {
   address: string;
 
   @Index()
-  @Field(type => Project)
-  @ManyToOne(type => Project)
+  @Field(_type => Project)
+  @ManyToOne(_type => Project)
   project: Project;
 
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.project)
@@ -55,8 +55,8 @@ export class ProjectAddress extends BaseEntity {
   projectId: number;
 
   @Index()
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { eager: true, nullable: true })
+  @Field(_type => User, { nullable: true })
+  @ManyToOne(_type => User, { eager: true, nullable: true })
   user: User;
 
   @RelationId((relatedAddress: ProjectAddress) => relatedAddress.user)

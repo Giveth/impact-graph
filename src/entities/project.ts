@@ -132,7 +132,7 @@ export enum ReviewStatus {
 @Entity()
 @ObjectType()
 export class Project extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -146,7 +146,7 @@ export class Project extends BaseEntity {
   slug?: string;
 
   @Index()
-  @Field(type => [String], { nullable: true })
+  @Field(_type => [String], { nullable: true })
   @Column('text', { array: true, default: '{}' })
   slugHistory?: string[];
 
@@ -192,8 +192,8 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   updatedAt: Date;
 
-  @Field(type => Organization)
-  @ManyToOne(type => Organization)
+  @Field(_type => Organization)
+  @ManyToOne(_type => Organization)
   @JoinTable()
   organization: Organization;
 
@@ -213,21 +213,21 @@ export class Project extends BaseEntity {
   @Column({ nullable: true })
   impactLocation?: string;
 
-  @Field(type => [Category], { nullable: true })
-  @ManyToMany(type => Category, category => category.projects, {
+  @Field(_type => [Category], { nullable: true })
+  @ManyToMany(_type => Category, category => category.projects, {
     nullable: true,
   })
   @JoinTable()
   categories: Category[];
 
-  @Field(type => [QfRound], { nullable: true })
-  @ManyToMany(type => QfRound, qfRound => qfRound.projects, {
+  @Field(_type => [QfRound], { nullable: true })
+  @ManyToMany(_type => QfRound, qfRound => qfRound.projects, {
     nullable: true,
   })
   @JoinTable()
   qfRounds: QfRound[];
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   @Column('float', { nullable: true })
   balance: number = 0;
 
@@ -239,58 +239,62 @@ export class Project extends BaseEntity {
   @Column({ unique: true, nullable: true })
   walletAddress?: string;
 
-  @Field(type => Boolean)
+  @Field(_type => Boolean)
   @Column()
   verified: boolean;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column('text', { nullable: true })
   verificationStatus?: string | null;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column({ default: false })
   isImported: boolean;
 
-  @Field(type => Boolean)
+  @Field(_type => Boolean)
   @Column()
   giveBacks: boolean;
 
-  @Field(type => [Donation], { nullable: true })
-  @OneToMany(type => Donation, donation => donation.project)
+  @Field(_type => [Donation], { nullable: true })
+  @OneToMany(_type => Donation, donation => donation.project)
   donations?: Donation[];
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   @Column({ nullable: true })
   qualityScore: number = 0;
 
-  @Field(type => [ProjectContacts], { nullable: true })
+  @Field(_type => [ProjectContacts], { nullable: true })
   @Column('jsonb', { nullable: true })
   contacts: ProjectContacts[];
 
-  @ManyToMany(type => User, user => user.projects)
-  @Field(type => [User], { nullable: true })
+  @ManyToMany(_type => User, user => user.projects)
+  @Field(_type => [User], { nullable: true })
   @JoinTable()
   users: User[];
 
   @Field(() => [Reaction], { nullable: true })
-  @OneToMany(type => Reaction, reaction => reaction.project)
+  @OneToMany(_type => Reaction, reaction => reaction.project)
   reactions?: Reaction[];
 
-  @Field(type => [ProjectAddress], { nullable: true })
-  @OneToMany(type => ProjectAddress, projectAddress => projectAddress.project, {
-    eager: true,
-  })
+  @Field(_type => [ProjectAddress], { nullable: true })
+  @OneToMany(
+    _type => ProjectAddress,
+    projectAddress => projectAddress.project,
+    {
+      eager: true,
+    },
+  )
   addresses?: ProjectAddress[];
 
-  @Field(type => [ProjectSocialMedia], { nullable: true })
-  @OneToMany(type => ProjectSocialMedia, socialMedia => socialMedia.project, {
+  @Field(_type => [ProjectSocialMedia], { nullable: true })
+  @OneToMany(_type => ProjectSocialMedia, socialMedia => socialMedia.project, {
     eager: true,
   })
   socialMedia?: ProjectSocialMedia[];
 
-  @Field(type => [AnchorContractAddress], { nullable: true })
+  @Field(_type => [AnchorContractAddress], { nullable: true })
   @OneToMany(
-    type => AnchorContractAddress,
+    _type => AnchorContractAddress,
     anchorContractAddress => anchorContractAddress.project,
     {
       eager: true,
@@ -299,15 +303,15 @@ export class Project extends BaseEntity {
   anchorContracts?: AnchorContractAddress[];
 
   @Index()
-  @Field(type => ProjectStatus)
-  @ManyToOne(type => ProjectStatus)
+  @Field(_type => ProjectStatus)
+  @ManyToOne(_type => ProjectStatus)
   status: ProjectStatus;
   @RelationId((project: Project) => project.status)
   @Column({ nullable: true })
   statusId: number;
 
   @Index()
-  @Field(type => User, { nullable: true })
+  @Field(_type => User, { nullable: true })
   @ManyToOne(() => User, { eager: true })
   adminUser: User;
 
@@ -315,87 +319,87 @@ export class Project extends BaseEntity {
   @RelationId((project: Project) => project.adminUser)
   adminUserId: number;
 
-  @Field(type => [ProjectStatusHistory], { nullable: true })
+  @Field(_type => [ProjectStatusHistory], { nullable: true })
   @OneToMany(
-    type => ProjectStatusHistory,
+    _type => ProjectStatusHistory,
     projectStatusHistory => projectStatusHistory.project,
   )
   statusHistory?: ProjectStatusHistory[];
 
-  @Field(type => ProjectVerificationForm, { nullable: true })
+  @Field(_type => ProjectVerificationForm, { nullable: true })
   @OneToOne(
-    type => ProjectVerificationForm,
+    _type => ProjectVerificationForm,
     projectVerificationForm => projectVerificationForm.project,
     { nullable: true },
   )
   projectVerificationForm?: ProjectVerificationForm;
 
-  @Field(type => FeaturedUpdate, { nullable: true })
-  @OneToOne(type => FeaturedUpdate, featuredUpdate => featuredUpdate.project, {
+  @Field(_type => FeaturedUpdate, { nullable: true })
+  @OneToOne(_type => FeaturedUpdate, featuredUpdate => featuredUpdate.project, {
     nullable: true,
   })
   featuredUpdate?: FeaturedUpdate;
 
-  @Field(type => ProjectPowerView, { nullable: true })
+  @Field(_type => ProjectPowerView, { nullable: true })
   @OneToOne(
-    type => ProjectPowerView,
+    _type => ProjectPowerView,
     projectPowerView => projectPowerView.project,
   )
   projectPower?: ProjectPowerView;
 
-  @Field(type => ProjectFuturePowerView, { nullable: true })
+  @Field(_type => ProjectFuturePowerView, { nullable: true })
   @OneToOne(
-    type => ProjectFuturePowerView,
+    _type => ProjectFuturePowerView,
     projectFuturePowerView => projectFuturePowerView.project,
   )
   projectFuturePower?: ProjectFuturePowerView;
 
-  @Field(type => ProjectInstantPowerView, { nullable: true })
+  @Field(_type => ProjectInstantPowerView, { nullable: true })
   @OneToOne(
-    type => ProjectInstantPowerView,
+    _type => ProjectInstantPowerView,
     projectInstantPowerView => projectInstantPowerView.project,
   )
   projectInstantPower?: ProjectInstantPowerView;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   verificationFormStatus?: string;
 
-  @Field(type => [SocialProfile], { nullable: true })
-  @OneToMany(type => SocialProfile, socialProfile => socialProfile.project)
+  @Field(_type => [SocialProfile], { nullable: true })
+  @OneToMany(_type => SocialProfile, socialProfile => socialProfile.project)
   socialProfiles?: SocialProfile[];
 
-  @Field(type => [ProjectEstimatedMatchingView], { nullable: true })
+  @Field(_type => [ProjectEstimatedMatchingView], { nullable: true })
   @OneToMany(
-    type => ProjectEstimatedMatchingView,
+    _type => ProjectEstimatedMatchingView,
     projectEstimatedMatchingView => projectEstimatedMatchingView.project,
   )
   projectEstimatedMatchingView?: ProjectEstimatedMatchingView[];
 
-  @Field(type => Float)
+  @Field(_type => Float)
   @Column({ type: 'real' })
   totalDonations: number;
 
-  @Field(type => Float)
+  @Field(_type => Float)
   @Column({ type: 'real', default: 0 })
   totalTraceDonations: number;
 
-  @Field(type => Int, { defaultValue: 0 })
+  @Field(_type => Int, { defaultValue: 0 })
   @Column({ type: 'integer', default: 0 })
   totalReactions: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   @Column({ type: 'integer', nullable: true })
   totalProjectUpdates: number;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column({ type: 'boolean', default: null, nullable: true })
   listed?: boolean | null;
 
-  // @Field(type => Boolean, { nullable: true })
+  // @Field(_type => Boolean, { nullable: true })
   // @Column({ type: 'boolean', default: false })
   // tunnableQf?: boolean;
 
-  @Field(type => String)
+  @Field(_type => String)
   @Column({
     type: 'enum',
     enum: ReviewStatus,
@@ -403,29 +407,29 @@ export class Project extends BaseEntity {
   })
   reviewStatus: ReviewStatus;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   projectUrl?: string;
 
   // Virtual attribute to subquery result into
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   prevStatusId?: number;
 
   // Virtual attribute for projectUpdate
-  @Field(type => ProjectUpdate, { nullable: true })
+  @Field(_type => ProjectUpdate, { nullable: true })
   projectUpdate?: any;
 
-  @Field(type => [ProjectUpdate], { nullable: true })
+  @Field(_type => [ProjectUpdate], { nullable: true })
   @OneToMany(() => ProjectUpdate, projectUpdate => projectUpdate.project)
   projectUpdates?: ProjectUpdate[];
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   adminJsBaseUrl: string;
 
   // User reaction to the project
   @Field({ nullable: true })
   reaction?: Reaction;
 
-  @Field(type => [Campaign], { nullable: true })
+  @Field(_type => [Campaign], { nullable: true })
   campaigns: Campaign[];
 
   // only projects with status active can be listed automatically
@@ -480,7 +484,7 @@ export class Project extends BaseEntity {
    * Custom Query Builders to chain together
    */
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   async sumDonationValueUsdForActiveQfRound() {
     const activeQfRound = this.getActiveQfRound();
     return activeQfRound
@@ -491,12 +495,12 @@ export class Project extends BaseEntity {
       : 0;
   }
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   async sumDonationValueUsd() {
     return sumDonationValueUsd(this.id);
   }
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   async countUniqueDonorsForActiveQfRound() {
     const activeQfRound = this.getActiveQfRound();
     return activeQfRound
@@ -507,13 +511,13 @@ export class Project extends BaseEntity {
       : 0;
   }
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   async countUniqueDonors() {
     return countUniqueDonors(this.id);
   }
 
   // In your main class
-  @Field(type => EstimatedMatching, { nullable: true })
+  @Field(_type => EstimatedMatching, { nullable: true })
   async estimatedMatching(): Promise<EstimatedMatching | null> {
     const activeQfRound = this.getActiveQfRound();
     if (!activeQfRound) {
@@ -597,31 +601,31 @@ export class Project extends BaseEntity {
 @Entity()
 @ObjectType()
 export class ProjectUpdate extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field(type => String)
+  @Field(_type => String)
   @Column()
   title: string;
 
   // Virtual attribute for projectUpdate
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   projectTitle?: string;
 
   // Virtual attribute for projectUpdate
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   projectSlug?: string;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   projectId: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   userId: number;
 
-  @Field(type => String)
+  @Field(_type => String)
   @Column()
   content: string;
 
@@ -629,24 +633,24 @@ export class ProjectUpdate extends BaseEntity {
   @Column({ nullable: true })
   contentSummary?: string;
 
-  @Field(type => Date)
+  @Field(_type => Date)
   @Column()
   createdAt: Date;
 
-  @Field(type => Boolean)
+  @Field(_type => Boolean)
   @Column({ nullable: true })
   isMain: boolean;
 
-  @Field(type => Int, { defaultValue: 0 })
+  @Field(_type => Int, { defaultValue: 0 })
   @Column({ type: 'integer', default: 0 })
   totalReactions: number;
 
   // User reaction to the project update
-  @Field(type => Reaction, { nullable: true })
+  @Field(_type => Reaction, { nullable: true })
   reaction?: Reaction;
 
   // Project oneToOne as virtual attribute as relation was not set properly
-  @Field(type => Project, { nullable: true })
+  @Field(_type => Project, { nullable: true })
   @ManyToOne(() => Project, project => project.projectUpdates)
   project?: Project;
 
@@ -698,9 +702,9 @@ export class ProjectUpdate extends BaseEntity {
   @Column('text', { nullable: true })
   managingFundDescription: string;
 
-  @Field(type => FeaturedUpdate, { nullable: true })
+  @Field(_type => FeaturedUpdate, { nullable: true })
   @OneToOne(
-    type => FeaturedUpdate,
+    _type => FeaturedUpdate,
     featuredUpdate => featuredUpdate.projectUpdate,
     { nullable: true },
   )

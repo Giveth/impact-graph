@@ -26,16 +26,16 @@ export class ProjectFuturePowerView extends BaseEntity {
   @Field()
   totalPower: number;
 
-  @Field(type => Project)
-  @OneToOne(type => Project, project => project.projectFuturePower)
+  @Field(_type => Project)
+  @OneToOne(_type => Project, project => project.projectFuturePower)
   @JoinColumn({ referencedColumnName: 'id' })
   project: Project;
 
   @ViewColumn()
-  @Field(type => Int)
+  @Field(_type => Int)
   powerRank: number;
 
   @ViewColumn()
-  @Field(type => Int)
+  @Field(_type => Int)
   round: number;
 }

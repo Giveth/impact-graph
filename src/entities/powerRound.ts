@@ -5,7 +5,7 @@ import { Column, Entity, BaseEntity, PrimaryColumn, Check } from 'typeorm';
 @ObjectType()
 @Check('"id"')
 export class PowerRound extends BaseEntity {
-  @Field(type => Boolean)
+  @Field(_type => Boolean)
   @PrimaryColumn()
   id: boolean;
 

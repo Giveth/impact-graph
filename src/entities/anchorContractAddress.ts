@@ -18,7 +18,7 @@ import { User } from './user';
 @ObjectType()
 @Unique(['address', 'networkId', 'project'])
 export class AnchorContractAddress extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -41,8 +41,8 @@ export class AnchorContractAddress extends BaseEntity {
   txHash: string;
 
   @Index()
-  @Field(type => Project)
-  @ManyToOne(type => Project)
+  @Field(_type => Project)
+  @ManyToOne(_type => Project)
   project: Project;
 
   @RelationId((relatedAddress: AnchorContractAddress) => relatedAddress.project)
@@ -50,8 +50,8 @@ export class AnchorContractAddress extends BaseEntity {
   projectId: number;
 
   @Index()
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { eager: true, nullable: true })
+  @Field(_type => User, { nullable: true })
+  @ManyToOne(_type => User, { eager: true, nullable: true })
   creator: User;
 
   @RelationId(
@@ -62,8 +62,8 @@ export class AnchorContractAddress extends BaseEntity {
   creatorId: number;
 
   @Index()
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { eager: true, nullable: true })
+  @Field(_type => User, { nullable: true })
+  @ManyToOne(_type => User, { eager: true, nullable: true })
   owner: User;
 
   @RelationId(

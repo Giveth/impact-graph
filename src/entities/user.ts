@@ -48,7 +48,7 @@ export enum UserRole {
 @ObjectType()
 @Entity()
 export class User extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -59,30 +59,30 @@ export class User extends BaseEntity {
   })
   role: UserRole;
 
-  @Field(type => [AccountVerification], { nullable: true })
+  @Field(_type => [AccountVerification], { nullable: true })
   @OneToMany(
-    type => AccountVerification,
+    _type => AccountVerification,
     accountVerification => accountVerification.user,
   )
   accountVerifications?: AccountVerification[];
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   email?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   firstName?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   lastName?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   name?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true, unique: true })
   walletAddress?: string;
 
@@ -92,23 +92,23 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   encryptedPassword?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   avatar?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   url?: string;
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: null })
   passportScore?: number;
 
-  @Field(type => Number, { nullable: true })
+  @Field(_type => Number, { nullable: true })
   @Column({ nullable: true, default: null })
   passportStamps?: number;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   location?: string;
 
@@ -121,19 +121,19 @@ export class User extends BaseEntity {
   @Column('bool', { default: false })
   confirmed: boolean;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   chainvineId?: string;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column('bool', { default: false })
   wasReferred: boolean;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column('bool', { default: false })
   isReferrer: boolean;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column('bool', { default: false })
   // After each QF round Lauren and Griff review the donations and pass me a list of sybil addresses
   // And then we exclude qfRound donation from those addresses when calculating the real matchingFund
@@ -145,8 +145,8 @@ export class User extends BaseEntity {
   })
   referredEvent?: ReferredEvent;
 
-  @Field(type => [Project])
-  @ManyToMany(type => Project, project => project.users)
+  @Field(_type => [Project])
+  @ManyToMany(_type => Project, project => project.users)
   @JoinTable()
   projects?: Project[];
 
@@ -154,30 +154,30 @@ export class User extends BaseEntity {
   segmentIdentified: boolean;
 
   // Admin Reviewing Forms
-  @Field(type => [ProjectVerificationForm], { nullable: true })
+  @Field(_type => [ProjectVerificationForm], { nullable: true })
   @OneToMany(
-    type => ProjectVerificationForm,
+    _type => ProjectVerificationForm,
     projectVerificationForm => projectVerificationForm.reviewer,
   )
   projectVerificationForms?: ProjectVerificationForm[];
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })
   totalDonated: number;
 
-  @Field(type => Float, { nullable: true })
+  @Field(_type => Float, { nullable: true })
   @Column({ type: 'real', nullable: true, default: 0 })
   totalReceived: number;
 
-  @Field(type => [ProjectStatusHistory], { nullable: true })
+  @Field(_type => [ProjectStatusHistory], { nullable: true })
   @OneToMany(
-    type => ProjectStatusHistory,
+    _type => ProjectStatusHistory,
     projectStatusHistory => projectStatusHistory.user,
   )
   projectStatusHistories?: ProjectStatusHistory[];
 
-  @Field(type => [PowerBoosting], { nullable: true })
-  @OneToMany(type => PowerBoosting, powerBoosting => powerBoosting.user)
+  @Field(_type => [PowerBoosting], { nullable: true })
+  @OneToMany(_type => PowerBoosting, powerBoosting => powerBoosting.user)
   powerBoostings?: PowerBoosting[];
 
   @UpdateDateColumn()
@@ -186,12 +186,12 @@ export class User extends BaseEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   projectsCount?: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   async donationsCount() {
-    const query = await Donation.createQueryBuilder('donation')
+    const query = Donation.createQueryBuilder('donation')
       .where(`donation."userId" = :id`, { id: this.id })
       .andWhere(`status = :status`, {
         status: DONATION_STATUS.VERIFIED,
@@ -200,7 +200,7 @@ export class User extends BaseEntity {
     return query.getCount();
   }
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   async likedProjectsCount() {
     const likedProjectsCount = await Reaction.createQueryBuilder('reaction')
       .innerJoinAndSelect('reaction.project', 'project')
@@ -214,7 +214,7 @@ export class User extends BaseEntity {
     return likedProjectsCount;
   }
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   async boostedProjectsCount() {
     return findPowerBoostingsCountByUserId(this.id);
   }

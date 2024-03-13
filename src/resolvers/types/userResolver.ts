@@ -3,6 +3,6 @@ import { Field, ObjectType } from 'type-graphql';
 
 @ObjectType()
 export class UserByAddressResponse extends User {
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   isSignedIn?: boolean;
 }

@@ -18,7 +18,7 @@ export class LastSnapshotProjectPowerView extends BaseEntity {
   projectId: number;
 
   @ViewColumn()
-  @Field(type => Float)
+  @Field(_type => Float)
   @Column('numeric', {
     scale: 2,
     transformer: new ColumnNumericTransformer(),
@@ -27,11 +27,11 @@ export class LastSnapshotProjectPowerView extends BaseEntity {
 
   @ViewColumn()
   // Not sure why queries return type was string!
-  @Field(type => String)
+  @Field(_type => String)
   @Index()
   powerRank: string;
 
   @ViewColumn()
-  @Field(type => Int)
+  @Field(_type => Int)
   round: number;
 }

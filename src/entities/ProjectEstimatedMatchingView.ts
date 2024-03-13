@@ -26,8 +26,8 @@ import { Project } from './project';
 ])
 @ObjectType()
 export class ProjectEstimatedMatchingView extends BaseEntity {
-  @Field(type => Project)
-  @ManyToOne(type => Project, project => project.projectEstimatedMatchingView)
+  @Field(_type => Project)
+  @ManyToOne(_type => Project, project => project.projectEstimatedMatchingView)
   @JoinColumn({ referencedColumnName: 'id' })
   project: Project;
 

@@ -21,7 +21,7 @@ import {
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
-@Resolver(of => User)
+@Resolver(_of => User)
 export class DraftDonationResolver {
   private readonly donationRepository: Repository<DraftDonation>;
   constructor() {
@@ -29,7 +29,7 @@ export class DraftDonationResolver {
       AppDataSource.getDataSource().getRepository(DraftDonation);
   }
 
-  @Mutation(returns => Number)
+  @Mutation(_returns => Number)
   async createDraftDonation(
     @Arg('amount') amount: number,
     @Arg('networkId') networkId: number,

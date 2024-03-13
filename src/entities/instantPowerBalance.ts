@@ -10,11 +10,11 @@ import {
 @Entity()
 @ObjectType()
 export class InstantPowerBalance extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   @Index({ unique: true })
   userId: number;

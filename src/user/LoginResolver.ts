@@ -81,7 +81,7 @@ export class LoginResolver {
   @Mutation(() => Boolean, { nullable: true })
   async validateToken(
     @Arg('token') token: string,
-    @Ctx() ctx: ApolloContext,
+    @Ctx() _ctx: ApolloContext,
   ): Promise<boolean | null> {
     const secret = config.get('JWT_SECRET') as string;
 
@@ -102,7 +102,7 @@ export class LoginResolver {
     @Arg('email') email: string,
     @Arg('password') password: string,
     @Arg('loginType', { nullable: true }) loginType: LoginType,
-    @Ctx() ctx: ApolloContext,
+    @Ctx() _ctx: ApolloContext,
   ): Promise<LoginResponse | null> {
     if (typeof loginType === 'undefined') {
       loginType = LoginType.Password;
@@ -174,7 +174,7 @@ export class LoginResolver {
     @Arg('name', { nullable: true }) name: string,
     @Arg('avatar', { nullable: true }) avatar: string,
     @Arg('networkId') networkId: number,
-    @Ctx() ctx: ApolloContext,
+    @Ctx() _ctx: ApolloContext,
   ): Promise<LoginResponse | null> {
     const hashedMsg = this.getHostnameSignMessageHash(hostname);
 

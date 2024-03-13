@@ -23,12 +23,12 @@ registerEnumType(CampaignFilterField, {
   description: 'Same filter fields like projects',
 });
 
-@Resolver(of => Campaign)
+@Resolver(_of => Campaign)
 export class CampaignResolver {
-  @Query(returns => [Campaign], { nullable: true })
+  @Query(_returns => [Campaign], { nullable: true })
   async campaigns(
     @Ctx() { req: { user }, projectsFiltersThreadPool }: ApolloContext,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId?: number,
   ) {
     const userId = connectedWalletUserId || user?.userId;
@@ -40,11 +40,11 @@ export class CampaignResolver {
     );
   }
 
-  @Query(returns => Campaign, { nullable: true })
+  @Query(_returns => Campaign, { nullable: true })
   async findCampaignBySlug(
     @Ctx()
     { req: { user }, projectsFiltersThreadPool }: ApolloContext,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId?: number,
     // If user dont send slug, we return first featured campaign
     @Arg('slug', { nullable: true }) slug?: string,

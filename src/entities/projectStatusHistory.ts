@@ -24,12 +24,12 @@ export const HISTORY_DESCRIPTIONS = {
 @Entity()
 @ObjectType()
 export class ProjectStatusHistory extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(type => Project)
-  @ManyToOne(type => Project)
+  @Field(_type => Project)
+  @ManyToOne(_type => Project)
   project: Project;
 
   @RelationId(
@@ -39,8 +39,8 @@ export class ProjectStatusHistory extends BaseEntity {
   @Column({ nullable: true })
   projectId: number;
 
-  @Field(type => ProjectStatus)
-  @ManyToOne(type => ProjectStatus)
+  @Field(_type => ProjectStatus)
+  @ManyToOne(_type => ProjectStatus)
   status: ProjectStatus;
 
   @RelationId(
@@ -49,8 +49,8 @@ export class ProjectStatusHistory extends BaseEntity {
   @Column({ nullable: true })
   statusId: number;
 
-  @Field(type => ProjectStatus)
-  @ManyToOne(type => ProjectStatus)
+  @Field(_type => ProjectStatus)
+  @ManyToOne(_type => ProjectStatus)
   prevStatus?: ProjectStatus;
 
   @RelationId(
@@ -60,8 +60,8 @@ export class ProjectStatusHistory extends BaseEntity {
   @Column({ nullable: true })
   prevStatusId: number;
 
-  @Field(type => ProjectStatusReason)
-  @ManyToOne(type => ProjectStatusReason)
+  @Field(_type => ProjectStatusReason)
+  @ManyToOne(_type => ProjectStatusReason)
   reason?: ProjectStatusReason;
 
   @RelationId(
@@ -70,8 +70,8 @@ export class ProjectStatusHistory extends BaseEntity {
   @Column({ nullable: true })
   reasonId: number;
 
-  @Field(type => User)
-  @ManyToOne(type => User)
+  @Field(_type => User)
+  @ManyToOne(_type => User)
   user?: User;
 
   @RelationId(
@@ -84,7 +84,7 @@ export class ProjectStatusHistory extends BaseEntity {
   @Column({ nullable: true })
   description?: string;
 
-  @Field(type => Date)
+  @Field(_type => Date)
   @Column()
   createdAt: Date;
 }

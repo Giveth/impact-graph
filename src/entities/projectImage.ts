@@ -12,19 +12,19 @@ import { Project } from './project';
 @Entity()
 @ObjectType()
 export class ProjectImage extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(type => Project)
-  @ManyToOne(type => Project, { eager: true })
+  @Field(_type => Project)
+  @ManyToOne(_type => Project, { eager: true })
   project: Project;
 
   @RelationId((projectImage: ProjectImage) => projectImage.project)
   @Column({ nullable: true })
   projectId: number;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   @Column({ nullable: true })
   url?: string;
 }

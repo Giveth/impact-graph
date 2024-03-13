@@ -24,15 +24,15 @@ export class ProjectInstantPowerView extends BaseEntity {
   projectId: number;
 
   @ViewColumn()
-  @Field(type => Float)
+  @Field(_type => Float)
   @Column('numeric', {
     scale: 2,
     transformer: new ColumnNumericTransformer(),
   })
   totalPower: number;
 
-  @Field(type => Project)
-  @OneToOne(type => Project, project => project.projectPower)
+  @Field(_type => Project)
+  @OneToOne(_type => Project, project => project.projectPower)
   @JoinColumn({ referencedColumnName: 'id' })
   project: Project;
 

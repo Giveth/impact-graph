@@ -120,43 +120,34 @@ const projectFiltersCacheDuration = Number(
 
 @ObjectType()
 class AllProjects {
-  @Field(type => [Project])
+  @Field(_type => [Project])
   projects: Project[];
 
-  @Field(type => Int)
+  @Field(_type => Int)
   totalCount: number;
 
-  @Field(type => [Category], { nullable: true })
+  @Field(_type => [Category], { nullable: true })
   categories: Category[];
 
-  @Field(type => Campaign, { nullable: true })
+  @Field(_type => Campaign, { nullable: true })
   campaign?: Campaign;
 }
 
 @ObjectType()
 class TopProjects {
-  @Field(type => [Project])
+  @Field(_type => [Project])
   projects: Project[];
 
-  @Field(type => Int)
+  @Field(_type => Int)
   totalCount: number;
 }
 
 @ObjectType()
-class ProjectAndAdmin {
-  @Field(type => Project)
-  project: Project;
-
-  @Field(type => User, { nullable: true })
-  admin: User;
-}
-
-@ObjectType()
 class ProjectUpdatesResponse {
-  @Field(type => [ProjectUpdate])
+  @Field(_type => [ProjectUpdate])
   projectUpdates: ProjectUpdate[];
 
-  @Field(type => Int, { nullable: false })
+  @Field(_type => Int, { nullable: false })
   count: number;
 }
 
@@ -192,40 +183,40 @@ registerEnumType(ChainType, {
 
 @InputType()
 export class OrderBy {
-  @Field(type => OrderField)
+  @Field(_type => OrderField)
   field: OrderField;
 
-  @Field(type => OrderDirection)
+  @Field(_type => OrderDirection)
   direction: OrderDirection;
 }
 
 @InputType()
 export class FilterBy {
-  @Field(type => FilterField, { nullable: true })
+  @Field(_type => FilterField, { nullable: true })
   field: FilterField;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   value: boolean;
 }
 
 @Service()
 @ArgsType()
 class GetProjectsArgs {
-  @Field(type => Int, { defaultValue: 0 })
+  @Field(_type => Int, { defaultValue: 0 })
   @Min(0)
   skip: number;
 
-  @Field(type => Int, { defaultValue: 10 })
+  @Field(_type => Int, { defaultValue: 10 })
   @Min(0)
   @Max(50)
   take: number;
 
-  @Field(type => Int, { defaultValue: 10 })
+  @Field(_type => Int, { defaultValue: 10 })
   @Min(0)
   @Max(50)
   limit: number;
 
-  @Field(type => OrderBy, {
+  @Field(_type => OrderBy, {
     defaultValue: {
       field: OrderField.GIVPower,
       direction: OrderDirection.DESC,
@@ -233,7 +224,7 @@ class GetProjectsArgs {
   })
   orderBy: OrderBy;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   searchTerm: string;
 
   @Field({ nullable: true })
@@ -242,24 +233,24 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   mainCategory: string;
 
-  @Field(type => FilterBy, {
+  @Field(_type => FilterBy, {
     nullable: true,
     defaultValue: { field: null, value: null },
   })
   filterBy: FilterBy;
 
-  @Field(type => [FilterField], {
+  @Field(_type => [FilterField], {
     nullable: true,
     defaultValue: [],
   })
   filters: FilterField[];
 
-  @Field(type => String, {
+  @Field(_type => String, {
     nullable: true,
   })
   campaignSlug: string;
 
-  @Field(type => SortingField, {
+  @Field(_type => SortingField, {
     nullable: true,
     defaultValue: SortingField.QualityScore,
   })
@@ -268,29 +259,29 @@ class GetProjectsArgs {
   @Field({ nullable: true })
   admin?: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   connectedWalletUserId?: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   qfRoundId?: number;
 
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   qfRoundSlug?: string;
 }
 
 @ObjectType()
 class ImageResponse {
-  @Field(type => String)
+  @Field(_type => String)
   url: string;
 
-  @Field(type => Number, { nullable: true })
+  @Field(_type => Number, { nullable: true })
   projectId?: number;
 
-  @Field(type => Number)
+  @Field(_type => Number)
   projectImageId: number;
 }
 
-@Resolver(of => Project)
+@Resolver(_of => Project)
 export class ProjectResolver {
   static addCategoryQuery(
     query: SelectQueryBuilder<Project>,
@@ -660,7 +651,7 @@ export class ProjectResolver {
     this.projectImageRepository = ds.getRepository(ProjectImage);
   }
 
-  @Query(returns => TopProjects)
+  @Query(_returns => TopProjects)
   async featuredProjects(
     @Args()
     { limit, skip, connectedWalletUserId }: GetProjectsArgs,
@@ -696,9 +687,9 @@ export class ProjectResolver {
     };
   }
 
-  @Query(returns => ProjectUpdate)
+  @Query(_returns => ProjectUpdate)
   async featuredProjectUpdate(
-    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
+    @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
   ): Promise<ProjectUpdate> {
     const featuredProject = await FeaturedUpdate.createQueryBuilder(
       'featuredProject',
@@ -712,7 +703,7 @@ export class ProjectResolver {
     return featuredProject!.projectUpdate;
   }
 
-  @Query(returns => AllProjects)
+  @Query(_returns => AllProjects)
   async allProjects(
     @Args()
     {
@@ -774,6 +765,7 @@ export class ProjectResolver {
       cache: projectFiltersCacheDuration,
     });
 
+    // eslint-disable-next-line prefer-const
     [projects, totalCount] = await projectsQuery
       .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
       .getManyAndCount();
@@ -797,7 +789,7 @@ export class ProjectResolver {
     return { projects, totalCount, categories, campaign };
   }
 
-  @Query(returns => TopProjects)
+  @Query(_returns => TopProjects)
   async topProjects(
     @Args()
     { take, skip, orderBy, category, connectedWalletUserId }: GetProjectsArgs,
@@ -833,10 +825,10 @@ export class ProjectResolver {
     return { projects, totalCount };
   }
 
-  @Query(returns => Project)
+  @Query(_returns => Project)
   async projectById(
     @Arg('id') id: number,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
@@ -867,10 +859,10 @@ export class ProjectResolver {
     return project;
   }
 
-  @Query(returns => ProjectBySlugResponse)
+  @Query(_returns => ProjectBySlugResponse)
   async projectBySlug(
     @Arg('slug') slug: string,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
@@ -954,7 +946,7 @@ export class ProjectResolver {
     return { ...project, givbackFactor };
   }
 
-  @Mutation(returns => Project)
+  @Mutation(_returns => Project)
   async updateProject(
     @Arg('projectId') projectId: number,
     @Arg('newProjectData') newProjectData: UpdateProjectInput,
@@ -1110,12 +1102,12 @@ export class ProjectResolver {
     return project;
   }
 
-  @Mutation(returns => Project)
+  @Mutation(_returns => Project)
   async addRecipientAddressToProject(
     @Arg('projectId') projectId: number,
     @Arg('networkId') networkId: number,
     @Arg('address') address: string,
-    @Arg('chainType', type => ChainType, { defaultValue: ChainType.EVM })
+    @Arg('chainType', _type => ChainType, { defaultValue: ChainType.EVM })
     chainType: ChainType,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
@@ -1155,10 +1147,10 @@ export class ProjectResolver {
     return project;
   }
 
-  @Mutation(returns => ImageResponse)
+  @Mutation(_returns => ImageResponse)
   async uploadImage(
     @Arg('imageUpload') imageUpload: ImageUpload,
-    @Ctx() ctx: ApolloContext,
+    @Ctx() _ctx: ApolloContext,
   ): Promise<ImageResponse> {
     let url = '';
 
@@ -1190,7 +1182,7 @@ export class ProjectResolver {
     throw Error(i18n.__(translationErrorMessagesKeys.UPLOAD_FAILED));
   }
 
-  @Query(returns => ResourcePerDateRange, { nullable: true })
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
   async projectsPerDate(
     // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
     @Arg('fromDate', { nullable: true }) fromDate?: string,
@@ -1229,7 +1221,7 @@ export class ProjectResolver {
     }
   }
 
-  @Mutation(returns => Project)
+  @Mutation(_returns => Project)
   async createProject(
     @Arg('project') projectInput: CreateProjectInput,
     @Ctx() ctx: ApolloContext,
@@ -1379,7 +1371,7 @@ export class ProjectResolver {
       projectId: project.id,
     });
 
-    const update = await ProjectUpdate.create({
+    const update = ProjectUpdate.create({
       userId: ctx.req.user.userId,
       projectId: project.id,
       content: '',
@@ -1402,7 +1394,7 @@ export class ProjectResolver {
     return project;
   }
 
-  @Mutation(returns => ProjectUpdate)
+  @Mutation(_returns => ProjectUpdate)
   async addProjectUpdate(
     @Arg('projectId') projectId: number,
     @Arg('title') title: string,
@@ -1463,7 +1455,7 @@ export class ProjectResolver {
     return save;
   }
 
-  @Mutation(returns => ProjectUpdate)
+  @Mutation(_returns => ProjectUpdate)
   async editProjectUpdate(
     @Arg('updateId') updateId: number,
     @Arg('title') title: string,
@@ -1507,7 +1499,7 @@ export class ProjectResolver {
     return update;
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async deleteProjectUpdate(
     @Arg('updateId') updateId: number,
     @Ctx() { req: { user } }: ApolloContext,
@@ -1542,14 +1534,14 @@ export class ProjectResolver {
     return true;
   }
 
-  @Query(returns => [ProjectUpdate])
+  @Query(_returns => [ProjectUpdate])
   async getProjectUpdates(
-    @Arg('projectId', type => Int) projectId: number,
-    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    @Arg('projectId', _type => Int) projectId: number,
+    @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
+    @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
-    @Arg('orderBy', type => OrderBy, {
+    @Arg('orderBy', _type => OrderBy, {
       defaultValue: {
         field: OrderField.CreationAt,
         direction: OrderDirection.DESC,
@@ -1583,7 +1575,7 @@ export class ProjectResolver {
 
   // TODO after finalizing getPurpleList and when Ashley filled that table we can remove this query and then change
   // givback-calculation script to use  getPurpleList query
-  @Query(returns => [String])
+  @Query(_returns => [String])
   async getProjectsRecipients(): Promise<string[]> {
     const recipients = await Project.query(
       `
@@ -1594,20 +1586,20 @@ export class ProjectResolver {
     return recipients.map(({ walletAddress }) => walletAddress);
   }
 
-  @Query(returns => [String])
+  @Query(_returns => [String])
   async getPurpleList(): Promise<string[]> {
     const relatedAddresses = await getPurpleListAddresses();
     return relatedAddresses.map(({ projectAddress }) => projectAddress);
   }
 
-  @Query(returns => Boolean)
+  @Query(_returns => Boolean)
   async walletAddressIsPurpleListed(
     @Arg('address') address: string,
   ): Promise<boolean> {
     return isWalletAddressInPurpleList(address);
   }
 
-  @Query(returns => [Token])
+  @Query(_returns => [Token])
   async getProjectAcceptTokens(
     @Arg('projectId') projectId: number,
   ): Promise<Token[]> {
@@ -1638,10 +1630,10 @@ export class ProjectResolver {
     }
   }
 
-  @Query(returns => [Reaction])
+  @Query(_returns => [Reaction])
   async getProjectReactions(
     @Arg('projectId') projectId: number,
-    @Ctx() { user }: Context,
+    @Ctx() { user: _user }: Context,
   ): Promise<Reaction[]> {
     const update = await ProjectUpdate.findOne({
       where: { projectId, isMain: true },
@@ -1652,7 +1644,7 @@ export class ProjectResolver {
     });
   }
 
-  // @Query(returns => Boolean)
+  // @Query(_returns => Boolean)
   // async isWalletSmartContract(@Arg('address') address: string) {
   //   return isWalletAddressSmartContract(address);
   // }
@@ -1662,7 +1654,7 @@ export class ProjectResolver {
    * @param address wallet address
    * @returns
    */
-  @Query(returns => Boolean)
+  @Query(_returns => Boolean)
   async walletAddressIsValid(@Arg('address') address: string) {
     return validateProjectWalletAddress(address);
   }
@@ -1673,7 +1665,7 @@ export class ProjectResolver {
    * @param projectId
    * @returns
    */
-  @Query(returns => Boolean)
+  @Query(_returns => Boolean)
   async isValidTitleForProject(
     @Arg('title') title: string,
     @Arg('projectId', { nullable: true }) projectId?: number,
@@ -1684,14 +1676,14 @@ export class ProjectResolver {
     return validateProjectTitle(title);
   }
 
-  @Query(returns => AllProjects, { nullable: true })
+  @Query(_returns => AllProjects, { nullable: true })
   async projectsByUserId(
-    @Arg('userId', type => Int) userId: number,
+    @Arg('userId', _type => Int) userId: number,
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
-    @Arg('orderBy', type => OrderBy, {
+    @Arg('orderBy', _type => OrderBy, {
       defaultValue: {
         field: OrderField.CreationDate,
         direction: OrderDirection.DESC,
@@ -1742,15 +1734,15 @@ export class ProjectResolver {
     };
   }
 
-  @Query(returns => AllProjects, { nullable: true })
+  @Query(_returns => AllProjects, { nullable: true })
   async projectsBySlugs(
     // TODO Write test cases
-    @Arg('slugs', type => [String]) slugs: string[],
+    @Arg('slugs', _type => [String]) slugs: string[],
     @Arg('take', { defaultValue: 10 }) take: number,
     @Arg('skip', { defaultValue: 0 }) skip: number,
-    @Arg('connectedWalletUserId', type => Int, { nullable: true })
+    @Arg('connectedWalletUserId', _type => Int, { nullable: true })
     connectedWalletUserId: number,
-    @Arg('orderBy', type => OrderBy, {
+    @Arg('orderBy', _type => OrderBy, {
       defaultValue: {
         field: OrderField.CreationDate,
         direction: OrderDirection.DESC,
@@ -1787,11 +1779,11 @@ export class ProjectResolver {
     };
   }
 
-  @Query(returns => AllProjects, { nullable: true })
+  @Query(_returns => AllProjects, { nullable: true })
   async similarProjectsBySlug(
-    @Arg('slug', type => String, { nullable: false }) slug: string,
-    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
-    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('slug', _type => String, { nullable: false }) slug: string,
+    @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     try {
@@ -1872,10 +1864,10 @@ export class ProjectResolver {
     }
   }
 
-  @Query(returns => ProjectUpdatesResponse, { nullable: true })
+  @Query(_returns => ProjectUpdatesResponse, { nullable: true })
   async projectUpdates(
-    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
-    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<ProjectUpdatesResponse> {
     const latestProjectUpdates = await ProjectUpdate.query(`
@@ -1916,11 +1908,11 @@ export class ProjectResolver {
     };
   }
 
-  @Query(returns => AllProjects, { nullable: true })
+  @Query(_returns => AllProjects, { nullable: true })
   async likedProjectsByUserId(
-    @Arg('userId', type => Int, { nullable: false }) userId: number,
-    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
-    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('userId', _type => Int, { nullable: false }) userId: number,
+    @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
     @Ctx() { req: { user } }: ApolloContext,
   ) {
     let query = this.projectRepository
@@ -1996,7 +1988,7 @@ export class ProjectResolver {
     return project;
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async deactivateProject(
     @Arg('projectId') projectId: number,
     @Ctx() ctx: ApolloContext,
@@ -2025,7 +2017,7 @@ export class ProjectResolver {
       throw error;
     }
   }
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async activateProject(
     @Arg('projectId') projectId: number,
     @Ctx() ctx: ApolloContext,

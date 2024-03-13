@@ -4,16 +4,16 @@ import { Column, Entity, BaseEntity, Index, PrimaryColumn } from 'typeorm';
 @Entity()
 @ObjectType()
 export class PowerSnapshotHistory extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryColumn()
   id: number;
 
-  @Field(type => Date)
+  @Field(_type => Date)
   @Column()
   @Index({ unique: true })
   time: Date;
 
-  @Field(type => Int)
+  @Field(_type => Int)
   @Column('integer', { nullable: true })
   @Index({ unique: true })
   blockNumber?: number;
@@ -22,7 +22,7 @@ export class PowerSnapshotHistory extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   roundNumber: number;
 
-  @Field(type => Boolean, { nullable: true })
+  @Field(_type => Boolean, { nullable: true })
   @Column({ nullable: true })
   @Index()
   synced?: boolean;

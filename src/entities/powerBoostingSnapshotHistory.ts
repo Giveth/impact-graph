@@ -5,23 +5,23 @@ import { ColumnNumericTransformer } from '../utils/entities';
 @Entity()
 @ObjectType()
 export class PowerBoostingSnapshotHistory extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryColumn()
   id: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   userId: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   projectId: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   powerSnapshotId: number;
 
-  @Field(type => Float)
+  @Field(_type => Float)
   @Column('numeric', {
     precision: 5, // 100.00
     scale: 2,

@@ -102,6 +102,7 @@ export const fillCampaignProjects = async (params: {
   );
   let projects: Project[];
   let totalCount: number;
+  // eslint-disable-next-line prefer-const
   [projects, totalCount] = await projectsQuery
     .cache(projectsQueryCacheKey, projectFiltersCacheDuration)
     .getManyAndCount();

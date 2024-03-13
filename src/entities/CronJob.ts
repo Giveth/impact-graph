@@ -7,7 +7,7 @@ import { PrimaryGeneratedColumn, Column, Entity, BaseEntity } from 'typeorm';
 })
 // Postgres cron jobs
 export class CronJob extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn({ name: 'jobid' })
   readonly id: number;
 

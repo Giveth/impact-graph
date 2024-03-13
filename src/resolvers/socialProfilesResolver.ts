@@ -11,12 +11,12 @@ import { getSocialNetworkAdapter } from '../adapters/adaptersFactory';
 import { PROJECT_VERIFICATION_STATUSES } from '../entities/projectVerificationForm';
 import { setOauth2SocialProfileInRedis } from '../services/socialProfileService';
 
-@Resolver(of => SocialProfile)
+@Resolver(_of => SocialProfile)
 export class SocialProfilesResolver {
-  @Mutation(returns => String)
+  @Mutation(_returns => String)
   async addNewSocialProfile(
-    @Arg('projectVerificationId', type => Int) projectVerificationId: number,
-    @Arg('socialNetwork', type => String) socialNetwork: string,
+    @Arg('projectVerificationId', _type => Int) projectVerificationId: number,
+    @Arg('socialNetwork', _type => String) socialNetwork: string,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<string> {
     if (!user || !user?.userId) {
@@ -63,9 +63,9 @@ export class SocialProfilesResolver {
     });
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation(_returns => Boolean)
   async removeSocialProfile(
-    @Arg('socialProfileId', type => Int) socialProfileId: number,
+    @Arg('socialProfileId', _type => Int) socialProfileId: number,
     @Ctx() { req: { user } }: ApolloContext,
   ): Promise<boolean> {
     if (!user || !user?.userId) {

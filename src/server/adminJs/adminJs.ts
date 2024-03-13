@@ -82,7 +82,7 @@ export const extractAdminJsReferrerUrlParams = (req: ActionContext) => {
 
   // Extract filter names and values from URL query string parameters
   for (const [key, value] of searchParams.entries()) {
-    const [_, filter] = key.split('.');
+    const [, filter] = key.split('.');
     if (!filter) continue;
 
     queryStrings[filter] = value;

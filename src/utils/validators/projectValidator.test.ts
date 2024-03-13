@@ -37,7 +37,7 @@ describe(
 function validateProjectTitleTestCases() {
   it('should return an english message if title is invalid with including ()', async () => {
     try {
-      const valid = await validateProjectTitle('fdf()');
+      await validateProjectTitle('fdf()');
     } catch (e) {
       assert.equal(
         e.message,

@@ -18,7 +18,7 @@ import { MaxLength } from 'class-validator';
 @InputType()
 export class ImageUpload {
   // Client uploads image file
-  @Field(type => GraphQLUpload, { nullable: true })
+  @Field(_type => GraphQLUpload, { nullable: true })
   image: FileUpload;
 
   @Field({ nullable: true })
@@ -40,7 +40,7 @@ class ProjectInput {
   })
   description?: string;
 
-  @Field(type => [String], { nullable: true, defaultValue: [] })
+  @Field(_type => [String], { nullable: true, defaultValue: [] })
   categories?: string[];
 
   @Field({ nullable: true })
@@ -51,7 +51,7 @@ class ProjectInput {
   @MaxLength(IMPACT_LOCATION_MAX_SIZE)
   impactLocation?: string;
 
-  @Field(type => Boolean, { nullable: true, defaultValue: false })
+  @Field(_type => Boolean, { nullable: true, defaultValue: false })
   isDraft?: boolean;
 
   @Field({ nullable: true })

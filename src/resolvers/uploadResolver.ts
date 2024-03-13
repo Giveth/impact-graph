@@ -19,7 +19,7 @@ import SentryLogger from '../sentryLogger';
 @InputType()
 export class FileUploadInputType {
   // Client uploads image file
-  @Field(type => GraphQLUpload)
+  @Field(_type => GraphQLUpload)
   image: FileUpload;
 }
 
@@ -47,7 +47,7 @@ export class TraceFileUploadInputType {
   @Field()
   entityId: string;
 
-  @Field(type => TraceImageOwnerType)
+  @Field(_type => TraceImageOwnerType)
   imageOwnerType: TraceImageOwnerType;
 
   @Field()

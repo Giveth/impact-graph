@@ -6,9 +6,9 @@ import {
 } from '../repositories/statusReasonRepository';
 import { logger } from '../utils/logger';
 
-@Resolver(of => ProjectStatusReason)
+@Resolver(_of => ProjectStatusReason)
 export class StatusReasonResolver {
-  @Query(returns => [ProjectStatusReason])
+  @Query(_returns => [ProjectStatusReason])
   async getStatusReasons(
     @Arg('statusId', { nullable: true }) statusId?: number,
   ) {
