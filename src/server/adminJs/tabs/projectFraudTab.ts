@@ -2,10 +2,7 @@ import {
   canAccessProjectStatusReasonAction,
   ResourceActions,
 } from '../adminJsPermissions';
-import {
-  AdminJsContextInterface,
-  AdminJsRequestInterface,
-} from '../adminJs-types';
+import { AdminJsRequestInterface } from '../adminJs-types';
 import { logger } from '../../../utils/logger';
 import csv from 'csvtojson';
 import { messages } from '../../../utils/messages';
@@ -15,7 +12,6 @@ import { errorMessages } from '../../../utils/errorMessages';
 export const createProjectFraud = async (
   request: AdminJsRequestInterface,
   response,
-  context?: AdminJsContextInterface,
 ) => {
   let message = messages.PROJECT_FRAUD_HAS_BEEN_CREATED_SUCCESSFULLY;
   logger.debug('createProjectFraud has been called() ', request.payload);
@@ -37,7 +33,6 @@ export const createProjectFraud = async (
         }
         slugs.push(obj.slug.toLowerCase());
       });
-      const uniqueSlugs = [...new Set(slugs)];
 
       // Get projectIds for all slugs
       const projects = await ProjectFraud.query(`

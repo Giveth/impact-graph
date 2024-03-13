@@ -22,7 +22,6 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../../analytics/analytics';
 import {
   findProjectById,
   updateProjectWithVerificationForm,
@@ -72,7 +71,7 @@ export const verifySingleVerificationForm = async (
   request: AdminJsRequestInterface,
   verified: boolean,
 ) => {
-  const { records, currentAdmin } = context;
+  const { currentAdmin } = context;
   let responseMessage = '';
   let responseType = 'success';
   const verificationStatus = verified
@@ -105,10 +104,6 @@ export const verifySingleVerificationForm = async (
         ),
       );
     }
-    // call repositories
-    const segmentEvent = verified
-      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
-      : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
 
     const verificationForm = await verifyForm({
       verificationStatus,
@@ -164,7 +159,7 @@ export const makeEditableByUser = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
 ) => {
-  const { records, currentAdmin } = context;
+  const { currentAdmin } = context;
   let responseMessage = '';
   let responseType = 'success';
   const formId = Number(request?.params?.recordId);

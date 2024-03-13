@@ -29,8 +29,7 @@ import { calculateGivbackFactor } from '../../../services/givbackService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
 import { updateTotalDonationsOfProject } from '../../../services/donationService';
 import { updateUserTotalDonated } from '../../../services/userService';
-import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../../../provider';
-import { redis } from '../../../redis';
+import { NETWORK_IDS } from '../../../provider';
 import {
   initExportSpreadsheet,
   addDonationsSheetToSpreadsheet,
@@ -47,7 +46,6 @@ import {
 export const createDonation = async (
   request: AdminJsRequestInterface,
   response,
-  context: AdminJsContextInterface,
 ) => {
   let message = messages.DONATION_CREATED_SUCCESSFULLY;
   const donations: Donation[] = [];

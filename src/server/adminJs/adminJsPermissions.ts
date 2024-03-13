@@ -297,22 +297,6 @@ const featuredUpdatePermissions = {
   // Add more roles here as needed
 };
 
-const tokenPermissions = {
-  [UserRole.ADMIN]: {
-    delete: true,
-    new: true,
-    show: true,
-    edit: true,
-  },
-  [UserRole.VERIFICATION_FORM_REVIEWER]: {
-    show: true,
-  },
-  [UserRole.CAMPAIGN_MANAGER]: {
-    show: true,
-  },
-  // Add more roles here as needed
-};
-
 const donationPermissions = {
   [UserRole.ADMIN]: {
     delete: true,
@@ -423,7 +407,7 @@ const hasAccessToResource = (params: {
   currentAdmin: any;
   action: string;
   resourcePermissions: any;
-}): Boolean => {
+}): boolean => {
   const { currentAdmin, action, resourcePermissions } = params;
   if (!currentAdmin) return false;
 

@@ -6,7 +6,7 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
-import express, { json, Request, Response } from 'express';
+import express, { json, Request } from 'express';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
 import { getResolvers } from '../resolvers/resolvers';
@@ -72,7 +72,6 @@ import { runSyncLostDonations } from '../services/cronJobs/importLostDonationsJo
 import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonationImportJob';
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
-import { runCheckUserSuperTokenBalances } from '../services/cronJobs/checkUserSuperTokenBalancesQueue';
 import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
 
 Resource.validate = validate;
@@ -102,10 +101,10 @@ export async function bootstrap() {
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
     if (dropSchema) {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Drop database....');
       await AppDataSource.getDataSource().synchronize(dropSchema);
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('Drop done.');
       try {
         await dropDbCronExtension();
@@ -221,7 +220,7 @@ export async function bootstrap() {
         }),
         windowMs: 60 * 1000, // 1 minutes
         max: Number(process.env.ALLOWED_REQUESTS_PER_MINUTE), // limit each IP to 40 requests per windowMs
-        skip: (req: Request, res: Response) => {
+        skip: (req: Request) => {
           const vercelKey = process.env.VERCEL_KEY;
           if (vercelKey && req.headers.vercel_key === vercelKey) {
             // Skip rate-limit for Vercel requests because our front is SSR
@@ -296,7 +295,7 @@ export async function bootstrap() {
       bodyParser.raw({ type: 'application/json' }),
       handleStripeWebhook,
     );
-    app.get('/health', (req, res, next) => {
+    app.get('/health', (_req, res) => {
       res.send('Hi every thing seems ok');
     });
     app.post('/fiat_webhook', onramperWebhookHandler);

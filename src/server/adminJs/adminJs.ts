@@ -31,12 +31,12 @@ import { SybilTab } from './tabs/sybilTab';
 import { ProjectFraudTab } from './tabs/projectFraudTab';
 import { RecurringDonationTab } from './tabs/recurringDonationTab';
 // use redis for session data instead of in-memory storage
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const RedisStore = require('connect-redis').default;
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const cookie = require('cookie');
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const cookieParser = require('cookie-parser');
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminJsCookie = 'adminjs';

@@ -43,8 +43,6 @@ export const fillProjects: After<ActionResponse> = async (
   const record: RecordJSON = response.record || {};
   const qfRoundId = record.params.qfRoundId || record.params.id;
   const projects = await getRelatedProjectsOfQfRound(qfRoundId);
-
-  const adminJsBaseUrl = process.env.SERVER_URL;
   response.record = {
     ...record,
     params: {
@@ -60,22 +58,17 @@ const returnAllQfRoundDonationAnalysis = async (
   request: AdminJsRequestInterface,
 ) => {
   const { record, currentAdmin } = context;
-  try {
-    const qfRoundId = Number(request?.params?.recordId);
-    logger.debug('qfRoundId', qfRoundId);
+  const qfRoundId = Number(request?.params?.recordId);
+  logger.debug('qfRoundId', qfRoundId);
 
-    const qfRoundDonationsRows = await getQfRoundActualDonationDetails(
-      qfRoundId,
-    );
-    logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
-    await addQfRoundDonationsSheetToSpreadsheet({
-      rows: qfRoundDonationsRows,
-      qfRoundId,
-    });
-    // TODO Upload to google sheet
-  } catch (error) {
-    throw error;
-  }
+  const qfRoundDonationsRows = await getQfRoundActualDonationDetails(qfRoundId);
+  logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
+  await addQfRoundDonationsSheetToSpreadsheet({
+    rows: qfRoundDonationsRows,
+    qfRoundId,
+  });
+  // TODO Upload to google sheet
+
   return {
     record: record.toJSON(currentAdmin),
     notice: {

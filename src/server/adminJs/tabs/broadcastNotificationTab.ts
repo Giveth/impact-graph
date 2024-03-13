@@ -24,7 +24,7 @@ export const sendBroadcastNotification = async (
 ): Promise<After<ActionResponse>> => {
   const record: RecordJSON = response.record || {};
   if (record?.params) {
-    const { html, id } = record?.params;
+    const { html, id } = record?.params || {};
     try {
       await getNotificationAdapter().broadcastNotification({
         broadCastNotificationId: id,

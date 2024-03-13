@@ -18,7 +18,7 @@ const createSchema = async (): Promise<GraphQLSchema> => {
   const environment = config.get('ENVIRONMENT') as string;
   // build TypeGraphQL executable schema
   const schema = await TypeGraphQL.buildSchema({
-    resolvers: getResolvers() as NonEmptyArray<Function>,
+    resolvers: getResolvers() as NonEmptyArray<() => NonNullable<unknown>>,
     container: Container,
     authChecker: userCheck,
     validate: {
