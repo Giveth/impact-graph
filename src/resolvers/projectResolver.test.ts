@@ -5209,18 +5209,24 @@ function addProjectUpdateTestCases() {
   });
 
   it('should change verificationStatus to null after adding update', async () => {
-    const project = await saveProjectDirectlyToDb({
+    const verifiedProject = await saveProjectDirectlyToDb({
       ...createProjectData(),
       verificationStatus: RevokeSteps.UpForRevoking,
     });
-    const accessTokenUser1 = await generateTestAccessToken(project.adminUserId);
+    const revokedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verificationStatus: RevokeSteps.Revoked,
+    });
+    const accessTokenUser1 = await generateTestAccessToken(
+      verifiedProject.adminUserId,
+    );
 
     await axios.post(
       graphqlUrl,
       {
         query: addProjectUpdateQuery,
         variables: {
-          projectId: project.id,
+          projectId: verifiedProject.id,
           content: 'Test Project Update content',
           title: 'test Project Update title',
         },
@@ -5231,10 +5237,30 @@ function addProjectUpdateTestCases() {
         },
       },
     );
-    const _project = await Project.findOne({
-      where: { id: project.id },
+    await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectUpdateQuery,
+        variables: {
+          projectId: revokedProject.id,
+          content: 'Test Project Update content',
+          title: 'test Project Update title',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessTokenUser1}`,
+        },
+      },
+    );
+    const _verifiedProject = await Project.findOne({
+      where: { id: verifiedProject.id },
     });
-    assert.equal(_project?.verificationStatus, null);
+    const _revokedProject = await Project.findOne({
+      where: { id: revokedProject.id },
+    });
+    assert.equal(_verifiedProject?.verificationStatus, null);
+    assert.equal(_revokedProject?.verificationStatus, RevokeSteps.Revoked);
   });
 
   it('should can not add project update because of ownerShip ', async () => {
