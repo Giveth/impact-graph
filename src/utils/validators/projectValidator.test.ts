@@ -129,7 +129,7 @@ function validateProjectWalletAddressTestCases() {
     await assertThrowsAsync(async () => {
       await validateProjectWalletAddress(SEED_DATA.MALFORMED_ETHEREUM_ADDRESS);
     }, errorMessages.INVALID_WALLET_ADDRESS);
-    const project = await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
   });
   it('should throw exception when address is not valid - Solana', async () => {
     await assertThrowsAsync(async () => {

@@ -1,7 +1,6 @@
-import { CustomHelpers, number, ObjectSchema, ValidationResult } from 'joi';
-import { Connection, clusterApiUrl } from '@solana/web3.js';
+import { ObjectSchema, ValidationResult } from 'joi';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Joi = require('joi');
 import {
   errorMessages,
@@ -25,7 +24,7 @@ const solanaProgramIdRegex =
   /^(11111111111111111111111111111111|[1-9A-HJ-NP-Za-km-z]{43,44})$/;
 const txHashRegex = /^0x[a-fA-F0-9]{64}$/;
 const solanaTxRegex = /^[A-Za-z0-9]{86,88}$/; // TODO: Is this enough? We are using the signature to fetch transactions
-const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
+// const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/; // OPTIMISTIC OP token is 2 chars long
 // const tokenSymbolRegex = /^[a-zA-Z0-9]{2,10}$/;
 
 export const validateWithJoiSchema = (data: any, schema: ObjectSchema) => {
@@ -40,8 +39,6 @@ const throwHttpErrorIfJoiValidatorFails = (
     throw new Error(validationResult.error.details[0].message);
   }
 };
-
-const projectIdValidator = Joi.number().integer().min(0).required();
 
 export const getDonationsQueryValidator = Joi.object({
   fromDate: Joi.string()
@@ -175,7 +172,7 @@ const projectRegistryValidator = Joi.object({
   organizationCountry: Joi.string().valid(
     // We allow country to be empty string
     '',
-    ...countriesList.map(({ name, code }) => name),
+    ...countriesList.map(({ name }) => name),
   ),
   organizationWebsite: Joi.string().allow(''),
   organizationDescription: Joi.string().allow(''),

@@ -1,7 +1,6 @@
-import { logger } from 'ethers';
 import path from 'path';
 
-// tslint:disable:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 export const i18n = require('i18n');
 
 // global config, where ever its exported
@@ -13,7 +12,7 @@ i18n.configure({
 });
 
 // sets the language for a request in app.use express
-export const setI18nLocaleForRequest = async (req, res, next) => {
+export const setI18nLocaleForRequest = async (req, _res, next) => {
   const language = req.headers['accept-language'] || 'en';
   i18n.setLocale(language);
   next();
