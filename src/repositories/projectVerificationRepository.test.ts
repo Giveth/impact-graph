@@ -4,7 +4,6 @@ import {
   PROJECT_VERIFICATION_STATUSES,
   PROJECT_VERIFICATION_STEPS,
   ProjectContacts,
-  ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
 import {
   createProjectData,
@@ -30,7 +29,6 @@ import {
 } from './projectVerificationRepository';
 import { assert } from 'chai';
 import { ChainType } from '../types/network';
-import { ProjectAddress } from '../entities/projectAddress';
 
 describe(
   'createProjectVerificationForm test cases',
@@ -112,9 +110,7 @@ function updateProjectPersonalInfoOfProjectVerificationTestCases() {
         personalInfo: projectPersonalInfo,
       });
 
-    const test = await findProjectVerificationFormById(
-      projectVerificationForm.id,
-    );
+    await findProjectVerificationFormById(projectVerificationForm.id);
     assert.equal(
       updatedProjectVerification?.personalInfo.email,
       projectPersonalInfo.email,

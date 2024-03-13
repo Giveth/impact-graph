@@ -2,7 +2,6 @@ import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import { RecurringDonation } from '../entities/recurringDonation';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
-import { Donation } from '../entities/donation';
 import { logger } from '../utils/logger';
 
 export const createNewRecurringDonation = async (params: {

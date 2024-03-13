@@ -4,7 +4,6 @@ import {
   updatePowerSnapshotSyncedFlag,
 } from './powerSnapshotRepository';
 import { assert } from 'chai';
-import moment from 'moment';
 import {
   createProjectData,
   generateRandomEtheriumAddress,

@@ -1,7 +1,6 @@
 import {
   createProjectData,
   generateRandomEtheriumAddress,
-  generateTestAccessToken,
   saveProjectDirectlyToDb,
   saveProjectVerificationFormDirectlyToDb,
   saveUserDirectlyToDb,

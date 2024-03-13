@@ -11,17 +11,9 @@ import {
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
 import { UpdateResult } from 'typeorm';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User } from '../entities/user';
-import {
-  getAppropriateNetworkId,
-  getDefaultSolanaChainId,
-} from '../services/chains';
-import { ChainType } from '../types/network';
+import { getAppropriateNetworkId } from '../services/chains';
 
 export const createProjectVerificationForm = async (params: {
   userId: number;

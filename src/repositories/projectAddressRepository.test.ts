@@ -211,9 +211,8 @@ function addBulkNewProjectAddressTestCases() {
         user,
       },
     ]);
-    const newRelatedAddress = await findRelatedAddressByWalletAddress(
-      newAddress,
-    );
+    const newRelatedAddress =
+      await findRelatedAddressByWalletAddress(newAddress);
     assert.isOk(newRelatedAddress);
     assert.equal(newRelatedAddress?.address, newAddress);
     assert.isFalse(newRelatedAddress?.isRecipient);
@@ -253,16 +252,14 @@ function addBulkNewProjectAddressTestCases() {
         user,
       },
     ]);
-    const newRelatedAddress1 = await findRelatedAddressByWalletAddress(
-      newAddress1,
-    );
+    const newRelatedAddress1 =
+      await findRelatedAddressByWalletAddress(newAddress1);
     assert.isOk(newRelatedAddress1);
     assert.equal(newRelatedAddress1?.address, newAddress1);
     assert.equal(newRelatedAddress1?.project?.id, project.id);
     assert.isFalse(newRelatedAddress1?.isRecipient);
-    const newRelatedAddress2 = await findRelatedAddressByWalletAddress(
-      newAddress2,
-    );
+    const newRelatedAddress2 =
+      await findRelatedAddressByWalletAddress(newAddress2);
     assert.isOk(newRelatedAddress2);
     assert.equal(newRelatedAddress2?.address, newAddress2);
     assert.equal(newRelatedAddress2?.project?.id, project.id);

@@ -432,7 +432,7 @@ function findUserByIdTestCases() {
   });
 
   it('should not find  user when userId is undefined', async () => {
-    // @ts-ignore
+    // @ts-expect-error it's a test
     const foundUser = await findUserById(undefined);
     assert.isNull(foundUser);
   });

@@ -467,9 +467,8 @@ function updateDescriptionSummaryTestCases() {
   });
 
   it('should update description summary on update', async () => {
-    let project: Project | null = await saveProjectDirectlyToDb(
-      createProjectData(),
-    );
+    let project: Project | null =
+      await saveProjectDirectlyToDb(createProjectData());
 
     project.description = SHORT_DESCRIPTION;
     await project.save();

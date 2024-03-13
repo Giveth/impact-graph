@@ -3,14 +3,13 @@ import {
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
-  graphqlUrl,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
 import { User, UserRole } from '../entities/user';
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import {
   countUniqueDonors,
   countUniqueDonorsForRound,

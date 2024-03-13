@@ -1,7 +1,7 @@
 import { Project } from '../entities/project';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import { ResourcesTotalPerMonthAndYear } from '../resolvers/donationResolver';
-import { Brackets, MoreThan } from 'typeorm';
+import { MoreThan } from 'typeorm';
 import moment from 'moment';
 import { AppDataSource } from '../orm';
 import { getProjectDonationsSqrtRootSum } from './qfRoundRepository';
