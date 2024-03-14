@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import Bull from 'bull';
 import {
   BroadCastNotificationInputParams,
   NotificationAdapterInterface,
@@ -12,7 +13,6 @@ import { User } from '../../entities/user';
 import { createBasicAuthentication } from '../../utils/utils';
 import { logger } from '../../utils/logger';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
-import Bull from 'bull';
 import { redisConfig } from '../../redis';
 import config from '../../config';
 import { findProjectById } from '../../repositories/projectRepository';

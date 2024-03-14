@@ -1,5 +1,5 @@
-import { generateRandomEvmTxHash } from '../../../../test/testUtils';
 import { assert } from 'chai';
+import { generateRandomEvmTxHash } from '../../../../test/testUtils';
 import { findTokenByTokenAddress } from '../../../repositories/tokenRepository';
 import {
   Organization,

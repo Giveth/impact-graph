@@ -10,9 +10,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
+import { Max, Min, IsNumber } from 'class-validator';
 import { Project } from './project';
 import { User } from './user';
-import { Max, Min, IsNumber } from 'class-validator';
 import { ColumnNumericTransformer } from '../utils/entities';
 
 @Entity()

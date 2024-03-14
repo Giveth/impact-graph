@@ -13,6 +13,9 @@ import {
   Resolver,
 } from 'type-graphql';
 
+import { Brackets } from 'typeorm';
+import { Service } from 'typedi';
+import { Max, Min } from 'class-validator';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findProjectById } from '../repositories/projectRepository';
 import {
@@ -33,10 +36,7 @@ import {
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
   updateRecurringDonation,
 } from '../repositories/recurringDonationRepository';
-import { Brackets } from 'typeorm';
 import { detectAddressChainType } from '../utils/networks';
-import { Service } from 'typedi';
-import { Max, Min } from 'class-validator';
 import { logger } from '../utils/logger';
 import {
   updateDonationQueryValidator,

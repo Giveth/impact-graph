@@ -1,6 +1,6 @@
 {
   "parser": "@typescript-eslint/parser",
-  "plugins": ["unused-imports"],
+  "plugins": ["import", "unused-imports"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
@@ -25,25 +25,16 @@
         "endOfLine": "auto"
       }
     ],
-    "@typescript-eslint/member-ordering": [
+    "import/order": [
       "error",
       {
-        "default": [
-          "public-static-field",
-          "protected-static-field",
-          "private-static-field",
-          "public-instance-field",
-          "protected-instance-field",
-          "private-instance-field",
-          "public-static-method",
-          "protected-static-method",
-          "private-static-method",
-          "public-constructor",
-          "protected-constructor",
-          "private-constructor",
-          "public-instance-method",
-          "protected-instance-method",
-          "private-instance-method"
+        "groups": [
+          "builtin",
+          "external",
+          ["internal", "parent", "sibling"],
+          "index",
+          "object",
+          "type"
         ]
       }
     ]

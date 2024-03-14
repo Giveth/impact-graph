@@ -1,9 +1,9 @@
 import { Resolver, Query, Ctx, Authorized } from 'type-graphql';
 
+import { Repository } from 'typeorm';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';
 import { ApolloContext } from '../types/ApolloContext';
-import { Repository } from 'typeorm';
 import { getLoggedInUser } from '../services/authorizationServices';
 import { AppDataSource } from '../orm';
 

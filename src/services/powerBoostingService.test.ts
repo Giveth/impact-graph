@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -9,7 +10,6 @@ import {
   findUserPowerBoosting,
   setMultipleBoosting,
 } from '../repositories/powerBoostingRepository';
-import { assert } from 'chai';
 import { changeUserBoostingsAfterProjectCancelled } from './powerBoostingService';
 
 describe(

@@ -1,4 +1,6 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import * as jwt from 'jsonwebtoken';
+import moment from 'moment';
 import { ApolloContext } from '../types/ApolloContext';
 import {
   errorMessages,
@@ -28,12 +30,10 @@ import {
 } from '../entities/projectVerificationForm';
 import { updateProjectVerificationFormByUser } from '../services/projectVerificationFormService';
 import { ProjectVerificationUpdateInput } from './types/ProjectVerificationUpdateInput';
-import * as jwt from 'jsonwebtoken';
 import config from '../config';
 import { countriesList } from '../utils/utils';
 import { Country } from '../entities/Country';
 import { sendMailConfirmationEmail } from '../services/mailerService';
-import moment from 'moment';
 
 @Resolver(_of => ProjectVerificationForm)
 export class ProjectVerificationFormResolver {

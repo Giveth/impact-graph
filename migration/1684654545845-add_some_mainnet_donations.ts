@@ -1,8 +1,8 @@
+import moment from 'moment';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 import config from '../src/config';
 import { Donation } from '../src/entities/donation';
 import { NETWORK_IDS } from '../src/provider';
-import moment from 'moment';
-import { MigrationInterface, QueryRunner } from 'typeorm';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,

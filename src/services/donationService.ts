@@ -1,3 +1,4 @@
+import { getTokenPrices } from '@giveth/monoswap';
 import { Project } from '../entities/project';
 import { Token } from '../entities/token';
 import { Donation, DONATION_STATUS } from '../entities/donation';
@@ -24,7 +25,6 @@ import {
   getNotificationAdapter,
 } from '../adapters/adaptersFactory';
 import { calculateGivbackFactor } from './givbackService';
-import { getTokenPrices } from '@giveth/monoswap';
 import SentryLogger from '../sentryLogger';
 import {
   getUserDonationStats,

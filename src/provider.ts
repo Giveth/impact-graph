@@ -1,5 +1,5 @@
-import config from './config';
 import { ethers } from 'ethers';
+import config from './config';
 import { i18n, translationErrorMessagesKeys } from './utils/errorMessages';
 
 const INFURA_ID = config.get('INFURA_ID');

@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   dropDbCronExtension,
   EVERY_MINUTE_CRON_JOB_EXPRESSION,
@@ -8,7 +9,6 @@ import {
   setupPgCronExtension,
   unSchedulePowerBoostingSnapshot,
 } from './dbCronRepository';
-import { assert } from 'chai';
 import config from '../config';
 import {
   createProjectData,

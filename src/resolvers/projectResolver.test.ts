@@ -1,5 +1,8 @@
 import { assert, expect } from 'chai';
 import 'mocha';
+import axios from 'axios';
+import moment from 'moment';
+import { ArgumentValidationError } from 'type-graphql';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -11,7 +14,6 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
-import axios from 'axios';
 import {
   activateProjectQuery,
   addProjectUpdateQuery,
@@ -80,7 +82,6 @@ import {
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
-import moment from 'moment';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { refreshUserProjectPowerView } from '../repositories/userProjectPowerViewRepository';
 import { AppDataSource } from '../orm';
@@ -97,7 +98,6 @@ import {
   PROJECT_DESCRIPTION_MAX_LENGTH,
   PROJECT_TITLE_MAX_LENGTH,
 } from '../constants/validators';
-import { ArgumentValidationError } from 'type-graphql';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { saveOrUpdateInstantPowerBalances } from '../repositories/instantBoostingRepository';
 import { updateInstantBoosting } from '../services/instantBoostingServices';

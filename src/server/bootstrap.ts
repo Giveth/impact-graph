@@ -1,5 +1,5 @@
 // @ts-check
-import config from '../config';
+import http from 'http';
 import { rateLimit } from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
 import { ApolloServer } from '@apollo/server';
@@ -7,14 +7,22 @@ import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginSchemaReporting } from '@apollo/server/plugin/schemaReporting';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import express, { json, Request } from 'express';
+import { Container } from 'typedi';
+import { Resource } from '@adminjs/typeorm';
+import { validate } from 'class-validator';
+import { ModuleThread, Pool, spawn, Worker } from 'threads';
+import { DataSource } from 'typeorm';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
+import config from '../config';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
 import { getResolvers } from '../resolvers/resolvers';
-import { Container } from 'typedi';
 import { RegisterResolver } from '../user/register/RegisterResolver';
 import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
-import { Resource } from '@adminjs/typeorm';
-import { validate } from 'class-validator';
 import SentryLogger from '../sentryLogger';
 
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
@@ -47,18 +55,10 @@ import {
 import { runFillPowerSnapshotBalanceCronJob } from '../services/cronJobs/fillSnapshotBalances';
 import { runUpdatePowerRoundCronJob } from '../services/cronJobs/updatePowerRoundJob';
 import { onramperWebhookHandler } from '../services/onramper/webhookHandler';
-import { ModuleThread, Pool, spawn, Worker } from 'threads';
-import { DataSource } from 'typeorm';
 import { AppDataSource, CronDataSource } from '../orm';
-import http from 'http';
-import cors from 'cors';
-import bodyParser from 'body-parser';
 import { ApolloContext } from '../types/ApolloContext';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 
-import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
-import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
-import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { runInstantBoostingUpdateCronJob } from '../services/cronJobs/instantBoostingUpdateJob';
 import {
   refreshProjectDonationSummaryView,

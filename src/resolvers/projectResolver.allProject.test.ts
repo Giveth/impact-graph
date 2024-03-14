@@ -1,5 +1,7 @@
 import { assert } from 'chai';
 import 'mocha';
+import axios from 'axios';
+import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
@@ -12,7 +14,6 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
-import axios from 'axios';
 import { fetchMultiFilterAllProjectsQuery } from '../../test/graphqlQueries';
 import { Project, ReviewStatus, SortingField } from '../entities/project';
 import { User } from '../entities/user';
@@ -27,7 +28,6 @@ import { refreshProjectPowerView } from '../repositories/projectPowerViewReposit
 import { PowerBalanceSnapshot } from '../entities/powerBalanceSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';
 import { ProjectAddress } from '../entities/projectAddress';
-import moment from 'moment';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { AppDataSource } from '../orm';
 // We are using cache so redis needs to be cleared for tests with same filters

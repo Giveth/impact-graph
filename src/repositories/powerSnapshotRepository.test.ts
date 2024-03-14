@@ -1,9 +1,9 @@
+import { assert } from 'chai';
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import {
   getPowerBoostingSnapshotWithoutBalance,
   updatePowerSnapshotSyncedFlag,
 } from './powerSnapshotRepository';
-import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,

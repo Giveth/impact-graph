@@ -1,3 +1,4 @@
+import { ModuleThread, Pool } from 'threads';
 import { Campaign, CampaignType } from '../entities/campaign';
 import {
   FilterProjectQueryInputParams,
@@ -5,7 +6,6 @@ import {
 } from '../repositories/projectRepository';
 import { FilterField, Project, SortingField } from '../entities/project';
 import { findUserReactionsByProjectIds } from '../repositories/reactionRepository';
-import { ModuleThread, Pool } from 'threads';
 import { ProjectResolverWorker } from '../workers/projectsResolverWorker';
 import { findAllActiveCampaigns } from '../repositories/campaignRepository';
 import { logger } from '../utils/logger';

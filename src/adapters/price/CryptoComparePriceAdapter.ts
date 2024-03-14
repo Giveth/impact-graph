@@ -1,8 +1,8 @@
+import axios from 'axios';
 import {
   GetTokenPriceParams,
   PriceAdapterInterface,
 } from './PriceAdapterInterface';
-import axios from 'axios';
 import { getRedisObject, setObjectInRedis } from '../../redis';
 import { logger } from '../../utils/logger';
 

@@ -2,13 +2,13 @@ import HTMLToPDF from 'html-pdf-node';
 import { pinFileDataBase64 } from '../middleware/pinataUtils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const Handlebars = require('handlebars');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs = require('fs');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const util = require('util');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const Handlebars = require('handlebars');
 
 const readFile = util.promisify(fs.readFile);
 

@@ -17,9 +17,9 @@ import {
 } from './userService';
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { generateRandomString } from '../utils/utils';
+import { findUserById } from '../repositories/userRepository';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcrypt');
-import { findUserById } from '../repositories/userRepository';
 
 describe(
   'updateUserTotalDonated() test cases',

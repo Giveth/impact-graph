@@ -1,3 +1,10 @@
+import adminJs from 'adminjs';
+import { SelectQueryBuilder } from 'typeorm';
+import {
+  ActionResponse,
+  After,
+} from 'adminjs/src/backend/actions/action.interface';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import {
   Project,
   ProjectUpdate,
@@ -5,7 +12,6 @@ import {
   ReviewStatus,
   RevokeSteps,
 } from '../../../entities/project';
-import adminJs from 'adminjs';
 import {
   canAccessProjectAction,
   canAccessQfRoundAction,
@@ -24,13 +30,7 @@ import {
   refreshProjectFuturePowerView,
   refreshProjectPowerView,
 } from '../../../repositories/projectPowerViewRepository';
-import { SelectQueryBuilder } from 'typeorm';
 import { logger } from '../../../utils/logger';
-import {
-  ActionResponse,
-  After,
-} from 'adminjs/src/backend/actions/action.interface';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { findSocialProfilesByProjectId } from '../../../repositories/socialProfileRepository';
 import { findProjectUpdatesByProjectId } from '../../../repositories/projectUpdateRepository';
 import {

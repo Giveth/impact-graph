@@ -1,6 +1,6 @@
+import adminJs from 'adminjs';
 import { Token } from '../../../entities/token';
 import { NETWORK_IDS } from '../../../provider';
-import adminJs from 'adminjs';
 import { canAccessTokenAction, ResourceActions } from '../adminJsPermissions';
 import { AdminJsRequestInterface } from '../adminJs-types';
 import { Organization } from '../../../entities/organization';

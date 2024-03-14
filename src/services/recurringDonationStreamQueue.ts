@@ -1,9 +1,9 @@
+import Bull from 'bull';
 import { logger } from '../utils/logger';
 import {
   findActiveRecurringDonations,
   findRecurringDonationById,
 } from '../repositories/recurringDonationRepository';
-import Bull from 'bull';
 import { redisConfig } from '../redis';
 import config from '../config';
 import { getCurrentDateFormatted } from '../utils/utils';

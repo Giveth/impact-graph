@@ -1,3 +1,5 @@
+import { assert } from 'chai';
+import axios from 'axios';
 import { NETWORK_IDS } from '../provider';
 import {
   createProjectData,
@@ -9,8 +11,6 @@ import {
   saveRecurringDonationDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { assert } from 'chai';
-import axios from 'axios';
 import {
   createRecurringDonationQuery,
   fetchRecurringDonationsByProjectIdQuery,

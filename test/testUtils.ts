@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
+import { Keypair } from '@solana/web3.js';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
@@ -29,7 +30,6 @@ import { MainCategory } from '../src/entities/mainCategory';
 import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 import { ChainType } from '../src/types/network';
-import { Keypair } from '@solana/web3.js';
 import { RecurringDonation } from '../src/entities/recurringDonation';
 import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
 import { findProjectById } from '../src/repositories/projectRepository';

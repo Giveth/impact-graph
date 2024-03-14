@@ -1,8 +1,8 @@
+import axios from 'axios';
 import {
   GetUserInfoByOauth2Output,
   SocialNetworkOauth2AdapterInterface,
 } from './SocialNetworkOauth2AdapterInterface';
-import axios from 'axios';
 import { logger } from '../../utils/logger';
 
 export class DiscordAdapter implements SocialNetworkOauth2AdapterInterface {

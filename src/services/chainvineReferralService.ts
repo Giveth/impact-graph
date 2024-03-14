@@ -1,7 +1,7 @@
+import moment from 'moment';
 import { getChainvineAdapter } from '../adapters/adaptersFactory';
 import { getRoundNumberByDate } from '../utils/powerBoostingUtils';
 import { isFirstTimeDonor } from '../repositories/userRepository';
-import moment from 'moment';
 import { logger } from '../utils/logger';
 import { findReferredEventByUserId } from '../repositories/referredEventRepository';
 

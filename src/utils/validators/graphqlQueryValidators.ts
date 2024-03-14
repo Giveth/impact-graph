@@ -1,7 +1,4 @@
 import { ObjectSchema, ValidationResult } from 'joi';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const Joi = require('joi');
 import {
   errorMessages,
   i18n,
@@ -12,6 +9,8 @@ import { DONATION_STATUS } from '../../entities/donation';
 import { PROJECT_VERIFICATION_STATUSES } from '../../entities/projectVerificationForm';
 import { countriesList } from '../utils';
 import { ChainType } from '../../types/network';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const Joi = require('joi');
 
 const filterDateRegex = new RegExp('^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$');
 const resourcePerDateRegex = new RegExp(

@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   ManagingFunds,
   Milestones,
@@ -27,7 +28,6 @@ import {
   verifyForm,
   verifyMultipleForms,
 } from './projectVerificationRepository';
-import { assert } from 'chai';
 import { ChainType } from '../types/network';
 
 describe(

@@ -1,5 +1,5 @@
-import { logger } from '../../../utils/logger';
 import SolanaWeb3, { ParsedInstruction } from '@solana/web3.js';
+import { logger } from '../../../utils/logger';
 import {
   NetworkTransactionInfo,
   TransactionDetailInput,

@@ -19,11 +19,11 @@ import {
   JoinTable,
 } from 'typeorm';
 
+import { Int } from 'type-graphql/dist/scalars/aliases';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { User } from './user';
 import { ProjectStatus } from './projectStatus';
-import { Int } from 'type-graphql/dist/scalars/aliases';
 import { ProjectStatusHistory } from './projectStatusHistory';
 import { ProjectStatusReason } from './projectStatusReason';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';

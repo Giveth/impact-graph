@@ -1,3 +1,5 @@
+import { assert } from 'chai';
+import axios from 'axios';
 import { NETWORK_IDS } from '../provider';
 import {
   createProjectData,
@@ -8,8 +10,6 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { assert } from 'chai';
-import axios from 'axios';
 import { createAnchorContractAddressQuery } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';

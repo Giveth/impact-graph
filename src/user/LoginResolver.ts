@@ -1,11 +1,11 @@
-import { logger } from '../utils/logger';
 import * as bcrypt from 'bcryptjs';
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { keccak256 } from 'ethers/lib/utils';
-import { User } from '../entities/user';
-import { ApolloContext } from '../types/ApolloContext';
 import * as jwt from 'jsonwebtoken';
 import { registerEnumType, Field, ObjectType } from 'type-graphql';
+import { User } from '../entities/user';
+import { ApolloContext } from '../types/ApolloContext';
+import { logger } from '../utils/logger';
 import config from '../config';
 import SentryLogger from '../sentryLogger';
 import { findUserByWalletAddress } from '../repositories/userRepository';

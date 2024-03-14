@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
@@ -8,7 +9,6 @@ import {
   DONATION_STATUS,
   DONATION_TYPES,
 } from '../../../entities/donation';
-import { assert } from 'chai';
 import { createDonation } from './donationTab';
 
 describe('createDonation() test cases', createDonationTestCases);

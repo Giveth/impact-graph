@@ -1,6 +1,6 @@
+import { assert } from 'chai';
 import { RevokeSteps } from '../../entities/project';
 
-import { assert } from 'chai';
 import { checkProjectVerificationStatus } from './checkProjectVerificationStatus';
 import {
   createProjectData,

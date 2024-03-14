@@ -1,4 +1,5 @@
 import { schedule } from 'node-cron';
+import slugify from 'slugify';
 import {
   Project,
   ProjStatus,
@@ -15,7 +16,6 @@ import {
   GivingBlockProject,
 } from './api';
 import config from '../../config';
-import slugify from 'slugify';
 import { ProjectStatus } from '../../entities/projectStatus';
 import { logger } from '../../utils/logger';
 import { getAppropriateSlug, getQualityScore } from '../projectService';

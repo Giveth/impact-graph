@@ -1,4 +1,6 @@
 import { ethers } from 'ethers';
+import moment from 'moment';
+import axios from 'axios';
 import { isTransactionHashStored } from '../../repositories/donationRepository';
 import { DONATION_ORIGINS, Donation } from '../../entities/donation';
 import { findProjectByWalletAddressAndNetwork } from '../../repositories/projectRepository';
@@ -19,9 +21,7 @@ import {
 } from '../../repositories/userRepository';
 import { logger } from '../../utils/logger';
 import { getGitcoinAdapter } from '../../adapters/adaptersFactory';
-import moment from 'moment';
 import { calculateGivbackFactor } from '../givbackService';
-import axios from 'axios';
 import {
   updateUserTotalDonated,
   updateUserTotalReceived,

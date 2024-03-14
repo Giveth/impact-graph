@@ -1,9 +1,9 @@
 import { schedule } from 'node-cron';
+import moment = require('moment');
 import { Project, RevokeSteps } from '../../entities/project';
 import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
 import config from '../../config';
 import { logger } from '../../utils/logger';
-import moment = require('moment');
 import { projectsWithoutUpdateAfterTimeFrame } from '../../repositories/projectRepository';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 

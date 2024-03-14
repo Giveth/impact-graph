@@ -1,11 +1,12 @@
 import { Field, InputType } from 'type-graphql';
+import { FileUpload } from 'graphql-upload/Upload.js';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import { MaxLength } from 'class-validator';
 import {
   ProjectSocialMediaInput,
   RelatedAddressInputType,
 } from './ProjectVerificationUpdateInput';
 
-import { FileUpload } from 'graphql-upload/Upload.js';
-import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import {
   IMAGE_LINK_MAX_SIZE,
   IMPACT_LOCATION_MAX_SIZE,
@@ -13,7 +14,6 @@ import {
   PROJECT_TITLE_MAX_LENGTH,
 } from '../../constants/validators';
 import { errorMessages } from '../../utils/errorMessages';
-import { MaxLength } from 'class-validator';
 
 @InputType()
 export class ImageUpload {

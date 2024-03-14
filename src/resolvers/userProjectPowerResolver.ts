@@ -9,10 +9,10 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { PowerBoosting } from '../entities/powerBoosting';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { PowerBoosting } from '../entities/powerBoosting';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository';
 

@@ -1,14 +1,14 @@
 import { assert } from 'chai';
+import Axios from 'axios';
+import { ethers } from 'ethers';
 import {
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { User } from '../entities/user';
-import Axios from 'axios';
 import { authorizationHandler } from './authorizationServices';
 import config from '../config';
-import { ethers } from 'ethers';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 
 describe('authorizationHandler() test cases', authorizationHandlerTestCases);

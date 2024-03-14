@@ -1,10 +1,10 @@
 import { Not, MoreThan } from 'typeorm';
+import { FindOneOptions } from 'typeorm/find-options/FindOneOptions';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { ProjectFuturePowerView } from '../views/projectFuturePowerView';
 import { logger } from '../utils/logger';
 import { updatePowerSnapshotSyncedFlag } from './powerSnapshotRepository';
 import { LastSnapshotProjectPowerView } from '../views/lastSnapshotProjectPowerView';
-import { FindOneOptions } from 'typeorm/find-options/FindOneOptions';
 import { AppDataSource } from '../orm';
 
 export const getProjectPowers = async (

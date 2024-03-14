@@ -1,6 +1,6 @@
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
-import { ApolloContext } from '../types/ApolloContext';
 import { Repository } from 'typeorm';
+import { ApolloContext } from '../types/ApolloContext';
 import { User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';

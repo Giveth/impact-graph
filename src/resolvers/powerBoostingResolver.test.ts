@@ -1,3 +1,5 @@
+import axios, { AxiosResponse } from 'axios';
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -7,14 +9,12 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
-import axios, { AxiosResponse } from 'axios';
 import {
   getBottomPowerRankQuery,
   getPowerBoostingsQuery,
   setMultiplePowerBoostingMutation,
   setSinglePowerBoostingMutation,
 } from '../../test/graphqlQueries';
-import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
 import {

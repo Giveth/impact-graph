@@ -8,8 +8,8 @@ import {
   PrimaryColumn,
   Column,
 } from 'typeorm';
-import { Project } from '../entities/project';
 import { Field, Float, Int, ObjectType } from 'type-graphql';
+import { Project } from '../entities/project';
 import { ColumnNumericTransformer } from '../utils/entities';
 
 @ViewEntity('project_power_view', { synchronize: false })

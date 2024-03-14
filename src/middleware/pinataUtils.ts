@@ -3,9 +3,8 @@
  */
 
 import pinataSDK, { PinataPinResponse } from '@pinata/sdk';
-
-import ReadableStream = NodeJS.ReadableStream;
 import config from '../config';
+import ReadableStream = NodeJS.ReadableStream;
 
 let _pinata: pinataSDK;
 

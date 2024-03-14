@@ -1,8 +1,9 @@
-import config from '../../config';
 import abiDecoder from 'abi-decoder';
+import { schedule } from 'node-cron';
+import moment from 'moment';
+import config from '../../config';
 import { Donation } from '../../entities/donation';
 import { logger } from '../../utils/logger';
-import { schedule } from 'node-cron';
 import { NetworkTransactionInfo } from '../chains';
 import { getProvider, NETWORKS_IDS_TO_NAME } from '../../provider';
 import { erc20ABI } from '../../assets/erc20ABI';
@@ -10,7 +11,6 @@ import { User } from '../../entities/user';
 import { Token } from '../../entities/token';
 import { Project } from '../../entities/project';
 import { calculateGivbackFactor } from '../givbackService';
-import moment from 'moment';
 import {
   getUserDonationStats,
   updateUserTotalDonated,

@@ -1,8 +1,8 @@
+import { expect } from 'chai';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { InstantPowerBalance } from '../entities/instantPowerBalance';
 import { updateInstantPowerBalances } from './instantBoostingServices';
 import { InstantPowerFetchState } from '../entities/instantPowerFetchState';
-import { expect } from 'chai';
 import { getMaxFetchedUpdatedAtTimestamp } from '../repositories/instantBoostingRepository';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
 import {

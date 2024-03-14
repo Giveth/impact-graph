@@ -1,11 +1,11 @@
 import { assert } from 'chai';
+import axios from 'axios';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
   saveProjectDirectlyToDb,
 } from '../../test/testUtils';
-import axios from 'axios';
 import { createBasicAuthentication } from '../utils/utils';
 import { NETWORK_IDS } from '../provider';
 import { DONATION_STATUS } from '../entities/donation';

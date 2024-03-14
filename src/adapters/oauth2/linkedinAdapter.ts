@@ -1,9 +1,9 @@
+import { stringify } from 'querystring';
+import axios from 'axios';
 import {
   GetUserInfoByOauth2Output,
   SocialNetworkOauth2AdapterInterface,
 } from './SocialNetworkOauth2AdapterInterface';
-import { stringify } from 'querystring';
-import axios from 'axios';
 import { logger } from '../../utils/logger';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 

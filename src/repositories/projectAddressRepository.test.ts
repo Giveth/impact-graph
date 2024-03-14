@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   addBulkNewProjectAddress,
   addNewProjectAddress,
@@ -16,7 +17,6 @@ import {
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
-import { assert } from 'chai';
 import { NETWORK_IDS } from '../provider';
 import { ProjectStatus } from '../entities/projectStatus';
 import { ProjStatus } from '../entities/project';

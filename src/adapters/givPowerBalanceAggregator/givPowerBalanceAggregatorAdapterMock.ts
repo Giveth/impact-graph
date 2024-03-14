@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {
   BalancesAtTimestampInputParams,
   BalanceResponse,
@@ -5,7 +6,6 @@ import {
   IGivPowerBalanceAggregator,
 } from '../../types/GivPowerBalanceAggregator';
 import { convertTimeStampToSeconds } from '../../utils/utils';
-import _ from 'lodash';
 
 export class GivPowerBalanceAggregatorAdapterMock
   implements IGivPowerBalanceAggregator

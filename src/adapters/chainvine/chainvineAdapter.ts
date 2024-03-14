@@ -1,11 +1,10 @@
+import { ChainvineClient } from '@chainvine/sdk/lib';
+import { Response } from 'express';
 import {
   ChainvineAdapterInterface,
   LinkDonorToChainvineReferrerType,
   NotifyChainVineInputType,
 } from './chainvineAdapterInterface';
-
-import { ChainvineClient } from '@chainvine/sdk/lib';
-import { Response } from 'express';
 import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 

@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   createDonationData,
   createProjectData,
@@ -17,7 +18,6 @@ import {
   findUsersWhoLikedProjectExcludeProjectOwner,
   findUsersWhoSupportProject,
 } from './userRepository';
-import { assert } from 'chai';
 import { Reaction } from '../entities/reaction';
 import { insertSinglePowerBoosting } from './powerBoostingRepository';
 

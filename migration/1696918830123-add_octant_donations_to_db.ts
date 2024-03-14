@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import moment from 'moment';
 import config from '../src/config';
 import { AppDataSource } from '../src/orm';
-import moment from 'moment';
 import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
 import { calculateGivbackFactor } from '../src/services/givbackService';

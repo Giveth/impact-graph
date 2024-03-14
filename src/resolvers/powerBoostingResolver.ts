@@ -13,6 +13,8 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
+import { Max, Min } from 'class-validator';
+import { Service } from 'typedi';
 import { ApolloContext } from '../types/ApolloContext';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { PowerBoosting } from '../entities/powerBoosting';
@@ -21,8 +23,6 @@ import {
   setSingleBoosting,
   findPowerBoostings,
 } from '../repositories/powerBoostingRepository';
-import { Max, Min } from 'class-validator';
-import { Service } from 'typedi';
 import { logger } from '../utils/logger';
 import { getBottomRank } from '../repositories/projectPowerViewRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';

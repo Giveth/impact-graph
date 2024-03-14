@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import { createBackupDonation } from './backupDonationImportJob';
 import {
   assertThrowsAsync,
@@ -8,7 +9,6 @@ import {
 } from '../../../test/testUtils';
 import { User } from '../../entities/user';
 import { NETWORK_IDS } from '../../provider';
-import { assert } from 'chai';
 import { DONATION_STATUS } from '../../entities/donation';
 import { findTokenByNetworkAndSymbol } from '../../utils/tokenUtils';
 

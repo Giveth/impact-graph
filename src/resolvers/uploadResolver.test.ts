@@ -1,3 +1,4 @@
+import { createReadStream, readFileSync } from 'fs';
 import { assert } from 'chai';
 import sinon from 'sinon';
 import axios from 'axios';
@@ -11,7 +12,6 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import * as pinataUtils from '../middleware/pinataUtils';
-import { createReadStream, readFileSync } from 'fs';
 import { errorMessages } from '../utils/errorMessages';
 import { TraceImageOwnerType } from './uploadResolver';
 // eslint-disable-next-line @typescript-eslint/no-var-requires

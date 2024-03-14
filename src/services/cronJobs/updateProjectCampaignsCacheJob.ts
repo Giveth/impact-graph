@@ -1,6 +1,6 @@
+import { schedule } from 'node-cron';
 import config from '../../config';
 import { logger } from '../../utils/logger';
-import { schedule } from 'node-cron';
 import { cacheProjectCampaigns } from '../campaignService';
 
 // every 10 minutes

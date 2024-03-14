@@ -1,3 +1,5 @@
+import { assert } from 'chai';
+import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
@@ -9,7 +11,6 @@ import {
   SEED_DATA,
 } from '../../test/testUtils';
 import { User, UserRole } from '../entities/user';
-import { assert } from 'chai';
 import {
   countUniqueDonors,
   countUniqueDonorsForRound,
@@ -25,7 +26,6 @@ import {
 } from './donationRepository';
 import { updateOldStableCoinDonationsPrice } from '../services/donationService';
 import { Donation, DONATION_STATUS } from '../entities/donation';
-import moment from 'moment';
 import { QfRound } from '../entities/qfRound';
 import { Project } from '../entities/project';
 import {

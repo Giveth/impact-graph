@@ -1,3 +1,4 @@
+import { UpdateResult } from 'typeorm';
 import {
   ManagingFunds,
   Milestones,
@@ -10,7 +11,6 @@ import {
 } from '../entities/projectVerificationForm';
 import { findProjectById } from './projectRepository';
 import { findUserById } from './userRepository';
-import { UpdateResult } from 'typeorm';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { User } from '../entities/user';
 import { getAppropriateNetworkId } from '../services/chains';

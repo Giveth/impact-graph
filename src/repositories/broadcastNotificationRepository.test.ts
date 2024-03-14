@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import BroadcastNotification, {
   BROAD_CAST_NOTIFICATION_STATUS,
 } from '../entities/broadcastNotification';
@@ -5,7 +6,6 @@ import {
   updateBroadcastNotificationStatus,
   findBroadcastNotificationById,
 } from './broadcastNotificationRepository';
-import { assert } from 'chai';
 
 describe(
   'updateBroadcastNotificationStatus test cases',

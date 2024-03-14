@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import axios from 'axios';
 import {
   generateTestAccessToken,
   graphqlUrl,
@@ -15,7 +16,6 @@ import {
   generateRandomSolanaAddress,
   generateRandomSolanaTxHash,
 } from '../../test/testUtils';
-import axios from 'axios';
 import { errorMessages } from '../utils/errorMessages';
 import { Donation, DONATION_STATUS } from '../entities/donation';
 import {

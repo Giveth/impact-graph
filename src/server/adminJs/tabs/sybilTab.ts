@@ -1,3 +1,4 @@
+import csv from 'csvtojson';
 import { Sybil } from '../../../entities/sybil';
 import {
   canAccessProjectStatusReasonAction,
@@ -5,7 +6,6 @@ import {
 } from '../adminJsPermissions';
 import { AdminJsRequestInterface } from '../adminJs-types';
 import { logger } from '../../../utils/logger';
-import csv from 'csvtojson';
 import { messages } from '../../../utils/messages';
 import { errorMessages } from '../../../utils/errorMessages';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';

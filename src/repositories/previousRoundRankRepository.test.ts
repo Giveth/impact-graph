@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   copyProjectRanksToPreviousRoundRankTable,
   deleteAllPreviousRoundRanks,
@@ -24,7 +25,6 @@ import {
 } from './projectPowerViewRepository';
 import { Project } from '../entities/project';
 import { PreviousRoundRank } from '../entities/previousRoundRank';
-import { assert } from 'chai';
 import { ProjectPowerView } from '../views/projectPowerView';
 import { findProjectById } from './projectRepository';
 import { PowerRound } from '../entities/powerRound';

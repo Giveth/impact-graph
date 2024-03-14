@@ -1,10 +1,10 @@
+import { assert } from 'chai';
 import {
   isWalletAddressSmartContract,
   isWalletAddressValid,
   validateProjectTitle,
   validateProjectWalletAddress,
 } from './projectValidator';
-import { assert } from 'chai';
 import {
   assertThrowsAsync,
   createProjectData,

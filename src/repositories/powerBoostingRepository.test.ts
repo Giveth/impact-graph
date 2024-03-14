@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   assertThrowsAsync,
   createProjectData,
@@ -15,7 +16,6 @@ import {
   setSingleBoosting,
   takePowerBoostingSnapshot,
 } from './powerBoostingRepository';
-import { assert } from 'chai';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PowerBoostingSnapshot } from '../entities/powerBoostingSnapshot';

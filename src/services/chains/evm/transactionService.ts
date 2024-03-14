@@ -1,4 +1,5 @@
 import abiDecoder from 'abi-decoder';
+import axios from 'axios';
 import {
   findTokenByNetworkAndAddress,
   findTokenByNetworkAndSymbol,
@@ -8,7 +9,6 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
-import axios from 'axios';
 import { erc20ABI } from '../../../assets/erc20ABI';
 import { disperseABI } from '../../../assets/disperseABI';
 import {

@@ -1,8 +1,13 @@
+import adminJs from 'adminjs';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import {
+  ActionResponse,
+  After,
+} from 'adminjs/src/backend/actions/action.interface';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
 } from '../../../entities/projectVerificationForm';
-import adminJs from 'adminjs';
 import {
   canAccessProjectVerificationFormAction,
   ResourceActions,
@@ -30,12 +35,7 @@ import {
 } from '../../../repositories/projectRepository';
 import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
 import { logger } from '../../../utils/logger';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { Project } from '../../../entities/project';
-import {
-  ActionResponse,
-  After,
-} from 'adminjs/src/backend/actions/action.interface';
 import { fillSocialProfileAndQfRounds } from './projectsTab';
 
 export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
