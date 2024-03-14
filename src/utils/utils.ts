@@ -6,6 +6,9 @@ import slugify from 'slugify';
 import stringify from 'json-stable-stringify';
 import { SUMMARY_LENGTH } from '../constants/summary';
 import config from '../config';
+import { isEqual } from 'lodash';
+import { ProjectSocialMedia } from '../entities/projectSocialMedia';
+import { ProjectSocialMediaInput } from '../resolvers/types/ProjectVerificationUpdateInput';
 // tslint:disable-next-line:no-var-requires
 const { createHash } = require('node:crypto');
 
@@ -438,3 +441,21 @@ export function getCurrentDateFormatted(): string {
 
   return `${year}${month}${day}`;
 }
+
+export const isSocialMediaEqual = (
+  newSocialMedia?: ProjectSocialMedia[] | ProjectSocialMediaInput[],
+  oldSocialMedia?: ProjectSocialMedia[] | ProjectSocialMediaInput[],
+) => {
+  return isEqual(
+    newSocialMedia
+      ?.map(s => {
+        return { type: s.type, link: s.link };
+      })
+      .sort(),
+    oldSocialMedia
+      ?.map(s => {
+        return { type: s.type, link: s.link };
+      })
+      .sort(),
+  );
+};

@@ -41,7 +41,6 @@ import {
 } from '../repositories/qfRoundHistoryRepository';
 import { User } from '../entities/user';
 import { QfRoundHistory } from '../entities/qfRoundHistory';
-import { ChainType } from '../types/network';
 
 describe('isProjectAcceptToken test cases', isProjectAcceptTokenTestCases);
 describe(
@@ -451,19 +450,19 @@ function syncDonationStatusWithBlockchainNetworkTestCases() {
     assert.isTrue(updateDonation.segmentNotified);
   });
 
-  it('should verify a Optimism Goerli donation', async () => {
-    // https://goerli-optimism.etherscan.io/tx/0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3
-    const amount = 0.011;
+  it('should verify a Optimism Sepolia donation', async () => {
+    // https://sepolia-optimism.etherscan.io/tx/0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809
+    const amount = 0.01;
 
     const transactionInfo = {
       txHash:
-        '0x95acfc3a5d1adbc9a4584d6bf92e9dfde48087fe54c2b750b067be718215ffc3',
+        '0x1b4e9489154a499cd7d0bd7a097e80758e671a32f98559be3b732553afb00809',
       currency: 'ETH',
-      networkId: NETWORK_IDS.OPTIMISM_GOERLI,
-      fromAddress: '0x317bbc1927be411cd05615d2ffdf8d320c6c4052',
-      toAddress: '0x00d18ca9782be1caef611017c2fbc1a39779a57c',
+      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+      fromAddress: '0x625bcc1142e97796173104a6e817ee46c593b3c5',
+      toAddress: '0x73f9b3f48ebc96ac55cb76c11053b068669a8a67',
       amount,
-      timestamp: 1679484540,
+      timestamp: 1708954960,
     };
     const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const project = await saveProjectDirectlyToDb({
@@ -1145,8 +1144,8 @@ function insertDonationsFromQfRoundHistoryTestCases() {
   });
 
   it('should return correct value for single project', async () => {
-    // First call it to make sure there isnt any thing in DB to make conflicts in our test cases
-    await insertDonationsFromQfRoundHistory();
+    // First call it to make sure there isn't any thing in DB to make conflicts in our test cases
+    await QfRoundHistory.clear();
 
     const usersDonations: number[][] = [
       [1, 3], // 4
@@ -1198,7 +1197,9 @@ function insertDonationsFromQfRoundHistoryTestCases() {
       qfRoundId: qfRound.id,
     });
     assert.isNotNull(qfRoundHistory);
-    qfRoundHistory!.distributedFundTxHash = generateRandomEvmTxHash();
+    // https://blockscout.com/xdai/mainnet/tx/0x42c0f15029557ec35e61515a89366297fc239a334e3ba22fab15a3f1d04ad53f
+    qfRoundHistory!.distributedFundTxHash =
+      '0x42c0f15029557ec35e61515a89366297fc239a334e3ba22fab15a3f1d04ad53f';
     qfRoundHistory!.distributedFundNetwork = '100';
     qfRoundHistory!.matchingFundAmount = 1000;
     qfRoundHistory!.matchingFundCurrency = 'DAI';
@@ -1258,6 +1259,7 @@ function insertDonationsFromQfRoundHistoryTestCases() {
       donations[0].transactionId,
       qfRoundHistory?.distributedFundTxHash,
     );
+    assert.equal(donations[0].createdAt.getTime(), 1702091620);
 
     const updatedProject = await findProjectById(firstProject.id);
     assert.equal(

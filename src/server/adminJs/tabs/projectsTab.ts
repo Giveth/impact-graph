@@ -53,16 +53,14 @@ import {
   makeFormVerified,
 } from '../../../repositories/projectVerificationRepository';
 import { FeaturedUpdate } from '../../../entities/featuredUpdate';
-import {
-  findActiveQfRound,
-  relateManyProjectsToQfRound,
-} from '../../../repositories/qfRoundRepository';
+import { findActiveQfRound } from '../../../repositories/qfRoundRepository';
 import { User } from '../../../entities/user';
 import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from '../../../services/projectViewsService';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 
 // add queries depending on which filters were selected
 export const buildProjectsQuery = (
@@ -390,17 +388,17 @@ export const addProjectsToQfRound = async (
   request: AdminJsRequestInterface,
   add: boolean = true,
 ) => {
-  const { records, currentAdmin } = context;
+  const { records } = context;
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
   try {
     const projectIds = request?.query?.recordIds
       ?.split(',')
       ?.map(strId => Number(strId)) as number[];
-    const activeQfRound = await findActiveQfRound();
-    if (activeQfRound) {
+    const qfRound = await findActiveQfRound();
+    if (qfRound) {
       await relateManyProjectsToQfRound({
         projectIds,
-        qfRoundId: activeQfRound.id,
+        qfRound,
         add,
       });
 
@@ -433,11 +431,11 @@ export const addSingleProjectToQfRound = async (
   let message = messages.PROJECTS_RELATED_TO_ACTIVE_QF_ROUND_SUCCESSFULLY;
   try {
     const projectId = Number(request?.params?.recordId);
-    const activeQfRound = await findActiveQfRound();
-    if (activeQfRound) {
+    const qfRound = await findActiveQfRound();
+    if (qfRound) {
       await relateManyProjectsToQfRound({
         projectIds: [projectId],
-        qfRoundId: activeQfRound.id,
+        qfRound,
         add,
       });
 

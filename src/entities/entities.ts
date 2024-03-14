@@ -48,6 +48,7 @@ import { Sybil } from './sybil';
 import { DraftDonation } from './draftDonation';
 import { ProjectFraud } from './projectFraud';
 import { ProjectActualMatchingView } from './ProjectActualMatchingView';
+import { ProjectSocialMedia } from './projectSocialMedia';
 
 export const getEntities = (): DataSourceOptions['entities'] => {
   return [
@@ -74,6 +75,7 @@ export const getEntities = (): DataSourceOptions['entities'] => {
     ThirdPartyProjectImport,
     ProjectVerificationForm,
     ProjectAddress,
+    ProjectSocialMedia,
     SocialProfile,
     MainCategory,
     PowerBoosting,

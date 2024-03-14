@@ -1,9 +1,13 @@
 import { logger } from '../utils/logger';
-import { findActiveRecurringDonations } from '../repositories/recurringDonationRepository';
+import {
+  findActiveRecurringDonations,
+  findRecurringDonationById,
+} from '../repositories/recurringDonationRepository';
 import Bull from 'bull';
 import { redisConfig } from '../redis';
 import config from '../config';
 import { getCurrentDateFormatted } from '../utils/utils';
+import { createRelatedDonationsToStream } from './recurringDonationService';
 
 const updateRecurringDonationsStreamQueue = new Bull(
   'update-recurring-donations-stream-queue',
@@ -72,6 +76,14 @@ const numberOfUpdateRecurringDonationsStreamConcurrentJob =
 export const updateRecurringDonationStream = async (params: {
   recurringDonationId: number;
 }) => {
-  // TODO Implement this (Get stream from blockchain and update the recurring donations)
-  logger.debug('updateRecurringDonationStream() has been called');
+  logger.debug(
+    'updateRecurringDonationStream() has been called for id',
+    params.recurringDonationId,
+  );
+  const recurringDonation = await findRecurringDonationById(
+    params.recurringDonationId,
+  );
+
+  if (!recurringDonation) return;
+  await createRelatedDonationsToStream(recurringDonation);
 };

@@ -1,5 +1,8 @@
 import { Field, InputType } from 'type-graphql';
-import { RelatedAddressInputType } from './ProjectVerificationUpdateInput';
+import {
+  ProjectSocialMediaInput,
+  RelatedAddressInputType,
+} from './ProjectVerificationUpdateInput';
 
 import { FileUpload } from 'graphql-upload/Upload.js';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
@@ -53,6 +56,9 @@ class ProjectInput {
 
   @Field({ nullable: true })
   organisationId?: number;
+
+  @Field(() => [ProjectSocialMediaInput], { nullable: true })
+  socialMedia?: ProjectSocialMediaInput[];
 }
 
 @InputType()

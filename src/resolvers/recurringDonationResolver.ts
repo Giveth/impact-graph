@@ -15,7 +15,11 @@ import {
 
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findProjectById } from '../repositories/projectRepository';
-import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import {
+  errorMessages,
+  i18n,
+  translationErrorMessagesKeys,
+} from '../utils/errorMessages';
 import { findActiveAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
@@ -26,6 +30,8 @@ import {
 import {
   createNewRecurringDonation,
   findRecurringDonationById,
+  findRecurringDonationByProjectIdAndUserIdAndCurrency,
+  updateRecurringDonation,
 } from '../repositories/recurringDonationRepository';
 import { publicSelectionFields } from '../entities/user';
 import { Brackets } from 'typeorm';
@@ -53,7 +59,7 @@ class RecurringDonationSortBy {
 
 export enum RecurringDonationSortField {
   createdAt = 'createdAt',
-  amount = 'amount',
+  flowRate = 'flowRate',
 }
 
 enum RecurringDonationSortDirection {
@@ -110,8 +116,11 @@ class UserRecurringDonationsArgs {
   @Field(type => String, { nullable: true })
   status: string;
 
-  @Field(type => Boolean, { nullable: true, defaultValue: false })
-  finished: boolean;
+  @Field(type => [Boolean], { nullable: true, defaultValue: [false] })
+  finishStatus: boolean[];
+
+  @Field(type => [String], { nullable: true, defaultValue: [] })
+  filteredTokens: string[];
 }
 
 @ObjectType()
@@ -132,8 +141,9 @@ export class RecurringDonationResolver {
     @Arg('networkId', () => Int) networkId: number,
     @Arg('txHash', () => String) txHash: string,
     @Arg('currency', () => String) currency: string,
-    @Arg('interval', () => String) interval: string,
-    @Arg('amount', () => Int) amount: number,
+    @Arg('flowRate', () => String) flowRate: string,
+    @Arg('anonymous', () => Boolean, { defaultValue: false })
+    anonymous: boolean,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
     const donor = await findUserById(userId);
@@ -163,9 +173,60 @@ export class RecurringDonationResolver {
       anchorContractAddress: currentAnchorProjectAddress,
       networkId,
       txHash,
-      amount,
-      interval,
+      flowRate,
       currency,
+      anonymous,
+    });
+  }
+
+  @Mutation(returns => RecurringDonation, { nullable: true })
+  async updateRecurringDonationParams(
+    @Ctx() ctx: ApolloContext,
+    @Arg('projectId', () => Int) projectId: number,
+    @Arg('networkId', () => Int) networkId: number,
+    @Arg('txHash', () => String) txHash: string,
+    @Arg('flowRate', () => String) flowRate: string,
+    @Arg('currency', () => String) currency: string,
+    @Arg('anonymous', () => Boolean) anonymous: boolean,
+  ): Promise<RecurringDonation> {
+    const userId = ctx?.req?.user?.userId;
+    const donor = await findUserById(userId);
+
+    if (!donor) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+    }
+    const project = await findProjectById(projectId);
+    if (!project) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.PROJECT_NOT_FOUND));
+    }
+    const recurringDonation =
+      await findRecurringDonationByProjectIdAndUserIdAndCurrency({
+        projectId: project.id,
+        userId: donor.id,
+        currency,
+      });
+    if (!recurringDonation) {
+      // TODO set proper error message
+      throw new Error(errorMessages.RECURRING_DONATION_NOT_FOUND);
+    }
+    const currentAnchorProjectAddress = await findActiveAnchorAddress({
+      projectId,
+      networkId,
+    });
+
+    if (!currentAnchorProjectAddress) {
+      throw new Error(
+        i18n.__(
+          translationErrorMessagesKeys.THERE_IS_NOT_ACTIVE_ANCHOR_ADDRESS_FOR_THIS_PROJECT,
+        ),
+      );
+    }
+
+    return updateRecurringDonation({
+      recurringDonation,
+      txHash,
+      flowRate,
+      anonymous,
     });
   }
 
@@ -176,8 +237,11 @@ export class RecurringDonationResolver {
     @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
     @Arg('projectId', type => Int, { nullable: false }) projectId: number,
     @Arg('status', type => String, { nullable: true }) status: string,
-    @Arg('finished', type => Boolean, { nullable: true, defaultValue: false })
-    finished: boolean,
+    @Arg('finishStatus', type => [Boolean], {
+      nullable: true,
+      defaultValue: [false],
+    })
+    finishStatus: boolean[],
     @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
     @Arg('orderBy', type => RecurringDonationSortBy, {
       defaultValue: {
@@ -208,13 +272,17 @@ export class RecurringDonationResolver {
         'donor.passportStamps',
       ])
       .where(`recurringDonation.projectId = ${projectId}`);
-    query
-      .andWhere(`recurringDonation.finished = ${finished}`)
-      .orderBy(
-        `recurringDonation.${orderBy.field}`,
-        orderBy.direction,
-        RecurringDonationNullDirection[orderBy.direction as string],
-      );
+    query.orderBy(
+      `recurringDonation.${orderBy.field}`,
+      orderBy.direction,
+      RecurringDonationNullDirection[orderBy.direction as string],
+    );
+
+    if (finishStatus && finishStatus.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
+        finishStatus,
+      });
+    }
 
     if (status) {
       query.andWhere(`recurringDonation.status = :status`, {
@@ -242,16 +310,13 @@ export class RecurringDonationResolver {
             detectAddressChainType(searchTerm) === undefined &&
             Number(searchTerm)
           ) {
-            const amount = Number(searchTerm);
-
-            qb.orWhere('recurringDonation.amount = :amount', {
-              amount,
+            qb.orWhere('recurringDonation.flowRate =  :searchTerm', {
+              searchTerm,
             });
           }
         }),
       );
     }
-
     const [recurringDonations, donationsCount] = await query
       .take(take)
       .skip(skip)
@@ -271,7 +336,8 @@ export class RecurringDonationResolver {
       orderBy,
       userId,
       status,
-      finished,
+      finishStatus,
+      filteredTokens,
     }: UserRecurringDonationsArgs,
     @Ctx() ctx: ApolloContext,
   ) {
@@ -305,6 +371,18 @@ export class RecurringDonationResolver {
     if (status) {
       query.andWhere(`donation.status = :status`, {
         status,
+      });
+    }
+
+    if (finishStatus && finishStatus.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
+        finishStatus,
+      });
+    }
+
+    if (filteredTokens && filteredTokens.length > 0) {
+      query.andWhere(`recurringDonation.currency IN (:...filteredTokens)`, {
+        filteredTokens,
       });
     }
 

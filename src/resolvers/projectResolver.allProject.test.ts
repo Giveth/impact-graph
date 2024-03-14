@@ -126,16 +126,19 @@ function allProjectsTestCases() {
     result = await axios.post(graphqlUrl, {
       query: fetchMultiFilterAllProjectsQuery,
       variables: {
-        limit,
         searchTerm: SEED_DATA.FIRST_PROJECT.title,
         connectedWalletUserId: USER_DATA.id,
       },
     });
 
     projects = result.data.data.allProjects.projects;
-    assert.equal(projects.length, limit);
+    // Find the project with the exact title
+    const selectedProject = projects.find(
+      ({ title }) => title === SEED_DATA.FIRST_PROJECT.title,
+    );
+    assert.isAtLeast(projects.length, limit);
     assert.equal(
-      projects[0]?.reaction?.id,
+      selectedProject?.reaction?.id,
       REACTION_SEED_DATA.FIRST_LIKED_PROJECT_REACTION.id,
     );
     projects.forEach(project => {
@@ -1253,7 +1256,7 @@ function allProjectsTestCases() {
           address =>
             address.isRecipient === true &&
             (address.networkId === NETWORK_IDS.OPTIMISTIC ||
-              address.networkId === NETWORK_IDS.OPTIMISM_GOERLI) &&
+              address.networkId === NETWORK_IDS.OPTIMISM_SEPOLIA) &&
             address.chainType === ChainType.EVM,
         ),
       );

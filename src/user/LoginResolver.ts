@@ -12,6 +12,7 @@ import config from '../config';
 import SentryLogger from '../sentryLogger';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 // tslint:disable-next-line:no-var-requires
 const sigUtil = require('eth-sig-util');
 
@@ -254,12 +255,13 @@ export class LoginResolver {
         if (modified) await user.save();
       }
 
-      await getNotificationAdapter().updateOrttoUser({
+      const orttoPerson = getOrttoPersonAttributes({
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
         userId: user.id.toString(),
       });
+      await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
 
       const response = new LoginResponse();
 

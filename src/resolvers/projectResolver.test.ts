@@ -25,6 +25,7 @@ import {
   fetchFeaturedProjectUpdate,
   fetchLatestProjectUpdates,
   fetchLikedProjectsQuery,
+  fetchMultiFilterAllProjectsQuery,
   fetchNewProjectsPerDate,
   fetchProjectBySlugQuery,
   fetchProjectUpdatesQuery,
@@ -48,6 +49,7 @@ import {
   ProjectUpdate,
   ProjStatus,
   ReviewStatus,
+  RevokeSteps,
 } from '../entities/project';
 import { Category } from '../entities/category';
 import { Reaction } from '../entities/reaction';
@@ -158,6 +160,8 @@ describe(
   'similarProjectsBySlug test cases --->',
   similarProjectsBySlugTestCases,
 );
+
+describe('projectSearch test cases --->', projectSearchTestCases);
 
 describe('projectUpdates query test cases --->', projectUpdatesTestCases);
 
@@ -4145,6 +4149,50 @@ function projectUpdatesTestCases() {
   });
 }
 
+function projectSearchTestCases() {
+  it('should return projects with a typo in the end of searchTerm', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        // Typo in the title
+        searchTerm: SEED_DATA.SECOND_PROJECT.title.slice(0, -1) + 'a',
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    const projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, limit);
+    assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
+    assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
+    assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
+  });
+
+  it('should return projects with the project title inverted in the searchTerm', async () => {
+    const limit = 1;
+    const USER_DATA = SEED_DATA.FIRST_USER;
+    const result = await axios.post(graphqlUrl, {
+      query: fetchMultiFilterAllProjectsQuery,
+      variables: {
+        limit,
+        searchTerm: SEED_DATA.SECOND_PROJECT.title
+          .split(' ')
+          .reverse()
+          .join(' '),
+        connectedWalletUserId: USER_DATA.id,
+      },
+    });
+
+    const projects = result.data.data.allProjects.projects;
+    assert.equal(projects.length, limit);
+    assert.equal(projects[0].title, SEED_DATA.SECOND_PROJECT.title);
+    assert.equal(projects[0].slug, SEED_DATA.SECOND_PROJECT.slug);
+    assert.equal(projects[0].id, SEED_DATA.SECOND_PROJECT.id);
+  });
+}
+
 function getProjectUpdatesTestCases() {
   it('should return project updates with current take', async () => {
     const take = 2;
@@ -5159,6 +5207,62 @@ function addProjectUpdateTestCases() {
       'testProjectUpdateFateme',
     );
   });
+
+  it('should change verificationStatus to null after adding update', async () => {
+    const verifiedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verificationStatus: RevokeSteps.UpForRevoking,
+    });
+    const revokedProject = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      verificationStatus: RevokeSteps.Revoked,
+    });
+    const accessTokenUser1 = await generateTestAccessToken(
+      verifiedProject.adminUserId,
+    );
+
+    await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectUpdateQuery,
+        variables: {
+          projectId: verifiedProject.id,
+          content: 'Test Project Update content',
+          title: 'test Project Update title',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessTokenUser1}`,
+        },
+      },
+    );
+    await axios.post(
+      graphqlUrl,
+      {
+        query: addProjectUpdateQuery,
+        variables: {
+          projectId: revokedProject.id,
+          content: 'Test Project Update content',
+          title: 'test Project Update title',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessTokenUser1}`,
+        },
+      },
+    );
+    const _verifiedProject = await Project.findOne({
+      where: { id: verifiedProject.id },
+    });
+    const _revokedProject = await Project.findOne({
+      where: { id: revokedProject.id },
+    });
+    assert.equal(_verifiedProject?.verificationStatus, null);
+    assert.equal(_revokedProject?.verificationStatus, RevokeSteps.Revoked);
+  });
+
   it('should can not add project update because of ownerShip ', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());

@@ -84,6 +84,10 @@ export class QfRoundHistory extends BaseEntity {
   @Column({ nullable: true })
   distributedFundNetwork: string;
 
+  @Field(type => Date, { nullable: true })
+  @Column({ nullable: true })
+  distributedFundTxDate: Date;
+
   @UpdateDateColumn()
   updatedAt: Date;
 

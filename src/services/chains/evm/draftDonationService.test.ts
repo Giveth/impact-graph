@@ -17,7 +17,7 @@ import {
   DONATION_STATUS,
   Donation,
 } from '../../../entities/donation';
-import { Project } from '../../../entities/project';
+import { Project, ProjectUpdate } from '../../../entities/project';
 import { User } from '../../../entities/user';
 
 describe('draftDonationMatching', draftDonationMatchingTests);
@@ -65,6 +65,7 @@ function draftDonationMatchingTests() {
     });
     if (projectAddress) {
       await ProjectAddress.delete({ address: RandomAddress2 });
+      await ProjectUpdate.delete({ projectId: projectAddress.projectId });
       await Project.delete(projectAddress.projectId);
     }
 

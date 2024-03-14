@@ -13,6 +13,7 @@ import { User } from '../entities/user';
 import { RegisterInput } from '../user/register/RegisterInput';
 import { AccountVerificationInput } from './types/accountVerificationInput';
 import { ApolloContext } from '../types/ApolloContext';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { validateEmail } from '../utils/validators/commonValidators';
 import {
@@ -29,6 +30,7 @@ import {
 import { logger } from '../utils/logger';
 import { isWalletAddressInPurpleList } from '../repositories/projectAddressRepository';
 import { addressHasDonated } from '../repositories/donationRepository';
+import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
 
 @ObjectType()
 class UserRelatedAddressResponse {
@@ -68,6 +70,9 @@ export class UserResolver {
       address,
       includeSensitiveFields,
     );
+    if (!foundUser) {
+      throw new Error(i18n.__(translationErrorMessagesKeys.USER_NOT_FOUND));
+    }
     return {
       isSignedIn: Boolean(user),
       ...foundUser,
@@ -171,12 +176,13 @@ export class UserResolver {
     dbUser.name = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim();
     await dbUser.save();
 
-    await getNotificationAdapter().updateOrttoUser({
+    const orttoPerson = getOrttoPersonAttributes({
       firstName: dbUser.firstName,
       lastName: dbUser.lastName,
       email: dbUser.email,
       userId: dbUser.id.toString(),
     });
+    await getNotificationAdapter().updateOrttoPeople([orttoPerson]);
 
     return true;
   }

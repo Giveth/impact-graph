@@ -294,7 +294,7 @@ function updateProjectVerificationFormMutationTestCases() {
       },
       {
         address: generateRandomEtheriumAddress(),
-        networkId: NETWORK_IDS.OPTIMISM_GOERLI,
+        networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
         title: 'test title',
       },
       {

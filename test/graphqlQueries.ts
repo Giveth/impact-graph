@@ -331,10 +331,8 @@ export const fetchRecurringDonationsByProjectIdQuery = `
     $projectId: Int!
     $searchTerm: String
     $status: String
-    $finished: Boolean
+    $finishStatus: [Boolean!]
     $orderBy: RecurringDonationSortBy
-
-    
   ) {
     recurringDonationsByProjectId(
       take: $take
@@ -342,7 +340,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
       projectId: $projectId
       searchTerm: $searchTerm
       status: $status
-      finished: $finished
+      finishStatus: $finishStatus
       orderBy: $orderBy
 
     ) {
@@ -350,7 +348,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
         id
         txHash
         networkId
-        amount
+        flowRate
         currency
         anonymous
         status
@@ -373,8 +371,9 @@ export const fetchRecurringDonationsByUserIdQuery = `
     $skip: Int
     $status: String
     $orderBy: RecurringDonationSortBy
-    $finished: Boolean
+    $finishStatus: [Boolean!]
     $userId: Int!
+    $filteredTokens: [String!]
   ) {
     recurringDonationsByUserId(
       take: $take
@@ -382,13 +381,14 @@ export const fetchRecurringDonationsByUserIdQuery = `
       orderBy: $orderBy
       userId: $userId
       status: $status
-      finished: $finished
+      finishStatus: $finishStatus
+      filteredTokens: $filteredTokens
     ) {
       recurringDonations {
         id
         txHash
         networkId 
-        amount
+        flowRate
         currency
         anonymous
         status
@@ -2229,20 +2229,47 @@ export const createRecurringDonationQuery = `
   mutation ($projectId: Int!,
             $networkId: Int!, 
             $txHash: String!
-            $interval: String!
-            $amount: Int!
+            $flowRate: String!
             $currency: String!
+            $anonymous: Boolean
             ) {
     createRecurringDonation(
       projectId: $projectId 
       networkId: $networkId
       txHash:$txHash
-      amount:$amount
+      flowRate: $flowRate
       currency:$currency
-      interval:$interval
+      anonymous:$anonymous
         ) {
       txHash
       networkId
+      anonymous
     }
   }
+`;
+
+export const updateRecurringDonationQuery = `
+       mutation (
+        $projectId: Int!,
+        $networkId: Int!,
+        $txHash: String!
+        $flowRate: String!
+        $currency: String!
+        $anonymous: Boolean!
+        ) {
+          updateRecurringDonationParams(
+            projectId: $projectId
+            networkId: $networkId
+            txHash:$txHash
+            anonymous:$anonymous
+            flowRate:$flowRate
+            currency:$currency
+        ) {
+            txHash
+            networkId
+            currency
+            flowRate
+            anonymous
+          }
+      }
 `;
