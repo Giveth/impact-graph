@@ -15,7 +15,10 @@ import {
   Organization,
   ORGANIZATION_LABELS,
 } from '../src/entities/organization';
-import { findUserByWalletAddress } from '../src/repositories/userRepository';
+import {
+  findUserById,
+  findUserByWalletAddress,
+} from '../src/repositories/userRepository';
 import {
   addNewProjectAddress,
   findProjectRecipientAddressByProjectId,
@@ -1869,6 +1872,7 @@ export interface CreateDonationData {
   verified?: string;
   qfRoundId?: number;
   tokenAddress?: string;
+  qfRoundUserScore?: number;
 }
 
 export interface CategoryData {
@@ -1893,6 +1897,10 @@ export const saveDonationDirectlyToDb = async (
   userId?: number,
   projectId?: number,
 ): Promise<Donation> => {
+  if (userId) {
+    const user = await findUserById(userId);
+    donationData.fromWalletAddress = user?.walletAddress as string;
+  }
   return Donation.create({
     ...donationData,
     userId,
