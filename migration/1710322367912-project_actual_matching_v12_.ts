@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectActualMatchingV11_1710322367912
+export class ProjectActualMatchingV11_1710322367913
   implements MigrationInterface
 {
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -20,11 +20,12 @@ export class ProjectActualMatchingV11_1710322367912
                  STRING_AGG(DISTINCT CONCAT(pa."networkId", '-', pa."address"), ', ') AS "networkAddresses"
             FROM
                 public.project p
-                CROSS JOIN public.qf_round qr
+                INNER JOIN project_qf_rounds_qf_round pqrq ON pqrq."projectId" = p.id
+                INNER JOIN public.qf_round qr on qr.id = pqrq."qfRoundId"
                 LEFT JOIN project_address pa ON pa."projectId" = p.id AND pa."networkId" = ANY(qr."eligibleNetworks") AND pa."isRecipient" = true
         group by
-        p.id,
-        qr.id
+            p.id,
+            qr.id
         ),
         DonationsBeforeAnalysis AS (
             SELECT
