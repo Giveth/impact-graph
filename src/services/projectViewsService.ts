@@ -75,11 +75,11 @@ export const getQfRoundActualDonationDetails = async (
       uniqueDonors: row.uniqueQualifiedDonors,
       realMatchingFund: row.actualMatching,
       projectWeight: row.donationsSqrtRootSumSquared,
-      donationIdsBeforeAnalysis: row.donationIdsBeforeAnalysis.join('-'),
-      donationIdsAfterAnalysis: row.donationIdsAfterAnalysis.join('-'),
+      donationIdsBeforeAnalysis: row?.donationIdsBeforeAnalysis?.join('-'),
+      donationIdsAfterAnalysis: row?.donationIdsAfterAnalysis?.join('-'),
       totalValuesOfUserDonationsAfterAnalysis:
-        row.totalValuesOfUserDonationsAfterAnalysis.join('-'),
-      uniqueUserIdsAfterAnalysis: row.uniqueUserIdsAfterAnalysis.join('-'),
+        row?.totalValuesOfUserDonationsAfterAnalysis?.join('-'),
+      uniqueUserIdsAfterAnalysis: row?.uniqueUserIdsAfterAnalysis?.join('-'),
     };
   });
   logger.info(
