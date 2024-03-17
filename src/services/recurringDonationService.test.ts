@@ -14,6 +14,7 @@ import { Donation } from '../entities/donation';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { NETWORK_IDS } from '../provider';
 import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 
 describe(
   'createRelatedDonationsToStream test cases',
@@ -47,6 +48,7 @@ function createRelatedDonationsToStreamTestCases() {
         projectId: project.id,
         anchorContractAddressId: anchorContractAddress.id,
         currency: 'Daix',
+        status: 'pending',
       },
     });
 
@@ -56,12 +58,21 @@ function createRelatedDonationsToStreamTestCases() {
 
     await createRelatedDonationsToStream(recurringDonationWithAnchorContract!);
 
+    const recurringDonationUpdated = await findRecurringDonationById(
+      recurringDonationWithAnchorContract!.id,
+    );
+
     const donations = await Donation.createQueryBuilder('donation')
       .where(`donation.recurringDonationId = :recurringDonationId`, {
         recurringDonationId: recurringDonationWithAnchorContract!.id,
       })
       .getMany();
 
+    // STREAM TEST DATA HAS ENDED STATUS
+    assert.equal(
+      recurringDonationUpdated?.status,
+      RECURRING_DONATION_STATUS.ENDED,
+    );
     // assert.equal(donations.length, 4);
     assert.equal(true, true); // its not saving the recurring donation Id, saving as null
     // add more tests, define criteria for verified
