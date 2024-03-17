@@ -182,10 +182,11 @@ export class RecurringDonationResolver {
     @Ctx() ctx: ApolloContext,
     @Arg('projectId', () => Int) projectId: number,
     @Arg('networkId', () => Int) networkId: number,
-    @Arg('txHash', () => String) txHash: string,
-    @Arg('flowRate', () => String) flowRate: string,
     @Arg('currency', () => String) currency: string,
-    @Arg('anonymous', () => Boolean) anonymous: boolean,
+    @Arg('txHash', () => String, { nullable: true }) txHash?: string,
+    @Arg('flowRate', () => String, { nullable: true }) flowRate?: string,
+    @Arg('anonymous', () => Boolean, { nullable: true }) anonymous?: boolean,
+    @Arg('status', () => String, { nullable: true }) status?: string,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
     const donor = await findUserById(userId);
@@ -225,6 +226,7 @@ export class RecurringDonationResolver {
       txHash,
       flowRate,
       anonymous,
+      status,
     });
   }
 
@@ -464,7 +466,7 @@ export class RecurringDonationResolver {
       return updatedRecurringDonation;
     } catch (e) {
       SentryLogger.captureException(e);
-      logger.error('updateRecurringDonationStatus() error', e);
+      logger.error('updateRecurringDonationStatus() error ', e);
       throw e;
     }
   }

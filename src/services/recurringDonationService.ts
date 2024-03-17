@@ -59,7 +59,7 @@ export const createRelatedDonationsToStream = async (
     streamData &&
     recurringDonation.status === RECURRING_DONATION_STATUS.PENDING
   ) {
-    recurringDonation.status = RECURRING_DONATION_STATUS.VERIFIED;
+    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation.save();
   }
 
@@ -198,6 +198,7 @@ export const createRelatedDonationsToStream = async (
 
   if (streamData.stoppedAtTimestamp) {
     recurringDonation.finished = true;
+    recurringDonation.status = RECURRING_DONATION_STATUS.ENDED;
     await recurringDonation.save();
   }
 };

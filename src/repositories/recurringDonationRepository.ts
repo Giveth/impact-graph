@@ -1,6 +1,9 @@
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
-import { RecurringDonation } from '../entities/recurringDonation';
+import {
+  RECURRING_DONATION_STATUS,
+  RecurringDonation,
+} from '../entities/recurringDonation';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { logger } from '../utils/logger';
 
@@ -28,14 +31,35 @@ export const createNewRecurringDonation = async (params: {
 };
 export const updateRecurringDonation = async (params: {
   recurringDonation: RecurringDonation;
-  txHash: string;
-  flowRate: string;
-  anonymous: boolean;
+  txHash?: string;
+  flowRate?: string;
+  anonymous?: boolean;
+  status?: string;
 }): Promise<RecurringDonation> => {
-  const { recurringDonation, txHash, anonymous, flowRate } = params;
-  recurringDonation.txHash = txHash;
-  recurringDonation.flowRate = flowRate;
-  recurringDonation.anonymous = anonymous;
+  const { recurringDonation, txHash, anonymous, flowRate, status } = params;
+  if (txHash && flowRate) {
+    recurringDonation.txHash = txHash;
+    recurringDonation.flowRate = flowRate;
+  }
+
+  if (anonymous) {
+    recurringDonation.anonymous = anonymous;
+  }
+
+  if (
+    recurringDonation.status === RECURRING_DONATION_STATUS.ACTIVE &&
+    status === RECURRING_DONATION_STATUS.ENDED
+  ) {
+    recurringDonation.status = status;
+  }
+
+  if (
+    recurringDonation.status === RECURRING_DONATION_STATUS.ENDED &&
+    status === RECURRING_DONATION_STATUS.ARCHIVED
+  ) {
+    recurringDonation.status = status;
+  }
+
   return recurringDonation.save();
 };
 
@@ -88,7 +112,6 @@ export const findRecurringDonationById = async (
     .leftJoinAndSelect(`recurringDonation.donations`, 'donations')
     .leftJoinAndSelect('recurringDonation.project', 'project')
     .where(`recurringDonation.id = :id`, { id })
-    .andWhere(`recurringDonation.finished = false`)
     .getOne();
 };
 

@@ -20,8 +20,10 @@ import { Donation } from './donation';
 export const RECURRING_DONATION_STATUS = {
   PENDING: 'pending',
   VERIFIED: 'verified',
-  STOPPED: 'stopped',
+  ENDED: 'ended',
   FAILED: 'failed',
+  ARCHIVED: 'archived',
+  ACTIVE: 'active',
 };
 
 @Entity()
