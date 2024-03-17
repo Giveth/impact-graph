@@ -466,7 +466,7 @@ export class RecurringDonationResolver {
       return updatedRecurringDonation;
     } catch (e) {
       SentryLogger.captureException(e);
-      logger.error('updateRecurringDonationStatus() error', e);
+      logger.error('updateRecurringDonationStatus() error ', e);
       throw e;
     }
   }
