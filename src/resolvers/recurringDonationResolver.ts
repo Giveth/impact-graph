@@ -344,6 +344,7 @@ export class RecurringDonationResolver {
     const loggedInUserId = ctx?.req?.user?.userId;
     const query = RecurringDonation.createQueryBuilder('recurringDonation')
       .leftJoinAndSelect('recurringDonation.project', 'project')
+      .leftJoinAndSelect('project.anchorContracts', 'anchor_contract_address')
       .leftJoin('recurringDonation.donor', 'donor')
       .addSelect([
         'donor.id',

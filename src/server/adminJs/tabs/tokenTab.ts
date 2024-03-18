@@ -6,6 +6,7 @@ import { AdminJsRequestInterface } from '../adminJs-types';
 import { Organization } from '../../../entities/organization';
 import { logger } from '../../../utils/logger';
 import { findTokenByTokenId } from '../../../repositories/tokenRepository';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 
 // generates orderly permutations and maps then into an array which is later flatten into 1 dimension
 // Current length is the length of selected items from the total items
@@ -110,7 +111,7 @@ export const linkOrganizations = async (request: AdminJsRequestInterface) => {
 
 export const createToken = async (
   request: AdminJsRequestInterface,
-  response,
+  context,
 ) => {
   let message = `Token created successfully`;
   let type = 'success';
@@ -154,16 +155,24 @@ export const createToken = async (
     type = 'danger';
   }
 
-  response.send({
-    redirectUrl: '/admin/resources/Token',
-    record: {},
+  const record: RecordJSON = {
+    baseError: null,
+    id: request?.params?.recordId || '',
+    title: '',
+    bulkActions: [],
+    errors: {},
+    params: (context as any)?.record?.params,
+    populated: (context as any)?.record?.populated,
+    recordActions: [],
+  };
+
+  return {
+    redirectUrl: '/admin/resources/Token/actions/new',
+    record,
     notice: {
       message,
       type,
     },
-  });
-  return {
-    record: newToken,
   };
 };
 
@@ -285,8 +294,8 @@ export const generateTokenTab = async () => {
         new: {
           isAccessible: ({ currentAdmin }) =>
             canAccessTokenAction({ currentAdmin }, ResourceActions.NEW),
-          handler: createToken,
-          // component: false
+          handler: async (req, _res, context) => createToken(req, context),
+          // component: false,
         },
       },
     },
