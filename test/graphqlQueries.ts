@@ -2262,24 +2262,27 @@ export const updateRecurringDonationQuery = `
        mutation (
         $projectId: Int!,
         $networkId: Int!,
-        $txHash: String!
-        $flowRate: String!
-        $currency: String!
-        $anonymous: Boolean!
+        $currency: String!,
+        $txHash: String
+        $flowRate: String
+        $anonymous: Boolean
+        $status: String
         ) {
           updateRecurringDonationParams(
             projectId: $projectId
             networkId: $networkId
+            currency:$currency
             txHash:$txHash
             anonymous:$anonymous
             flowRate:$flowRate
-            currency:$currency
+            status:$status
         ) {
             txHash
             networkId
             currency
             flowRate
             anonymous
+            status
           }
       }
 `;
