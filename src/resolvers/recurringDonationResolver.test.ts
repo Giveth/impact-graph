@@ -1015,6 +1015,47 @@ function recurringDonationsByUserIdTestCases() {
     assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
     assert.isOk(donations.find(d => Number(d.id) === d1.id));
   });
+  it('should join with anchor contracts', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: projectOwner,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const d1 = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        projectId: project.id,
+        currency: 'DAI',
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+        },
+      },
+      {},
+    );
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.equal(
+      donations[0].project.anchorContracts[0].id,
+      anchorContractAddress.id,
+    );
+  });
   it('should not filter if filteredTokens is not passing', async () => {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 

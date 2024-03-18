@@ -398,6 +398,16 @@ export const fetchRecurringDonationsByUserIdQuery = `
           firstName
           email
         }
+        project {
+          id
+          title
+          slug
+          anchorContracts {
+              id
+              address
+              isActive
+          }
+        }
         createdAt
       }
       totalCount
