@@ -1,5 +1,5 @@
-import { logger } from '../../utils/logger';
 import Axios from 'axios';
+import { logger } from '../../utils/logger';
 import { isTestEnv } from '../../utils/utils';
 import { SuperFluidAdapterInterface } from './superFluidAdapterInterface';
 

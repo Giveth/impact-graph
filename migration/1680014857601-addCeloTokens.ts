@@ -4,7 +4,6 @@ import seedTokens from './data/seedTokens';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 
-// tslint:disable-next-line:class-name
 export class addCeloTokens1680014857601 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     const environment = config.get('ENVIRONMENT') as string;
@@ -50,5 +49,5 @@ export class addCeloTokens1680014857601 implements MigrationInterface {
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

@@ -9,5 +9,5 @@ export class AddRecurringDonationMissingColumns1707834685578
       `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(_queryRunner: QueryRunner): Promise<void> {}
 }

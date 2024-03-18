@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import moment from 'moment';
 import config from '../src/config';
 import { AppDataSource } from '../src/orm';
-import moment from 'moment';
 import { findProjectById } from '../src/repositories/projectRepository';
 import { Project } from '../src/entities/project';
 import { calculateGivbackFactor } from '../src/services/givbackService';
@@ -82,7 +82,7 @@ export class addOctantDonationsToDb1696918830123 implements MigrationInterface {
     const environment = config.get('ENVIRONMENT') as string;
 
     if (environment !== 'production') {
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log('We want to create these donations in production DB');
       return;
     }

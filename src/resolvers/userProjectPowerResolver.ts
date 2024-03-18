@@ -9,14 +9,10 @@ import {
   registerEnumType,
   Resolver,
 } from 'type-graphql';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
-import { PowerBoosting } from '../entities/powerBoosting';
 import { Max, Min } from 'class-validator';
 import { Service } from 'typedi';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
+import { PowerBoosting } from '../entities/powerBoosting';
 import { UserProjectPowerView } from '../views/userProjectPowerView';
 import { getUserProjectPowers } from '../repositories/userProjectPowerViewRepository';
 
@@ -42,13 +38,13 @@ registerEnumType(UserPowerOrderDirection, {
 
 @InputType()
 export class UserPowerOrderBy {
-  @Field(type => UserPowerOrderField, {
+  @Field(_type => UserPowerOrderField, {
     nullable: true,
     defaultValue: UserPowerOrderField.BoostedPower,
   })
   field: UserPowerOrderField | null;
 
-  @Field(type => UserPowerOrderDirection, {
+  @Field(_type => UserPowerOrderDirection, {
     nullable: true,
     defaultValue: UserPowerOrderDirection.DESC,
   })
@@ -58,16 +54,16 @@ export class UserPowerOrderBy {
 @Service()
 @ArgsType()
 export class UserProjectPowerArgs {
-  @Field(type => Int, { defaultValue: 0 })
+  @Field(_type => Int, { defaultValue: 0 })
   @Min(0)
   skip: number;
 
-  @Field(type => Int, { defaultValue: 20 })
+  @Field(_type => Int, { defaultValue: 20 })
   @Min(0)
   @Max(50)
   take: number;
 
-  @Field(type => UserPowerOrderBy, {
+  @Field(_type => UserPowerOrderBy, {
     nullable: true,
     defaultValue: {
       field: UserPowerOrderField.BoostedPower,
@@ -76,28 +72,28 @@ export class UserProjectPowerArgs {
   })
   orderBy: UserPowerOrderBy;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   projectId?: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   userId?: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   round?: number;
 }
 
 @ObjectType()
 class UserProjectPowers {
-  @Field(type => [UserProjectPowerView])
+  @Field(_type => [UserProjectPowerView])
   userProjectPowers: UserProjectPowerView[];
 
-  @Field(type => Int)
+  @Field(_type => Int)
   totalCount: number;
 }
 
-@Resolver(of => PowerBoosting)
+@Resolver(_of => PowerBoosting)
 export class UserProjectPowerResolver {
-  @Query(returns => UserProjectPowers)
+  @Query(_returns => UserProjectPowers)
   async userProjectPowers(
     @Args()
     { take, skip, projectId, userId, orderBy }: UserProjectPowerArgs,

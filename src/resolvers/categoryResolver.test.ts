@@ -1,10 +1,10 @@
 import { assert } from 'chai';
+import axios from 'axios';
 import {
   graphqlUrl,
   saveCategoryDirectlyToDb,
   saveMainCategoryDirectlyToDb,
 } from '../../test/testUtils';
-import axios from 'axios';
 import {
   getCategoryData,
   getMainCategoriesData,

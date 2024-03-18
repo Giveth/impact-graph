@@ -6,36 +6,29 @@ import {
 export class DonationSaveBackupMockAdapter
   implements DonationSaveBackupInterface
 {
-  async getNotImportedDonationsFromBackup(params: {
-    limit: number;
-  }): Promise<FetchedSavedFailDonationInterface[]> {
+  async getNotImportedDonationsFromBackup(): Promise<
+    FetchedSavedFailDonationInterface[]
+  > {
     return [];
   }
 
-  async getSingleDonationFromBackupByTxHash(
-    txHash: string,
-  ): Promise<FetchedSavedFailDonationInterface | null> {
+  async getSingleDonationFromBackupByTxHash(): Promise<FetchedSavedFailDonationInterface | null> {
     return null;
   }
 
-  async markDonationAsImported(donationMongoId: string): Promise<void> {
+  async markDonationAsImported(): Promise<void> {
     //
   }
 
-  async unmarkDonationAsImported(donationMongoId: string): Promise<void> {
+  async unmarkDonationAsImported(): Promise<void> {
     //
   }
 
-  async getSingleDonationFromBackupById(
-    donationMongoId: string,
-  ): Promise<FetchedSavedFailDonationInterface | null> {
+  async getSingleDonationFromBackupById(): Promise<FetchedSavedFailDonationInterface | null> {
     return null;
   }
 
-  markDonationAsImportError(
-    donationMongoId: string,
-    errorMessage,
-  ): Promise<void> {
+  markDonationAsImportError(): Promise<void> {
     return Promise.resolve(undefined);
   }
 }

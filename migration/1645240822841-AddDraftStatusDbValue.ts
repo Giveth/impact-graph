@@ -15,6 +15,5 @@ export class AddDraftStatusDbValue1645240822841 implements MigrationInterface {
         `);
   }
 
-  // tslint:disable-next-line:no-empty
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

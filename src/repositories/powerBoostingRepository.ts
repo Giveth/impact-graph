@@ -1,7 +1,7 @@
+import { Brackets } from 'typeorm';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { Project } from '../entities/project';
 import { publicSelectionFields, User } from '../entities/user';
-import { Brackets } from 'typeorm';
 import { logger } from '../utils/logger';
 import {
   errorMessages,

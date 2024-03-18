@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class relateCategoriesToMainCategories1657701834486
   implements MigrationInterface
 {

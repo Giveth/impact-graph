@@ -29,7 +29,7 @@ import {
   ProjectRegistry,
   ProjectVerificationForm,
 } from '../entities/projectVerificationForm';
-import { Project, ProjStatus, ReviewStatus } from '../entities/project';
+import { ProjStatus, ReviewStatus } from '../entities/project';
 import {
   createProjectVerificationForm,
   findProjectVerificationFormById,
@@ -168,7 +168,6 @@ function createProjectVerificationFormMutationTestCases() {
   });
   it('should not create project verification because project not found', async () => {
     const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projectId = Number(await Project.count()) + 3;
     const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(
       graphqlUrl,

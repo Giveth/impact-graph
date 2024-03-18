@@ -6,7 +6,6 @@ import { findRelatedAddressByWalletAddress } from '../../repositories/projectAdd
 import { RelatedAddressInputType } from '../../resolvers/types/ProjectVerificationUpdateInput';
 import { findProjectById } from '../../repositories/projectRepository';
 import { titleWithoutSpecialCharacters } from '../utils';
-import { ethers } from 'ethers';
 import { ChainType } from '../../types/network';
 import { detectAddressChainType } from '../networks';
 

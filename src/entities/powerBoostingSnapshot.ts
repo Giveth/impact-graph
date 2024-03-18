@@ -1,7 +1,6 @@
 import {
   BaseEntity,
   Column,
-  CreateDateColumn,
   Entity,
   Index,
   ManyToOne,
@@ -17,11 +16,11 @@ import { PowerSnapshot } from './powerSnapshot';
 @ObjectType()
 @Index(['userId', 'projectId', 'powerSnapshotId'], { unique: true })
 export class PowerBoostingSnapshot extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @RelationId(
     (powerBoostingSnapshot: PowerBoostingSnapshot) =>
       powerBoostingSnapshot.user,
@@ -29,15 +28,15 @@ export class PowerBoostingSnapshot extends BaseEntity {
   @Column()
   userId: number;
 
-  @Field(type => User, { nullable: false })
-  @ManyToOne(type => User, { nullable: false })
+  @Field(_type => User, { nullable: false })
+  @ManyToOne(_type => User, { nullable: false })
   user: User;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @Column()
   projectId: number;
 
-  @Field(type => ID)
+  @Field(_type => ID)
   @RelationId(
     (powerBoostingSnapshot: PowerBoostingSnapshot) =>
       powerBoostingSnapshot.powerSnapshot,
@@ -45,11 +44,11 @@ export class PowerBoostingSnapshot extends BaseEntity {
   @Column()
   powerSnapshotId: number;
 
-  @Field(type => PowerSnapshot, { nullable: true })
-  @ManyToOne(type => PowerSnapshot, { nullable: false })
+  @Field(_type => PowerSnapshot, { nullable: true })
+  @ManyToOne(_type => PowerSnapshot, { nullable: false })
   powerSnapshot: PowerSnapshot;
 
-  @Field(type => Float)
+  @Field(_type => Float)
   @Column('numeric', {
     precision: 5, // 100.00
     scale: 2,

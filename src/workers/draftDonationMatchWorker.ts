@@ -21,6 +21,7 @@ const worker: DraftDonationWorker = {
     // const dataSource = await AppDataSource.getDataSource();
     try {
       let userIdSkip = 0;
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         const userIds = await DraftDonation.createQueryBuilder('draftDonation')
           .select('DISTINCT(draftDonation.userId)', 'userId')
@@ -39,6 +40,7 @@ const worker: DraftDonationWorker = {
           let draftDonationSkip = 0;
 
           logger.debug('match draft donation of user: ', userId);
+          // eslint-disable-next-line no-constant-condition
           while (true) {
             const draftDonations = await DraftDonation.find({
               where: {

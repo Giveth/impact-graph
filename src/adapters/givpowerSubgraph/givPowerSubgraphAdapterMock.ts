@@ -38,12 +38,9 @@ export class GivPowerSubgraphAdapterMock implements IGivPowerSubgraphAdapter {
     return Promise.resolve({ timestamp: 1000, number: 1000 });
   }
 
-  getUserPowerBalanceUpdatedAfterTimestamp(params: {
-    timestamp: number;
-    blockNumber: number;
-    take: number;
-    skip: number;
-  }): Promise<{ [p: string]: UnipoolBalance }> {
+  getUserPowerBalanceUpdatedAfterTimestamp(): Promise<{
+    [p: string]: UnipoolBalance;
+  }> {
     if (this.nextCallResult) {
       const customResult = this.nextCallResult;
       this.nextCallResult = null;

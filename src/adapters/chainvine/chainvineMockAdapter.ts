@@ -1,8 +1,4 @@
-import {
-  ChainvineAdapterInterface,
-  LinkDonorToChainvineReferrerType,
-  NotifyChainVineInputType,
-} from './chainvineAdapterInterface';
+import { ChainvineAdapterInterface } from './chainvineAdapterInterface';
 import {
   generateRandomEtheriumAddress,
   generateHexNumber,
@@ -19,21 +15,19 @@ export class ChainvineMockAdapter implements ChainvineAdapterInterface {
     return Promise.resolve(cachedReferralIds[referrerId]);
   }
 
-  notifyChainVine(params: NotifyChainVineInputType): Promise<void> {
+  notifyChainVine(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
-  registerClickEvent(referrerId: string): Promise<void> {
+  registerClickEvent(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
-  linkDonorToReferrer(params: LinkDonorToChainvineReferrerType): Promise<void> {
+  linkDonorToReferrer(): Promise<void> {
     return Promise.resolve(undefined);
   }
 
-  async generateChainvineId(
-    walletAddress: string,
-  ): Promise<string | void | null> {
+  async generateChainvineId(): Promise<string | void | null> {
     return generateHexNumber(10);
   }
 }

@@ -4,7 +4,6 @@ import {
   Column,
   Entity,
   BaseEntity,
-  Index,
   ManyToMany,
   ManyToOne,
   RelationId,
@@ -20,7 +19,7 @@ export const CATEGORY_NAMES = {
 @Entity()
 @ObjectType()
 export class Category extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -36,7 +35,7 @@ export class Category extends BaseEntity {
   @Column({ nullable: true })
   source: string;
 
-  @ManyToMany(type => Project, project => project.categories)
+  @ManyToMany(_type => Project, project => project.categories)
   projects: Project[];
 
   @Field(_ => MainCategory, { nullable: true })

@@ -1,11 +1,11 @@
+import { assert } from 'chai';
+import moment from 'moment';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
 } from '../../test/testUtils';
 import { QfRound } from '../entities/qfRound';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
-import { assert } from 'chai';
-import moment from 'moment';
 
 describe(
   'relatedActiveQfRoundForProject',

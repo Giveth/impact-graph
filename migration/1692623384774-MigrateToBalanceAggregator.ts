@@ -23,5 +23,5 @@ export class MigrateToBalanceAggregator1692623384774
     `);
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

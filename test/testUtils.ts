@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
+import { Keypair } from '@solana/web3.js';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
@@ -32,12 +33,11 @@ import { MainCategory } from '../src/entities/mainCategory';
 import { Category, CATEGORY_NAMES } from '../src/entities/category';
 import { FeaturedUpdate } from '../src/entities/featuredUpdate';
 import { ChainType } from '../src/types/network';
-import { Keypair } from '@solana/web3.js';
 import { RecurringDonation } from '../src/entities/recurringDonation';
 import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
 import { findProjectById } from '../src/repositories/projectRepository';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
@@ -293,8 +293,8 @@ export const saveProjectDirectlyToDb = async (
       "userId","projectId",content,title,"createdAt","isMain"
     ) VALUES (
       ${user.id}, ${project.id}, '', '', '${
-    projectUpdateCreatedAt.toISOString().split('T')[0]
-  }', true
+        projectUpdateCreatedAt.toISOString().split('T')[0]
+      }', true
     )`);
   return project;
 };

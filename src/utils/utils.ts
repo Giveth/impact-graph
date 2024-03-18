@@ -1,15 +1,15 @@
-import { Country } from '../entities/Country';
-import { FilterField, SortingField } from '../entities/project';
 import { convert } from 'html-to-text';
 import slugify from 'slugify';
-
 import stringify from 'json-stable-stringify';
+import { isEqual } from 'lodash';
+import { Country } from '../entities/Country';
+import { FilterField, SortingField } from '../entities/project';
+
 import { SUMMARY_LENGTH } from '../constants/summary';
 import config from '../config';
-import { isEqual } from 'lodash';
 import { ProjectSocialMedia } from '../entities/projectSocialMedia';
 import { ProjectSocialMediaInput } from '../resolvers/types/ProjectVerificationUpdateInput';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { createHash } = require('node:crypto');
 
 export const sleep = ms => {

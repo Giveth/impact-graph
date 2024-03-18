@@ -23,6 +23,7 @@ import { AnchorContractAddressResolver } from './anchorContractAddressResolver';
 import { RecurringDonationResolver } from './recurringDonationResolver';
 import { DraftDonationResolver } from './draftDonationResolver';
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const getResolvers = (): Function[] => {
   return [
     UserResolver,

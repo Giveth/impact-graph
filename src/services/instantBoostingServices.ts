@@ -59,6 +59,7 @@ const fetchUpdatedInstantPowerBalances = async (
   // logger.debug(`Latest synced block: ${latestSyncedBlock}`);
 
   let counter = 0;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const balances =
       await givPowerBalanceAggregator.getBalancesUpdatedAfterDate({
@@ -134,6 +135,7 @@ const fillMissingInstantPowerBalances = async (
   //
   let allUsersWithoutBalance: { id: number; walletAddress: string }[] = [];
   let counter = 0;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const result = await getUsersBoostedWithoutInstanceBalance(100, counter);
     if (result.length === 0) break;

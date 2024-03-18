@@ -1,8 +1,6 @@
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
-import exp from 'constants';
-import s from 'connect-redis';
 
 export interface BroadCastNotificationInputParams {
   broadCastNotificationId: number;

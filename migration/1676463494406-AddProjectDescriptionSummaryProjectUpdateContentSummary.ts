@@ -15,5 +15,5 @@ export class AddProjectDescriptionSummaryProjectUpdateContentSummary167646349440
     );
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

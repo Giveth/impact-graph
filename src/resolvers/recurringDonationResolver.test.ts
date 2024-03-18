@@ -1,20 +1,16 @@
+import { assert } from 'chai';
+import axios from 'axios';
 import { NETWORK_IDS } from '../provider';
 import {
-  createDonationData,
   createProjectData,
-  DONATION_SEED_DATA,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
   generateTestAccessToken,
   graphqlUrl,
-  saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveRecurringDonationDirectlyToDb,
   saveUserDirectlyToDb,
-  SEED_DATA,
 } from '../../test/testUtils';
-import { assert } from 'chai';
-import axios from 'axios';
 import {
   createRecurringDonationQuery,
   fetchRecurringDonationsByProjectIdQuery,
@@ -22,11 +18,7 @@ import {
   updateRecurringDonationQuery,
   updateRecurringDonationStatusMutation,
 } from '../../test/graphqlQueries';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { errorMessages } from '../utils/errorMessages';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
 import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 
@@ -66,7 +58,7 @@ function createRecurringDonationTestCases() {
       generateRandomEtheriumAddress(),
     );
 
-    const anchorContractAddress = await addNewAnchorAddress({
+    await addNewAnchorAddress({
       project,
       owner: projectOwner,
       creator: contractCreator,
@@ -114,7 +106,7 @@ function createRecurringDonationTestCases() {
       generateRandomEtheriumAddress(),
     );
 
-    const anchorContractAddress = await addNewAnchorAddress({
+    await addNewAnchorAddress({
       project,
       owner: projectOwner,
       creator: contractCreator,
@@ -162,7 +154,7 @@ function createRecurringDonationTestCases() {
     );
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const anchorContractAddress = await addNewAnchorAddress({
+    await addNewAnchorAddress({
       project,
       owner: projectOwner,
       creator: donor,
@@ -192,7 +184,6 @@ function createRecurringDonationTestCases() {
     );
 
     const accessToken = await generateTestAccessToken(contractCreator.id);
-    const contractAddress = generateRandomEtheriumAddress();
     const result = await axios.post(
       graphqlUrl,
       {
@@ -475,7 +466,7 @@ function updateRecurringDonationTestCases() {
     );
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const anchorContractAddress = await addNewAnchorAddress({
+    await addNewAnchorAddress({
       project,
       owner: projectOwner,
       creator: donor,
@@ -1070,7 +1061,7 @@ function recurringDonationsByUserIdTestCases() {
         currency: 'DAI',
       },
     });
-    const d2 = await saveRecurringDonationDirectlyToDb({
+    await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         currency: 'USDT',
@@ -1114,7 +1105,7 @@ function recurringDonationsByUserIdTestCases() {
       txHash: generateRandomEvmTxHash(),
     });
 
-    const d1 = await saveRecurringDonationDirectlyToDb({
+    await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         projectId: project.id,
@@ -1149,7 +1140,7 @@ function recurringDonationsByUserIdTestCases() {
         currency: 'DAI',
       },
     });
-    const d2 = await saveRecurringDonationDirectlyToDb({
+    await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         currency: 'USDC',
@@ -1279,7 +1270,7 @@ function recurringDonationsByUserIdTestCases() {
     assert.isNotOk(donations.find(d => Number(d.id) === d2.id));
   });
   it('should filter by finishStatus filter just false', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
+    await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const d1 = await saveRecurringDonationDirectlyToDb({
@@ -1325,11 +1316,11 @@ function updateRecurringDonationStatusTestCases() {
       currency: 'GIV',
       timestamp: 1647069070,
     };
-    const project = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       walletAddress: transactionInfo.toAddress,
     });
-    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const donation = await saveRecurringDonationDirectlyToDb({
       donationData: {
@@ -1374,11 +1365,11 @@ function updateRecurringDonationStatusTestCases() {
       currency: 'GIV',
       timestamp: 1647069070,
     };
-    const project = await saveProjectDirectlyToDb({
+    await saveProjectDirectlyToDb({
       ...createProjectData(),
       walletAddress: transactionInfo.toAddress,
     });
-    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    await saveUserDirectlyToDb(transactionInfo.fromAddress);
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const donation = await saveRecurringDonationDirectlyToDb({
       donationData: {

@@ -48,7 +48,6 @@ function registerClickOnChainvineTestCases() {
     referrerUser.chainvineId = generateHexNumber(10);
     await referrerUser.save();
 
-    const accessToken = await generateTestAccessToken(user.id);
     const result = await axios.post(graphqlUrl, {
       query: registerClickOnChainvineQuery,
       variables: {

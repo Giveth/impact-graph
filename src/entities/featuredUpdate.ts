@@ -17,13 +17,13 @@ import { Project, ProjectUpdate } from './project';
 @Entity()
 @ObjectType()
 export class FeaturedUpdate extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
   @Index()
-  @Field(type => Project)
-  @OneToOne(type => Project)
+  @Field(_type => Project)
+  @OneToOne(_type => Project)
   @JoinColumn()
   project: Project;
 
@@ -32,8 +32,8 @@ export class FeaturedUpdate extends BaseEntity {
   projectId: number;
 
   @Index()
-  @Field(type => ProjectUpdate)
-  @OneToOne(type => ProjectUpdate)
+  @Field(_type => ProjectUpdate)
+  @OneToOne(_type => ProjectUpdate)
   @JoinColumn()
   projectUpdate: ProjectUpdate;
 
@@ -41,7 +41,7 @@ export class FeaturedUpdate extends BaseEntity {
   @Column({ nullable: true })
   projectUpdateId: number;
 
-  @Field(type => Int, { nullable: true })
+  @Field(_type => Int, { nullable: true })
   @Column({ type: 'integer', nullable: true })
   position: number;
 

@@ -1,8 +1,13 @@
+import adminJs from 'adminjs';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import {
+  ActionResponse,
+  After,
+} from 'adminjs/src/backend/actions/action.interface';
 import {
   PROJECT_VERIFICATION_STATUSES,
   ProjectVerificationForm,
 } from '../../../entities/projectVerificationForm';
-import adminJs from 'adminjs';
 import {
   canAccessProjectVerificationFormAction,
   ResourceActions,
@@ -22,7 +27,6 @@ import {
   i18n,
   translationErrorMessagesKeys,
 } from '../../../utils/errorMessages';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../../analytics/analytics';
 import {
   findProjectById,
   updateProjectWithVerificationForm,
@@ -31,12 +35,7 @@ import {
 } from '../../../repositories/projectRepository';
 import { getNotificationAdapter } from '../../../adapters/adaptersFactory';
 import { logger } from '../../../utils/logger';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { Project } from '../../../entities/project';
-import {
-  ActionResponse,
-  After,
-} from 'adminjs/src/backend/actions/action.interface';
 import { fillSocialProfileAndQfRounds } from './projectsTab';
 
 export const setCommentEmailAndTimeStamps: After<ActionResponse> = async (
@@ -72,7 +71,7 @@ export const verifySingleVerificationForm = async (
   request: AdminJsRequestInterface,
   verified: boolean,
 ) => {
-  const { records, currentAdmin } = context;
+  const { currentAdmin } = context;
   let responseMessage = '';
   let responseType = 'success';
   const verificationStatus = verified
@@ -105,10 +104,6 @@ export const verifySingleVerificationForm = async (
         ),
       );
     }
-    // call repositories
-    const segmentEvent = verified
-      ? NOTIFICATIONS_EVENT_NAMES.PROJECT_VERIFIED
-      : NOTIFICATIONS_EVENT_NAMES.PROJECT_REJECTED;
 
     const verificationForm = await verifyForm({
       verificationStatus,
@@ -164,7 +159,7 @@ export const makeEditableByUser = async (
   context: AdminJsContextInterface,
   request: AdminJsRequestInterface,
 ) => {
-  const { records, currentAdmin } = context;
+  const { currentAdmin } = context;
   let responseMessage = '';
   let responseType = 'success';
   const formId = Number(request?.params?.recordId);

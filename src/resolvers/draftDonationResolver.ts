@@ -1,20 +1,15 @@
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
-import { ApolloContext } from '../types/ApolloContext';
-import { ProjStatus } from '../entities/project';
-import { Token } from '../entities/token';
 import { Repository } from 'typeorm';
+import { ApolloContext } from '../types/ApolloContext';
 import { User } from '../entities/user';
 import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
-import { isTokenAcceptableForProject } from '../services/donationService';
 import {
   createDraftDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { logger } from '../utils/logger';
 import { findUserById } from '../repositories/userRepository';
-import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
-import { findProjectById } from '../repositories/projectRepository';
 import { AppDataSource } from '../orm';
 import { detectAddressChainType } from '../utils/networks';
 import { ChainType } from '../types/network';
@@ -26,7 +21,7 @@ import {
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
-@Resolver(of => User)
+@Resolver(_of => User)
 export class DraftDonationResolver {
   private readonly donationRepository: Repository<DraftDonation>;
   constructor() {
@@ -34,7 +29,7 @@ export class DraftDonationResolver {
       AppDataSource.getDataSource().getRepository(DraftDonation);
   }
 
-  @Mutation(returns => Number)
+  @Mutation(_returns => Number)
   async createDraftDonation(
     @Arg('amount') amount: number,
     @Arg('networkId') networkId: number,
@@ -46,7 +41,7 @@ export class DraftDonationResolver {
     @Ctx() ctx: ApolloContext,
     @Arg('referrerId', { nullable: true }) referrerId?: string,
     @Arg('safeTransactionId', { nullable: true }) safeTransactionId?: string,
-  ): Promise<Number> {
+  ): Promise<number> {
     const logData = {
       amount,
       networkId,

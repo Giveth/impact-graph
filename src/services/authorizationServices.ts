@@ -1,10 +1,6 @@
 import Axios from 'axios';
 import * as jwt from 'jsonwebtoken';
-import {
-  errorMessages,
-  i18n,
-  translationErrorMessagesKeys,
-} from '../utils/errorMessages';
+import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { ApolloContext } from '../types/ApolloContext';
 import SentryLogger from '../sentryLogger';
 import { logger } from '../utils/logger';

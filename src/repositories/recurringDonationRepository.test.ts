@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -6,7 +7,6 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { NETWORK_IDS } from '../provider';
-import { assert } from 'chai';
 import { addNewAnchorAddress } from './anchorContractAddressRepository';
 import {
   createNewRecurringDonation,

@@ -1,10 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { Token } from '../src/entities/token';
 import seedTokens from './data/seedTokens';
-import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 
-// tslint:disable-next-line:class-name
 export class addGoerliTokens1677742523974 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.manager.save(
@@ -37,5 +35,5 @@ export class addGoerliTokens1677742523974 implements MigrationInterface {
     }
   }
 
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

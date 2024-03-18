@@ -6,7 +6,6 @@ import { findProjectRecipientAddressByNetworkId } from '../../repositories/proje
 import { findProjectById } from '../../repositories/projectRepository';
 import { findUserById } from '../../repositories/userRepository';
 import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
-import { errorMessages } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import {
   isTokenAcceptableForProject,
@@ -102,7 +101,7 @@ export const createFiatDonationFromOnramper = async (
     const ethMainnetAddress = '0x0000000000000000000000000000000000000000';
 
     // FromWalletAddress is not the donor wallet, but the Onramper Address
-    donation = await Donation.create({
+    donation = Donation.create({
       amount: Number(fiatTransaction.payload.outAmount),
       transactionId: fiatTransaction.payload.txHash!.toLowerCase(),
       isFiat: true,

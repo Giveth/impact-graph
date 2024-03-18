@@ -1,6 +1,5 @@
 import { PowerSnapshot } from '../entities/powerSnapshot';
 import { PreviousRoundRank } from '../entities/previousRoundRank';
-import { ProjectsHaveNewRankingInputParam } from '../adapters/notifications/NotificationAdapterInterface';
 
 export const deleteAllPreviousRoundRanks = async () => {
   return PreviousRoundRank.query(

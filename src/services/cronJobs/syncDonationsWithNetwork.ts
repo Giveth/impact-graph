@@ -1,9 +1,4 @@
-import { Donation, DONATION_STATUS } from '../../entities/donation';
-import { errorMessages } from '../../utils/errorMessages';
 import { schedule } from 'node-cron';
-
-// @ts-ignore
-// everything I used had problem so I had to add ts-ignore https://github.com/OptimalBits/bull/issues/1772
 import Bull from 'bull';
 import config from '../../config';
 import { redisConfig } from '../../redis';

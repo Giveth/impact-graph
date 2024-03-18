@@ -31,7 +31,7 @@ export const RECURRING_DONATION_STATUS = {
 @Unique(['txHash', 'networkId', 'project'])
 // TODO entity is not completed
 export class RecurringDonation extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
@@ -68,8 +68,8 @@ export class RecurringDonation extends BaseEntity {
   status: string;
 
   @Index()
-  @Field(type => Project)
-  @ManyToOne(type => Project)
+  @Field(_type => Project)
+  @ManyToOne(_type => Project)
   project: Project;
 
   @RelationId(
@@ -87,8 +87,8 @@ export class RecurringDonation extends BaseEntity {
   anonymous: boolean;
 
   @Index()
-  @Field(type => AnchorContractAddress)
-  @ManyToOne(type => AnchorContractAddress, { eager: true })
+  @Field(_type => AnchorContractAddress)
+  @ManyToOne(_type => AnchorContractAddress, { eager: true })
   anchorContractAddress: AnchorContractAddress;
 
   @RelationId(
@@ -99,16 +99,16 @@ export class RecurringDonation extends BaseEntity {
   anchorContractAddressId: number;
 
   @Index()
-  @Field(type => User, { nullable: true })
-  @ManyToOne(type => User, { eager: true, nullable: true })
+  @Field(_type => User, { nullable: true })
+  @ManyToOne(_type => User, { eager: true, nullable: true })
   donor: User;
 
   @RelationId((recurringDonation: RecurringDonation) => recurringDonation.donor)
   @Column({ nullable: true })
   donorId: number;
 
-  @Field(type => [Donation], { nullable: true })
-  @OneToMany(type => Donation, donation => donation.recurringDonation)
+  @Field(_type => [Donation], { nullable: true })
+  @OneToMany(_type => Donation, donation => donation.recurringDonation)
   donations?: Donation[];
 
   @UpdateDateColumn()

@@ -1,3 +1,5 @@
+import { SelectQueryBuilder } from 'typeorm';
+import { ActionContext } from 'adminjs';
 import {
   Donation,
   DONATION_STATUS,
@@ -29,14 +31,11 @@ import { calculateGivbackFactor } from '../../../services/givbackService';
 import { findUserByWalletAddress } from '../../../repositories/userRepository';
 import { updateTotalDonationsOfProject } from '../../../services/donationService';
 import { updateUserTotalDonated } from '../../../services/userService';
-import { NETWORK_IDS, NETWORKS_IDS_TO_NAME } from '../../../provider';
-import { redis } from '../../../redis';
+import { NETWORK_IDS } from '../../../provider';
 import {
   initExportSpreadsheet,
   addDonationsSheetToSpreadsheet,
 } from '../../../services/googleSheets';
-import { SelectQueryBuilder } from 'typeorm';
-import { ActionContext } from 'adminjs';
 import { extractAdminJsReferrerUrlParams } from '../adminJs';
 import { getTwitterDonations } from '../../../services/Idriss/contractDonations';
 import {
@@ -47,7 +46,6 @@ import {
 export const createDonation = async (
   request: AdminJsRequestInterface,
   response,
-  context: AdminJsContextInterface,
 ) => {
   let message = messages.DONATION_CREATED_SUCCESSFULLY;
   const donations: Donation[] = [];

@@ -1,11 +1,12 @@
 import _ from 'lodash';
+import { ethers } from 'ethers';
+import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../../../entities/draftDonation';
 import { getNetworkNativeToken } from '../../../provider';
 import { getListOfTransactionsByAddress } from './transactionService';
-import { ethers } from 'ethers';
 import { closeTo } from '..';
 import { findTokenByNetworkAndAddress } from '../../../utils/tokenUtils';
 import { ITxInfo } from '../../../types/etherscan';
@@ -13,7 +14,6 @@ import { DONATION_ORIGINS, Donation } from '../../../entities/donation';
 import { DonationResolver } from '../../../resolvers/donationResolver';
 import { ApolloContext } from '../../../types/ApolloContext';
 import { logger } from '../../../utils/logger';
-import { ModuleThread, Pool, spawn, Worker } from 'threads';
 import { DraftDonationWorker } from '../../../workers/draftDonationMatchWorker';
 
 const transferErc20CallData = (to: string, amount: number, decimals = 18) => {

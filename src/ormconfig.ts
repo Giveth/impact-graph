@@ -1,5 +1,5 @@
-import * as dotenv from 'dotenv';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
 
 const configPath = path.resolve(
   __dirname,
@@ -10,7 +10,7 @@ const loadConfigResult = dotenv.config({
 });
 
 if (loadConfigResult.error) {
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log('Load process.env error', {
     path: configPath,
     error: loadConfigResult.error,

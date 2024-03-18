@@ -9,7 +9,6 @@ import { superTokensToToken } from '../../provider';
 import { redisConfig } from '../../redis';
 import { findUserById } from '../../repositories/userRepository';
 import { logger } from '../../utils/logger';
-import { schedule } from 'node-cron';
 import {
   findActiveRecurringDonations,
   findRecurringDonationById,

@@ -1,4 +1,6 @@
 import { assert, expect } from 'chai';
+import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
+import moment from 'moment';
 import {
   isTokenAcceptableForProject,
   updateOldStableCoinDonationsPrice,
@@ -14,7 +16,6 @@ import {
   createProjectData,
   DONATION_SEED_DATA,
   generateRandomEtheriumAddress,
-  generateRandomEvmTxHash,
   saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
@@ -27,13 +28,11 @@ import { Donation, DONATION_STATUS } from '../entities/donation';
 import { errorMessages } from '../utils/errorMessages';
 import { findDonationById } from '../repositories/donationRepository';
 import { findProjectById } from '../repositories/projectRepository';
-import { CHAIN_ID } from '@giveth/monoswap/dist/src/sdk/sdkFactory';
 import {
   findUserById,
   findUserByWalletAddress,
 } from '../repositories/userRepository';
 import { QfRound } from '../entities/qfRound';
-import moment from 'moment';
 import {
   fillQfRoundHistory,
   getQfRoundHistoriesThatDontHaveRelatedDonations,

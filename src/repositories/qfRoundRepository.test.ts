@@ -1,3 +1,5 @@
+import { assert, expect } from 'chai';
+import moment from 'moment';
 import {
   createDonationData,
   createProjectData,
@@ -7,7 +9,6 @@ import {
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
 import { QfRound } from '../entities/qfRound';
-import { assert, expect } from 'chai';
 import {
   deactivateExpiredQfRounds,
   findQfRoundById,
@@ -17,7 +18,6 @@ import {
   getQfRoundTotalProjectsDonationsSum,
 } from './qfRoundRepository';
 import { Project } from '../entities/project';
-import moment from 'moment';
 import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
@@ -101,7 +101,7 @@ function getProjectDonationsSqrRootSumTests() {
   it('should return correct value on multiple donations', async () => {
     const valuesUsd = [4, 25, 100, 1024];
     await Promise.all(
-      valuesUsd.map(async (valueUsd, index) => {
+      valuesUsd.map(async valueUsd => {
         const user = await saveUserDirectlyToDb(
           generateRandomEtheriumAddress(),
         );

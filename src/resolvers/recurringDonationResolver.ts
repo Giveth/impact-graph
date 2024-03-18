@@ -13,6 +13,9 @@ import {
   Resolver,
 } from 'type-graphql';
 
+import { Brackets } from 'typeorm';
+import { Service } from 'typedi';
+import { Max, Min } from 'class-validator';
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
 import { findProjectById } from '../repositories/projectRepository';
 import {
@@ -33,27 +36,22 @@ import {
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
   updateRecurringDonation,
 } from '../repositories/recurringDonationRepository';
-import { publicSelectionFields } from '../entities/user';
-import { Brackets } from 'typeorm';
 import { detectAddressChainType } from '../utils/networks';
-import { Service } from 'typedi';
-import { Max, Min } from 'class-validator';
 import { logger } from '../utils/logger';
 import {
   updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { sleep } from '../utils/utils';
-import { syncDonationStatusWithBlockchainNetwork } from '../services/donationService';
 import SentryLogger from '../sentryLogger';
 import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
 
 @InputType()
 class RecurringDonationSortBy {
-  @Field(type => RecurringDonationSortField)
+  @Field(_type => RecurringDonationSortField)
   field: RecurringDonationSortField;
 
-  @Field(type => RecurringDonationSortDirection)
+  @Field(_type => RecurringDonationSortDirection)
   direction: RecurringDonationSortDirection;
 }
 
@@ -84,26 +82,26 @@ registerEnumType(RecurringDonationSortDirection, {
 
 @ObjectType()
 class PaginateRecurringDonations {
-  @Field(type => [RecurringDonation], { nullable: true })
+  @Field(_type => [RecurringDonation], { nullable: true })
   recurringDonations: RecurringDonation[];
 
-  @Field(type => Number, { nullable: true })
+  @Field(_type => Number, { nullable: true })
   totalCount: number;
 }
 
 @Service()
 @ArgsType()
 class UserRecurringDonationsArgs {
-  @Field(type => Int, { defaultValue: 0 })
+  @Field(_type => Int, { defaultValue: 0 })
   @Min(0)
   skip: number;
 
-  @Field(type => Int, { defaultValue: 10 })
+  @Field(_type => Int, { defaultValue: 10 })
   @Min(0)
   @Max(50)
   take: number;
 
-  @Field(type => RecurringDonationSortBy, {
+  @Field(_type => RecurringDonationSortBy, {
     defaultValue: {
       field: RecurringDonationSortField.createdAt,
       direction: RecurringDonationSortDirection.DESC,
@@ -111,30 +109,30 @@ class UserRecurringDonationsArgs {
   })
   orderBy: RecurringDonationSortBy;
 
-  @Field(type => Int, { nullable: false })
+  @Field(_type => Int, { nullable: false })
   userId: number;
-  @Field(type => String, { nullable: true })
+  @Field(_type => String, { nullable: true })
   status: string;
 
-  @Field(type => [Boolean], { nullable: true, defaultValue: [false] })
+  @Field(_type => [Boolean], { nullable: true, defaultValue: [false] })
   finishStatus: boolean[];
 
-  @Field(type => [String], { nullable: true, defaultValue: [] })
+  @Field(_type => [String], { nullable: true, defaultValue: [] })
   filteredTokens: string[];
 }
 
 @ObjectType()
 class UserRecurringDonations {
-  @Field(type => [RecurringDonation])
+  @Field(_type => [RecurringDonation])
   recurringDonations: RecurringDonation[];
 
-  @Field(type => Int)
+  @Field(_type => Int)
   totalCount: number;
 }
 
-@Resolver(of => AnchorContractAddress)
+@Resolver(_of => AnchorContractAddress)
 export class RecurringDonationResolver {
-  @Mutation(returns => RecurringDonation, { nullable: true })
+  @Mutation(_returns => RecurringDonation, { nullable: true })
   async createRecurringDonation(
     @Ctx() ctx: ApolloContext,
     @Arg('projectId', () => Int) projectId: number,
@@ -179,7 +177,7 @@ export class RecurringDonationResolver {
     });
   }
 
-  @Mutation(returns => RecurringDonation, { nullable: true })
+  @Mutation(_returns => RecurringDonation, { nullable: true })
   async updateRecurringDonationParams(
     @Ctx() ctx: ApolloContext,
     @Arg('projectId', () => Int) projectId: number,
@@ -232,20 +230,20 @@ export class RecurringDonationResolver {
     });
   }
 
-  @Query(returns => PaginateRecurringDonations, { nullable: true })
+  @Query(_returns => PaginateRecurringDonations, { nullable: true })
   async recurringDonationsByProjectId(
-    @Ctx() ctx: ApolloContext,
-    @Arg('take', type => Int, { defaultValue: 10 }) take: number,
-    @Arg('skip', type => Int, { defaultValue: 0 }) skip: number,
-    @Arg('projectId', type => Int, { nullable: false }) projectId: number,
-    @Arg('status', type => String, { nullable: true }) status: string,
-    @Arg('finishStatus', type => [Boolean], {
+    @Ctx() _ctx: ApolloContext,
+    @Arg('take', _type => Int, { defaultValue: 10 }) take: number,
+    @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
+    @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
+    @Arg('status', _type => String, { nullable: true }) status: string,
+    @Arg('finishStatus', _type => [Boolean], {
       nullable: true,
       defaultValue: [false],
     })
     finishStatus: boolean[],
-    @Arg('searchTerm', type => String, { nullable: true }) searchTerm: string,
-    @Arg('orderBy', type => RecurringDonationSortBy, {
+    @Arg('searchTerm', _type => String, { nullable: true }) searchTerm: string,
+    @Arg('orderBy', _type => RecurringDonationSortBy, {
       defaultValue: {
         field: RecurringDonationSortField.createdAt,
         direction: RecurringDonationSortDirection.DESC,
@@ -329,7 +327,7 @@ export class RecurringDonationResolver {
     };
   }
 
-  @Query(returns => UserRecurringDonations, { nullable: true })
+  @Query(_returns => UserRecurringDonations, { nullable: true })
   async recurringDonationsByUserId(
     @Args()
     {
@@ -399,7 +397,7 @@ export class RecurringDonationResolver {
     };
   }
 
-  @Mutation(returns => RecurringDonation)
+  @Mutation(_returns => RecurringDonation)
   async updateRecurringDonationStatus(
     @Arg('donationId') donationId: number,
     @Arg('status', { nullable: true }) status: string,

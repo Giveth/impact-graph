@@ -15,20 +15,20 @@ import { QfRound } from './qfRound';
 @Entity()
 @Unique(['userId', 'qfRoundId'])
 export class Sybil extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   readonly id: number;
 
-  @Field(type => User)
-  @ManyToOne(type => User, { eager: true })
+  @Field(_type => User)
+  @ManyToOne(_type => User, { eager: true })
   user: User;
 
   @RelationId((sybil: Sybil) => sybil.user)
   @Column()
   userId: number;
 
-  @Field(type => QfRound)
-  @ManyToOne(type => QfRound, { eager: true })
+  @Field(_type => QfRound)
+  @ManyToOne(_type => QfRound, { eager: true })
   qfRound: QfRound;
 
   @RelationId((sybil: Sybil) => sybil.qfRound)

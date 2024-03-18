@@ -6,7 +6,7 @@ import { Category } from '../entities/category';
 import { MainCategory } from '../entities/mainCategory';
 import { AppDataSource } from '../orm';
 
-@Resolver(of => User)
+@Resolver(_of => User)
 export class CategoryResolver {
   constructor(
     private readonly categoryRepository: Repository<Category>,
@@ -18,7 +18,7 @@ export class CategoryResolver {
       AppDataSource.getDataSource().getRepository(MainCategory);
   }
 
-  @Query(returns => [Category], { nullable: true })
+  @Query(_returns => [Category], { nullable: true })
   async categories() {
     return this.categoryRepository
       .createQueryBuilder('category')
@@ -29,7 +29,7 @@ export class CategoryResolver {
       })
       .getMany();
   }
-  @Query(returns => [MainCategory], { nullable: true })
+  @Query(_returns => [MainCategory], { nullable: true })
   async mainCategories() {
     return MainCategory.createQueryBuilder('mainCategory')
       .innerJoinAndSelect(

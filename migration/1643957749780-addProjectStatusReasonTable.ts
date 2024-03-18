@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// tslint:disable-next-line:class-name
 export class addProjectStatusReasonTable1643957749780
   implements MigrationInterface
 {
@@ -19,6 +18,5 @@ export class addProjectStatusReasonTable1643957749780
     );
   }
 
-  // tslint:disable-next-line:no-empty
-  async down(queryRunner: QueryRunner): Promise<void> {}
+  async down(_queryRunner: QueryRunner): Promise<void> {}
 }

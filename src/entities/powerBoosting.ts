@@ -10,21 +10,21 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, Float, ID, ObjectType } from 'type-graphql';
+import { Max, Min, IsNumber } from 'class-validator';
 import { Project } from './project';
 import { User } from './user';
-import { Max, Min, IsNumber } from 'class-validator';
 import { ColumnNumericTransformer } from '../utils/entities';
 
 @Entity()
 @ObjectType()
 @Index(['projectId', 'userId'], { unique: true })
 export class PowerBoosting extends BaseEntity {
-  @Field(type => ID)
+  @Field(_type => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(type => Project)
-  @ManyToOne(type => Project, { eager: true })
+  @Field(_type => Project)
+  @ManyToOne(_type => Project, { eager: true })
   project: Project;
 
   @Index()
@@ -32,8 +32,8 @@ export class PowerBoosting extends BaseEntity {
   @Column({ nullable: false })
   projectId: number;
 
-  @Field(type => User)
-  @ManyToOne(type => User, { eager: true })
+  @Field(_type => User)
+  @ManyToOne(_type => User, { eager: true })
   user: User;
 
   @Index()
@@ -41,7 +41,7 @@ export class PowerBoosting extends BaseEntity {
   @Column({ nullable: false })
   userId: number;
 
-  @Field(type => Float)
+  @Field(_type => Float)
   @Column('numeric', {
     precision: 5, // 100.00
     scale: 2,

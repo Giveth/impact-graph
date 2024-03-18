@@ -478,8 +478,6 @@ async function runMigrations() {
     );
     await new createDonationethUser1701756190381().up(queryRunner);
     await new ProjectActualMatchingV11_1710322367912().up(queryRunner);
-  } catch (e) {
-    throw e;
   } finally {
     await queryRunner.release();
   }

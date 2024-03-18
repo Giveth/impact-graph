@@ -1,19 +1,17 @@
-// tslint:disable-next-line:no-var-requires
-import { logger } from '../utils/logger';
-
 import * as bcrypt from 'bcryptjs';
 import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { keccak256 } from 'ethers/lib/utils';
+import * as jwt from 'jsonwebtoken';
+import { registerEnumType, Field, ObjectType } from 'type-graphql';
 import { User } from '../entities/user';
 import { ApolloContext } from '../types/ApolloContext';
-import * as jwt from 'jsonwebtoken';
-import { registerEnumType, Field, ID, ObjectType } from 'type-graphql';
+import { logger } from '../utils/logger';
 import config from '../config';
 import SentryLogger from '../sentryLogger';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const sigUtil = require('eth-sig-util');
 
 @ObjectType()
@@ -83,12 +81,12 @@ export class LoginResolver {
   @Mutation(() => Boolean, { nullable: true })
   async validateToken(
     @Arg('token') token: string,
-    @Ctx() ctx: ApolloContext,
-  ): Promise<Boolean | null> {
+    @Ctx() _ctx: ApolloContext,
+  ): Promise<boolean | null> {
     const secret = config.get('JWT_SECRET') as string;
 
     try {
-      const decodedJwt: any = jwt.verify(token, secret);
+      jwt.verify(token, secret);
       return true;
     } catch (error) {
       SentryLogger.captureMessage(error);
@@ -104,7 +102,7 @@ export class LoginResolver {
     @Arg('email') email: string,
     @Arg('password') password: string,
     @Arg('loginType', { nullable: true }) loginType: LoginType,
-    @Ctx() ctx: ApolloContext,
+    @Ctx() _ctx: ApolloContext,
   ): Promise<LoginResponse | null> {
     if (typeof loginType === 'undefined') {
       loginType = LoginType.Password;
@@ -176,7 +174,7 @@ export class LoginResolver {
     @Arg('name', { nullable: true }) name: string,
     @Arg('avatar', { nullable: true }) avatar: string,
     @Arg('networkId') networkId: number,
-    @Ctx() ctx: ApolloContext,
+    @Ctx() _ctx: ApolloContext,
   ): Promise<LoginResponse | null> {
     const hashedMsg = this.getHostnameSignMessageHash(hostname);
 
@@ -235,9 +233,9 @@ export class LoginResolver {
       } else {
         let modified = false;
         const updateUserIfNeeded = (field, value) => {
-          // @ts-ignore
+          // @ts-expect-error user is not null
           if (user[field] !== value) {
-            // @ts-ignore
+            // @ts-expect-error user is not null
             user[field] = value;
             modified = true;
           }

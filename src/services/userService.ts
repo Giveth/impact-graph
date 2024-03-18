@@ -2,7 +2,7 @@ import { User } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { logger } from '../utils/logger';
 import { findAdminUserByEmail } from '../repositories/userRepository';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcrypt');
 
 export const updateUserTotalDonated = async (userId: number) => {

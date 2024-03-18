@@ -1,4 +1,5 @@
 import { assert, expect } from 'chai';
+import axios from 'axios';
 import {
   generateTestAccessToken,
   graphqlUrl,
@@ -7,7 +8,6 @@ import {
   generateRandomEvmTxHash,
   generateRandomEtheriumAddress,
 } from '../../test/testUtils';
-import axios from 'axios';
 import { createDraftDonationMutation } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -17,9 +17,6 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
-
-// tslint:disable-next-line:no-var-requires
-const moment = require('moment');
 
 describe('createDonation() test cases', createDonationTestCases);
 

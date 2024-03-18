@@ -1,4 +1,4 @@
-import Axios, { AxiosResponse } from 'axios';
+import Axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { logger } from '../utils/logger';
 import { NETWORK_IDS } from '../provider';

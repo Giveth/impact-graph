@@ -1,4 +1,5 @@
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
+import axios from 'axios';
 import {
   refreshProjectUserInstantPowerView,
   saveOrUpdateInstantPowerBalances,
@@ -13,7 +14,6 @@ import {
 } from '../../test/testUtils';
 import { PowerBoosting } from '../entities/powerBoosting';
 import { insertSinglePowerBoosting } from './../repositories/powerBoostingRepository';
-import axios from 'axios';
 import { getProjectUserInstantPowerQuery } from '../../test/graphqlQueries';
 import { User } from '../entities/user';
 import { Project } from '../entities/project';

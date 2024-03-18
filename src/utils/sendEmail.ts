@@ -1,8 +1,7 @@
 // import nodemailer from "nodemailer";
-// tslint:disable-next-line:no-var-requires
 import { logger } from './logger';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodemailer = require('nodemailer');
 
 export async function sendEmail(email: string, url: string) {

@@ -1,12 +1,12 @@
+import adminJs from 'adminjs';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { Token } from '../../../entities/token';
 import { NETWORK_IDS } from '../../../provider';
-import adminJs from 'adminjs';
 import { canAccessTokenAction, ResourceActions } from '../adminJsPermissions';
 import { AdminJsRequestInterface } from '../adminJs-types';
 import { Organization } from '../../../entities/organization';
 import { logger } from '../../../utils/logger';
 import { findTokenByTokenId } from '../../../repositories/tokenRepository';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 
 // generates orderly permutations and maps then into an array which is later flatten into 1 dimension
 // Current length is the length of selected items from the total items
@@ -46,7 +46,7 @@ export const permuteOrganizations = (
 };
 
 export const generateOrganizationList = async () => {
-  const organizationsList: {}[] = [];
+  const organizationsList: NonNullable<unknown>[] = [];
   const [organizations, organizationCount] =
     await Organization.createQueryBuilder('organization')
       .orderBy('organization.id')
@@ -81,8 +81,6 @@ export const linkOrganizations = async (request: AdminJsRequestInterface) => {
   // default handler updates the other params, we only care about orgs
   if (!request.record.params.organizations) return request;
 
-  let message = `Token created successfully`;
-  let type = 'success';
   const { organizations, id } = request.record.params;
   try {
     const token = await findTokenByTokenId(id);
@@ -106,8 +104,6 @@ export const linkOrganizations = async (request: AdminJsRequestInterface) => {
     await token!.save();
   } catch (e) {
     logger.error('error creating token', e.message);
-    message = e.message;
-    type = 'danger';
   }
 
   return request;

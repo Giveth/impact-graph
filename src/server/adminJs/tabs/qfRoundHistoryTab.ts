@@ -1,5 +1,4 @@
 import {
-  canAccessQfRoundAction,
   canAccessQfRoundHistoryAction,
   ResourceActions,
 } from '../adminJsPermissions';
@@ -13,7 +12,6 @@ import {
 import { fillQfRoundHistory } from '../../../repositories/qfRoundHistoryRepository';
 import { insertDonationsFromQfRoundHistory } from '../../../services/donationService';
 import { refreshProjectDonationSummaryView } from '../../../services/projectViewsService';
-import { refreshUserProjectPowerView } from '../../../repositories/userProjectPowerViewRepository';
 
 export const updateQfRoundHistory = async (
   _request: AdminJsRequestInterface,

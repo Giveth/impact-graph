@@ -34,7 +34,7 @@ export const findProjectById = (projectId: number): Promise<Project | null> => {
 };
 
 export const verifiedProjectsAddressesWithOptimism = async (): Promise<
-  String[]
+  string[]
 > => {
   const recipients = await Project.createQueryBuilder('project')
     .select('LOWER(addresses.address) AS recipient')

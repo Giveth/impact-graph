@@ -1,11 +1,11 @@
 import adminJs, { ActionContext, AdminJSOptions } from 'adminjs';
-import { User } from '../../entities/user';
 import adminJsExpress from '@adminjs/express';
+import { Database, Resource } from '@adminjs/typeorm';
+import { IncomingMessage } from 'connect';
+import { User } from '../../entities/user';
 import config from '../../config';
 import { redis } from '../../redis';
-import { Database, Resource } from '@adminjs/typeorm';
 import { logger } from '../../utils/logger';
-import { IncomingMessage } from 'connect';
 import { findUserById } from '../../repositories/userRepository';
 import { fetchAdminAndValidatePassword } from '../../services/userService';
 import { campaignsTab } from './tabs/campaignsTab';
@@ -31,12 +31,12 @@ import { SybilTab } from './tabs/sybilTab';
 import { ProjectFraudTab } from './tabs/projectFraudTab';
 import { RecurringDonationTab } from './tabs/recurringDonationTab';
 // use redis for session data instead of in-memory storage
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const RedisStore = require('connect-redis').default;
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const cookie = require('cookie');
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const cookieParser = require('cookie-parser');
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminJsCookie = 'adminjs';
@@ -82,7 +82,7 @@ export const extractAdminJsReferrerUrlParams = (req: ActionContext) => {
 
   // Extract filter names and values from URL query string parameters
   for (const [key, value] of searchParams.entries()) {
-    const [_, filter] = key.split('.');
+    const [, filter] = key.split('.');
     if (!filter) continue;
 
     queryStrings[filter] = value;

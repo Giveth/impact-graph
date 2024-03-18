@@ -1,3 +1,4 @@
+import { assert } from 'chai';
 import {
   createProjectData,
   generateRandomEtheriumAddress,
@@ -9,7 +10,6 @@ import {
   findUserPowerBoosting,
   setMultipleBoosting,
 } from '../repositories/powerBoostingRepository';
-import { assert } from 'chai';
 import { changeUserBoostingsAfterProjectCancelled } from './powerBoostingService';
 
 describe(
@@ -22,9 +22,8 @@ function changeUserBoostingsAfterProjectCancelledTestCases() {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const user2 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
     const firstProject = await saveProjectDirectlyToDb(createProjectData());
-    const projectThatWouldGetCancelled = await saveProjectDirectlyToDb(
-      createProjectData(),
-    );
+    const projectThatWouldGetCancelled =
+      await saveProjectDirectlyToDb(createProjectData());
     await setMultipleBoosting({
       userId: user1.id,
       projectIds: [firstProject.id, projectThatWouldGetCancelled.id],
@@ -53,9 +52,8 @@ function changeUserBoostingsAfterProjectCancelledTestCases() {
   });
   it('should change user percentage to zero when project cancelled, even when just has 1 boositng', async () => {
     const user1 = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
-    const projectThatWouldGetCancelled = await saveProjectDirectlyToDb(
-      createProjectData(),
-    );
+    const projectThatWouldGetCancelled =
+      await saveProjectDirectlyToDb(createProjectData());
     await setMultipleBoosting({
       userId: user1.id,
       projectIds: [projectThatWouldGetCancelled.id],

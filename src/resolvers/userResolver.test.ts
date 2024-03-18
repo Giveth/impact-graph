@@ -1,5 +1,7 @@
 // TODO Write test cases
 
+import axios from 'axios';
+import { assert } from 'chai';
 import { User } from '../entities/user';
 import {
   createDonationData,
@@ -12,19 +14,15 @@ import {
   saveUserDirectlyToDb,
   SEED_DATA,
 } from '../../test/testUtils';
-import axios from 'axios';
 import {
   refreshUserScores,
   updateUser,
   userByAddress,
 } from '../../test/graphqlQueries';
-import { assert } from 'chai';
 import { errorMessages } from '../utils/errorMessages';
 import { insertSinglePowerBoosting } from '../repositories/powerBoostingRepository';
-import { create } from 'domain';
 import { DONATION_STATUS } from '../entities/donation';
 import { getGitcoinAdapter } from '../adapters/adaptersFactory';
-import { findUserById } from '../repositories/userRepository';
 
 describe('updateUser() test cases', updateUserTestCases);
 describe('userByAddress() test cases', userByAddressTestCases);

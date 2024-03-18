@@ -74,7 +74,7 @@ export const isSocialNetworkAddedToVerificationForm = async (params: {
   socialNetworkId: string;
   socialNetwork: string;
   projectVerificationFormId: number;
-}): Promise<Boolean> => {
+}): Promise<boolean> => {
   const { socialNetworkId, socialNetwork, projectVerificationFormId } = params;
   const socialProfilesCount = await SocialProfile.createQueryBuilder(
     'social_profile',

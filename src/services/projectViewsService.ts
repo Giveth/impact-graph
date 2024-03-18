@@ -32,7 +32,7 @@ export const refreshProjectDonationSummaryView = async (): Promise<void> => {
 };
 
 export const getQfRoundActualDonationDetails = async (
-  qfRoundId: Number,
+  qfRoundId: number,
 ): Promise<QfRoundDonationRow[]> => {
   const qfRound = await QfRound.createQueryBuilder('qfRound')
     .where('qfRound.id = :id', { id: qfRoundId })

@@ -4,7 +4,7 @@ import { logger } from '../../utils/logger';
 import { OnRamperFiatTransaction } from './fiatTransaction';
 import { i18n } from '../../utils/errorMessages';
 
-// tslint:disable:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const sha256 = require('js-sha256');
 const onramperSecret = process.env.ONRAMPER_SECRET as string;
 

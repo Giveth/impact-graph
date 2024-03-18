@@ -10,7 +10,7 @@ const loadConfigResult = dotenv.config({
 });
 
 if (loadConfigResult.error) {
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log('Load process.env error', {
     path: configPath,
     error: loadConfigResult.error,
@@ -59,7 +59,6 @@ const envVars = [
   'DONATION_VERIFICAITON_EXPIRATION_HOURS',
 ];
 
-// tslint:disable-next-line:class-name
 interface requiredEnv {
   JWT_SECRET: string;
   JWT_MAX_AGE: string;

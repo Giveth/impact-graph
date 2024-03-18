@@ -1,9 +1,11 @@
-import { QfRound } from '../../../entities/qfRound';
-import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
 import {
   ActionResponse,
   After,
 } from 'adminjs/src/backend/actions/action.interface';
+import adminJs, { ValidationError } from 'adminjs';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
+import { QfRound } from '../../../entities/qfRound';
+import { canAccessQfRoundAction, ResourceActions } from '../adminJsPermissions';
 import {
   getQfRoundActualDonationDetails,
   refreshProjectActualMatchingView,
@@ -14,13 +16,11 @@ import {
   AdminJsContextInterface,
   AdminJsRequestInterface,
 } from '../adminJs-types';
-import adminJs, { ValidationError } from 'adminjs';
 import { isQfRoundHasEnded } from '../../../services/qfRoundService';
 import {
   findQfRoundById,
   getRelatedProjectsOfQfRound,
 } from '../../../repositories/qfRoundRepository';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { NETWORK_IDS } from '../../../provider';
 import { logger } from '../../../utils/logger';
 import { messages } from '../../../utils/messages';
@@ -43,8 +43,6 @@ export const fillProjects: After<ActionResponse> = async (
   const record: RecordJSON = response.record || {};
   const qfRoundId = record.params.qfRoundId || record.params.id;
   const projects = await getRelatedProjectsOfQfRound(qfRoundId);
-
-  const adminJsBaseUrl = process.env.SERVER_URL;
   response.record = {
     ...record,
     params: {
@@ -60,22 +58,17 @@ const returnAllQfRoundDonationAnalysis = async (
   request: AdminJsRequestInterface,
 ) => {
   const { record, currentAdmin } = context;
-  try {
-    const qfRoundId = Number(request?.params?.recordId);
-    logger.debug('qfRoundId', qfRoundId);
+  const qfRoundId = Number(request?.params?.recordId);
+  logger.debug('qfRoundId', qfRoundId);
 
-    const qfRoundDonationsRows = await getQfRoundActualDonationDetails(
-      qfRoundId,
-    );
-    logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
-    await addQfRoundDonationsSheetToSpreadsheet({
-      rows: qfRoundDonationsRows,
-      qfRoundId,
-    });
-    // TODO Upload to google sheet
-  } catch (error) {
-    throw error;
-  }
+  const qfRoundDonationsRows = await getQfRoundActualDonationDetails(qfRoundId);
+  logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
+  await addQfRoundDonationsSheetToSpreadsheet({
+    rows: qfRoundDonationsRows,
+    qfRoundId,
+  });
+  // TODO Upload to google sheet
+
   return {
     record: record.toJSON(currentAdmin),
     notice: {
@@ -198,7 +191,7 @@ export const qfRoundTab = {
           canAccessQfRoundAction({ currentAdmin }, ResourceActions.EDIT),
         before: async (
           request: AdminJsRequestInterface,
-          response,
+          _response,
           _context: AdminJsContextInterface,
         ) => {
           // https://docs.adminjs.co/basics/action#using-before-and-after-hooks

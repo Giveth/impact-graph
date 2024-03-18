@@ -1,10 +1,10 @@
-import { NETWORK_IDS } from '../../provider';
 import { assert } from 'chai';
+import moment from 'moment';
+import { NETWORK_IDS } from '../../provider';
 import { assertThrowsAsync } from '../../../test/testUtils';
 import { errorMessages } from '../../utils/errorMessages';
-import moment from 'moment';
-import { getTransactionInfoFromNetwork } from './index';
 import { ChainType } from '../../types/network';
+import { getTransactionInfoFromNetwork } from './index';
 
 const ONE_DAY = 60 * 60 * 24;
 
@@ -88,6 +88,7 @@ function getTransactionDetailTestCases() {
   });
   it('should return transaction detail for DAI transfer on ethereum classic', async () => {
     // https://etc.blockscout.com/tx/0x48e0c03ed99996fac3a7ecaaf05a1582a9191d8e37b6ebdbdd630b83350faf63
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
     const amount = 4492.059297640078891631;
     const transactionInfo = await getTransactionInfoFromNetwork({
       txHash:

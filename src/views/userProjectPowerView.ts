@@ -21,7 +21,7 @@ export class UserProjectPowerView extends BaseEntity {
   // it's the powerBoostingId see the migration creation file to understand better
   id: number;
 
-  @Field(type => User, { nullable: true })
+  @Field(_type => User, { nullable: true })
   @JoinColumn({ referencedColumnName: 'id' })
   @ManyToOne(() => User, { eager: true })
   user?: User;
