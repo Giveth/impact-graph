@@ -1,4 +1,5 @@
 import adminJs from 'adminjs';
+import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 import { Token } from '../../../entities/token';
 import { NETWORK_IDS } from '../../../provider';
 import { canAccessTokenAction, ResourceActions } from '../adminJsPermissions';
@@ -6,7 +7,6 @@ import { AdminJsRequestInterface } from '../adminJs-types';
 import { Organization } from '../../../entities/organization';
 import { logger } from '../../../utils/logger';
 import { findTokenByTokenId } from '../../../repositories/tokenRepository';
-import { RecordJSON } from 'adminjs/src/frontend/interfaces/record-json.interface';
 
 // generates orderly permutations and maps then into an array which is later flatten into 1 dimension
 // Current length is the length of selected items from the total items

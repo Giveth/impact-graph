@@ -1105,7 +1105,7 @@ function recurringDonationsByUserIdTestCases() {
       txHash: generateRandomEvmTxHash(),
     });
 
-    const d1 = await saveRecurringDonationDirectlyToDb({
+    await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         projectId: project.id,
