@@ -34,58 +34,65 @@ export const refreshProjectDonationSummaryView = async (): Promise<void> => {
 export const getQfRoundActualDonationDetails = async (
   qfRoundId: Number,
 ): Promise<QfRoundDonationRow[]> => {
-  const qfRound = await QfRound.createQueryBuilder('qfRound')
-    .where('qfRound.id = :id', { id: qfRoundId })
-    .getOne();
+  try {
+    const qfRound = await QfRound.createQueryBuilder('qfRound')
+      .where('qfRound.id = :id', { id: qfRoundId })
+      .getOne();
 
-  if (!qfRoundId) return [];
+    if (!qfRoundId) return [];
 
-  await refreshProjectActualMatchingView();
+    await refreshProjectActualMatchingView();
 
-  const rows = (await ProjectActualMatchingView.query(`
-      SELECT *
-      FROM project_actual_matching_view
-      WHERE "qfRoundId" = ${qfRoundId}
-  `)) as ProjectActualMatchingView[];
-  let totalReward = qfRound!.allocatedFund;
-  const qfRoundMaxReward = totalReward * Number(qfRound?.maximumReward || 0.2);
-  let totalWeight = rows.reduce((accumulator, currentRow) => {
-    return accumulator + currentRow.donationsSqrtRootSumSquared;
-  }, 0);
+    const rows = (await ProjectActualMatchingView.query(`
+        SELECT *
+        FROM project_actual_matching_view
+        WHERE "qfRoundId" = ${qfRoundId}
+    `)) as ProjectActualMatchingView[];
+    let totalReward = qfRound!.allocatedFund;
+    const qfRoundMaxReward =
+      totalReward * Number(qfRound?.maximumReward || 0.2);
+    let totalWeight = rows.reduce((accumulator, currentRow) => {
+      return accumulator + currentRow.donationsSqrtRootSumSquared;
+    }, 0);
 
-  for (const row of rows) {
-    const weight = row.donationsSqrtRootSumSquared;
-    const reward = Math.min(
-      (totalReward * weight) / totalWeight,
-      qfRoundMaxReward,
+    for (const row of rows) {
+      const weight = row.donationsSqrtRootSumSquared;
+      const reward = Math.min(
+        (totalReward * weight) / totalWeight,
+        qfRoundMaxReward,
+      );
+      row.actualMatching = reward;
+      totalReward -= reward;
+      totalWeight -= weight;
+    }
+
+    const qfRoundDonationsRows = rows.map(row => {
+      return {
+        projectName: row.title,
+        addresses: row.networkAddresses,
+        link: process.env.GIVETH_IO_DAPP_BASE_URL + '/' + row.slug,
+        allUsdReceived: row.allUsdReceived,
+        allUsdReceivedAfterSybilsAnalysis:
+          row.allUsdReceivedAfterSybilsAnalysis,
+        totalDonors: row.totalDonors,
+        uniqueDonors: row.uniqueQualifiedDonors,
+        realMatchingFund: row.actualMatching,
+        projectWeight: row.donationsSqrtRootSumSquared,
+        donationIdsBeforeAnalysis: row?.donationIdsBeforeAnalysis?.join('-'),
+        donationIdsAfterAnalysis: row?.donationIdsAfterAnalysis?.join('-'),
+        totalValuesOfUserDonationsAfterAnalysis:
+          row?.totalValuesOfUserDonationsAfterAnalysis?.join('-'),
+        uniqueUserIdsAfterAnalysis: row?.uniqueUserIdsAfterAnalysis?.join('-'),
+      };
+    });
+    logger.info(
+      'Data that we should upload to googlesheet',
+      qfRoundDonationsRows,
     );
-    row.actualMatching = reward;
-    totalReward -= reward;
-    totalWeight -= weight;
+
+    return qfRoundDonationsRows;
+  } catch (e) {
+    logger.error('getQfRoundActualDonationDetails error', e);
+    throw e;
   }
-
-  const qfRoundDonationsRows = rows.map(row => {
-    return {
-      projectName: row.title,
-      addresses: row.networkAddresses,
-      link: process.env.GIVETH_IO_DAPP_BASE_URL + '/' + row.slug,
-      allUsdReceived: row.allUsdReceived,
-      allUsdReceivedAfterSybilsAnalysis: row.allUsdReceivedAfterSybilsAnalysis,
-      totalDonors: row.totalDonors,
-      uniqueDonors: row.uniqueQualifiedDonors,
-      realMatchingFund: row.actualMatching,
-      projectWeight: row.donationsSqrtRootSumSquared,
-      donationIdsBeforeAnalysis: row?.donationIdsBeforeAnalysis?.join('-'),
-      donationIdsAfterAnalysis: row?.donationIdsAfterAnalysis?.join('-'),
-      totalValuesOfUserDonationsAfterAnalysis:
-        row?.totalValuesOfUserDonationsAfterAnalysis?.join('-'),
-      uniqueUserIdsAfterAnalysis: row?.uniqueUserIdsAfterAnalysis?.join('-'),
-    };
-  });
-  logger.info(
-    'Data that we should upload to googlesheet',
-    qfRoundDonationsRows,
-  );
-
-  return qfRoundDonationsRows;
 };

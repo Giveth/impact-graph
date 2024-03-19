@@ -1,9 +1,10 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectActualMatchingV13_1710768644383 implements MigrationInterface {
-
-    async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+export class ProjectActualMatchingV13_1710768644383
+  implements MigrationInterface
+{
+  async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
         DROP MATERIALIZED VIEW IF EXISTS project_actual_matching_view;
         CREATE MATERIALIZED VIEW project_actual_matching_view AS
           
@@ -169,9 +170,9 @@ export class ProjectActualMatchingV13_1710768644383 implements MigrationInterfac
         CREATE INDEX idx_project_actual_matching_project_id ON project_actual_matching_view USING hash ("projectId");
         CREATE INDEX idx_project_actual_matching_qf_round_id ON project_actual_matching_view USING hash ("qfRoundId");
         `);
-    }
+  }
 
-    async down(queryRunner: QueryRunner): Promise<void> {
-        //
-    }
+  async down(queryRunner: QueryRunner): Promise<void> {
+    //
+  }
 }
