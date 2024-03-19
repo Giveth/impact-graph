@@ -4016,15 +4016,16 @@ function featureProjectsTestCases() {
       [ReviewStatus.NotReviewed, ProjStatus.active], // Not listed
       [ReviewStatus.Listed, ProjStatus.deactive], // Not active
     ];
-    const projectsPromises = settings.map(([reviewStatus, projectStatus]) => {
-      return saveProjectDirectlyToDb({
+    const projects: Project[] = [];
+    for (const element of settings) {
+      const project = await saveProjectDirectlyToDb({
         ...createProjectData(),
-        reviewStatus,
-        statusId: projectStatus,
+        reviewStatus: element[0],
+        statusId: element[1],
       });
-    });
-    const projects = await Promise.all(projectsPromises);
-    const projetUpdatePromises = projects.map(project => {
+      projects.push(project);
+    }
+    const projectUpdatePromises = projects.map(project => {
       return ProjectUpdate.create({
         userId: user!.id,
         projectId: project.id,
@@ -4034,7 +4035,7 @@ function featureProjectsTestCases() {
         isMain: false,
       }).save();
     });
-    const projectUpdates = await Promise.all(projetUpdatePromises);
+    const projectUpdates = await Promise.all(projectUpdatePromises);
     for (let i = 0; i < projects.length; i++) {
       const project = projects[i];
       const projectUpdate = projectUpdates[i];
