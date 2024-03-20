@@ -70,7 +70,7 @@ export const getQfRoundActualDonationDetails = async (
       return {
         projectName: row.title,
         addresses: row.networkAddresses,
-        link: process.env.GIVETH_IO_DAPP_BASE_URL + '/' + row.slug,
+        link: process.env.GIVETH_IO_DAPP_BASE_URL + '/project/' + row.slug,
         allUsdReceived: row.allUsdReceived,
         allUsdReceivedAfterSybilsAnalysis:
           row.allUsdReceivedAfterSybilsAnalysis,
