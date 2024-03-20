@@ -48,22 +48,36 @@ export const getQfRoundActualDonationDetails = async (
         FROM project_actual_matching_view
         WHERE "qfRoundId" = ${qfRoundId}
     `)) as ProjectActualMatchingView[];
-    let totalReward = qfRound!.allocatedFund;
-    const qfRoundMaxReward =
-      totalReward * Number(qfRound?.maximumReward || 0.2);
-    let totalWeight = rows.reduce((accumulator, currentRow) => {
+    const totalReward = qfRound!.allocatedFund;
+    const maxRewardShare = Number(qfRound?.maximumReward || 0.2);
+    const totalWeight = rows.reduce((accumulator, currentRow) => {
       return accumulator + currentRow.donationsSqrtRootSumSquared;
     }, 0);
+    const weightCap = totalWeight * maxRewardShare;
+    const fundingCap = totalReward * maxRewardShare;
+    const countOfProjectsWithMaxShare = rows.filter(currentRow => {
+      return currentRow.donationsSqrtRootSumSquared >= weightCap;
+    }).length;
+    let remainingWeight = totalWeight;
+    const remainingFunds =
+      totalReward - countOfProjectsWithMaxShare * fundingCap;
 
+    const result = [] as ProjectActualMatchingView[];
+    // Fill rows for those wight are more than maxRewardShare
     for (const row of rows) {
-      const weight = row.donationsSqrtRootSumSquared;
-      const reward = Math.min(
-        (totalReward * weight) / totalWeight,
-        qfRoundMaxReward,
-      );
-      row.actualMatching = reward;
-      totalReward -= reward;
-      totalWeight -= weight;
+      if (row.donationsSqrtRootSumSquared / totalWeight >= maxRewardShare) {
+        remainingWeight -= row.donationsSqrtRootSumSquared;
+        row.actualMatching = fundingCap;
+        row.donationsSqrtRootSumSquared = weightCap;
+        result.push(row);
+      }
+    }
+    for (const row of rows) {
+      if (row.donationsSqrtRootSumSquared / totalWeight < maxRewardShare) {
+        row.actualMatching =
+          (row.donationsSqrtRootSumSquared / remainingWeight) * remainingFunds;
+        result.push(row);
+      }
     }
 
     const qfRoundDonationsRows = rows.map(row => {
