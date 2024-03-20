@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment');
+import moment from 'moment';
 
 export class fixUpdatetAtOfProjects1647514950889 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {

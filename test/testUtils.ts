@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import * as jwt from 'jsonwebtoken';
 import { Keypair } from '@solana/web3.js';
+import moment from 'moment';
 import config from '../src/config';
 import { NETWORK_IDS } from '../src/provider';
 import { User } from '../src/entities/user';
@@ -36,9 +37,6 @@ import { ChainType } from '../src/types/network';
 import { RecurringDonation } from '../src/entities/recurringDonation';
 import { AnchorContractAddress } from '../src/entities/anchorContractAddress';
 import { findProjectById } from '../src/repositories/projectRepository';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment');
 
 export const graphqlUrl = 'http://localhost:4000/graphql';
 export const serverBaseAddress = 'http://localhost:4000';

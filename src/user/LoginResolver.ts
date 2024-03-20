@@ -3,6 +3,7 @@ import { Arg, Ctx, Mutation, Resolver } from 'type-graphql';
 import { keccak256 } from 'ethers/lib/utils';
 import * as jwt from 'jsonwebtoken';
 import { registerEnumType, Field, ObjectType } from 'type-graphql';
+import sigUtil from 'eth-sig-util';
 import { User } from '../entities/user';
 import { ApolloContext } from '../types/ApolloContext';
 import { logger } from '../utils/logger';
@@ -11,8 +12,6 @@ import SentryLogger from '../sentryLogger';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 import { getNotificationAdapter } from '../adapters/adaptersFactory';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const sigUtil = require('eth-sig-util');
 
 @ObjectType()
 class LoginResponse {

@@ -1,5 +1,6 @@
 import abiDecoder from 'abi-decoder';
 import axios from 'axios';
+import { ethers } from 'ethers';
 import {
   findTokenByNetworkAndAddress,
   findTokenByNetworkAndSymbol,
@@ -24,8 +25,6 @@ import { normalizeAmount } from '../../../utils/utils';
 import { ONE_HOUR, validateTransactionWithInputData } from '../index';
 import { ITxInfo } from '../../../types/etherscan';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 abiDecoder.addABI(gnosisSafeL2ABI);
 
@@ -264,7 +263,7 @@ async function getTransactionDetailForNormalTransfer(
 
   let transactionTo = transaction.to;
   let transactionFrom = transaction.from;
-  let amount = ethers.utils.formatEther(transaction.value);
+  let amount = Number(ethers.utils.formatEther(transaction.value));
 
   if (input.safeTxHash && receipt) {
     const decodedLogs = abiDecoder.decodeLogs(receipt.logs);

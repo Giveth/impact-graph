@@ -1,14 +1,12 @@
 import { Resolver, Mutation, Arg } from 'type-graphql';
+import * as bcrypt from 'bcryptjs';
 import { logger } from '../../utils/logger';
-
 import { User } from '../../entities/user';
 import { RegisterInput } from './RegisterInput';
 // import { isAuth } from '../../middleware/isAuth'
 // import { logger } from '../../middleware/logger'
 import { sendEmail } from '../../utils/sendEmail';
 import { createConfirmationUrl } from '../../utils/createConfirmationUrl';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bcrypt = require('bcryptjs');
 
 @Resolver()
 export class RegisterResolver {

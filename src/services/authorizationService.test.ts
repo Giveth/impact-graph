@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import Axios from 'axios';
 import { ethers } from 'ethers';
+import siwe from 'siwe';
 import {
   generateRandomEtheriumAddress,
   generateTestAccessToken,
@@ -12,9 +13,6 @@ import config from '../config';
 import { findUserByWalletAddress } from '../repositories/userRepository';
 
 describe('authorizationHandler() test cases', authorizationHandlerTestCases);
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const siwe = require('siwe');
 
 const domain = 'localhost';
 const origin = 'https://serve.giveth.io';
@@ -42,7 +40,7 @@ function authorizationHandlerTestCases() {
       statement: 'This is a test statement.',
       uri: origin,
       version: '1',
-      chainId: '1',
+      chainId: 1,
     });
     const textMessage = siweMessage.prepareMessage();
     const signature = await wallet.signMessage(textMessage);
@@ -75,7 +73,7 @@ function authorizationHandlerTestCases() {
       statement: 'This is a test statement.',
       uri: origin,
       version: '1',
-      chainId: '1',
+      chainId: 1,
     });
     const textMessage = siweMessage.prepareMessage();
     const signature = await wallet.signMessage(textMessage);

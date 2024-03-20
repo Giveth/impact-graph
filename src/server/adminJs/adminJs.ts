@@ -2,6 +2,9 @@ import adminJs, { ActionContext, AdminJSOptions } from 'adminjs';
 import adminJsExpress from '@adminjs/express';
 import { Database, Resource } from '@adminjs/typeorm';
 import { IncomingMessage } from 'connect';
+import cookie from 'cookie';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
 import { User } from '../../entities/user';
 import config from '../../config';
 import { redis } from '../../redis';
@@ -30,19 +33,13 @@ import { qfRoundHistoryTab } from './tabs/qfRoundHistoryTab';
 import { SybilTab } from './tabs/sybilTab';
 import { ProjectFraudTab } from './tabs/projectFraudTab';
 import { RecurringDonationTab } from './tabs/recurringDonationTab';
-// use redis for session data instead of in-memory storage
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const RedisStore = require('connect-redis').default;
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const cookie = require('cookie');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const cookieParser = require('cookie-parser');
 const secret = config.get('ADMIN_BRO_COOKIE_SECRET') as string;
 const adminJsCookie = 'adminjs';
 adminJs.registerAdapter({ Database, Resource });
 
 export const getAdminJsRouter = async () => {
+  const RedisStoreModule = await import('connect-redis');
+  const RedisStore = RedisStoreModule.default(session);
   return adminJsExpress.buildAuthenticatedRouter(
     await getadminJsInstance(),
     {
@@ -93,6 +90,8 @@ export const extractAdminJsReferrerUrlParams = (req: ActionContext) => {
 
 // Get CurrentSession for external express middlewares
 export const getCurrentAdminJsSession = async (request: IncomingMessage) => {
+  const RedisStoreModule = await import('connect-redis');
+  const RedisStore = RedisStoreModule.default(session);
   const cookieHeader = request.headers.cookie;
   const parsedCookies = cookie.parse(cookieHeader);
   const sessionStore = new RedisStore({ client: redis });
@@ -108,7 +107,8 @@ export const getCurrentAdminJsSession = async (request: IncomingMessage) => {
         if (err) {
           failure(err);
         } else {
-          success(sessionObject.adminUser);
+          // @ts-expect-error adminUser is defined
+          success(sessionObject?.adminUser);
         }
       });
     });

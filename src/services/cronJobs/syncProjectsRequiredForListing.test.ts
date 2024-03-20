@@ -1,13 +1,11 @@
 import { assert } from 'chai';
+import moment from 'moment';
 import {
   createProjectData,
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
 import { Project, ProjStatus, ReviewStatus } from '../../entities/project';
 import { updateProjectListing } from './syncProjectsRequiredForListing';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment');
 
 describe('updateProjectListing() test cases', updateProjectListingTestCases);
 
@@ -16,8 +14,8 @@ function updateProjectListingTestCases() {
     const projectData = createProjectData();
     projectData.listed = undefined;
     projectData.reviewStatus = ReviewStatus.NotReviewed;
-    projectData.creationDate = moment().subtract(23, 'days');
-    projectData.updatedAt = moment().subtract(23, 'days');
+    projectData.creationDate = moment().subtract(23, 'days').toDate();
+    projectData.updatedAt = moment().subtract(23, 'days').toDate();
     const project = await saveProjectDirectlyToDb(projectData);
 
     await updateProjectListing();
@@ -30,7 +28,7 @@ function updateProjectListingTestCases() {
     const projectData = createProjectData();
     projectData.listed = undefined;
     projectData.reviewStatus = ReviewStatus.NotReviewed;
-    projectData.creationDate = moment().subtract(12, 'days');
+    projectData.creationDate = moment().subtract(12, 'days').toDate();
     const project = await saveProjectDirectlyToDb(projectData);
 
     await updateProjectListing();
@@ -43,7 +41,7 @@ function updateProjectListingTestCases() {
     const projectData = createProjectData();
     projectData.listed = undefined;
     projectData.reviewStatus = ReviewStatus.NotReviewed;
-    projectData.creationDate = moment().subtract(12, 'days');
+    projectData.creationDate = moment().subtract(12, 'days').toDate();
     projectData.statusId = ProjStatus.drafted;
     const project = await saveProjectDirectlyToDb(projectData);
 

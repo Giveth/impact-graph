@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import axios from 'axios';
+import moment from 'moment';
 import {
   generateTestAccessToken,
   graphqlUrl,
@@ -59,9 +60,6 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment');
 
 // TODO Write test cases
 describe('donations() test cases', donationsTestCases);

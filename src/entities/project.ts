@@ -20,6 +20,7 @@ import {
 } from 'typeorm';
 
 import { Int } from 'type-graphql/dist/scalars/aliases';
+import moment from 'moment';
 import { Donation } from './donation';
 import { Reaction } from './reaction';
 import { User } from './user';
@@ -55,8 +56,6 @@ import { Campaign } from './campaign';
 import { ProjectEstimatedMatchingView } from './ProjectEstimatedMatchingView';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { ProjectSocialMedia } from './projectSocialMedia';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment');
 
 export enum ProjStatus {
   rejected = 1,

@@ -1,11 +1,10 @@
+import { sha256 } from 'js-sha256';
 import { createFiatDonationFromOnramper } from './donationService';
 // import { TransakOrder } from './order';
 import { logger } from '../../utils/logger';
 import { OnRamperFiatTransaction } from './fiatTransaction';
 import { i18n } from '../../utils/errorMessages';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const sha256 = require('js-sha256');
 const onramperSecret = process.env.ONRAMPER_SECRET as string;
 
 /**

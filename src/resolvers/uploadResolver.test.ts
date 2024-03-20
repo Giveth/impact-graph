@@ -1,7 +1,9 @@
 import { createReadStream, readFileSync } from 'fs';
+import path from 'path';
 import { assert } from 'chai';
 import sinon from 'sinon';
 import axios from 'axios';
+import FormData from 'form-data';
 import {
   traceImageUploadQuery,
   uploadImageToIpfsQuery,
@@ -14,10 +16,6 @@ import {
 import * as pinataUtils from '../middleware/pinataUtils';
 import { errorMessages } from '../utils/errorMessages';
 import { TraceImageOwnerType } from './uploadResolver';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require('path');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const FormData = require('form-data');
 
 // test cases
 describe('upload() test cases', uploadTestCases);
