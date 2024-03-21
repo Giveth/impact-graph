@@ -144,6 +144,156 @@ function getActualMatchingFundTests() {
     // qfRound has 4 networks so we just recipient addresses for those networks
     assert.equal(actualMatchingFund?.networkAddresses?.split(',').length, 4);
   });
+  it('Confirms donations from recipients of non-verified projects are included', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.passportScore = qfRound.minimumPassportScore;
+    await user.save();
+    const nonVerified = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: user.walletAddress as string,
+      listed: true,
+      verified: false,
+    });
+    const donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: 100,
+        qfRoundId: qfRound.id,
+        qfRoundUserScore: user.passportScore,
+      },
+      user.id,
+      project.id,
+    );
+    await refreshProjectActualMatchingView();
+
+    const actualMatchingFund = await ProjectActualMatchingView.findOne({
+      where: {
+        projectId: project.id,
+        qfRoundId: qfRound.id,
+      },
+    });
+    assert.equal(actualMatchingFund?.projectId, project.id);
+    assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis.length, 1);
+    assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis[0], donation.id);
+    assert.equal(actualMatchingFund?.donationIdsAfterAnalysis.length, 1);
+    assert.equal(actualMatchingFund?.allUsdReceived, donation.valueUsd);
+    assert.equal(
+      actualMatchingFund?.allUsdReceivedAfterSybilsAnalysis,
+      donation.valueUsd,
+    );
+    assert.equal(actualMatchingFund?.uniqueQualifiedDonors, 1);
+    assert.equal(actualMatchingFund?.totalDonors, 1);
+
+    // qfRound has 4 networks so we just recipient addresses for those networks
+    assert.equal(actualMatchingFund?.networkAddresses?.split(',').length, 4);
+  });
+  it('Confirms donations from recipients of non-verified projects that are in another qfRound are included', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.passportScore = qfRound.minimumPassportScore;
+    await user.save();
+    const projectInAnotherQfRound = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: user.walletAddress as string,
+      listed: true,
+      verified: false,
+    });
+    const qfRound2 = QfRound.create({
+      isActive: true,
+      name: 'test',
+      allocatedFund: 100,
+      minimumPassportScore: 8,
+      minimumValidUsdValue: 1,
+      slug: new Date().getTime().toString(),
+      eligibleNetworks: [
+        NETWORK_IDS.XDAI,
+        NETWORK_IDS.OPTIMISTIC,
+        NETWORK_IDS.POLYGON,
+        NETWORK_IDS.MAIN_NET,
+      ],
+      beginDate: new Date(),
+      endDate: moment().add(10, 'days').toDate(),
+    });
+
+    projectInAnotherQfRound.qfRounds = [qfRound2];
+    await projectInAnotherQfRound.save();
+    const donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: 100,
+        qfRoundId: qfRound.id,
+        qfRoundUserScore: user.passportScore,
+      },
+      user.id,
+      project.id,
+    );
+    await refreshProjectActualMatchingView();
+
+    const actualMatchingFund = await ProjectActualMatchingView.findOne({
+      where: {
+        projectId: project.id,
+        qfRoundId: qfRound.id,
+      },
+    });
+    assert.equal(actualMatchingFund?.projectId, project.id);
+    assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis.length, 1);
+    assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis[0], donation.id);
+    assert.equal(actualMatchingFund?.donationIdsAfterAnalysis.length, 1);
+    assert.equal(actualMatchingFund?.allUsdReceived, donation.valueUsd);
+    assert.equal(
+      actualMatchingFund?.allUsdReceivedAfterSybilsAnalysis,
+      donation.valueUsd,
+    );
+    assert.equal(actualMatchingFund?.uniqueQualifiedDonors, 1);
+    assert.equal(actualMatchingFund?.totalDonors, 1);
+
+    // qfRound has 4 networks so we just recipient addresses for those networks
+    assert.equal(actualMatchingFund?.networkAddresses?.split(',').length, 4);
+  });
+  it('Confirms donations from recipients of non-verified projects that are in that qfRound are excluded', async () => {
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    user.passportScore = qfRound.minimumPassportScore;
+    await user.save();
+    const projectInQfRound = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: user.walletAddress as string,
+      listed: true,
+      verified: false,
+    });
+    projectInQfRound.qfRounds = [qfRound];
+    await projectInQfRound.save();
+    const donation = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: 'verified',
+        valueUsd: 100,
+        qfRoundId: qfRound.id,
+        qfRoundUserScore: user.passportScore,
+      },
+      user.id,
+      project.id,
+    );
+    await refreshProjectActualMatchingView();
+
+    const actualMatchingFund = await ProjectActualMatchingView.findOne({
+      where: {
+        projectId: project.id,
+        qfRoundId: qfRound.id,
+      },
+    });
+    assert.equal(actualMatchingFund?.projectId, project.id);
+    assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis.length, 1);
+    assert.equal(actualMatchingFund?.donationIdsBeforeAnalysis[0], donation.id);
+    assert.isNotOk(actualMatchingFund?.donationIdsAfterAnalysis);
+    assert.equal(actualMatchingFund?.allUsdReceived, donation.valueUsd);
+    assert.equal(actualMatchingFund?.allUsdReceivedAfterSybilsAnalysis, 0);
+    assert.equal(actualMatchingFund?.uniqueQualifiedDonors, 0);
+    assert.equal(actualMatchingFund?.totalDonors, 1);
+
+    // qfRound has 4 networks so we just recipient addresses for those networks
+    assert.equal(actualMatchingFund?.networkAddresses?.split(',').length, 4);
+  });
   it('Validates correct aggregation of multiple donations to a project', async () => {
     const valuesUsd = [4, 25, 100, 1024];
     await Promise.all(
