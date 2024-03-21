@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import 'mocha';
+import * as bcrypt from 'bcryptjs';
 import { User, UserRole } from '../entities/user';
 import { DONATION_STATUS } from '../entities/donation';
 import {
@@ -18,8 +19,6 @@ import {
 import { ORGANIZATION_LABELS } from '../entities/organization';
 import { generateRandomString } from '../utils/utils';
 import { findUserById } from '../repositories/userRepository';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bcrypt = require('bcrypt');
 
 describe(
   'updateUserTotalDonated() test cases',

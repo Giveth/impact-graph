@@ -1,6 +1,6 @@
 import { stringify } from 'querystring';
 import axios from 'axios';
-import { decode, JwtPayload } from 'jsonwebtoken';
+import { decode, JwtPayload } from 'jsonwebtoken-esm';
 import {
   GetUserInfoByOauth2Output,
   SocialNetworkOauth2AdapterInterface,

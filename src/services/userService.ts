@@ -1,9 +1,8 @@
+import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/user';
 import { Donation } from '../entities/donation';
 import { logger } from '../utils/logger';
 import { findAdminUserByEmail } from '../repositories/userRepository';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bcrypt = require('bcrypt');
 
 export const updateUserTotalDonated = async (userId: number) => {
   try {
@@ -71,7 +70,7 @@ export const fetchAdminAndValidatePassword = async (params: {
 }): Promise<User | undefined> => {
   const { password, email } = params;
   const user = await findAdminUserByEmail(email);
-  if (user && (await bcrypt.compare(password, user.encryptedPassword))) {
+  if (user && (await bcrypt.compare(password, user.encryptedPassword!))) {
     return user;
   }
   return;

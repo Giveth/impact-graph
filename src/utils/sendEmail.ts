@@ -1,8 +1,5 @@
-// import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
 import { logger } from './logger';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const nodemailer = require('nodemailer');
 
 export async function sendEmail(email: string, url: string) {
   const account = await nodemailer.createTestAccount();

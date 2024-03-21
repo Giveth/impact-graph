@@ -1,4 +1,5 @@
 import { assert } from 'chai';
+import moment from 'moment';
 import { RevokeSteps } from '../../entities/project';
 
 import { checkProjectVerificationStatus } from './checkProjectVerificationStatus';
@@ -7,9 +8,6 @@ import {
   saveProjectDirectlyToDb,
 } from '../../../test/testUtils';
 import { findProjectById } from '../../repositories/projectRepository';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment');
 
 describe(
   'checkProjectVerificationStatus() test cases',
@@ -26,7 +24,10 @@ function checkProjectVerificationStatusTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       updatedAt: moment().subtract(46, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment().subtract(46, 'days').endOf('day'),
+      projectUpdateCreationDate: moment()
+        .subtract(46, 'days')
+        .endOf('day')
+        .toDate(),
       verificationStatus: RevokeSteps.Reminder,
     });
 
@@ -47,7 +48,10 @@ function checkProjectVerificationStatusTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       updatedAt: moment().subtract(91, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment().subtract(91, 'days').endOf('day'),
+      projectUpdateCreationDate: moment()
+        .subtract(91, 'days')
+        .endOf('day')
+        .toDate(),
       verificationStatus: RevokeSteps.Warning,
     });
 
@@ -68,7 +72,10 @@ function checkProjectVerificationStatusTestCases() {
       slug: String(new Date().getTime()),
       verified: true,
       updatedAt: moment().subtract(105, 'days').endOf('day').toDate(),
-      projectUpdateCreationDate: moment().subtract(105, 'days').endOf('day'),
+      projectUpdateCreationDate: moment()
+        .subtract(105, 'days')
+        .endOf('day')
+        .toDate(),
       verificationStatus: RevokeSteps.LastChance,
     });
 

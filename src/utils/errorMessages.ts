@@ -1,7 +1,7 @@
 import path from 'path';
+import _i18n from 'i18n';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-export const i18n = require('i18n');
+export const i18n = _i18n;
 
 // global config, where ever its exported
 i18n.configure({

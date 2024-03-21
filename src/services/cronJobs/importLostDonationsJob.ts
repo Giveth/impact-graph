@@ -1,6 +1,7 @@
 import abiDecoder from 'abi-decoder';
 import { schedule } from 'node-cron';
 import moment from 'moment';
+import { ethers } from 'ethers';
 import config from '../../config';
 import { Donation } from '../../entities/donation';
 import { logger } from '../../utils/logger';
@@ -27,8 +28,6 @@ import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { getNotificationAdapter } from '../../adapters/adaptersFactory';
 import { getOrttoPersonAttributes } from '../../adapters/notifications/NotificationCenterAdapter';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const ethers = require('ethers');
 abiDecoder.addABI(erc20ABI);
 
 const QF_ROUND_ID = config.get('LOST_DONATIONS_QF_ROUND');
@@ -296,7 +295,7 @@ async function getDonationDetailForNormalTransfer(
   );
 
   const transactionTo = transaction.to;
-  const amount = ethers.utils.formatEther(transaction.value);
+  const amount = Number(ethers.utils.formatEther(transaction.value));
 
   return {
     from: transaction.from,

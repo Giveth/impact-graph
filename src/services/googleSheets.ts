@@ -1,10 +1,8 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
+import moment from 'moment';
 import config from '../config';
 import { logger } from '../utils/logger';
 import { ReviewStatus } from '../entities/project';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment');
 
 interface ProjectExport {
   id: number;

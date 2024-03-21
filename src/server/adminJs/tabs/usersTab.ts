@@ -1,8 +1,7 @@
+import * as bcrypt from 'bcryptjs';
 import { User } from '../../../entities/user';
 import { canAccessUserAction, ResourceActions } from '../adminJsPermissions';
 import { logger } from '../../../utils/logger';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bcrypt = require('bcrypt');
 
 export const usersTab = {
   resource: User,

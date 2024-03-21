@@ -1,5 +1,5 @@
 import { schedule } from 'node-cron';
-import moment = require('moment');
+import moment from 'moment';
 import { Project, RevokeSteps } from '../../entities/project';
 import { HISTORY_DESCRIPTIONS } from '../../entities/projectStatusHistory';
 import config from '../../config';
