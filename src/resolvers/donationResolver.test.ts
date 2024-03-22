@@ -132,7 +132,7 @@ function totalDonationsNumberPerDateTestCases() {
 }
 
 function donorsCountPerDateTestCases() {
-  it('should return not return data if the date is not yyyy-mm-dd', async () => {
+  it('should not return data if the date is not yyyy-mm-dd', async () => {
     await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
     await saveUserDirectlyToDb(walletAddress);

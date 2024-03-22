@@ -311,6 +311,22 @@ export const donorsCountPerDate = async (
   return queryResult.count;
 };
 
+export const newDonorsCount = async (fromDate: string, toDate: string) => {
+  const donations = await Donation.createQueryBuilder('donation')
+    .select('donation.userId', 'userId')
+    .addSelect('MIN(donation.createdAt)', 'firstDonationDate')
+    .groupBy('donation.userId')
+    .where('donation.createdAt BETWEEN :fromDate AND :toDate', {
+      fromDate,
+      toDate,
+    })
+    .getRawMany();
+
+  return donations.filter(
+    r => r.firstDonationDate >= fromDate && r.firstDonationDate <= toDate,
+  );
+};
+
 export const donorsCountPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,
