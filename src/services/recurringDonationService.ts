@@ -80,6 +80,7 @@ export const createRelatedDonationsToStream = async (
   for (const period of streamData.virtualPeriods) {
     const existingPeriod = await Donation.findOne({
       where: {
+        recurringDonationId: recurringDonation.id,
         virtualPeriodStart: period.startTime,
         virtualPeriodEnd: period.endTime,
       },
