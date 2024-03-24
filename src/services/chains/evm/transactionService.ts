@@ -175,6 +175,7 @@ export async function getListOfTransactionsByAddress(input: {
   lastPage: boolean;
 }> {
   const { address, page = 1, offset = 1000, networkId } = input;
+  // eslint-disable-next-line no-console
   console.log('data sent*******************', address, page, offset);
   // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
   // https://blockscout.com/xdai/mainnet/api-docs#account
