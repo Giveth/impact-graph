@@ -19,6 +19,17 @@ describe(
   createRelatedDonationsToStreamTestCases,
 );
 
+describe(
+  'updateRecurringDonationStatusWithNetwork test cases',
+  updateRecurringDonationStatusWithNetworkTestCases,
+);
+
+function updateRecurringDonationStatusWithNetworkTestCases() {
+  it('should verify transaction from OP Sepolia', function () {
+    // https://sepolia-optimism.etherscan.io/tx/0xe88c42496c1438d59b2e72b3a96cd73010482302226cffbd8fc64923bab51195
+  });
+}
+
 function createRelatedDonationsToStreamTestCases() {
   it('should search by the currency', async () => {
     const projectOwner = await saveUserDirectlyToDb(
