@@ -51,6 +51,7 @@ import {
   getRecentDonations,
   isVerifiedDonationExistsInQfRound,
   newDonorsCount,
+  newDonorsDonationTotalUsd,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -431,6 +432,25 @@ export class DonationResolver {
       };
     } catch (e) {
       logger.error('newDonorsCountPerDate query error', e);
+      throw e;
+    }
+  }
+
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  async newDonorsDonationTotalUsdPerDate(
+    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    @Arg('fromDate') fromDate: string,
+    @Arg('toDate') toDate: string,
+  ): Promise<ResourcePerDateRange> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await newDonorsDonationTotalUsd(fromDate, toDate);
+      return { total };
+    } catch (e) {
+      logger.error('newDonorsDonationTotalUsdPerDate query error', e);
       throw e;
     }
   }
