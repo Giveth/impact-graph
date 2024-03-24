@@ -175,11 +175,12 @@ export async function getListOfTransactionsByAddress(input: {
   lastPage: boolean;
 }> {
   const { address, page = 1, offset = 1000, networkId } = input;
+  console.log('data sent*******************', address, page, offset);
   // https://docs.etherscan.io/api-endpoints/accounts#get-a-list-of-normal-transactions-by-address
   // https://blockscout.com/xdai/mainnet/api-docs#account
   logger.debug(
     'NODE RPC request count - getTransactionDetailForTokenTransfer  provider.getTransaction fromAddress:',
-    address,
+    address,networkId, offset
   );
   const result = await axios.get(getBlockExplorerApiUrl(networkId), {
     params: {
@@ -191,6 +192,18 @@ export async function getListOfTransactionsByAddress(input: {
       sort: 'desc',
     },
   });
+
+  if (result?.data?.status === '0'){
+    // https://docs.gnosisscan.io/support/common-error-messages
+
+   // sample of these errors
+   //  {
+   //    "status": "0",
+   //    "message": "Query Timeout occured. Please select a smaller result dataset",
+   //    "result": null
+   //  }
+    throw new Error( result.data?.message || `Error while fetching transactions networkId: ${networkId}` )
+  }
   const userRecentTransactions = result.data.result.filter(tx => {
     return tx.from.toLowerCase() === input.address.toLowerCase();
   });
