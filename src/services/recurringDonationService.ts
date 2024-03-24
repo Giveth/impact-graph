@@ -148,7 +148,9 @@ export const createRelatedDonationsToStream = async (
           streamPeriod.amount,
           tokenInDb!.decimals,
         ),
-        valueUsd: Math.abs(Number(streamData.amountFiat)),
+
+        // prevent setting NaN value for valueUsd
+        valueUsd: Math.abs(Number(streamData.amountFiat)) || 0,
         transactionId: transactionTx,
         isFiat: false,
         transactionNetworkId: networkId,
