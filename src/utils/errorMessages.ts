@@ -194,10 +194,16 @@ export const errorMessages = {
   CHAINVINE_REGISTRATION_ERROR: 'Chainvine ID failed to be generated',
   CHAINVINE_CLICK_EVENT_ERROR: 'Unable to register click event or link donor',
   GITCOIN_ERROR_FETCHING_DATA: 'Unable to fetch gitcoin data, check logs',
+  TX_NOT_FOUND: 'Transaction not found',
+  INVALID_PROJECT_ID: 'Invalid project id',
+  INVALID_PROJECT_OWNER: 'Project owner is invalid',
 };
 
 export const translationErrorMessagesKeys = {
   GITCOIN_ERROR_FETCHING_DATA: 'GITCOIN_ERROR_FETCHING_DATA',
+  TX_NOT_FOUND: 'TX_NOT_FOUND',
+  INVALID_PROJECT_ID: 'INVALID_PROJECT_ID',
+  INVALID_PROJECT_OWNER: 'INVALID_PROJECT_OWNER',
   CHAINVINE_CLICK_EVENT_ERROR: 'CHAINVINE_CLICK_EVENT_ERROR',
   CHAINVINE_REGISTRATION_ERROR: 'CHAINVINE_REGISTRATION_ERROR',
   FIAT_DONATION_ALREADY_EXISTS: 'FIAT_DONATION_ALREADY_EXISTS',
