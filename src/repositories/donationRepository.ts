@@ -313,13 +313,14 @@ export const donorsCountPerDate = async (
 
 export const newDonorsCount = async (fromDate: string, toDate: string) => {
   return Donation.createQueryBuilder('donation')
-    .select('donation.userId', 'userId')
-    .addSelect('MIN(donation.createdAt)', 'firstDonationDate')
+    .select('donation.userId')
+    .addSelect('MIN(donation.createdAt)')
     .groupBy('donation.userId')
     .having('MIN(donation.createdAt) BETWEEN :fromDate AND :toDate', {
       fromDate,
       toDate,
     })
+    .groupBy('donation.userId')
     .getRawMany();
 };
 

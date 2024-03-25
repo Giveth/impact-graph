@@ -417,10 +417,10 @@ export class DonationResolver {
 
   @Query(_returns => ResourcePerDateRange, { nullable: true })
   async newDonorsCountPerDate(
-    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    // fromDate and toDate should be in this format (YYYY-MM-DD)T(HH:mm:ss)Z
     @Arg('fromDate') fromDate: string,
     @Arg('toDate') toDate: string,
-  ): Promise<ResourcePerDateRange> {
+  ): Promise<{ total: number }> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
@@ -428,7 +428,7 @@ export class DonationResolver {
       );
       const newDonors = await newDonorsCount(fromDate, toDate);
       return {
-        total: newDonors.length,
+        total: newDonors?.length || 0,
       };
     } catch (e) {
       logger.error('newDonorsCountPerDate query error', e);
@@ -438,10 +438,10 @@ export class DonationResolver {
 
   @Query(_returns => ResourcePerDateRange, { nullable: true })
   async newDonorsDonationTotalUsdPerDate(
-    // fromDate and toDate should be in this format YYYYMMDD HH:mm:ss
+    // fromDate and toDate should be in this format (YYYY-MM-DD)T(HH:mm:ss)Z
     @Arg('fromDate') fromDate: string,
     @Arg('toDate') toDate: string,
-  ): Promise<ResourcePerDateRange> {
+  ): Promise<{ total: number }> {
     try {
       validateWithJoiSchema(
         { fromDate, toDate },
