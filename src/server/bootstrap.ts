@@ -20,9 +20,6 @@ import { ApolloServerErrorCode } from '@apollo/server/errors';
 import config from '../config';
 import { handleStripeWebhook } from '../utils/stripe';
 import createSchema from './createSchema';
-import { getResolvers } from '../resolvers/resolvers';
-import { RegisterResolver } from '../user/register/RegisterResolver';
-import { ConfirmUserResolver } from '../user/ConfirmUserResolver';
 import SentryLogger from '../sentryLogger';
 
 import { runCheckPendingDonationsCronJob } from '../services/cronJobs/syncDonationsWithNetwork';
@@ -90,14 +87,6 @@ export async function bootstrap() {
     await AppDataSource.initialize();
     await CronDataSource.initialize();
     Container.set(DataSource, AppDataSource.getDataSource());
-    const resolvers = getResolvers();
-
-    if (config.get('REGISTER_USERNAME_PASSWORD') === 'true') {
-      resolvers.push.apply(resolvers, [RegisterResolver, ConfirmUserResolver]);
-    }
-
-    // Actually we should use await AppDataSource.initialize(); but it throw errors I think because some changes
-    // are needed in using typeorm repositories, so currently I kept this
 
     const dropSchema = config.get('DROP_DATABASE') === 'true';
     if (dropSchema) {
