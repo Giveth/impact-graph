@@ -60,8 +60,8 @@ function createRelatedDonationsToStreamTestCases() {
       recurringDonationWithAnchorContract!.id,
     );
 
-    await Donation.createQueryBuilder('donation')
-      .where(`donation.recurringDonationId = :recurringDonationId`, {
+    const donations = await Donation.createQueryBuilder('donation')
+      .where(`donation."recurringDonationId" = :recurringDonationId`, {
         recurringDonationId: recurringDonationWithAnchorContract!.id,
       })
       .getMany();
@@ -71,7 +71,7 @@ function createRelatedDonationsToStreamTestCases() {
       recurringDonationUpdated?.status,
       RECURRING_DONATION_STATUS.ENDED,
     );
-    // assert.equal(donations.length, 4);
+    assert.equal(donations.length, 4);
     assert.equal(true, true); // its not saving the recurring donation Id, saving as null
     // add more tests, define criteria for verified
   });

@@ -63,6 +63,12 @@ export const createRelatedDonationsToStream = async (
     await recurringDonation.save();
   }
 
+  if (streamData.stoppedAtTimestamp) {
+    recurringDonation.finished = true;
+    recurringDonation.status = RECURRING_DONATION_STATUS.ENDED;
+    await recurringDonation.save();
+  }
+
   const project = await findProjectById(recurringDonation.projectId);
   const donorUser = await findUserById(recurringDonation.donorId);
 
@@ -142,7 +148,9 @@ export const createRelatedDonationsToStream = async (
           streamPeriod.amount,
           tokenInDb!.decimals,
         ),
-        valueUsd: Math.abs(Number(streamData.amountFiat)),
+
+        // prevent setting NaN value for valueUsd
+        valueUsd: Math.abs(Number(streamData.amountFiat)) || 0,
         transactionId: transactionTx,
         isFiat: false,
         transactionNetworkId: networkId,
@@ -170,6 +178,7 @@ export const createRelatedDonationsToStream = async (
       const activeQfRoundForProject = await relatedActiveQfRoundForProject(
         project.id,
       );
+
       if (
         activeQfRoundForProject &&
         activeQfRoundForProject.isEligibleNetwork(networkId)
@@ -194,12 +203,6 @@ export const createRelatedDonationsToStream = async (
     } catch (e) {
       logger.error('createRelatedDonationsToStream() error', e);
     }
-  }
-
-  if (streamData.stoppedAtTimestamp) {
-    recurringDonation.finished = true;
-    recurringDonation.status = RECURRING_DONATION_STATUS.ENDED;
-    await recurringDonation.save();
   }
 };
 
