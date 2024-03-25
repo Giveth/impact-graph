@@ -1,4 +1,4 @@
-import Axios from 'axios';
+import axios from 'axios';
 import { logger } from '../../utils/logger';
 import { isTestEnv } from '../../utils/utils';
 import { SuperFluidAdapterInterface } from './superFluidAdapterInterface';
@@ -92,12 +92,12 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
       currency,
     } = params;
     try {
-      const response = await Axios.get(
+      const response = await axios.get(
         'https://accounting.superfluid.dev/v1/stream-periods',
         {
           params: {
-            address,
-            chain,
+            addresses: address,
+            chains: chain,
             start,
             end,
             priceGranularity,
@@ -106,7 +106,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
           },
         },
       );
-      return response.data;
+      return response.data[0];
     } catch (e) {
       logger.error(e);
     }
@@ -139,7 +139,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
   // Optimism works
   async accountBalance(accountId: string) {
     try {
-      const response = await Axios({
+      const response = await axios({
         url: !isTestEnv ? superFluidGraphqlUrl : superFluidTestGraphUrl,
         method: 'post',
         data: {
