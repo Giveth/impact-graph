@@ -1,6 +1,5 @@
 import { UserResolver } from './userResolver';
 import { ProjectResolver } from './projectResolver';
-import { LoginResolver } from '../user/LoginResolver';
 import { MeResolver } from '../user/MeResolver';
 import { UploadResolver } from './uploadResolver';
 import { CategoryResolver } from './categoryResolver';
@@ -30,7 +29,6 @@ export const getResolvers = (): Function[] => {
     ChainvineResolver,
     StatusReasonResolver,
 
-    LoginResolver,
     MeResolver,
     UploadResolver,
     CategoryResolver,
