@@ -31,7 +31,7 @@ export const generateProjectFiltersCacheKey = async (args: {
 };
 
 export const titleWithoutSpecialCharacters = (title: string): string => {
-  const ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
+  const UNALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
     '`',
     `'`,
     '<',
@@ -54,9 +54,9 @@ export const titleWithoutSpecialCharacters = (title: string): string => {
     '`',
   ];
   let cleanTitle = title;
-  ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(
+  UNALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(
     character =>
-      // this do like replaceAll
+      // this does like replaceAll
       (cleanTitle = cleanTitle.split(character).join('')),
   );
   return cleanTitle;
