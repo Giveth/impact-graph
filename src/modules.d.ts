@@ -13,7 +13,6 @@ declare namespace NodeJS {
     DROP_DATABASE: string;
     SEED_PASSWORD: string;
     APOLLO_KEY: string;
-    REGISTER_USERNAME_PASSWORD: string;
 
     STRIPE_KEY: string;
     STRIPE_SECRET: string;
