@@ -23,7 +23,7 @@ import { relatedActiveQfRoundForProject } from './qfRoundService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 
 // Initially it will only be monthly data
-const priceDisplay = 'month';
+export const priceDisplay = 'month';
 
 export const fetchStreamTableStartDate = (
   recurringDonation: RecurringDonation,
@@ -52,7 +52,7 @@ export const createRelatedDonationsToStream = async (
     end: Math.floor(new Date().getTime() / 1000),
     priceGranularity: priceDisplay,
     virtualization: priceDisplay,
-    currency: recurringDonation.currency,
+    currency: 'USD',
   });
 
   if (
