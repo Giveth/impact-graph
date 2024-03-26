@@ -60,9 +60,8 @@ export class AnchorContractAddressResolver {
       );
     }
 
-    // Validate anchor address, the owner of contract must be the project owner
-
     const web3Provider = getProvider(networkId);
+    // tx sample   // https://sepolia-optimism.etherscan.io/tx/0x7af6b35466b651a43dab0d06e066c421416e5b340c62e5a54124b3eac346297a
     const networkData = await web3Provider.getTransaction(txHash);
 
     if (!networkData) {
@@ -82,10 +81,10 @@ export class AnchorContractAddressResolver {
 
     const iface = new ethers.utils.Interface(abi);
     const decodedData = iface.parseTransaction({ data: networkData.data });
-    const nonce = ethers.BigNumber.from(decodedData.args[0]).toString();
-    if (Number(nonce) !== projectId) {
-      logger.debug('nonce of tx payload does not match the project id', {
-        nonce,
+    const txProjectId = decodedData.args[1];
+    if (Number(txProjectId) !== projectId) {
+      logger.debug('txProjectId odoes not match the project id', {
+        txProjectId,
         projectId,
       });
       throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_ID));

@@ -29,7 +29,7 @@ function addAnchorContractAddressTestCases() {
   // but we can't set id for the project because it is auto generated
 
   it('should get invalid projectId error', async () => {
-    // https://sepolia-optimism.etherscan.io/tx/0x545f669af1370b8f5e6457008e6ce2a78f8b8ab5d486104bff52c094024298c2
+    // https://sepolia-optimism.etherscan.io/tx/0x7af6b35466b651a43dab0d06e066c421416e5b340c62e5a54124b3eac346297a
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );
@@ -41,13 +41,13 @@ function addAnchorContractAddressTestCases() {
       projectOwner,
     );
 
-    const fromWalletAddress = '0x8f48094a12c8f99d616ae8f3305d5ec73cbaa6b6';
+    const fromWalletAddress = '0x871cd6353b803ceceb090bb827ecb2f361db81ab';
     const contractCreator =
       (await findUserByWalletAddress(fromWalletAddress)) ||
       (await saveUserDirectlyToDb(fromWalletAddress));
 
     const accessToken = await generateTestAccessToken(contractCreator.id);
-    const contractAddress = '0x1190f5ac0f509d8f3f4b662bf17437d37d64527c';
+    const contractAddress = '0x4AAcca72145e1dF2aeC137E1f3C5E3D75DB8b5f3';
     const result = await axios.post(
       graphqlUrl,
       {
@@ -57,7 +57,7 @@ function addAnchorContractAddressTestCases() {
           networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
           address: contractAddress,
           txHash:
-            '0x545f669af1370b8f5e6457008e6ce2a78f8b8ab5d486104bff52c094024298c2',
+            '0x7af6b35466b651a43dab0d06e066c421416e5b340c62e5a54124b3eac346297a',
         },
       },
       {
