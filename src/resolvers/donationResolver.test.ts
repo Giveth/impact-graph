@@ -32,6 +32,8 @@ import {
   fetchRecentDonations,
   fetchTotalDonationsNumberPerDateRange,
   doesDonatedToProjectInQfRoundQuery,
+  fetchNewDonorsCount,
+  fetchNewDonorsDonationTotalUsd,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -74,6 +76,10 @@ describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
 describe('totalDonationsUsdAmount() test cases', donationsUsdAmountTestCases);
 describe('totalDonorsCountPerDate() test cases', donorsCountPerDateTestCases);
+describe(
+  'newDonorsCountAndTotalDonationPerDateTestCases() test cases',
+  newDonorsCountAndTotalDonationPerDateTestCases,
+);
 describe(
   'doesDonatedToProjectInQfRound() test cases',
   doesDonatedToProjectInQfRoundTestCases,
@@ -132,7 +138,7 @@ function totalDonationsNumberPerDateTestCases() {
 }
 
 function donorsCountPerDateTestCases() {
-  it('should return not return data if the date is not yyyy-mm-dd', async () => {
+  it('should not return data if the date is not yyyy-mm-dd', async () => {
     await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
     await saveUserDirectlyToDb(walletAddress);
@@ -215,6 +221,62 @@ function donorsCountPerDateTestCases() {
       donationsResponse.data.data.totalDonorsCountPerDate.total,
       total,
     );
+  });
+}
+
+function newDonorsCountAndTotalDonationPerDateTestCases() {
+  it('should return new donors count and their total donation per time range', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await saveUserDirectlyToDb(walletAddress);
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(40, 'days').toDate(),
+        valueUsd: 30,
+      }),
+      user.id,
+      1,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(40, 'days').toDate(),
+        valueUsd: 25,
+      }),
+      user.id,
+      1,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(40, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      DONATION_SEED_DATA.FIRST_DONATION.userId,
+      1,
+    );
+
+    const newDonors = await axios.post(graphqlUrl, {
+      query: fetchNewDonorsCount,
+      variables: {
+        fromDate: moment().add(40, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(41, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+    const donationUsd = await axios.post(graphqlUrl, {
+      query: fetchNewDonorsDonationTotalUsd,
+      variables: {
+        fromDate: moment().add(40, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(41, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+    const totalNewDonors = newDonors.data.data.newDonorsCountPerDate.total;
+    const totalDonationUsd =
+      donationUsd.data.data.newDonorsDonationTotalUsdPerDate.total;
+    assert.isOk(newDonors.data.data.newDonorsCountPerDate);
+    assert.isOk(donationUsd.data.data.newDonorsDonationTotalUsdPerDate);
+    assert.equal(totalNewDonors, 1);
+    assert.equal(totalDonationUsd, 30);
   });
 }
 
