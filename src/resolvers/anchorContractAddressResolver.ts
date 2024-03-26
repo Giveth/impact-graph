@@ -1,3 +1,6 @@
+import path from 'path';
+import { promises as fs } from 'fs';
+import { ethers } from 'ethers';
 import { Arg, Ctx, Int, Mutation, Resolver } from 'type-graphql';
 
 import { AnchorContractAddress } from '../entities/anchorContractAddress';
@@ -9,6 +12,8 @@ import {
 } from '../repositories/anchorContractAddressRepository';
 import { ApolloContext } from '../types/ApolloContext';
 import { findUserById } from '../repositories/userRepository';
+import { getProvider } from '../provider';
+import { logger } from '../utils/logger';
 
 @Resolver(_of => AnchorContractAddress)
 export class AnchorContractAddressResolver {
@@ -56,6 +61,49 @@ export class AnchorContractAddressResolver {
     }
 
     // Validate anchor address, the owner of contract must be the project owner
+
+    const web3Provider = getProvider(networkId);
+    const networkData = await web3Provider.getTransaction(txHash);
+
+    if (!networkData) {
+      logger.debug(
+        'Transaction not found in the network. maybe its not mined yet',
+        {
+          txHash,
+          networkId,
+        },
+      );
+      throw new Error(i18n.__(translationErrorMessagesKeys.TX_NOT_FOUND));
+    }
+
+    // Load the ABI from  file
+    const abiPath = path.join(__dirname, '../abi/anchorContractAbi.json');
+    const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
+
+    const iface = new ethers.utils.Interface(abi);
+    const decodedData = iface.parseTransaction({ data: networkData.data });
+    const nonce = ethers.BigNumber.from(decodedData.args[0]).toString();
+    if (Number(nonce) !== projectId) {
+      logger.debug('nonce of tx payload does not match the project id', {
+        nonce,
+        projectId,
+      });
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_ID));
+    }
+    const profileOwnerWalletAddress = decodedData.args[3];
+    if (
+      profileOwnerWalletAddress.toLowerCase() !==
+      project?.adminUser?.walletAddress?.toLowerCase()
+    ) {
+      logger.debug(
+        'profile owner of tx payload does not match the project owner',
+        {
+          profileOwnerWalletAddress,
+          projectOwner: project.adminUser.walletAddress,
+        },
+      );
+      throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_ID));
+    }
 
     return addNewAnchorAddress({
       project,

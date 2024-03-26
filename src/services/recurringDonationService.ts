@@ -1,3 +1,6 @@
+import path from 'path';
+import { promises as fs } from 'fs';
+import { ethers } from 'ethers';
 import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
 import { DONATION_STATUS, Donation } from '../entities/donation';
 import {
@@ -5,7 +8,7 @@ import {
   RecurringDonation,
 } from '../entities/recurringDonation';
 import { Token } from '../entities/token';
-import { NETWORK_IDS, superTokensToToken } from '../provider';
+import { getProvider, NETWORK_IDS, superTokensToToken } from '../provider';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { findProjectById } from '../repositories/projectRepository';
 import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
@@ -217,8 +220,68 @@ export function normalizeNegativeAmount(
 export const updateRecurringDonationStatusWithNetwork = async (params: {
   donationId: number;
 }): Promise<RecurringDonation> => {
-  // TODO Should implement it
-  return (await findRecurringDonationById(
-    params.donationId,
-  )) as RecurringDonation;
+  const recurringDonation = await findRecurringDonationById(params.donationId);
+  if (!recurringDonation) {
+    throw new Error('Recurring donation not found');
+  }
+  try {
+    const web3Provider = getProvider(recurringDonation!.networkId);
+    const networkData = await web3Provider.getTransaction(
+      recurringDonation!.txHash,
+    );
+    if (!networkData) {
+      logger.debug(
+        'Transaction not found in the network. maybe its not mined yet',
+        {
+          recurringDonationId: recurringDonation?.id,
+          txHash: recurringDonation?.txHash,
+        },
+      );
+      return recurringDonation.save();
+    }
+    // Load the ABI from  file
+    const abiPath = path.join(__dirname, '../abi/superFluidAbi.json');
+    const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
+
+    const iface = new ethers.utils.Interface(abi);
+    const decodedData = iface.parseTransaction({ data: networkData.data });
+    const receiverLowercase = decodedData.args[2].toLowerCase();
+
+    if (
+      recurringDonation?.anchorContractAddress?.address?.toLowerCase() !==
+      receiverLowercase
+    ) {
+      logger.debug(
+        'Recurring donation address does not match the receiver address of the transaction data.',
+        {
+          recurringDonationId: recurringDonation?.id,
+          receiverAddress: receiverLowercase,
+          anchorContractAddress:
+            recurringDonation?.anchorContractAddress?.address,
+          txHash: recurringDonation?.txHash,
+        },
+      );
+      recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+      return recurringDonation.save();
+    }
+    const flowRate = ethers.BigNumber.from(decodedData.args[3]).toString();
+    if (recurringDonation?.flowRate !== flowRate) {
+      logger.debug(
+        'Recurring donation flowRate does not match the receiver address of the transaction data.',
+        {
+          recurringDonationId: recurringDonation?.id,
+          donationFlowRate: recurringDonation?.flowRate,
+          flowRate,
+          txHash: recurringDonation?.txHash,
+        },
+      );
+      recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+      return recurringDonation.save();
+    }
+    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
+    return recurringDonation.save();
+  } catch (e) {
+    logger.error('updateRecurringDonationStatusWithNetwork() error', e);
+    return recurringDonation;
+  }
 };
