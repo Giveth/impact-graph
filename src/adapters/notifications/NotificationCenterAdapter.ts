@@ -53,8 +53,26 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
-  async userSuperTokensCritical(): Promise<void> {
-    return; // implement it on another branch
+  async userSuperTokensCritical(params: {
+    userId: number;
+    email: string;
+    criticalDate: string;
+    tokenSymbol: string;
+    project: Project;
+    isEnded: boolean;
+  }): Promise<void> {
+    const { criticalDate, tokenSymbol, project } = params;
+    await sendProjectRelatedNotificationsQueue.add({
+      project,
+      eventName: NOTIFICATIONS_EVENT_NAMES.USER_SUPER_TOKENS_CRITICAL,
+      sendEmail: true,
+      segment: {
+        payload: params,
+      },
+      trackId:
+        'super-token-balance-critical-' + criticalDate + '-' + tokenSymbol,
+    });
+    return;
   }
 
   async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {
