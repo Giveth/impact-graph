@@ -311,6 +311,39 @@ export const donorsCountPerDate = async (
   return queryResult.count;
 };
 
+export const newDonorsCount = async (fromDate: string, toDate: string) => {
+  return Donation.createQueryBuilder('donation')
+    .select('donation.userId')
+    .addSelect('MIN(donation.createdAt)')
+    .groupBy('donation.userId')
+    .having('MIN(donation.createdAt) BETWEEN :fromDate AND :toDate', {
+      fromDate,
+      toDate,
+    })
+    .groupBy('donation.userId')
+    .getRawMany();
+};
+
+export const newDonorsDonationTotalUsd = async (
+  fromDate: string,
+  toDate: string,
+) => {
+  const result = await Donation.query(
+    `SELECT SUM(d."valueUsd") AS total_usd_value_of_first_donations
+FROM (
+    SELECT "userId", MIN("createdAt") AS firstDonationDate
+    FROM "donation"
+    GROUP BY "userId"
+) AS first_donations
+JOIN "donation" d ON first_donations."userId" = d."userId" AND first_donations.firstDonationDate = d."createdAt"
+WHERE d."createdAt" BETWEEN $1 AND $2
+  AND d."valueUsd" IS NOT NULL;
+`,
+    [fromDate, toDate],
+  );
+  return result[0]?.total_usd_value_of_first_donations || 0;
+};
+
 export const donorsCountPerDateByMonthAndYear = async (
   fromDate?: string,
   toDate?: string,

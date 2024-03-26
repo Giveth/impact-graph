@@ -50,6 +50,8 @@ import {
   findDonationById,
   getRecentDonations,
   isVerifiedDonationExistsInQfRound,
+  newDonorsCount,
+  newDonorsDonationTotalUsd,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -409,6 +411,46 @@ export class DonationResolver {
       };
     } catch (e) {
       logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  async newDonorsCountPerDate(
+    // fromDate and toDate should be in this format (YYYY-MM-DD)T(HH:mm:ss)Z
+    @Arg('fromDate') fromDate: string,
+    @Arg('toDate') toDate: string,
+  ): Promise<{ total: number }> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const newDonors = await newDonorsCount(fromDate, toDate);
+      return {
+        total: newDonors?.length || 0,
+      };
+    } catch (e) {
+      logger.error('newDonorsCountPerDate query error', e);
+      throw e;
+    }
+  }
+
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  async newDonorsDonationTotalUsdPerDate(
+    // fromDate and toDate should be in this format (YYYY-MM-DD)T(HH:mm:ss)Z
+    @Arg('fromDate') fromDate: string,
+    @Arg('toDate') toDate: string,
+  ): Promise<{ total: number }> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await newDonorsDonationTotalUsd(fromDate, toDate);
+      return { total };
+    } catch (e) {
+      logger.error('newDonorsDonationTotalUsdPerDate query error', e);
       throw e;
     }
   }
