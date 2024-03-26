@@ -4,6 +4,7 @@ export const getAppropriateSlug = async (
   slugBase: string,
   projectId?: number,
 ): Promise<string> => {
+  if (!slugBase) throw new Error('slugBase is required');
   let slug = slugBase.toLowerCase();
   const query = Project.createQueryBuilder('project')
     // check current slug and previous slugs
