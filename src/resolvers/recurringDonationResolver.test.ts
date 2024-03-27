@@ -1304,6 +1304,41 @@ function recurringDonationsByUserIdTestCases() {
     assert.isNotOk(donations.find(d => Number(d.id) === d1.id));
     assert.isOk(donations.find(d => Number(d.id) === d2.id));
   });
+  it('should filter by status and return active recurring donations', async () => {
+    await saveProjectDirectlyToDb(createProjectData());
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const activeDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+    const pendingDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.PENDING,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          status: RECURRING_DONATION_STATUS.ACTIVE,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.isOk(donations.find(d => Number(d.id) === activeDonation.id));
+    assert.isNotOk(donations.find(d => Number(d.id) === pendingDonation.id));
+  });
 }
 function updateRecurringDonationStatusTestCases() {
   it('should donation status remain pending after calling without sending status (we assume its not mined so far)', async () => {

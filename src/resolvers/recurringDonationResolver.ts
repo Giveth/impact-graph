@@ -370,7 +370,7 @@ export class RecurringDonationResolver {
     }
 
     if (status) {
-      query.andWhere(`donation.status = :status`, {
+      query.andWhere(`recurringDonation.status = :status`, {
         status,
       });
     }
