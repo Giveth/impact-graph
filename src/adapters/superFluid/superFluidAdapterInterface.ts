@@ -7,6 +7,7 @@ export interface SuperFluidAdapterInterface {
     priceGranularity: string;
     virtualization: string;
     currency: string;
+    recurringDonationTxHash: string;
   }): Promise<any>;
   accountBalance(accountId: string): Promise<any>;
 }

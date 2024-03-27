@@ -56,6 +56,7 @@ export const createRelatedDonationsToStream = async (
     priceGranularity: priceDisplay,
     virtualization: priceDisplay,
     currency: 'USD',
+    recurringDonationTxHash: recurringDonation.txHash,
   });
 
   if (

@@ -81,6 +81,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
     priceGranularity: string;
     virtualization: string;
     currency: string;
+    recurringDonationTxHash: string;
   }) {
     const {
       address,
@@ -90,6 +91,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
       priceGranularity,
       virtualization,
       currency,
+      recurringDonationTxHash,
     } = params;
     try {
       const response = await axios.get(
@@ -106,7 +108,13 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
           },
         },
       );
-      return response.data[0];
+      // Fetch the stream table with the recurringDonation TxHash
+      const filteredData = response.data.filter(streamTable =>
+        streamTable.startedAtEvent
+          .toLowerCase()
+          .includes(recurringDonationTxHash.toLowerCase()),
+      );
+      return filteredData[0];
     } catch (e) {
       logger.error(e);
     }
