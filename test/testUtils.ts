@@ -435,7 +435,7 @@ export const SEED_DATA = {
   SIXTH_PROJECT: {
     ...createProjectData(),
     title: 'fifth project',
-    slug: 'fifth-project',
+    slug: 'sixth-project',
     description: 'forth description',
     id: 6,
     admin: '1',
