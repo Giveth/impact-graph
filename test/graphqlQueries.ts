@@ -331,7 +331,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
     $projectId: Int!
     $searchTerm: String
     $status: String
-    $finishStatus: [Boolean!]
+    $finishStatus: FinishStatus
     $orderBy: RecurringDonationSortBy
   ) {
     recurringDonationsByProjectId(
@@ -371,7 +371,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
     $skip: Int
     $status: String
     $orderBy: RecurringDonationSortBy
-    $finishStatus: [Boolean!]
+    $finishStatus: FinishStatus
     $userId: Int!
     $filteredTokens: [String!]
   ) {

@@ -55,6 +55,15 @@ class RecurringDonationSortBy {
   direction: RecurringDonationSortDirection;
 }
 
+@InputType()
+class FinishStatus {
+  @Field(_type => Boolean)
+  active: boolean;
+
+  @Field(_type => Boolean)
+  ended: boolean;
+}
+
 export enum RecurringDonationSortField {
   createdAt = 'createdAt',
   flowRate = 'flowRate',
@@ -78,6 +87,11 @@ registerEnumType(RecurringDonationSortField, {
 registerEnumType(RecurringDonationSortDirection, {
   name: 'RecurringDonationSortDirection',
   description: 'Sort direction',
+});
+
+registerEnumType(FinishStatus, {
+  name: 'FinishStatus',
+  description: 'Filter active status',
 });
 
 @ObjectType()
@@ -114,8 +128,14 @@ class UserRecurringDonationsArgs {
   @Field(_type => String, { nullable: true })
   status: string;
 
-  @Field(_type => [Boolean], { nullable: true, defaultValue: [false] })
-  finishStatus: boolean[];
+  @Field(_type => FinishStatus, {
+    nullable: true,
+    defaultValue: {
+      active: true,
+      ended: false,
+    },
+  })
+  finishStatus: FinishStatus;
 
   @Field(_type => [String], { nullable: true, defaultValue: [] })
   filteredTokens: string[];
@@ -237,11 +257,14 @@ export class RecurringDonationResolver {
     @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
     @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
     @Arg('status', _type => String, { nullable: true }) status: string,
-    @Arg('finishStatus', _type => [Boolean], {
+    @Arg('finishStatus', _type => FinishStatus, {
       nullable: true,
-      defaultValue: [false],
+      defaultValue: {
+        active: true,
+        ended: false,
+      },
     })
-    finishStatus: boolean[],
+    finishStatus: FinishStatus,
     @Arg('searchTerm', _type => String, { nullable: true }) searchTerm: string,
     @Arg('orderBy', _type => RecurringDonationSortBy, {
       defaultValue: {
@@ -277,10 +300,16 @@ export class RecurringDonationResolver {
       orderBy.direction,
       RecurringDonationNullDirection[orderBy.direction as string],
     );
-
-    if (finishStatus && finishStatus.length > 0) {
-      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
-        finishStatus,
+    const finishStatusArray: boolean[] = [];
+    if (finishStatus.active) {
+      finishStatusArray.push(false);
+    }
+    if (finishStatus.ended) {
+      finishStatusArray.push(true);
+    }
+    if (finishStatusArray.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatusArray)`, {
+        finishStatusArray,
       });
     }
 
@@ -375,9 +404,16 @@ export class RecurringDonationResolver {
       });
     }
 
-    if (finishStatus && finishStatus.length > 0) {
-      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
-        finishStatus,
+    const finishStatusArray: boolean[] = [];
+    if (finishStatus.active) {
+      finishStatusArray.push(false);
+    }
+    if (finishStatus.ended) {
+      finishStatusArray.push(true);
+    }
+    if (finishStatusArray.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatusArray)`, {
+        finishStatusArray,
       });
     }
 
