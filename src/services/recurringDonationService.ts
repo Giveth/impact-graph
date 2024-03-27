@@ -19,6 +19,7 @@ import { logger } from '../utils/logger';
 import { isTestEnv } from '../utils/utils';
 import {
   isTokenAcceptableForProject,
+  updateDonationPricesAndValues,
   updateTotalDonationsOfProject,
 } from './donationService';
 import { calculateGivbackFactor } from './givbackService';
@@ -199,6 +200,17 @@ export const createRelatedDonationsToStream = async (
       donation.powerRound = powerRound;
 
       await donation.save();
+
+      if (!donation.valueUsd) {
+        updateDonationPricesAndValues(
+          donation,
+          project,
+          tokenInDb,
+          donation.currency,
+          donation.transactionNetworkId,
+          donation.amount,
+        );
+      }
 
       await updateUserTotalDonated(donation.userId);
 
