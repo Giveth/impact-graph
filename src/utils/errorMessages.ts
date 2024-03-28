@@ -21,6 +21,7 @@ export const setI18nLocaleForRequest = async (req, _res, next) => {
 export const errorMessages = {
   FIAT_DONATION_ALREADY_EXISTS: 'Onramper donation already exists',
   CAMPAIGN_NOT_FOUND: 'Campaign not found',
+  QF_ROUND_NOT_FOUND: 'qf round not found',
   NONE_OF_WALLET_ADDRESSES_FOUND_IN_DB:
     'None of the wallet addresses were found in the database',
   NO_VALID_PROJECTS_FOUND: 'No valid project slug found in the CSV',
