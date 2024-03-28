@@ -56,7 +56,9 @@ export interface NotificationAdapterInterface {
     userId: number;
     email: string;
     criticalDate: string;
-    tokensymbol: string;
+    tokenSymbol: string;
+    project: Project;
+    isEnded: boolean;
   }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;

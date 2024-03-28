@@ -44,4 +44,5 @@ export enum NOTIFICATIONS_EVENT_NAMES {
   PROJECT_HAS_RISEN_IN_THE_RANK = 'Your Project has risen in the rank',
   PROJECT_HAS_A_NEW_RANK = 'Your project has a new rank',
   YOUR_PROJECT_GOT_A_RANK = 'Your project got a rank',
+  USER_SUPER_TOKENS_CRITICAL = 'Supertokens critical',
 }

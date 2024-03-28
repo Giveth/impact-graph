@@ -114,7 +114,9 @@ export const validateDonorSuperTokenBalance = async (
         userId: user!.id,
         email: user!.email,
         criticalDate: tokenBalance.maybeCriticalAtTimestamp,
-        tokensymbol: tokenBalance.token.symbol,
+        tokenSymbol: tokenBalance.token.symbol,
+        isEnded: recurringDonation.finished,
+        project: recurringDonation.project,
       });
     }
   }
