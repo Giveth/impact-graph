@@ -128,8 +128,8 @@ class UserRecurringDonationsArgs {
   @Field(_type => String, { nullable: true })
   status: string;
 
-  @Field(_type => Boolean, { nullable: true })
-  isArchived: boolean;
+  @Field(_type => Boolean, { nullable: true, defaultValue: false })
+  includeArchived: boolean;
 
   @Field(_type => FinishStatus, {
     nullable: true,
@@ -262,8 +262,11 @@ export class RecurringDonationResolver {
     @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
     @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
     @Arg('status', _type => String, { nullable: true }) status: string,
-    @Arg('isArchived', _type => Boolean, { nullable: true })
-    isArchived: boolean,
+    @Arg('includeArchived', _type => Boolean, {
+      nullable: true,
+      defaultValue: false,
+    })
+    includeArchived: boolean,
     @Arg('finishStatus', _type => FinishStatus, {
       nullable: true,
       defaultValue: {
@@ -326,9 +329,10 @@ export class RecurringDonationResolver {
       });
     }
 
-    if (isArchived !== undefined) {
+    if (!includeArchived) {
+      // Return only non-archived recurring donations
       query.andWhere(`recurringDonation.isArchived = :isArchived`, {
-        isArchived,
+        isArchived: false,
       });
     }
 
@@ -378,7 +382,7 @@ export class RecurringDonationResolver {
       orderBy,
       userId,
       status,
-      isArchived,
+      includeArchived,
       finishStatus,
       filteredTokens,
     }: UserRecurringDonationsArgs,
@@ -417,9 +421,11 @@ export class RecurringDonationResolver {
         status,
       });
     }
-    if (isArchived !== undefined) {
+
+    if (!includeArchived) {
+      // Return only non-archived recurring donations
       query.andWhere(`recurringDonation.isArchived = :isArchived`, {
-        isArchived,
+        isArchived: false,
       });
     }
 

@@ -331,7 +331,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
     $projectId: Int!
     $searchTerm: String
     $status: String
-    $isArchived: Boolean
+    $includeArchived: Boolean
     $finishStatus: FinishStatus
     $orderBy: RecurringDonationSortBy
   ) {
@@ -341,7 +341,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
       projectId: $projectId
       searchTerm: $searchTerm
       status: $status
-      isArchived: $isArchived
+      includeArchived: $includeArchived
       finishStatus: $finishStatus
       orderBy: $orderBy
 
@@ -373,7 +373,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
     $take: Int
     $skip: Int
     $status: String
-    $isArchived: Boolean
+    $includeArchived: Boolean
     $orderBy: RecurringDonationSortBy
     $finishStatus: FinishStatus
     $userId: Int!
@@ -385,7 +385,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
       orderBy: $orderBy
       userId: $userId
       status: $status
-      isArchived: $isArchived
+      includeArchived: $includeArchived
       finishStatus: $finishStatus
       filteredTokens: $filteredTokens
     ) {

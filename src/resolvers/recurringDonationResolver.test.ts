@@ -1039,10 +1039,10 @@ function recurringDonationsByProjectIdTestCases() {
     assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
     assert.equal(donations[0].status, 'verified');
   });
-  it('should filter by isArchived:true', async () => {
+  it('should filter include archived ones when passing includeArchived:true', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
 
-    await saveRecurringDonationDirectlyToDb({
+    const recurringDonation = await saveRecurringDonationDirectlyToDb({
       donationData: {
         projectId: project.id,
         status: 'verified',
@@ -1063,7 +1063,7 @@ function recurringDonationsByProjectIdTestCases() {
         query: fetchRecurringDonationsByProjectIdQuery,
         variables: {
           projectId: project.id,
-          isArchived: true,
+          includeArchived: true,
         },
       },
       {},
@@ -1071,11 +1071,13 @@ function recurringDonationsByProjectIdTestCases() {
 
     const donations =
       result.data.data.recurringDonationsByProjectId.recurringDonations;
-    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
-    assert.equal(donations[0].id, archivedRecurringDonation.id);
-    assert.equal(donations[0].isArchived, true);
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 2);
+    assert.isOk(
+      donations.find(d => Number(d.id) === archivedRecurringDonation.id),
+    );
+    assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
   });
-  it('should filter by isArchived:false', async () => {
+  it('should not include archived ones when passing includeArchived:false', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
 
     await saveRecurringDonationDirectlyToDb({
@@ -1099,7 +1101,7 @@ function recurringDonationsByProjectIdTestCases() {
         query: fetchRecurringDonationsByProjectIdQuery,
         variables: {
           projectId: project.id,
-          isArchived: false,
+          includeArchived: false,
         },
       },
       {},
@@ -1110,7 +1112,7 @@ function recurringDonationsByProjectIdTestCases() {
     assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
     assert.equal(donations[0].isArchived, false);
   });
-  it('should return both archived and not archived if we dont send isArchived field', async () => {
+  it('should return non archived if we dont send includeArchived field', async () => {
     const project = await saveProjectDirectlyToDb(createProjectData());
 
     const recurringDonation = await saveRecurringDonationDirectlyToDb({
@@ -1121,7 +1123,7 @@ function recurringDonationsByProjectIdTestCases() {
       },
     });
 
-    const archivedRecurringDonation = await saveRecurringDonationDirectlyToDb({
+    await saveRecurringDonationDirectlyToDb({
       donationData: {
         projectId: project.id,
         status: 'verified',
@@ -1147,10 +1149,7 @@ function recurringDonationsByProjectIdTestCases() {
     const donations =
       result.data.data.recurringDonationsByProjectId.recurringDonations;
 
-    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 2);
-    assert.isOk(
-      donations.find(d => Number(d.id) === archivedRecurringDonation.id),
-    );
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
     assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
   });
 }
@@ -1632,7 +1631,7 @@ function recurringDonationsByUserIdTestCases() {
     assert.isOk(donations.find(d => Number(d.id) === activeDonation.id));
     assert.isNotOk(donations.find(d => Number(d.id) === pendingDonation.id));
   });
-  it('should filter by isArchived:true', async () => {
+  it('should filter include archived ones when passing includeArchived:true', async () => {
     await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
@@ -1657,7 +1656,7 @@ function recurringDonationsByUserIdTestCases() {
         query: fetchRecurringDonationsByUserIdQuery,
         variables: {
           userId: donor.id,
-          isArchived: true,
+          includeArchived: true,
         },
       },
       {},
@@ -1665,13 +1664,13 @@ function recurringDonationsByUserIdTestCases() {
 
     const donations =
       result.data.data.recurringDonationsByUserId.recurringDonations;
-    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 2);
     assert.isOk(
       donations.find(d => Number(d.id) === archivedRecurringDonation.id),
     );
-    assert.isNotOk(donations.find(d => Number(d.id) === recurringDonation.id));
+    assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
   });
-  it('should filter by isArchived:false', async () => {
+  it('should not include archived ones when passing includeArchived:false', async () => {
     await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
@@ -1696,7 +1695,7 @@ function recurringDonationsByUserIdTestCases() {
         query: fetchRecurringDonationsByUserIdQuery,
         variables: {
           userId: donor.id,
-          isArchived: false,
+          includeArchived: false,
         },
       },
       {},
@@ -1710,7 +1709,7 @@ function recurringDonationsByUserIdTestCases() {
     );
     assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
   });
-  it('should return both archived and not archived when not sending isArchived field', async () => {
+  it('should return non archived if we dont send includeArchived field', async () => {
     await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
@@ -1742,8 +1741,8 @@ function recurringDonationsByUserIdTestCases() {
 
     const donations =
       result.data.data.recurringDonationsByUserId.recurringDonations;
-    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 2);
-    assert.isOk(
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.isNotOk(
       donations.find(d => Number(d.id) === archivedRecurringDonation.id),
     );
     assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
