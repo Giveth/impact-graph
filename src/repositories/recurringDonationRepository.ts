@@ -51,6 +51,7 @@ export const updateRecurringDonation = async (params: {
     status === RECURRING_DONATION_STATUS.ENDED
   ) {
     recurringDonation.status = status;
+    recurringDonation.finished = true;
   }
 
   if (

@@ -498,6 +498,7 @@ export class RecurringDonationResolver {
         // We just update status of donation with tx status in blockchain network
         // but if user send failed status, and there were nothing in network we change it to failed
         updatedRecurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+        updatedRecurringDonation.finished = true;
         await updatedRecurringDonation.save();
       }
       return updatedRecurringDonation;

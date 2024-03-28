@@ -280,6 +280,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
         },
       );
       recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+      recurringDonation.finished = true;
       return recurringDonation.save();
     }
     const flowRate = ethers.BigNumber.from(decodedData.args[3]).toString();
@@ -294,6 +295,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
         },
       );
       recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+      recurringDonation.finished = true;
       return recurringDonation.save();
     }
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
