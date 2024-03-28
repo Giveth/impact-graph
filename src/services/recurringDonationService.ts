@@ -11,7 +11,10 @@ import { Token } from '../entities/token';
 import { getProvider, NETWORK_IDS, superTokensToToken } from '../provider';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { findProjectById } from '../repositories/projectRepository';
-import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
+import {
+  findRecurringDonationById,
+  updateRecurringDonationFromTheStreamDonations,
+} from '../repositories/recurringDonationRepository';
 import { findUserById } from '../repositories/userRepository';
 import { ChainType } from '../types/network';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -211,6 +214,8 @@ export const createRelatedDonationsToStream = async (
           donation.amount,
         );
       }
+
+      await updateRecurringDonationFromTheStreamDonations(recurringDonation.id);
 
       await updateUserTotalDonated(donation.userId);
 

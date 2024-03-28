@@ -85,12 +85,12 @@ export const updateRecurringDonationFromTheStreamDonations = async (
       SET "totalUsdStreamed" = (
         SELECT COALESCE(SUM(d."valueUsd"), 0)
         FROM donation as d
-        WHERE d.recurringDonationId = $1
+        WHERE d."recurringDonationId" = $1
       ),
       "amountStreamed" = (
         SELECT COALESCE(SUM(d."amount"), 0)
         FROM donation as d
-        WHERE d.recurringDonationId = $1
+        WHERE d."recurringDonationId" = $1
       )
       WHERE "id" = $1
     `,
