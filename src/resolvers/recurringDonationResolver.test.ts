@@ -1168,7 +1168,7 @@ function recurringDonationsByUserIdTestCases() {
     assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 3);
     assert.isOk(donations.find(d => Number(d.id) === d1.id));
   });
-  it('should filter by finishStatus filter both true and false', async () => {
+  it('should filter by finishStatus filter both active and ended', async () => {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const d1 = await saveRecurringDonationDirectlyToDb({
@@ -1190,7 +1190,7 @@ function recurringDonationsByUserIdTestCases() {
         query: fetchRecurringDonationsByUserIdQuery,
         variables: {
           userId: donor.id,
-          finishStatus: [true, false],
+          finishStatus: { active: true, ended: true },
         },
       },
       {},
@@ -1235,16 +1235,16 @@ function recurringDonationsByUserIdTestCases() {
     assert.isNotOk(donations.find(d => Number(d.id) === d1.id));
     assert.isOk(donations.find(d => Number(d.id) === d2.id));
   });
-  it('should filter by finishStatus filter just true', async () => {
+  it('should filter by finishStatus filter just active', async () => {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const d1 = await saveRecurringDonationDirectlyToDb({
+    const endedOne = await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         finished: true,
       },
     });
-    const d2 = await saveRecurringDonationDirectlyToDb({
+    const activeOne = await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         finished: false,
@@ -1257,7 +1257,7 @@ function recurringDonationsByUserIdTestCases() {
         query: fetchRecurringDonationsByUserIdQuery,
         variables: {
           userId: donor.id,
-          finishStatus: [true],
+          finishStatus: { active: true, ended: false },
         },
       },
       {},
@@ -1266,20 +1266,20 @@ function recurringDonationsByUserIdTestCases() {
     const donations =
       result.data.data.recurringDonationsByUserId.recurringDonations;
     assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
-    assert.isOk(donations.find(d => Number(d.id) === d1.id));
-    assert.isNotOk(donations.find(d => Number(d.id) === d2.id));
+    assert.isOk(donations.find(d => Number(d.id) === activeOne.id));
+    assert.isNotOk(donations.find(d => Number(d.id) === endedOne.id));
   });
-  it('should filter by finishStatus filter just false', async () => {
+  it('should filter by finishStatus filter just ended', async () => {
     await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const d1 = await saveRecurringDonationDirectlyToDb({
+    const endedOne = await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         finished: true,
       },
     });
-    const d2 = await saveRecurringDonationDirectlyToDb({
+    const activeOne = await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         finished: false,
@@ -1292,7 +1292,7 @@ function recurringDonationsByUserIdTestCases() {
         query: fetchRecurringDonationsByUserIdQuery,
         variables: {
           userId: donor.id,
-          finishStatus: [false],
+          finishStatus: { active: false, ended: true },
         },
       },
       {},
@@ -1301,8 +1301,8 @@ function recurringDonationsByUserIdTestCases() {
     const donations =
       result.data.data.recurringDonationsByUserId.recurringDonations;
     assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
-    assert.isNotOk(donations.find(d => Number(d.id) === d1.id));
-    assert.isOk(donations.find(d => Number(d.id) === d2.id));
+    assert.isNotOk(donations.find(d => Number(d.id) === activeOne.id));
+    assert.isOk(donations.find(d => Number(d.id) === endedOne.id));
   });
   it('should filter by status and return active recurring donations', async () => {
     await saveProjectDirectlyToDb(createProjectData());

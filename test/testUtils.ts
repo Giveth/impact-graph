@@ -1931,7 +1931,10 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
     status: params?.donationData?.status || 'pending',
     networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     currency: params?.donationData?.currency || 'USDT',
-    finished: params?.donationData?.finished || false,
+    finished:
+      params?.donationData?.finished !== undefined
+        ? params?.donationData?.finished
+        : false,
     txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),
     anonymous,
     donorId,
