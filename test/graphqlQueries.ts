@@ -331,6 +331,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
     $projectId: Int!
     $searchTerm: String
     $status: String
+    $includeArchived: Boolean
     $finishStatus: FinishStatus
     $orderBy: RecurringDonationSortBy
   ) {
@@ -340,6 +341,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
       projectId: $projectId
       searchTerm: $searchTerm
       status: $status
+      includeArchived: $includeArchived
       finishStatus: $finishStatus
       orderBy: $orderBy
 
@@ -351,6 +353,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
         flowRate
         currency
         anonymous
+        isArchived
         status
         donor {
           id
@@ -370,6 +373,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
     $take: Int
     $skip: Int
     $status: String
+    $includeArchived: Boolean
     $orderBy: RecurringDonationSortBy
     $finishStatus: FinishStatus
     $userId: Int!
@@ -381,6 +385,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
       orderBy: $orderBy
       userId: $userId
       status: $status
+      includeArchived: $includeArchived
       finishStatus: $finishStatus
       filteredTokens: $filteredTokens
     ) {
@@ -392,6 +397,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
         currency
         anonymous
         status
+        isArchived
         donor {
           id
           walletAddress
@@ -2282,6 +2288,7 @@ export const createRecurringDonationQuery = `
       txHash
       networkId
       anonymous
+      isArchived
     }
   }
 `;
@@ -2294,6 +2301,7 @@ export const updateRecurringDonationQuery = `
         $txHash: String
         $flowRate: String
         $anonymous: Boolean
+        $isArchived: Boolean
         $status: String
         ) {
           updateRecurringDonationParams(
@@ -2304,6 +2312,7 @@ export const updateRecurringDonationQuery = `
             anonymous:$anonymous
             flowRate:$flowRate
             status:$status
+            isArchived:$isArchived
         ) {
             txHash
             networkId
@@ -2311,6 +2320,7 @@ export const updateRecurringDonationQuery = `
             flowRate
             anonymous
             status
+            isArchived
           }
       }
 `;

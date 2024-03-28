@@ -22,7 +22,6 @@ export const RECURRING_DONATION_STATUS = {
   VERIFIED: 'verified',
   ENDED: 'ended',
   FAILED: 'failed',
-  ARCHIVED: 'archived',
   ACTIVE: 'active',
 };
 
@@ -81,6 +80,10 @@ export class RecurringDonation extends BaseEntity {
   @Column({ nullable: true, default: false })
   @Field({ nullable: true })
   finished: boolean;
+
+  @Column({ nullable: true, default: false })
+  @Field({ nullable: true })
+  isArchived: boolean;
 
   @Column({ nullable: true, default: false })
   @Field({ nullable: true })
