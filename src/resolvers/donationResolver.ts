@@ -259,6 +259,7 @@ export class DonationResolver {
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<MainCategoryDonations[] | []> {
     try {
       validateWithJoiSchema(
@@ -295,10 +296,13 @@ export class DonationResolver {
         }
       }
 
-      const result = await query.getRawMany();
-      return result;
+      if (onlyVerified) {
+        query.andWhere('projects.verified = true');
+      }
+
+      return await query.getRawMany();
     } catch (e) {
-      logger.error('donations query error', e);
+      logger.error('totalDonationsPerCategory query error', e);
       throw e;
     }
   }
@@ -309,6 +313,7 @@ export class DonationResolver {
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -319,12 +324,14 @@ export class DonationResolver {
         fromDate,
         toDate,
         fromOptimismOnly,
+        onlyVerified,
       );
       const totalPerMonthAndYear =
         await donationsTotalAmountPerDateRangeByMonth(
           fromDate,
           toDate,
           fromOptimismOnly,
+          onlyVerified,
         );
 
       return {
@@ -343,6 +350,7 @@ export class DonationResolver {
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -353,12 +361,14 @@ export class DonationResolver {
         fromDate,
         toDate,
         fromOptimismOnly,
+        onlyVerified,
       );
       const totalPerMonthAndYear =
         await donationsTotalNumberPerDateRangeByMonth(
           fromDate,
           toDate,
           fromOptimismOnly,
+          onlyVerified,
         );
 
       return {
