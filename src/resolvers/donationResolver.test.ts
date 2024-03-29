@@ -138,11 +138,29 @@ function totalDonationsPerCategoryPerDateTestCases() {
     const totalDonationsToVerified = await axios.post(graphqlUrl, {
       query: fetchTotalDonationsPerCategoryPerDate,
       variables: {
-        fromDate: moment().add(30, 'days').toDate(),
+        fromDate: moment().add(29, 'days').toDate(),
         toDate: moment().add(31, 'days').toDate(),
         onlyVerified: true,
       },
     });
+    const d = await Donation.find();
+    // eslint-disable-next-line no-console
+    console.log('---------------------------');
+    // eslint-disable-next-line no-console
+    console.log(
+      totalDonationsToVerified.data.data,
+      donationsResponse.data.data,
+      d.map(d => {
+        return {
+          id: d.id,
+          valueUsd: d.valueUsd,
+          status: d.status,
+          createdAt: d.createdAt,
+        };
+      }),
+    );
+    // eslint-disable-next-line no-console
+    console.log('---------------------------');
     const foodTotal =
       totalDonationsToVerified.data.data.totalDonationsPerCategory.find(
         d => d.title === 'food',
