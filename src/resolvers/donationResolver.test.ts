@@ -138,7 +138,7 @@ function totalDonationsPerCategoryPerDateTestCases() {
     const totalDonationsToVerified = await axios.post(graphqlUrl, {
       query: fetchTotalDonationsPerCategoryPerDate,
       variables: {
-        fromDate: moment().add(30, 'days').toDate(),
+        fromDate: moment().add(29, 'days').toDate(),
         toDate: moment().add(31, 'days').toDate(),
         onlyVerified: true,
       },
