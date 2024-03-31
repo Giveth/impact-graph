@@ -128,6 +128,9 @@ class UserRecurringDonationsArgs {
   @Field(_type => String, { nullable: true })
   status: string;
 
+  @Field(_type => Boolean, { nullable: true, defaultValue: false })
+  includeArchived: boolean;
+
   @Field(_type => FinishStatus, {
     nullable: true,
     defaultValue: {
@@ -206,6 +209,7 @@ export class RecurringDonationResolver {
     @Arg('txHash', () => String, { nullable: true }) txHash?: string,
     @Arg('flowRate', () => String, { nullable: true }) flowRate?: string,
     @Arg('anonymous', () => Boolean, { nullable: true }) anonymous?: boolean,
+    @Arg('isArchived', () => Boolean, { nullable: true }) isArchived?: boolean,
     @Arg('status', () => String, { nullable: true }) status?: string,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
@@ -247,6 +251,7 @@ export class RecurringDonationResolver {
       flowRate,
       anonymous,
       status,
+      isArchived,
     });
   }
 
@@ -257,6 +262,11 @@ export class RecurringDonationResolver {
     @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
     @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
     @Arg('status', _type => String, { nullable: true }) status: string,
+    @Arg('includeArchived', _type => Boolean, {
+      nullable: true,
+      defaultValue: false,
+    })
+    includeArchived: boolean,
     @Arg('finishStatus', _type => FinishStatus, {
       nullable: true,
       defaultValue: {
@@ -319,6 +329,13 @@ export class RecurringDonationResolver {
       });
     }
 
+    if (!includeArchived) {
+      // Return only non-archived recurring donations
+      query.andWhere(`recurringDonation.isArchived = :isArchived`, {
+        isArchived: false,
+      });
+    }
+
     if (searchTerm) {
       query.andWhere(
         new Brackets(qb => {
@@ -365,6 +382,7 @@ export class RecurringDonationResolver {
       orderBy,
       userId,
       status,
+      includeArchived,
       finishStatus,
       filteredTokens,
     }: UserRecurringDonationsArgs,
@@ -401,6 +419,13 @@ export class RecurringDonationResolver {
     if (status) {
       query.andWhere(`recurringDonation.status = :status`, {
         status,
+      });
+    }
+
+    if (!includeArchived) {
+      // Return only non-archived recurring donations
+      query.andWhere(`recurringDonation.isArchived = :isArchived`, {
+        isArchived: false,
       });
     }
 

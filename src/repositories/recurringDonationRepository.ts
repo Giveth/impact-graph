@@ -34,9 +34,11 @@ export const updateRecurringDonation = async (params: {
   txHash?: string;
   flowRate?: string;
   anonymous?: boolean;
+  isArchived?: boolean;
   status?: string;
 }): Promise<RecurringDonation> => {
-  const { recurringDonation, txHash, anonymous, flowRate, status } = params;
+  const { recurringDonation, txHash, anonymous, flowRate, status, isArchived } =
+    params;
   if (txHash && flowRate) {
     recurringDonation.txHash = txHash;
     recurringDonation.flowRate = flowRate;
@@ -56,9 +58,12 @@ export const updateRecurringDonation = async (params: {
 
   if (
     recurringDonation.status === RECURRING_DONATION_STATUS.ENDED &&
-    status === RECURRING_DONATION_STATUS.ARCHIVED
+    isArchived
   ) {
-    recurringDonation.status = status;
+    recurringDonation.isArchived = true;
+  } else if (isArchived === false) {
+    // isArchived can be undefined, so we need to check if it's false
+    recurringDonation.isArchived = false;
   }
 
   return recurringDonation.save();
