@@ -149,7 +149,7 @@ export const getPendingRecurringDonationsIds = (): Promise<
   const date = moment()
     .subtract({
       hours: Number(
-        process.env.RECURRING_DONATION_VERIFICAITON_EXPIRATION_HOURS,
+        process.env.RECURRING_DONATION_VERIFICATION_EXPIRATION_HOURS,
       ),
     })
     .toDate();
