@@ -62,7 +62,7 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
             name: 'ETHx',
             symbol: 'ETHx',
           },
-          maybeCriticalAtTimestamp: null,
+          maybeCriticalAtTimestamp: 1738525894,
         },
         {
           token: {
@@ -70,7 +70,7 @@ export class SuperFluidMockAdapter implements SuperFluidAdapterInterface {
             name: 'Daix',
             symbol: 'Daix',
           },
-          maybeCriticalAtTimestamp: null,
+          maybeCriticalAtTimestamp: 1738525894,
         },
       ],
     };

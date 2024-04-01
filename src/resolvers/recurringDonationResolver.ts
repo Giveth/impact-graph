@@ -55,6 +55,15 @@ class RecurringDonationSortBy {
   direction: RecurringDonationSortDirection;
 }
 
+@InputType()
+class FinishStatus {
+  @Field(_type => Boolean)
+  active: boolean;
+
+  @Field(_type => Boolean)
+  ended: boolean;
+}
+
 export enum RecurringDonationSortField {
   createdAt = 'createdAt',
   flowRate = 'flowRate',
@@ -78,6 +87,11 @@ registerEnumType(RecurringDonationSortField, {
 registerEnumType(RecurringDonationSortDirection, {
   name: 'RecurringDonationSortDirection',
   description: 'Sort direction',
+});
+
+registerEnumType(FinishStatus, {
+  name: 'FinishStatus',
+  description: 'Filter active status',
 });
 
 @ObjectType()
@@ -114,8 +128,17 @@ class UserRecurringDonationsArgs {
   @Field(_type => String, { nullable: true })
   status: string;
 
-  @Field(_type => [Boolean], { nullable: true, defaultValue: [false] })
-  finishStatus: boolean[];
+  @Field(_type => Boolean, { nullable: true, defaultValue: false })
+  includeArchived: boolean;
+
+  @Field(_type => FinishStatus, {
+    nullable: true,
+    defaultValue: {
+      active: true,
+      ended: false,
+    },
+  })
+  finishStatus: FinishStatus;
 
   @Field(_type => [String], { nullable: true, defaultValue: [] })
   filteredTokens: string[];
@@ -186,6 +209,7 @@ export class RecurringDonationResolver {
     @Arg('txHash', () => String, { nullable: true }) txHash?: string,
     @Arg('flowRate', () => String, { nullable: true }) flowRate?: string,
     @Arg('anonymous', () => Boolean, { nullable: true }) anonymous?: boolean,
+    @Arg('isArchived', () => Boolean, { nullable: true }) isArchived?: boolean,
     @Arg('status', () => String, { nullable: true }) status?: string,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
@@ -227,6 +251,7 @@ export class RecurringDonationResolver {
       flowRate,
       anonymous,
       status,
+      isArchived,
     });
   }
 
@@ -237,11 +262,19 @@ export class RecurringDonationResolver {
     @Arg('skip', _type => Int, { defaultValue: 0 }) skip: number,
     @Arg('projectId', _type => Int, { nullable: false }) projectId: number,
     @Arg('status', _type => String, { nullable: true }) status: string,
-    @Arg('finishStatus', _type => [Boolean], {
+    @Arg('includeArchived', _type => Boolean, {
       nullable: true,
-      defaultValue: [false],
+      defaultValue: false,
     })
-    finishStatus: boolean[],
+    includeArchived: boolean,
+    @Arg('finishStatus', _type => FinishStatus, {
+      nullable: true,
+      defaultValue: {
+        active: true,
+        ended: false,
+      },
+    })
+    finishStatus: FinishStatus,
     @Arg('searchTerm', _type => String, { nullable: true }) searchTerm: string,
     @Arg('orderBy', _type => RecurringDonationSortBy, {
       defaultValue: {
@@ -277,16 +310,29 @@ export class RecurringDonationResolver {
       orderBy.direction,
       RecurringDonationNullDirection[orderBy.direction as string],
     );
-
-    if (finishStatus && finishStatus.length > 0) {
-      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
-        finishStatus,
+    const finishStatusArray: boolean[] = [];
+    if (finishStatus.active) {
+      finishStatusArray.push(false);
+    }
+    if (finishStatus.ended) {
+      finishStatusArray.push(true);
+    }
+    if (finishStatusArray.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatusArray)`, {
+        finishStatusArray,
       });
     }
 
     if (status) {
       query.andWhere(`recurringDonation.status = :status`, {
         status,
+      });
+    }
+
+    if (!includeArchived) {
+      // Return only non-archived recurring donations
+      query.andWhere(`recurringDonation.isArchived = :isArchived`, {
+        isArchived: false,
       });
     }
 
@@ -336,6 +382,7 @@ export class RecurringDonationResolver {
       orderBy,
       userId,
       status,
+      includeArchived,
       finishStatus,
       filteredTokens,
     }: UserRecurringDonationsArgs,
@@ -370,14 +417,28 @@ export class RecurringDonationResolver {
     }
 
     if (status) {
-      query.andWhere(`donation.status = :status`, {
+      query.andWhere(`recurringDonation.status = :status`, {
         status,
       });
     }
 
-    if (finishStatus && finishStatus.length > 0) {
-      query.andWhere(`recurringDonation.finished in (:...finishStatus)`, {
-        finishStatus,
+    if (!includeArchived) {
+      // Return only non-archived recurring donations
+      query.andWhere(`recurringDonation.isArchived = :isArchived`, {
+        isArchived: false,
+      });
+    }
+
+    const finishStatusArray: boolean[] = [];
+    if (finishStatus.active) {
+      finishStatusArray.push(false);
+    }
+    if (finishStatus.ended) {
+      finishStatusArray.push(true);
+    }
+    if (finishStatusArray.length > 0) {
+      query.andWhere(`recurringDonation.finished in (:...finishStatusArray)`, {
+        finishStatusArray,
       });
     }
 
@@ -462,6 +523,7 @@ export class RecurringDonationResolver {
         // We just update status of donation with tx status in blockchain network
         // but if user send failed status, and there were nothing in network we change it to failed
         updatedRecurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+        updatedRecurringDonation.finished = true;
         await updatedRecurringDonation.save();
       }
       return updatedRecurringDonation;

@@ -335,6 +335,7 @@ async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.FOURTH_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.FIFTH_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.SIXTH_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.NON_VERIFIED_PROJECT);
 }
 
 async function seedProjectUpdates() {

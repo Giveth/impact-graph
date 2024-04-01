@@ -1,7 +1,10 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 import { ethers } from 'ethers';
-import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
+import {
+  getNotificationAdapter,
+  getSuperFluidAdapter,
+} from '../adapters/adaptersFactory';
 import { DONATION_STATUS, Donation } from '../entities/donation';
 import {
   RECURRING_DONATION_STATUS,
@@ -11,7 +14,10 @@ import { Token } from '../entities/token';
 import { getProvider, NETWORK_IDS, superTokensToToken } from '../provider';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { findProjectById } from '../repositories/projectRepository';
-import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
+import {
+  findRecurringDonationById,
+  updateRecurringDonationFromTheStreamDonations,
+} from '../repositories/recurringDonationRepository';
 import { findUserById } from '../repositories/userRepository';
 import { ChainType } from '../types/network';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
@@ -19,6 +25,7 @@ import { logger } from '../utils/logger';
 import { isTestEnv } from '../utils/utils';
 import {
   isTokenAcceptableForProject,
+  updateDonationPricesAndValues,
   updateTotalDonationsOfProject,
 } from './donationService';
 import { calculateGivbackFactor } from './givbackService';
@@ -56,6 +63,7 @@ export const createRelatedDonationsToStream = async (
     priceGranularity: priceDisplay,
     virtualization: priceDisplay,
     currency: 'USD',
+    recurringDonationTxHash: recurringDonation.txHash,
   });
 
   if (
@@ -199,6 +207,19 @@ export const createRelatedDonationsToStream = async (
 
       await donation.save();
 
+      if (!donation.valueUsd || donation.valueUsd === 0) {
+        updateDonationPricesAndValues(
+          donation,
+          project,
+          tokenInDb,
+          donation.currency,
+          donation.transactionNetworkId,
+          donation.amount,
+        );
+      }
+
+      await updateRecurringDonationFromTheStreamDonations(recurringDonation.id);
+
       await updateUserTotalDonated(donation.userId);
 
       // After updating price we update totalDonations
@@ -262,6 +283,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
         },
       );
       recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+      recurringDonation.finished = true;
       return recurringDonation.save();
     }
     const flowRate = ethers.BigNumber.from(decodedData.args[3]).toString();
@@ -276,10 +298,19 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
         },
       );
       recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+      recurringDonation.finished = true;
       return recurringDonation.save();
     }
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
-    return recurringDonation.save();
+    await recurringDonation.save();
+    const project = recurringDonation.project;
+    const projectOwner = await findUserById(project.adminUser.id);
+    await getNotificationAdapter().donationReceived({
+      project,
+      user: projectOwner,
+      donation: recurringDonation,
+    });
+    return recurringDonation;
   } catch (e) {
     logger.error('updateRecurringDonationStatusWithNetwork() error', e);
     return recurringDonation;

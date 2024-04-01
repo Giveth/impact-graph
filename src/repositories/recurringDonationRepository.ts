@@ -34,9 +34,11 @@ export const updateRecurringDonation = async (params: {
   txHash?: string;
   flowRate?: string;
   anonymous?: boolean;
+  isArchived?: boolean;
   status?: string;
 }): Promise<RecurringDonation> => {
-  const { recurringDonation, txHash, anonymous, flowRate, status } = params;
+  const { recurringDonation, txHash, anonymous, flowRate, status, isArchived } =
+    params;
   if (txHash && flowRate) {
     recurringDonation.txHash = txHash;
     recurringDonation.flowRate = flowRate;
@@ -51,13 +53,17 @@ export const updateRecurringDonation = async (params: {
     status === RECURRING_DONATION_STATUS.ENDED
   ) {
     recurringDonation.status = status;
+    recurringDonation.finished = true;
   }
 
   if (
     recurringDonation.status === RECURRING_DONATION_STATUS.ENDED &&
-    status === RECURRING_DONATION_STATUS.ARCHIVED
+    isArchived
   ) {
-    recurringDonation.status = status;
+    recurringDonation.isArchived = true;
+  } else if (isArchived === false) {
+    // isArchived can be undefined, so we need to check if it's false
+    recurringDonation.isArchived = false;
   }
 
   return recurringDonation.save();
@@ -85,12 +91,12 @@ export const updateRecurringDonationFromTheStreamDonations = async (
       SET "totalUsdStreamed" = (
         SELECT COALESCE(SUM(d."valueUsd"), 0)
         FROM donation as d
-        WHERE d.recurringDonationId = $1
+        WHERE d."recurringDonationId" = $1
       ),
       "amountStreamed" = (
         SELECT COALESCE(SUM(d."amount"), 0)
         FROM donation as d
-        WHERE d.recurringDonationId = $1
+        WHERE d."recurringDonationId" = $1
       )
       WHERE "id" = $1
     `,

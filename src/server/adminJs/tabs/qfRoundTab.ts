@@ -25,6 +25,7 @@ import { NETWORK_IDS } from '../../../provider';
 import { logger } from '../../../utils/logger';
 import { messages } from '../../../utils/messages';
 import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
+import { errorMessages } from '../../../utils/errorMessages';
 
 export const refreshMaterializedViews = async (
   response,
@@ -198,13 +199,19 @@ export const qfRoundTab = {
           if (request?.payload?.id) {
             const qfRoundId = Number(request.payload.id);
             const qfRound = await findQfRoundById(qfRoundId);
-            if (!qfRound || isQfRoundHasEnded({ endDate: qfRound!.endDate })) {
+            if (!qfRound) {
               throw new ValidationError({
                 endDate: {
-                  message:
-                    'The endDate has passed so qfRound cannot be edited.',
+                  message: errorMessages.QF_ROUND_NOT_FOUND,
                 },
               });
+            }
+            if (isQfRoundHasEnded({ endDate: qfRound!.endDate })) {
+              // When qf round is ended we should not be able to edit begin date and end date
+              // https://github.com/Giveth/giveth-dapps-v2/issues/3864
+              request.payload.endDate = qfRound.endDate;
+              request.payload.beginDate = qfRound.beginDate;
+              request.payload.isActive = qfRound.isActive;
             }
           }
           return request;

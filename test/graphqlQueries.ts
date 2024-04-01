@@ -331,7 +331,8 @@ export const fetchRecurringDonationsByProjectIdQuery = `
     $projectId: Int!
     $searchTerm: String
     $status: String
-    $finishStatus: [Boolean!]
+    $includeArchived: Boolean
+    $finishStatus: FinishStatus
     $orderBy: RecurringDonationSortBy
   ) {
     recurringDonationsByProjectId(
@@ -340,6 +341,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
       projectId: $projectId
       searchTerm: $searchTerm
       status: $status
+      includeArchived: $includeArchived
       finishStatus: $finishStatus
       orderBy: $orderBy
 
@@ -351,6 +353,7 @@ export const fetchRecurringDonationsByProjectIdQuery = `
         flowRate
         currency
         anonymous
+        isArchived
         status
         donor {
           id
@@ -370,8 +373,9 @@ export const fetchRecurringDonationsByUserIdQuery = `
     $take: Int
     $skip: Int
     $status: String
+    $includeArchived: Boolean
     $orderBy: RecurringDonationSortBy
-    $finishStatus: [Boolean!]
+    $finishStatus: FinishStatus
     $userId: Int!
     $filteredTokens: [String!]
   ) {
@@ -381,6 +385,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
       orderBy: $orderBy
       userId: $userId
       status: $status
+      includeArchived: $includeArchived
       finishStatus: $finishStatus
       filteredTokens: $filteredTokens
     ) {
@@ -392,6 +397,7 @@ export const fetchRecurringDonationsByUserIdQuery = `
         currency
         anonymous
         status
+        isArchived
         donor {
           id
           walletAddress
@@ -494,11 +500,13 @@ export const fetchTotalDonationsPerCategoryPerDate = `
     $fromDate: String
     $toDate: String
     $fromOptimismOnly: Boolean
+    $onlyVerified: Boolean
   ) {
     totalDonationsPerCategory(
       fromDate: $fromDate
       toDate: $toDate
       fromOptimismOnly: $fromOptimismOnly
+      onlyVerified: $onlyVerified
     ) {
       id
       title
@@ -554,11 +562,13 @@ export const fetchTotalDonationsUsdAmount = `
     $fromDate: String
     $toDate: String
     $fromOptimismOnly: Boolean
+    $onlyVerified: Boolean
   ) {
     donationsTotalUsdPerDate (
       fromDate: $fromDate
       toDate: $toDate
       fromOptimismOnly: $fromOptimismOnly
+      onlyVerified: $onlyVerified
     ) {
       total
       totalPerMonthAndYear {
@@ -574,11 +584,13 @@ export const fetchTotalDonationsNumberPerDateRange = `
     $fromDate: String
     $toDate: String
     $fromOptimismOnly: Boolean
+    $onlyVerified: Boolean
   ) {
     totalDonationsNumberPerDate (
       fromDate: $fromDate
       toDate: $toDate
       fromOptimismOnly: $fromOptimismOnly
+      onlyVerified: $onlyVerified
     ) {
       total
       totalPerMonthAndYear {
@@ -2282,6 +2294,7 @@ export const createRecurringDonationQuery = `
       txHash
       networkId
       anonymous
+      isArchived
     }
   }
 `;
@@ -2294,6 +2307,7 @@ export const updateRecurringDonationQuery = `
         $txHash: String
         $flowRate: String
         $anonymous: Boolean
+        $isArchived: Boolean
         $status: String
         ) {
           updateRecurringDonationParams(
@@ -2304,6 +2318,7 @@ export const updateRecurringDonationQuery = `
             anonymous:$anonymous
             flowRate:$flowRate
             status:$status
+            isArchived:$isArchived
         ) {
             txHash
             networkId
@@ -2311,6 +2326,7 @@ export const updateRecurringDonationQuery = `
             flowRate
             anonymous
             status
+            isArchived
           }
       }
 `;

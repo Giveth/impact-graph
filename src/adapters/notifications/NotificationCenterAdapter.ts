@@ -23,7 +23,7 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
-import { findTokenByNetworkAndAddress } from '../../utils/tokenUtils';
+import { RecurringDonation } from '../../entities/recurringDonation';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -866,14 +866,30 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 const getEmailDataDonationAttributes = async (params: {
   user: User;
   project: Project;
-  donation: Donation;
+  donation: Donation | RecurringDonation;
 }) => {
   const { user, project, donation } = params;
-  const token = await findTokenByNetworkAndAddress(
-    donation.transactionNetworkId,
-    donation.tokenAddress!,
-  );
-  const symbol = token?.symbol;
+  const isRecurringDonation = donation instanceof RecurringDonation;
+  let amount: number,
+    transactionId: string,
+    transactionNetworkId: number,
+    toWalletAddress: string | undefined,
+    donationValueUsd: number | undefined,
+    donationValueEth: number | undefined,
+    transakStatus: string | undefined;
+  if (isRecurringDonation) {
+    amount = Number(donation.flowRate) * 60 * 60 * 24 * 30; // convert flowRate from per second to per month
+    transactionId = donation.txHash;
+    transactionNetworkId = donation.networkId;
+  } else {
+    amount = Number(donation.amount);
+    transactionId = donation.transactionId;
+    transactionNetworkId = donation.transactionNetworkId;
+    toWalletAddress = donation.toWalletAddress.toLowerCase();
+    donationValueUsd = donation.valueUsd;
+    donationValueEth = donation.valueEth;
+    transakStatus = donation.transakStatus;
+  }
   return {
     email: user.email,
     title: project.title,
@@ -882,21 +898,19 @@ const getEmailDataDonationAttributes = async (params: {
     projectOwnerId: project.admin,
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
-    amount: Number(donation.amount),
-    token: symbol,
-    transactionId: donation.transactionId.toLowerCase(),
-    transactionNetworkId: Number(donation.transactionNetworkId),
-    transactionLink: buildTxLink(
-      donation.transactionId,
-      donation.transactionNetworkId,
-    ),
+    amount,
+    isRecurringDonation,
+    token: donation.currency,
+    transactionId: transactionId.toLowerCase(),
+    transactionNetworkId: Number(transactionNetworkId),
+    transactionLink: buildTxLink(transactionId, transactionNetworkId),
     currency: donation.currency,
-    createdAt: new Date(),
-    toWalletAddress: donation.toWalletAddress.toLowerCase(),
-    donationValueUsd: donation.valueUsd,
-    donationValueEth: donation.valueEth,
+    createdAt: donation.createdAt,
+    toWalletAddress,
+    donationValueUsd,
+    donationValueEth,
     verified: Boolean(project.verified),
-    transakStatus: donation.transakStatus,
+    transakStatus,
   };
 };
 
