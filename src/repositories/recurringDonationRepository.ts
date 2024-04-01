@@ -148,12 +148,12 @@ export const getPendingRecurringDonationsIds = (): Promise<
 > => {
   const date = moment()
     .subtract({
-      hours: Number(
-        process.env.RECURRING_DONATION_VERIFICAITON_EXPIRATION_HOURS,
-      ),
+      hours:
+        Number(process.env.RECURRING_DONATION_VERIFICAITON_EXPIRATION_HOURS) ||
+        72,
     })
     .toDate();
-
+  logger.debug('getPendingRecurringDonationsIds  -> expirationDate', date);
   return RecurringDonation.find({
     where: {
       status: RECURRING_DONATION_STATUS.PENDING,
