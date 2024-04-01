@@ -241,6 +241,10 @@ export function normalizeNegativeAmount(
 export const updateRecurringDonationStatusWithNetwork = async (params: {
   donationId: number;
 }): Promise<RecurringDonation> => {
+  logger.debug(
+    'updateRecurringDonationStatusWithNetwork() has been called',
+    params,
+  );
   const recurringDonation = await findRecurringDonationById(params.donationId);
   if (!recurringDonation) {
     throw new Error('Recurring donation not found');
