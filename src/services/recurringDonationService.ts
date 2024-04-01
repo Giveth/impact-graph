@@ -1,7 +1,10 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 import { ethers } from 'ethers';
-import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
+import {
+  getNotificationAdapter,
+  getSuperFluidAdapter,
+} from '../adapters/adaptersFactory';
 import { DONATION_STATUS, Donation } from '../entities/donation';
 import {
   RECURRING_DONATION_STATUS,
@@ -299,7 +302,15 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
       return recurringDonation.save();
     }
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
-    return recurringDonation.save();
+    await recurringDonation.save();
+    const project = recurringDonation.project;
+    const projectOwner = await findUserById(project.adminUser.id);
+    await getNotificationAdapter().donationReceived({
+      project,
+      user: projectOwner,
+      donation: recurringDonation,
+    });
+    return recurringDonation;
   } catch (e) {
     logger.error('updateRecurringDonationStatusWithNetwork() error', e);
     return recurringDonation;
