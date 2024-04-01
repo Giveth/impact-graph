@@ -29,3 +29,12 @@ whether they have donations or not. If they have no donations, the amount will b
 * Validates that donations in non-eligible networks are **excluded** from both pre-analysis and post-analysis
 * Confirms that donations to flagged fraud projects are **ignored** in calculations
 * Ensures pending and failed donation statuses are **excluded** from both pre-analysis and post-analysis totals
+
+## Estimated Matching
+Estimated Matching is like actual matching except we **dont ignore** donations in these cases :
+* donations from recipients of verified projects
+* donations from users with low passport scores
+* donations from sybil users
+* donations lower than `qfRound.minimumValidUsdValue`
+* donations to flagged fraud projects
+
