@@ -1,3 +1,5 @@
+import moment from 'moment';
+import { MoreThan } from 'typeorm';
 import { Project } from '../entities/project';
 import { User } from '../entities/user';
 import {
@@ -140,3 +142,23 @@ export const findRecurringDonationByProjectIdAndUserIdAndCurrency =
       .leftJoinAndSelect('recurringDonation.project', 'project')
       .getOne();
   };
+
+export const getPendingRecurringDonationsIds = (): Promise<
+  { id: number }[]
+> => {
+  const date = moment()
+    .subtract({
+      hours: Number(
+        process.env.RECURRING_DONATION_VERIFICAITON_EXPIRATION_HOURS,
+      ),
+    })
+    .toDate();
+
+  return RecurringDonation.find({
+    where: {
+      status: RECURRING_DONATION_STATUS.PENDING,
+      createdAt: MoreThan(date),
+    },
+    select: ['id'],
+  });
+};
