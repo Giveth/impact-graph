@@ -211,6 +211,7 @@ export const qfRoundTab = {
               // https://github.com/Giveth/giveth-dapps-v2/issues/3864
               request.payload.endDate = qfRound.endDate;
               request.payload.beginDate = qfRound.beginDate;
+              request.payload.isActive = qfRound.isActive;
             }
           }
           return request;
