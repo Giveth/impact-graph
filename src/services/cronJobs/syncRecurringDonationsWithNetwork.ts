@@ -33,10 +33,12 @@ export const runCheckPendingRecurringDonationsCronJob = () => {
     cronJobTime,
   );
   processVerifyRecurringDonationsJobs();
+
   // https://github.com/node-cron/node-cron#cron-syntax
   schedule(cronJobTime, async () => {
     await addJobToCheckPendingRecurringDonationsWithNetwork();
   });
+  addJobToCheckPendingRecurringDonationsWithNetwork();
 };
 
 const addJobToCheckPendingRecurringDonationsWithNetwork = async () => {
@@ -46,7 +48,7 @@ const addJobToCheckPendingRecurringDonationsWithNetwork = async () => {
 
   const recurringDonations = await getPendingRecurringDonationsIds();
   logger.debug(
-    'Pending recurring recurringDonations to be check',
+    'Pending recurringDonations to be check',
     recurringDonations.length,
   );
   recurringDonations.forEach(donation => {
