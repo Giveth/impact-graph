@@ -70,6 +70,7 @@ import { runSyncBackupServiceDonations } from '../services/cronJobs/backupDonati
 import { runUpdateRecurringDonationStream } from '../services/cronJobs/updateStreamOldRecurringDonationsJob';
 import { runDraftDonationMatchWorkerJob } from '../services/cronJobs/draftDonationMatchingJob';
 import { runCheckUserSuperTokenBalancesJob } from '../services/cronJobs/checkUserSuperTokenBalancesJob';
+import { runCheckPendingRecurringDonationsCronJob } from '../services/cronJobs/syncRecurringDonationsWithNetwork';
 
 Resource.validate = validate;
 
@@ -316,6 +317,7 @@ export async function bootstrap() {
     }
 
     runCheckPendingDonationsCronJob();
+    runCheckPendingRecurringDonationsCronJob();
     runNotifyMissingDonationsCronJob();
     runCheckPendingProjectListingCronJob();
     runUpdateDonationsWithoutValueUsdPrices();
