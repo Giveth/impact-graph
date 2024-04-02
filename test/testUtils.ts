@@ -1948,6 +1948,10 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
       params?.donationData?.isArchived !== undefined
         ? params?.donationData?.isArchived
         : false,
+    isBatch:
+      params?.donationData?.isBatch !== undefined
+        ? params?.donationData?.isBatch
+        : false,
     txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),
     anonymous,
     donorId,

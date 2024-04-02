@@ -32,7 +32,7 @@ describe(
 );
 
 function updateRecurringDonationStatusWithNetworkTestCases() {
-  it('should verify transaction from OP Sepolia', async () => {
+  it('should verify transaction from OP Sepolia #1 createFlow', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x516567c51c3506afe1291f7055fa0e858cc2ca9ed4079625c747fe92bd125a10
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
@@ -68,6 +68,52 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
           '0x516567c51c3506afe1291f7055fa0e858cc2ca9ed4079625c747fe92bd125a10',
         donorId: donor.id,
         flowRate: '285225986',
+      },
+    });
+    const updatedDonation = await updateRecurringDonationStatusWithNetwork({
+      donationId: recurringDonation.id,
+    });
+    assert.equal(updatedDonation.status, RECURRING_DONATION_STATUS.ACTIVE);
+    await RecurringDonation.delete({ id: recurringDonation.id });
+    await AnchorContractAddress.delete({ id: anchorContractAddress.id });
+  });
+  it.only('should verify transaction from OP Sepolia #2 batchCall', async () => {
+    // https://sepolia-optimism.etherscan.io/tx/0xf4949df09d6548ac55e2b3a54b29caf5e6149ad6ea3a3e778b09f9f522cd3acd
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const contractCreator = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const donor = await saveUserDirectlyToDb(
+      '0x871cd6353b803ceceb090bb827ecb2f361db81ab',
+    );
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: contractCreator,
+      address: '0xB67EF68F2Ce6074c033f6857CceaF061f46c6471',
+      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const recurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        anchorContractAddressId: anchorContractAddress.id,
+        currency: 'ETH',
+        status: RECURRING_DONATION_STATUS.PENDING,
+        txHash:
+          '0x1833603bc894448b54cf9c03483fa361508fa101abcfa6c3b6ef51425cab533f',
+        donorId: donor.id,
+        flowRate: '285225986',
+        isBatch: true,
       },
     });
     const updatedDonation = await updateRecurringDonationStatusWithNetwork({

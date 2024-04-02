@@ -264,13 +264,36 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
       );
       return recurringDonation.save();
     }
+    let receiverLowercase = '';
+    let flowRateBigNumber = '';
+    const decodedMethodId = networkData.data.slice(0, 10); // Method ID is the first 4 bytes
+    logger.debug(`Decoded Method ID: ${decodedMethodId}`);
     // Load the ABI from  file
-    const abiPath = path.join(__dirname, '../abi/superFluidAbi.json');
-    const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
+    if (!recurringDonation.isBatch) {
+      const abiPath = path.join(__dirname, '../abi/superFluidAbi.json');
+      const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
+      const iface = new ethers.utils.Interface(abi);
+      const decodedData = iface.parseTransaction({ data: networkData.data });
+      receiverLowercase = decodedData.args[2].toLowerCase();
+      flowRateBigNumber = decodedData.args[3];
+    } else {
+      logger.debug('networkData', JSON.stringify(networkData, null, 2));
+      // ABI comes from https://sepolia-optimism.etherscan.io/address/0x78743a68d52c9d6ccf3ff4558f3af510592e3c2d#code
+      const abiPath = path.join(__dirname, '../abi/superFluidAbiBatch.json');
+      const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
+      // logger.debug('**abi**', JSON.stringify(abi, null, 2))
 
-    const iface = new ethers.utils.Interface(abi);
-    const decodedData = iface.parseTransaction({ data: networkData.data });
-    const receiverLowercase = decodedData.args[2].toLowerCase();
+      const iface = new ethers.utils.Interface(abi);
+      const decodedData = iface.parseTransaction({ data: networkData.data });
+      logger.debug('**decodedData**', JSON.stringify(decodedData, null, 2));
+      logger.debug(
+        '\n\n\n**decodedData.args**',
+        JSON.stringify(decodedData.args[0][0], null, 2),
+      );
+
+      receiverLowercase = decodedData.args[2].toLowerCase();
+      flowRateBigNumber = decodedData.args[3];
+    }
 
     if (
       recurringDonation?.anchorContractAddress?.address?.toLowerCase() !==
@@ -290,7 +313,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
       recurringDonation.finished = true;
       return recurringDonation.save();
     }
-    const flowRate = ethers.BigNumber.from(decodedData.args[3]).toString();
+    const flowRate = ethers.BigNumber.from(flowRateBigNumber).toString();
     if (recurringDonation?.flowRate !== flowRate) {
       logger.debug(
         'Recurring donation flowRate does not match the receiver address of the transaction data.',
