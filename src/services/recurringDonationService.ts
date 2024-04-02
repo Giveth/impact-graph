@@ -22,7 +22,6 @@ import { findUserById } from '../repositories/userRepository';
 import { ChainType } from '../types/network';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
-import { isTestEnv } from '../utils/utils';
 import {
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
@@ -31,6 +30,7 @@ import {
 import { calculateGivbackFactor } from './givbackService';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
+import config from '../config';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';
@@ -111,13 +111,20 @@ export const createRelatedDonationsToStream = async (
 
   for (const streamPeriod of uniquePeriods) {
     try {
-      const networkId = isTestEnv
-        ? NETWORK_IDS.OPTIMISTIC
-        : NETWORK_IDS.OPTIMISM_SEPOLIA; // CHANGE TO SEPOLIA
+      const environment = config.get('ENVIRONMENT') as string;
+
+      const networkId =
+        environment !== 'production'
+          ? NETWORK_IDS.OPTIMISM_SEPOLIA
+          : NETWORK_IDS.OPTIMISTIC;
+
+      const symbolCurrency = recurringDonation.currency.includes('x')
+        ? superTokensToToken[recurringDonation.currency]
+        : recurringDonation.currency;
       const tokenInDb = await Token.findOne({
         where: {
           networkId,
-          symbol: superTokensToToken[recurringDonation.currency],
+          symbol: symbolCurrency,
         },
       });
       const isCustomToken = !tokenInDb;
