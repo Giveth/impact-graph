@@ -215,7 +215,7 @@ export const createRelatedDonationsToStream = async (
       await donation.save();
 
       if (!donation.valueUsd || donation.valueUsd === 0) {
-        updateDonationPricesAndValues(
+        await updateDonationPricesAndValues(
           donation,
           project,
           tokenInDb,
