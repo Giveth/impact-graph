@@ -131,6 +131,8 @@ export const validateDonorSuperTokenBalance = async (
       const balanceWarning = balanceLongerThanWeek
         ? RecurringDonationBalanceWarning.WEEK
         : RecurringDonationBalanceWarning.MONTH;
+      // If the balance warning is the same, we've already sent the notification
+      if (recurringDonation.balanceWarning === balanceWarning) continue;
       recurringDonation.balanceWarning = balanceWarning;
       await recurringDonation.save();
       // Notify user their super token is running out
