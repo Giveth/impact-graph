@@ -218,10 +218,8 @@ export const createRelatedDonationsToStream = async (
         await updateDonationPricesAndValues(
           donation,
           project,
-          tokenInDb,
-          donation.currency,
+          tokenInDb!,
           donation.transactionNetworkId,
-          donation.amount,
         );
       }
 

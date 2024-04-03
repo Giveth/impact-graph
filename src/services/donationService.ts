@@ -15,7 +15,7 @@ import {
 } from '../utils/errorMessages';
 import { findProjectById } from '../repositories/projectRepository';
 import { convertExponentialNumber } from '../utils/utils';
-import { fetchGivHistoricPrice, fetchGivPrice } from './givPriceService';
+import { fetchGivHistoricPrice } from './givPriceService';
 import {
   findDonationById,
   findStableCoinDonationsWithoutPrice,
@@ -35,9 +35,6 @@ import {
   refreshProjectDonationSummaryView,
   refreshProjectEstimatedMatchingView,
 } from './projectViewsService';
-import { MonoswapPriceAdapter } from '../adapters/price/MonoswapPriceAdapter';
-import { CryptoComparePriceAdapter } from '../adapters/price/CryptoComparePriceAdapter';
-import { CoingeckoPriceAdapter } from '../adapters/price/CoingeckoPriceAdapter';
 import { AppDataSource } from '../orm';
 import { getQfRoundHistoriesThatDontHaveRelatedDonations } from '../repositories/qfRoundHistoryRepository';
 import { getPowerRound } from '../repositories/powerRoundRepository';
@@ -46,16 +43,15 @@ import { NETWORKS_IDS_TO_NAME } from '../provider';
 import { getTransactionInfoFromNetwork } from './chains';
 import { getEvmTransactionTimestamp } from './chains/evm/transactionService';
 import { getOrttoPersonAttributes } from '../adapters/notifications/NotificationCenterAdapter';
+import { CustomToken, getTokenPrice } from './priceService';
 
 export const TRANSAK_COMPLETED_STATUS = 'COMPLETED';
 
 export const updateDonationPricesAndValues = async (
   donation: Donation,
   project: Project,
-  token: Token | null,
-  currency: string,
+  token: CustomToken,
   priceChainId: number,
-  amount: string | number,
 ) => {
   logger.debug('updateDonationPricesAndValues() has been called', {
     donationId: donation.id,
@@ -64,41 +60,9 @@ export const updateDonationPricesAndValues = async (
     priceChainId,
   });
   try {
-    if (token?.isStableCoin) {
-      donation.priceUsd = 1;
-      donation.valueUsd = Number(amount);
-      // } else if (currency === 'mpETH') {
-      //   const mpEthPriceInUsd = await fetchMpEthPrice();
-      //   donation.priceUsd = toFixNumber(mpEthPriceInUsd, 4);
-      //   donation.valueUsd = toFixNumber(donation.amount * mpEthPriceInUsd, 4);
-    } else if (currency === 'GIV') {
-      const { givPriceInUsd } = await fetchGivPrice();
-      donation.priceUsd = toFixNumber(givPriceInUsd, 4);
-      donation.valueUsd = toFixNumber(donation.amount * givPriceInUsd, 4);
-    } else if (token?.cryptoCompareId) {
-      const priceUsd = await new CryptoComparePriceAdapter().getTokenPrice({
-        symbol: token.cryptoCompareId,
-        networkId: priceChainId,
-      });
-      donation.priceUsd = toFixNumber(priceUsd, 4);
-      donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
-    } else if (token?.coingeckoId) {
-      const priceUsd = await new CoingeckoPriceAdapter().getTokenPrice({
-        symbol: token.coingeckoId,
-        networkId: priceChainId,
-      });
-      donation.priceUsd = toFixNumber(priceUsd, 4);
-      donation.valueUsd = toFixNumber(donation.amount * priceUsd, 4);
-    } else {
-      const priceUsd = await new MonoswapPriceAdapter().getTokenPrice({
-        symbol: currency,
-        networkId: priceChainId,
-      });
-      if (priceUsd) {
-        donation.priceUsd = Number(priceUsd);
-        donation.valueUsd = toFixNumber(Number(amount) * donation.priceUsd, 4);
-      }
-    }
+    const tokenPrice = await getTokenPrice(priceChainId, token);
+    donation.priceUsd = toFixNumber(tokenPrice, 4);
+    donation.valueUsd = toFixNumber(donation.amount * tokenPrice, 4);
   } catch (e) {
     logger.error('Error in getting price from donation', {
       error: e,
