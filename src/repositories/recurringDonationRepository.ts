@@ -44,6 +44,9 @@ export const updateRecurringDonation = async (params: {
   if (txHash && flowRate) {
     recurringDonation.txHash = txHash;
     recurringDonation.flowRate = flowRate;
+    recurringDonation.finished = false;
+    recurringDonation.isArchived = false;
+    recurringDonation.status = RECURRING_DONATION_STATUS.PENDING;
   }
 
   if (anonymous) {
