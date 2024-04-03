@@ -24,6 +24,9 @@ import {
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
 import { RecurringDonation } from '../../entities/recurringDonation';
+import { getTokenPrice } from '../../services/priceService';
+import { Token } from '../../entities/token';
+import { toFixNumber } from '../../services/donationService';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -133,13 +136,31 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async donationReceived(params: {
-    donation: Donation;
+    donation: Donation | RecurringDonation;
     project: Project;
     user: User | null;
   }): Promise<void> {
-    if (params.donation.valueUsd <= 1) return;
-
     const { project, donation, user } = params;
+    const isRecurringDonation = donation instanceof RecurringDonation;
+    let transactionId: string, transactionNetworkId: number;
+    if (isRecurringDonation) {
+      const amount = Number(donation.flowRate) * 60 * 60 * 24 * 30; // convert flowRate from per second to per month
+      transactionId = donation.txHash;
+      transactionNetworkId = donation.networkId;
+      const token = await Token.findOneBy({
+        symbol: donation.currency,
+        networkId: transactionNetworkId,
+      });
+      const price = await getTokenPrice(transactionNetworkId, token!);
+      const donationValueUsd = toFixNumber(amount * price, 4);
+      if (donationValueUsd <= 20) return;
+    } else {
+      transactionId = donation.transactionId;
+      transactionNetworkId = donation.transactionNetworkId;
+      const donationValueUsd = donation.valueUsd;
+      if (donationValueUsd <= 1) return;
+    }
+
     await sendProjectRelatedNotificationsQueue.add({
       project,
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
@@ -153,9 +174,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId:
         'donation-received-' +
-        donation.transactionNetworkId +
+        transactionNetworkId +
         '-' +
-        donation.transactionId,
+        transactionId +
+        '-' +
+        isRecurringDonation,
     });
   }
 

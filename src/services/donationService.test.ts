@@ -951,10 +951,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      null,
-      token,
+      { symbol: token },
       CHAIN_ID.POLYGON,
-      amount,
     );
 
     donation = (await findDonationById(donation.id))!;
@@ -983,10 +981,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      null,
-      token,
+      { symbol: token },
       CHAIN_ID.CELO,
-      amount,
     );
     donation = (await findDonationById(donation.id))!;
     expect(donation.valueUsd).to.gt(0);
@@ -1023,10 +1019,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      token,
-      currency,
+      token!,
       CHAIN_ID.MAINNET,
-      amount,
     );
     donation = (await findDonationById(donation.id))!;
     expect(donation.valueUsd).to.gt(0);
@@ -1064,10 +1058,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      token,
-      currency,
+      token!,
       CHAIN_ID.MAINNET,
-      amount,
     );
     donation = (await findDonationById(donation.id))!;
     expect(donation.valueUsd).to.gt(0);
@@ -1096,10 +1088,8 @@ function fillOldStableCoinDonationsPriceTestCases() {
     await updateDonationPricesAndValues(
       donation,
       project,
-      null,
-      token,
+      { symbol: token },
       CHAIN_ID.ALFAJORES,
-      amount,
     );
 
     donation = (await findDonationById(donation.id))!;
