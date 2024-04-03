@@ -2327,6 +2327,7 @@ export const updateRecurringDonationQuery = `
             anonymous
             status
             isArchived
+            finished
           }
       }
 `;
