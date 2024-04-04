@@ -63,6 +63,7 @@ function getPendingRecurringDonationsIdsTestCases() {
       currency,
       project,
       anonymous: false,
+      isBatch: false,
     });
     // recurringDonation.status = RECURRING_DONATION_STATUS.PENDING
     // await recurringDonation.save()
@@ -76,6 +77,7 @@ function getPendingRecurringDonationsIdsTestCases() {
       currency,
       project,
       anonymous: false,
+      isBatch: false,
     });
     oldDonation.createdAt = moment()
       .subtract({
@@ -95,6 +97,7 @@ function getPendingRecurringDonationsIdsTestCases() {
       currency,
       project,
       anonymous: false,
+      isBatch: false,
     });
     oldDonation2.createdAt = moment()
       .subtract({
@@ -155,6 +158,7 @@ function createNewRecurringDonationTestCases() {
       currency: 'USD',
       project,
       anonymous: false,
+      isBatch: false,
     });
 
     assert.isNotNull(recurringDonation);
@@ -197,6 +201,7 @@ function findRecurringDonationByProjectIdAndUserIdTestCases() {
       currency,
       project,
       anonymous: false,
+      isBatch: false,
     });
     const foundRecurringDonation =
       await findRecurringDonationByProjectIdAndUserIdAndCurrency({
