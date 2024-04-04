@@ -159,6 +159,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         amount,
         price,
         donationValueUsd,
+        token,
       });
       if (donationValueUsd <= 20) return;
     } else {
