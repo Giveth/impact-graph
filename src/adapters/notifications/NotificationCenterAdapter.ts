@@ -915,9 +915,14 @@ const getEmailDataDonationAttributes = async (params: {
     donationValueEth: number | undefined,
     transakStatus: string | undefined;
   if (isRecurringDonation) {
-    amount = Number(donation.flowRate) * 60 * 60 * 24 * 30; // convert flowRate from per second to per month
     transactionId = donation.txHash;
     transactionNetworkId = donation.networkId;
+    const token = await Token.findOneBy({
+      symbol: donation.currency,
+      networkId: transactionNetworkId,
+    });
+    amount =
+      (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
   } else {
     amount = Number(donation.amount);
     transactionId = donation.transactionId;
