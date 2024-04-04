@@ -140,7 +140,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     project: Project;
     user: User | null;
   }): Promise<void> {
-    logger.debug('donationReceived has been called', params);
     const { project, donation, user } = params;
     const isRecurringDonation = donation instanceof RecurringDonation;
     let transactionId: string, transactionNetworkId: number;
@@ -155,11 +154,23 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
       const price = await getTokenPrice(transactionNetworkId, token!);
       const donationValueUsd = toFixNumber(amount * price, 4);
+      logger.debug('donationReceived (recurring) has been called', {
+        params,
+        amount,
+        price,
+        donationValueUsd,
+      });
       if (donationValueUsd <= 20) return;
     } else {
       transactionId = donation.transactionId;
       transactionNetworkId = donation.transactionNetworkId;
       const donationValueUsd = donation.valueUsd;
+      logger.debug('donationReceived has been called', {
+        params,
+        transactionId,
+        transactionNetworkId,
+        donationValueUsd,
+      });
       if (donationValueUsd <= 1) return;
     }
 
