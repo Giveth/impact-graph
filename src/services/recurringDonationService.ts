@@ -31,6 +31,7 @@ import { calculateGivbackFactor } from './givbackService';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
 import config from '../config';
+import { User } from '../entities/user';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';
@@ -313,7 +314,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation.save();
     const project = recurringDonation.project;
-    const projectOwner = await findUserById(project.adminUserId);
+    const projectOwner = await User.findOneBy({ id: project.adminUserId });
     await getNotificationAdapter().donationReceived({
       project,
       user: projectOwner,
