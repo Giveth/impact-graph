@@ -313,7 +313,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation.save();
     const project = recurringDonation.project;
-    const projectOwner = await findUserById(project.adminUser.id);
+    const projectOwner = await findUserById(project.adminUserId);
     await getNotificationAdapter().donationReceived({
       project,
       user: projectOwner,
@@ -321,7 +321,10 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
     });
     return recurringDonation;
   } catch (e) {
-    logger.error('updateRecurringDonationStatusWithNetwork() error', e);
+    logger.error('updateRecurringDonationStatusWithNetwork() error', {
+      error: e,
+      params,
+    });
     return recurringDonation;
   }
 };
