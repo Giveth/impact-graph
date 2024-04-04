@@ -241,6 +241,7 @@ export function normalizeNegativeAmount(
 export const updateRecurringDonationStatusWithNetwork = async (params: {
   donationId: number;
 }): Promise<RecurringDonation> => {
+  // TODO should refactor this function and make it smaller
   logger.debug(
     'updateRecurringDonationStatusWithNetwork() has been called',
     params,
@@ -266,9 +267,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
     }
     let receiverLowercase = '';
     let flowRateBigNumber = '';
-    const decodedMethodId = networkData.data.slice(0, 10); // Method ID is the first 4 bytes
-    logger.debug(`Decoded Method ID: ${decodedMethodId}`);
-    // Load the ABI from  file
+
     if (!recurringDonation.isBatch) {
       const abiPath = path.join(__dirname, '../abi/superFluidAbi.json');
       const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
@@ -277,36 +276,35 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
       receiverLowercase = decodedData.args[2].toLowerCase();
       flowRateBigNumber = decodedData.args[3];
     } else {
-      // console.log('networkData', JSON.stringify(networkData, null, 2));
       // ABI comes from https://sepolia-optimism.etherscan.io/address/0x78743a68d52c9d6ccf3ff4558f3af510592e3c2d#code
       const abiPath = path.join(__dirname, '../abi/superFluidAbiBatch.json');
       const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
-      // logger.debug('**abi**', JSON.stringify(abi, null, 2))
-
       const iface = new ethers.utils.Interface(abi);
       const decodedData = iface.parseTransaction({ data: networkData.data });
 
-      for (const item of decodedData.args[0]) {
+      for (const bachItem of decodedData.args[0]) {
         // console.log('opData', decodedData.args)
-        const opData = item[2];
-        const decodedData2 = ethers.utils.defaultAbiCoder.decode(
+        const operationData = bachItem[2];
+        const decodedOperationData = ethers.utils.defaultAbiCoder.decode(
           ['bytes', 'bytes'],
-          opData,
+          operationData,
         );
         const abiPath2 = path.join(
           __dirname,
           '../abi/superFluidAbi_batch_decoded.json',
         );
-        const abi2 = JSON.parse(await fs.readFile(abiPath2, 'utf-8'));
-        const iface2 = new ethers.utils.Interface(abi2);
-        const decodedData3 = iface2.parseTransaction({ data: decodedData2[0] });
+        const decodedDataAbi = JSON.parse(await fs.readFile(abiPath2, 'utf-8'));
+        const decodedDataIface = new ethers.utils.Interface(decodedDataAbi);
+        const finalDecodedData = decodedDataIface.parseTransaction({
+          data: decodedOperationData[0],
+        });
 
         if (
-          decodedData3.args[1].toLowerCase() ===
+          finalDecodedData.args[1].toLowerCase() ===
           recurringDonation?.anchorContractAddress?.address?.toLowerCase()
         ) {
-          receiverLowercase = decodedData3.args[1].toLowerCase();
-          flowRateBigNumber = decodedData3.args[2];
+          receiverLowercase = finalDecodedData.args[1].toLowerCase();
+          flowRateBigNumber = finalDecodedData.args[2];
           continue;
         }
       }
