@@ -177,6 +177,10 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
     await sendProjectRelatedNotificationsQueue.add({
       project,
+      user: {
+        email: user?.email as string,
+        walletAddress: user?.walletAddress as string,
+      },
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
       sendEmail: true,
       segment: {
