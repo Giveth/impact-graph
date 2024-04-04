@@ -80,6 +80,7 @@ export const getQfRoundActualDonationDetails = async (
       totalValuesOfUserDonationsAfterAnalysis:
         row.totalValuesOfUserDonationsAfterAnalysis.join('-'),
       uniqueUserIdsAfterAnalysis: row.uniqueUserIdsAfterAnalysis.join('-'),
+      projectOwnerEmail: row?.email, // can be empty for new users
     };
   });
   logger.debug(

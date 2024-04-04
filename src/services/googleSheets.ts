@@ -47,6 +47,8 @@ export interface QfRoundDonationRow {
   donationIdsAfterAnalysis: string;
   totalValuesOfUserDonationsAfterAnalysis: string;
   uniqueUserIdsAfterAnalysis: string;
+
+  projectOwnerEmail?: string;
 }
 
 interface DonationExport {
@@ -174,6 +176,7 @@ export const addQfRoundDonationsSheetToSpreadsheet = async (params: {
       'donationIdsAfterAnalysis',
       'totalValuesOfUserDonationsAfterAnalysis',
       'uniqueUserIdsAfterAnalysis',
+      'projectOwnerEmail',
     ];
     const { rows, qfRoundId } = params;
 
