@@ -1066,7 +1066,7 @@ const sendProjectRelatedNotification = async (params: {
   const projectLink = buildProjectLink(eventName, project.slug);
   const data: SendNotificationBody = {
     eventName,
-    email: receivedUser.email,
+    email: segment?.payload?.email || receivedUser.email,
     sendEmail: sendEmail || false,
     sendSegment: Boolean(segment),
     userWalletAddress: receivedUser.walletAddress as string,
