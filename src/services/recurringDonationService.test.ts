@@ -77,8 +77,8 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     await RecurringDonation.delete({ id: recurringDonation.id });
     await AnchorContractAddress.delete({ id: anchorContractAddress.id });
   });
-  it.only('should verify transaction from OP Sepolia #2 batchCall', async () => {
-    // https://sepolia-optimism.etherscan.io/tx/0xf4949df09d6548ac55e2b3a54b29caf5e6149ad6ea3a3e778b09f9f522cd3acd
+  it('should verify transaction from OP Sepolia #2 batchCall', async () => {
+    // https://sepolia-optimism.etherscan.io/tx/0x1833603bc894448b54cf9c03483fa361508fa101abcfa6c3b6ef51425cab533f
     const projectOwner = await saveUserDirectlyToDb(
       generateRandomEtheriumAddress(),
     );
@@ -98,7 +98,7 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
       project,
       owner: projectOwner,
       creator: contractCreator,
-      address: '0xB67EF68F2Ce6074c033f6857CceaF061f46c6471',
+      address: '0xe6375bc298aEB29D173B2AB359D492439A43b268',
       networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
       txHash: generateRandomEvmTxHash(),
     });
@@ -112,7 +112,7 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
         txHash:
           '0x1833603bc894448b54cf9c03483fa361508fa101abcfa6c3b6ef51425cab533f',
         donorId: donor.id,
-        flowRate: '285225986',
+        flowRate: '152207001',
         isBatch: true,
       },
     });

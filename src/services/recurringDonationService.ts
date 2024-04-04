@@ -277,7 +277,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
       receiverLowercase = decodedData.args[2].toLowerCase();
       flowRateBigNumber = decodedData.args[3];
     } else {
-      logger.debug('networkData', JSON.stringify(networkData, null, 2));
+      // console.log('networkData', JSON.stringify(networkData, null, 2));
       // ABI comes from https://sepolia-optimism.etherscan.io/address/0x78743a68d52c9d6ccf3ff4558f3af510592e3c2d#code
       const abiPath = path.join(__dirname, '../abi/superFluidAbiBatch.json');
       const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
@@ -285,30 +285,37 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
 
       const iface = new ethers.utils.Interface(abi);
       const decodedData = iface.parseTransaction({ data: networkData.data });
-      logger.debug('**decodedData**', JSON.stringify(decodedData, null, 2));
-      logger.debug(
-        '\n\n\n**decodedData.args**',
-        JSON.stringify(decodedData.args[0][0], null, 2),
-      );
 
-      receiverLowercase = decodedData.args[2].toLowerCase();
-      flowRateBigNumber = decodedData.args[3];
+      for (const item of decodedData.args[0]) {
+        // console.log('opData', decodedData.args)
+        const opData = item[2];
+        const decodedData2 = ethers.utils.defaultAbiCoder.decode(
+          ['bytes', 'bytes'],
+          opData,
+        );
+        const abiPath2 = path.join(
+          __dirname,
+          '../abi/superFluidAbi_batch_decoded.json',
+        );
+        const abi2 = JSON.parse(await fs.readFile(abiPath2, 'utf-8'));
+        const iface2 = new ethers.utils.Interface(abi2);
+        const decodedData3 = iface2.parseTransaction({ data: decodedData2[0] });
+
+        if (
+          decodedData3.args[1].toLowerCase() ===
+          recurringDonation?.anchorContractAddress?.address?.toLowerCase()
+        ) {
+          receiverLowercase = decodedData3.args[1].toLowerCase();
+          flowRateBigNumber = decodedData3.args[2];
+          continue;
+        }
+      }
     }
 
     if (
       recurringDonation?.anchorContractAddress?.address?.toLowerCase() !==
       receiverLowercase
     ) {
-      logger.debug(
-        'Recurring donation address does not match the receiver address of the transaction data.',
-        {
-          recurringDonationId: recurringDonation?.id,
-          receiverAddress: receiverLowercase,
-          anchorContractAddress:
-            recurringDonation?.anchorContractAddress?.address,
-          txHash: recurringDonation?.txHash,
-        },
-      );
       recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
       recurringDonation.finished = true;
       return recurringDonation.save();
@@ -320,7 +327,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
         {
           recurringDonationId: recurringDonation?.id,
           donationFlowRate: recurringDonation?.flowRate,
-          flowRate,
+          flowRate: flowRate,
           txHash: recurringDonation?.txHash,
         },
       );
