@@ -96,6 +96,10 @@ export class RecurringDonation extends BaseEntity {
 
   @Column({ nullable: true, default: false })
   @Field({ nullable: true })
+  isBatch: boolean;
+
+  @Column({ nullable: true, default: false })
+  @Field({ nullable: true })
   anonymous: boolean;
 
   @Index()
