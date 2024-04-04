@@ -123,6 +123,51 @@ function updateRecurringDonationStatusWithNetworkTestCases() {
     await RecurringDonation.delete({ id: recurringDonation.id });
     await AnchorContractAddress.delete({ id: anchorContractAddress.id });
   });
+  it('should verify transaction from OP Sepolia when updateFlow function of smart contract has been called', async () => {
+    // https://sepolia-optimism.etherscan.io/tx/0x74d98ba95c7969746afc38e46748aa64f239e816785be74b03372397cf844986
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const contractCreator = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    const donor = await saveUserDirectlyToDb(
+      '0xf577ae8b97d839b9c0522a620299dc08792c738c',
+    );
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: contractCreator,
+      address: '0x0015cE4FeA643B64000400B0e61F4C03E020b75f',
+      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const recurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        anchorContractAddressId: anchorContractAddress.id,
+        currency: 'ETH',
+        status: RECURRING_DONATION_STATUS.PENDING,
+        txHash:
+          '0x74d98ba95c7969746afc38e46748aa64f239e816785be74b03372397cf844986',
+        donorId: donor.id,
+        flowRate: '23194526400669',
+      },
+    });
+    const updatedDonation = await updateRecurringDonationStatusWithNetwork({
+      donationId: recurringDonation.id,
+    });
+    assert.equal(updatedDonation.status, RECURRING_DONATION_STATUS.ACTIVE);
+    await RecurringDonation.delete({ id: recurringDonation.id });
+    await AnchorContractAddress.delete({ id: anchorContractAddress.id });
+  });
   it('should make transaction failed, different toAddress from OP Sepolia', async () => {
     // https://sepolia-optimism.etherscan.io/tx/0x516567c51c3506afe1291f7055fa0e858cc2ca9ed4079625c747fe92bd125a10
     const projectOwner = await saveUserDirectlyToDb(

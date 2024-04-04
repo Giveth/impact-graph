@@ -872,10 +872,8 @@ export class DonationResolver {
       await updateDonationPricesAndValues(
         donation,
         project,
-        tokenInDb,
-        token,
+        tokenInDb!,
         priceChainId,
-        amount,
       );
 
       if (chainType === ChainType.EVM) {

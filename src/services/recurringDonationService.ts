@@ -22,7 +22,6 @@ import { findUserById } from '../repositories/userRepository';
 import { ChainType } from '../types/network';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
-import { isTestEnv } from '../utils/utils';
 import {
   isTokenAcceptableForProject,
   updateDonationPricesAndValues,
@@ -31,6 +30,8 @@ import {
 import { calculateGivbackFactor } from './givbackService';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
+import config from '../config';
+import { User } from '../entities/user';
 
 // Initially it will only be monthly data
 export const priceDisplay = 'month';
@@ -111,13 +112,20 @@ export const createRelatedDonationsToStream = async (
 
   for (const streamPeriod of uniquePeriods) {
     try {
-      const networkId = isTestEnv
-        ? NETWORK_IDS.OPTIMISTIC
-        : NETWORK_IDS.OPTIMISM_SEPOLIA; // CHANGE TO SEPOLIA
+      const environment = config.get('ENVIRONMENT') as string;
+
+      const networkId =
+        environment !== 'production'
+          ? NETWORK_IDS.OPTIMISM_SEPOLIA
+          : NETWORK_IDS.OPTIMISTIC;
+
+      const symbolCurrency = recurringDonation.currency.includes('x')
+        ? superTokensToToken[recurringDonation.currency]
+        : recurringDonation.currency;
       const tokenInDb = await Token.findOne({
         where: {
           networkId,
-          symbol: superTokensToToken[recurringDonation.currency],
+          symbol: symbolCurrency,
         },
       });
       const isCustomToken = !tokenInDb;
@@ -208,13 +216,11 @@ export const createRelatedDonationsToStream = async (
       await donation.save();
 
       if (!donation.valueUsd || donation.valueUsd === 0) {
-        updateDonationPricesAndValues(
+        await updateDonationPricesAndValues(
           donation,
           project,
-          tokenInDb,
-          donation.currency,
+          tokenInDb!,
           donation.transactionNetworkId,
-          donation.amount,
         );
       }
 
@@ -336,7 +342,7 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
     recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
     await recurringDonation.save();
     const project = recurringDonation.project;
-    const projectOwner = await findUserById(project.adminUser.id);
+    const projectOwner = await User.findOneBy({ id: project.adminUserId });
     await getNotificationAdapter().donationReceived({
       project,
       user: projectOwner,
@@ -344,7 +350,10 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
     });
     return recurringDonation;
   } catch (e) {
-    logger.error('updateRecurringDonationStatusWithNetwork() error', e);
+    logger.error('updateRecurringDonationStatusWithNetwork() error', {
+      error: e,
+      params,
+    });
     return recurringDonation;
   }
 };

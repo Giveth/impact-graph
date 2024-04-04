@@ -725,7 +725,10 @@ export class ProjectResolver {
     let totalCount: number;
     let activeQfRoundId: number | undefined;
 
-    if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
+    if (
+      sortingBy === SortingField.ActiveQfRoundRaisedFunds ||
+      sortingBy === SortingField.EstimatedMatching
+    ) {
       activeQfRoundId = (await findActiveQfRound())?.id;
     }
 

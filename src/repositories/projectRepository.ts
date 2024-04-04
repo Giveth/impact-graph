@@ -215,6 +215,27 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           .addOrderBy(`project.verified`, OrderDirection.DESC);
       }
       break;
+    case SortingField.EstimatedMatching:
+      if (activeQfRoundId) {
+        query
+          .leftJoin(
+            'project.projectEstimatedMatchingView',
+            'projectEstimatedMatchingView',
+            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
+            { qfRoundId: activeQfRoundId },
+          )
+          .addSelect([
+            'projectEstimatedMatchingView.sqrtRootSum',
+            'projectEstimatedMatchingView.qfRoundId',
+          ])
+          .orderBy(
+            'projectEstimatedMatchingView.sqrtRootSum',
+            OrderDirection.DESC,
+            'NULLS LAST',
+          )
+          .addOrderBy(`project.verified`, OrderDirection.DESC);
+      }
+      break;
     default:
       query
         .orderBy('projectInstantPower.totalPower', OrderDirection.DESC)

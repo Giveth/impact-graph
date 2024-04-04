@@ -4,7 +4,10 @@ import {
   getSuperFluidAdapter,
 } from '../../adapters/adaptersFactory';
 import config from '../../config';
-import { RecurringDonation } from '../../entities/recurringDonation';
+import {
+  RecurringDonation,
+  RecurringDonationBalanceWarning,
+} from '../../entities/recurringDonation';
 import { superTokensToToken } from '../../provider';
 import { redisConfig } from '../../redis';
 import { findUserById } from '../../repositories/userRepository';
@@ -92,6 +95,8 @@ export const checkRecurringDonationBalances = async (params: {
   await validateDonorSuperTokenBalance(recurringDonation);
 };
 
+const weekInSec = 60 * 60 * 24 * 7;
+const monthInSec = 60 * 60 * 24 * 30;
 export const validateDonorSuperTokenBalance = async (
   recurringDonation: RecurringDonation,
 ) => {
@@ -103,18 +108,41 @@ export const validateDonorSuperTokenBalance = async (
   const accountBalances = await superFluidAdapter.accountBalance(
     user!.walletAddress!,
   );
+
+  if (!accountBalances || accountBalances.length === 0) return;
+
   for (const tokenBalance of accountBalances.accountTokenSnapshots) {
+    const { maybeCriticalAtTimestamp, token } = tokenBalance;
     if (
-      Object.keys(superTokensToToken).includes(tokenBalance.token.symbol) &&
-      tokenBalance.maybeCriticalAtTimestamp
+      Object.keys(superTokensToToken).includes(token.symbol) &&
+      maybeCriticalAtTimestamp
     ) {
       if (!user!.email) continue;
+      const nowInSec = Number((Date.now() / 1000).toFixed());
+      const balanceLongerThanMonth =
+        nowInSec - maybeCriticalAtTimestamp > monthInSec;
+      if (balanceLongerThanMonth) {
+        recurringDonation.balanceWarning = null;
+        await recurringDonation.save();
+        continue;
+      }
+      const balanceLongerThanWeek =
+        nowInSec - maybeCriticalAtTimestamp > weekInSec;
+      const balanceWarning = balanceLongerThanWeek
+        ? RecurringDonationBalanceWarning.WEEK
+        : RecurringDonationBalanceWarning.MONTH;
+      // If the balance warning is the same, we've already sent the notification
+      if (recurringDonation.balanceWarning === balanceWarning) continue;
+      recurringDonation.balanceWarning = balanceWarning;
+      await recurringDonation.save();
       // Notify user their super token is running out
       await getNotificationAdapter().userSuperTokensCritical({
         userId: user!.id,
         email: user!.email,
-        criticalDate: tokenBalance.maybeCriticalAtTimestamp,
-        tokensymbol: tokenBalance.token.symbol,
+        criticalDate: balanceWarning,
+        tokenSymbol: token.symbol,
+        isEnded: recurringDonation.finished,
+        project: recurringDonation.project,
       });
     }
   }
