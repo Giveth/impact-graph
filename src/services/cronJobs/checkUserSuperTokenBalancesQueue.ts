@@ -7,6 +7,7 @@ import config from '../../config';
 import {
   RecurringDonation,
   RecurringDonationBalanceWarning,
+  RecurringDonationEmailEvents,
 } from '../../entities/recurringDonation';
 import { superTokensToToken } from '../../provider';
 import { redisConfig } from '../../redis';
@@ -129,8 +130,12 @@ export const validateDonorSuperTokenBalance = async (
       const balanceLongerThanWeek =
         nowInSec - maybeCriticalAtTimestamp > weekInSec;
       const balanceWarning = balanceLongerThanWeek
-        ? RecurringDonationBalanceWarning.WEEK
-        : RecurringDonationBalanceWarning.MONTH;
+        ? RecurringDonationBalanceWarning.MONTH
+        : RecurringDonationBalanceWarning.WEEK;
+
+      const eventName = balanceLongerThanWeek
+        ? RecurringDonationEmailEvents.MONTH
+        : RecurringDonationEmailEvents.WEEK;
       // If the balance warning is the same, we've already sent the notification
       if (recurringDonation.balanceWarning === balanceWarning) continue;
       recurringDonation.balanceWarning = balanceWarning;
@@ -143,6 +148,7 @@ export const validateDonorSuperTokenBalance = async (
         tokenSymbol: token.symbol,
         isEnded: recurringDonation.finished,
         project: recurringDonation.project,
+        eventName,
       });
     }
   }

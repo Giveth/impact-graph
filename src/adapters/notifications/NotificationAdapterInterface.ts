@@ -60,6 +60,7 @@ export interface NotificationAdapterInterface {
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
+    eventName: string;
   }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;

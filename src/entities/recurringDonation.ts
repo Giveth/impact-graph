@@ -30,6 +30,11 @@ export enum RecurringDonationBalanceWarning {
   MONTH = 'month',
 }
 
+export enum RecurringDonationEmailEvents {
+  WEEK = 'One week left in stream balance',
+  MONTH = 'One month left in stream balance',
+}
+
 @Entity()
 @ObjectType()
 @Unique(['txHash', 'networkId', 'project'])
