@@ -63,12 +63,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
+    eventName: string;
   }): Promise<void> {
     const { criticalDate, tokenSymbol, project } = params;
     await sendProjectRelatedNotificationsQueue.add({
       project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.USER_SUPER_TOKENS_CRITICAL,
+      eventName: params.eventName as NOTIFICATIONS_EVENT_NAMES,
       sendEmail: true,
+      metadata: params,
       segment: {
         payload: params,
       },
