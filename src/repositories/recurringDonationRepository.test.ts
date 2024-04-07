@@ -1,9 +1,11 @@
 import moment from 'moment';
 import { assert } from 'chai';
 import {
+  createDonationData,
   createProjectData,
   generateRandomEtheriumAddress,
   generateRandomEvmTxHash,
+  saveDonationDirectlyToDb,
   saveProjectDirectlyToDb,
   saveUserDirectlyToDb,
 } from '../../test/testUtils';
@@ -11,9 +13,12 @@ import { NETWORK_IDS } from '../provider';
 import { addNewAnchorAddress } from './anchorContractAddressRepository';
 import {
   createNewRecurringDonation,
+  findRecurringDonationById,
   findRecurringDonationByProjectIdAndUserIdAndCurrency,
+  updateRecurringDonationFromTheStreamDonations,
 } from './recurringDonationRepository';
 import { getPendingRecurringDonationsIds } from './recurringDonationRepository';
+import { DONATION_STATUS } from '../entities/donation';
 
 describe(
   'createNewRecurringDonationTestCases',
@@ -28,6 +33,10 @@ describe(
 describe(
   'getPendingRecurringDonationsIds() test cases',
   getPendingRecurringDonationsIdsTestCases,
+);
+describe(
+  'updateRecurringDonationFromTheStreamDonations() test cases',
+  updateRecurringDonationFromTheStreamDonationsTestCases,
 );
 
 function getPendingRecurringDonationsIdsTestCases() {
@@ -210,5 +219,80 @@ function findRecurringDonationByProjectIdAndUserIdTestCases() {
         currency,
       });
     assert.equal(foundRecurringDonation?.id, recurringDonation.id);
+  });
+}
+
+function updateRecurringDonationFromTheStreamDonationsTestCases() {
+  it('should fill amountStreamed, totalUsdStreamed correctly', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const anchorAddress = generateRandomEtheriumAddress();
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: donor,
+      address: anchorAddress,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const currency = 'USDT';
+    const recurringDonation = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: donor,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+    });
+    const d1 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: DONATION_STATUS.VERIFIED,
+        amount: 13,
+        valueUsd: 15,
+      },
+      donor.id,
+      project.id,
+    );
+    d1.recurringDonation = recurringDonation;
+    await d1.save();
+
+    const d2 = await saveDonationDirectlyToDb(
+      {
+        ...createDonationData(),
+        status: DONATION_STATUS.VERIFIED,
+        amount: 12,
+        valueUsd: 14,
+      },
+      donor.id,
+      project.id,
+    );
+    d2.recurringDonation = recurringDonation;
+    await d2.save();
+
+    await updateRecurringDonationFromTheStreamDonations(recurringDonation.id);
+    const updatedRecurringDonation = await findRecurringDonationById(
+      recurringDonation.id,
+    );
+
+    assert.equal(
+      updatedRecurringDonation?.totalUsdStreamed,
+      d1.valueUsd + d2.valueUsd,
+    );
+    assert.equal(
+      updatedRecurringDonation?.amountStreamed,
+      d1.amount + d2.amount,
+    );
   });
 }

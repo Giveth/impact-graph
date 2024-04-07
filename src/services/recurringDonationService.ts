@@ -161,8 +161,7 @@ export const createRelatedDonationsToStream = async (
 
       const toAddress = projectRelatedAddress?.address?.toLowerCase();
       const fromAddress = donorUser.walletAddress?.toLowerCase();
-      const transactionTx = streamData.id?.toLowerCase() as string;
-
+      const transactionTx = `${streamData.id?.toLowerCase()}-${streamPeriod.endTime}`;
       const donation = Donation.create({
         amount: normalizeNegativeAmount(
           streamPeriod.amount,
@@ -194,6 +193,11 @@ export const createRelatedDonationsToStream = async (
       });
 
       await donation.save();
+      logger.debug(`Streamed donation has been created successfully`, {
+        donationId: donation.id,
+        recurringDonationId: recurringDonation.id,
+        amount: donation.amount,
+      });
 
       const activeQfRoundForProject = await relatedActiveQfRoundForProject(
         project.id,
@@ -224,6 +228,12 @@ export const createRelatedDonationsToStream = async (
         );
       }
 
+      logger.debug(`Streamed donation After filling valueUsd`, {
+        donationId: donation.id,
+        recurringDonationId: recurringDonation.id,
+        amount: donation.amount,
+        valueUsd: donation.valueUsd,
+      });
       await updateRecurringDonationFromTheStreamDonations(recurringDonation.id);
 
       await updateUserTotalDonated(donation.userId);
@@ -232,7 +242,13 @@ export const createRelatedDonationsToStream = async (
       await updateTotalDonationsOfProject(donation.projectId);
       await updateUserTotalReceived(project!.adminUser.id);
     } catch (e) {
-      logger.error('createRelatedDonationsToStream() error', e);
+      logger.error(
+        'createRelatedDonationsToStream() error',
+        {
+          recurringDonationId: recurringDonation.id,
+        },
+        e,
+      );
     }
   }
 };
