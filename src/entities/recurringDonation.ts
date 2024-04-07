@@ -49,11 +49,11 @@ export class RecurringDonation extends BaseEntity {
   networkId: number;
 
   @Field()
-  @Column({ nullable: true, default: 0 })
+  @Column({ nullable: true, default: 0, type: 'real' })
   amountStreamed?: number;
 
   @Field()
-  @Column({ nullable: true, default: 0 })
+  @Column({ nullable: true, default: 0, type: 'real' })
   totalUsdStreamed?: number;
 
   // per second
