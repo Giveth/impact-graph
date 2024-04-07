@@ -110,6 +110,11 @@ export const validateDonorSuperTokenBalance = async (
     user!.walletAddress!,
   );
 
+  logger.debug(
+    `validateDonorSuperTokenBalance for id ${recurringDonation.id}`,
+    { accountBalances, user },
+  );
+
   if (!accountBalances || accountBalances.length === 0) return;
 
   for (const tokenBalance of accountBalances.accountTokenSnapshots) {

@@ -65,6 +65,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     isEnded: boolean;
     eventName: string;
   }): Promise<void> {
+    logger.debug('userSuperTokensCritical', { params });
     const { criticalDate, tokenSymbol, project } = params;
     await sendProjectRelatedNotificationsQueue.add({
       project,
