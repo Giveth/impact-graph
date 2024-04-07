@@ -83,7 +83,7 @@ export const getQfRoundActualDonationDetails = async (
     };
   });
   logger.debug(
-    'Data that we should upload to googlesheet',
+    'Data that we should upload to Google sheet',
     qfRoundDonationsRows,
   );
 
