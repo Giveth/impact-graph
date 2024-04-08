@@ -1,10 +1,12 @@
 import axios from 'axios';
 import { logger } from '../../utils/logger';
-import { isTestEnv } from '../../utils/utils';
+import { isStaging, isTestEnv } from '../../utils/utils';
 import { SuperFluidAdapterInterface } from './superFluidAdapterInterface';
 
 const superFluidGraphqlUrl =
   'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet';
+const superFluidGraphqlStagingUrl =
+  'https://optimism-sepolia.subgraph.x.superfluid.dev/';
 const superFluidTestGraphUrl =
   'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-goerli';
 // Define your GraphQL query as a string and prepare your variables
@@ -148,7 +150,11 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
   async accountBalance(accountId: string) {
     try {
       const response = await axios({
-        url: !isTestEnv ? superFluidGraphqlUrl : superFluidTestGraphUrl,
+        url: !isTestEnv
+          ? isStaging
+            ? superFluidGraphqlStagingUrl
+            : superFluidGraphqlUrl
+          : superFluidTestGraphUrl,
         method: 'post',
         data: {
           accountQuery,

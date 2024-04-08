@@ -84,14 +84,13 @@ export function processRecurringDonationBalancesJobs() {
 export const checkRecurringDonationBalances = async (params: {
   recurringDonationId: number;
 }) => {
-  logger.debug(
-    'checkRecurringDonationBalances() has been called for id',
-    params.recurringDonationId,
-  );
   const recurringDonation = await findRecurringDonationById(
     params.recurringDonationId,
   );
-
+  logger.debug(
+    `checkRecurringDonationBalances() has been called for id ${params.recurringDonationId}`,
+    recurringDonation,
+  );
   if (!recurringDonation) return;
   await validateDonorSuperTokenBalance(recurringDonation);
 };
@@ -104,10 +103,20 @@ export const validateDonorSuperTokenBalance = async (
   const superFluidAdapter = getSuperFluidAdapter();
   const user = await findUserById(recurringDonation.donorId);
 
+  logger.debug(
+    `validateDonorSuperTokenBalance 1 for id ${recurringDonation.id}`,
+    { user },
+  );
+
   if (user) return;
 
   const accountBalances = await superFluidAdapter.accountBalance(
     user!.walletAddress!,
+  );
+
+  logger.debug(
+    `validateDonorSuperTokenBalance 2 for id ${recurringDonation.id}`,
+    { accountBalances },
   );
 
   if (!accountBalances || accountBalances.length === 0) return;
