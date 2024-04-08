@@ -20,6 +20,10 @@ import { ProjectVerificationForm } from './projectVerificationForm';
 import { PowerBoosting } from './powerBoosting';
 import { findPowerBoostingsCountByUserId } from '../repositories/powerBoostingRepository';
 import { ReferredEvent } from './referredEvent';
+import {
+  RECURRING_DONATION_STATUS,
+  RecurringDonation,
+} from './recurringDonation';
 
 export const publicSelectionFields = [
   'user.id',
@@ -191,13 +195,29 @@ export class User extends BaseEntity {
 
   @Field(_type => Int, { nullable: true })
   async donationsCount() {
-    const query = Donation.createQueryBuilder('donation')
-      .where(`donation."userId" = :id`, { id: this.id })
-      .andWhere(`status = :status`, {
+    // Count for non-recurring donations
+    const nonRecurringDonationsCount = await Donation.createQueryBuilder(
+      'donation',
+    )
+      .where(`donation."userId" = :userId`, { userId: this.id })
+      .andWhere(`donation.status = :status`, {
         status: DONATION_STATUS.VERIFIED,
-      });
+      })
+      .andWhere(`donation."recurringDonationId" IS NULL`)
+      .getCount();
 
-    return query.getCount();
+    // Count for recurring donations
+    const recurringDonationsCount = await RecurringDonation.createQueryBuilder(
+      'recurring_donation',
+    )
+      .where(`recurring_donation."donorId" = :donorId`, { donorId: this.id })
+      .andWhere(`recurring_donation.status = :status`, {
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      })
+      .getCount();
+
+    // Sum of both counts
+    return nonRecurringDonationsCount + recurringDonationsCount;
   }
 
   @Field(_type => Int, { nullable: true })

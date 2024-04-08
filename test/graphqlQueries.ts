@@ -1321,6 +1321,7 @@ export const userByAddress = `
       boostedProjectsCount
       likedProjectsCount
       donationsCount
+      totalDonated
       projectsCount
       passportScore
       passportStamps
