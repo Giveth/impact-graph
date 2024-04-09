@@ -4,10 +4,7 @@ import {
   getSuperFluidAdapter,
 } from '../../adapters/adaptersFactory';
 import config from '../../config';
-import {
-  RecurringDonation,
-  RecurringDonationBalanceWarning,
-} from '../../entities/recurringDonation';
+import { RecurringDonation } from '../../entities/recurringDonation';
 import { redisConfig } from '../../redis';
 import { findUserById } from '../../repositories/userRepository';
 import { logger } from '../../utils/logger';
@@ -17,6 +14,7 @@ import {
 } from '../../repositories/recurringDonationRepository';
 import { getCurrentDateFormatted } from '../../utils/utils';
 import { superTokens } from '../../provider';
+import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 
 const runCheckUserSuperTokenBalancesQueue = new Bull(
   'user-token-balances-stream-queue',
@@ -117,36 +115,39 @@ export const validateDonorSuperTokenBalance = async (
 
   for (const tokenBalance of accountBalances) {
     const { maybeCriticalAtTimestamp, token } = tokenBalance;
-    if (maybeCriticalAtTimestamp) {
-      if (!user!.email) continue;
-      const tokenSymbol = superTokens.find(t => t.id === token.id)
-        ?.underlyingToken.symbol;
-      const nowInSec = Number((Date.now() / 1000).toFixed());
-      const balanceLongerThanMonth =
-        nowInSec - maybeCriticalAtTimestamp > monthInSec;
-      if (balanceLongerThanMonth) {
-        recurringDonation.balanceWarning = null;
-        await recurringDonation.save();
-        continue;
-      }
-      const balanceLongerThanWeek =
-        nowInSec - maybeCriticalAtTimestamp > weekInSec;
-      const balanceWarning = balanceLongerThanWeek
-        ? RecurringDonationBalanceWarning.MONTH
-        : RecurringDonationBalanceWarning.WEEK;
-
-      // If the balance warning is the same, we've already sent the notification
-      if (recurringDonation.balanceWarning === balanceWarning) continue;
-      recurringDonation.balanceWarning = balanceWarning;
+    if (!user!.email) continue;
+    const tokenSymbol = superTokens.find(t => t.id === token.id)
+      ?.underlyingToken.symbol;
+    const nowInSec = Number((Date.now() / 1000).toFixed());
+    const balanceLongerThanMonth =
+      nowInSec - maybeCriticalAtTimestamp > monthInSec;
+    if (balanceLongerThanMonth) {
+      recurringDonation.balanceWarning = null;
       await recurringDonation.save();
-      // Notify user their super token is running out
-      await getNotificationAdapter().userSuperTokensCritical({
-        user,
-        criticalDate: balanceWarning,
-        tokenSymbol: tokenSymbol!,
-        isEnded: recurringDonation.finished,
-        project: recurringDonation.project,
-      });
+      continue;
     }
+    const balanceLongerThanWeek =
+      nowInSec - maybeCriticalAtTimestamp > weekInSec;
+
+    const depletedBalance =
+      maybeCriticalAtTimestamp === 0 || !maybeCriticalAtTimestamp;
+    const eventName = depletedBalance
+      ? NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_DEPLETED
+      : balanceLongerThanWeek
+        ? NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_MONTH
+        : NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_WEEK;
+
+    // If the balance warning is the same, we've already sent the notification
+    if (recurringDonation.balanceWarning === eventName) continue;
+    recurringDonation.balanceWarning = eventName;
+    await recurringDonation.save();
+    // Notify user their super token is running out
+    await getNotificationAdapter().userSuperTokensCritical({
+      user,
+      eventName,
+      tokenSymbol: tokenSymbol!,
+      isEnded: recurringDonation.finished,
+      project: recurringDonation.project,
+    });
   }
 };

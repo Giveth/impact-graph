@@ -61,20 +61,14 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
   async userSuperTokensCritical(params: {
     user: User;
-    criticalDate: string;
+    eventName: RecurringDonationBalanceWarning;
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
   }): Promise<void> {
-    const { criticalDate, tokenSymbol, project, user, isEnded } = params;
+    logger.debug('userSuperTokensCritical', { params });
+    const { eventName, tokenSymbol, project, user, isEnded } = params;
     const { email, walletAddress } = user;
-    const eventName =
-      criticalDate === RecurringDonationBalanceWarning.MONTH
-        ? NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_MONTH
-        : criticalDate === RecurringDonationBalanceWarning.WEEK
-          ? NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_WEEK
-          : NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_DEPLETED;
-    logger.debug('userSuperTokensCritical', { params, eventName });
     await sendProjectRelatedNotificationsQueue.add({
       project,
       user: {
@@ -88,13 +82,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         payload: {
           userId: user.id,
           email: user.email,
-          criticalDate,
           tokenSymbol,
           isEnded,
         },
       },
-      trackId:
-        'super-token-balance-critical-' + criticalDate + '-' + tokenSymbol,
+      trackId: 'super-token-balance-critical-' + eventName + '-' + tokenSymbol,
     });
     return;
   }
