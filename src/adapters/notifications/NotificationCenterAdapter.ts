@@ -86,7 +86,6 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
           isEnded,
         },
       },
-      trackId: 'super-token-balance-critical-' + eventName + '-' + tokenSymbol,
     });
     return;
   }
