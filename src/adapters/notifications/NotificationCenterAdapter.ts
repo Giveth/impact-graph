@@ -69,6 +69,12 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     logger.debug('userSuperTokensCritical', { params });
     const { eventName, tokenSymbol, project, user, isEnded } = params;
     const { email, walletAddress } = user;
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      tokenSymbol,
+      isEnded,
+    };
     await sendProjectRelatedNotificationsQueue.add({
       project,
       user: {
@@ -77,14 +83,9 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       eventName,
       sendEmail: true,
-      metadata: params,
+      metadata: payload,
       segment: {
-        payload: {
-          userId: user.id,
-          email: user.email,
-          tokenSymbol,
-          isEnded,
-        },
+        payload,
       },
     });
     return;

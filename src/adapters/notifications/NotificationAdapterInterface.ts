@@ -1,8 +1,10 @@
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
-import { RecurringDonation } from '../../entities/recurringDonation';
-import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
+import {
+  RecurringDonation,
+  RecurringDonationBalanceWarning,
+} from '../../entities/recurringDonation';
 
 export interface BroadCastNotificationInputParams {
   broadCastNotificationId: number;
@@ -56,7 +58,7 @@ export interface NotificationAdapterInterface {
 
   userSuperTokensCritical(params: {
     user: User;
-    eventName: NOTIFICATIONS_EVENT_NAMES;
+    eventName: RecurringDonationBalanceWarning;
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
