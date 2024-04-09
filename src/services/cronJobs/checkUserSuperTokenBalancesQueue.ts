@@ -17,6 +17,7 @@ import {
   findRecurringDonationById,
 } from '../../repositories/recurringDonationRepository';
 import { getCurrentDateFormatted } from '../../utils/utils';
+import { superTokens } from '../../provider';
 
 const runCheckUserSuperTokenBalancesQueue = new Bull(
   'user-token-balances-stream-queue',
@@ -124,6 +125,8 @@ export const validateDonorSuperTokenBalance = async (
     const { maybeCriticalAtTimestamp, token } = tokenBalance;
     if (maybeCriticalAtTimestamp) {
       if (!user!.email) continue;
+      const tokenSymbol = superTokens.find(t => t.id === token.id)
+        ?.underlyingToken.symbol;
       const nowInSec = Number((Date.now() / 1000).toFixed());
       const balanceLongerThanMonth =
         nowInSec - maybeCriticalAtTimestamp > monthInSec;
@@ -150,7 +153,7 @@ export const validateDonorSuperTokenBalance = async (
         userId: user!.id,
         email: user!.email,
         criticalDate: balanceWarning,
-        tokenSymbol: token.symbol,
+        tokenSymbol: tokenSymbol!,
         isEnded: recurringDonation.finished,
         project: recurringDonation.project,
         eventName,

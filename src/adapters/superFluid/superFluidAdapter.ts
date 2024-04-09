@@ -162,7 +162,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
         },
       });
 
-      return response.data.data.account.accountTokenSnapshots;
+      return response.data.data.account?.accountTokenSnapshots;
     } catch (e) {
       logger.error(e);
     }
