@@ -108,7 +108,7 @@ export const validateDonorSuperTokenBalance = async (
     { user },
   );
 
-  if (user) return;
+  if (!user) return;
 
   const accountBalances = await superFluidAdapter.accountBalance(
     user!.walletAddress!,
