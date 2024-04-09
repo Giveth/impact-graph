@@ -321,6 +321,7 @@ export const fetchDonationsByProjectIdQuery = `
       }
       totalCount
       totalUsdBalance
+      recurringDonationsCount
     }
   }
 `;
