@@ -9,7 +9,6 @@ import {
   RecurringDonationBalanceWarning,
   RecurringDonationEmailEvents,
 } from '../../entities/recurringDonation';
-import { superTokensToToken } from '../../provider';
 import { redisConfig } from '../../redis';
 import { findUserById } from '../../repositories/userRepository';
 import { logger } from '../../utils/logger';
@@ -111,22 +110,19 @@ export const validateDonorSuperTokenBalance = async (
   if (!user) return;
 
   const accountBalances = await superFluidAdapter.accountBalance(
-    user!.walletAddress!,
+    user.walletAddress!,
   );
 
   logger.debug(
     `validateDonorSuperTokenBalance 2 for id ${recurringDonation.id}`,
-    { accountBalances },
+    { accountBalances, env: config.get('ENVIRONMENT') },
   );
 
   if (!accountBalances || accountBalances.length === 0) return;
 
-  for (const tokenBalance of accountBalances.accountTokenSnapshots) {
+  for (const tokenBalance of accountBalances) {
     const { maybeCriticalAtTimestamp, token } = tokenBalance;
-    if (
-      Object.keys(superTokensToToken).includes(token.symbol) &&
-      maybeCriticalAtTimestamp
-    ) {
+    if (maybeCriticalAtTimestamp) {
       if (!user!.email) continue;
       const nowInSec = Number((Date.now() / 1000).toFixed());
       const balanceLongerThanMonth =
