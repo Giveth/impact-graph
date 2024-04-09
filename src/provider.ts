@@ -35,6 +35,93 @@ export const superTokensToToken = {
   GIVx: 'GIV',
 };
 
+export const superTokens = [
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0x2f2c819210191750F2E11F7CfC5664a0eB4fd5e6',
+      name: 'Giveth',
+      symbol: 'GIV',
+    },
+    decimals: 18,
+    id: '0xdfd824f6928b9776c031f7ead948090e2824ce8b',
+    name: 'fake Super Giveth Token',
+    symbol: 'GIVx',
+  },
+  {
+    underlyingToken: {
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      id: '0x0000000000000000000000000000000000000000',
+    },
+    decimals: 18,
+    id: '0x0043d7c85c8b96a49a72a92c0b48cdc4720437d7',
+    name: 'Super ETH',
+    symbol: 'ETHx',
+  },
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0x4200000000000000000000000000000000000042',
+      name: 'Optimism',
+      symbol: 'OP',
+    },
+    decimals: 18,
+    id: '0x1828bff08bd244f7990eddcd9b19cc654b33cdb4',
+    name: 'Super Optimism',
+    symbol: 'OPx',
+  },
+  {
+    underlyingToken: {
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      id: '0x0000000000000000000000000000000000000000',
+    },
+    decimals: 18,
+    id: '0x4ac8bd1bdae47beef2d1c6aa62229509b962aa0d',
+    name: 'Super ETH',
+    symbol: 'ETHx',
+  },
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0x528cdc92eab044e1e39fe43b9514bfdab4412b98',
+      name: 'Giveth Token',
+      symbol: 'GIV',
+    },
+    decimals: 18,
+    id: '0x4cab5b9930210e2edc6a905b9c75d615872a1a7e',
+    name: 'Super Giveth Token',
+    symbol: 'GIVx',
+  },
+  {
+    underlyingToken: {
+      decimals: 18,
+      id: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+      name: 'Dai Stablecoin',
+      symbol: 'DAI',
+    },
+    decimals: 18,
+    id: '0x7d342726b69c28d942ad8bfe6ac81b972349d524',
+    name: 'Super Dai Stablecoin',
+    symbol: 'DAIx',
+  },
+  {
+    underlyingToken: {
+      decimals: 6,
+      id: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
+      name: 'USD Coin',
+      symbol: 'USDC',
+    },
+    decimals: 18,
+    id: '0x8430f084b939208e2eded1584889c9a66b90562f',
+    name: 'Super USD Coin',
+    symbol: 'USDCx',
+  },
+];
+
 export const NETWORKS_IDS_TO_NAME = {
   1: 'MAIN_NET',
   3: 'ROPSTEN',
