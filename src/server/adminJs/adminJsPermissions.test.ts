@@ -1,5 +1,5 @@
-import { canAccessUserAction } from './adminJsPermissions';
 import { assert } from 'chai';
+import { canAccessUserAction } from './adminJsPermissions';
 import { UserRole } from '../../entities/user';
 
 describe('canAccessUserAction test cases', canAccessUserActionTestCases);
