@@ -54,8 +54,7 @@ export interface NotificationAdapterInterface {
   }): Promise<void>;
 
   userSuperTokensCritical(params: {
-    userId: number;
-    email: string;
+    user: User;
     criticalDate: string;
     tokenSymbol: string;
     project: Project;

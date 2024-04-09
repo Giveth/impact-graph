@@ -103,11 +103,6 @@ export const validateDonorSuperTokenBalance = async (
   const superFluidAdapter = getSuperFluidAdapter();
   const user = await findUserById(recurringDonation.donorId);
 
-  logger.debug(
-    `validateDonorSuperTokenBalance 1 for id ${recurringDonation.id}`,
-    { user },
-  );
-
   if (!user) return;
 
   const accountBalances = await superFluidAdapter.accountBalance(
@@ -115,8 +110,8 @@ export const validateDonorSuperTokenBalance = async (
   );
 
   logger.debug(
-    `validateDonorSuperTokenBalance 2 for id ${recurringDonation.id}`,
-    { accountBalances, env: config.get('ENVIRONMENT') },
+    `validateDonorSuperTokenBalance for recurringDonation id ${recurringDonation.id}`,
+    { accountBalances, user },
   );
 
   if (!accountBalances || accountBalances.length === 0) return;
@@ -150,8 +145,7 @@ export const validateDonorSuperTokenBalance = async (
       await recurringDonation.save();
       // Notify user their super token is running out
       await getNotificationAdapter().userSuperTokensCritical({
-        userId: user!.id,
-        email: user!.email,
+        user,
         criticalDate: balanceWarning,
         tokenSymbol: tokenSymbol!,
         isEnded: recurringDonation.finished,
