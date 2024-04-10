@@ -65,9 +65,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
+    networkName: string;
   }): Promise<void> {
     logger.debug('userSuperTokensCritical', { params });
-    const { eventName, tokenSymbol, project, user, isEnded } = params;
+    const { eventName, tokenSymbol, project, user, isEnded, networkName } =
+      params;
     const { email, walletAddress } = user;
     const payload = {
       userId: user.id,
@@ -83,7 +85,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       eventName,
       sendEmail: true,
-      metadata: payload,
+      metadata: {
+        ...payload,
+        networkName,
+        recurringDonationTab: `${process.env.WEBSITE_URL}/account?tab=recurring-donations`,
+      },
       segment: {
         payload,
       },

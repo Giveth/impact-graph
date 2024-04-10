@@ -158,7 +158,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
       const response = await axios.post(apiUrl, {
         query: accountQuery,
         variables: {
-          id: accountId,
+          id: accountId?.toLowerCase(),
         },
       });
 

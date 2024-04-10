@@ -62,6 +62,7 @@ export interface NotificationAdapterInterface {
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
+    networkName: string;
   }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;
