@@ -13,7 +13,7 @@ import {
   findRecurringDonationById,
 } from '../../repositories/recurringDonationRepository';
 import { getCurrentDateFormatted } from '../../utils/utils';
-import { superTokens } from '../../provider';
+import { getNetworkNameById, superTokens } from '../../provider';
 import { NOTIFICATIONS_EVENT_NAMES } from '../../analytics/analytics';
 
 const runCheckUserSuperTokenBalancesQueue = new Bull(
@@ -150,6 +150,7 @@ export const validateDonorSuperTokenBalance = async (
       tokenSymbol: tokenSymbol!,
       isEnded: recurringDonation.finished,
       project: recurringDonation.project,
+      networkName: getNetworkNameById(recurringDonation.networkId),
     });
   }
 };

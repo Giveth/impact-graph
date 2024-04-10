@@ -246,6 +246,16 @@ const networkNativeTokensList = [
   },
 ];
 
+export function getNetworkNameById(networkId: number): string {
+  const networkInfo = networkNativeTokensList.find(
+    item => item.networkId === networkId,
+  );
+  if (!networkInfo) {
+    throw new Error(i18n.__(translationErrorMessagesKeys.INVALID_NETWORK_ID));
+  }
+  return networkInfo.networkName;
+}
+
 export function getNetworkNativeToken(networkId: number): string {
   const networkInfo = networkNativeTokensList.find(item => {
     return item.networkId === networkId;
