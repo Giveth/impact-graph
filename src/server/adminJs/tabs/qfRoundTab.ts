@@ -26,6 +26,7 @@ import { logger } from '../../../utils/logger';
 import { messages } from '../../../utils/messages';
 import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
 import { errorMessages } from '../../../utils/errorMessages';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 
 export const refreshMaterializedViews = async (
   response,
@@ -93,6 +94,17 @@ export const qfRoundTab = {
   resource: QfRound,
   options: {
     properties: {
+      addProjectIdsList: {
+        type: 'textarea',
+        // projectIds separated By comma
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: false,
+          edit: true,
+        },
+      },
       name: {
         isVisible: true,
       },
@@ -222,6 +234,15 @@ export const qfRoundTab = {
               request.payload.endDate = qfRound.endDate;
               request.payload.beginDate = qfRound.beginDate;
               request.payload.isActive = qfRound.isActive;
+            } else if (
+              qfRound.isActive &&
+              request?.payload?.addProjectIdsList?.split(',')?.length > 0
+            ) {
+              await relateManyProjectsToQfRound({
+                projectIds: request.payload.addProjectIdsList.split(','),
+                qfRound,
+                add: true,
+              });
             }
           }
           return request;
