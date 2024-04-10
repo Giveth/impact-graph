@@ -1,10 +1,11 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ProjectDonationSummeryViewV31712745858472 implements MigrationInterface {
-
-    async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(
-          `
+export class ProjectDonationSummeryViewV31712745858472
+  implements MigrationInterface
+{
+  async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `
             DROP MATERIALIZED VIEW IF EXISTS project_donation_summary_view;
 
             CREATE MATERIALIZED VIEW project_donation_summary_view AS
@@ -42,14 +43,14 @@ export class ProjectDonationSummeryViewV31712745858472 implements MigrationInter
             
             CREATE INDEX idx_project_donation_summary_project_id ON project_donation_summary_view USING hash ("projectId");
     `,
-        );
-    }
+    );
+  }
 
-    async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(
-          `
+  async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `
       DROP MATERIALIZED VIEW project_donation_summary_view;
     `,
-        );
-    }
+    );
+  }
 }
