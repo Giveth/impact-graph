@@ -60,21 +60,31 @@ const returnAllQfRoundDonationAnalysis = async (
 ) => {
   const { record, currentAdmin } = context;
   const qfRoundId = Number(request?.params?.recordId);
-  logger.debug('qfRoundId', qfRoundId);
-
-  const qfRoundDonationsRows = await getQfRoundActualDonationDetails(qfRoundId);
-  logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
-  await addQfRoundDonationsSheetToSpreadsheet({
-    rows: qfRoundDonationsRows,
+  let type = 'success';
+  logger.debug(
+    'returnAllQfRoundDonationAnalysis() has been called, qfRoundId',
     qfRoundId,
-  });
-  // TODO Upload to google sheet
+  );
+  let message = messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY;
+  try {
+    const qfRoundDonationsRows =
+      await getQfRoundActualDonationDetails(qfRoundId);
+    logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
+    await addQfRoundDonationsSheetToSpreadsheet({
+      rows: qfRoundDonationsRows,
+      qfRoundId,
+    });
+  } catch (e) {
+    logger.error('returnAllQfRoundDonationAnalysis() error', e);
+    message = e.message;
+    type = 'danger';
+  }
 
   return {
     record: record.toJSON(currentAdmin),
     notice: {
-      message: messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY,
-      type: 'success',
+      message,
+      type,
     },
   };
 };

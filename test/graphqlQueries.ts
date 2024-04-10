@@ -321,6 +321,7 @@ export const fetchDonationsByProjectIdQuery = `
       }
       totalCount
       totalUsdBalance
+      recurringDonationsCount
     }
   }
 `;
@@ -1321,6 +1322,7 @@ export const userByAddress = `
       boostedProjectsCount
       likedProjectsCount
       donationsCount
+      totalDonated
       projectsCount
       passportScore
       passportStamps
@@ -2282,6 +2284,7 @@ export const createRecurringDonationQuery = `
             $flowRate: String!
             $currency: String!
             $anonymous: Boolean
+            $isBatch: Boolean
             ) {
     createRecurringDonation(
       projectId: $projectId 
@@ -2290,11 +2293,13 @@ export const createRecurringDonationQuery = `
       flowRate: $flowRate
       currency:$currency
       anonymous:$anonymous
+      isBatch:$isBatch
         ) {
       txHash
       networkId
       anonymous
       isArchived
+      isBatch
     }
   }
 `;

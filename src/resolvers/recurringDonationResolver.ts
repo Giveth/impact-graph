@@ -165,6 +165,8 @@ export class RecurringDonationResolver {
     @Arg('flowRate', () => String) flowRate: string,
     @Arg('anonymous', () => Boolean, { defaultValue: false })
     anonymous: boolean,
+    @Arg('isBatch', () => Boolean, { defaultValue: false })
+    isBatch: boolean,
   ): Promise<RecurringDonation> {
     const userId = ctx?.req?.user?.userId;
     const donor = await findUserById(userId);
@@ -197,6 +199,7 @@ export class RecurringDonationResolver {
       flowRate,
       currency,
       anonymous,
+      isBatch,
     });
   }
 

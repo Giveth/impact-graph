@@ -23,7 +23,10 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
-import { RecurringDonation } from '../../entities/recurringDonation';
+import {
+  RecurringDonation,
+  RecurringDonationBalanceWarning,
+} from '../../entities/recurringDonation';
 import { getTokenPrice } from '../../services/priceService';
 import { Token } from '../../entities/token';
 import { toFixNumber } from '../../services/donationService';
@@ -57,23 +60,33 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async userSuperTokensCritical(params: {
-    userId: number;
-    email: string;
-    criticalDate: string;
+    user: User;
+    eventName: RecurringDonationBalanceWarning;
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
   }): Promise<void> {
-    const { criticalDate, tokenSymbol, project } = params;
+    logger.debug('userSuperTokensCritical', { params });
+    const { eventName, tokenSymbol, project, user, isEnded } = params;
+    const { email, walletAddress } = user;
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      tokenSymbol,
+      isEnded,
+    };
     await sendProjectRelatedNotificationsQueue.add({
       project,
-      eventName: NOTIFICATIONS_EVENT_NAMES.USER_SUPER_TOKENS_CRITICAL,
-      sendEmail: true,
-      segment: {
-        payload: params,
+      user: {
+        email,
+        walletAddress: walletAddress!,
       },
-      trackId:
-        'super-token-balance-critical-' + criticalDate + '-' + tokenSymbol,
+      eventName,
+      sendEmail: true,
+      metadata: payload,
+      segment: {
+        payload,
+      },
     });
     return;
   }
@@ -159,6 +172,7 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
         amount,
         price,
         donationValueUsd,
+        token,
       });
       if (donationValueUsd <= 20) return;
     } else {
@@ -176,6 +190,10 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 
     await sendProjectRelatedNotificationsQueue.add({
       project,
+      user: {
+        email: user?.email as string,
+        walletAddress: user?.walletAddress as string,
+      },
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
       sendEmail: true,
       segment: {
@@ -914,9 +932,14 @@ const getEmailDataDonationAttributes = async (params: {
     donationValueEth: number | undefined,
     transakStatus: string | undefined;
   if (isRecurringDonation) {
-    amount = Number(donation.flowRate) * 60 * 60 * 24 * 30; // convert flowRate from per second to per month
     transactionId = donation.txHash;
     transactionNetworkId = donation.networkId;
+    const token = await Token.findOneBy({
+      symbol: donation.currency,
+      networkId: transactionNetworkId,
+    });
+    amount =
+      (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
   } else {
     amount = Number(donation.amount);
     transactionId = donation.transactionId;
@@ -1060,7 +1083,7 @@ const sendProjectRelatedNotification = async (params: {
   const projectLink = buildProjectLink(eventName, project.slug);
   const data: SendNotificationBody = {
     eventName,
-    email: receivedUser.email,
+    email: segment?.payload?.email || receivedUser.email,
     sendEmail: sendEmail || false,
     sendSegment: Boolean(segment),
     userWalletAddress: receivedUser.walletAddress as string,

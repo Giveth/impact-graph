@@ -61,6 +61,9 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
+import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -3390,6 +3393,73 @@ function donationsByProjectIdTestCases() {
       donations.find(donation => Number(donation.id) === pendingDonation.id),
     );
   });
+  it('should return recurringDonationsCount and totalCount correctly', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const anchorAddress = generateRandomEtheriumAddress();
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: user,
+      creator: user,
+      address: anchorAddress,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const currency = 'USD';
+
+    const recurringDonation = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: user,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+    });
+    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation.save();
+
+    const recurringDonation2 = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: user,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+    });
+    recurringDonation2.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation2.save();
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {},
+    );
+
+    assert.equal(result.data.data.donationsByProjectId.totalCount, 1);
+    assert.equal(
+      result.data.data.donationsByProjectId.recurringDonationsCount,
+      2,
+    );
+  });
 }
 
 function donationsByUserIdTestCases() {
@@ -4172,6 +4242,7 @@ function donationsToWalletsTestCases() {
     assert.equal(result.data.data.donationsToWallets.length, 0);
   });
 }
+
 //
 // function updateDonationStatusTestCases() {
 //   it('should update donation status to verified after calling without sending status', async () => {

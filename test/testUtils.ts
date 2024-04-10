@@ -1937,6 +1937,7 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
     ).id;
   return RecurringDonation.create({
     flowRate: params?.donationData?.flowRate || '10',
+    totalUsdStreamed: params?.donationData?.totalUsdStreamed || 0,
     status: params?.donationData?.status || 'pending',
     networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     currency: params?.donationData?.currency || 'USDT',
@@ -1947,6 +1948,10 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
     isArchived:
       params?.donationData?.isArchived !== undefined
         ? params?.donationData?.isArchived
+        : false,
+    isBatch:
+      params?.donationData?.isBatch !== undefined
+        ? params?.donationData?.isBatch
         : false,
     txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),
     anonymous,

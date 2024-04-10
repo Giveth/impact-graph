@@ -18,6 +18,7 @@ export const createNewRecurringDonation = async (params: {
   flowRate: string;
   currency: string;
   anonymous: boolean;
+  isBatch: boolean;
 }): Promise<RecurringDonation> => {
   const recurringDonation = await RecurringDonation.create({
     project: params.project,
@@ -28,6 +29,7 @@ export const createNewRecurringDonation = async (params: {
     currency: params.currency,
     flowRate: params.flowRate,
     anonymous: params.anonymous,
+    isBatch: params.isBatch,
   });
   return recurringDonation.save();
 };
@@ -124,6 +126,17 @@ export const findRecurringDonationById = async (
     .leftJoinAndSelect('recurringDonation.project', 'project')
     .where(`recurringDonation.id = :id`, { id })
     .getOne();
+};
+
+export const countOfActiveRecurringDonationsByProjectId = async (
+  projectId: number,
+): Promise<number> => {
+  return await RecurringDonation.createQueryBuilder('recurringDonation')
+    .where(`recurringDonation.projectId = :projectId`, { projectId })
+    .andWhere(`recurringDonation.status = :status`, {
+      status: RECURRING_DONATION_STATUS.ACTIVE,
+    })
+    .getCount();
 };
 
 export const findRecurringDonationByProjectIdAndUserIdAndCurrency =

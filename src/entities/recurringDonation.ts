@@ -16,6 +16,7 @@ import { Project } from './project';
 import { User } from './user';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { Donation } from './donation';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 
 export const RECURRING_DONATION_STATUS = {
   PENDING: 'pending',
@@ -25,10 +26,10 @@ export const RECURRING_DONATION_STATUS = {
   ACTIVE: 'active',
 };
 
-export enum RecurringDonationBalanceWarning {
-  WEEK = 'week',
-  MONTH = 'month',
-}
+export type RecurringDonationBalanceWarning =
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_MONTH
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_WEEK
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_DEPLETED;
 
 @Entity()
 @ObjectType()
@@ -44,11 +45,11 @@ export class RecurringDonation extends BaseEntity {
   networkId: number;
 
   @Field()
-  @Column({ nullable: true, default: 0 })
+  @Column({ nullable: true, default: 0, type: 'real' })
   amountStreamed?: number;
 
   @Field()
-  @Column({ nullable: true, default: 0 })
+  @Column({ nullable: true, default: 0, type: 'real' })
   totalUsdStreamed?: number;
 
   // per second
@@ -93,6 +94,10 @@ export class RecurringDonation extends BaseEntity {
   @Column({ nullable: true, default: false })
   @Field({ nullable: true })
   isArchived: boolean;
+
+  @Column({ nullable: true, default: false })
+  @Field({ nullable: true })
+  isBatch: boolean;
 
   @Column({ nullable: true, default: false })
   @Field({ nullable: true })

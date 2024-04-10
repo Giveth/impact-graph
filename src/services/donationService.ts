@@ -198,6 +198,9 @@ export const updateTotalDonationsOfProject = async (
     `,
       [projectId],
     );
+
+    // we want to update the project donation summary view after updating the total donations
+    refreshProjectDonationSummaryView();
   } catch (e) {
     logger.error('updateTotalDonationsOfAProject error', e);
   }
