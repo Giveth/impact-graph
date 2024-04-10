@@ -108,7 +108,7 @@ export const validateDonorSuperTokenBalance = async (
 
   logger.debug(
     `validateDonorSuperTokenBalance for recurringDonation id ${recurringDonation.id}`,
-    { accountBalances, user },
+    { accountBalances, userId: user.id },
   );
 
   if (!accountBalances || accountBalances.length === 0) return;
@@ -118,6 +118,8 @@ export const validateDonorSuperTokenBalance = async (
     if (!user!.email) continue;
     const tokenSymbol = superTokens.find(t => t.id === token.id)
       ?.underlyingToken.symbol;
+    // We shouldn't notify the user if the token is not the same as the recurring donation
+    if (tokenSymbol !== recurringDonation.currency) continue;
     const nowInSec = Number((Date.now() / 1000).toFixed());
     const balanceLongerThanMonth =
       nowInSec - maybeCriticalAtTimestamp > monthInSec;
