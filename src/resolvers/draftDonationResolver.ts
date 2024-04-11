@@ -6,6 +6,7 @@ import SentryLogger from '../sentryLogger';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import {
   createDraftDonationQueryValidator,
+  createDraftRecurringDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { logger } from '../utils/logger';
@@ -18,8 +19,11 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import { DraftRecurringDonation } from '../entities/draftRecurringDonation';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
+const draftRecurringDonationEnabled =
+  process.env.ENABLE_DRAFT_RECURRING_DONATION === 'true';
 
 @Resolver(_of => User)
 export class DraftDonationResolver {
@@ -145,6 +149,116 @@ export class DraftDonationResolver {
     } catch (e) {
       SentryLogger.captureException(e);
       logger.error('createDraftDonation() error', {
+        error: e,
+        inputData: logData,
+      });
+      throw e;
+    }
+  }
+
+  @Mutation(_returns => Number)
+  async createDraftRecurringDonation(
+    @Arg('networkId') networkId: number,
+    @Arg('flowRate') flowRate: string,
+    @Arg('currency') currency: string,
+    @Arg('isBatch', { nullable: true, defaultValue: false }) isBatch: boolean,
+    @Arg('anonymous', { nullable: true, defaultValue: false })
+    anonymous: boolean,
+    @Arg('projectId') projectId: number,
+    @Ctx() ctx: ApolloContext,
+  ): Promise<number> {
+    const logData = {
+      flowRate,
+      networkId,
+      currency,
+      anonymous,
+      isBatch,
+      projectId,
+      userId: ctx?.req?.user?.userId,
+    };
+    logger.debug(
+      'createDraftRecurringDonation() resolver has been called with this data',
+      logData,
+    );
+    if (!draftRecurringDonationEnabled) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.DRAFT_RECURRING_DONATION_DISABLED),
+      );
+    }
+    try {
+      const userId = ctx?.req?.user?.userId;
+      const donorUser = await findUserById(userId);
+      if (!donorUser) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.UN_AUTHORIZED));
+      }
+      const chainType = detectAddressChainType(donorUser.walletAddress!);
+      const _networkId = getAppropriateNetworkId({
+        networkId,
+        chainType,
+      });
+
+      const validaDataInput = {
+        flowRate,
+        networkId: _networkId,
+        anonymous,
+        currency,
+        isBatch,
+        projectId,
+        chainType,
+      };
+      try {
+        validateWithJoiSchema(
+          validaDataInput,
+          createDraftRecurringDonationQueryValidator,
+        );
+      } catch (e) {
+        logger.error(
+          'Error on validating createDraftRecurringDonation input',
+          validaDataInput,
+        );
+        throw e; // Rethrow the original error
+      }
+
+      if (chainType !== ChainType.EVM) {
+        throw new Error(i18n.__(translationErrorMessagesKeys.EVM_SUPPORT_ONLY));
+      }
+
+      const draftRecurringDonationId =
+        await DraftRecurringDonation.createQueryBuilder(
+          'draftRecurringDonation',
+        )
+          .insert()
+          .values({
+            networkId: _networkId,
+            currency,
+            flowRate,
+            donorId: donorUser.id,
+            isBatch,
+            projectId,
+            anonymous: Boolean(anonymous),
+            chainType: chainType as ChainType,
+          })
+          .orIgnore()
+          .returning('id')
+          .execute();
+
+      if (draftRecurringDonationId.raw.length === 0) {
+        const existingDraftDonation = await DraftRecurringDonation.findOne({
+          where: {
+            networkId: _networkId,
+            currency,
+            projectId,
+            donorId: donorUser.id,
+            flowRate,
+          },
+          select: ['id'],
+        });
+        return existingDraftDonation!.id;
+      }
+      return draftRecurringDonationId.raw[0].id;
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('createDraftRecurringDonation() error', {
         error: e,
         inputData: logData,
       });

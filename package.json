@@ -142,6 +142,7 @@
     "test:campaignResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/campaignResolver.test.ts",
     "test:reactionResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/reactionResolver.test.ts",
     "test:donationResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/donationResolver.test.ts",
+    "test:draftDonationResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/draftDonationResolver.test.ts",
     "test:projectResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/projectResolver.test.ts",
     "test:chainvineResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/chainvineResolver.test.ts",
     "test:qfRoundResolver": "NODE_ENV=test mocha ./test/pre-test-scripts.ts  ./src/resolvers/qfRoundResolver.test.ts",

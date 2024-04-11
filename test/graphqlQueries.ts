@@ -54,6 +54,26 @@ export const createDraftDonationMutation = `
   }
 `;
 
+export const createDraftRecurringDonationMutation = `
+  mutation (
+    $networkId: Float!
+    $currency: String!
+    $projectId: Float!
+    $anonymous: Boolean
+    $isBatch: Boolean
+    $flowRate: String!
+  ) {
+    createDraftRecurringDonation(
+      networkId: $networkId
+      currency: $currency
+      projectId: $projectId
+      anonymous: $anonymous
+      isBatch: $isBatch
+      flowRate: $flowRate
+    )
+  }
+`;
+
 export const updateDonationStatusMutation = `
   mutation (
     $status: String
