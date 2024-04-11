@@ -50,6 +50,8 @@ import {
   findDonationById,
   getRecentDonations,
   isVerifiedDonationExistsInQfRound,
+  newDonorsCount,
+  newDonorsDonationTotalUsd,
 } from '../repositories/donationRepository';
 import { sleep } from '../utils/utils';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
@@ -66,6 +68,7 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import { countOfActiveRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
@@ -76,6 +79,9 @@ class PaginateDonations {
 
   @Field(_type => Number, { nullable: true })
   totalCount: number;
+
+  @Field(_type => Number, { nullable: true })
+  recurringDonationsCount: number;
 
   @Field(_type => Number, { nullable: true })
   totalUsdBalance: number;
@@ -257,6 +263,7 @@ export class DonationResolver {
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<MainCategoryDonations[] | []> {
     try {
       validateWithJoiSchema(
@@ -293,10 +300,13 @@ export class DonationResolver {
         }
       }
 
-      const result = await query.getRawMany();
-      return result;
+      if (onlyVerified) {
+        query.andWhere('projects.verified = true');
+      }
+
+      return await query.getRawMany();
     } catch (e) {
-      logger.error('donations query error', e);
+      logger.error('totalDonationsPerCategory query error', e);
       throw e;
     }
   }
@@ -307,6 +317,7 @@ export class DonationResolver {
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -317,12 +328,14 @@ export class DonationResolver {
         fromDate,
         toDate,
         fromOptimismOnly,
+        onlyVerified,
       );
       const totalPerMonthAndYear =
         await donationsTotalAmountPerDateRangeByMonth(
           fromDate,
           toDate,
           fromOptimismOnly,
+          onlyVerified,
         );
 
       return {
@@ -341,6 +354,7 @@ export class DonationResolver {
     @Arg('fromDate', { nullable: true }) fromDate?: string,
     @Arg('toDate', { nullable: true }) toDate?: string,
     @Arg('fromOptimismOnly', { nullable: true }) fromOptimismOnly?: boolean,
+    @Arg('onlyVerified', { nullable: true }) onlyVerified?: boolean,
   ): Promise<ResourcePerDateRange> {
     try {
       validateWithJoiSchema(
@@ -351,12 +365,14 @@ export class DonationResolver {
         fromDate,
         toDate,
         fromOptimismOnly,
+        onlyVerified,
       );
       const totalPerMonthAndYear =
         await donationsTotalNumberPerDateRangeByMonth(
           fromDate,
           toDate,
           fromOptimismOnly,
+          onlyVerified,
         );
 
       return {
@@ -409,6 +425,46 @@ export class DonationResolver {
       };
     } catch (e) {
       logger.error('donations query error', e);
+      throw e;
+    }
+  }
+
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  async newDonorsCountPerDate(
+    // fromDate and toDate should be in this format (YYYY-MM-DD)T(HH:mm:ss)Z
+    @Arg('fromDate') fromDate: string,
+    @Arg('toDate') toDate: string,
+  ): Promise<{ total: number }> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const newDonors = await newDonorsCount(fromDate, toDate);
+      return {
+        total: newDonors?.length || 0,
+      };
+    } catch (e) {
+      logger.error('newDonorsCountPerDate query error', e);
+      throw e;
+    }
+  }
+
+  @Query(_returns => ResourcePerDateRange, { nullable: true })
+  async newDonorsDonationTotalUsdPerDate(
+    // fromDate and toDate should be in this format (YYYY-MM-DD)T(HH:mm:ss)Z
+    @Arg('fromDate') fromDate: string,
+    @Arg('toDate') toDate: string,
+  ): Promise<{ total: number }> {
+    try {
+      validateWithJoiSchema(
+        { fromDate, toDate },
+        resourcePerDateReportValidator,
+      );
+      const total = await newDonorsDonationTotalUsd(fromDate, toDate);
+      return { total };
+    } catch (e) {
+      logger.error('newDonorsDonationTotalUsdPerDate query error', e);
       throw e;
     }
   }
@@ -533,6 +589,9 @@ export class DonationResolver {
       );
     }
 
+    const recurringDonationsCount =
+      await countOfActiveRecurringDonationsByProjectId(projectId);
+
     const [donations, donationsCount] = await query
       .take(take)
       .skip(skip)
@@ -541,6 +600,7 @@ export class DonationResolver {
       donations,
       totalCount: donationsCount,
       totalUsdBalance: project.totalDonations,
+      recurringDonationsCount,
     };
   }
 
@@ -820,10 +880,8 @@ export class DonationResolver {
       await updateDonationPricesAndValues(
         donation,
         project,
-        tokenInDb,
-        token,
+        tokenInDb!,
         priceChainId,
-        amount,
       );
 
       if (chainType === ChainType.EVM) {

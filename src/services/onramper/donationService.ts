@@ -9,7 +9,6 @@ import { i18n, translationErrorMessagesKeys } from '../../utils/errorMessages';
 import { logger } from '../../utils/logger';
 import {
   isTokenAcceptableForProject,
-  updateDonationPricesAndValues,
   updateTotalDonationsOfProject,
 } from '../donationService';
 import { OnRamperFiatTransaction, OnRamperMetadata } from './fiatTransaction';
@@ -132,14 +131,14 @@ export const createFiatDonationFromOnramper = async (
 
     await donation.save();
 
-    await updateDonationPricesAndValues(
-      donation,
-      project,
-      null,
-      fiatTransaction.payload.outCurrency,
-      priceChainId,
-      fiatTransaction.payload.outAmount,
-    );
+    // await updateDonationPricesAndValues(
+    //   donation,
+    //   project,
+    //   null,
+    //   fiatTransaction.payload.outCurrency,
+    //   priceChainId,
+    //   fiatTransaction.payload.outAmount,
+    // );
 
     // After updating, recalculate user total donated and owner total received
     if (donorUser) {

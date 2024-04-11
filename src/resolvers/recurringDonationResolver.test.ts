@@ -93,6 +93,7 @@ function createRecurringDonationTestCases() {
       NETWORK_IDS.OPTIMISTIC,
     );
     assert.equal(result.data.data.createRecurringDonation.anonymous, false);
+    assert.equal(result.data.data.createRecurringDonation.isBatch, false);
   });
   it('should create recurringDonation successfully with anonymous true', async () => {
     const projectOwner = await saveUserDirectlyToDb(
@@ -142,6 +143,55 @@ function createRecurringDonationTestCases() {
       NETWORK_IDS.OPTIMISTIC,
     );
     assert.equal(result.data.data.createRecurringDonation.anonymous, true);
+  });
+  it('should create recurringDonation successfully with isBatch true', async () => {
+    const projectOwner = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+    const project = await saveProjectDirectlyToDb(
+      createProjectData(),
+      projectOwner,
+    );
+    const contractCreator = await saveUserDirectlyToDb(
+      generateRandomEtheriumAddress(),
+    );
+
+    await addNewAnchorAddress({
+      project,
+      owner: projectOwner,
+      creator: contractCreator,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: createRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          txHash: generateRandomEvmTxHash(),
+          flowRate: '100',
+          currency: 'GIV',
+          isBatch: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.isNotNull(result.data.data.createRecurringDonation);
+    assert.equal(
+      result.data.data.createRecurringDonation.networkId,
+      NETWORK_IDS.OPTIMISTIC,
+    );
+    assert.equal(result.data.data.createRecurringDonation.isBatch, true);
   });
 
   it('should return unAuthorized error when not sending JWT', async () => {
@@ -249,7 +299,7 @@ function createRecurringDonationTestCases() {
 }
 
 function updateRecurringDonationTestCases() {
-  it('should allow to end recurringdonation when its active, and archive when its ended', async () => {
+  it('should allow to end recurring donation when its active, and archive when its ended', async () => {
     const transactionInfo = {
       txHash: generateRandomEvmTxHash(),
       networkId: NETWORK_IDS.XDAI,
@@ -317,7 +367,7 @@ function updateRecurringDonationTestCases() {
           projectId: project.id,
           networkId: donation.networkId,
           currency: donation.currency,
-          status: RECURRING_DONATION_STATUS.ARCHIVED,
+          isArchived: true,
         },
       },
       {
@@ -328,8 +378,186 @@ function updateRecurringDonationTestCases() {
     );
 
     assert.equal(
-      archivingResult.data.data.updateRecurringDonationParams.status,
-      RECURRING_DONATION_STATUS.ARCHIVED,
+      archivingResult.data.data.updateRecurringDonationParams.isArchived,
+      true,
+    );
+  });
+  it('should not allow to archive  recurring donation when its not ended', async () => {
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      flowRate: '1000',
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: user,
+      creator: user,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        currency: 'ETH',
+        networkId: NETWORK_IDS.OPTIMISTIC,
+        donorId: donor.id,
+        anchorContractAddressId: anchorContractAddress.id,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+
+    assert.equal(donation.status, RECURRING_DONATION_STATUS.ACTIVE);
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          networkId: donation.networkId,
+          currency: donation.currency,
+          isArchived: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.isArchived,
+      false,
+    );
+  });
+  it('should not change isArchived when its already true and we dont send it', async () => {
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      flowRate: '1000',
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: user,
+      creator: user,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        currency: 'ETH',
+        networkId: NETWORK_IDS.OPTIMISTIC,
+        donorId: donor.id,
+        anchorContractAddressId: anchorContractAddress.id,
+        status: RECURRING_DONATION_STATUS.ENDED,
+        isArchived: true,
+      },
+    });
+    assert.equal(donation.isArchived, true);
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          networkId: donation.networkId,
+          currency: donation.currency,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.isArchived,
+      true,
+    );
+  });
+  it('should not change isArchived when its already false and we dont send it', async () => {
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      flowRate: '1000',
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency: 'GIV',
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: user,
+      creator: user,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        currency: 'ETH',
+        networkId: NETWORK_IDS.OPTIMISTIC,
+        donorId: donor.id,
+        anchorContractAddressId: anchorContractAddress.id,
+        status: RECURRING_DONATION_STATUS.ENDED,
+        isArchived: false,
+      },
+    });
+    assert.equal(donation.isArchived, false);
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          networkId: donation.networkId,
+          currency: donation.currency,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.isArchived,
+      false,
     );
   });
 
@@ -397,6 +625,221 @@ function updateRecurringDonationTestCases() {
       flowRate,
     );
     assert.isTrue(result.data.data.updateRecurringDonationParams.anonymous);
+  });
+  it('should change status and isFinished when updating flowRate and txHash ', async () => {
+    const currency = 'GIV';
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency,
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await addNewAnchorAddress({
+      project,
+      owner: project.adminUser,
+      creator: donor,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency,
+        finished: true,
+      },
+    });
+
+    assert.equal(donation.flowRate, '300');
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const flowRate = '201';
+    const txHash = generateRandomEvmTxHash();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          flowRate,
+          currency,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          txHash,
+          anonymous: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.flowRate,
+      flowRate,
+    );
+    assert.isFalse(result.data.data.updateRecurringDonationParams.finished);
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.status,
+      RECURRING_DONATION_STATUS.PENDING,
+    );
+    assert.equal(result.data.data.updateRecurringDonationParams.txHash, txHash);
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.flowRate,
+      flowRate,
+    );
+  });
+  it('should not change txHash when flowRate has not sent ', async () => {
+    const currency = 'GIV';
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency,
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await addNewAnchorAddress({
+      project,
+      owner: project.adminUser,
+      creator: donor,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency,
+        finished: true,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+
+    assert.equal(donation.flowRate, '300');
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const txHash = generateRandomEvmTxHash();
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          currency,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          txHash,
+          anonymous: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.status,
+      RECURRING_DONATION_STATUS.ACTIVE,
+    );
+    assert.notEqual(
+      result.data.data.updateRecurringDonationParams.txHash,
+      txHash,
+    );
+  });
+  it('should not change flowRate when txHash has not sent ', async () => {
+    const currency = 'GIV';
+    const transactionInfo = {
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.XDAI,
+      amount: 1,
+      fromAddress: generateRandomEtheriumAddress(),
+      toAddress: generateRandomEtheriumAddress(),
+      currency,
+      timestamp: 1647069070,
+    };
+    const project = await saveProjectDirectlyToDb({
+      ...createProjectData(),
+      walletAddress: transactionInfo.toAddress,
+    });
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await addNewAnchorAddress({
+      project,
+      owner: project.adminUser,
+      creator: donor,
+      address: generateRandomEtheriumAddress(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+
+    const donation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        projectId: project.id,
+        flowRate: '300',
+        anonymous: false,
+        currency,
+        finished: true,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+
+    assert.equal(donation.flowRate, '300');
+
+    const accessToken = await generateTestAccessToken(donor.id);
+    const flowRate = '201';
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: updateRecurringDonationQuery,
+        variables: {
+          projectId: project.id,
+          flowRate,
+          currency,
+          networkId: NETWORK_IDS.OPTIMISTIC,
+          anonymous: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.notEqual(
+      result.data.data.updateRecurringDonationParams.flowRate,
+      flowRate,
+    );
+    assert.equal(
+      result.data.data.updateRecurringDonationParams.status,
+      RECURRING_DONATION_STATUS.ACTIVE,
+    );
   });
 
   it('should get error when someone wants to update someone else recurring donation', async () => {
@@ -861,7 +1304,121 @@ function recurringDonationsByProjectIdTestCases() {
     assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
     assert.equal(donations[0].status, 'verified');
   });
+  it('should filter include archived ones when passing includeArchived:true', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    const recurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'verified',
+      },
+    });
+
+    const archivedRecurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'verified',
+        isArchived: true,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          includeArchived: true,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 2);
+    assert.isOk(
+      donations.find(d => Number(d.id) === archivedRecurringDonation.id),
+    );
+    assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
+  });
+  it('should not include archived ones when passing includeArchived:false', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'verified',
+      },
+    });
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'verified',
+        isArchived: true,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          includeArchived: false,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
+    assert.equal(donations[0].isArchived, false);
+  });
+  it('should return non archived if we dont send includeArchived field', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+
+    const recurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'verified',
+        isArchived: false,
+      },
+    });
+
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        projectId: project.id,
+        status: 'verified',
+        isArchived: true,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+          orderBy: {
+            field: 'createdAt',
+            direction: 'DESC',
+          },
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByProjectId.recurringDonations;
+
+    assert.equal(result.data.data.recurringDonationsByProjectId.totalCount, 1);
+    assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
+  });
 }
+
 function recurringDonationsByUserIdTestCases() {
   it('should sort by the createdAt DESC', async () => {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
@@ -1168,7 +1725,7 @@ function recurringDonationsByUserIdTestCases() {
     assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 3);
     assert.isOk(donations.find(d => Number(d.id) === d1.id));
   });
-  it('should filter by finishStatus filter both true and false', async () => {
+  it('should filter by finishStatus filter both active and ended', async () => {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
     const d1 = await saveRecurringDonationDirectlyToDb({
@@ -1190,7 +1747,7 @@ function recurringDonationsByUserIdTestCases() {
         query: fetchRecurringDonationsByUserIdQuery,
         variables: {
           userId: donor.id,
-          finishStatus: [true, false],
+          finishStatus: { active: true, ended: true },
         },
       },
       {},
@@ -1235,16 +1792,16 @@ function recurringDonationsByUserIdTestCases() {
     assert.isNotOk(donations.find(d => Number(d.id) === d1.id));
     assert.isOk(donations.find(d => Number(d.id) === d2.id));
   });
-  it('should filter by finishStatus filter just true', async () => {
+  it('should filter by finishStatus filter just active', async () => {
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const d1 = await saveRecurringDonationDirectlyToDb({
+    const endedOne = await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         finished: true,
       },
     });
-    const d2 = await saveRecurringDonationDirectlyToDb({
+    const activeOne = await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         finished: false,
@@ -1257,7 +1814,7 @@ function recurringDonationsByUserIdTestCases() {
         query: fetchRecurringDonationsByUserIdQuery,
         variables: {
           userId: donor.id,
-          finishStatus: [true],
+          finishStatus: { active: true, ended: false },
         },
       },
       {},
@@ -1266,20 +1823,20 @@ function recurringDonationsByUserIdTestCases() {
     const donations =
       result.data.data.recurringDonationsByUserId.recurringDonations;
     assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
-    assert.isOk(donations.find(d => Number(d.id) === d1.id));
-    assert.isNotOk(donations.find(d => Number(d.id) === d2.id));
+    assert.isOk(donations.find(d => Number(d.id) === activeOne.id));
+    assert.isNotOk(donations.find(d => Number(d.id) === endedOne.id));
   });
-  it('should filter by finishStatus filter just false', async () => {
+  it('should filter by finishStatus filter just ended', async () => {
     await saveProjectDirectlyToDb(createProjectData());
     const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
 
-    const d1 = await saveRecurringDonationDirectlyToDb({
+    const endedOne = await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         finished: true,
       },
     });
-    const d2 = await saveRecurringDonationDirectlyToDb({
+    const activeOne = await saveRecurringDonationDirectlyToDb({
       donationData: {
         donorId: donor.id,
         finished: false,
@@ -1292,7 +1849,7 @@ function recurringDonationsByUserIdTestCases() {
         query: fetchRecurringDonationsByUserIdQuery,
         variables: {
           userId: donor.id,
-          finishStatus: [false],
+          finishStatus: { active: false, ended: true },
         },
       },
       {},
@@ -1301,10 +1858,162 @@ function recurringDonationsByUserIdTestCases() {
     const donations =
       result.data.data.recurringDonationsByUserId.recurringDonations;
     assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
-    assert.isNotOk(donations.find(d => Number(d.id) === d1.id));
-    assert.isOk(donations.find(d => Number(d.id) === d2.id));
+    assert.isNotOk(donations.find(d => Number(d.id) === activeOne.id));
+    assert.isOk(donations.find(d => Number(d.id) === endedOne.id));
+  });
+  it('should filter by status and return active recurring donations', async () => {
+    await saveProjectDirectlyToDb(createProjectData());
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const activeDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+    const pendingDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.PENDING,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          status: RECURRING_DONATION_STATUS.ACTIVE,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.isOk(donations.find(d => Number(d.id) === activeDonation.id));
+    assert.isNotOk(donations.find(d => Number(d.id) === pendingDonation.id));
+  });
+  it('should filter include archived ones when passing includeArchived:true', async () => {
+    await saveProjectDirectlyToDb(createProjectData());
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const recurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        isArchived: false,
+      },
+    });
+    const archivedRecurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.PENDING,
+        isArchived: true,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          includeArchived: true,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 2);
+    assert.isOk(
+      donations.find(d => Number(d.id) === archivedRecurringDonation.id),
+    );
+    assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
+  });
+  it('should not include archived ones when passing includeArchived:false', async () => {
+    await saveProjectDirectlyToDb(createProjectData());
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const recurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        isArchived: false,
+      },
+    });
+    const archivedRecurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.PENDING,
+        isArchived: true,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+          includeArchived: false,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.isNotOk(
+      donations.find(d => Number(d.id) === archivedRecurringDonation.id),
+    );
+    assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
+  });
+  it('should return non archived if we dont send includeArchived field', async () => {
+    await saveProjectDirectlyToDb(createProjectData());
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    const recurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        isArchived: false,
+      },
+    });
+    const archivedRecurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        status: RECURRING_DONATION_STATUS.PENDING,
+        isArchived: true,
+      },
+    });
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchRecurringDonationsByUserIdQuery,
+        variables: {
+          userId: donor.id,
+        },
+      },
+      {},
+    );
+
+    const donations =
+      result.data.data.recurringDonationsByUserId.recurringDonations;
+    assert.equal(result.data.data.recurringDonationsByUserId.totalCount, 1);
+    assert.isNotOk(
+      donations.find(d => Number(d.id) === archivedRecurringDonation.id),
+    );
+    assert.isOk(donations.find(d => Number(d.id) === recurringDonation.id));
   });
 }
+
 function updateRecurringDonationStatusTestCases() {
   it('should donation status remain pending after calling without sending status (we assume its not mined so far)', async () => {
     const transactionInfo = {

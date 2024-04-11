@@ -40,7 +40,7 @@ import { addIsStableCoinFieldToTokenTable1696421249293 } from '../migration/1696
 import { createDonationethUser1701756190381 } from '../migration/1701756190381-create_donationeth_user';
 import { ChainType } from '../src/types/network';
 import { COINGECKO_TOKEN_IDS } from '../src/adapters/price/CoingeckoPriceAdapter';
-import { ProjectActualMatchingV11_1710322367912 } from '../migration/1710322367912-project_actual_matching_v11_';
+import { ProjectActualMatchingV121712205556308 } from '../migration/1712205556308-ProjectActualMatchingV12';
 
 async function seedDb() {
   await seedUsers();
@@ -335,6 +335,7 @@ async function seedProjects() {
   await saveProjectDirectlyToDb(SEED_DATA.FOURTH_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.FIFTH_PROJECT);
   await saveProjectDirectlyToDb(SEED_DATA.SIXTH_PROJECT);
+  await saveProjectDirectlyToDb(SEED_DATA.NON_VERIFIED_PROJECT);
 }
 
 async function seedProjectUpdates() {
@@ -477,7 +478,7 @@ async function runMigrations() {
       queryRunner,
     );
     await new createDonationethUser1701756190381().up(queryRunner);
-    await new ProjectActualMatchingV11_1710322367912().up(queryRunner);
+    await new ProjectActualMatchingV121712205556308().up(queryRunner);
   } finally {
     await queryRunner.release();
   }

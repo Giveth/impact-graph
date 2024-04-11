@@ -440,6 +440,15 @@ export const SEED_DATA = {
     id: 6,
     admin: '1',
   },
+  NON_VERIFIED_PROJECT: {
+    ...createProjectData(),
+    title: 'non verified project',
+    slug: 'non-verified-project',
+    description: 'non verified description',
+    id: 7,
+    admin: '1',
+    verified: false,
+  },
   MAIN_CATEGORIES: ['drink', 'food', 'nonProfit'],
   NON_PROFIT_SUB_CATEGORIES: [CATEGORY_NAMES.registeredNonProfits],
   FOOD_SUB_CATEGORIES: [
@@ -1928,10 +1937,22 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
     ).id;
   return RecurringDonation.create({
     flowRate: params?.donationData?.flowRate || '10',
+    totalUsdStreamed: params?.donationData?.totalUsdStreamed || 0,
     status: params?.donationData?.status || 'pending',
     networkId: params?.donationData?.networkId || NETWORK_IDS.OPTIMISM_SEPOLIA,
     currency: params?.donationData?.currency || 'USDT',
-    finished: params?.donationData?.finished || false,
+    finished:
+      params?.donationData?.finished !== undefined
+        ? params?.donationData?.finished
+        : false,
+    isArchived:
+      params?.donationData?.isArchived !== undefined
+        ? params?.donationData?.isArchived
+        : false,
+    isBatch:
+      params?.donationData?.isBatch !== undefined
+        ? params?.donationData?.isBatch
+        : false,
     txHash: params?.donationData?.txHash || generateRandomEtheriumAddress(),
     anonymous,
     donorId,

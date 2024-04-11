@@ -1,6 +1,10 @@
 import { Donation } from '../../entities/donation';
 import { Project } from '../../entities/project';
 import { User } from '../../entities/user';
+import {
+  RecurringDonation,
+  RecurringDonationBalanceWarning,
+} from '../../entities/recurringDonation';
 
 export interface BroadCastNotificationInputParams {
   broadCastNotificationId: number;
@@ -36,7 +40,7 @@ export interface NotificationAdapterInterface {
   updateOrttoPeople(params: OrttoPerson[]): Promise<void>;
 
   donationReceived(params: {
-    donation: Donation;
+    donation: Donation | RecurringDonation;
     project: Project;
     user: User | null;
   }): Promise<void>;
@@ -53,10 +57,12 @@ export interface NotificationAdapterInterface {
   }): Promise<void>;
 
   userSuperTokensCritical(params: {
-    userId: number;
-    email: string;
-    criticalDate: string;
-    tokensymbol: string;
+    user: User;
+    eventName: RecurringDonationBalanceWarning;
+    tokenSymbol: string;
+    project: Project;
+    isEnded: boolean;
+    networkName: string;
   }): Promise<void>;
 
   projectVerified(params: { project: Project }): Promise<void>;

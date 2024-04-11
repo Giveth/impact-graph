@@ -31,7 +31,6 @@ const envVars = [
   'DROP_DATABASE',
   'SEED_PASSWORD',
   'APOLLO_KEY',
-  'REGISTER_USERNAME_PASSWORD',
   'STRIPE_KEY',
   'STRIPE_SECRET',
   'STRIPE_APPLICATION_FEE',
@@ -73,7 +72,6 @@ interface requiredEnv {
   DROP_DATABASE: string;
   SEED_PASSWORD: string;
   APOLLO_KEY: string;
-  REGISTER_USERNAME_PASSWORD: string;
 
   STRIPE_KEY: string;
   STRIPE_SECRET: string;

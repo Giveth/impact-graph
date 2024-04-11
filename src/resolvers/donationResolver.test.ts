@@ -32,6 +32,8 @@ import {
   fetchRecentDonations,
   fetchTotalDonationsNumberPerDateRange,
   doesDonatedToProjectInQfRoundQuery,
+  fetchNewDonorsCount,
+  fetchNewDonorsDonationTotalUsd,
 } from '../../test/graphqlQueries';
 import { NETWORK_IDS } from '../provider';
 import { User } from '../entities/user';
@@ -59,6 +61,9 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
+import { createNewRecurringDonation } from '../repositories/recurringDonationRepository';
+import { RECURRING_DONATION_STATUS } from '../entities/recurringDonation';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment');
@@ -74,6 +79,10 @@ describe('donationsToWallets() test cases', donationsToWalletsTestCases);
 describe('donationsFromWallets() test cases', donationsFromWalletsTestCases);
 describe('totalDonationsUsdAmount() test cases', donationsUsdAmountTestCases);
 describe('totalDonorsCountPerDate() test cases', donorsCountPerDateTestCases);
+describe(
+  'newDonorsCountAndTotalDonationPerDateTestCases() test cases',
+  newDonorsCountAndTotalDonationPerDateTestCases,
+);
 describe(
   'doesDonatedToProjectInQfRound() test cases',
   doesDonatedToProjectInQfRoundTestCases,
@@ -109,17 +118,81 @@ function totalDonationsPerCategoryPerDateTestCases() {
       donationsResponse.data.data.totalDonationsPerCategory.find(
         d => d.title === 'food',
       );
+
+    const donationToVerified = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(30, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    // Donation to non-verified project
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(30, 'days').toDate(),
+        valueUsd: 10,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.NON_VERIFIED_PROJECT.id,
+    );
+    const totalDonationsToVerified = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsPerCategoryPerDate,
+      variables: {
+        fromDate: moment().add(29, 'days').toDate(),
+        toDate: moment().add(31, 'days').toDate(),
+        onlyVerified: true,
+      },
+    });
+    const foodTotal =
+      totalDonationsToVerified.data.data.totalDonationsPerCategory.find(
+        d => d.title === 'food',
+      );
+
     assert.equal(
       foodDonationsResponseTotal.totalUsd,
       foodDonationsTotalUsd[0].sum,
     );
+    assert.equal(foodTotal.totalUsd, donationToVerified.valueUsd);
   });
 }
 
 function totalDonationsNumberPerDateTestCases() {
   it('should return donations count per time range', async () => {
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(22, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(22, 'days').toDate(),
+        valueUsd: 30,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.NON_VERIFIED_PROJECT.id,
+    );
     const donationsResponse = await axios.post(graphqlUrl, {
       query: fetchTotalDonationsNumberPerDateRange,
+      variables: {
+        fromDate: moment().add(21, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(23, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+    const donationsResponseToVerified = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsNumberPerDateRange,
+      variables: {
+        fromDate: moment().add(21, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(23, 'days').toDate().toISOString().split('T')[0],
+        onlyVerified: true,
+      },
     });
     assert.isNumber(
       donationsResponse.data.data.totalDonationsNumberPerDate.total,
@@ -128,11 +201,19 @@ function totalDonationsNumberPerDateTestCases() {
       donationsResponse.data.data.totalDonationsNumberPerDate
         .totalPerMonthAndYear.length > 0,
     );
+    assert.equal(
+      donationsResponse.data.data.totalDonationsNumberPerDate.total,
+      2,
+    );
+    assert.equal(
+      donationsResponseToVerified.data.data.totalDonationsNumberPerDate.total,
+      1,
+    );
   });
 }
 
 function donorsCountPerDateTestCases() {
-  it('should return not return data if the date is not yyyy-mm-dd', async () => {
+  it('should not return data if the date is not yyyy-mm-dd', async () => {
     await saveProjectDirectlyToDb(createProjectData());
     const walletAddress = generateRandomEtheriumAddress();
     await saveUserDirectlyToDb(walletAddress);
@@ -215,6 +296,62 @@ function donorsCountPerDateTestCases() {
       donationsResponse.data.data.totalDonorsCountPerDate.total,
       total,
     );
+  });
+}
+
+function newDonorsCountAndTotalDonationPerDateTestCases() {
+  it('should return new donors count and their total donation per time range', async () => {
+    const walletAddress = generateRandomEtheriumAddress();
+    const user = await saveUserDirectlyToDb(walletAddress);
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(40, 'days').toDate(),
+        valueUsd: 30,
+      }),
+      user.id,
+      1,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(40, 'days').toDate(),
+        valueUsd: 25,
+      }),
+      user.id,
+      1,
+    );
+    await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(40, 'days').toDate(),
+        valueUsd: 20,
+      }),
+      DONATION_SEED_DATA.FIRST_DONATION.userId,
+      1,
+    );
+
+    const newDonors = await axios.post(graphqlUrl, {
+      query: fetchNewDonorsCount,
+      variables: {
+        fromDate: moment().add(40, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(41, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+    const donationUsd = await axios.post(graphqlUrl, {
+      query: fetchNewDonorsDonationTotalUsd,
+      variables: {
+        fromDate: moment().add(40, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(41, 'days').toDate().toISOString().split('T')[0],
+      },
+    });
+    const totalNewDonors = newDonors.data.data.newDonorsCountPerDate.total;
+    const totalDonationUsd =
+      donationUsd.data.data.newDonorsDonationTotalUsdPerDate.total;
+    assert.isOk(newDonors.data.data.newDonorsCountPerDate);
+    assert.isOk(donationUsd.data.data.newDonorsDonationTotalUsdPerDate);
+    assert.equal(totalNewDonors, 1);
+    assert.equal(totalDonationUsd, 30);
   });
 }
 
@@ -423,17 +560,23 @@ function doesDonatedToProjectInQfRoundTestCases() {
 
 function donationsUsdAmountTestCases() {
   it('should return total usd amount for donations made in a time range', async () => {
-    const project = await saveProjectDirectlyToDb(createProjectData());
-    const walletAddress = generateRandomEtheriumAddress();
-    const user = await saveUserDirectlyToDb(walletAddress);
-    const donation = await saveDonationDirectlyToDb(
+    const donationToNonVerified = await saveDonationDirectlyToDb(
       createDonationData({
         status: DONATION_STATUS.VERIFIED,
         createdAt: moment().add(100, 'days').toDate(),
         valueUsd: 20,
       }),
-      user.id,
-      project.id,
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.NON_VERIFIED_PROJECT.id,
+    );
+    const donationToVerified = await saveDonationDirectlyToDb(
+      createDonationData({
+        status: DONATION_STATUS.VERIFIED,
+        createdAt: moment().add(99, 'days').toDate(),
+        valueUsd: 10,
+      }),
+      SEED_DATA.SECOND_USER.id,
+      SEED_DATA.FIRST_PROJECT.id,
     );
 
     const donationsResponse = await axios.post(graphqlUrl, {
@@ -444,10 +587,20 @@ function donationsUsdAmountTestCases() {
       },
     });
 
-    assert.isOk(donationsResponse);
+    const donationsResponseToVerified = await axios.post(graphqlUrl, {
+      query: fetchTotalDonationsUsdAmount,
+      variables: {
+        fromDate: moment().add(99, 'days').toDate().toISOString().split('T')[0],
+        toDate: moment().add(101, 'days').toDate().toISOString().split('T')[0],
+        onlyVerified: true,
+      },
+    });
+
+    assert.isOk(donationsResponse.data.data);
+    assert.isOk(donationsResponseToVerified.data.data);
     assert.equal(
       donationsResponse.data.data.donationsTotalUsdPerDate.total,
-      donation.valueUsd,
+      donationToNonVerified.valueUsd + donationToVerified.valueUsd,
     );
     const total =
       donationsResponse.data.data.donationsTotalUsdPerDate.totalPerMonthAndYear.reduce(
@@ -457,6 +610,10 @@ function donationsUsdAmountTestCases() {
     assert.equal(
       donationsResponse.data.data.donationsTotalUsdPerDate.total,
       total,
+    );
+    assert.equal(
+      donationsResponseToVerified.data.data.donationsTotalUsdPerDate.total,
+      donationToVerified.valueUsd,
     );
   });
 }
@@ -3236,6 +3393,73 @@ function donationsByProjectIdTestCases() {
       donations.find(donation => Number(donation.id) === pendingDonation.id),
     );
   });
+  it('should return recurringDonationsCount and totalCount correctly', async () => {
+    const project = await saveProjectDirectlyToDb(createProjectData());
+    const user = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+
+    await saveDonationDirectlyToDb(
+      { ...createDonationData(), status: DONATION_STATUS.VERIFIED },
+      user.id,
+      project.id,
+    );
+
+    const anchorAddress = generateRandomEtheriumAddress();
+
+    const anchorContractAddress = await addNewAnchorAddress({
+      project,
+      owner: user,
+      creator: user,
+      address: anchorAddress,
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      txHash: generateRandomEvmTxHash(),
+    });
+    const currency = 'USD';
+
+    const recurringDonation = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: user,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+    });
+    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation.save();
+
+    const recurringDonation2 = await createNewRecurringDonation({
+      txHash: generateRandomEvmTxHash(),
+      networkId: NETWORK_IDS.OPTIMISTIC,
+      donor: user,
+      anchorContractAddress,
+      flowRate: '100',
+      currency,
+      project,
+      anonymous: false,
+      isBatch: false,
+    });
+    recurringDonation2.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation2.save();
+
+    const result = await axios.post(
+      graphqlUrl,
+      {
+        query: fetchDonationsByProjectIdQuery,
+        variables: {
+          projectId: project.id,
+        },
+      },
+      {},
+    );
+
+    assert.equal(result.data.data.donationsByProjectId.totalCount, 1);
+    assert.equal(
+      result.data.data.donationsByProjectId.recurringDonationsCount,
+      2,
+    );
+  });
 }
 
 function donationsByUserIdTestCases() {
@@ -4018,6 +4242,7 @@ function donationsToWalletsTestCases() {
     assert.equal(result.data.data.donationsToWallets.length, 0);
   });
 }
+
 //
 // function updateDonationStatusTestCases() {
 //   it('should update donation status to verified after calling without sending status', async () => {

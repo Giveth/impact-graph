@@ -725,7 +725,10 @@ export class ProjectResolver {
     let totalCount: number;
     let activeQfRoundId: number | undefined;
 
-    if (sortingBy === SortingField.ActiveQfRoundRaisedFunds) {
+    if (
+      sortingBy === SortingField.ActiveQfRoundRaisedFunds ||
+      sortingBy === SortingField.EstimatedMatching
+    ) {
       activeQfRoundId = (await findActiveQfRound())?.id;
     }
 
@@ -1034,6 +1037,11 @@ export class ProjectResolver {
       );
     }
     const slugBase = creteSlugFromProject(newProjectData.title);
+    if (!slugBase) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
+      );
+    }
     const newSlug = await getAppropriateSlug(slugBase, projectId);
     if (project.slug !== newSlug && !project.slugHistory?.includes(newSlug)) {
       // it's just needed for editProject, we dont add current slug in slugHistory so it's not needed to do this in addProject
@@ -1274,6 +1282,11 @@ export class ProjectResolver {
     );
     await validateProjectTitle(projectInput.title);
     const slugBase = creteSlugFromProject(projectInput.title);
+    if (!slugBase) {
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.INVALID_PROJECT_TITLE),
+      );
+    }
     const slug = await getAppropriateSlug(slugBase);
 
     const status = await this.projectStatusRepository.findOne({

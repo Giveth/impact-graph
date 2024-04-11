@@ -1,10 +1,12 @@
-import Axios from 'axios';
+import axios from 'axios';
 import { logger } from '../../utils/logger';
-import { isTestEnv } from '../../utils/utils';
+import { isStaging, isTestEnv } from '../../utils/utils';
 import { SuperFluidAdapterInterface } from './superFluidAdapterInterface';
 
 const superFluidGraphqlUrl =
   'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet';
+const superFluidGraphqlStagingUrl =
+  'https://optimism-sepolia.subgraph.x.superfluid.dev';
 const superFluidTestGraphUrl =
   'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-goerli';
 // Define your GraphQL query as a string and prepare your variables
@@ -81,6 +83,7 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
     priceGranularity: string;
     virtualization: string;
     currency: string;
+    recurringDonationTxHash: string;
   }) {
     const {
       address,
@@ -90,14 +93,15 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
       priceGranularity,
       virtualization,
       currency,
+      recurringDonationTxHash,
     } = params;
     try {
-      const response = await Axios.get(
+      const response = await axios.get(
         'https://accounting.superfluid.dev/v1/stream-periods',
         {
           params: {
-            address,
-            chain,
+            addresses: address,
+            chains: chain,
             start,
             end,
             priceGranularity,
@@ -106,7 +110,13 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
           },
         },
       );
-      return response.data;
+      // Fetch the stream table with the recurringDonation TxHash
+      const filteredData = response.data.filter(streamTable =>
+        streamTable.startedAtEvent
+          .toLowerCase()
+          .includes(recurringDonationTxHash.toLowerCase()),
+      );
+      return filteredData[0];
     } catch (e) {
       logger.error(e);
     }
@@ -139,21 +149,20 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
   // Optimism works
   async accountBalance(accountId: string) {
     try {
-      const response = await Axios({
-        url: !isTestEnv ? superFluidGraphqlUrl : superFluidTestGraphUrl,
-        method: 'post',
-        data: {
-          accountQuery,
-          variables: {
-            id: accountId,
-          },
-        },
-        headers: {
-          'Content-Type': 'application/json',
+      const apiUrl = !isTestEnv
+        ? isStaging
+          ? superFluidGraphqlStagingUrl
+          : superFluidGraphqlUrl
+        : superFluidTestGraphUrl;
+
+      const response = await axios.post(apiUrl, {
+        query: accountQuery,
+        variables: {
+          id: accountId?.toLowerCase(),
         },
       });
 
-      return response.data.account;
+      return response.data.data.account?.accountTokenSnapshots;
     } catch (e) {
       logger.error(e);
     }

@@ -23,7 +23,13 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
-import { findTokenByNetworkAndAddress } from '../../utils/tokenUtils';
+import {
+  RecurringDonation,
+  RecurringDonationBalanceWarning,
+} from '../../entities/recurringDonation';
+import { getTokenPrice } from '../../services/priceService';
+import { Token } from '../../entities/token';
+import { toFixNumber } from '../../services/donationService';
 const notificationCenterUsername = process.env.NOTIFICATION_CENTER_USERNAME;
 const notificationCenterPassword = process.env.NOTIFICATION_CENTER_PASSWORD;
 const notificationCenterBaseUrl = process.env.NOTIFICATION_CENTER_BASE_URL;
@@ -53,8 +59,42 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
     }
   }
 
-  async userSuperTokensCritical(): Promise<void> {
-    return; // implement it on another branch
+  async userSuperTokensCritical(params: {
+    user: User;
+    eventName: RecurringDonationBalanceWarning;
+    tokenSymbol: string;
+    project: Project;
+    isEnded: boolean;
+    networkName: string;
+  }): Promise<void> {
+    logger.debug('userSuperTokensCritical', { params });
+    const { eventName, tokenSymbol, project, user, isEnded, networkName } =
+      params;
+    const { email, walletAddress } = user;
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      tokenSymbol,
+      isEnded,
+    };
+    await sendProjectRelatedNotificationsQueue.add({
+      project,
+      user: {
+        email,
+        walletAddress: walletAddress!,
+      },
+      eventName,
+      sendEmail: true,
+      metadata: {
+        ...payload,
+        networkName,
+        recurringDonationTab: `${process.env.WEBSITE_URL}/account?tab=recurring-donations`,
+      },
+      segment: {
+        payload,
+      },
+    });
+    return;
   }
 
   async updateOrttoPeople(people: OrttoPerson[]): Promise<void> {
@@ -115,15 +155,51 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async donationReceived(params: {
-    donation: Donation;
+    donation: Donation | RecurringDonation;
     project: Project;
     user: User | null;
   }): Promise<void> {
-    if (params.donation.valueUsd <= 1) return;
-
     const { project, donation, user } = params;
+    const isRecurringDonation = donation instanceof RecurringDonation;
+    let transactionId: string, transactionNetworkId: number;
+    if (isRecurringDonation) {
+      transactionId = donation.txHash;
+      transactionNetworkId = donation.networkId;
+      const token = await Token.findOneBy({
+        symbol: donation.currency,
+        networkId: transactionNetworkId,
+      });
+      const amount =
+        (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
+      const price = await getTokenPrice(transactionNetworkId, token!);
+      const donationValueUsd = toFixNumber(amount * price, 4);
+      logger.debug('donationReceived (recurring) has been called', {
+        params,
+        amount,
+        price,
+        donationValueUsd,
+        token,
+      });
+      if (donationValueUsd <= 20) return;
+    } else {
+      transactionId = donation.transactionId;
+      transactionNetworkId = donation.transactionNetworkId;
+      const donationValueUsd = donation.valueUsd;
+      logger.debug('donationReceived has been called', {
+        params,
+        transactionId,
+        transactionNetworkId,
+        donationValueUsd,
+      });
+      if (donationValueUsd <= 1) return;
+    }
+
     await sendProjectRelatedNotificationsQueue.add({
       project,
+      user: {
+        email: user?.email as string,
+        walletAddress: user?.walletAddress as string,
+      },
       eventName: NOTIFICATIONS_EVENT_NAMES.DONATION_RECEIVED,
       sendEmail: true,
       segment: {
@@ -135,9 +211,11 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
       },
       trackId:
         'donation-received-' +
-        donation.transactionNetworkId +
+        transactionNetworkId +
         '-' +
-        donation.transactionId,
+        transactionId +
+        '-' +
+        isRecurringDonation,
     });
   }
 
@@ -848,14 +926,35 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
 const getEmailDataDonationAttributes = async (params: {
   user: User;
   project: Project;
-  donation: Donation;
+  donation: Donation | RecurringDonation;
 }) => {
   const { user, project, donation } = params;
-  const token = await findTokenByNetworkAndAddress(
-    donation.transactionNetworkId,
-    donation.tokenAddress!,
-  );
-  const symbol = token?.symbol;
+  const isRecurringDonation = donation instanceof RecurringDonation;
+  let amount: number,
+    transactionId: string,
+    transactionNetworkId: number,
+    toWalletAddress: string | undefined,
+    donationValueUsd: number | undefined,
+    donationValueEth: number | undefined,
+    transakStatus: string | undefined;
+  if (isRecurringDonation) {
+    transactionId = donation.txHash;
+    transactionNetworkId = donation.networkId;
+    const token = await Token.findOneBy({
+      symbol: donation.currency,
+      networkId: transactionNetworkId,
+    });
+    amount =
+      (Number(donation.flowRate) / 10 ** (token?.decimals || 18)) * 2628000; // convert flowRate in wei from per second to per month
+  } else {
+    amount = Number(donation.amount);
+    transactionId = donation.transactionId;
+    transactionNetworkId = donation.transactionNetworkId;
+    toWalletAddress = donation.toWalletAddress.toLowerCase();
+    donationValueUsd = donation.valueUsd;
+    donationValueEth = donation.valueEth;
+    transakStatus = donation.transakStatus;
+  }
   return {
     email: user.email,
     title: project.title,
@@ -864,21 +963,19 @@ const getEmailDataDonationAttributes = async (params: {
     projectOwnerId: project.admin,
     slug: project.slug,
     projectLink: `${process.env.WEBSITE_URL}/project/${project.slug}`,
-    amount: Number(donation.amount),
-    token: symbol,
-    transactionId: donation.transactionId.toLowerCase(),
-    transactionNetworkId: Number(donation.transactionNetworkId),
-    transactionLink: buildTxLink(
-      donation.transactionId,
-      donation.transactionNetworkId,
-    ),
+    amount,
+    isRecurringDonation,
+    token: donation.currency,
+    transactionId: transactionId.toLowerCase(),
+    transactionNetworkId: Number(transactionNetworkId),
+    transactionLink: buildTxLink(transactionId, transactionNetworkId),
     currency: donation.currency,
-    createdAt: new Date(),
-    toWalletAddress: donation.toWalletAddress.toLowerCase(),
-    donationValueUsd: donation.valueUsd,
-    donationValueEth: donation.valueEth,
+    createdAt: donation.createdAt,
+    toWalletAddress,
+    donationValueUsd,
+    donationValueEth,
     verified: Boolean(project.verified),
-    transakStatus: donation.transakStatus,
+    transakStatus,
   };
 };
 
@@ -992,7 +1089,7 @@ const sendProjectRelatedNotification = async (params: {
   const projectLink = buildProjectLink(eventName, project.slug);
   const data: SendNotificationBody = {
     eventName,
-    email: receivedUser.email,
+    email: segment?.payload?.email || receivedUser.email,
     sendEmail: sendEmail || false,
     sendSegment: Boolean(segment),
     userWalletAddress: receivedUser.walletAddress as string,

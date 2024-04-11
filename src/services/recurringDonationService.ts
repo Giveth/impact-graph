@@ -1,29 +1,40 @@
-import { getSuperFluidAdapter } from '../adapters/adaptersFactory';
+import path from 'path';
+import { promises as fs } from 'fs';
+import { ethers } from 'ethers';
+import {
+  getNotificationAdapter,
+  getSuperFluidAdapter,
+} from '../adapters/adaptersFactory';
 import { DONATION_STATUS, Donation } from '../entities/donation';
 import {
   RECURRING_DONATION_STATUS,
   RecurringDonation,
 } from '../entities/recurringDonation';
 import { Token } from '../entities/token';
-import { NETWORK_IDS, superTokensToToken } from '../provider';
+import { getProvider, NETWORK_IDS, superTokensToToken } from '../provider';
 import { findProjectRecipientAddressByNetworkId } from '../repositories/projectAddressRepository';
 import { findProjectById } from '../repositories/projectRepository';
-import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
+import {
+  findRecurringDonationById,
+  updateRecurringDonationFromTheStreamDonations,
+} from '../repositories/recurringDonationRepository';
 import { findUserById } from '../repositories/userRepository';
 import { ChainType } from '../types/network';
 import { i18n, translationErrorMessagesKeys } from '../utils/errorMessages';
 import { logger } from '../utils/logger';
-import { isTestEnv } from '../utils/utils';
 import {
   isTokenAcceptableForProject,
+  updateDonationPricesAndValues,
   updateTotalDonationsOfProject,
 } from './donationService';
 import { calculateGivbackFactor } from './givbackService';
 import { relatedActiveQfRoundForProject } from './qfRoundService';
 import { updateUserTotalDonated, updateUserTotalReceived } from './userService';
+import config from '../config';
+import { User } from '../entities/user';
 
 // Initially it will only be monthly data
-const priceDisplay = 'month';
+export const priceDisplay = 'month';
 
 export const fetchStreamTableStartDate = (
   recurringDonation: RecurringDonation,
@@ -52,7 +63,8 @@ export const createRelatedDonationsToStream = async (
     end: Math.floor(new Date().getTime() / 1000),
     priceGranularity: priceDisplay,
     virtualization: priceDisplay,
-    currency: recurringDonation.currency,
+    currency: 'USD',
+    recurringDonationTxHash: recurringDonation.txHash,
   });
 
   if (
@@ -80,6 +92,7 @@ export const createRelatedDonationsToStream = async (
   for (const period of streamData.virtualPeriods) {
     const existingPeriod = await Donation.findOne({
       where: {
+        recurringDonationId: recurringDonation.id,
         virtualPeriodStart: period.startTime,
         virtualPeriodEnd: period.endTime,
       },
@@ -99,13 +112,20 @@ export const createRelatedDonationsToStream = async (
 
   for (const streamPeriod of uniquePeriods) {
     try {
-      const networkId = isTestEnv
-        ? NETWORK_IDS.OPTIMISTIC
-        : NETWORK_IDS.OPTIMISM_SEPOLIA; // CHANGE TO SEPOLIA
+      const environment = config.get('ENVIRONMENT') as string;
+
+      const networkId =
+        environment !== 'production'
+          ? NETWORK_IDS.OPTIMISM_SEPOLIA
+          : NETWORK_IDS.OPTIMISTIC;
+
+      const symbolCurrency = recurringDonation.currency.includes('x')
+        ? superTokensToToken[recurringDonation.currency]
+        : recurringDonation.currency;
       const tokenInDb = await Token.findOne({
         where: {
           networkId,
-          symbol: superTokensToToken[recurringDonation.currency],
+          symbol: symbolCurrency,
         },
       });
       const isCustomToken = !tokenInDb;
@@ -141,8 +161,7 @@ export const createRelatedDonationsToStream = async (
 
       const toAddress = projectRelatedAddress?.address?.toLowerCase();
       const fromAddress = donorUser.walletAddress?.toLowerCase();
-      const transactionTx = streamData.id?.toLowerCase() as string;
-
+      const transactionTx = `${streamData.id?.toLowerCase()}-${streamPeriod.endTime}`;
       const donation = Donation.create({
         amount: normalizeNegativeAmount(
           streamPeriod.amount,
@@ -150,7 +169,7 @@ export const createRelatedDonationsToStream = async (
         ),
 
         // prevent setting NaN value for valueUsd
-        valueUsd: Math.abs(Number(streamData.amountFiat)) || 0,
+        valueUsd: Math.abs(Number(streamPeriod.amountFiat)) || 0,
         transactionId: transactionTx,
         isFiat: false,
         transactionNetworkId: networkId,
@@ -174,6 +193,11 @@ export const createRelatedDonationsToStream = async (
       });
 
       await donation.save();
+      logger.debug(`Streamed donation has been created successfully`, {
+        donationId: donation.id,
+        recurringDonationId: recurringDonation.id,
+        amount: donation.amount,
+      });
 
       const activeQfRoundForProject = await relatedActiveQfRoundForProject(
         project.id,
@@ -195,13 +219,36 @@ export const createRelatedDonationsToStream = async (
 
       await donation.save();
 
+      if (!donation.valueUsd || donation.valueUsd === 0) {
+        await updateDonationPricesAndValues(
+          donation,
+          project,
+          tokenInDb!,
+          donation.transactionNetworkId,
+        );
+      }
+
+      logger.debug(`Streamed donation After filling valueUsd`, {
+        donationId: donation.id,
+        recurringDonationId: recurringDonation.id,
+        amount: donation.amount,
+        valueUsd: donation.valueUsd,
+      });
+      await updateRecurringDonationFromTheStreamDonations(recurringDonation.id);
+
       await updateUserTotalDonated(donation.userId);
 
       // After updating price we update totalDonations
       await updateTotalDonationsOfProject(donation.projectId);
       await updateUserTotalReceived(project!.adminUser.id);
     } catch (e) {
-      logger.error('createRelatedDonationsToStream() error', e);
+      logger.error(
+        'createRelatedDonationsToStream() error',
+        {
+          recurringDonationId: recurringDonation.id,
+        },
+        e,
+      );
     }
   }
 };
@@ -216,8 +263,113 @@ export function normalizeNegativeAmount(
 export const updateRecurringDonationStatusWithNetwork = async (params: {
   donationId: number;
 }): Promise<RecurringDonation> => {
-  // TODO Should implement it
-  return (await findRecurringDonationById(
-    params.donationId,
-  )) as RecurringDonation;
+  // TODO should refactor this function and make it smaller
+  logger.debug(
+    'updateRecurringDonationStatusWithNetwork() has been called',
+    params,
+  );
+  const recurringDonation = await findRecurringDonationById(params.donationId);
+  if (!recurringDonation) {
+    throw new Error('Recurring donation not found');
+  }
+  try {
+    const web3Provider = getProvider(recurringDonation!.networkId);
+    const networkData = await web3Provider.getTransaction(
+      recurringDonation!.txHash,
+    );
+    if (!networkData) {
+      logger.debug(
+        'Transaction not found in the network. maybe its not mined yet',
+        {
+          recurringDonationId: recurringDonation?.id,
+          txHash: recurringDonation?.txHash,
+        },
+      );
+      return recurringDonation.save();
+    }
+    let receiverLowercase = '';
+    let flowRateBigNumber = '';
+
+    if (!recurringDonation.isBatch) {
+      const abiPath = path.join(__dirname, '../abi/superFluidAbi.json');
+      const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
+      const iface = new ethers.utils.Interface(abi);
+      const decodedData = iface.parseTransaction({ data: networkData.data });
+      receiverLowercase = decodedData.args[2].toLowerCase();
+      flowRateBigNumber = decodedData.args[3];
+    } else {
+      // ABI comes from https://sepolia-optimism.etherscan.io/address/0x78743a68d52c9d6ccf3ff4558f3af510592e3c2d#code
+      const abiPath = path.join(__dirname, '../abi/superFluidAbiBatch.json');
+      const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
+      const iface = new ethers.utils.Interface(abi);
+      const decodedData = iface.parseTransaction({ data: networkData.data });
+
+      for (const bachItem of decodedData.args[0]) {
+        // console.log('opData', decodedData.args)
+        const operationData = bachItem[2];
+        const decodedOperationData = ethers.utils.defaultAbiCoder.decode(
+          ['bytes', 'bytes'],
+          operationData,
+        );
+        const abiPath2 = path.join(
+          __dirname,
+          '../abi/superFluidAbi_batch_decoded.json',
+        );
+        const decodedDataAbi = JSON.parse(await fs.readFile(abiPath2, 'utf-8'));
+        const decodedDataIface = new ethers.utils.Interface(decodedDataAbi);
+        const finalDecodedData = decodedDataIface.parseTransaction({
+          data: decodedOperationData[0],
+        });
+
+        if (
+          finalDecodedData.args[1].toLowerCase() ===
+          recurringDonation?.anchorContractAddress?.address?.toLowerCase()
+        ) {
+          receiverLowercase = finalDecodedData.args[1].toLowerCase();
+          flowRateBigNumber = finalDecodedData.args[2];
+          continue;
+        }
+      }
+    }
+
+    if (
+      recurringDonation?.anchorContractAddress?.address?.toLowerCase() !==
+      receiverLowercase
+    ) {
+      recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+      recurringDonation.finished = true;
+      return recurringDonation.save();
+    }
+    const flowRate = ethers.BigNumber.from(flowRateBigNumber).toString();
+    if (recurringDonation?.flowRate !== flowRate) {
+      logger.debug(
+        'Recurring donation flowRate does not match the receiver address of the transaction data.',
+        {
+          recurringDonationId: recurringDonation?.id,
+          donationFlowRate: recurringDonation?.flowRate,
+          flowRate: flowRate,
+          txHash: recurringDonation?.txHash,
+        },
+      );
+      recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+      recurringDonation.finished = true;
+      return recurringDonation.save();
+    }
+    recurringDonation.status = RECURRING_DONATION_STATUS.ACTIVE;
+    await recurringDonation.save();
+    const project = recurringDonation.project;
+    const projectOwner = await User.findOneBy({ id: project.adminUserId });
+    await getNotificationAdapter().donationReceived({
+      project,
+      user: projectOwner,
+      donation: recurringDonation,
+    });
+    return recurringDonation;
+  } catch (e) {
+    logger.error('updateRecurringDonationStatusWithNetwork() error', {
+      error: e,
+      params,
+    });
+    return recurringDonation;
+  }
 };

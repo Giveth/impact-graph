@@ -80,6 +80,7 @@ export enum SortingField {
   GIVPower = 'GIVPower',
   InstantBoosting = 'InstantBoosting',
   ActiveQfRoundRaisedFunds = 'ActiveQfRoundRaisedFunds',
+  EstimatedMatching = 'EstimatedMatching',
 }
 
 export enum FilterField {

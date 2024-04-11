@@ -31,7 +31,7 @@ export const generateProjectFiltersCacheKey = async (args: {
 };
 
 export const titleWithoutSpecialCharacters = (title: string): string => {
-  const ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
+  const UNALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE = [
     '`',
     `'`,
     '<',
@@ -54,9 +54,9 @@ export const titleWithoutSpecialCharacters = (title: string): string => {
     '`',
   ];
   let cleanTitle = title;
-  ALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(
+  UNALLOWED_SPECIAL_CHARACTERS_FOR_PROJECT_TITLE.forEach(
     character =>
-      // this do like replaceAll
+      // this does like replaceAll
       (cleanTitle = cleanTitle.split(character).join('')),
   );
   return cleanTitle;
@@ -415,6 +415,8 @@ export const getHtmlTextSummary = (
 };
 
 export const isTestEnv = (config.get('ENVIRONMENT') as string) === 'test';
+
+export const isStaging = (config.get('ENVIRONMENT') as string) === 'staging';
 
 export const dateToTimestampMs = (date: Date | string | number): number => {
   return new Date(date).valueOf();

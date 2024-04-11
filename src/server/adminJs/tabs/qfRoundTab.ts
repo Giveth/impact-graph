@@ -25,6 +25,8 @@ import { NETWORK_IDS } from '../../../provider';
 import { logger } from '../../../utils/logger';
 import { messages } from '../../../utils/messages';
 import { addQfRoundDonationsSheetToSpreadsheet } from '../../../services/googleSheets';
+import { errorMessages } from '../../../utils/errorMessages';
+import { relateManyProjectsToQfRound } from '../../../repositories/qfRoundRepository2';
 
 export const refreshMaterializedViews = async (
   response,
@@ -59,21 +61,31 @@ const returnAllQfRoundDonationAnalysis = async (
 ) => {
   const { record, currentAdmin } = context;
   const qfRoundId = Number(request?.params?.recordId);
-  logger.debug('qfRoundId', qfRoundId);
-
-  const qfRoundDonationsRows = await getQfRoundActualDonationDetails(qfRoundId);
-  logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
-  await addQfRoundDonationsSheetToSpreadsheet({
-    rows: qfRoundDonationsRows,
+  let type = 'success';
+  logger.debug(
+    'returnAllQfRoundDonationAnalysis() has been called, qfRoundId',
     qfRoundId,
-  });
-  // TODO Upload to google sheet
+  );
+  let message = messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY;
+  try {
+    const qfRoundDonationsRows =
+      await getQfRoundActualDonationDetails(qfRoundId);
+    logger.debug('qfRoundDonationsRows', qfRoundDonationsRows);
+    await addQfRoundDonationsSheetToSpreadsheet({
+      rows: qfRoundDonationsRows,
+      qfRoundId,
+    });
+  } catch (e) {
+    logger.error('returnAllQfRoundDonationAnalysis() error', e);
+    message = e.message;
+    type = 'danger';
+  }
 
   return {
     record: record.toJSON(currentAdmin),
     notice: {
-      message: messages.QF_ROUND_DATA_UPLOAD_IN_GOOGLE_SHEET_SUCCESSFULLY,
-      type: 'success',
+      message,
+      type,
     },
   };
 };
@@ -82,6 +94,17 @@ export const qfRoundTab = {
   resource: QfRound,
   options: {
     properties: {
+      addProjectIdsList: {
+        type: 'textarea',
+        // projectIds separated By comma
+        isVisible: {
+          filter: false,
+          list: false,
+          show: false,
+          new: false,
+          edit: true,
+        },
+      },
       name: {
         isVisible: true,
       },
@@ -198,12 +221,27 @@ export const qfRoundTab = {
           if (request?.payload?.id) {
             const qfRoundId = Number(request.payload.id);
             const qfRound = await findQfRoundById(qfRoundId);
-            if (!qfRound || isQfRoundHasEnded({ endDate: qfRound!.endDate })) {
+            if (!qfRound) {
               throw new ValidationError({
                 endDate: {
-                  message:
-                    'The endDate has passed so qfRound cannot be edited.',
+                  message: errorMessages.QF_ROUND_NOT_FOUND,
                 },
+              });
+            }
+            if (isQfRoundHasEnded({ endDate: qfRound!.endDate })) {
+              // When qf round is ended we should not be able to edit begin date and end date
+              // https://github.com/Giveth/giveth-dapps-v2/issues/3864
+              request.payload.endDate = qfRound.endDate;
+              request.payload.beginDate = qfRound.beginDate;
+              request.payload.isActive = qfRound.isActive;
+            } else if (
+              qfRound.isActive &&
+              request?.payload?.addProjectIdsList?.split(',')?.length > 0
+            ) {
+              await relateManyProjectsToQfRound({
+                projectIds: request.payload.addProjectIdsList.split(','),
+                qfRound,
+                add: true,
               });
             }
           }
