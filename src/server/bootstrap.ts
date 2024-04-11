@@ -89,9 +89,6 @@ export async function bootstrap() {
     await CronDataSource.initialize();
     Container.set(DataSource, AppDataSource.getDataSource());
 
-    // Actually we should use await AppDataSource.initialize(); but it throw errors I think because some changes
-    // are needed in using typeorm repositories, so currently I kept this
-
     const dropSchema = config.get('DROP_DATABASE') === 'true';
     if (dropSchema) {
       // eslint-disable-next-line no-console

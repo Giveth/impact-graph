@@ -6,7 +6,7 @@ import { SuperFluidAdapterInterface } from './superFluidAdapterInterface';
 const superFluidGraphqlUrl =
   'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet';
 const superFluidGraphqlStagingUrl =
-  'https://optimism-sepolia.subgraph.x.superfluid.dev/';
+  'https://optimism-sepolia.subgraph.x.superfluid.dev';
 const superFluidTestGraphUrl =
   'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-goerli';
 // Define your GraphQL query as a string and prepare your variables
@@ -149,25 +149,20 @@ export class SuperFluidAdapter implements SuperFluidAdapterInterface {
   // Optimism works
   async accountBalance(accountId: string) {
     try {
-      const response = await axios({
-        url: !isTestEnv
-          ? isStaging
-            ? superFluidGraphqlStagingUrl
-            : superFluidGraphqlUrl
-          : superFluidTestGraphUrl,
-        method: 'post',
-        data: {
-          accountQuery,
-          variables: {
-            id: accountId,
-          },
-        },
-        headers: {
-          'Content-Type': 'application/json',
+      const apiUrl = !isTestEnv
+        ? isStaging
+          ? superFluidGraphqlStagingUrl
+          : superFluidGraphqlUrl
+        : superFluidTestGraphUrl;
+
+      const response = await axios.post(apiUrl, {
+        query: accountQuery,
+        variables: {
+          id: accountId?.toLowerCase(),
         },
       });
 
-      return response.data.account;
+      return response.data.data.account?.accountTokenSnapshots;
     } catch (e) {
       logger.error(e);
     }

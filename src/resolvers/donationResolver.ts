@@ -68,6 +68,7 @@ import {
   DRAFT_DONATION_STATUS,
   DraftDonation,
 } from '../entities/draftDonation';
+import { countOfActiveRecurringDonationsByProjectId } from '../repositories/recurringDonationRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 
@@ -78,6 +79,9 @@ class PaginateDonations {
 
   @Field(_type => Number, { nullable: true })
   totalCount: number;
+
+  @Field(_type => Number, { nullable: true })
+  recurringDonationsCount: number;
 
   @Field(_type => Number, { nullable: true })
   totalUsdBalance: number;
@@ -585,6 +589,9 @@ export class DonationResolver {
       );
     }
 
+    const recurringDonationsCount =
+      await countOfActiveRecurringDonationsByProjectId(projectId);
+
     const [donations, donationsCount] = await query
       .take(take)
       .skip(skip)
@@ -593,6 +600,7 @@ export class DonationResolver {
       donations,
       totalCount: donationsCount,
       totalUsdBalance: project.totalDonations,
+      recurringDonationsCount,
     };
   }
 

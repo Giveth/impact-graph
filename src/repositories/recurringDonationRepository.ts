@@ -128,6 +128,17 @@ export const findRecurringDonationById = async (
     .getOne();
 };
 
+export const countOfActiveRecurringDonationsByProjectId = async (
+  projectId: number,
+): Promise<number> => {
+  return await RecurringDonation.createQueryBuilder('recurringDonation')
+    .where(`recurringDonation.projectId = :projectId`, { projectId })
+    .andWhere(`recurringDonation.status = :status`, {
+      status: RECURRING_DONATION_STATUS.ACTIVE,
+    })
+    .getCount();
+};
+
 export const findRecurringDonationByProjectIdAndUserIdAndCurrency =
   async (params: {
     projectId: number;

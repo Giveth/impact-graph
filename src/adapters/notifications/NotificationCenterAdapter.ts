@@ -23,7 +23,10 @@ import {
 } from '../../repositories/userRepository';
 import { buildProjectLink } from './NotificationCenterUtils';
 import { buildTxLink } from '../../utils/networks';
-import { RecurringDonation } from '../../entities/recurringDonation';
+import {
+  RecurringDonation,
+  RecurringDonationBalanceWarning,
+} from '../../entities/recurringDonation';
 import { getTokenPrice } from '../../services/priceService';
 import { Token } from '../../entities/token';
 import { toFixNumber } from '../../services/donationService';
@@ -57,26 +60,39 @@ export class NotificationCenterAdapter implements NotificationAdapterInterface {
   }
 
   async userSuperTokensCritical(params: {
-    userId: number;
-    email: string;
-    criticalDate: string;
+    user: User;
+    eventName: RecurringDonationBalanceWarning;
     tokenSymbol: string;
     project: Project;
     isEnded: boolean;
-    eventName: string;
+    networkName: string;
   }): Promise<void> {
     logger.debug('userSuperTokensCritical', { params });
-    const { criticalDate, tokenSymbol, project } = params;
+    const { eventName, tokenSymbol, project, user, isEnded, networkName } =
+      params;
+    const { email, walletAddress } = user;
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      tokenSymbol,
+      isEnded,
+    };
     await sendProjectRelatedNotificationsQueue.add({
       project,
-      eventName: params.eventName as NOTIFICATIONS_EVENT_NAMES,
-      sendEmail: true,
-      metadata: params,
-      segment: {
-        payload: params,
+      user: {
+        email,
+        walletAddress: walletAddress!,
       },
-      trackId:
-        'super-token-balance-critical-' + criticalDate + '-' + tokenSymbol,
+      eventName,
+      sendEmail: true,
+      metadata: {
+        ...payload,
+        networkName,
+        recurringDonationTab: `${process.env.WEBSITE_URL}/account?tab=recurring-donations`,
+      },
+      segment: {
+        payload,
+      },
     });
     return;
   }

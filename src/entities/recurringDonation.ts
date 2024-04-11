@@ -16,6 +16,7 @@ import { Project } from './project';
 import { User } from './user';
 import { AnchorContractAddress } from './anchorContractAddress';
 import { Donation } from './donation';
+import { NOTIFICATIONS_EVENT_NAMES } from '../analytics/analytics';
 
 export const RECURRING_DONATION_STATUS = {
   PENDING: 'pending',
@@ -25,15 +26,10 @@ export const RECURRING_DONATION_STATUS = {
   ACTIVE: 'active',
 };
 
-export enum RecurringDonationBalanceWarning {
-  WEEK = 'week',
-  MONTH = 'month',
-}
-
-export enum RecurringDonationEmailEvents {
-  WEEK = 'One week left in stream balance',
-  MONTH = 'One month left in stream balance',
-}
+export type RecurringDonationBalanceWarning =
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_MONTH
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_WEEK
+  | NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_DEPLETED;
 
 @Entity()
 @ObjectType()
