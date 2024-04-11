@@ -122,14 +122,14 @@ export const validateDonorSuperTokenBalance = async (
     if (tokenSymbol !== recurringDonation.currency) continue;
     const nowInSec = Number((Date.now() / 1000).toFixed());
     const balanceLongerThanMonth =
-      nowInSec - maybeCriticalAtTimestamp > monthInSec;
+      Math.abs(nowInSec - maybeCriticalAtTimestamp) > monthInSec;
     if (balanceLongerThanMonth) {
       recurringDonation.balanceWarning = null;
       await recurringDonation.save();
       continue;
     }
     const balanceLongerThanWeek =
-      nowInSec - maybeCriticalAtTimestamp > weekInSec;
+      Math.abs(nowInSec - maybeCriticalAtTimestamp) > weekInSec;
 
     const depletedBalance =
       maybeCriticalAtTimestamp === 0 || !maybeCriticalAtTimestamp;
