@@ -674,6 +674,14 @@ export const donationTab = {
       },
     },
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessDonationAction({ currentAdmin }, ResourceActions.LIST),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessDonationAction({ currentAdmin }, ResourceActions.SHOW),
+      },
       bulkDelete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>

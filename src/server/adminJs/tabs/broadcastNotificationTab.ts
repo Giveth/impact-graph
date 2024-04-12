@@ -49,6 +49,20 @@ export const broadcastNotificationTab = {
   resource: BroadcastNotification,
   options: {
     actions: {
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessBroadcastNotificationAction(
+            { currentAdmin },
+            ResourceActions.LIST,
+          ),
+      },
+      show: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessBroadcastNotificationAction(
+            { currentAdmin },
+            ResourceActions.SHOW,
+          ),
+      },
       delete: {
         isVisible: false,
         isAccessible: ({ currentAdmin }) =>

@@ -2,6 +2,7 @@ import { UserRole } from '../../entities/user';
 
 // Current Actions Enum
 export enum ResourceActions {
+  LIST = 'list',
   DELETE = 'delete',
   NEW = 'new',
   SHOW = 'show',
@@ -28,15 +29,19 @@ export enum ResourceActions {
 // All permissions listed per resource, per role and action
 const organizationPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     show: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -44,17 +49,21 @@ const organizationPermissions = {
 
 const userPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     new: true,
     show: true,
     edit: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -62,15 +71,23 @@ const userPermissions = {
 
 const projectStatusHistoryPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     show: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
+    show: true,
+  },
+  [UserRole.QF_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -78,18 +95,22 @@ const projectStatusHistoryPermissions = {
 
 const campaignPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     delete: true,
     new: true,
     show: true,
     edit: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     new: true,
     show: true,
     edit: true,
@@ -99,6 +120,7 @@ const campaignPermissions = {
 
 const qfRoundPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     delete: true,
     new: true,
     show: true,
@@ -107,13 +129,24 @@ const qfRoundPermissions = {
     removeFromQfRound: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
+    addToQfRound: true,
+    removeFromQfRound: true,
+  },
+  [UserRole.QF_MANAGER]: {
+    list: true,
+    new: true,
+    show: true,
+    edit: true,
     addToQfRound: true,
     removeFromQfRound: true,
   },
@@ -122,6 +155,7 @@ const qfRoundPermissions = {
 
 const qfRoundHistoryPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     delete: true,
     bulkDelete: true,
     show: true,
@@ -129,37 +163,56 @@ const qfRoundHistoryPermissions = {
     updateQfRoundHistories: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
+  },
+  [UserRole.QF_MANAGER]: {
+    list: true,
+    show: true,
+    updateQfRoundHistories: true,
   },
   // Add more roles here as needed
 };
 
 const projectStatusReasonPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     new: true,
     show: true,
     edit: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
+  },
+  [UserRole.QF_MANAGER]: {
+    list: true,
+    show: true,
+    new: true,
+    delete: true,
   },
   // Add more roles here as needed
 };
 
 const projectAddressPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     delete: true,
     new: true,
     show: true,
@@ -167,12 +220,15 @@ const projectAddressPermissions = {
     bulkDelete: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -180,16 +236,20 @@ const projectAddressPermissions = {
 
 const projectStatusPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     show: true,
     edit: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -197,6 +257,7 @@ const projectStatusPermissions = {
 
 const projectPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     show: true,
     edit: true,
     exportFilterToCsv: true,
@@ -210,6 +271,7 @@ const projectPermissions = {
     cancelProject: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
     exportFilterToCsv: true,
     listProject: true,
@@ -222,6 +284,7 @@ const projectPermissions = {
     cancelProject: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
     exportFilterToCsv: true,
     listProject: true,
@@ -234,24 +297,34 @@ const projectPermissions = {
     cancelProject: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: false,
     show: true,
+  },
+  [UserRole.QF_MANAGER]: {
+    list: true,
+    show: true,
+    listProject: true,
   },
   // Add more roles here as needed
 };
 
 const projectUpdatePermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     show: true,
     addFeaturedProjectUpdate: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
     addFeaturedProjectUpdate: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -259,6 +332,7 @@ const projectUpdatePermissions = {
 
 const thirdPartyProjectImportPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     delete: true,
     new: true,
     show: true,
@@ -266,12 +340,15 @@ const thirdPartyProjectImportPermissions = {
     bulkDelete: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -279,6 +356,7 @@ const thirdPartyProjectImportPermissions = {
 
 const featuredUpdatePermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     delete: true,
     new: true,
     show: true,
@@ -286,12 +364,15 @@ const featuredUpdatePermissions = {
     bulkDelete: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -299,6 +380,7 @@ const featuredUpdatePermissions = {
 
 const donationPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     delete: true,
     new: true,
     show: true,
@@ -306,14 +388,17 @@ const donationPermissions = {
     exportFilterToCsv: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
     exportFilterToCsv: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
     exportFilterToCsv: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -321,6 +406,7 @@ const donationPermissions = {
 
 const projectVerificationFormPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     delete: true,
     edit: true,
     show: true,
@@ -331,9 +417,11 @@ const projectVerificationFormPermissions = {
     rejectProjects: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     delete: true,
     edit: true,
     show: true,
@@ -344,6 +432,7 @@ const projectVerificationFormPermissions = {
     rejectProjects: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
     verifyProject: true,
   },
@@ -352,17 +441,21 @@ const projectVerificationFormPermissions = {
 
 const mainCategoryPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     new: true,
     show: true,
     edit: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -370,17 +463,21 @@ const mainCategoryPermissions = {
 
 const categoryPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     new: true,
     show: true,
     edit: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
@@ -388,16 +485,20 @@ const categoryPermissions = {
 
 const broadcastNotificationPermissions = {
   [UserRole.ADMIN]: {
+    list: true,
     new: true,
     show: true,
   },
   [UserRole.OPERATOR]: {
+    list: true,
     show: true,
   },
   [UserRole.VERIFICATION_FORM_REVIEWER]: {
+    list: true,
     show: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
+    list: true,
     show: true,
   },
   // Add more roles here as needed
