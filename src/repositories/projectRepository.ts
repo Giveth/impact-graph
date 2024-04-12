@@ -157,6 +157,15 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
+  if (activeQfRoundId) {
+    query.leftJoin(
+      'project.projectEstimatedMatchingView',
+      'projectEstimatedMatchingView',
+      'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
+      { qfRoundId: activeQfRoundId },
+    );
+  }
+
   switch (sortingBy) {
     case SortingField.MostFunded:
       query.orderBy('project.totalDonations', OrderDirection.DESC);
@@ -186,6 +195,12 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
         );
       break;
     case SortingField.InstantBoosting:
+      if (activeQfRoundId) {
+        query.addSelect([
+          'projectEstimatedMatchingView.sumValueUsd',
+          'projectEstimatedMatchingView.qfRoundId',
+        ]);
+      }
       query
         .orderBy(`project.verified`, OrderDirection.DESC)
         .addOrderBy(
@@ -193,16 +208,20 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           OrderDirection.DESC,
           'NULLS LAST',
         );
+      if (activeQfRoundId) {
+        query.addOrderBy(
+          'projectEstimatedMatchingView.sumValueUsd',
+          OrderDirection.DESC,
+          'NULLS LAST',
+        );
+      } else {
+        query.addOrderBy('project.totalDonations', OrderDirection.DESC);
+      }
+      query.addOrderBy('project.totalReactions', OrderDirection.DESC);
       break;
     case SortingField.ActiveQfRoundRaisedFunds:
       if (activeQfRoundId) {
         query
-          .leftJoin(
-            'project.projectEstimatedMatchingView',
-            'projectEstimatedMatchingView',
-            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
-            { qfRoundId: activeQfRoundId },
-          )
           .addSelect([
             'projectEstimatedMatchingView.sumValueUsd',
             'projectEstimatedMatchingView.qfRoundId',
@@ -218,12 +237,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     case SortingField.EstimatedMatching:
       if (activeQfRoundId) {
         query
-          .leftJoin(
-            'project.projectEstimatedMatchingView',
-            'projectEstimatedMatchingView',
-            'projectEstimatedMatchingView.qfRoundId = :qfRoundId',
-            { qfRoundId: activeQfRoundId },
-          )
           .addSelect([
             'projectEstimatedMatchingView.sqrtRootSum',
             'projectEstimatedMatchingView.qfRoundId',
