@@ -297,7 +297,7 @@ const projectPermissions = {
     cancelProject: true,
   },
   [UserRole.CAMPAIGN_MANAGER]: {
-    list: false,
+    list: true,
     show: true,
   },
   [UserRole.QF_MANAGER]: {
