@@ -255,7 +255,10 @@ export const qfRoundTab = {
         actionType: 'record',
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>
-          canAccessQfRoundAction({ currentAdmin }, ResourceActions.RETURN_ALL_DONATIONS_DATA),
+          canAccessQfRoundAction(
+            { currentAdmin },
+            ResourceActions.RETURN_ALL_DONATIONS_DATA,
+          ),
         handler: async (request, response, context) => {
           return returnAllQfRoundDonationAnalysis(context, request);
         },

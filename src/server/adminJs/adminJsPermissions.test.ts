@@ -38,13 +38,7 @@ const actionsPerRole = Object.freeze({
     organization: ['list', 'show'],
     projectStatusHistory: ['list', 'show'],
     campaign: ['list', 'show', 'new', 'edit', 'delete'],
-    qfRound: [
-      'list',
-      'show',
-      'new',
-      'edit',
-      'returnAllDonationData',
-    ],
+    qfRound: ['list', 'show', 'new', 'edit', 'returnAllDonationData'],
     qfRoundHistory: [
       'list',
       'show',
@@ -192,19 +186,15 @@ const actionsPerRole = Object.freeze({
   },
   qfManager: {
     qfRound: ['list', 'show', 'edit', 'new', 'returnAllDonationData'],
-    qfRoundHistory: ['list',
+    qfRoundHistory: [
+      'list',
       'show',
       'edit',
       'delete',
       'bulkDelete',
-      'updateQfRoundHistories'
+      'updateQfRoundHistories',
     ],
-    project: [
-      'list',
-      'show',
-      'addToQfRound',
-      'removeFromQfRound',
-    ],
+    project: ['list', 'show', 'addToQfRound', 'removeFromQfRound'],
   },
 });
 
@@ -274,7 +264,7 @@ describe('canAccessUserAction test cases', () => {
   roles.forEach(role => {
     Object.keys(actionsPerRole[role]).forEach(page => {
       actions.forEach(action => {
-        it(`should return ${actionsPerRole[role][page].includes(action)} for ${role} --> ${action} on ${page}`, function() {
+        it(`should return ${actionsPerRole[role][page].includes(action)} for ${role} --> ${action} on ${page}`, function () {
           assert.strictEqual(
             callFunction(role, page, action),
             actionsPerRole[role][page].includes(action),
