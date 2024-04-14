@@ -34,7 +34,7 @@ const actions = Object.values(ResourceActions);
 // sum up the actions for each role on each page
 const actionsPerRole = Object.freeze({
   admin: {
-    users: ['list', 'new', 'show', 'edit'],
+    users: ['list', 'new', 'show', 'edit', 'returnAllDonationData'],
     organization: ['list', 'show'],
     projectStatusHistory: ['list', 'show'],
     campaign: ['list', 'show', 'new', 'edit', 'delete'],
@@ -43,9 +43,7 @@ const actionsPerRole = Object.freeze({
       'show',
       'new',
       'edit',
-      'delete',
-      'addToQfRound',
-      'removeFromQfRound',
+      'returnAllDonationData',
     ],
     qfRoundHistory: [
       'list',
@@ -103,7 +101,7 @@ const actionsPerRole = Object.freeze({
     organization: ['list', 'show'],
     projectStatusHistory: ['list', 'show'],
     campaign: ['list', 'show', 'new', 'edit'],
-    qfRound: ['list', 'show', 'addToQfRound', 'removeFromQfRound'],
+    qfRound: ['list', 'show'],
     qfRoundHistory: ['list', 'show'],
     projectStatusReason: ['list', 'show'],
     projectAddress: ['list', 'show'],
@@ -192,6 +190,22 @@ const actionsPerRole = Object.freeze({
     category: ['list', 'show'],
     broadcastNotification: ['list', 'show'],
   },
+  qfManager: {
+    qfRound: ['list', 'show', 'edit', 'new', 'returnAllDonationData'],
+    qfRoundHistory: ['list',
+      'show',
+      'edit',
+      'delete',
+      'bulkDelete',
+      'updateQfRoundHistories'
+    ],
+    project: [
+      'list',
+      'show',
+      'addToQfRound',
+      'removeFromQfRound',
+    ],
+  },
 });
 
 const callFunction = (
@@ -260,7 +274,7 @@ describe('canAccessUserAction test cases', () => {
   roles.forEach(role => {
     Object.keys(actionsPerRole[role]).forEach(page => {
       actions.forEach(action => {
-        it(`should return ${actionsPerRole[role][page].includes(action)} for ${role} --> ${action} on ${page}`, function () {
+        it(`should return ${actionsPerRole[role][page].includes(action)} for ${role} --> ${action} on ${page}`, function() {
           assert.strictEqual(
             callFunction(role, page, action),
             actionsPerRole[role][page].includes(action),

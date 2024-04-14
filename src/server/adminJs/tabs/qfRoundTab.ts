@@ -254,6 +254,8 @@ export const qfRoundTab = {
         // https://docs.adminjs.co/basics/action#record-type-actions
         actionType: 'record',
         isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessQfRoundAction({ currentAdmin }, ResourceActions.RETURN_ALL_DONATIONS_DATA),
         handler: async (request, response, context) => {
           return returnAllQfRoundDonationAnalysis(context, request);
         },
