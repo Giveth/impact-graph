@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Test1712853017092 implements MigrationInterface {
+export class UserNewRoleFqManager1712853017092 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // add enum qfManager to user table column role
     await queryRunner.query(
