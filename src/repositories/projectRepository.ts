@@ -157,7 +157,10 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
 
-  if (activeQfRoundId) {
+  const isFilterByQF =
+    !!filters?.find(f => f === FilterField.ActiveQfRound) && activeQfRoundId;
+
+  if (isFilterByQF) {
     query.leftJoin(
       'project.projectEstimatedMatchingView',
       'projectEstimatedMatchingView',
@@ -194,8 +197,8 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           'NULLS LAST',
         );
       break;
-    case SortingField.InstantBoosting:
-      if (activeQfRoundId) {
+    case SortingField.InstantBoosting: // This is our default sorting
+      if (isFilterByQF) {
         query.addSelect([
           'projectEstimatedMatchingView.sumValueUsd',
           'projectEstimatedMatchingView.qfRoundId',
@@ -208,7 +211,7 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
           OrderDirection.DESC,
           'NULLS LAST',
         );
-      if (activeQfRoundId) {
+      if (isFilterByQF) {
         query.addOrderBy(
           'projectEstimatedMatchingView.sumValueUsd',
           OrderDirection.DESC,
