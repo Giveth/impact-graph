@@ -124,8 +124,8 @@ export const validateDonorSuperTokenBalance = async (
     const balanceLongerThanMonth =
       Math.abs(nowInSec - maybeCriticalAtTimestamp) > monthInSec;
     if (balanceLongerThanMonth) {
-      recurringDonation.balanceWarning = null;
-      await recurringDonation.save();
+      user.streamBalanceWarning = null;
+      await user.save();
       continue;
     }
     const balanceLongerThanWeek =
@@ -140,9 +140,9 @@ export const validateDonorSuperTokenBalance = async (
         : NOTIFICATIONS_EVENT_NAMES.SUPER_TOKENS_BALANCE_WEEK;
 
     // If the balance warning is the same, we've already sent the notification
-    if (recurringDonation.balanceWarning === eventName) continue;
-    recurringDonation.balanceWarning = eventName;
-    await recurringDonation.save();
+    if (user.streamBalanceWarning === eventName) continue;
+    user.streamBalanceWarning = eventName;
+    await user.save();
     // Notify user their super token is running out
     await getNotificationAdapter().userSuperTokensCritical({
       user,
