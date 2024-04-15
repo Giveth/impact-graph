@@ -63,6 +63,8 @@ const actionsPerRole = Object.freeze({
       'activateProject',
       'deactivateProject',
       'cancelProject',
+      'addToQfRound',
+      'removeFromQfRound',
     ],
     projectUpdate: ['list', 'show', 'addFeaturedProjectUpdate'],
     thirdPartyProjectImport: [
@@ -194,7 +196,14 @@ const actionsPerRole = Object.freeze({
       'bulkDelete',
       'updateQfRoundHistories',
     ],
-    project: ['list', 'show', 'addToQfRound', 'removeFromQfRound'],
+    project: [
+      'list',
+      'show',
+      'listProject',
+      'addToQfRound',
+      'removeFromQfRound',
+    ],
+    projectStatusReasonPermissions: ['list', 'show', 'new', 'delete'],
   },
 });
 

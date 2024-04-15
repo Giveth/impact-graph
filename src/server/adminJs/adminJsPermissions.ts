@@ -193,7 +193,12 @@ const projectStatusReasonPermissions = {
     list: true,
     show: true,
   },
-
+  [UserRole.QF_MANAGER]: {
+    list: true,
+    show: true,
+    new: true,
+    delete: true,
+  },
   // Add more roles here as needed
 };
 
@@ -256,6 +261,8 @@ const projectPermissions = {
     activateProject: true,
     deactivateProject: true,
     cancelProject: true,
+    removeFromQfRound: true,
+    addToQfRound: true,
   },
   [UserRole.OPERATOR]: {
     list: true,
