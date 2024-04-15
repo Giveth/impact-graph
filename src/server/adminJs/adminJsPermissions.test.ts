@@ -34,7 +34,7 @@ const actions = Object.values(ResourceActions);
 // sum up the actions for each role on each page
 const actionsPerRole = Object.freeze({
   admin: {
-    users: ['list', 'new', 'show', 'edit', 'returnAllDonationData'],
+    users: ['list', 'new', 'show', 'edit'],
     organization: ['list', 'show'],
     projectStatusHistory: ['list', 'show'],
     campaign: ['list', 'show', 'new', 'edit', 'delete'],
