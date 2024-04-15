@@ -63,6 +63,8 @@ const actionsPerRole = Object.freeze({
       'activateProject',
       'deactivateProject',
       'cancelProject',
+      'addToQfRound',
+      'removeFromQfRound',
     ],
     projectUpdate: ['list', 'show', 'addFeaturedProjectUpdate'],
     thirdPartyProjectImport: [

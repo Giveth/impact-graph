@@ -261,6 +261,8 @@ const projectPermissions = {
     activateProject: true,
     deactivateProject: true,
     cancelProject: true,
+    removeFromQfRound: true,
+    addToQfRound: true,
   },
   [UserRole.OPERATOR]: {
     list: true,
