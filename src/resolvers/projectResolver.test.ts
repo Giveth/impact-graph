@@ -549,6 +549,66 @@ function projectsByUserIdTestCases() {
 }
 
 function createProjectTestCases() {
+  it('should not create projects with same slug and title', async () => {
+    const accessToken = await generateTestAccessToken(SEED_DATA.FIRST_USER.id);
+    const sampleProject1 = {
+      title: 'title1',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const sampleProject2 = {
+      title: 'title1',
+      admin: String(SEED_DATA.FIRST_USER.id),
+      addresses: [
+        {
+          address: generateRandomEtheriumAddress(),
+          networkId: NETWORK_IDS.XDAI,
+        },
+      ],
+    };
+    const promise1 = axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject1,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const promise2 = axios.post(
+      graphqlUrl,
+      {
+        query: createProjectQuery,
+        variables: {
+          project: sampleProject2,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const [result1, result2] = await Promise.all([promise1, promise2]);
+    const isResult1Ok = !!result1.data.data?.createProject;
+    const isResult2Ok = !!result2.data.data?.createProject;
+
+    // Exactly one should be ok
+    const exactlyOneOk =
+      (isResult1Ok && !isResult2Ok) || (!isResult1Ok && isResult2Ok);
+
+    assert.isTrue(exactlyOneOk, 'Exactly one operation should be successful');
+  });
   it('Create Project should return <<Access denied>>, calling without token IN ENGLISH when no-lang header is sent', async () => {
     const sampleProject = {
       title: 'title1',
@@ -4016,15 +4076,16 @@ function featureProjectsTestCases() {
       [ReviewStatus.NotReviewed, ProjStatus.active], // Not listed
       [ReviewStatus.Listed, ProjStatus.deactive], // Not active
     ];
-    const projectsPromises = settings.map(([reviewStatus, projectStatus]) => {
-      return saveProjectDirectlyToDb({
+    const projects: Project[] = [];
+    for (const element of settings) {
+      const project = await saveProjectDirectlyToDb({
         ...createProjectData(),
-        reviewStatus,
-        statusId: projectStatus,
+        reviewStatus: element[0],
+        statusId: element[1],
       });
-    });
-    const projects = await Promise.all(projectsPromises);
-    const projetUpdatePromises = projects.map(project => {
+      projects.push(project);
+    }
+    const projectUpdatePromises = projects.map(project => {
       return ProjectUpdate.create({
         userId: user!.id,
         projectId: project.id,
@@ -4034,7 +4095,7 @@ function featureProjectsTestCases() {
         isMain: false,
       }).save();
     });
-    const projectUpdates = await Promise.all(projetUpdatePromises);
+    const projectUpdates = await Promise.all(projectUpdatePromises);
     for (let i = 0; i < projects.length; i++) {
       const project = projects[i];
       const projectUpdate = projectUpdates[i];

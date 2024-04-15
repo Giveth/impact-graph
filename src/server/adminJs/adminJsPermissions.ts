@@ -24,6 +24,7 @@ export enum ResourceActions {
   ADD_PROJECT_TO_QF_ROUND = 'addToQfRound',
   REMOVE_PROJECT_FROM_QF_ROUND = 'removeFromQfRound',
   UPDATE_QF_ROUND_HISTORIES = 'updateQfRoundHistories',
+  RETURN_ALL_DONATIONS_DATA = 'returnAllDonationData',
 }
 
 // All permissions listed per resource, per role and action
@@ -86,10 +87,6 @@ const projectStatusHistoryPermissions = {
     list: true,
     show: true,
   },
-  [UserRole.QF_MANAGER]: {
-    list: true,
-    show: true,
-  },
   // Add more roles here as needed
 };
 
@@ -121,12 +118,10 @@ const campaignPermissions = {
 const qfRoundPermissions = {
   [UserRole.ADMIN]: {
     list: true,
-    delete: true,
-    new: true,
     show: true,
+    returnAllDonationData: true,
+    new: true,
     edit: true,
-    addToQfRound: true,
-    removeFromQfRound: true,
   },
   [UserRole.OPERATOR]: {
     list: true,
@@ -139,16 +134,13 @@ const qfRoundPermissions = {
   [UserRole.CAMPAIGN_MANAGER]: {
     list: true,
     show: true,
-    addToQfRound: true,
-    removeFromQfRound: true,
   },
   [UserRole.QF_MANAGER]: {
     list: true,
-    new: true,
     show: true,
+    returnAllDonationData: true,
+    new: true,
     edit: true,
-    addToQfRound: true,
-    removeFromQfRound: true,
   },
   // Add more roles here as needed
 };
@@ -200,12 +192,6 @@ const projectStatusReasonPermissions = {
   [UserRole.CAMPAIGN_MANAGER]: {
     list: true,
     show: true,
-  },
-  [UserRole.QF_MANAGER]: {
-    list: true,
-    show: true,
-    new: true,
-    delete: true,
   },
   // Add more roles here as needed
 };
@@ -304,6 +290,8 @@ const projectPermissions = {
     list: true,
     show: true,
     listProject: true,
+    removeFromQfRound: true,
+    addToQfRound: true,
   },
   // Add more roles here as needed
 };

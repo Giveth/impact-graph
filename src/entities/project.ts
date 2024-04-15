@@ -141,7 +141,7 @@ export class Project extends BaseEntity {
   @Column()
   title: string;
 
-  @Index()
+  @Index({ unique: true })
   @Field({ nullable: true })
   @Column({ nullable: true })
   slug?: string;

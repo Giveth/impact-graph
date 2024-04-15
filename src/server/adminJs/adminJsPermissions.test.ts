@@ -34,19 +34,11 @@ const actions = Object.values(ResourceActions);
 // sum up the actions for each role on each page
 const actionsPerRole = Object.freeze({
   admin: {
-    users: ['list', 'new', 'show', 'edit'],
+    users: ['list', 'new', 'show', 'edit', 'returnAllDonationData'],
     organization: ['list', 'show'],
     projectStatusHistory: ['list', 'show'],
     campaign: ['list', 'show', 'new', 'edit', 'delete'],
-    qfRound: [
-      'list',
-      'show',
-      'new',
-      'edit',
-      'delete',
-      'addToQfRound',
-      'removeFromQfRound',
-    ],
+    qfRound: ['list', 'show', 'new', 'edit', 'returnAllDonationData'],
     qfRoundHistory: [
       'list',
       'show',
@@ -103,7 +95,7 @@ const actionsPerRole = Object.freeze({
     organization: ['list', 'show'],
     projectStatusHistory: ['list', 'show'],
     campaign: ['list', 'show', 'new', 'edit'],
-    qfRound: ['list', 'show', 'addToQfRound', 'removeFromQfRound'],
+    qfRound: ['list', 'show'],
     qfRoundHistory: ['list', 'show'],
     projectStatusReason: ['list', 'show'],
     projectAddress: ['list', 'show'],
@@ -191,6 +183,18 @@ const actionsPerRole = Object.freeze({
     mainCategory: ['list', 'show'],
     category: ['list', 'show'],
     broadcastNotification: ['list', 'show'],
+  },
+  qfManager: {
+    qfRound: ['list', 'show', 'edit', 'new', 'returnAllDonationData'],
+    qfRoundHistory: [
+      'list',
+      'show',
+      'edit',
+      'delete',
+      'bulkDelete',
+      'updateQfRoundHistories',
+    ],
+    project: ['list', 'show', 'addToQfRound', 'removeFromQfRound'],
   },
 });
 
