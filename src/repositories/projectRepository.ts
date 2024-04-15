@@ -119,7 +119,11 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
       `project.statusId = ${ProjStatus.active} AND project.reviewStatus = :reviewStatus`,
       { reviewStatus: ReviewStatus.Listed },
     );
-  if (qfRoundId || activeQfRoundId) {
+
+  const isFilterByQF =
+    !!filters?.find(f => f === FilterField.ActiveQfRound) && activeQfRoundId;
+
+  if (qfRoundId || isFilterByQF) {
     query.innerJoinAndSelect(
       'project.qfRounds',
       'qf_rounds',
@@ -156,9 +160,6 @@ export const filterProjectsQuery = (params: FilterProjectQueryInputParams) => {
     });
   }
   // query = ProjectResolver.addUserReaction(query, connectedWalletUserId, user);
-
-  const isFilterByQF =
-    !!filters?.find(f => f === FilterField.ActiveQfRound) && activeQfRoundId;
 
   if (isFilterByQF) {
     query.leftJoin(
