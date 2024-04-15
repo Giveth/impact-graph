@@ -504,15 +504,6 @@ function allProjectsTestCases() {
       },
     });
 
-    // eslint-disable-next-line no-console
-    console.log('---------------------');
-    // eslint-disable-next-line no-console
-    console.log(result.data.data.allProjects.projects);
-    // eslint-disable-next-line no-console
-    console.log(result.data);
-    // eslint-disable-next-line no-console
-    console.log('---------------------');
-
     let projects = result.data.data.allProjects.projects;
 
     assert.equal(projects[0].id, project3.id);
