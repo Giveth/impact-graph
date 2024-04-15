@@ -17,6 +17,7 @@ import {
   fetchRecurringDonationsByUserIdQuery,
   updateRecurringDonationQuery,
   updateRecurringDonationStatusMutation,
+  fetchRecurringDonationStatsQuery,
 } from '../../test/graphqlQueries';
 import { errorMessages } from '../utils/errorMessages';
 import { addNewAnchorAddress } from '../repositories/anchorContractAddressRepository';
@@ -43,6 +44,11 @@ describe(
 describe(
   'updateRecurringDonationStatus test cases',
   updateRecurringDonationStatusTestCases,
+);
+
+describe(
+  'getRecurringDonationStatsTestCases test cases',
+  getRecurringDonationStatsTestCases,
 );
 
 function createRecurringDonationTestCases() {
@@ -2112,5 +2118,222 @@ function updateRecurringDonationStatusTestCases() {
       result.data.data.updateRecurringDonationStatus.status,
       RECURRING_DONATION_STATUS.FAILED,
     );
+  });
+}
+
+function getRecurringDonationStatsTestCases() {
+  it('should return the correct stats for the given date range', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 400,
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 100,
+      },
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchRecurringDonationStatsQuery,
+      variables: {
+        beginDate: new Date().toISOString().slice(0, 8) + '01',
+        endDate: new Date().toISOString().slice(0, 8) + '30',
+      },
+    });
+
+    const stats = result.data.data.getRecurringDonationStats;
+    assert.equal(stats.activeRecurringDonationsCount, 7);
+    assert.equal(stats.totalStreamedUsdValue, 500);
+  });
+
+  it('should return the correct stats for the given date range and currency', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 400,
+        currency: 'DAI',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 100,
+        currency: 'USDT',
+      },
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchRecurringDonationStatsQuery,
+      variables: {
+        beginDate: new Date().toISOString().slice(0, 8) + '01',
+        endDate: new Date().toISOString().slice(0, 8) + '30',
+        currency: 'USDT',
+      },
+    });
+
+    const stats = result.data.data.getRecurringDonationStats;
+    assert.equal(stats.activeRecurringDonationsCount, 4);
+    assert.equal(stats.totalStreamedUsdValue, 600);
+  });
+
+  it('should return the correct stats for the given date range and status', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 400,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 100,
+        status: RECURRING_DONATION_STATUS.PENDING,
+      },
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchRecurringDonationStatsQuery,
+      variables: {
+        beginDate: new Date().toISOString().slice(0, 8) + '01',
+        endDate: new Date().toISOString().slice(0, 8) + '30',
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+
+    const stats = result.data.data.getRecurringDonationStats;
+    assert.equal(stats.activeRecurringDonationsCount, 8);
+    assert.equal(stats.totalStreamedUsdValue, 1500);
+  });
+
+  it('should return the correct stats for the given date range and status and currency', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 400,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        currency: 'DAI',
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 100,
+        status: RECURRING_DONATION_STATUS.PENDING,
+        currency: 'USDT',
+      },
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchRecurringDonationStatsQuery,
+      variables: {
+        beginDate: new Date().toISOString().slice(0, 8) + '01',
+        endDate: new Date().toISOString().slice(0, 8) + '30',
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        currency: 'DAI',
+      },
+    });
+
+    const stats = result.data.data.getRecurringDonationStats;
+    assert.equal(stats.activeRecurringDonationsCount, 1);
+    assert.equal(stats.totalStreamedUsdValue, 800);
+  });
+
+  it('should return the correct stats for the given date range of the current month', async () => {
+    const currentDate = new Date().getTime();
+
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 400,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        createdAt: new Date(currentDate - 1000 * 60 * 60 * 24 * 35),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 100,
+        createdAt: new Date(currentDate - 1000 * 60 * 60 * 24 * 10),
+      },
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchRecurringDonationStatsQuery,
+      variables: {
+        beginDate: new Date().toISOString().slice(0, 8) + '01',
+        endDate: new Date().toISOString().slice(0, 8) + '30',
+      },
+    });
+
+    const stats = result.data.data.getRecurringDonationStats;
+    assert.equal(stats.activeRecurringDonationsCount, 9);
+    assert.equal(stats.totalStreamedUsdValue, 2100);
+  });
+
+  it('should return an error for the given an empty date range', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 400,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        createdAt: new Date(),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 100,
+        createdAt: new Date(),
+      },
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchRecurringDonationStatsQuery,
+      variables: {
+        beginDate: '',
+        endDate: '',
+      },
+    });
+
+    assert.isNotNull(result.data.errors);
+  });
+
+  it('should return an error for the given an invalid date range', async () => {
+    const donor = await saveUserDirectlyToDb(generateRandomEtheriumAddress());
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 400,
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+        createdAt: new Date(),
+      },
+    });
+    await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        donorId: donor.id,
+        totalUsdStreamed: 100,
+        createdAt: new Date(),
+      },
+    });
+
+    const result = await axios.post(graphqlUrl, {
+      query: fetchRecurringDonationStatsQuery,
+      variables: {
+        beginDate: 'invalid date',
+        endDate: 'invalid date',
+      },
+    });
+
+    assert.isNotNull(result.data.errors);
   });
 }

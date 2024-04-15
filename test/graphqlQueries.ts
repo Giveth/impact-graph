@@ -2336,3 +2336,20 @@ export const updateRecurringDonationQuery = `
           }
       }
 `;
+
+export const fetchRecurringDonationStatsQuery = `
+  query (
+    $beginDate: String!
+    $endDate: String!
+    $currency: String
+    ) {
+      getRecurringDonationStats(
+        beginDate: $beginDate
+        endDate: $endDate
+        currency: $currency
+      ) {
+        totalStreamedUsdValue,
+        activeRecurringDonationsCount,
+      }
+  }
+`;

@@ -39,13 +39,13 @@ import {
 import { detectAddressChainType } from '../utils/networks';
 import { logger } from '../utils/logger';
 import {
+  getRecurringDonationStatsArgsValidator,
   updateDonationQueryValidator,
   validateWithJoiSchema,
 } from '../utils/validators/graphqlQueryValidators';
 import { sleep } from '../utils/utils';
 import SentryLogger from '../sentryLogger';
 import { updateRecurringDonationStatusWithNetwork } from '../services/recurringDonationService';
-
 @InputType()
 class RecurringDonationSortBy {
   @Field(_type => RecurringDonationSortField)
@@ -151,6 +151,28 @@ class UserRecurringDonations {
 
   @Field(_type => Int)
   totalCount: number;
+}
+
+@Service()
+@ArgsType()
+class GetRecurringDonationStatsArgs {
+  @Field(_type => String)
+  beginDate: string;
+
+  @Field(_type => String)
+  endDate: string;
+
+  @Field(_type => String, { nullable: true })
+  currency?: string;
+}
+
+@ObjectType()
+class RecurringDonationStats {
+  @Field(_type => Int)
+  activeRecurringDonationsCount: number;
+
+  @Field(_type => Int)
+  totalStreamedUsdValue: number;
 }
 
 @Resolver(_of => AnchorContractAddress)
@@ -533,6 +555,66 @@ export class RecurringDonationResolver {
     } catch (e) {
       SentryLogger.captureException(e);
       logger.error('updateRecurringDonationStatus() error ', e);
+      throw e;
+    }
+  }
+
+  @Query(_returns => RecurringDonationStats)
+  async getRecurringDonationStats(
+    @Args() { beginDate, endDate, currency }: GetRecurringDonationStatsArgs,
+  ): Promise<RecurringDonationStats> {
+    try {
+      // Validate input arguments using Joi schema
+      validateWithJoiSchema(
+        { beginDate, endDate },
+        getRecurringDonationStatsArgsValidator,
+      );
+
+      // Query to calculate total streamed USD value
+      const totalStreamedUsdValueQuery = RecurringDonation.createQueryBuilder(
+        'recurring_donation',
+      )
+        .select(
+          'SUM(recurring_donation.totalUsdStreamed)',
+          'totalStreamedUsdValue',
+        )
+        .where(
+          `recurring_donation.createdAt >= :beginDate AND recurring_donation.createdAt <= :endDate`,
+          { beginDate, endDate },
+        );
+
+      // Query to calculate active recurring donations count
+      const activeRecurringDonationsCountQuery =
+        RecurringDonation.createQueryBuilder('recurring_donation').where(
+          `recurring_donation.createdAt >= :beginDate AND recurring_donation.createdAt <= :endDate AND recurring_donation.status = 'active'`,
+          { beginDate, endDate },
+        );
+
+      // Add currency filter if provided
+      if (currency) {
+        totalStreamedUsdValueQuery.andWhere(
+          `recurring_donation.currency = :currency`,
+          { currency },
+        );
+        activeRecurringDonationsCountQuery.andWhere(
+          `recurring_donation.currency = :currency`,
+          { currency },
+        );
+      }
+
+      const [activeRecurringDonationsCount, totalStreamedUsdValue] =
+        await Promise.all([
+          activeRecurringDonationsCountQuery.getCount(),
+          totalStreamedUsdValueQuery.getRawOne(),
+        ]);
+
+      return {
+        activeRecurringDonationsCount: activeRecurringDonationsCount || 0,
+        totalStreamedUsdValue: totalStreamedUsdValue.totalStreamedUsdValue || 0,
+      };
+    } catch (e) {
+      SentryLogger.captureException(e);
+      logger.error('getRecurringDonationStats() error ', e);
       throw e;
     }
   }

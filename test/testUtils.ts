@@ -1958,6 +1958,7 @@ export const saveRecurringDonationDirectlyToDb = async (params?: {
     donorId,
     projectId,
     anchorContractAddressId,
+    createdAt: params?.donationData?.createdAt || moment(),
   }).save();
 };
 
