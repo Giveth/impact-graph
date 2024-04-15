@@ -566,6 +566,13 @@ export const projectVerificationTab = {
         isVisible: true,
         after: setCommentEmailAndTimeStamps,
       },
+      list: {
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectVerificationFormAction(
+            { currentAdmin },
+            ResourceActions.LIST,
+          ),
+      },
       show: {
         isVisible: true,
         isAccessible: ({ currentAdmin }) =>

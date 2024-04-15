@@ -249,6 +249,8 @@ export const projectUpdateTab = {
       },
       list: {
         isVisible: true,
+        isAccessible: ({ currentAdmin }) =>
+          canAccessProjectUpdateAction({ currentAdmin }, ResourceActions.LIST),
         after: setProjectsTitleAndSlug,
       },
       addFeaturedProjectUpdate: {
