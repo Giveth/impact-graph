@@ -260,43 +260,59 @@ export function normalizeNegativeAmount(
   return Math.abs(Number(amount)) / 10 ** decimals;
 }
 
-export const updateRecurringDonationStatusWithNetwork = async (params: {
-  donationId: number;
-}): Promise<RecurringDonation> => {
-  // TODO should refactor this function and make it smaller
-  logger.debug(
-    'updateRecurringDonationStatusWithNetwork() has been called',
-    params,
-  );
-  const recurringDonation = await findRecurringDonationById(params.donationId);
-  if (!recurringDonation) {
-    throw new Error('Recurring donation not found');
-  }
+export const getRecurringDonationTxInfo = async (params: {
+  txHash: string;
+  networkId: number;
+  isBatch: boolean;
+}): Promise<
+  {
+    receiver: string;
+    flowRate: string;
+    tokenAddress: string;
+  }[]
+> => {
+  const { txHash, networkId, isBatch } = params;
+  const output: {
+    receiver: string;
+    flowRate: string;
+    tokenAddress: string;
+  }[] = [];
+
+  logger.debug('getRecurringDonationTxInfo() has been called', params);
+
   try {
-    const web3Provider = getProvider(recurringDonation!.networkId);
-    const networkData = await web3Provider.getTransaction(
-      recurringDonation!.txHash,
-    );
+    const web3Provider = getProvider(networkId);
+    const networkData = await web3Provider.getTransaction(txHash);
     if (!networkData) {
-      logger.debug(
+      logger.error(
         'Transaction not found in the network. maybe its not mined yet',
         {
-          recurringDonationId: recurringDonation?.id,
-          txHash: recurringDonation?.txHash,
+          networkId,
+          txHash,
         },
       );
-      return recurringDonation.save();
+      throw new Error(
+        i18n.__(translationErrorMessagesKeys.TRANSACTION_NOT_FOUND),
+      );
     }
+
     let receiverLowercase = '';
     let flowRateBigNumber = '';
+    let tokenAddress = '';
 
-    if (!recurringDonation.isBatch) {
+    if (!isBatch) {
       const abiPath = path.join(__dirname, '../abi/superFluidAbi.json');
       const abi = JSON.parse(await fs.readFile(abiPath, 'utf-8'));
       const iface = new ethers.utils.Interface(abi);
       const decodedData = iface.parseTransaction({ data: networkData.data });
+      tokenAddress = decodedData.args[0].toLowerCase();
       receiverLowercase = decodedData.args[2].toLowerCase();
       flowRateBigNumber = decodedData.args[3];
+      output.push({
+        tokenAddress,
+        receiver: receiverLowercase,
+        flowRate: ethers.BigNumber.from(flowRateBigNumber).toString(),
+      });
     } else {
       // ABI comes from https://sepolia-optimism.etherscan.io/address/0x78743a68d52c9d6ccf3ff4558f3af510592e3c2d#code
       const abiPath = path.join(__dirname, '../abi/superFluidAbiBatch.json');
@@ -320,27 +336,83 @@ export const updateRecurringDonationStatusWithNetwork = async (params: {
         const finalDecodedData = decodedDataIface.parseTransaction({
           data: decodedOperationData[0],
         });
-
-        if (
-          finalDecodedData.args[1].toLowerCase() ===
-          recurringDonation?.anchorContractAddress?.address?.toLowerCase()
-        ) {
-          receiverLowercase = finalDecodedData.args[1].toLowerCase();
-          flowRateBigNumber = finalDecodedData.args[2];
-          continue;
-        }
+        receiverLowercase = finalDecodedData.args[1].toLowerCase();
+        flowRateBigNumber = finalDecodedData.args[2];
+        tokenAddress = decodedData.args[0].toLowerCase();
+        output.push({
+          tokenAddress,
+          receiver: receiverLowercase,
+          flowRate: ethers.BigNumber.from(flowRateBigNumber).toString(),
+        });
       }
+    }
+
+    return output;
+  } catch (e) {
+    logger.error('getRecurringDonationTxInfo() error', {
+      error: e,
+      params,
+    });
+    throw e;
+  }
+};
+
+export const updateRecurringDonationStatusWithNetwork = async (params: {
+  donationId: number;
+}): Promise<RecurringDonation> => {
+  logger.debug(
+    'updateRecurringDonationStatusWithNetwork() has been called',
+    params,
+  );
+  const recurringDonation = await findRecurringDonationById(params.donationId);
+  if (!recurringDonation) {
+    throw new Error('Recurring donation not found');
+  }
+
+  try {
+    const txData = await getRecurringDonationTxInfo({
+      txHash: recurringDonation!.txHash,
+      networkId: recurringDonation!.networkId,
+      isBatch: recurringDonation!.isBatch,
+    });
+
+    let flowRate = '';
+    let receiver = '';
+
+    if (!recurringDonation.isBatch) {
+      flowRate = txData[0].flowRate;
+      receiver = txData[0].receiver;
+    } else {
+      const txDataFiltered = txData.filter(
+        item =>
+          item.receiver.toLowerCase() ===
+          recurringDonation?.anchorContractAddress?.address?.toLowerCase(),
+      );
+      if (txDataFiltered.length === 0) {
+        logger.debug(
+          'Recurring donation receiver address not found in the transaction data.',
+          {
+            recurringDonationId: recurringDonation?.id,
+            txHash: recurringDonation?.txHash,
+          },
+        );
+        recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
+        recurringDonation.finished = true;
+        return recurringDonation.save();
+      }
+      flowRate = txDataFiltered[0].flowRate;
+      receiver = txDataFiltered[0].receiver;
     }
 
     if (
       recurringDonation?.anchorContractAddress?.address?.toLowerCase() !==
-      receiverLowercase
+      receiver
     ) {
       recurringDonation.status = RECURRING_DONATION_STATUS.FAILED;
       recurringDonation.finished = true;
       return recurringDonation.save();
     }
-    const flowRate = ethers.BigNumber.from(flowRateBigNumber).toString();
+
     if (recurringDonation?.flowRate !== flowRate) {
       logger.debug(
         'Recurring donation flowRate does not match the receiver address of the transaction data.',

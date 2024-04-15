@@ -15,13 +15,13 @@ export const DRAFT_RECURRING_DONATION_STATUS = {
   FAILED: 'failed',
 };
 
+export const RECURRING_DONATION_ORIGINS = {
+  DRAFT_RECURRING_DONATION_MATCHING: 'DraftRecurringDonationMatching',
+};
+
 @Entity()
 @ObjectType()
 // To mark the draft recurring donation as matched, when the recurringDonation is created in RecurringDonationResolver
-@Index(['networkId', 'projectId', 'donorId'], {
-  where: `status = '${DRAFT_RECURRING_DONATION_STATUS.PENDING}'`,
-  unique: true,
-})
 export class DraftRecurringDonation extends BaseEntity {
   @Field(_type => ID)
   @PrimaryGeneratedColumn()
@@ -56,6 +56,12 @@ export class DraftRecurringDonation extends BaseEntity {
   @Field({ nullable: true })
   anonymous: boolean;
 
+  @Column({ nullable: true, default: false })
+  @Field({ nullable: true })
+  // When creating a draft recurring donation, the user can choose to update an existing recurring donation
+  // This flag is used to determine if the draft recurring donation is for update
+  isForUpdate: boolean;
+
   @Field()
   @Column({ nullable: true })
   projectId: number;
@@ -76,6 +82,10 @@ export class DraftRecurringDonation extends BaseEntity {
   @Field()
   @Column({ nullable: true })
   matchedRecurringDonationId?: number;
+
+  @Field({ nullable: true })
+  @Column('text', { nullable: true })
+  origin: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })

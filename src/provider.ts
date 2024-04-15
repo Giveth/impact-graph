@@ -372,7 +372,7 @@ export function getBlockExplorerApiUrl(networkId: number): string {
       break;
     case NETWORK_IDS.OPTIMISM_SEPOLIA:
       apiUrl = config.get('OPTIMISTIC_SEPOLIA_SCAN_API_URL');
-      apiKey = config.get('OPTIMISTIC_SCAN_API_KEY');
+      apiKey = config.get('OPTIMISTIC_SEPOLIA_SCAN_API_KEY');
       break;
     case NETWORK_IDS.ETC:
       // ETC network doesn't need API key
