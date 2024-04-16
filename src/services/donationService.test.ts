@@ -86,61 +86,6 @@ function sendSegmentEventForDonationTestCases() {
 }
 
 function syncDonationStatusWithBlockchainNetworkTestCases() {
-  it('should verify a goerli donation and update donor.totalDonated and projectOwner.totalReceived', async () => {
-    // https://goerli.etherscan.io/tx/0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1
-
-    const transactionInfo = {
-      txHash:
-        '0x43cb1c61a81f007abd3de766a6029ffe62d0324268d7781469a3d7879d487cb1',
-      networkId: NETWORK_IDS.GOERLI,
-      amount: 0.117,
-      fromAddress: '0xc18c3cc1cf44e72dedfcbae981ef1ab32256ee60',
-      toAddress: '0x2d2b642c7407ebce201ed80711124fffd1777331',
-      currency: 'ETH',
-      timestamp: 1661114988,
-    };
-    const user = await saveUserDirectlyToDb(transactionInfo.fromAddress);
-    const projectOwner = await saveUserDirectlyToDb(
-      generateRandomEtheriumAddress(),
-    );
-    const project = await saveProjectDirectlyToDb(
-      {
-        ...createProjectData(),
-        walletAddress: transactionInfo.toAddress,
-      },
-      projectOwner,
-    );
-    const donation = await saveDonationDirectlyToDb(
-      {
-        amount: transactionInfo.amount,
-        transactionNetworkId: transactionInfo.networkId,
-        transactionId: transactionInfo.txHash,
-        currency: transactionInfo.currency,
-        fromWalletAddress: transactionInfo.fromAddress,
-        toWalletAddress: transactionInfo.toAddress,
-        valueUsd: 100,
-        anonymous: false,
-        createdAt: new Date(transactionInfo.timestamp),
-        status: DONATION_STATUS.PENDING,
-      },
-      user.id,
-      project.id,
-    );
-    const updateDonation = await syncDonationStatusWithBlockchainNetwork({
-      donationId: donation.id,
-    });
-    assert.isOk(updateDonation);
-    assert.equal(updateDonation.id, donation.id);
-    assert.isTrue(updateDonation.segmentNotified);
-    assert.equal(updateDonation.status, DONATION_STATUS.VERIFIED);
-
-    const donor = await findUserById(user.id);
-    assert.equal(donor?.totalDonated, 100);
-
-    const updatedProjectOwner = await findUserById(projectOwner.id);
-    assert.equal(updatedProjectOwner?.totalReceived, 100);
-  });
-
   it('should verify a Polygon donation', async () => {
     // https://polygonscan.com/tx/0x16f122ad45705dfa41bb323c3164b6d840cbb0e9fa8b8e58bd7435370f8bbfc8
 
