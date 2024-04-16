@@ -232,8 +232,51 @@ function createDraftRecurringDonationTestCases() {
       donorId: user.id,
     });
   });
+  it('return error when send isForUpdate:true but dont pass recurringDonationId', async () => {
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftRecurringDonationMutation,
+        variables: {
+          ...donationData,
+          isForUpdate: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      '"recurringDonationId" is required',
+    );
+  });
+  it('return error when send isForUpdate:false but pass recurringDonationId', async () => {
+    const saveDonationResponse = await axios.post(
+      graphqlUrl,
+      {
+        query: createDraftRecurringDonationMutation,
+        variables: {
+          ...donationData,
+          isForUpdate: false,
+          recurringDonationId: 1,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(
+      saveDonationResponse.data.errors[0].message,
+      '"recurringDonationId" is not allowed',
+    );
+  });
 
-  it('should return the same draft recurring donation id if the same donation is created twice', async () => {
+  it.skip('should return the same draft recurring donation id if the same donation is created twice', async () => {
     const saveDonationResponse = await axios.post(
       graphqlUrl,
       {

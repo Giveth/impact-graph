@@ -6,6 +6,7 @@ import {
   generateRandomEtheriumAddress,
   generateTestAccessToken,
   generateRandomEvmTxHash,
+  saveRecurringDonationDirectlyToDb,
 } from '../../../../test/testUtils';
 import {
   DRAFT_DONATION_STATUS,
@@ -126,6 +127,79 @@ function matchDraftRecurringDonationsTests() {
     expect(recurringDonation).to.be.ok;
 
     expect(recurringDonation?.txHash).to.be.equal(txHash);
+    expect(recurringDonation?.status).to.equal(
+      RECURRING_DONATION_STATUS.PENDING,
+    );
+    expect(recurringDonation?.origin).to.equal(
+      RECURRING_DONATION_ORIGINS.DRAFT_RECURRING_DONATION_MATCHING,
+    );
+    expect(updatedDraftDonation?.matchedRecurringDonationId).to.equal(
+      recurringDonation?.id,
+    );
+  });
+
+  it('should create a recurring donation based on the draft donation OP Sepholia  #1, update existing', async () => {
+    // https://sepolia-optimism.etherscan.io/tx/0x516567c51c3506afe1291f7055fa0e858cc2ca9ed4079625c747fe92bd125a10
+    const user = await saveUserDirectlyToDb(
+      '0x871Cd6353B803CECeB090Bb827Ecb2F361Db81AB',
+    );
+    const txHash =
+      '0x516567c51c3506afe1291f7055fa0e858cc2ca9ed4079625c747fe92bd125a10';
+    anchorContractAddress1.address =
+      '0x1190f5ac0f509d8f3f4b662bf17437d37d64527c';
+    anchorContractAddress1.isActive = true;
+    await anchorContractAddress1.save();
+
+    const existingRecurringDonation = await saveRecurringDonationDirectlyToDb({
+      donationData: {
+        txHash: generateRandomEvmTxHash(),
+        projectId: project1!.id,
+        networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+        currency: 'ETH',
+        donorId: user!.id,
+        flowRate: '11111',
+        status: RECURRING_DONATION_STATUS.ACTIVE,
+      },
+    });
+
+    const draftRecurringDonation = await DraftRecurringDonation.create({
+      projectId: project1!.id,
+      networkId: NETWORK_IDS.OPTIMISM_SEPOLIA,
+      matchedRecurringDonationId: existingRecurringDonation.id,
+      isForUpdate: true,
+      currency: 'ETH',
+      donorId: user!.id,
+      flowRate: '285225986',
+    }).save();
+
+    const oneSecEarlierThanTx = new Date(1711283035000);
+    draftRecurringDonation.createdAt = oneSecEarlierThanTx;
+    await draftRecurringDonation.save();
+
+    expect(draftRecurringDonation).to.be.ok;
+
+    await matchDraftRecurringDonations({
+      [user.walletAddress!]: [draftRecurringDonation!],
+    });
+
+    const recurringDonation = await RecurringDonation.findOne({
+      where: {
+        txHash,
+      },
+    });
+
+    const updatedDraftDonation = await DraftRecurringDonation.findOne({
+      where: {
+        id: draftRecurringDonation.id,
+      },
+    });
+
+    expect(recurringDonation).to.be.ok;
+
+    expect(recurringDonation?.txHash).to.be.equal(txHash);
+    expect(recurringDonation?.flowRate).to.be.equal(
+      draftRecurringDonation.flowRate,
+    );
     expect(recurringDonation?.status).to.equal(
       RECURRING_DONATION_STATUS.PENDING,
     );

@@ -12,11 +12,15 @@ import {
   DraftRecurringDonation,
   RECURRING_DONATION_ORIGINS,
 } from '../../../entities/draftRecurringDonation';
-import { RecurringDonation } from '../../../entities/recurringDonation';
+import {
+  RECURRING_DONATION_STATUS,
+  RecurringDonation,
+} from '../../../entities/recurringDonation';
 import { RecurringDonationResolver } from '../../../resolvers/recurringDonationResolver';
 import { findUserById } from '../../../repositories/userRepository';
 import { getRecurringDonationTxInfo } from '../../recurringDonationService';
 import { findActiveAnchorAddress } from '../../../repositories/anchorContractAddressRepository';
+import { findRecurringDonationById } from '../../../repositories/recurringDonationRepository';
 
 type DraftRecurringDonationWorkerFunctions = 'matchDraftRecurringDonations';
 export type DraftRecurringDonationWorker =
@@ -174,6 +178,7 @@ async function submitMatchedDraftRecurringDonation(
     where: {
       networkId: draftRecurringDonation.networkId,
       txHash: tx.hash,
+      projectId: draftRecurringDonation.projectId,
     },
   });
 
@@ -190,29 +195,59 @@ async function submitMatchedDraftRecurringDonation(
 
   const recurringDonationResolver = new RecurringDonationResolver();
 
-  const { flowRate, networkId, anonymous, currency, projectId, isBatch } =
-    draftRecurringDonation;
+  const {
+    flowRate,
+    networkId,
+    anonymous,
+    currency,
+    projectId,
+    isBatch,
+    matchedRecurringDonationId,
+    isForUpdate,
+  } = draftRecurringDonation;
   const txHash = tx.hash;
   try {
     logger.debug(
       `Creating donation for draftDonation with ID ${draftRecurringDonation.id}`,
     );
-    const recurringDonation =
-      await recurringDonationResolver.createRecurringDonation(
-        {
-          req: { user: { userId: draftRecurringDonation.donorId }, auth: {} },
-        } as ApolloContext,
-        projectId,
-        networkId,
-        txHash,
-        currency,
-        flowRate,
-        anonymous,
-        isBatch,
+    let recurringDonation;
+    if (isForUpdate) {
+      const oldRecurringDonation = await findRecurringDonationById(
+        matchedRecurringDonationId!,
       );
+      recurringDonation =
+        await recurringDonationResolver.updateRecurringDonationParams(
+          {
+            req: { user: { userId: draftRecurringDonation.donorId }, auth: {} },
+          } as ApolloContext,
+          projectId,
+          networkId,
+          currency,
+
+          txHash,
+          flowRate,
+          anonymous,
+          oldRecurringDonation?.isArchived,
+        );
+    } else {
+      recurringDonation =
+        await recurringDonationResolver.createRecurringDonation(
+          {
+            req: { user: { userId: draftRecurringDonation.donorId }, auth: {} },
+          } as ApolloContext,
+          projectId,
+          networkId,
+          txHash,
+          currency,
+          flowRate,
+          anonymous,
+          isBatch,
+        );
+    }
 
     await RecurringDonation.update(Number(recurringDonation.id), {
       origin: RECURRING_DONATION_ORIGINS.DRAFT_RECURRING_DONATION_MATCHING,
+      status: RECURRING_DONATION_STATUS.PENDING,
     });
 
     await DraftRecurringDonation.update(draftRecurringDonation.id, {

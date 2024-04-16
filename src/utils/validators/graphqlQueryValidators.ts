@@ -146,6 +146,7 @@ export const createDraftDonationQueryValidator = Joi.object({
   safeTransactionId: Joi.string().allow(null, ''),
   chainType: Joi.string().required(),
 });
+
 export const createDraftRecurringDonationQueryValidator = Joi.object({
   networkId: Joi.number()
     .required()
@@ -153,8 +154,14 @@ export const createDraftRecurringDonationQueryValidator = Joi.object({
   currency: Joi.string().required(),
   flowRate: Joi.string().required(),
   projectId: Joi.number().integer().min(0).required(),
+  recurringDonationId: Joi.number().integer().min(0).when('isForUpdate', {
+    is: true,
+    then: Joi.required(),
+    otherwise: Joi.forbidden(),
+  }),
   anonymous: Joi.boolean(),
   isBatch: Joi.boolean(),
+  isForUpdate: Joi.boolean(),
   chainType: Joi.string().required(),
 });
 

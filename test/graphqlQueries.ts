@@ -59,16 +59,20 @@ export const createDraftRecurringDonationMutation = `
     $networkId: Float!
     $currency: String!
     $projectId: Float!
+    $recurringDonationId: Float
     $anonymous: Boolean
     $isBatch: Boolean
+    $isForUpdate: Boolean
     $flowRate: String!
   ) {
     createDraftRecurringDonation(
       networkId: $networkId
       currency: $currency
+      recurringDonationId: $recurringDonationId
       projectId: $projectId
       anonymous: $anonymous
       isBatch: $isBatch
+      isForUpdate: $isForUpdate
       flowRate: $flowRate
     )
   }

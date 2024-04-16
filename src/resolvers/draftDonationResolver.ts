@@ -20,6 +20,7 @@ import {
   DraftDonation,
 } from '../entities/draftDonation';
 import { DraftRecurringDonation } from '../entities/draftRecurringDonation';
+import { findRecurringDonationById } from '../repositories/recurringDonationRepository';
 
 const draftDonationEnabled = process.env.ENABLE_DRAFT_DONATION === 'true';
 const draftRecurringDonationEnabled =
@@ -166,6 +167,10 @@ export class DraftDonationResolver {
     anonymous: boolean,
     @Arg('projectId') projectId: number,
     @Ctx() ctx: ApolloContext,
+    @Arg('recurringDonationId', { nullable: true })
+    recurringDonationId?: number,
+    @Arg('isForUpdate', { nullable: true, defaultValue: false })
+    isForUpdate?: boolean,
   ): Promise<number> {
     const logData = {
       flowRate,
@@ -173,6 +178,8 @@ export class DraftDonationResolver {
       currency,
       anonymous,
       isBatch,
+      isForUpdate,
+      recurringDonationId,
       projectId,
       userId: ctx?.req?.user?.userId,
     };
@@ -205,6 +212,8 @@ export class DraftDonationResolver {
         isBatch,
         projectId,
         chainType,
+        isForUpdate,
+        recurringDonationId,
       };
       try {
         validateWithJoiSchema(
@@ -219,6 +228,15 @@ export class DraftDonationResolver {
         throw e; // Rethrow the original error
       }
 
+      if (recurringDonationId) {
+        const recurringDonation =
+          await findRecurringDonationById(recurringDonationId);
+        if (!recurringDonation || recurringDonation.donorId !== donorUser.id) {
+          throw new Error(
+            i18n.__(translationErrorMessagesKeys.RECURRING_DONATION_NOT_FOUND),
+          );
+        }
+      }
       if (chainType !== ChainType.EVM) {
         throw new Error(i18n.__(translationErrorMessagesKeys.EVM_SUPPORT_ONLY));
       }
@@ -235,14 +253,17 @@ export class DraftDonationResolver {
             donorId: donorUser.id,
             isBatch,
             projectId,
+            isForUpdate,
             anonymous: Boolean(anonymous),
             chainType: chainType as ChainType,
+            matchedRecurringDonationId: recurringDonationId,
           })
           .orIgnore()
           .returning('id')
           .execute();
 
       if (draftRecurringDonationId.raw.length === 0) {
+        // TODO unreached code, because we dont have any unique index on this table, so we need to think about it
         const existingDraftDonation = await DraftRecurringDonation.findOne({
           where: {
             networkId: _networkId,
